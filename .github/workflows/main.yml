@@ -28,9 +28,12 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      - name: Checkout repository
+      - name: Checkout latest default branch
         uses: actions/checkout@v7.0.1
         with:
+          # A queued workflow_dispatch retains the commit SHA from dispatch time.
+          # Resolve the default branch when the job actually starts instead.
+          ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
@@ -317,6 +320,25 @@ jobs:
             echo "::error::GitHub did not provide the repository default branch."
             exit 1
           fi
+
+          # Concurrency can queue this job after its dispatch event was created.
+          # Its event SHA may therefore be stale even when checkout uses the
+          # requested branch. Reconcile to the live remote head before any agent
+          # starts, while the worktree is expected to be pristine.
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "::error::Refusing startup sync because the checkout is not clean."
+            git status --short
+            exit 1
+          fi
+          if ! git fetch --prune origin "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"; then
+            echo "::error::Could not fetch the live default branch before starting Kilo."
+            exit 1
+          fi
+          if ! git checkout -B "$DEFAULT_BRANCH" "origin/$DEFAULT_BRANCH"; then
+            echo "::error::Could not reset the clean runner checkout to the live default branch."
+            exit 1
+          fi
+          echo "Synchronized worker base to current origin/$DEFAULT_BRANCH at $(git rev-parse HEAD)."
 
           agents="${KILO_INPUT_AGENTS:-1000}"
           if ! [[ "$agents" =~ ^[0-9]+$ ]]; then agents=1000; fi
