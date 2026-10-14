@@ -33,6 +33,7 @@ This repository is a self-evolving scaffolding project for autonomous agentic co
 - Project config: `kilo.json` at the repository root
 - Custom subagents: `.kilo/agent/*.md`
 - Custom commands: `.kilo/command/*.md`
+- Custom skills: `.kilo/skill/*.md`
 - Kilo permissions: `permission` key in `kilo.json`
 
 ## Available Subagents

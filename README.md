@@ -18,6 +18,7 @@ This repository provides a foundation for agentic coding projects. It includes:
 .kilo/                       # Kilo project configuration
   agent/                     # Custom subagents
   command/                   # Custom commands
+  skill/                      # Custom skills
 AGENTS.md                    # AI agent instructions
 kilo.json                    # Kilo project configuration
 ```
