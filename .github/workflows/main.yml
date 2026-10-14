@@ -296,6 +296,9 @@ jobs:
           chmod 600 "$XDG_CONFIG_HOME/kilo/kilo.json"
 
           cutoff_epoch=$(( $(date +%s) + 355 * 60 ))
+          # Reserve the final five minutes of the controller budget for checkpoint
+          # reconciliation, push, remote-SHA verification, and recovery artifacts.
+          checkpoint_reserve_seconds=300
           install_backoff=5
           while ! timeout --signal=TERM --kill-after=10s 180s npm install --no-audit --no-fund --prefix "$RUNNER_TEMP/kilo" @kilocode/cli@7.8.8; do
             remaining=$((cutoff_epoch - $(date +%s)))
@@ -350,14 +353,19 @@ jobs:
           command='Execute the task assigned by the previous agent and prepare a task for the next agent!'
 
           heartbeat() {
+            local heartbeat_sleep_pid=""
+            trap 'if [[ -n "$heartbeat_sleep_pid" ]]; then kill "$heartbeat_sleep_pid" 2>/dev/null || true; fi; exit 0' TERM INT
             while true; do
               printf '[heartbeat] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-              sleep 60
+              sleep 60 &
+              heartbeat_sleep_pid=$!
+              wait "$heartbeat_sleep_pid" || true
+              heartbeat_sleep_pid=""
             done
           }
           heartbeat &
           heartbeat_pid=$!
-          trap 'kill "$heartbeat_pid" 2>/dev/null || true; wait "$heartbeat_pid" 2>/dev/null || true' EXIT
+          trap 'kill -TERM "$heartbeat_pid" 2>/dev/null || true; wait "$heartbeat_pid" 2>/dev/null || true' EXIT
 
           session_started=0
           session_completed=0
@@ -533,9 +541,9 @@ jobs:
 
           for ((agent_index=1; agent_index<=agents; agent_index++)); do
             remaining=$((cutoff_epoch - $(date +%s)))
-            if (( remaining <= 0 )); then
+            if (( remaining <= checkpoint_reserve_seconds + 60 )); then
               final_phase="cutoff"
-              final_detail="355-minute cutoff reached before session ${agent_index}"
+              final_detail="cutoff reached with checkpoint reserve held before session ${agent_index}"
               break
             fi
             session_started=$((session_started + 1))
@@ -551,11 +559,16 @@ jobs:
 
             while true; do
               remaining=$((cutoff_epoch - $(date +%s)))
-              if (( remaining <= 0 )); then rc=124; break; fi
+              worker_budget=$((remaining - checkpoint_reserve_seconds))
+              if (( worker_budget < 60 )); then
+                rc=124
+                echo "::warning::Stopping worker attempts to preserve the final checkpoint budget."
+                break
+              fi
               attempt=$((attempt + 1))
               attempt_log="$RUNNER_TEMP/kilo-session-${agent_index}-attempt-${attempt}.log"
               set +e
-              timeout --signal=TERM --kill-after=10s "${remaining}s" \
+              timeout --signal=TERM --kill-after=10s "${worker_budget}s" \
                 python3 "$RUNNER_TEMP/kilo-idle-timeout.py" \
                 --idle-timeout-seconds "$idle_timeout" -- \
                 kilo run --model kilo/kilo-auto/free --auto "$command" \
