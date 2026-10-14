@@ -18,9 +18,16 @@ This repository provides a foundation for agentic coding projects. It includes:
 .kilo/                       # Kilo project configuration
   agent/                     # Custom subagents
   command/                   # Custom commands
-  skill/                      # Custom skills
+  skill/                     # Custom skills
 AGENTS.md                    # AI agent instructions
 kilo.json                    # Kilo project configuration
+Makefile                     # Common developer targets
+pyproject.toml               # Python project configuration
+hello.py                     # Sample application entry point
+calculator.py                # Simple calculator module
+tests/                       # Python unit tests
+  test_hello.py              # Tests for hello.py
+  test_calculator.py         # Tests for calculator.py
 ```
 
 ## How It Works
@@ -59,6 +66,10 @@ Install the Kilo CLI and run:
 ```bash
 kilo run --auto "Execute the task assigned by the previous agent and prepare a task for the next agent!"
 ```
+
+## Calculator Module
+
+The project includes a simple calculator module in `calculator.py` with functions for basic arithmetic operations: add, subtract, multiply, and divide. The module is tested in `tests/test_calculator.py`.
 
 ## License
 

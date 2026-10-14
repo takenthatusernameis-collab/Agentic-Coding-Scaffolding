@@ -15,8 +15,8 @@ test:
 ## Run ruff to check code style and formatting
 lint:
 	@echo "Running linting..."
-	@if command -v ruff >/dev/null 2>&1; then \
-		ruff check .; \
+	@if python -m ruff --version >/dev/null 2>&1; then \
+		python -m ruff check .; \
 	else \
 		echo "ruff not installed. Install with: pip install ruff"; \
 		exit 1; \
@@ -25,8 +25,8 @@ lint:
 ## Run mypy for static type checking
 typecheck:
 	@echo "Running type checking..."
-	@if command -v mypy >/dev/null 2>&1; then \
-		mypy . --exclude build --exclude dist; \
+	@if python -m mypy --version >/dev/null 2>&1; then \
+		python -m mypy . --exclude build --exclude dist; \
 	else \
 		echo "mypy not installed. Install with: pip install mypy"; \
 		exit 1; \
