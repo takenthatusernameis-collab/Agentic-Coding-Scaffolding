@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -294,7 +294,7 @@ jobs:
 
           cutoff_epoch=$(( $(date +%s) + 355 * 60 ))
           install_backoff=5
-          while ! timeout --signal=TERM --kill-after=10s 180s npm install --no-audit --no-fund --prefix "$RUNNER_TEMP/kilo" @kilocode/cli@7.7.1; do
+          while ! timeout --signal=TERM --kill-after=10s 180s npm install --no-audit --no-fund --prefix "$RUNNER_TEMP/kilo" @kilocode/cli@7.8.8; do
             remaining=$((cutoff_epoch - $(date +%s)))
             if (( remaining <= 0 )); then
               echo "::error::Kilo CLI could not be installed before the 355-minute cutoff."
@@ -329,7 +329,7 @@ jobs:
 
           heartbeat() {
             while true; do
-              printf '[heartbeat] %sZ\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              printf '[heartbeat] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
               sleep 60
             done
           }
@@ -365,11 +365,8 @@ jobs:
               elif ! git merge-base --is-ancestor "origin/$DEFAULT_BRANCH" HEAD; then
                 if ! git rebase --autostash "origin/$DEFAULT_BRANCH"; then
                   git rebase --abort >/dev/null 2>&1 || true
-                  echo "::warning::Rebase conflicted; trying a merge that preserves this runner's version of conflicting paths."
-                  if ! git merge --no-edit -X ours "origin/$DEFAULT_BRANCH"; then
-                    git merge --abort >/dev/null 2>&1 || true
-                    echo "::warning::Remote reconciliation failed on persistence attempt ${persistence_attempts}."
-                  fi
+                  echo "::error::Remote reconciliation hit conflicts; refusing an automatic conflict strategy that could discard remote work."
+                  return 1
                 fi
               fi
               if git merge-base --is-ancestor "origin/$DEFAULT_BRANCH" HEAD 2>/dev/null; then
@@ -405,6 +402,26 @@ jobs:
             git status --short > "$RUNNER_TEMP/kilo-recovery-status-${suffix}.txt" 2>/dev/null || true
           }
 
+          stage_safe_changes() {
+            local base_sha="$1" changed_path
+            # A plain add respects .gitignore. Negative pathspecs on `git add -A -- .`
+            # can make Git treat an ignored directory itself as an explicit path and
+            # fail the entire checkpoint (observed with __pycache__). Stage first,
+            # then unstage excluded paths one-by-one without deleting worker changes.
+            git add -A -- . || return 1
+            while IFS= read -r -d '' changed_path; do
+              case "$changed_path" in
+                .github/workflows/*|.venv/*|*/.venv/*|venv/*|*/venv/*|node_modules/*|*/node_modules/*|__pycache__/*|*/__pycache__/*|.pytest_cache/*|*/.pytest_cache/*|.mypy_cache/*|*/.mypy_cache/*|.ruff_cache/*|*/.ruff_cache/*|.tox/*|*/.tox/*|.env|.env.*|*/.env|*/.env.*|*.pyc|*.pyo|*.sqlite|*.sqlite3|*.db|*.sqlite-wal|*.sqlite-shm|*.sqlite3-wal|*.sqlite3-shm|*.db-wal|*.db-shm|*.tmp|coverage.xml|*/coverage.xml|.coverage|*/.coverage|kilo-session-*.log|*/kilo-session-*.log|kilo-progress-*.log|*/kilo-progress-*.log)
+                  if git cat-file -e "$base_sha:$changed_path" 2>/dev/null; then
+                    git restore --staged -- "$changed_path" || return 1
+                  else
+                    git rm --cached -q --ignore-unmatch -- "$changed_path" || return 1
+                  fi
+                  ;;
+              esac
+            done < <(git diff --cached --name-only -z)
+          }
+
           stage_and_checkpoint() {
             local base_sha="$1"
             local committed_this_iteration=0
@@ -413,25 +430,10 @@ jobs:
             # authorize workflow-file changes. Remove agent-created workflow files too.
             git restore --source="$base_sha" --staged --worktree -- .github/workflows >/dev/null 2>&1 || true
             git clean -fd -- .github/workflows >/dev/null 2>&1 || true
-            git add -A -- . \
-              ':(exclude).github/workflows/**' \
-              ':(exclude).git/**' \
-              ':(exclude).venv/**' ':(exclude)**/.venv/**' \
-              ':(exclude)venv/**' ':(exclude)**/venv/**' \
-              ':(exclude)node_modules/**' ':(exclude)**/node_modules/**' \
-              ':(exclude)__pycache__/**' ':(exclude)**/__pycache__/**' \
-              ':(exclude).pytest_cache/**' ':(exclude)**/.pytest_cache/**' \
-              ':(exclude).mypy_cache/**' ':(exclude)**/.mypy_cache/**' \
-              ':(exclude).ruff_cache/**' ':(exclude)**/.ruff_cache/**' \
-              ':(exclude).tox/**' ':(exclude)**/.tox/**' \
-              ':(exclude).env' ':(exclude).env.*' ':(exclude)**/.env' ':(exclude)**/.env.*' \
-              ':(exclude)**/*.pyc' ':(exclude)**/*.pyo' \
-              ':(exclude)**/*.sqlite' ':(exclude)**/*.sqlite3' ':(exclude)**/*.db' \
-              ':(exclude)**/*.sqlite-wal' ':(exclude)**/*.sqlite-shm' \
-              ':(exclude)**/*.sqlite3-wal' ':(exclude)**/*.sqlite3-shm' \
-              ':(exclude)**/*.db-wal' ':(exclude)**/*.db-shm' \
-              ':(exclude)**/*.tmp' ':(exclude)**/coverage.xml' ':(exclude)**/.coverage' \
-              ':(exclude)**/kilo-session-*.log' ':(exclude)**/kilo-progress-*.log' || return 1
+            if ! stage_safe_changes "$base_sha"; then
+              save_recovery_evidence "$base_sha"
+              return 1
+            fi
 
             # Repair whitespace in staged text files before failing the checkpoint.
             if ! git diff --cached --check; then
@@ -464,17 +466,11 @@ jobs:
                 git reset >/dev/null 2>&1 || true
                 return 1
               fi
-              git add -A -- . \
-                ':(exclude).github/workflows/**' ':(exclude).git/**' \
-                ':(exclude).venv/**' ':(exclude)**/.venv/**' ':(exclude)venv/**' ':(exclude)**/venv/**' \
-                ':(exclude)node_modules/**' ':(exclude)**/node_modules/**' \
-                ':(exclude)**/__pycache__/**' ':(exclude).pytest_cache/**' ':(exclude)**/.pytest_cache/**' \
-                ':(exclude).mypy_cache/**' ':(exclude)**/.mypy_cache/**' ':(exclude).ruff_cache/**' ':(exclude)**/.ruff_cache/**' \
-                ':(exclude).tox/**' ':(exclude)**/.tox/**' ':(exclude).env' ':(exclude).env.*' ':(exclude)**/.env' ':(exclude)**/.env.*' \
-                ':(exclude)**/*.pyc' ':(exclude)**/*.pyo' ':(exclude)**/*.sqlite' ':(exclude)**/*.sqlite3' ':(exclude)**/*.db' \
-                ':(exclude)**/*.sqlite-wal' ':(exclude)**/*.sqlite-shm' ':(exclude)**/*.sqlite3-wal' ':(exclude)**/*.sqlite3-shm' \
-                ':(exclude)**/*.db-wal' ':(exclude)**/*.db-shm' ':(exclude)**/*.tmp' ':(exclude)**/coverage.xml' ':(exclude)**/.coverage' \
-                ':(exclude)**/kilo-session-*.log' ':(exclude)**/kilo-progress-*.log' || return 1
+              if ! stage_safe_changes "$base_sha"; then
+                save_recovery_evidence "$base_sha"
+                git reset >/dev/null 2>&1 || true
+                return 1
+              fi
               if ! git diff --cached --check; then
                 echo "::error::Staged whitespace check still fails after normalization; saving recovery evidence."
                 save_recovery_evidence "$base_sha"
@@ -595,6 +591,9 @@ jobs:
             fi
 
             if ! stage_and_checkpoint "$base_sha"; then
+              mkdir -p "$RUNNER_TEMP/kilo-failure-logs"
+              tail -n 2000 "$session_log" > "$RUNNER_TEMP/kilo-failure-logs/checkpoint-failure-session-${agent_index}.log" || true
+              save_recovery_evidence "$base_sha"
               fatal_persistence=1
               final_phase="checkpoint-failure"
               final_detail="checkpoint validation or persistence failed for session ${agent_index}; recovery evidence was saved when possible"
@@ -639,12 +638,6 @@ jobs:
             fi
           done
 
-          if (( fatal_persistence == 1 )); then
-            echo "KILO_FINAL_PHASE=${final_phase}" >> "$GITHUB_OUTPUT"
-            echo "KILO_FINAL_DETAIL=${final_detail}" >> "$GITHUB_OUTPUT"
-            echo "KILO_PROJECT_PROGRESS=${project_progress}" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
           if (( $(date +%s) >= cutoff_epoch )); then
             final_phase="cutoff"
             final_detail="355-minute cutoff reached; the last completed checkpoint was verified"
@@ -658,7 +651,6 @@ jobs:
           echo "KILO_PROJECT_PROGRESS=${project_progress}" >> "$GITHUB_OUTPUT"
           echo "KILO_FINAL_PHASE=${final_phase}" >> "$GITHUB_OUTPUT"
           echo "KILO_FINAL_DETAIL=${final_detail}" >> "$GITHUB_OUTPUT"
-          echo "KILO_PROJECT_PROGRESS=${project_progress}" >> "$GITHUB_OUTPUT"
           {
             echo "## Kilo general-agent workflow summary"
             echo "- Sessions started: ${session_started}"
@@ -675,6 +667,10 @@ jobs:
             echo
             echo "A successful worker exit is not by itself proof of task correctness. Review the worker logs and persisted repository changes."
           } >> "$GITHUB_STEP_SUMMARY"
+          if (( fatal_persistence == 1 )); then
+            echo "::error::Checkpoint validation or persistence failed; see recovery artifacts and the summary above."
+            exit 1
+          fi
           if (( project_progress != 1 )); then
             echo "::error::No meaningful repository change was committed and verified in this activation."
             exit 1
@@ -683,7 +679,7 @@ jobs:
       - name: Upload Kilo failure logs
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: kilo-failure-logs-${{ github.run_id }}
           path: |
