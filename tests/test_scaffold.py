@@ -27,6 +27,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             capture_output=True,
             text=True,
             timeout=120,
+            check=False,
         )
         self.assertEqual(
             result.returncode,
@@ -105,6 +106,7 @@ class TestScaffoldProjectNameNormalization(unittest.TestCase):
             capture_output=True,
             text=True,
             timeout=120,
+            check=False,
         )
         self.assertEqual(
             result.returncode,

@@ -11,15 +11,19 @@ authors = [{ name = "kilo-autonomous", email = "kilo-autonomous@users.noreply.gi
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
+    "mypy>=1.8",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
 
-[tool.ruff]
-target-version = "py310"
-line-length = 88
-
-[tool.ruff.lint]
-select = ["E", "F", "W", "I"]
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+strict = false
+exclude = [
+    "build",
+    "dist",
+]
