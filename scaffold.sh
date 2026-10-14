@@ -521,7 +521,14 @@ README
 cat > "$OUTPUT_DIR/kilo.json" <<'KILOJSON'
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "permission": "allow"
+  "permission": "allow",
+  "agent": {
+    "scaffolder": {
+      "description": "Generates project scaffolding, templates, and boilerplate code for new features. Use when the task involves creating new files or project structure.",
+      "mode": "subagent",
+      "model": "kilo/kilo-auto/free"
+    }
+  }
 }
 KILOJSON
 
