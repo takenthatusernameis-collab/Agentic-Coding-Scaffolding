@@ -1,7 +1,7 @@
 # Makefile for Agentic Coding Scaffolding
 # Common developer commands for project management
 
-.PHONY: test lint typecheck run scaffold clean help
+.PHONY: test lint typecheck run scaffold clean help pre-commit-install pre-commit-run
 
 ## Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
 test:
@@ -42,6 +42,26 @@ scaffold:
 	@echo "Running scaffold.sh..."
 	@./scaffold.sh
 
+## Install pre-commit hooks into .git/hooks
+pre-commit-install:
+	@echo "Installing pre-commit hooks..."
+	@if command -v pre-commit >/dev/null 2>&1; then \
+		pre-commit install; \
+	else \
+		echo "pre-commit not installed. Install with: pip install pre-commit"; \
+		exit 1; \
+	fi
+
+## Run all pre-commit hooks against staged and tracked files
+pre-commit-run:
+	@echo "Running pre-commit hooks..."
+	@if command -v pre-commit >/dev/null 2>&1; then \
+		pre-commit run --all-files; \
+	else \
+		echo "pre-commit not installed. Install with: pip install pre-commit"; \
+		exit 1; \
+	fi
+
 ## Remove __pycache__, .pytest_cache, and other build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
@@ -64,3 +84,5 @@ help:
 	@echo "  scaffold   Scaffold a new project using scaffold.sh"
 	@echo "  clean      Remove build artifacts"
 	@echo "  help       Show this help message"
+	@echo "  pre-commit-install  Install pre-commit hooks into .git/hooks"
+	@echo "  pre-commit-run     Run all pre-commit hooks against tracked files"

@@ -18,6 +18,16 @@ dev = [
 testpaths = ["tests"]
 pythonpath = ["."]
 
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.mypy]
 python_version = "3.10"
 warn_return_any = true
