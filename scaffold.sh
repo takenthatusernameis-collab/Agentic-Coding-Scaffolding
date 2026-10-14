@@ -53,7 +53,7 @@ if [[ -d "$OUTPUT_DIR" ]]; then
     echo "Existing files will not be overwritten, but new files will be created." >&2
 fi
 
-mkdir -p "$OUTPUT_DIR"/{.github/workflows,.kilo/agent,.kilo/command,tests}
+mkdir -p "$OUTPUT_DIR"/{.github/workflows,.kilo/agent,.kilo/command,.kilo/skill,tests}
 
 # --- .github/workflows/main.yml ---
 cat > "$OUTPUT_DIR/.github/workflows/main.yml" <<'WORKFLOW'
@@ -330,6 +330,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `README.md` — project overview and getting-started guide
 - `kilo.json` — Kilo project configuration
 - `.kilo/agent/scaffolder.md` — subagent definition for scaffolding tasks
+- `.kilo/skill/scaffolding-helper.md` — sample skill definition
 - `.gitignore` — common ignore patterns
 - `Makefile` — common developer targets
 - `pyproject.toml` — Python project configuration
@@ -349,6 +350,22 @@ scaffold-project "My AI Project"
 scaffold-project my-cool-tool /tmp/projects/my-tool
 ```
 SCAFFOLD
+
+
+# --- .kilo/skill/scaffolding-helper.md ---
+cat > "$OUTPUT_DIR/.kilo/skill/scaffolding-helper.md" <<'SKILLSAMPLE'
+---
+name: scaffolding-helper
+description: Helps with project scaffolding tasks and maintaining scaffold templates
+---
+
+This is a sample skill for the scaffolding system. Skills provide specialized instructions and workflows for specific tasks.
+
+When using this skill:
+1. Follow the established project patterns
+2. Maintain consistency across scaffolded files
+3. Ensure generated code is well-documented
+SKILLSAMPLE
 
 # --- .kilo/.gitignore ---
 cat > "$OUTPUT_DIR/.kilo/.gitignore" <<'KILOGITIGNORE'
@@ -448,6 +465,7 @@ Each agent session runs with the prompt "Execute the task assigned by the previo
 .kilo/                       # Kilo project configuration
   agent/                     # Custom subagents
   command/                   # Custom commands
+  skill/                     # Custom skills
 AGENTS.md                    # AI agent instructions
 kilo.json                    # Kilo project configuration
 Makefile                     # Common developer targets (test, lint, run, clean, help)
