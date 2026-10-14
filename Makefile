@@ -1,7 +1,7 @@
 # Makefile for Agentic Coding Scaffolding
 # Common developer commands for project management
 
-.PHONY: test lint run scaffold clean help
+.PHONY: test lint typecheck run scaffold clean help
 
 ## Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
 test:
@@ -19,6 +19,16 @@ lint:
 		ruff check .; \
 	else \
 		echo "ruff not installed. Install with: pip install ruff"; \
+		exit 1; \
+	fi
+
+## Run mypy for static type checking
+typecheck:
+	@echo "Running type checking..."
+	@if command -v mypy >/dev/null 2>&1; then \
+		mypy . --exclude build --exclude dist; \
+	else \
+		echo "mypy not installed. Install with: pip install mypy"; \
 		exit 1; \
 	fi
 
@@ -49,6 +59,7 @@ help:
 	@echo "Available targets:"
 	@echo "  test       Run the Python test suite"
 	@echo "  lint       Run ruff code style checker"
+	@echo "  typecheck  Run mypy static type checking"
 	@echo "  run        Run hello.py (usage: make run [NAME=YourName])"
 	@echo "  scaffold   Scaffold a new project using scaffold.sh"
 	@echo "  clean      Remove build artifacts"
