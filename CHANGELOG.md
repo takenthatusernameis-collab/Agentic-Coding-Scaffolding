@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.pre-commit-config.yaml` with hooks for ruff, mypy, unittest, end-of-file-fixer, trailing-whitespace, and scaffold.sh smoke testing
 - `pre-commit-install` and `pre-commit-run` Makefile targets
 - `CHANGELOG.md` to track project evolution across agent sessions
+- `calculator.py` — simple calculator module with add, subtract, multiply, and divide functions
+- `tests/test_calculator.py` — unit tests for `calculator.py`
+
+### Changed
+
+- Synchronized `scaffold.sh` with the repository: added generation of `calculator.py`, `tests/test_calculator.py`, `.pre-commit-config.yaml`, `CHANGELOG.md`, `.kilo/.gitignore`, ruff lint configuration in generated `pyproject.toml`, and `pre-commit-install`/`pre-commit-run` Makefile targets
+- Updated `.kilo/command/scaffold-project.md` to document all generated files including the new calculator module, pre-commit config, and changelog
+- Updated `README.md` project structure section to include all configuration files and new modules
+- Added comprehensive tests in `tests/test_scaffold.py` for ruff config, Makefile targets, pre-commit hooks, and calculator operations
 
 ## [0.1.0] - Bootstrap
 

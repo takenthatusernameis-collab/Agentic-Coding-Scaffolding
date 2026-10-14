@@ -17,17 +17,26 @@ This repository provides a foundation for agentic coding projects. It includes:
 .github/workflows/main.yml   # CI workflow: Kilo agent loop
 .kilo/                       # Kilo project configuration
   agent/                     # Custom subagents
+    scaffolder.md            # Scaffolder subagent definition
   command/                   # Custom commands
+    handover.md              # Handover task command
+    scaffold-project.md      # Scaffold-project command
   skill/                     # Custom skills
+    scaffolding-helper.md    # Sample skill definition
+  .gitignore                 # Ignore patterns for .kilo directory
+.pre-commit-config.yaml      # Pre-commit hooks (ruff, mypy, tests, scaffold)
 AGENTS.md                    # AI agent instructions
+CHANGELOG.md                 # Changelog (Keep a Changelog format)
 kilo.json                    # Kilo project configuration
 Makefile                     # Common developer targets
-pyproject.toml               # Python project configuration
+pyproject.toml               # Python project configuration (pytest, ruff, mypy)
+scaffold.sh                  # Project scaffolding script
 hello.py                     # Sample application entry point
 calculator.py                # Simple calculator module
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
+  test_scaffold.py           # Tests for scaffold.sh
 ```
 
 ## How It Works

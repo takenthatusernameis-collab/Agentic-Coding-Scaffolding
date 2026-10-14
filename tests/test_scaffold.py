@@ -74,20 +74,51 @@ class TestScaffoldKiloJson(unittest.TestCase):
         expected = [
             "AGENTS.md",
             "README.md",
+            "CHANGELOG.md",
             "Makefile",
             "pyproject.toml",
             "hello.py",
+            "calculator.py",
             ".gitignore",
+            ".pre-commit-config.yaml",
+            ".kilo/.gitignore",
             ".kilo/agent/scaffolder.md",
             ".kilo/command/handover.md",
             ".kilo/command/scaffold-project.md",
             ".kilo/skill/scaffolding-helper.md",
             ".github/workflows/main.yml",
             "tests/test_hello.py",
+            "tests/test_calculator.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
             self.assertTrue(path.is_file(), f"Expected generated file missing: {rel}")
+
+    def test_pyproject_has_ruff_config(self) -> None:
+        content = (self.project_dir / "pyproject.toml").read_text()
+        self.assertIn("[tool.ruff]", content)
+        self.assertIn("[tool.ruff.lint]", content)
+        self.assertIn('select = ["E", "F", "I", "W"]', content)
+
+    def test_makefile_has_typecheck_and_pre_commit_targets(self) -> None:
+        content = (self.project_dir / "Makefile").read_text()
+        self.assertIn("typecheck:", content)
+        self.assertIn("pre-commit-install:", content)
+        self.assertIn("pre-commit-run:", content)
+
+    def test_pre_commit_config_is_valid(self) -> None:
+        content = (self.project_dir / ".pre-commit-config.yaml").read_text()
+        self.assertIn("ruff", content)
+        self.assertIn("mypy", content)
+        self.assertIn("unittest", content)
+        self.assertIn("scaffold-test", content)
+
+    def test_calculator_has_all_operations(self) -> None:
+        content = (self.project_dir / "calculator.py").read_text()
+        self.assertIn("def add(", content)
+        self.assertIn("def subtract(", content)
+        self.assertIn("def multiply(", content)
+        self.assertIn("def divide(", content)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

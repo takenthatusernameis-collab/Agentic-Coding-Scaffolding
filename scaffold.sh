@@ -174,12 +174,53 @@ kilo-progress-*.log
 *.tmp
 GITIGNORE
 
+# --- .pre-commit-config.yaml ---
+cat > "$OUTPUT_DIR/.pre-commit-config.yaml" <<'PRECOMMIT'
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+      - id: ruff-format
+      - id: check-toml
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: debug-statements
+      - id: check-merge-conflict
+      - id: check-added-large-files
+
+  - repo: local
+    hooks:
+      - id: typecheck
+        name: mypy
+        entry: mypy . --exclude build --exclude dist
+        language: system
+        types: [python]
+      - id: tests
+        name: pytest
+        entry: python -m unittest discover tests/
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: scaffold-test
+        name: scaffold.sh smoke test
+        entry: bash -c './scaffold.sh "__pre-commit-smoke__" /tmp/scaffold-pre-commit-smoke --no-test && rm -rf /tmp/scaffold-pre-commit-smoke'
+        language: system
+        pass_filenames: false
+        always_run: true
+PRECOMMIT
+
 # --- Makefile ---
     cat > "$OUTPUT_DIR/Makefile" <<MAKEFILE
 # Makefile for ${PROJECT_NAME}
 # Common developer commands for project management
 
-.PHONY: test lint typecheck run scaffold clean help
+.PHONY: test lint typecheck run scaffold clean help pre-commit-install pre-commit-run
 
 ## Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
 test:
@@ -220,6 +261,26 @@ scaffold:
 	@echo "Running scaffold.sh..."
 	@./scaffold.sh
 
+## Install pre-commit hooks into .git/hooks
+pre-commit-install:
+	@echo "Installing pre-commit hooks..."
+	@if command -v pre-commit >/dev/null 2>&1; then \\
+		pre-commit install; \\
+	else \\
+		echo "pre-commit not installed. Install with: pip install pre-commit"; \\
+		exit 1; \\
+	fi
+
+## Run all pre-commit hooks against tracked files
+pre-commit-run:
+	@echo "Running pre-commit hooks..."
+	@if command -v pre-commit >/dev/null 2>&1; then \\
+		pre-commit run --all-files; \\
+	else \\
+		echo "pre-commit not installed. Install with: pip install pre-commit"; \\
+		exit 1; \\
+	fi
+
 ## Remove __pycache__, .pytest_cache, and other build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
@@ -242,6 +303,8 @@ help:
 	@echo "  scaffold   Scaffold a new project using scaffold.sh"
 	@echo "  clean      Remove build artifacts"
 	@echo "  help       Show this help message"
+	@echo "  pre-commit-install  Install pre-commit hooks into .git/hooks"
+	@echo "  pre-commit-run     Run all pre-commit hooks against tracked files"
 MAKEFILE
 
 # --- pyproject.toml ---
@@ -275,6 +338,16 @@ exclude = [
     "build",
     "dist",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.format]
+docstring-code-format = true
 PYPROJECT
 
 # --- hello.py ---
@@ -326,6 +399,68 @@ if __name__ == '__main__':
     unittest.main()
 TESTHELLO
 
+# --- calculator.py ---
+cat > "$OUTPUT_DIR/calculator.py" <<'CALCULATOR'
+def add(a: float, b: float) -> float:
+    """Return the sum of a and b."""
+    return a + b
+
+def subtract(a: float, b: float) -> float:
+    """Return the difference of a and b."""
+    return a - b
+
+def multiply(a: float, b: float) -> float:
+    """Return the product of a and b."""
+    return a * b
+
+def divide(a: float, b: float) -> float:
+    """Return the quotient of a and b.
+
+    Raises:
+        ValueError: If b is zero.
+    """
+    if b == 0:
+        raise ValueError("Cannot divide by zero.")
+    return a / b
+CALCULATOR
+
+# --- tests/test_calculator.py ---
+cat > "$OUTPUT_DIR/tests/test_calculator.py" <<'TESTCALC'
+import unittest
+
+from calculator import add, divide, multiply, subtract
+
+
+class TestCalculator(unittest.TestCase):
+    def test_add(self):
+        self.assertEqual(add(2, 3), 5)
+        self.assertEqual(add(-1, 1), 0)
+        self.assertEqual(add(0, 0), 0)
+
+    def test_subtract(self):
+        self.assertEqual(subtract(5, 3), 2)
+        self.assertEqual(subtract(0, 5), -5)
+        self.assertEqual(subtract(-1, -1), 0)
+
+    def test_multiply(self):
+        self.assertEqual(multiply(3, 4), 12)
+        self.assertEqual(multiply(-2, 3), -6)
+        self.assertEqual(multiply(0, 5), 0)
+
+    def test_divide(self):
+        self.assertEqual(divide(10, 2), 5)
+        self.assertEqual(divide(9, 3), 3)
+        self.assertEqual(divide(-6, 3), -2)
+
+    def test_divide_by_zero(self):
+        with self.assertRaises(ValueError):
+            divide(5, 0)
+
+
+if __name__ == '__main__':
+    unittest.main()
+TESTCALC
+
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -354,26 +489,37 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `.github/workflows/main.yml` — CI workflow for the Kilo agent loop
 - `AGENTS.md` — AI agent instructions with task handover protocol
 - `README.md` — project overview and getting-started guide
-- `kilo.json` — Kilo project configuration
+- `CHANGELOG.md` — changelog following Keep a Changelog format
+- `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, tests, and scaffold smoke testing
+- `kilo.json` — Kilo project configuration with the `scaffolder` subagent
 - `.kilo/agent/scaffolder.md` — subagent definition for scaffolding tasks
+- `.kilo/command/handover.md` — handover command for task handoffs
+- `.kilo/command/scaffold-project.md` — scaffold-project command documentation
 - `.kilo/skill/scaffolding-helper.md` — sample skill definition
+- `.kilo/.gitignore` — ignore patterns for the .kilo directory
 - `.gitignore` — common ignore patterns
-- `Makefile` — common developer targets
-- `pyproject.toml` — Python project configuration
-- `hello.py` — sample application
-- `tests/test_hello.py` — unit tests
+- `Makefile` — common developer targets (test, lint, typecheck, run, scaffold, clean, help, pre-commit-install, pre-commit-run)
+- `pyproject.toml` — Python project configuration with pytest, ruff, and mypy settings
+- `hello.py` — sample application entry point
+- `calculator.py` — simple calculator module with arithmetic operations
+- `tests/test_hello.py` — unit tests for `hello.py`
+- `tests/test_calculator.py` — unit tests for `calculator.py`
 
 ## Usage
 
 ```bash
-scaffold-project <project-name> [output-dir]
+scaffold-project <project-name> [output-dir] [--no-test]
 ```
+
+After scaffolding, `scaffold.sh` runs a smoke test (unittest) in the new project
+to verify the generated files work. Pass `--no-test` to skip it.
 
 ## Examples
 
 ```bash
 scaffold-project "My AI Project"
 scaffold-project my-cool-tool /tmp/projects/my-tool
+scaffold-project my-cool-tool ./out --no-test
 ```
 SCAFFOLD
 
@@ -532,6 +678,41 @@ make lint
 
 MIT
 README
+
+# --- CHANGELOG.md ---
+cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Initial scaffold generated by scaffold.sh
+
+## [0.1.0] - Bootstrap
+
+### Added
+
+- \`hello.py\` — sample application entry point
+- \`tests/test_hello.py\` — unit tests for \`hello.py\`
+- \`scaffold.sh\` — project scaffolding script
+- \`AGENTS.md\` — agent instructions with task handover protocol
+- \`kilo.json\` — Kilo project configuration
+- \`Makefile\` — developer targets
+- \`pyproject.toml\` — Python project configuration
+- \`.gitignore\` — common ignore patterns
+- \`.kilo/agent/scaffolder.md\` — scaffolder subagent
+- \`.kilo/command/handover.md\` — handover command
+- \`.kilo/command/scaffold-project.md\` — scaffold-project command
+- \`.kilo/skill/scaffolding-helper.md\` — sample skill
+- \`.github/workflows/main.yml\` — CI workflow for Kilo agent loop
+- \`README.md\` — project overview
+CHANGELOG
 
 # --- kilo.json ---
 cat > "$OUTPUT_DIR/kilo.json" <<'KILOJSON'
