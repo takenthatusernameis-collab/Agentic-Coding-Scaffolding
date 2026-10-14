@@ -53,7 +53,7 @@ if [[ -d "$OUTPUT_DIR" ]]; then
     echo "Existing files will not be overwritten, but new files will be created." >&2
 fi
 
-mkdir -p "$OUTPUT_DIR"/{.github/workflows,.kilo/agent,tests}
+mkdir -p "$OUTPUT_DIR"/{.github/workflows,.kilo/agent,.kilo/command,tests}
 
 # --- .github/workflows/main.yml ---
 cat > "$OUTPUT_DIR/.github/workflows/main.yml" <<'WORKFLOW'
@@ -300,8 +300,70 @@ if __name__ == '__main__':
     unittest.main()
 TESTHELLO
 
+# --- .kilo/command/handover.md ---
+cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
+---
+description: Prepare and post the next task for the following agent
+---
+
+Prepare and post the next task for the following agent.
+
+1. Review the current state of the repository.
+2. Check the shared Kilo board (`board_read`) for context.
+3. Identify what the next agent should work on based on the current repository state and any incomplete tasks.
+4. Post a clear, specific task to the board using `board_post` to `main` with type `INFO`.
+5. The task should be actionable, focused, and build on work already done or identified gaps.
+
+When you are done, ensure all work results in committed changes (non-workflow files) so the CI checkpoint can verify meaningful project progress.
+HANDOVER
+
+# --- .kilo/command/scaffold-project.md ---
+cat > "$OUTPUT_DIR/.kilo/command/scaffold-project.md" <<'SCAFFOLD'
+---
+description: Scaffold a new project structure for agentic coding
+---
+
+Generate scaffolding files for a new agentic coding project. This command creates:
+
+- `.github/workflows/main.yml` — CI workflow for the Kilo agent loop
+- `AGENTS.md` — AI agent instructions with task handover protocol
+- `README.md` — project overview and getting-started guide
+- `kilo.json` — Kilo project configuration
+- `.kilo/agent/scaffolder.md` — subagent definition for scaffolding tasks
+- `.gitignore` — common ignore patterns
+- `Makefile` — common developer targets
+- `pyproject.toml` — Python project configuration
+- `hello.py` — sample application
+- `tests/test_hello.py` — unit tests
+
+## Usage
+
+```bash
+scaffold-project <project-name> [output-dir]
+```
+
+## Examples
+
+```bash
+scaffold-project "My AI Project"
+scaffold-project my-cool-tool /tmp/projects/my-tool
+```
+SCAFFOLD
+
+# --- .kilo/.gitignore ---
+cat > "$OUTPUT_DIR/.kilo/.gitignore" <<'KILOGITIGNORE'
+node_modules
+package.json
+package-lock.json
+pnpm-lock.yaml
+bun.lock
+yarn.lock
+.gitignore
+agent-manager.json
+KILOGITIGNORE
+
 # --- AGENTS.md ---
-cat > "$OUTPUT_DIR/AGENTS.md" <<AGENTS
+cat > "$OUTPUT_DIR/AGENTS.md" <<'AGENTS'
 # Agent Instructions
 
 Project: ${PROJECT_NAME}
@@ -312,27 +374,44 @@ ${PROJECT_NAME} is an autonomous agentic coding project powered by Kilo. A GitHu
 
 ## Task Handover Protocol
 
-1. Check the shared Kilo board (\`board_read\`) for any messages from the previous agent
+1. Check the shared Kilo board (`board_read`) for any messages from the previous agent
 2. If a task is found, execute it
 3. If no task is found (bootstrap session), establish the project foundation
-4. Post a new task for the next agent via \`board_post\` to \`main\`
+4. Post a new task for the next agent via `board_post` to `main`
 5. Ensure all work results in committed changes (non-workflow files) for the CI checkpoint
 
 ## Workflow Rules
 
-- The CI workflow excludes \`.github/workflows/**\` from the project progress check
-- Only changes to files outside \`.github/workflows/\` count as "meaningful project progress"
-- Do NOT modify \`.github/workflows/\` files unless you are bootstrapping
+- The CI workflow excludes `.github/workflows/**` from the project progress check
+- Only changes to files outside `.github/workflows/` count as "meaningful project progress"
+- Do NOT modify `.github/workflows/` files unless you are bootstrapping
 
 ## Developer Commands
 
 Use the following Makefile targets during development:
 
-- \`make test\` — Run the Python test suite
-- \`make lint\` — Run ruff code style checker
-- \`make run\` — Run hello.py (\`make run NAME=Alice\`)
-- \`make clean\` — Remove build artifacts
-- \`make help\` — Show all available targets
+- `make test` — Run the Python test suite
+- `make lint` — Run ruff code style checker
+- `make run` — Run hello.py (`make run NAME=Alice`)
+- `make clean` — Remove build artifacts
+- `make help` — Show all available targets
+
+## Agent Configuration
+
+- Project config: `kilo.json` at the repository root
+- Custom subagents: `.kilo/agent/*.md`
+- Custom commands: `.kilo/command/*.md`
+- Kilo permissions: `permission` key in `kilo.json`
+
+## Available Subagents
+
+- `scaffolder` - A subagent for generating project scaffolding and templates
+- `explore` (built-in) - Read-only codebase exploration
+
+## Available Commands
+
+- `scaffold-project` - Scaffold a new project structure
+- `handover` - Prepare and post the next task for the following agent
 
 ## Coding Conventions
 
@@ -343,7 +422,7 @@ Use the following Makefile targets during development:
 
 ## Notes
 
-- This project uses the \`kilo/kilo-auto/free\` model
+- This project uses the `kilo/kilo-auto/free` model
 - Sessions have an idle timeout of 900 seconds
 - The overall CI job has a 355-minute safety cutoff
 AGENTS
