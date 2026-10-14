@@ -5,7 +5,6 @@ verify that the generated project configuration is complete and consistent.
 """
 
 import json
-import os
 import shutil
 import subprocess
 import tempfile
@@ -32,7 +31,10 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertEqual(
             result.returncode,
             0,
-            msg=f"scaffold.sh failed:\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+            msg=(
+                f"scaffold.sh failed:\nstdout:\n{result.stdout}\n"
+                f"stderr:\n{result.stderr}"
+            ),
         )
 
     def tearDown(self) -> None:

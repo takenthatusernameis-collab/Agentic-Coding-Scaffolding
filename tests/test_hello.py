@@ -1,6 +1,7 @@
+import io
 import unittest
 from unittest.mock import patch
-import io
+
 from hello import main
 
 
