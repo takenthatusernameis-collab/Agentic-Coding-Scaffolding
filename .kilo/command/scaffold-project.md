@@ -14,12 +14,16 @@ Generate scaffolding files for a new agentic coding project. This command create
 ## Usage
 
 ```bash
-scaffold-project <project-name> [output-dir]
+scaffold-project <project-name> [output-dir] [--no-test]
 ```
+
+After scaffolding, `scaffold.sh` runs a smoke test (unittest) in the new project
+to verify the generated files work. Pass `--no-test` to skip it.
 
 ## Examples
 
 ```bash
 scaffold-project "My AI Project"
 scaffold-project my-cool-tool /tmp/projects/my-tool
+scaffold-project my-cool-tool ./out --no-test
 ```

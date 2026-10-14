@@ -20,25 +20,30 @@ set -euo pipefail
 
 usage() {
     cat <<EOF
-Usage: $0 <project-name> [output-dir]
+Usage: $0 <project-name> [output-dir] [--no-test]
 
 Arguments:
   project-name   Name for the new project (used in README, etc.)
   output-dir     Destination directory (default: ./<project-name>)
+  --no-test      Skip the post-scaffold smoke test (default: run it)
 
 Examples:
   $0 my-new-project
   $0 "My Project" /tmp/projects/my-project
+  $0 my-new-project ./out --no-test
 EOF
     exit 1
 }
 
 if [[ $# -lt 1 ]]; then
-    usage
+  usage
+fi
+
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+  usage
 fi
 
 PROJECT_NAME="$1"
-OUTPUT_DIR="${2:-./${PROJECT_NAME}}"
 
 # Normalize project name for use as a directory identifier
 PROJECT_ID=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | tr -s ' ' '-' | tr -cd 'a-z0-9-')
@@ -46,6 +51,12 @@ PROJECT_ID=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | tr -s ' ' '-' |
 if [[ -z "$PROJECT_ID" ]]; then
     echo "Error: Could not normalize project name '$PROJECT_NAME' to a valid identifier." >&2
     exit 1
+fi
+
+OUTPUT_DIR="${2:-./${PROJECT_ID}}"
+SMOKE_TEST=1
+if [[ "${2:-}" == "--no-test" ]]; then
+  SMOKE_TEST=0
 fi
 
 if [[ -d "$OUTPUT_DIR" ]]; then
@@ -537,6 +548,19 @@ echo "Scaffolded project '$PROJECT_NAME' at: $OUTPUT_DIR"
 echo ""
 echo "Created files:"
 find "$OUTPUT_DIR" -type f | sort | sed "s/^/  /"
+echo ""
+
+if [[ "$SMOKE_TEST" == "1" ]] && command -v python >/dev/null 2>&1; then
+  echo "Running smoke test in $OUTPUT_DIR ..."
+  if (cd "$OUTPUT_DIR" && python -m unittest discover tests/ -v); then
+    echo "Smoke test passed."
+  else
+    echo "Warning: smoke test failed. The scaffold may be incomplete." >&2
+  fi
+else
+  echo "Smoke test skipped (pass --no-test to skip intentionally)."
+fi
+
 echo ""
 echo "Next steps:"
 echo "  cd $OUTPUT_DIR"
