@@ -8,13 +8,20 @@
 #   - GitHub Actions workflow (Kilo agent loop)
 #   - AGENTS.md with project-specific instructions
 #   - README.md for the new project
-#   - kilo.json configuration
-#   - .kilo/agent/scaffolder.md subagent definition
+#   - CHANGELOG.md following Keep a Changelog format
+#   - .pre-commit-config.yaml with ruff, mypy, unittest, and scaffold hooks
+#   - kilo.json configuration with the scaffolder subagent
+#   - .kilo/agent/scaffolder.md, .kilo/command/handover.md,
+#     .kilo/command/scaffold-project.md, .kilo/skill/scaffolding-helper.md
+#   - .kilo/.gitignore
 #   - .gitignore
-#   - Makefile with common developer targets (test, lint, run, clean, help)
+#   - Makefile with common developer targets (test, lint, typecheck, run,
+#     scaffold, clean, help, pre-commit-install, pre-commit-run)
 #   - pyproject.toml for Python project configuration and dependencies
 #   - hello.py sample application entry point
+#   - calculator.py simple calculator module with arithmetic operations
 #   - tests/test_hello.py unit tests for the sample application
+#   - tests/test_calculator.py unit tests for the calculator module
 #
 set -euo pipefail
 
@@ -53,11 +60,29 @@ if [[ -z "$PROJECT_ID" ]]; then
     exit 1
 fi
 
-OUTPUT_DIR="${2:-./${PROJECT_ID}}"
 SMOKE_TEST=1
-if [[ "${2:-}" == "--no-test" ]]; then
-  SMOKE_TEST=0
-fi
+OUTPUT_DIR=""
+shift
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --no-test)
+            SMOKE_TEST=0
+            ;;
+        -h|--help)
+            usage
+            ;;
+        *)
+            if [[ -z "$OUTPUT_DIR" ]]; then
+                OUTPUT_DIR="$1"
+            else
+                echo "Warning: Unexpected argument '$1'" >&2
+            fi
+            ;;
+    esac
+    shift
+done
+
+OUTPUT_DIR="${OUTPUT_DIR:-./${PROJECT_ID}}"
 
 if [[ -d "$OUTPUT_DIR" ]]; then
     echo "Warning: Output directory '$OUTPUT_DIR' already exists." >&2
@@ -639,13 +664,20 @@ Each agent session runs with the prompt "Execute the task assigned by the previo
   agent/                     # Custom subagents
   command/                   # Custom commands
   skill/                     # Custom skills
+  .gitignore                 # Ignore patterns for .kilo directory
 AGENTS.md                    # AI agent instructions
+README.md                    # Project overview and getting started guide
+CHANGELOG.md                 # Changelog (Keep a Changelog format)
+.pre-commit-config.yaml      # Pre-commit hooks (ruff, mypy, tests, scaffold)
 kilo.json                    # Kilo project configuration
-Makefile                     # Common developer targets (test, lint, run, clean, help)
-pyproject.toml               # Python project configuration and dependencies
+Makefile                     # Common developer targets (test, lint, typecheck, run, scaffold, clean, help, pre-commit-install, pre-commit-run)
+pyproject.toml               # Python project configuration (pytest, ruff, mypy)
 hello.py                     # Sample application entry point
+calculator.py                # Simple calculator module with arithmetic operations
+.gitignore                   # Common ignore patterns
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
+  test_calculator.py         # Tests for calculator.py
 \`\`\`
 
 ## Developer Commands
@@ -654,12 +686,15 @@ This project includes a \`Makefile\` with the following targets:
 
 | Target    | Description                              |
 |-----------|------------------------------------------|
-| \`make test\`    | Run the Python test suite with pytest    |
-| \`make lint\`    | Run ruff code style checker              |
-| \`make run\`     | Run hello.py (\`make run NAME=Alice\`)   |
-| \`make scaffold\`| Run scaffold.sh to scaffold a new project|
-| \`make clean\`   | Remove build artifacts                   |
-| \`make help\`    | Show all available targets               |
+| \`make test\`             | Run the Python test suite with pytest    |
+| \`make lint\`             | Run ruff code style checker              |
+| \`make typecheck\`        | Run mypy static type checking            |
+| \`make run\`              | Run hello.py (\`make run NAME=Alice\`)      |
+| \`make scaffold\`         | Run scaffold.sh to scaffold a new project |
+| \`make clean\`            | Remove build artifacts                    |
+| \`make help\`             | Show all available targets                |
+| \`make pre-commit-install\` | Install pre-commit hooks               |
+| \`make pre-commit-run\`   | Run all pre-commit hooks                  |
 
 ## Getting Started
 
@@ -670,8 +705,9 @@ make run
 # Run tests
 make test
 
-# Check code style
+# Check code style and types
 make lint
+make typecheck
 \`\`\`
 
 ## License
@@ -710,8 +746,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`.kilo/command/handover.md\` — handover command
 - \`.kilo/command/scaffold-project.md\` — scaffold-project command
 - \`.kilo/skill/scaffolding-helper.md\` — sample skill
+- \`.kilo/.gitignore\` — ignore patterns for the .kilo directory
 - \`.github/workflows/main.yml\` — CI workflow for Kilo agent loop
 - \`README.md\` — project overview
+- \`CHANGELOG.md\` — changelog following Keep a Changelog format
+- \`.pre-commit-config.yaml\` — pre-commit hooks for ruff, mypy, tests, and scaffold
+- \`calculator.py\` — simple calculator module with arithmetic operations
+- \`tests/test_calculator.py\` — unit tests for \`calculator.py\`
 CHANGELOG
 
 # --- kilo.json ---

@@ -120,6 +120,30 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertIn("def multiply(", content)
         self.assertIn("def divide(", content)
 
+    def test_readme_contains_calculator_and_new_files(self) -> None:
+        """README.md should document all generated modules and config files."""
+        content = (self.project_dir / "README.md").read_text()
+        self.assertIn("calculator.py", content)
+        self.assertIn("CHANGELOG.md", content)
+        self.assertIn(".pre-commit-config.yaml", content)
+        self.assertIn("Ignore patterns for .kilo directory", content)
+        self.assertIn("test_calculator.py", content)
+
+    def test_readme_makefile_table_includes_all_targets(self) -> None:
+        """README Makefile table must include typecheck and pre-commit targets."""
+        content = (self.project_dir / "README.md").read_text()
+        self.assertIn("make typecheck", content)
+        self.assertIn("make pre-commit-install", content)
+        self.assertIn("make pre-commit-run", content)
+
+    def test_changelog_lists_new_files(self) -> None:
+        """Generated CHANGELOG.md should mention the new modules and config."""
+        content = (self.project_dir / "CHANGELOG.md").read_text()
+        self.assertIn("calculator.py", content)
+        self.assertIn(".pre-commit-config.yaml", content)
+        self.assertIn("CHANGELOG.md", content)
+        self.assertIn(".kilo/.gitignore", content)
+
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):
     """Verify project names are normalized into safe identifiers."""
@@ -160,6 +184,54 @@ class TestScaffoldProjectNameNormalization(unittest.TestCase):
         for line in content.splitlines():
             if line.startswith("name = "):
                 self.assertRegex(line, r'name = "[a-z0-9-]+"')
+
+
+class TestScaffoldNoTestFlag(unittest.TestCase):
+    """Verify the --no-test flag is parsed correctly in various positions."""
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp(prefix="scaffold-notest-"))
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_no_test_as_third_arg_skips_smoke_test(self) -> None:
+        out = self.tmp / "project"
+        result = subprocess.run(
+            ["bash", str(SCAFFOLD), "My Project", str(out), "--no-test"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=True,
+        )
+        self.assertIn("Smoke test skipped", result.stdout)
+
+    def test_no_test_without_output_dir_skips_smoke_test(self) -> None:
+        out = self.tmp / "my-project"
+        result = subprocess.run(
+            ["bash", str(SCAFFOLD), "My Project", "--no-test"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            cwd=str(self.tmp),
+            check=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Smoke test skipped", result.stdout)
+        # Output dir defaults to ./<project-id> relative to cwd.
+        self.assertTrue((out / "pyproject.toml").is_file())
+
+    def test_no_test_as_third_arg_does_not_set_output_dir(self) -> None:
+        out = self.tmp / "project"
+        subprocess.run(
+            ["bash", str(SCAFFOLD), "My Project", str(out), "--no-test"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=True,
+        )
+        # The output dir should be the real path, not "--no-test".
+        self.assertTrue((out / "pyproject.toml").is_file())
 
 
 if __name__ == "__main__":
