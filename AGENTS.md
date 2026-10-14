@@ -46,6 +46,20 @@ This repository is a self-evolving scaffolding project for autonomous agentic co
 - `scaffold-project` - Scaffold a new project structure
 - `handover` - Prepare and post the next task for the following agent
 
+## Developer Commands
+
+Use the following Makefile targets during development:
+
+- `make test` - Run the Python test suite
+- `make lint` - Run ruff code style checker
+- `make typecheck` - Run mypy static type checking
+- `make run` - Run hello.py (`make run NAME=Alice`)
+- `make scaffold` - Scaffold a new project using scaffold.sh
+- `make pre-commit-install` - Install pre-commit hooks into .git/hooks
+- `make pre-commit-run` - Run all pre-commit hooks against tracked files
+- `make clean` - Remove build artifacts
+- `make help` - Show all available targets
+
 ## Notes
 
 - This project uses the `kilo/kilo-auto/free` model

@@ -259,8 +259,8 @@ test:
 ## Run ruff to check code style and formatting
 lint:
 	@echo "Running linting..."
-	@if command -v ruff >/dev/null 2>&1; then \\
-		ruff check .; \\
+	@if python -m ruff --version >/dev/null 2>&1; then \\
+		python -m ruff check .; \\
 	else \\
 		echo "ruff not installed. Install with: pip install ruff"; \\
 		exit 1; \\
@@ -269,8 +269,8 @@ lint:
 ## Run mypy for static type checking
 typecheck:
 	@echo "Running type checking..."
-	@if command -v mypy >/dev/null 2>&1; then \\
-		mypy . --exclude build --exclude dist; \\
+	@if python -m mypy --version >/dev/null 2>&1; then \\
+		python -m mypy . --exclude build --exclude dist; \\
 	else \\
 		echo "mypy not installed. Install with: pip install mypy"; \\
 		exit 1; \\
@@ -598,7 +598,7 @@ ${PROJECT_NAME} is an autonomous agentic coding project powered by Kilo. A GitHu
 
 - The CI workflow excludes `.github/workflows/**` from the project progress check
 - Only changes to files outside `.github/workflows/` count as "meaningful project progress"
-- Do NOT modify `.github/workflows/` files unless you are bootstrapping
+- Do NOT modify `.github/workflows/` files — they are maintainer-managed
 
 ## Developer Commands
 
@@ -608,6 +608,9 @@ Use the following Makefile targets during development:
 - `make lint` — Run ruff code style checker
 - `make typecheck` — Run mypy static type checking
 - `make run` — Run hello.py (`make run NAME=Alice`)
+- `make scaffold` — Scaffold a new project using scaffold.sh
+- `make pre-commit-install` — Install pre-commit hooks into .git/hooks
+- `make pre-commit-run` — Run all pre-commit hooks against tracked files
 - `make clean` — Remove build artifacts
 - `make help` — Show all available targets
 
@@ -782,10 +785,12 @@ You are a scaffolding specialist subagent. Your purpose is to generate project s
 
 When invoked:
 
-1. Analyze the requested scaffolding need
-2. Generate clean, well-structured files following existing patterns
-3. Create a README or notes file explaining what was scaffolded
+1. Analyze the requested scaffolding need (new project template, CI workflow, documentation structure, agent configuration, etc.)
+2. Generate clean, well-structured files following existing patterns in the repository
+3. Create a README or notes file explaining what was scaffolded and how to use it
 4. Follow the coding conventions defined in AGENTS.md
+
+Always match the existing file patterns, naming conventions, and documentation style already established in the repository.
 AGENT
 
 echo ""
