@@ -11,6 +11,10 @@
 #   - kilo.json configuration
 #   - .kilo/agent/scaffolder.md subagent definition
 #   - .gitignore
+#   - Makefile with common developer targets (test, lint, run, clean, help)
+#   - pyproject.toml for Python project configuration and dependencies
+#   - hello.py sample application entry point
+#   - tests/test_hello.py unit tests for the sample application
 #
 set -euo pipefail
 
@@ -49,7 +53,7 @@ if [[ -d "$OUTPUT_DIR" ]]; then
     echo "Existing files will not be overwritten, but new files will be created." >&2
 fi
 
-mkdir -p "$OUTPUT_DIR"/{.github/workflows,.kilo/agent}
+mkdir -p "$OUTPUT_DIR"/{.github/workflows,.kilo/agent,tests}
 
 # --- .github/workflows/main.yml ---
 cat > "$OUTPUT_DIR/.github/workflows/main.yml" <<'WORKFLOW'
@@ -159,6 +163,143 @@ kilo-progress-*.log
 *.tmp
 GITIGNORE
 
+# --- Makefile ---
+cat > "$OUTPUT_DIR/Makefile" <<MAKEFILE
+# Makefile for ${PROJECT_NAME}
+# Common developer commands for project management
+
+.PHONY: test lint run scaffold clean help
+
+## Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
+test:
+	@echo "Running tests..."
+	@if command -v pytest >/dev/null 2>&1; then \\
+		pytest tests/ -v; \\
+	else \\
+		python -m unittest discover tests/ -v; \\
+	fi
+
+## Run ruff to check code style and formatting
+lint:
+	@echo "Running linting..."
+	@if command -v ruff >/dev/null 2>&1; then \\
+		ruff check .; \\
+	else \\
+		echo "ruff not installed. Install with: pip install ruff"; \\
+		exit 1; \\
+	fi
+
+## Run hello.py with an optional name argument (e.g., make run or make run NAME=Alice)
+run:
+	@echo "Running hello.py..."
+	@python hello.py \$(NAME)
+
+## Invoke scaffold.sh to scaffold a new project
+scaffold:
+	@echo "Running scaffold.sh..."
+	@./scaffold.sh
+
+## Remove __pycache__, .pytest_cache, and other build artifacts
+clean:
+	@echo "Cleaning build artifacts..."
+	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
+	@find . -type f -name "*.pyc" -delete 2>/dev/null || true
+	@find . -type f -name "*.pyo" -delete 2>/dev/null || true
+	@find . -type f -name ".coverage" -delete 2>/dev/null || true
+	@find . -type f -name "coverage.xml" -delete 2>/dev/null || true
+
+## Print usage information for all available targets
+help:
+	@echo "Available targets:"
+	@echo "  test       Run the Python test suite"
+	@echo "  lint       Run ruff code style checker"
+	@echo "  run        Run hello.py (usage: make run [NAME=YourName])"
+	@echo "  scaffold   Scaffold a new project using scaffold.sh"
+	@echo "  clean      Remove build artifacts"
+	@echo "  help       Show this help message"
+MAKEFILE
+
+# --- pyproject.toml ---
+cat > "$OUTPUT_DIR/pyproject.toml" <<PYPROJECT
+[project]
+name = "${PROJECT_ID}"
+version = "0.1.0"
+description = "A project scaffolded for autonomous agentic coding with Kilo."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "kilo-autonomous", email = "kilo-autonomous@users.noreply.github.com" }]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+PYPROJECT
+
+# --- hello.py ---
+cat > "$OUTPUT_DIR/hello.py" <<'HELLO'
+import sys
+
+
+def main(name: str = "World") -> None:
+    """Print a greeting for the given name.
+
+    Args:
+        name: The name to greet. Defaults to "World".
+    """
+    print(f"Hello, {name}!")
+
+
+if __name__ == "__main__":
+    cli_name = sys.argv[1] if len(sys.argv) > 1 else "World"
+    main(cli_name)
+HELLO
+
+# --- tests/test_hello.py ---
+cat > "$OUTPUT_DIR/tests/test_hello.py" <<'TESTHELLO'
+import io
+import unittest
+from unittest.mock import patch
+
+from hello import main
+
+
+class TestHello(unittest.TestCase):
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_main_prints_hello_world(self, mock_stdout):
+        main()
+        self.assertEqual(mock_stdout.getvalue().strip(), "Hello, World!")
+
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_main_prints_hello_alice(self, mock_stdout):
+        main("Alice")
+        self.assertEqual(mock_stdout.getvalue().strip(), "Hello, Alice!")
+
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_main_prints_hello_with_custom_name(self, mock_stdout):
+        main("Bob")
+        self.assertEqual(mock_stdout.getvalue().strip(), "Hello, Bob!")
+
+
+if __name__ == '__main__':
+    unittest.main()
+TESTHELLO
+
 # --- AGENTS.md ---
 cat > "$OUTPUT_DIR/AGENTS.md" <<AGENTS
 # Agent Instructions
@@ -182,6 +323,16 @@ ${PROJECT_NAME} is an autonomous agentic coding project powered by Kilo. A GitHu
 - The CI workflow excludes \`.github/workflows/**\` from the project progress check
 - Only changes to files outside \`.github/workflows/\` count as "meaningful project progress"
 - Do NOT modify \`.github/workflows/\` files unless you are bootstrapping
+
+## Developer Commands
+
+Use the following Makefile targets during development:
+
+- \`make test\` — Run the Python test suite
+- \`make lint\` — Run ruff code style checker
+- \`make run\` — Run hello.py (\`make run NAME=Alice\`)
+- \`make clean\` — Remove build artifacts
+- \`make help\` — Show all available targets
 
 ## Coding Conventions
 
@@ -220,6 +371,37 @@ Each agent session runs with the prompt "Execute the task assigned by the previo
   command/                   # Custom commands
 AGENTS.md                    # AI agent instructions
 kilo.json                    # Kilo project configuration
+Makefile                     # Common developer targets (test, lint, run, clean, help)
+pyproject.toml               # Python project configuration and dependencies
+hello.py                     # Sample application entry point
+tests/                       # Python unit tests
+  test_hello.py              # Tests for hello.py
+\`\`\`
+
+## Developer Commands
+
+This project includes a \`Makefile\` with the following targets:
+
+| Target    | Description                              |
+|-----------|------------------------------------------|
+| \`make test\`    | Run the Python test suite with pytest    |
+| \`make lint\`    | Run ruff code style checker              |
+| \`make run\`     | Run hello.py (\`make run NAME=Alice\`)   |
+| \`make scaffold\`| Run scaffold.sh to scaffold a new project|
+| \`make clean\`   | Remove build artifacts                   |
+| \`make help\`    | Show all available targets               |
+
+## Getting Started
+
+\`\`\`bash
+# Run the sample application
+make run
+
+# Run tests
+make test
+
+# Check code style
+make lint
 \`\`\`
 
 ## License
