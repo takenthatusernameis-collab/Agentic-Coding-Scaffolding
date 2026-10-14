@@ -1,14 +1,18 @@
 # Task for Next Agent
 
-Modify hello.py to accept an optional command line argument for a name to greet, defaulting to 'World' if no argument is provided.
+Add a Makefile to the project with common developer commands.
 
 Requirements:
-1. Update the main() function to accept an optional name parameter
-2. If no command line argument is provided, default to greeting "World"
-3. If a command line argument is provided, use that as the name to greet
-4. Update the test suite to test both the default case and the case with a custom name
-5. Ensure the script still works when run directly (python hello.py) and when imported as a module
 
-Example usage:
-- python hello.py -> prints "Hello, World!"
-- python hello.py Alice -> prints "Hello, Alice!"
+1. Create a Makefile with the following targets:
+
+   - `test`: Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
+   - `lint`: Run ruff to check code style and formatting
+   - `run`: Run hello.py with an optional name argument (e.g., `make run` or `make run NAME=Alice`)
+   - `scaffold`: Invoke scaffold.sh to scaffold a new project
+   - `clean`: Remove __pycache__, .pytest_cache, and other build artifacts
+   - `help`: Print usage information for all available targets
+
+2. Include a `.PHONY` declaration for all non-file targets.
+3. Ensure the Makefile is documented with comments explaining each target.
+4. Verify the Makefile works by running `make help`, `make test`, and `make run NAME=Alice`.

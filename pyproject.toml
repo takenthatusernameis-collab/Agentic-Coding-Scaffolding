@@ -1,0 +1,25 @@
+[project]
+name = "agentic-coding-scaffolding"
+version = "0.1.0"
+description = "A self-evolving scaffolding project for autonomous agentic coding loops powered by Kilo."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "kilo-autonomous", email = "kilo-autonomous@users.noreply.github.com" }]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
