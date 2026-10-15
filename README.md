@@ -61,6 +61,7 @@ dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten,
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py

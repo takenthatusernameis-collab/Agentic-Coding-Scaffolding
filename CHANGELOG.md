@@ -163,4 +163,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `set_utils.py` — set operation utilities (`is_subset`, `is_superset`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, `power_set`)
 - `tests/test_set_utils.py` — unit tests for `set_utils.py`
 - Updated `scaffold.sh` to generate `set_utils.py` and its tests
+- `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+- `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
 - Updated `.kilo/command/scaffold-project.md`, `README.md`, and scaffold template to include set utilities

@@ -27,6 +27,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
+- `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 - `data_utils.py` — data utility functions
 - `datetime_utils.py` — date and time utility functions
 - `file_utils.py` — file and path utility functions
@@ -51,6 +52,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `tests/test_stats.py` — unit tests for `stats.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
+- `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`

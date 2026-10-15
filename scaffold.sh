@@ -75,7 +75,8 @@
 #   - tests/test_csv_utils.py unit tests for the csv_utils module
 #   - set_utils.py set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 #   - tests/test_set_utils.py unit tests for the set_utils module
-#
+#   - statistics_utils.py — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+#   - tests/test_statistics_utils.py — unit tests for statistics_utils.py
 set -euo pipefail
 
 usage() {
@@ -450,6 +451,7 @@ py_modules = [
     "json_utils",
     "csv_utils",
     "set_utils",
+    "statistics_utils",
     "retry_utils",
 ]
 
@@ -8156,6 +8158,7 @@ dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten,
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+statistics_utils.py             # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -8185,7 +8188,8 @@ tests/                       # Python unit tests
   test_dict_utils.py         # Tests for dict_utils.py
   test_json_utils.py          # Tests for json_utils.py
   test_csv_utils.py           # Tests for csv_utils.py
-  test_set_utils.py           # Tests for set_utils.py
+   test_set_utils.py           # Tests for set_utils.py
+    test_statistics_utils.py         # Unit tests for statistics_utils.py
 ```
 
 ## Getting Started
@@ -8263,6 +8267,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `json_utils.py` — JSON utility functions (read/write/parse/dump/validate)
 - `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
 - `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+- `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
 - `CHANGELOG.md` — changelog following Keep a Changelog format
@@ -8683,4 +8688,3 @@ if __name__ == "__main__":
     unittest.main()
 
 TESTPQ
-
