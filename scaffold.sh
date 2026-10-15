@@ -77,6 +77,8 @@
 #   - tests/test_set_utils.py unit tests for the set_utils module
 #   - statistics_utils.py — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 #   - tests/test_statistics_utils.py — unit tests for statistics_utils.py
+#   - tree_utils.py tree and nested structure utilities
+#   - tests/test_tree_utils.py unit tests for the tree_utils module
 set -euo pipefail
 
 usage() {
@@ -453,6 +455,7 @@ py_modules = [
     "set_utils",
     "statistics_utils",
     "retry_utils",
+    "tree_utils",
 ]
 
 [tool.ruff]
@@ -2659,6 +2662,149 @@ class TestNormalize(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTSTATISTICS
+# --- tests/test_tree_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_tree_utils.py" <<'TESTTREEUTILS'
+"""Unit tests for tree_utils module."""
+
+import unittest
+
+from tree_utils import (
+    delete_nested,
+    filter_tree,
+    flatten_tree,
+    get_nested,
+    map_tree,
+    set_nested,
+    unflatten_tree,
+)
+
+
+class TestGetNested(unittest.TestCase):
+    def test_get_nested_basic(self):
+        d = {"a": {"b": {"c": 1}}}
+        self.assertEqual(get_nested(d, ["a", "b", "c"]), 1)
+
+    def test_get_nested_with_list(self):
+        d = {"a": [10, 20, 30]}
+        self.assertEqual(get_nested(d, ["a", 1]), 20)
+
+    def test_get_nested_missing_with_default(self):
+        d = {"a": {"b": 2}}
+        self.assertEqual(get_nested(d, ["a", "x"], default="missing"), "missing")
+        self.assertIsNone(get_nested(d, ["a", "x"]))
+
+    def test_get_nested_partial_path(self):
+        d = {"a": {"b": 2}}
+        self.assertEqual(get_nested(d, ["a"]), {"b": 2})
+
+
+class TestSetNested(unittest.TestCase):
+    def test_set_nested_creates_intermediate(self):
+        d = {}
+        result = set_nested(d, ["a", "b", "c"], 1)
+        self.assertEqual(d, {"a": {"b": {"c": 1}}})
+        self.assertIs(result, d)
+
+    def test_set_nested_overwrites(self):
+        d = {"a": {"b": 1}}
+        set_nested(d, ["a", "b"], 2)
+        self.assertEqual(d, {"a": {"b": 2}})
+
+    def test_set_nested_empty_keys(self):
+        d = {"x": 1}
+        set_nested(d, [], 5)
+        self.assertEqual(d, {"x": 1})
+
+
+class TestDeleteNested(unittest.TestCase):
+    def test_delete_nested_success(self):
+        d = {"a": {"b": {"c": 1}}}
+        self.assertTrue(delete_nested(d, ["a", "b", "c"]))
+        self.assertEqual(d, {"a": {"b": {}}})
+
+    def test_delete_nested_missing(self):
+        d = {"a": {"b": 1}}
+        self.assertFalse(delete_nested(d, ["a", "x"]))
+        self.assertFalse(delete_nested(d, ["x"]))
+
+    def test_delete_nested_empty_keys(self):
+        d = {"a": 1}
+        self.assertFalse(delete_nested(d, []))
+
+
+class TestFlattenTree(unittest.TestCase):
+    def test_flatten_basic(self):
+        d = {"a": {"b": {"c": 1, "d": 2}}, "e": 3}
+        result = flatten_tree(d)
+        self.assertEqual(result, {"a.b.c": 1, "a.b.d": 2, "e": 3})
+
+    def test_flatten_with_custom_sep(self):
+        d = {"a": {"b": 1}}
+        result = flatten_tree(d, sep="/")
+        self.assertEqual(result, {"a/b": 1})
+
+    def test_flatten_empty_dict(self):
+        self.assertEqual(flatten_tree({}), {})
+
+    def test_flatten_non_dict(self):
+        self.assertEqual(flatten_tree("hello"), {"": "hello"})
+
+
+class TestUnflattenTree(unittest.TestCase):
+    def test_unflatten_basic(self):
+        flat = {"a.b.c": 1, "a.b.d": 2, "e": 3}
+        result = unflatten_tree(flat)
+        self.assertEqual(result, {"a": {"b": {"c": 1, "d": 2}}, "e": 3})
+
+    def test_unflatten_custom_sep(self):
+        flat = {"a/b": 1}
+        result = unflatten_tree(flat, sep="/")
+        self.assertEqual(result, {"a": {"b": 1}})
+
+    def test_unflatten_empty(self):
+        self.assertEqual(unflatten_tree({}), {})
+
+
+class TestMapTree(unittest.TestCase):
+    def test_map_tree_dict(self):
+        result = map_tree(lambda x: x * 2, {"a": {"b": 1}, "c": 2})
+        self.assertEqual(result, {"a": {"b": 2}, "c": 4})
+
+    def test_map_tree_list(self):
+        result = map_tree(lambda x: x * 2, {"a": [1, 2, 3]})
+        self.assertEqual(result, {"a": [2, 4, 6]})
+
+    def test_map_tree_tuple(self):
+        result = map_tree(lambda x: x + 1, (1, 2))
+        self.assertEqual(result, (2, 3))
+
+    def test_map_tree_leaves(self):
+        result = map_tree(lambda x: str(x).upper(), 5)
+        self.assertEqual(result, "5")
+
+
+class TestFilterTree(unittest.TestCase):
+    def test_filter_tree_basic(self):
+        result = filter_tree(lambda x: x > 1, {"a": 1, "b": 2, "c": {"d": 3, "e": 0}})
+        self.assertEqual(result, {"b": 2, "c": {"d": 3}})
+
+    def test_filter_tree_list(self):
+        result = filter_tree(lambda x: x > 1, {"a": [1, 2, 0, 3]})
+        self.assertEqual(result, {"a": [2, 3]})
+
+    def test_filter_tree_all_filtered(self):
+        result = filter_tree(lambda x: x > 10, {"a": 1, "b": 2})
+        self.assertEqual(result, {})
+
+    def test_filter_tree_tuple(self):
+        result = filter_tree(lambda x: x > 1, (1, 2, 3))
+        self.assertEqual(result, (2, 3))
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+TESTTREEUTILS
 # --- tests/test_math_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
 """Tests for math_utils module."""
@@ -6915,6 +7061,261 @@ def normalize(numbers: List[T | float]) -> List[float]:
     scale = max_val - min_val
     return [(x - min_val) / scale for x in numbers]
 STATISTICS
+# --- tree_utils.py ---
+cat > "$OUTPUT_DIR/tree_utils.py" <<'TREEUTILS'
+"""Tree and nested structure utilities for working with nested dict/list data."""
+
+from __future__ import annotations
+
+from typing import Any, Callable, Dict, Iterable, List, Tuple, TypeVar
+
+T = TypeVar("T")
+U = TypeVar("U")
+
+
+def get_nested(d: Dict[str, Any] | Any, keys: Iterable[str | int], default: Any = None) -> Any:
+    """Safely get a value from a nested structure using a key path.
+
+    Args:
+        d: The nested dictionary/list structure to traverse.
+        keys: An iterable of keys/indexes representing the path.
+        default: The default value to return if the path is missing.
+
+    Returns:
+        The value at the path, or default if not found.
+
+    Examples:
+        >>> get_nested({'a': {'b': {'c': 1}}}, ['a', 'b', 'c'])
+        1
+        >>> get_nested({'a': {'b': 2}}, ['a', 'x'], default='missing')
+        'missing'
+        >>> get_nested({'a': [1, 2, 3]}, ['a', 1])
+        2
+    """
+    try:
+        result: Any = d
+        for key in keys:
+            result = result[key]  # type: ignore[index]
+        return result
+    except (KeyError, IndexError, TypeError):
+        return default
+
+
+def set_nested(d: Dict[str, Any], keys: Iterable[str | int], value: Any) -> Dict[str, Any]:
+    """Set a value in a nested dict, creating intermediate dicts as needed.
+
+    Args:
+        d: The root dictionary to modify.
+        keys: An iterable of keys representing the path.
+        value: The value to set.
+
+    Returns:
+        The modified dictionary (same object, mutated).
+
+    Examples:
+        >>> d = {}
+        >>> set_nested(d, ['a', 'b', 'c'], 1)
+        {'a': {'b': {'c': 1}}}
+        >>> set_nested(d, ['a', 'b', 'd'], 2)
+        {'a': {'b': {'c': 1, 'd': 2}}}
+    """
+    keys_list = list(keys)
+    if not keys_list:
+        return d
+
+    current: Any = d
+    for key in keys_list[:-1]:
+        if key not in current or not isinstance(current[key], dict):  # type: ignore[index]
+            current[key] = {}  # type: ignore[index]
+        current = current[key]  # type: ignore[index]
+    current[keys_list[-1]] = value  # type: ignore[index]
+    return d
+
+
+def delete_nested(d: Dict[str, Any], keys: Iterable[str | int]) -> bool:
+    """Delete a value at a nested path.
+
+    Args:
+        d: The root dictionary to modify.
+        keys: An iterable of keys representing the path.
+
+    Returns:
+        True if the value was deleted, False if the path doesn't exist.
+
+    Examples:
+        >>> d = {'a': {'b': {'c': 1}}}
+        >>> delete_nested(d, ['a', 'b', 'c'])
+        True
+        >>> delete_nested(d, ['a', 'x'])
+        False
+    """
+    keys_list = list(keys)
+    if not keys_list:
+        return False
+
+    current: Any = d
+    path: List[Any] = []
+    for key in keys_list[:-1]:
+        path.append((current, key))
+        if not isinstance(current, dict) or key not in current:  # type: ignore[index]
+            return False
+        current = current[key]  # type: ignore[index]
+
+    last_key = keys_list[-1]
+    if not isinstance(current, dict) or last_key not in current:  # type: ignore[index]
+        return False
+    del current[last_key]  # type: ignore[index]
+    return True
+
+
+def flatten_tree(d: Dict[str, Any] | Any, parent_key: str = '', sep: str = '.') -> Dict[str, Any]:
+    """Flatten a nested dictionary into a flat dictionary with compound keys.
+
+    Args:
+        d: The nested dictionary to flatten.
+        parent_key: The base key for nested items.
+        sep: The separator between keys.
+
+    Returns:
+        A flat dictionary.
+
+    Examples:
+        >>> flatten_tree({'a': {'b': {'c': 1, 'd': 2}}, 'e': 3})
+        {'a.b.c': 1, 'a.b.d': 2, 'e': 3}
+    """
+    items: List[Tuple[str, Any]] = []
+    if isinstance(d, dict):
+        for key, value in d.items():
+            new_key = f"{parent_key}{sep}{key}" if parent_key else str(key)
+            items.extend(flatten_tree(value, new_key, sep).items())
+        return dict(items)
+    else:
+        if parent_key == '':
+            return {'': d}
+        return {parent_key: d}
+
+
+def unflatten_tree(flat: Dict[str, Any], sep: str = '.') -> Dict[str, Any]:
+    """Unflatten a flat dictionary with compound keys back to a nested structure.
+
+    Args:
+        flat: A flat dictionary with keys joined by sep.
+        sep: The separator used in keys.
+
+    Returns:
+        A nested dictionary.
+
+    Examples:
+        >>> unflatten_tree({'a.b.c': 1, 'a.b.d': 2, 'e': 3})
+        {'a': {'b': {'c': 1, 'd': 2}}, 'e': 3}
+    """
+    result: Dict[str, Any] = {}
+    for key, value in flat.items():
+        parts = key.split(sep) if sep and sep in key else [key] if key else []
+        current = result
+        for part in parts[:-1]:
+            if part not in current or not isinstance(current[part], dict):
+                current[part] = {}
+            current = current[part]
+        if parts:
+            current[parts[-1]] = value
+        else:
+            result = value  # type: ignore[assignment]
+    return result
+
+
+def map_tree(func: Callable[[Any], Any], tree: Any) -> Any:
+    """Recursively apply a function to all leaf values in a tree structure.
+
+    Dict values and list elements are treated as branches. Non-container
+    values (or leaf nodes) have func applied.
+
+    Args:
+        func: The function to apply to leaf values.
+        tree: The tree structure to traverse.
+
+    Returns:
+        A new tree structure with func applied to all leaves.
+
+    Examples:
+        >>> map_tree(lambda x: x * 2, {'a': {'b': 1}, 'c': [2, 3]})
+        {'a': {'b': 2}, 'c': [4, 6]}
+    """
+    if isinstance(tree, dict):
+        return {k: map_tree(func, v) for k, v in tree.items()}
+    elif isinstance(tree, list):
+        return [map_tree(func, item) for item in tree]
+    elif isinstance(tree, tuple):
+        return tuple(map_tree(func, item) for item in tree)
+    else:
+        return func(tree)
+
+
+def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
+    """Recursively filter a tree structure based on a predicate.
+
+    The predicate is applied to values. For dicts, only key-value pairs
+    where pred(value) is True (or based on leaf logic) are kept? This
+    implementation keeps nodes where the transformed/considered value passes;
+    for nested structures, it recursively filters and drops empty containers
+    when appropriate.
+
+    Args:
+        pred: The predicate function returning True for values to keep.
+        tree: The tree structure to filter.
+
+    Returns:
+        A filtered tree structure.
+
+    Examples:
+        >>> filter_tree(lambda x: x > 1, {'a': 1, 'b': 2, 'c': {'d': 3, 'e': 0}})
+        {'b': 2, 'c': {'d': 3}}
+    """
+    if isinstance(tree, dict):
+        result: Dict[str, Any] = {}
+        for k, v in tree.items():
+            filtered = filter_tree(pred, v)
+            # Keep if filtered is not empty container or if it's a truthy leaf that passed
+            if isinstance(filtered, (dict, list, tuple)):
+                if filtered:  # non-empty
+                    result[k] = filtered
+            elif pred(v) if False else True:  # always keep if leaf passes pred? better check
+                pass  # handle below
+            # simpler: if the original v becomes filtered, keep based on whether useful
+            # but easier logic: apply pred to leaf; for containers, recurse and keep if non-empty
+            if isinstance(v, (dict, list, tuple)):
+                if filtered:
+                    result[k] = filtered
+            else:
+                if pred(v):
+                    result[k] = v
+        return result
+    elif isinstance(tree, list):
+        result_list = []
+        for item in tree:
+            filtered = filter_tree(pred, item)
+            if isinstance(filtered, (dict, list, tuple)):
+                if filtered:
+                    result_list.append(filtered)
+            else:
+                if pred(item):
+                    result_list.append(item)
+        return result_list
+    elif isinstance(tree, tuple):
+        result_list = []
+        for item in tree:
+            filtered = filter_tree(pred, item)
+            if isinstance(filtered, (dict, list, tuple)):
+                if filtered:
+                    result_list.append(filtered)
+            else:
+                if pred(item):
+                    result_list.append(item)
+        return tuple(result_list)
+    else:
+        return tree if pred(tree) else None  # type: ignore[return-value]
+
+TREEUTILS
 # --- concurrent_utils.py ---
 cat > "$OUTPUT_DIR/concurrent_utils.py" <<'CONCURRENTUTILS'
 """Concurrent execution utilities for parallel and asynchronous processing.
@@ -8365,6 +8766,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
 - `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+- `tree_utils.py` — tree and nested structure utilities (get_nested, set_nested, delete_nested, flatten_tree, unflatten_tree, map_tree, filter_tree)
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -8394,6 +8796,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
 - `tests/test_set_utils.py` — unit tests for `set_utils.py`
 - `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
+- `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
 
 ## Usage
 
@@ -8639,6 +9042,7 @@ json_utils.py            # JSON utility functions (read/write/parse/dump/validat
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 statistics_utils.py             # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+tree_utils.py                   # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -8670,6 +9074,8 @@ tests/                       # Python unit tests
   test_csv_utils.py           # Tests for csv_utils.py
   test_set_utils.py         # Tests for set_utils.py
   test_statistics_utils.py    # Tests for statistics_utils.py
+  test_tree_utils.py           # Tests for tree_utils.py
+  test_tree_utils.py           # Tests for tree_utils.py
 ```
 
 ## Getting Started
@@ -8748,6 +9154,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
 - `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+- `tree_utils.py` — tree and nested structure utilities (get_nested, set_nested, delete_nested, flatten_tree, unflatten_tree, map_tree, filter_tree)
+- `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
 - `CHANGELOG.md` — changelog following Keep a Changelog format

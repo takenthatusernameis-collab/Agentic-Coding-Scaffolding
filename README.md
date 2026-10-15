@@ -62,6 +62,7 @@ json_utils.py            # JSON utility functions (read/write/parse/dump/validat
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+tree_utils.py               # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -93,6 +94,7 @@ tests/                       # Python unit tests
   test_csv_utils.py           # Tests for csv_utils.py
   test_set_utils.py           # Tests for set_utils.py
   test_statistics_utils.py    # Tests for statistics_utils.py
+  test_tree_utils.py         # Tests for tree_utils.py
 ```
 
 ## How It Works

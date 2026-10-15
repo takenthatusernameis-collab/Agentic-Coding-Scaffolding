@@ -53,6 +53,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_stats.py` — unit tests for `stats.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
 - `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
+- `tree_utils.py` — tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
+- `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`

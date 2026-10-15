@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `scaffold.sh` templates (`scaffold-project.md`, generated `README.md`, generated `CHANGELOG.md`) to include `statistics_utils.py` entries
 - Updated `test_scaffold.py` to verify `statistics_utils.py` and `tests/test_statistics_utils.py` generation
 - Fixed `# --- statistics_utils.py ---` and `# --- tests/test_statistics_utils.py ---` heredoc blocks in `scaffold.sh` to generate the module and its tests in scaffolded projects
+- `tree_utils.py` — tree and nested structure utilities (get_nested, set_nested, delete_nested, flatten_tree, unflatten_tree, map_tree, filter_tree)
+- `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
+- Synchronized `scaffold.sh` to include `tree_utils.py` and its tests in header, `py_modules`, and heredocs
+- Updated `README.md`, `.kilo/command/scaffold-project.md`, and `CHANGELOG.md` to list `tree_utils.py` and `tests/test_tree_utils.py`
+- Updated `test_scaffold.py` to expect `tree_utils.py` and `tests/test_tree_utils.py` in scaffolded outputs
+
 
 ### Added
 
