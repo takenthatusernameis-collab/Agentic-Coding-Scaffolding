@@ -16,6 +16,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `.kilo/skill/scaffolding-helper.md` — sample skill definition
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
 - `.gitignore` — common ignore patterns
+- `LICENSE` — MIT license file
 - `Makefile` — common developer targets (test, lint, typecheck, run, scaffold, clean, help, pre-commit-install, pre-commit-run)
 - `pyproject.toml` — Python project configuration with pytest, ruff, and mypy settings
 - `hello.py` — sample application entry point
@@ -23,21 +24,21 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
 - `strings.py` — string utilities for text operations
 - `utils.py` — general utility helper functions
+- `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
 - `data_utils.py` — data utility functions
+- `datetime_utils.py` — date and time utility functions
+- `file_utils.py` — file and path utility functions
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `tests/test_utils.py` — unit tests for `utils.py`
-- `stats.py` — statistical utility functions
 - `tests/test_stats.py` — unit tests for `stats.py`
- - `file_utils.py` — file and path utility functions
- - `tests/test_file_utils.py` — unit tests for `file_utils.py`
- - `datetime_utils.py` — date and time utility functions
- - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
+- `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
+- `tests/test_file_utils.py` — unit tests for `file_utils.py`
 
 ## Usage
 

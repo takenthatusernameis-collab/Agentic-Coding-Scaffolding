@@ -15,6 +15,7 @@
 #     .kilo/command/scaffold-project.md, .kilo/skill/scaffolding-helper.md
 #   - .kilo/.gitignore
 #   - .gitignore
+#   - LICENSE — MIT license file
 #   - Makefile with common developer targets (test, lint, typecheck, run,
 #     scaffold, clean, help, pre-commit-install, pre-commit-run)
 #   - pyproject.toml for Python project configuration and dependencies
@@ -32,6 +33,12 @@
 #   - tests/test_stats.py unit tests for the stats module
 #   - datetime_utils.py date and time utility functions
 #   - tests/test_datetime_utils.py unit tests for the datetime_utils module
+#   - math_utils.py mathematical utility functions
+#   - tests/test_math_utils.py unit tests for the math_utils module
+#   - data_utils.py data utility functions
+#   - tests/test_data_utils.py unit tests for the data_utils module
+#   - file_utils.py file and path utility functions
+#   - tests/test_file_utils.py unit tests for the file_utils module
 #
 set -euo pipefail
 
@@ -69,6 +76,10 @@ if [[ -z "$PROJECT_ID" ]]; then
     echo "Error: Could not normalize project name '$PROJECT_NAME' to a valid identifier." >&2
     exit 1
 fi
+
+# Default project metadata for generated files
+PROJECT_YEARS="${PROJECT_YEARS:-$(date +%Y)}"
+PROJECT_AUTHOR="${PROJECT_AUTHOR:-kilo-autonomous}"
 
 SMOKE_TEST=1
 OUTPUT_DIR=""
@@ -1128,123 +1139,6 @@ if __name__ == "__main__":
     unittest.main()
 TESTSTATS
 
-# --- stats.py ---
-cat > "$OUTPUT_DIR/stats.py" <<'STATS'
-"""Statistical utility functions for data analysis."""
-
-from typing import List, TypeVar
-
-T = TypeVar("T", int, float)
-
-
-def mean(numbers: List[T | float]) -> float:
-    """Return the arithmetic mean of a list of numbers.
-
-    Args:
-        numbers: A list of numeric values.
-
-    Returns:
-        The average of all numbers.
-
-    Raises:
-        ValueError: If the list is empty.
-    """
-    if not numbers:
-        raise ValueError("Cannot calculate mean of empty list")
-    return sum(numbers) / len(numbers)
-
-
-def median(numbers: List[T | float]) -> float:
-    """Return the median of a list of numbers.
-
-    Args:
-        numbers: A list of numeric values.
-
-    Returns:
-        The median value.
-
-    Raises:
-        ValueError: If the list is empty.
-    """
-    if not numbers:
-        raise ValueError("Cannot calculate median of empty list")
-    sorted_nums = sorted(numbers)
-    n = len(sorted_nums)
-    if n % 2 == 1:
-        return float(sorted_nums[n // 2])
-    mid1 = sorted_nums[n // 2 - 1]
-    mid2 = sorted_nums[n // 2]
-    return (mid1 + mid2) / 2.0
-
-
-def mode(numbers: List[T | float]) -> T | float:
-    """Return the mode (most frequent value) of a list of numbers.
-
-    Args:
-        numbers: A list of numeric values.
-
-    Returns:
-        The most frequently occurring value.
-
-    Raises:
-        ValueError: If the list is empty.
-    """
-    if not numbers:
-        raise ValueError("Cannot calculate mode of empty list")
-    frequency: dict = {}
-    for num in numbers:
-        frequency[num] = frequency.get(num, 0) + 1
-    max_count = max(frequency.values())
-    for num in sorted(frequency.keys()):
-        if frequency[num] == max_count:
-            return num
-
-
-def variance(numbers: List[T | float], population: bool = True) -> float:
-    """Return the variance of a list of numbers.
-
-    Args:
-        numbers: A list of numeric values.
-        population: If True, calculate population variance (divide by n).
-                    If False, calculate sample variance (divide by n-1).
-
-    Returns:
-        The variance.
-
-    Raises:
-        ValueError: If the list is empty or insufficient elements for sample.
-    """
-    if not numbers:
-        raise ValueError("Cannot calculate variance of empty list")
-    if not population and len(numbers) < 2:
-        raise ValueError("Cannot calculate sample variance with fewer than 2 elements")
-    avg = mean(numbers)
-    squared_diff = sum((x - avg) ** 2 for x in numbers)
-    if population:
-        return squared_diff / len(numbers)
-    return squared_diff / (len(numbers) - 1)
-
-
-def stddev(numbers: List[T | float], population: bool = True) -> float:
-    """Return the standard deviation of a list of numbers.
-
-    Args:
-        numbers: A list of numeric values.
-        population: If True, calculate population std dev (divide by n).
-                    If False, calculate sample std dev (divide by n-1).
-
-    Returns:
-        The standard deviation.
-
-    Raises:
-        ValueError: If the list is empty or insufficient elements for sample.
-    """
-    import math
-
-    var = variance(numbers, population=population)
-    return math.sqrt(var)
-STATS
-
 # --- math_utils.py ---
 cat > "$OUTPUT_DIR/math_utils.py" <<'MATH'
 """Mathematical utility functions."""
@@ -1847,7 +1741,6 @@ TESTDATETIME
 cat > "$OUTPUT_DIR/file_utils.py" <<'FILEUTILS'
 """File and path utility functions."""
 
-import os
 import shutil
 from pathlib import Path
 from typing import Any, List, Optional, Union
@@ -2057,6 +1950,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `.kilo/skill/scaffolding-helper.md` — sample skill definition
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
 - `.gitignore` — common ignore patterns
+- `LICENSE` — MIT license file
 - `Makefile` — common developer targets (test, lint, typecheck, run, scaffold, clean, help, pre-commit-install, pre-commit-run)
 - `pyproject.toml` — Python project configuration with pytest, ruff, and mypy settings
 - `hello.py` — sample application entry point
@@ -2064,14 +1958,20 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
 - `strings.py` — string utilities for text operations
 - `utils.py` — general utility helper functions
+- `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
+- `data_utils.py` — data utility functions
+- `datetime_utils.py` — date and time utility functions
+- `file_utils.py` — file and path utility functions
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `tests/test_utils.py` — unit tests for `utils.py`
+- `tests/test_stats.py` — unit tests for `stats.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
-- `file_utils.py` — file and path utility functions
+- `tests/test_data_utils.py` — unit tests for `data_utils.py`
+- `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
 
 ## Usage
@@ -2189,6 +2089,31 @@ Use the following Makefile targets during development:
 - The overall CI job has a 355-minute safety cutoff
 AGENTS
 
+# --- LICENSE ---
+cat > "$OUTPUT_DIR/LICENSE" <<LICENSE
+MIT License
+
+Copyright (c) ${PROJECT_YEARS:-2024} ${PROJECT_AUTHOR:-kilo-autonomous}
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+LICENSE
+
 # --- README.md ---
 cat > "$OUTPUT_DIR/README.md" <<README
 # ${PROJECT_NAME}
@@ -2226,10 +2151,11 @@ strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions
-  data_utils.py               # Data utility functions
+data_utils.py               # Data utility functions
 datetime_utils.py           # Date and time utility functions
 file_utils.py               # File and path utility functions
 .gitignore                   # Common ignore patterns
+LICENSE                      # MIT License
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -2298,23 +2224,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- \`hello.py\` — sample application entry point
-- \`tests/test_hello.py\` — unit tests for \`hello.py\`
-- \`scaffold.sh\` — project scaffolding script
-- \`AGENTS.md\` — agent instructions with task handover protocol
-- \`kilo.json\` — Kilo project configuration
-- \`Makefile\` — developer targets
-- \`pyproject.toml\` — Python project configuration
-- \`.gitignore\` — common ignore patterns
-- \`.kilo/agent/scaffolder.md\` — scaffolder subagent
-- \`.kilo/command/handover.md\` — handover command
-- \`.kilo/command/scaffold-project.md\` — scaffold-project command
-- \`.kilo/skill/scaffolding-helper.md\` — sample skill
-- \`.kilo/.gitignore\` — ignore patterns for the .kilo directory
-- \`.github/workflows/main.yml\` — CI workflow for Kilo agent loop
-- \`README.md\` — project overview
-- \`CHANGELOG.md\` — changelog following Keep a Changelog format
-- \`.pre-commit-config.yaml\` — pre-commit hooks for ruff, mypy, tests, and scaffold
+- `hello.py` — sample application entry point
+- `tests/test_hello.py` — unit tests for `hello.py`
+- `scaffold.sh` — project scaffolding script
+- `AGENTS.md` — agent instructions with task handover protocol
+- `kilo.json` — Kilo project configuration
+- `Makefile` — developer targets
+- `pyproject.toml` — Python project configuration
+- `.gitignore` — common ignore patterns
+- `LICENSE` — MIT license file
+- `.kilo/agent/scaffolder.md` — scaffolder subagent
+- `.kilo/command/handover.md` — handover command
+- `.kilo/command/scaffold-project.md` — scaffold-project command
+- `.kilo/skill/scaffolding-helper.md` — sample skill
+- `.kilo/.gitignore` — ignore patterns for the .kilo directory
+- `.github/workflows/main.yml` — CI workflow for Kilo agent loop
+- `README.md` — project overview
+- `CHANGELOG.md` — changelog following Keep a Changelog format
+- `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, tests, and scaffold
 - `calculator.py` — simple calculator module with arithmetic operations
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
@@ -2323,12 +2250,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `utils.py` — general utility helper functions
 - `tests/test_utils.py` — unit tests for `utils.py`
-- `stats.py` — statistical utility functions
-- `tests/test_stats.py` — unit tests for `stats.py`
- - `file_utils.py` — file and path utility functions
-- `tests/test_file_utils.py` — unit tests for `file_utils.py`
-- `datetime_utils.py` — date and time utility functions
-- `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
+- \`stats.py\` — statistical utility functions
+- \`tests/test_stats.py\` — unit tests for \`stats.py\`
+- \`math_utils.py\` — mathematical utility functions
+- \`tests/test_math_utils.py\` — unit tests for \`math_utils.py\`
+- \`data_utils.py\` — data utility functions
+- \`tests/test_data_utils.py\` — unit tests for \`data_utils.py\`
+- \`file_utils.py\` — file and path utility functions
+- \`tests/test_file_utils.py\` — unit tests for \`file_utils.py\`
+- \`datetime_utils.py\` — date and time utility functions
+- \`tests/test_datetime_utils.py\` — unit tests for \`datetime_utils.py\`
 CHANGELOG
 
 # --- kilo.json ---

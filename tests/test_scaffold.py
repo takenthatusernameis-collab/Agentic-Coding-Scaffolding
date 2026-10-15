@@ -86,6 +86,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "math_utils.py",
             "data_utils.py",
             ".gitignore",
+            "LICENSE",
             ".pre-commit-config.yaml",
             ".kilo/.gitignore",
             ".kilo/agent/scaffolder.md",
@@ -162,11 +163,51 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertIn("shapes.py", content)
         self.assertIn("tests/test_shapes.py", content)
 
-    def test_changelog_lists_shapes_module(self) -> None:
-        """Generated CHANGELOG.md should mention the shapes module and tests."""
+    def test_scaffold_project_doc_lists_all_modules(self) -> None:
+        """The scaffold-project command doc should list all modules and tests."""
+        content = (self.project_dir / ".kilo/command/scaffold-project.md").read_text()
+        for module in [
+            "stats.py",
+            "math_utils.py",
+            "data_utils.py",
+            "datetime_utils.py",
+            "file_utils.py",
+        ]:
+            self.assertIn(module, content, f"scaffold-project.md missing {module}")
+        for test in [
+            "tests/test_stats.py",
+            "tests/test_math_utils.py",
+            "tests/test_data_utils.py",
+            "tests/test_datetime_utils.py",
+            "tests/test_file_utils.py",
+        ]:
+            self.assertIn(test, content, f"scaffold-project.md missing {test}")
+
+    def test_scaffold_project_doc_no_inconsistent_indent(self) -> None:
+        """scaffold-project.md list items should not have extra leading spaces."""
+        content = (self.project_dir / ".kilo/command/scaffold-project.md").read_text()
+        for line in content.splitlines():
+            self.assertFalse(
+                line.startswith("  - "),
+                msg=f"Line has inconsistent indentation: {line!r}",
+            )
+
+    def test_changelog_lists_all_modules(self) -> None:
+        """Generated CHANGELOG.md should list all modules and their tests."""
         content = (self.project_dir / "CHANGELOG.md").read_text()
-        self.assertIn("shapes.py", content)
-        self.assertIn("tests/test_shapes.py", content)
+        for module in [
+            "stats.py",
+            "math_utils.py",
+            "data_utils.py",
+            "datetime_utils.py",
+            "file_utils.py",
+        ]:
+            self.assertIn(module, content, f"CHANGELOG.md missing {module}")
+
+    def test_file_utils_no_unused_os_import(self) -> None:
+        """Generated file_utils.py should not import the unused `os` module."""
+        content = (self.project_dir / "file_utils.py").read_text()
+        self.assertNotIn("import os", content)
 
     def test_readme_makefile_table_includes_all_targets(self) -> None:
         """README Makefile table must include typecheck and pre-commit targets."""

@@ -24,6 +24,8 @@ This repository provides a foundation for agentic coding projects. It includes:
   skill/                     # Custom skills
     scaffolding-helper.md    # Sample skill definition
   .gitignore                 # Ignore patterns for .kilo directory
+.gitignore                   # Common ignore patterns
+LICENSE                      # MIT License
 .pre-commit-config.yaml      # Pre-commit hooks (ruff, mypy, tests, scaffold)
 AGENTS.md                    # AI agent instructions
 CHANGELOG.md                 # Changelog (Keep a Changelog format)

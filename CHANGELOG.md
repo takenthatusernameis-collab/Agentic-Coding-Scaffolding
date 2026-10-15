@@ -6,8 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+### Fixed
+
+- Removed duplicate `stats.py` heredoc section in `scaffold.sh` (was generated twice)
+- Removed unused `import os` from `scaffold.sh`'s `file_utils.py` template (matches repo version)
+- Added missing `math_utils.py`, `data_utils.py`, `datetime_utils.py`, and `file_utils.py` entries to `scaffold.sh`'s `scaffold-project.md` command doc template
+- Added missing `math_utils.py` and `data_utils.py` entries to `scaffold.sh`'s generated `CHANGELOG.md` template
+- Fixed `scaffold.sh` header comments to list all generated modules
+- Fixed inconsistent indentation in repo's `.kilo/command/scaffold-project.md` (extra spaces on `file_utils.py`, `datetime_utils.py` entries)
+- Fixed `data_utils.py` indentation in `scaffold.sh`'s generated `README.md` project structure section
+
 ### Added
 
+- `LICENSE` — MIT license file (added to repo, scaffold.sh template, and scaffold-project.md)
+- `PROJECT_YEARS` and `PROJECT_AUTHOR` variables in `scaffold.sh` for dynamic license generation
+- Tests in `tests/test_scaffold.py` verifying all modules are listed in generated `scaffold-project.md` and `CHANGELOG.md`
+- Tests verifying generated `file_utils.py` does not import unused `os` module
+- Tests verifying `scaffold-project.md` list items have consistent formatting
+- `LICENSE` entry added to `test_required_files_generated` in `tests/test_scaffold.py`
+
+### Changed
+
+- Synchronized `scaffold.sh` template with the repository: removed duplicate `stats.py` section, fixed `file_utils.py` import, added missing module entries to `scaffold-project.md` and `CHANGELOG.md` templates, fixed `README.md` project structure indentation, added `LICENSE` generation, and added `PROJECT_YEARS`/`PROJECT_AUTHOR` variables
+- Added `LICENSE` file to the repository and `scaffold.sh` template, `scaffold-project.md` command doc, and README project structure
 - `datetime_utils.py` — date and time utility module with `parse_datetime`, `format_datetime`, `days_between`, `is_leap_year`, `add_days`, and `get_weekday_name` functions
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - Updated scaffold template to generate `datetime_utils.py` and its tests
@@ -80,6 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Makefile` — developer targets (test, lint, typecheck, run, scaffold, clean, help)
 - `pyproject.toml` — Python project configuration and dev dependencies
 - `.gitignore` — common ignore patterns
+- `LICENSE` — MIT license
 - `.kilo/agent/scaffolder.md` — scaffolder subagent definition
 - `.kilo/command/handover.md` — handover command documentation
 - `.kilo/command/scaffold-project.md` — scaffold-project command documentation
