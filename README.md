@@ -62,6 +62,7 @@ json_utils.py            # JSON utility functions (read/write/parse/dump/validat
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+string_utils.py         # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 tree_utils.py               # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -94,6 +95,7 @@ tests/                       # Python unit tests
   test_csv_utils.py           # Tests for csv_utils.py
   test_set_utils.py           # Tests for set_utils.py
   test_statistics_utils.py    # Tests for statistics_utils.py
+  test_string_utils.py        # Tests for string_utils.py
   test_tree_utils.py         # Tests for tree_utils.py
 ```
 
@@ -245,6 +247,10 @@ The project includes a set operation utilities module in `set_utils.py` with fun
 ## Statistical Utilities Module
 
 The project includes a statistical utilities module in `statistics_utils.py` with functions for data analysis beyond `stats.py`: `harmonic_mean`, `geometric_mean`, `median_even`, `percentile`, `covariance`, `correlation`, `z_score`, and `normalize`. The module is tested in `tests/test_statistics_utils.py`.
+
+## String Utilities Module
+
+The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `indent_text`, `remove_extra_whitespace`, and `title_case`. Each function validates its inputs and raises `TypeError` for non-string arguments. The module is tested in `tests/test_string_utils.py`.
 
 Completed task: Added a new `set_utils.py` module with set operation utilities (`is_subset`, `is_superset`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, `power_set`) and its tests. Synchronized the scaffold template: added `set_utils.py` to the `scaffold.sh` header comment, generated `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Verified all 547 tests pass, ruff and mypy are clean, and the scaffold smoke test generates a fully consistent project.
 

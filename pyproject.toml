@@ -68,5 +68,6 @@ py_modules = [
     "csv_utils",
     "set_utils",
     "statistics_utils",
+    "string_utils",
     "retry_utils",
 ]

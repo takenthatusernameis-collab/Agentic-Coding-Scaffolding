@@ -140,6 +140,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_set_utils.py",
             "statistics_utils.py",
             "tests/test_statistics_utils.py",
+            "string_utils.py",
+            "tests/test_string_utils.py",
             "tree_utils.py",
             "tests/test_tree_utils.py",
         ]
@@ -229,6 +231,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_set_utils.py",
             "statistics_utils.py",
             "tests/test_statistics_utils.py",
+            "string_utils.py",
+            "tests/test_string_utils.py",
             "tree_utils.py",
             "tests/test_tree_utils.py",
         ]:
@@ -292,6 +296,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_set_utils.py",
             "statistics_utils.py",
             "tests/test_statistics_utils.py",
+            "string_utils.py",
+            "tests/test_string_utils.py",
             "tree_utils.py",
             "tests/test_tree_utils.py",
         ]:

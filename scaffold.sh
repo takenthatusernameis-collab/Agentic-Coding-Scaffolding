@@ -77,6 +77,8 @@
 #   - tests/test_set_utils.py unit tests for the set_utils module
 #   - statistics_utils.py — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 #   - tests/test_statistics_utils.py — unit tests for statistics_utils.py
+#   - string_utils.py — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
+#   - tests/test_string_utils.py — unit tests for the string_utils module
 #   - tree_utils.py tree and nested structure utilities
 #   - tests/test_tree_utils.py unit tests for the tree_utils module
 set -euo pipefail
@@ -454,6 +456,7 @@ py_modules = [
     "csv_utils",
     "set_utils",
     "statistics_utils",
+    "string_utils",
     "retry_utils",
     "tree_utils",
 ]
@@ -2662,6 +2665,216 @@ class TestNormalize(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTSTATISTICS
+# --- tests/test_string_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_string_utils.py" <<'TESTSTRINGUTILS'
+"""Tests for string_utils module."""
+
+import unittest
+
+from string_utils import (
+    camel_to_snake,
+    indent_text,
+    pluralize,
+    remove_extra_whitespace,
+    slugify,
+    snake_to_camel,
+    title_case,
+    truncate,
+    wrap_text,
+)
+
+
+class TestSlugify(unittest.TestCase):
+    def test_basic_slugify(self):
+        self.assertEqual(slugify("Hello World"), "hello-world")
+
+    def test_multiple_spaces(self):
+        self.assertEqual(slugify("  Python   is   Great!  "), "python-is-great")
+
+    def test_underscores(self):
+        self.assertEqual(slugify("foo_bar_baz"), "foo-bar-baz")
+
+    def test_already_slug(self):
+        self.assertEqual(slugify("already-a-slug"), "already-a-slug")
+
+    def test_empty(self):
+        self.assertEqual(slugify(""), "")
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            slugify(123)
+
+
+class TestCamelToSnake(unittest.TestCase):
+    def test_camel_case(self):
+        self.assertEqual(camel_to_snake("helloWorld"), "hello_world")
+
+    def test_pascal_case(self):
+        self.assertEqual(camel_to_snake("HelloWorld"), "hello_world")
+
+    def test_acronym(self):
+        self.assertEqual(camel_to_snake("XMLParser"), "xml_parser")
+
+    def test_already_snake(self):
+        self.assertEqual(camel_to_snake("already_snake"), "already_snake")
+
+    def test_hyphens(self):
+        self.assertEqual(camel_to_snake("hello-world"), "hello_world")
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            camel_to_snake(None)
+
+
+class TestSnakeToCamel(unittest.TestCase):
+    def test_snake_case(self):
+        self.assertEqual(snake_to_camel("hello_world"), "helloWorld")
+
+    def test_acronym(self):
+        self.assertEqual(snake_to_camel("xml_parser"), "xmlParser")
+
+    def test_already_camel(self):
+        self.assertEqual(snake_to_camel("alreadyCamel"), "alreadyCamel")
+
+    def test_empty(self):
+        self.assertEqual(snake_to_camel(""), "")
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            snake_to_camel(42)
+
+
+class TestPluralize(unittest.TestCase):
+    def test_regular(self):
+        self.assertEqual(pluralize("cat"), "cats")
+
+    def test_count_one(self):
+        self.assertEqual(pluralize("cat", 1), "cat")
+
+    def test_count_two(self):
+        self.assertEqual(pluralize("cat", 2), "cats")
+
+    def test_s_x_z(self):
+        self.assertEqual(pluralize("bus"), "buses")
+        self.assertEqual(pluralize("box"), "boxes")
+        self.assertEqual(pluralize("buzz"), "buzzes")
+
+    def test_ch_sh(self):
+        self.assertEqual(pluralize("church"), "churches")
+        self.assertEqual(pluralize("brush"), "brushes")
+
+    def test_consonant_y(self):
+        self.assertEqual(pluralize("baby"), "babies")
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            pluralize(1)
+
+
+class TestTruncate(unittest.TestCase):
+    def test_truncate_with_suffix(self):
+        self.assertEqual(truncate("Hello, world!", 5), "He...")
+
+    def test_no_truncation(self):
+        self.assertEqual(truncate("Hi", 10), "Hi")
+
+    def test_empty_suffix(self):
+        self.assertEqual(truncate("Hello, world!", 8, suffix=""), "Hello, w")
+
+    def test_shorter_than_suffix(self):
+        self.assertEqual(truncate("hi", 2, suffix="..."), "hi")
+
+    def test_negative_length(self):
+        with self.assertRaises(ValueError):
+            truncate("hello", -1)
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            truncate(123, 5)
+
+
+class TestWrapText(unittest.TestCase):
+    def test_wrap(self):
+        self.assertEqual(wrap_text("hello world", 5), "hello\nworld")
+
+    def test_default_width(self):
+        result = wrap_text("a b c d e f g h i j k l m n o p")
+        self.assertLessEqual(max(len(line) for line in result.split("\n")), 70)
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            wrap_text(None)
+
+    def test_non_positive_width(self):
+        with self.assertRaises(ValueError):
+            wrap_text("hello", 0)
+        with self.assertRaises(ValueError):
+            wrap_text("hello", -3)
+
+
+class TestIndentText(unittest.TestCase):
+    def test_indent(self):
+        self.assertEqual(
+            indent_text("line1\nline2", "  "), "  line1\n  line2"
+        )
+
+    def test_default_prefix(self):
+        result = indent_text("a\nb")
+        self.assertEqual(result, "    a\n    b")
+
+    def test_empty_string(self):
+        self.assertEqual(indent_text("", "  "), "  ")
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            indent_text(123)
+
+
+class TestRemoveExtraWhitespace(unittest.TestCase):
+    def test_collapse_spaces(self):
+        self.assertEqual(remove_extra_whitespace("  hello   world  "), "hello world")
+
+    def test_tabs_and_newlines(self):
+        self.assertEqual(remove_extra_whitespace("a\n\tb"), "a b")
+
+    def test_empty(self):
+        self.assertEqual(remove_extra_whitespace(""), "")
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            remove_extra_whitespace(7)
+
+
+class TestTitleCase(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(title_case("hello world"), "Hello World")
+
+    def test_small_words_lowercase(self):
+        self.assertEqual(title_case("the quick brown fox"), "The Quick Brown Fox")
+
+    def test_small_words_middle(self):
+        self.assertEqual(title_case("war and peace"), "War and Peace")
+
+    def test_first_and_last_capitalized(self):
+        self.assertEqual(title_case("the man"), "The Man")
+
+    def test_empty(self):
+        self.assertEqual(title_case(""), "")
+
+    def test_custom_small_words(self):
+        self.assertEqual(
+            title_case("hello world of python", small_words=["of"]),
+            "Hello World of Python",
+        )
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            title_case(True)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSTRINGUTILS
 # --- tests/test_tree_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_tree_utils.py" <<'TESTTREEUTILS'
 """Unit tests for tree_utils module."""
@@ -7061,6 +7274,327 @@ def normalize(numbers: List[T | float]) -> List[float]:
     scale = max_val - min_val
     return [(x - min_val) / scale for x in numbers]
 STATISTICS
+# --- string_utils.py ---
+cat > "$OUTPUT_DIR/string_utils.py" <<'STRINGUTILS'
+"""Advanced string manipulation utilities."""
+
+import re
+import textwrap
+from typing import List, Optional
+
+
+__all__: List[str] = [
+    "slugify",
+    "camel_to_snake",
+    "snake_to_camel",
+    "pluralize",
+    "truncate",
+    "wrap_text",
+    "indent_text",
+    "remove_extra_whitespace",
+    "title_case",
+]
+
+_SMALL_WORDS = {
+    "a", "an", "and", "as", "at", "but", "by", "en", "for", "if", "in",
+    "nor", "of", "on", "or", "per", "the", "to", "via", "vs",
+}
+
+
+def _require_string(value: str, name: str) -> str:
+    """Validate that ``value`` is a string, raising ``TypeError`` otherwise.
+
+    Args:
+        value: The value to validate.
+        name: The argument name used in error messages.
+
+    Returns:
+        The validated string.
+
+    Raises:
+        TypeError: If ``value`` is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string")
+    return value
+
+
+def slugify(text: str) -> str:
+    """Convert a string to a URL-friendly slug.
+
+    Lowercases the text, replaces whitespace and underscores with hyphens,
+    removes non-alphanumeric characters (except hyphens), and collapses
+    consecutive hyphens.
+
+    Args:
+        text: The string to slugify.
+
+    Returns:
+        A URL-friendly slug.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+
+    Examples:
+        >>> slugify("Hello World")
+        'hello-world'
+        >>> slugify("  Python   is   Great!  ")
+        'python-is-great'
+        >>> slugify("already-a-slug")
+        'already-a-slug'
+    """
+    _require_string(text, "text")
+    slug = text.lower()
+    slug = re.sub(r"[^\w\s-]", "", slug)
+    slug = re.sub(r"[\s_]+", "-", slug).strip("-")
+    slug = re.sub(r"-{2,}", "-", slug)
+    return slug
+
+
+def camel_to_snake(text: str) -> str:
+    """Convert a camelCase or PascalCase string to snake_case.
+
+    Args:
+        text: The camelCase or PascalCase string to convert.
+
+    Returns:
+        The snake_case equivalent.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+
+    Examples:
+        >>> camel_to_snake("helloWorld")
+        'hello_world'
+        >>> camel_to_snake("XMLParser")
+        'xml_parser'
+        >>> camel_to_snake("already_snake")
+        'already_snake'
+    """
+    _require_string(text, "text")
+    snake = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", text)
+    snake = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", snake)
+    snake = snake.replace("-", "_").lower()
+    return snake
+
+
+def snake_to_camel(text: str) -> str:
+    """Convert a snake_case string to camelCase.
+
+    Args:
+        text: The snake_case string to convert.
+
+    Returns:
+        The camelCase equivalent.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+
+    Examples:
+        >>> snake_to_camel("hello_world")
+        'helloWorld'
+        >>> snake_to_camel("xml_parser")
+        'xmlParser'
+        >>> snake_to_camel("alreadyCamel")
+        'alreadyCamel'
+    """
+    _require_string(text, "text")
+    if "_" not in text:
+        return text
+    parts = text.split("_")
+    camel = parts[0].lower()
+    for part in parts[1:]:
+        camel += part[:1].upper() + part[1:].lower() if part else ""
+    return camel
+
+
+def pluralize(word: str, count: Optional[int] = None) -> str:
+    """Return the plural form of an English word.
+
+    Applies simple inflection rules: words ending in ``s``, ``x``, ``z``,
+    ``ch``, or ``sh`` take ``-es``; words ending in a consonant plus ``y``
+    take ``-ies``; all others take ``-s``. When ``count`` is ``1`` (or not
+    given), the singular form is returned.
+
+    Args:
+        word: The singular word to pluralize.
+        count: Optional count. When ``1``, returns the singular form.
+
+    Returns:
+        The plural (or singular when count is 1) form of the word.
+
+    Raises:
+        TypeError: If ``word`` is not a string.
+
+    Examples:
+        >>> pluralize("cat")
+        'cats'
+        >>> pluralize("cat", 2)
+        'cats'
+        >>> pluralize("cat", 1)
+        'cat'
+        >>> pluralize("bus")
+        'buses'
+        >>> pluralize("baby")
+        'babies'
+    """
+    _require_string(word, "word")
+    if count == 1:
+        return word
+    if re.search(r"[sxz]$", word) or re.search(r"[chsh]$", word):
+        return word + "es"
+    if re.search(r"[^aeiou]y$", word):
+        return word[:-1] + "ies"
+    return word + "s"
+
+
+def truncate(text: str, length: int, suffix: str = "...") -> str:
+    """Truncate a string to the given length, appending a suffix.
+
+    If the string is shorter than or equal to ``length``, it is returned
+    unchanged. The suffix is included within the length limit.
+
+    Args:
+        text: The string to truncate.
+        length: Maximum length of the result including the suffix.
+        suffix: Suffix appended when truncation occurs (default: "...").
+
+    Returns:
+        The truncated string.
+
+    Raises:
+        TypeError: If ``text`` or ``suffix`` is not a string.
+        ValueError: If ``length`` is negative.
+
+    Examples:
+        >>> truncate("Hello, world!", 5)
+        'He...'
+        >>> truncate("Hi", 10)
+        'Hi'
+        >>> truncate("Hello, world!", 8, suffix="")
+        'Hello, w'
+    """
+    _require_string(text, "text")
+    _require_string(suffix, "suffix")
+    if length < 0:
+        raise ValueError("length must be non-negative")
+    if len(text) <= length:
+        return text
+    if length < len(suffix):
+        return suffix[:length]
+    return text[: length - len(suffix)] + suffix
+
+
+def wrap_text(text: str, width: int = 70) -> str:
+    """Wrap a string to the specified line width.
+
+    Args:
+        text: The string to wrap.
+        width: Maximum line width (default: 70).
+
+    Returns:
+        The wrapped string with newlines inserted.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+        ValueError: If ``width`` is not positive.
+
+    Examples:
+        >>> wrap_text("hello world", 5)
+        'hello\\nworld'
+    """
+    _require_string(text, "text")
+    if width <= 0:
+        raise ValueError("width must be positive")
+    return textwrap.fill(text, width=width)
+
+
+def indent_text(text: str, prefix: str = "    ") -> str:
+    """Indent every line of a string with the given prefix.
+
+    Args:
+        text: The string to indent.
+        prefix: The prefix to prepend to each line (default: four spaces).
+
+    Returns:
+        The indented string.
+
+    Raises:
+        TypeError: If ``text`` or ``prefix`` is not a string.
+
+    Examples:
+        >>> indent_text("line1\\nline2", "  ")
+        '  line1\\n  line2'
+    """
+    _require_string(text, "text")
+    _require_string(prefix, "prefix")
+    lines = text.split("\n")
+    return "\n".join(prefix + line for line in lines)
+
+
+def remove_extra_whitespace(text: str) -> str:
+    """Collapse runs of whitespace into single spaces and strip edges.
+
+    Args:
+        text: The string to clean.
+
+    Returns:
+        The string with normalized whitespace.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+
+    Examples:
+        >>> remove_extra_whitespace("  hello   world  ")
+        'hello world'
+        >>> remove_extra_whitespace("a\\n\\tb")
+        'a b'
+    """
+    _require_string(text, "text")
+    return " ".join(text.split())
+
+
+def title_case(text: str, small_words: Optional[List[str]] = None) -> str:
+    """Convert a string to title case.
+
+    Major words are capitalized; small words (articles, conjunctions,
+    prepositions) are lowercased unless they are the first or last word.
+
+    Args:
+        text: The string to convert.
+        small_words: Optional list of words to keep lowercase. Defaults to a
+            standard set of English small words.
+
+    Returns:
+        The title-cased string.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+
+    Examples:
+        >>> title_case("hello world")
+        'Hello World'
+        >>> title_case("the quick brown fox")
+        'The Quick Brown Fox'
+        >>> title_case("war and peace")
+        'War and Peace'
+    """
+    _require_string(text, "text")
+    if small_words is None:
+        small = _SMALL_WORDS
+    else:
+        small = {w.lower() for w in small_words}
+    words = text.split()
+    if not words:
+        return text
+    result: List[str] = []
+    for i, word in enumerate(words):
+        if i == 0 or i == len(words) - 1 or word.lower() not in small:
+            result.append(word.capitalize())
+        else:
+            result.append(word.lower())
+    return " ".join(result)
+STRINGUTILS
 # --- tree_utils.py ---
 cat > "$OUTPUT_DIR/tree_utils.py" <<'TREEUTILS'
 """Tree and nested structure utilities for working with nested dict/list data."""
@@ -8766,6 +9300,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
 - `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 - `tree_utils.py` — tree and nested structure utilities (get_nested, set_nested, delete_nested, flatten_tree, unflatten_tree, map_tree, filter_tree)
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
@@ -8796,6 +9331,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
 - `tests/test_set_utils.py` — unit tests for `set_utils.py`
 - `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
+- `tests/test_string_utils.py` — unit tests for `string_utils.py`
 - `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
 
 ## Usage
@@ -9042,6 +9578,7 @@ json_utils.py            # JSON utility functions (read/write/parse/dump/validat
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 statistics_utils.py             # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+string_utils.py         # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 tree_utils.py                   # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -9074,6 +9611,7 @@ tests/                       # Python unit tests
   test_csv_utils.py           # Tests for csv_utils.py
   test_set_utils.py         # Tests for set_utils.py
   test_statistics_utils.py    # Tests for statistics_utils.py
+  test_string_utils.py        # Tests for string_utils.py
   test_tree_utils.py           # Tests for tree_utils.py
   test_tree_utils.py           # Tests for tree_utils.py
 ```
@@ -9154,6 +9692,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
 - `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
+- `tests/test_string_utils.py` — unit tests for `string_utils.py`
 - `tree_utils.py` — tree and nested structure utilities (get_nested, set_nested, delete_nested, flatten_tree, unflatten_tree, map_tree, filter_tree)
 - `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
@@ -9188,6 +9728,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 - `tests/test_set_utils.py` — unit tests for `set_utils.py`
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 - `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
 
 __CHANGELOG__
