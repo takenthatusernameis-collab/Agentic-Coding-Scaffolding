@@ -67,6 +67,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
 - `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
+- `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
+- `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
 
 ## Usage
 

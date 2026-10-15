@@ -56,6 +56,7 @@ concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessP
 priority_queue_utils.py   # Heap-based priority queue implementation
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
+dict_utils.py            # Dictionary utilities (deep merge, flatten, safe get, etc.)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -81,6 +82,7 @@ tests/                       # Python unit tests
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
   test_retry_utils.py         # Tests for retry_utils.py
+  test_dict_utils.py         # Tests for dict_utils.py
 ```
 
 ## How It Works

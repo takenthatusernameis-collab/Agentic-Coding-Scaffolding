@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
 - `retry_utils.py` — retry utilities with `retry`, `retry_with_backoff`, and `retry_count` decorators for exponential backoff and jitter
 - `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
+- `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
+- `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
+
 
 ### Added
 

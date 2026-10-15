@@ -852,8 +852,6 @@ class TestSaveConfig(unittest.TestCase):
 
             loaded = load_config(nested_path)
             self.assertEqual(loaded, config)
-        finally:
-            pass
 
     def test_save_invalid_config_type(self):
         """Test that saving non-dict config raises TypeError."""
@@ -934,14 +932,18 @@ class TestGetConfigValue(unittest.TestCase):
 
     def test_get_with_custom_separator(self):
         """Test using a custom separator."""
-        config = {"a/b": {"c/d": "value"}}
+        config = {"a": {"b": {"c": {"d": "value"}}}}
         self.assertEqual(get_config_value(config, "a/b/c/d", separator="/"), "value")
 
     def test_get_with_non_dict_config(self):
         """Test getting value from non-dict config returns default."""
-        self.assertIsNone(get_config_value("not a dict", "key", "default"))
+        self.assertEqual(get_config_value("not a dict", "key", "default"), "default")
         self.assertEqual(get_config_value([], "key", "default"), "default")
         self.assertEqual(get_config_value(42, "key", "default"), "default")
+        # Also test that it returns None when no default provided
+        self.assertIsNone(get_config_value("not a dict", "key"))
+        self.assertIsNone(get_config_value([], "key"))
+        self.assertIsNone(get_config_value(42, "key"))
 
 
 class TestSetConfigValue(unittest.TestCase):
@@ -5648,6 +5650,126 @@ if __name__ == "__main__":
     while not pq.is_empty():
         print(pq.pop())
 PQUTILS
+# --- dict_utils.py ---
+cat > "$OUTPUT_DIR/dict_utils.py" <<'DICTUTILS'
+"""Dictionary utility functions."""
+
+from typing import Any, Dict, List, TypeVar
+
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+def deep_merge(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> Dict[Any, Any]:
+    """Recursively merge two dictionaries.
+
+    Args:
+        d1: First dictionary.
+        d2: Second dictionary.
+
+    Returns:
+        Merged dictionary.
+    """
+    result = d1.copy()
+    for key, value in d2.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = deep_merge(result[key], value)
+        else:
+            result[key] = value
+    return result
+
+
+def flatten_dict(d: Dict[str, Any], parent_key: str = "", sep: str = ".") -> Dict[str, Any]:
+    """Flatten a nested dictionary into a single-level dictionary.
+
+    Args:
+        d: Dictionary to flatten.
+        parent_key: Parent key prefix.
+        sep: Separator between keys.
+
+    Returns:
+        Flattened dictionary.
+    """
+    items: List[tuple] = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+
+def unflatten_dict(d: Dict[str, Any], sep: str = ".") -> Dict[str, Any]:
+    """Unflatten a flat dictionary with keys containing separators.
+
+    Args:
+        d: Flattened dictionary.
+        sep: Separator used in keys.
+
+    Returns:
+        Nested dictionary.
+    """
+    result: Dict[str, Any] = {}
+    for key, value in d.items():
+        parts = key.split(sep)
+        current = result
+        for part in parts[:-1]:
+            if part not in current:
+                current[part] = {}
+            current = current[part]
+        current[parts[-1]] = value
+    return result
+
+
+def safe_get(d: Dict[Any, Any], *keys: Any, default: Any = None) -> Any:
+    """Safely get a nested value from a dictionary.
+
+    Args:
+        d: Dictionary to search in.
+        keys: Keys to traverse.
+        default: Default value if not found.
+
+    Returns:
+        Value at the nested path or default.
+    """
+    current = d
+    for key in keys:
+        if not isinstance(current, dict) or key not in current:
+            return default
+        current = current[key]
+    return current
+
+
+def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
+    """Invert a dictionary by swapping keys and values.
+
+    Args:
+        d: Dictionary to invert.
+
+    Returns:
+        Inverted dictionary.
+
+    Raises:
+        ValueError: If values are not unique.
+    """
+    if len(d.values()) != len(set(d.values())):
+        raise ValueError("Cannot invert dictionary with duplicate values")
+    return {v: k for k, v in d.items()}
+
+
+def filter_dict(d: Dict[K, V], predicate: Any) -> Dict[K, V]:
+    """Filter a dictionary based on a predicate.
+
+    Args:
+        d: Dictionary to filter.
+        predicate: Function that takes (key, value) and returns bool.
+
+    Returns:
+        Filtered dictionary.
+    """
+    return {k: v for k, v in d.items() if predicate(k, v)}
+DICTUTILS
 # --- concurrent_utils.py ---
 cat > "$OUTPUT_DIR/concurrent_utils.py" <<'CONCURRENTUTILS'
 """Concurrent execution utilities for parallel and asynchronous processing.
@@ -6897,388 +7019,138 @@ class TestRetryCountDecorator(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTRETRYUTILS
-# --- tests/test_concurrent_utils.py ---
-cat > "$OUTPUT_DIR/tests/test_concurrent_utils.py" <<'TESTCONCURRENTUTILS'
-"""Tests for concurrent_utils module."""
+# --- tests/test_dict_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_dict_utils.py" <<'TESTDICTUTILS'
+"""Tests for dict_utils module."""
 
-import asyncio
 import unittest
 
-from concurrent_utils import (
-    ProcessPool,
-    ThreadPool,
-    _dec,
-    _double,
-    _multiply,
-    _square,
-    gather,
-    run_async,
-    to_async,
-)
+from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, safe_get, unflatten_dict
 
 
-class TestThreadPool(unittest.TestCase):
-    def test_threadpool_map(self):
-        with ThreadPool(max_workers=2) as pool:
-            results = list(pool.map(lambda x: x * 2, [1, 2, 3, 4]))
-        self.assertEqual(results, [2, 4, 6, 8])
+class TestDeepMerge(unittest.TestCase):
+    def test_deep_merge_basic(self) -> None:
+        d1 = {"a": 1, "b": {"c": 2}}
+        d2 = {"b": {"d": 3}, "e": 4}
+        result = deep_merge(d1, d2)
+        self.assertEqual(result["a"], 1)
+        self.assertEqual(result["b"]["c"], 2)
+        self.assertEqual(result["b"]["d"], 3)
+        self.assertEqual(result["e"], 4)
 
-    def test_threadpool_submit(self):
-        def square(x):
-            return x * x
+    def test_deep_merge_overwrite(self) -> None:
+        d1 = {"a": 1}
+        d2 = {"a": 2}
+        result = deep_merge(d1, d2)
+        self.assertEqual(result["a"], 2)
 
-        with ThreadPool(max_workers=2) as pool:
-            future = pool.submit(square, 5)
-            result = future.result()
-        self.assertEqual(result, 25)
-
-    def test_threadpool_submit_multiple(self):
-        def add(a, b):
-            return a + b
-
-        with ThreadPool(max_workers=3) as pool:
-            f1 = pool.submit(add, 1, 2)
-            f2 = pool.submit(add, 3, 4)
-            f3 = pool.submit(add, 5, 6)
-            self.assertEqual(f1.result(), 3)
-            self.assertEqual(f2.result(), 7)
-            self.assertEqual(f3.result(), 11)
-
-    def test_threadpool_default_workers(self):
-        with ThreadPool() as pool:
-            results = list(pool.map(lambda x: x + 1, [1, 2, 3]))
-        self.assertEqual(results, [2, 3, 4])
-
-    def test_threadpool_with_name_prefix(self):
-        with ThreadPool(max_workers=2, thread_name_prefix="test") as pool:
-            results = list(pool.map(lambda x: x * 3, [1, 2]))
-        self.assertEqual(results, [3, 6])
-
-    def test_threadpool_submit_outside_context_raises(self):
-        pool = ThreadPool(max_workers=2)
-        with self.assertRaises(RuntimeError):
-            pool.submit(lambda x: x, 1)
-
-    def test_threadpool_map_outside_context_raises(self):
-        pool = ThreadPool(max_workers=2)
-        with self.assertRaises(RuntimeError):
-            list(pool.map(lambda x: x, [1, 2]))
+    def test_deep_merge_no_overwrite_nested(self) -> None:
+        d1 = {"a": {"b": 1, "c": 2}}
+        d2 = {"a": {"b": 3}}
+        result = deep_merge(d1, d2)
+        self.assertEqual(result["a"]["b"], 3)
+        self.assertEqual(result["a"]["c"], 2)
 
 
-class TestProcessPool(unittest.TestCase):
-    def test_processpool_map(self):
-        with ProcessPool(max_workers=2) as pool:
-            results = list(pool.map(_double, [1, 2, 3, 4]))
-        self.assertEqual(results, [2, 4, 6, 8])
+class TestFlattenDict(unittest.TestCase):
+    def test_flatten_basic(self) -> None:
+        d = {"a": 1, "b": {"c": 2, "d": 3}}
+        result = flatten_dict(d)
+        self.assertEqual(result["a"], 1)
+        self.assertEqual(result["b.c"], 2)
+        self.assertEqual(result["b.d"], 3)
 
-    def test_processpool_submit(self):
-        with ProcessPool(max_workers=2) as pool:
-            future = pool.submit(_square, 5)
-            result = future.result()
-        self.assertEqual(result, 25)
+    def test_flatten_with_sep(self) -> None:
+        d = {"a": {"b": {"c": 1}}}
+        result = flatten_dict(d, sep="_")
+        self.assertEqual(result["a_b_c"], 1)
 
-    def test_processpool_submit_multiple(self):
-        with ProcessPool(max_workers=3) as pool:
-            f1 = pool.submit(_multiply, 2, 3)
-            f2 = pool.submit(_multiply, 4, 5)
-            f3 = pool.submit(_multiply, 6, 7)
-            self.assertEqual(f1.result(), 6)
-            self.assertEqual(f2.result(), 20)
-            self.assertEqual(f3.result(), 42)
-
-    def test_processpool_default_workers(self):
-        with ProcessPool() as pool:
-            results = list(pool.map(_dec, [5, 6, 7]))
-        self.assertEqual(results, [4, 5, 6])
-
-    def test_processpool_submit_outside_context_raises(self):
-        pool = ProcessPool(max_workers=2)
-        with self.assertRaises(RuntimeError):
-            pool.submit(_square, 1)
-
-    def test_processpool_map_outside_context_raises(self):
-        pool = ProcessPool(max_workers=2)
-        with self.assertRaises(RuntimeError):
-            list(pool.map(_square, [1, 2]))
+    def test_flatten_parent_key(self) -> None:
+        d = {"b": 2}
+        result = flatten_dict(d, parent_key="a")
+        self.assertEqual(result["a.b"], 2)
 
 
-class TestAsyncIOWrappers(unittest.TestCase):
-    def test_gather_basic(self):
-        async def compute(x):
-            await asyncio.sleep(0.001)
-            return x * 2
+class TestUnflattenDict(unittest.TestCase):
+    def test_unflatten_basic(self) -> None:
+        d = {"a.b.c": 1, "a.b.d": 2}
+        result = unflatten_dict(d)
+        self.assertEqual(result["a"]["b"]["c"], 1)
+        self.assertEqual(result["a"]["b"]["d"], 2)
 
-        async def main():
-            results = await gather(compute(1), compute(2), compute(3))
-            return results
+    def test_unflatten_simple(self) -> None:
+        d = {"a": 1, "b": 2}
+        result = unflatten_dict(d)
+        self.assertEqual(result["a"], 1)
+        self.assertEqual(result["b"], 2)
 
-        results = run_async(main())
-        self.assertEqual(results, [2, 4, 6])
 
-    def test_gather_with_mixed_values(self):
-        async def async_func(x):
-            return x + 1
+class TestSafeGet(unittest.TestCase):
+    def test_safe_get_basic(self) -> None:
+        d = {"a": {"b": {"c": 1}}}
+        self.assertEqual(safe_get(d, "a", "b", "c"), 1)
 
-        async def main():
-            results = await gather(async_func(1), 10, async_func(3))
-            return results
+    def test_safe_get_default(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(safe_get(d, "b", default="missing"), "missing")
+        self.assertIsNone(safe_get(d, "b"))
 
-        results = run_async(main())
-        self.assertEqual(results, [2, 10, 4])
+    def test_safe_get_partial(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(safe_get(d, "a", "b", default="x"), "x")
 
-    def test_gather_empty(self):
-        async def main():
-            results = await gather()
-            return results
 
-        results = run_async(main())
-        self.assertEqual(results, [])
+class TestInvertDict(unittest.TestCase):
+    def test_invert_basic(self) -> None:
+        d = {"a": 1, "b": 2}
+        result = invert_dict(d)
+        self.assertEqual(result[1], "a")
+        self.assertEqual(result[2], "b")
 
-    def test_run_async_basic(self):
-        async def get_data():
-            return "test_data"
-
-        result = run_async(get_data())
-        self.assertEqual(result, "test_data")
-
-    def test_run_async_with_exception(self):
-        async def fail():
-            raise ValueError("test error")
-
+    def test_invert_duplicate_values_raises(self) -> None:
+        d = {"a": 1, "b": 1}
         with self.assertRaises(ValueError):
-            run_async(fail())
+            invert_dict(d)
 
-    def test_to_async_basic(self):
-        def compute(x):
-            return x * 3
 
-        async def main():
-            async_compute = to_async(compute)
-            result = await async_compute(4)
-            return result
+class TestFilterDict(unittest.TestCase):
+    def test_filter_dict_basic(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        result = filter_dict(d, lambda k, v: v > 1)
+        self.assertIn("b", result)
+        self.assertIn("c", result)
+        self.assertNotIn("a", result)
 
-        result = run_async(main())
-        self.assertEqual(result, 12)
-
-    def test_to_async_with_multiple_args(self):
-        def add(a, b, c):
-            return a + b + c
-
-        async def main():
-            async_add = to_async(add)
-            result = await async_add(1, 2, 3)
-            return result
-
-        result = run_async(main())
-        self.assertEqual(result, 6)
-
-    def test_to_async_with_kwargs(self):
-        def multiply(a, b=1):
-            return a * b
-
-        async def main():
-            async_multiply = to_async(multiply)
-            result = await async_multiply(5, b=3)
-            return result
-
-        result = run_async(main())
-        self.assertEqual(result, 15)
-
-    def test_to_async_preserves_metadata(self):
-        def original_func():
-            """Original docstring."""
-            return "test"
-
-        async def main():
-            wrapped = to_async(original_func)
-            self.assertEqual(wrapped.__name__, "original_func")
-            self.assertEqual(wrapped.__doc__, "Original docstring.")
-            return await wrapped()
-
-        result = run_async(main())
-        self.assertEqual(result, "test")
+    def test_filter_dict_by_key(self) -> None:
+        d = {"a1": 1, "b1": 2, "a2": 3}
+        result = filter_dict(d, lambda k, v: k.startswith("a"))
+        self.assertEqual(len(result), 2)
 
 
 if __name__ == "__main__":
     unittest.main()
-TESTCONCURRENTUTILS
-# --- tests/test_priority_queue_utils.py ---
-cat > "$OUTPUT_DIR/tests/test_priority_queue_utils.py" <<'TESTPQUTILS'
-"""Tests for priority_queue_utils module."""
+TESTDICTUTILS
 
-import unittest
+# --- .kilo/agent/scaffolder.md ---
+cat > "$OUTPUT_DIR/.kilo/agent/scaffolder.md" <<'AGENT'
+---
+description: Generates project scaffolding, templates, and boilerplate code
+mode: subagent
+model: kilo/kilo-auto/free
+---
 
-from priority_queue_utils import (
-    PriorityQueue,
-    clear_priority,
-    create_priority_queue,
-    is_empty_priority,
-    merge_queues,
-    peek_priority,
-    pop_priority,
-    push_priority,
-    size_priority,
-)
+You are a scaffolding specialist subagent. Your purpose is to generate project scaffolding, templates, and boilerplate code.
 
+When invoked:
 
-class TestPriorityQueue(unittest.TestCase):
-    def test_empty_queue(self):
-        pq = PriorityQueue()
-        self.assertTrue(pq.is_empty())
-        self.assertEqual(pq.size(), 0)
-        self.assertIsNone(pq.pop())
-        self.assertIsNone(pq.peek())
+1. Analyze the requested scaffolding need (new project template, CI workflow, documentation structure, agent configuration, etc.)
+2. Generate clean, well-structured files following existing patterns in the repository
+3. Create a README or notes file explaining what was scaffolded and how to use it
+4. Follow the coding conventions defined in AGENTS.md
 
-    def test_push_and_pop(self):
-        pq = PriorityQueue()
-        pq.push("task1", priority=2)
-        pq.push("task2", priority=1)
-        pq.push("task3", priority=3)
-        self.assertEqual(pq.pop(), "task2")
-        self.assertEqual(pq.pop(), "task1")
-        self.assertEqual(pq.pop(), "task3")
-        self.assertTrue(pq.is_empty())
+Always match the existing file patterns, naming conventions, and documentation style already established in the repository.
+AGENT
 
-    def test_push_with_default_priority(self):
-        pq = PriorityQueue()
-        pq.push("item1")
-        pq.push("item2", priority=1)
-        # item2 has lower priority value, so should come out first
-        self.assertEqual(pq.pop(), "item2")
-        self.assertEqual(pq.pop(), "item1")
-
-    def test_peek(self):
-        pq = PriorityQueue()
-        pq.push("task", priority=5)
-        self.assertEqual(pq.peek(), "task")
-        self.assertFalse(pq.is_empty())
-        self.assertEqual(pq.size(), 1)
-        self.assertEqual(pq.pop(), "task")
-        self.assertTrue(pq.is_empty())
-
-    def test_same_priority(self):
-        pq = PriorityQueue()
-        pq.push("first", priority=1)
-        pq.push("second", priority=1)
-        pq.push("third", priority=1)
-        # With counter to maintain insertion order for equal priorities
-        self.assertEqual(pq.pop(), "first")
-        self.assertEqual(pq.pop(), "second")
-        self.assertEqual(pq.pop(), "third")
-
-    def test_initialization_with_items(self):
-        pq = PriorityQueue([("high", 1), ("low", 3), ("medium", 2)])
-        self.assertEqual(pq.pop(), "high")
-        self.assertEqual(pq.pop(), "medium")
-        self.assertEqual(pq.pop(), "low")
-
-    def test_clear(self):
-        pq = PriorityQueue()
-        pq.push("a", priority=1)
-        pq.push("b", priority=2)
-        self.assertFalse(pq.is_empty())
-        pq.clear()
-        self.assertTrue(pq.is_empty())
-        self.assertEqual(pq.size(), 0)
-
-    def test_len(self):
-        pq = PriorityQueue()
-        self.assertEqual(len(pq), 0)
-        pq.push("a", priority=1)
-        self.assertEqual(len(pq), 1)
-        pq.push("b", priority=2)
-        self.assertEqual(len(pq), 2)
-        pq.pop()
-        self.assertEqual(len(pq), 1)
-        pq.pop()
-        self.assertEqual(len(pq), 0)
-
-    def test_bool(self):
-        pq = PriorityQueue()
-        self.assertFalse(bool(pq))
-        pq.push("a", priority=1)
-        self.assertTrue(bool(pq))
-        pq.pop()
-        self.assertFalse(bool(pq))
-
-
-
-
-class TestHelperFunctions(unittest.TestCase):
-    def test_push_priority(self):
-        pq = PriorityQueue()
-        push_priority(pq, "item", priority=5)
-        self.assertEqual(peek_priority(pq), "item")
-
-    def test_pop_priority(self):
-        pq = PriorityQueue()
-        push_priority(pq, "item", priority=1)
-        result = pop_priority(pq)
-        self.assertEqual(result, "item")
-        self.assertIsNone(pop_priority(pq))
-
-    def test_peek_priority(self):
-        pq = PriorityQueue()
-        push_priority(pq, "item", priority=2)
-        self.assertEqual(peek_priority(pq), "item")
-        self.assertFalse(is_empty_priority(pq))
-
-    def test_is_empty_priority(self):
-        pq = PriorityQueue()
-        self.assertTrue(is_empty_priority(pq))
-        push_priority(pq, "item")
-        self.assertFalse(is_empty_priority(pq))
-
-    def test_size_priority(self):
-        pq = PriorityQueue()
-        self.assertEqual(size_priority(pq), 0)
-        push_priority(pq, "a")
-        push_priority(pq, "b")
-        self.assertEqual(size_priority(pq), 2)
-
-    def test_clear_priority(self):
-        pq = PriorityQueue()
-        push_priority(pq, "a")
-        push_priority(pq, "b")
-        clear_priority(pq)
-        self.assertTrue(is_empty_priority(pq))
-
-
-class TestConvenienceFunctions(unittest.TestCase):
-    def test_create_priority_queue_empty(self):
-        pq = create_priority_queue()
-        self.assertIsInstance(pq, PriorityQueue)
-        self.assertTrue(pq.is_empty())
-
-    def test_create_priority_queue_with_items(self):
-        pq = create_priority_queue([(1, "a"), (2, "b")])
-        self.assertEqual(pq.pop(), "a")
-        self.assertEqual(pq.pop(), "b")
-
-    def test_merge_queues(self):
-        pq1 = PriorityQueue()
-        pq1.push("a", priority=3)
-        pq1.push("b", priority=1)
-        pq2 = PriorityQueue()
-        pq2.push("c", priority=2)
-        pq3 = PriorityQueue()
-        pq3.push("d", priority=4)
-
-        merged = merge_queues(pq1, pq2, pq3)
-        self.assertEqual(merged.pop(), "b")
-        self.assertEqual(merged.pop(), "c")
-        self.assertEqual(merged.pop(), "a")
-        self.assertEqual(merged.pop(), "d")
-        self.assertTrue(merged.is_empty())
-        # Original queues should remain unchanged
-        self.assertFalse(pq1.is_empty())
-        self.assertFalse(pq2.is_empty())
-        self.assertFalse(pq3.is_empty())
-
-
-if __name__ == "__main__":
-    unittest.main()
-TESTPQUTILS
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -7343,6 +7215,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `priority_queue_utils.py` — heap-based priority queue implementation
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
 - `retry_utils.py` — retry utilities with exponential backoff and jitter
+- `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -7367,6 +7240,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
 - `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
+- `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
 
 ## Usage
 
@@ -7386,7 +7260,6 @@ scaffold-project my-cool-tool ./out --no-test
 ```
 SCAFFOLD
 
-
 # --- .kilo/skill/scaffolding-helper.md ---
 cat > "$OUTPUT_DIR/.kilo/skill/scaffolding-helper.md" <<'SKILLSAMPLE'
 ---
@@ -7398,352 +7271,18 @@ This is a sample skill for the scaffolding system. Skills provide specialized in
 
 When using this skill:
 1. Follow the established project patterns
-2. Maintain consistency across scaffolded files
-3. Ensure generated code is well-documented
+2. Maintain consistency with existing codebase style
+3. Ensure all generated code passes linting and type checking
+4. Update templates when the source of truth changes
 SKILLSAMPLE
 
 # --- .kilo/.gitignore ---
 cat > "$OUTPUT_DIR/.kilo/.gitignore" <<'KILOGITIGNORE'
-node_modules
-package.json
-package-lock.json
-pnpm-lock.yaml
-bun.lock
-yarn.lock
-.gitignore
-agent-manager.json
+.kilo/.state/
+*.log
+*.tmp
+.env
 KILOGITIGNORE
-
-# --- AGENTS.md ---
-cat > "$OUTPUT_DIR/AGENTS.md" <<'AGENTS'
-# Agent Instructions
-
-Project: ${PROJECT_NAME}
-
-## Project Purpose
-
-${PROJECT_NAME} is an autonomous agentic coding project powered by Kilo. A GitHub Actions workflow runs a loop of Kilo agent sessions, each receiving the task: "Execute the task assigned by the previous agent and prepare a task for the next agent!"
-
-## Task Handover Protocol
-
-1. Check the shared Kilo board (`board_read`) for any messages from the previous agent
-2. If a task is found, execute it
-3. If no task is found (bootstrap session), establish the project foundation
-4. Post a new task for the next agent via `board_post` to `main`
-5. Ensure all work results in committed changes (non-workflow files) for the CI checkpoint
-
-## Workflow Rules
-
-- The CI workflow excludes `.github/workflows/**` from the project progress check
-- Only changes to files outside `.github/workflows/` count as "meaningful project progress"
-- Do NOT modify `.github/workflows/` files — they are maintainer-managed
-
-## Developer Commands
-
-Use the following Makefile targets during development:
-
-- `make test` — Run the Python test suite
-- `make lint` — Run ruff code style checker
-- `make typecheck` — Run mypy static type checking
-- `make run` — Run hello.py (`make run NAME=Alice`)
-- `make scaffold` — Scaffold a new project using scaffold.sh
-- `make pre-commit-install` — Install pre-commit hooks into .git/hooks
-- `make pre-commit-run` — Run all pre-commit hooks against tracked files
-- `make clean` — Remove build artifacts
-- `make help` — Show all available targets
-
-## Agent Configuration
-
-- Project config: `kilo.json` at the repository root
-- Custom subagents: `.kilo/agent/*.md`
-- Custom commands: `.kilo/command/*.md`
-- Kilo permissions: `permission` key in `kilo.json`
-
-## Available Subagents
-
-- `scaffolder` - A subagent for generating project scaffolding and templates
-- `explore` (built-in) - Read-only codebase exploration
-
-## Available Commands
-
-- `scaffold-project` - Scaffold a new project structure
-- `handover` - Prepare and post the next task for the following agent
-
-## Coding Conventions
-
-- Write clean, well-documented code
-- Follow existing file patterns in the repository
-- Use descriptive file and function names
-- Keep changes focused and incremental
-
-## Notes
-
-- This project uses the `kilo/kilo-auto/free` model
-- Sessions have an idle timeout of 900 seconds
-- The overall CI job has a 355-minute safety cutoff
-AGENTS
-
-# --- LICENSE ---
-cat > "$OUTPUT_DIR/LICENSE" <<LICENSE
-MIT License
-
-Copyright (c) ${PROJECT_YEARS:-2024} ${PROJECT_AUTHOR:-kilo-autonomous}
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-LICENSE
-
-# --- README.md ---
-cat > "$OUTPUT_DIR/README.md" <<README
-# ${PROJECT_NAME}
-
-A project scaffolded for autonomous agentic coding with Kilo.
-
-## Overview
-
-This repository provides a foundation for autonomous agent development. A GitHub Actions workflow runs a loop of Kilo agent sessions that iteratively build and refine the project.
-
-## How It Works
-
-Each agent session runs with the prompt "Execute the task assigned by the previous agent and prepare a task for the next agent!" — creating a continuous, evolving codebase.
-
-## Project Structure
-
-\`\`\`
-.github/workflows/main.yml   # CI workflow: Kilo agent loop
-.kilo/                       # Kilo project configuration
-  agent/                     # Custom subagents
-  command/                   # Custom commands
-  skill/                     # Custom skills
-  .gitignore                 # Ignore patterns for .kilo directory
-AGENTS.md                    # AI agent instructions
-README.md                    # Project overview and getting started guide
-CHANGELOG.md                 # Changelog (Keep a Changelog format)
-.pre-commit-config.yaml      # Pre-commit hooks (ruff, mypy, tests, scaffold)
-kilo.json                    # Kilo project configuration
-Makefile                     # Common developer targets (test, lint, typecheck, run, scaffold, clean, help, pre-commit-install, pre-commit-run)
-pyproject.toml               # Python project configuration (pytest, ruff, mypy)
-hello.py                     # Sample application entry point
-calculator.py                # Simple calculator module with arithmetic operations
-shapes.py                    # Geometry utilities for areas and perimeters of common shapes
-strings.py                   # String utilities for text operations
-utils.py                     # General utility helper functions
-stats.py                     # Statistical utility functions
-math_utils.py                # Mathematical utility functions
-data_utils.py                # Data utility functions
-datetime_utils.py            # Date and time utility functions
-file_utils.py                # File and path utility functions
-url_utils.py                 # URL and web utility functions
-random_utils.py              # Random number generation and sampling utilities
-validation_utils.py          # Input validation utilities
-crypto_utils.py              # Cryptographic utilities
-list_utils.py                # Advanced list manipulation utilities
-env_utils.py                 # Environment variable handling utilities
-logging_utils.py             # Logging configuration and helper utilities
-cache_utils.py               # Caching utilities for memoizing function results
-timing_utils.py              # Performance measurement helpers
-concurrent_utils.py          # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
-priority_queue_utils.py      # Heap-based priority queue implementation
-rate_limiter_utils.py        # Rate limiting utilities (token bucket algorithm)
-retry_utils.py               # Retry utilities with exponential backoff and jitter
-.gitignore                   # Common ignore patterns
-LICENSE                      # MIT License
-tests/                       # Python unit tests
-  test_hello.py              # Tests for hello.py
-  test_calculator.py         # Tests for calculator.py
-  test_scaffold.py           # Tests for scaffold.sh
-  test_shapes.py             # Tests for shapes.py
-  test_strings.py            # Tests for strings.py
-  test_utils.py              # Tests for utils.py
-  test_stats.py              # Tests for stats.py
-  test_math_utils.py         # Tests for math_utils.py
-  test_data_utils.py         # Tests for data_utils.py
-  test_datetime_utils.py     # Tests for datetime_utils.py
-  test_file_utils.py         # Tests for file_utils.py
-  test_url_utils.py          # Tests for url_utils.py
-  test_random_utils.py       # Tests for random_utils.py
-  test_validation_utils.py   # Tests for validation_utils.py
-  test_crypto_utils.py       # Tests for crypto_utils.py
-  test_list_utils.py         # Tests for list_utils.py
-  test_env_utils.py          # Tests for env_utils.py
-  test_logging_utils.py      # Tests for logging_utils.py
-  test_cache_utils.py        # Tests for cache_utils.py
-  test_timing_utils.py       # Tests for timing_utils.py
-  test_concurrent_utils.py   # Tests for concurrent_utils.py
-  test_priority_queue_utils.py # Tests for priority_queue_utils.py
-  test_rate_limiter_utils.py # Tests for rate_limiter_utils.py
-  test_retry_utils.py        # Tests for retry_utils.py
-\`\`\`
-
-## Developer Commands
-
-This project includes a \`Makefile\` with the following targets:
-
-| Target    | Description                              |
-|-----------|------------------------------------------|
-| \`make test\`             | Run the Python test suite with pytest    |
-| \`make lint\`             | Run ruff code style checker              |
-| \`make typecheck\`        | Run mypy static type checking            |
-| \`make run\`              | Run hello.py (\`make run NAME=Alice\`)      |
-| \`make scaffold\`         | Run scaffold.sh to scaffold a new project |
-| \`make clean\`            | Remove build artifacts                    |
-| \`make help\`             | Show all available targets                |
-| \`make pre-commit-install\` | Install pre-commit hooks               |
-| \`make pre-commit-run\`   | Run all pre-commit hooks                  |
-
-## Getting Started
-
-\`\`\`bash
-# Run the sample application
-make run
-
-# Run tests
-make test
-
-# Check code style and types
-make lint
-make typecheck
-\`\`\`
-
-## License
-
-MIT
-README
-
-# --- CHANGELOG.md ---
-cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-### Added
-
-- Initial scaffold generated by scaffold.sh
-
-## [0.1.0] - Bootstrap
-
-### Added
-
-- `hello.py` — sample application entry point
-- `tests/test_hello.py` — unit tests for `hello.py`
-- `scaffold.sh` — project scaffolding script
-- `AGENTS.md` — agent instructions with task handover protocol
-- `kilo.json` — Kilo project configuration
-- `Makefile` — developer targets
-- `pyproject.toml` — Python project configuration
-- `.gitignore` — common ignore patterns
-- `LICENSE` — MIT license file
-- `.kilo/agent/scaffolder.md` — scaffolder subagent
-- `.kilo/command/handover.md` — handover command
-- `.kilo/command/scaffold-project.md` — scaffold-project command
-- `.kilo/skill/scaffolding-helper.md` — sample skill
-- `.kilo/.gitignore` — ignore patterns for the .kilo directory
-- `.github/workflows/main.yml` — CI workflow for Kilo agent loop
-- `README.md` — project overview
-- `CHANGELOG.md` — changelog following Keep a Changelog format
-- `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, tests, and scaffold
-- `calculator.py` — simple calculator module with arithmetic operations
-- `tests/test_calculator.py` — unit tests for `calculator.py`
-- `config_utils.py` — configuration utilities for JSON file management
-- `tests/test_config_utils.py` — unit tests for the config utilities module
-- `shapes.py` — geometry utilities for areas and perimeters of common shapes
-- `tests/test_shapes.py` — unit tests for `shapes.py`
-- `strings.py` — string utilities for text operations
-- `tests/test_strings.py` — unit tests for `strings.py`
-- `utils.py` — general utility helper functions
-- `tests/test_utils.py` — unit tests for `utils.py`
-- `stats.py` — statistical utility functions
-- `tests/test_stats.py` — unit tests for `stats.py`
-- `math_utils.py` — mathematical utility functions
-- `tests/test_math_utils.py` — unit tests for `math_utils.py`
-- `data_utils.py` — data utility functions
-- `tests/test_data_utils.py` — unit tests for `data_utils.py`
-- `file_utils.py` — file and path utility functions
-- `tests/test_file_utils.py` — unit tests for `file_utils.py`
-- `datetime_utils.py` — date and time utility functions
-- `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
-- `url_utils.py` — URL and web utility functions
-- `tests/test_url_utils.py` — unit tests for `url_utils.py`
-- `random_utils.py` — random number generation and sampling utilities
-- `tests/test_random_utils.py` — unit tests for `random_utils.py`
-- `validation_utils.py` — input validation utilities
-- `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
-- `crypto_utils.py` — cryptographic utilities
-- `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
-- `list_utils.py` — advanced list manipulation utilities
-- `env_utils.py` — environment variable handling utilities
-- `tests/test_list_utils.py` — unit tests for `list_utils.py`
-- `tests/test_env_utils.py` — unit tests for `env_utils.py`
-- `logging_utils.py` — logging configuration and helper utilities
-- `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
-- `cache_utils.py` — caching utilities for memoizing function results
-- `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
-- `timing_utils.py` — performance measurement helpers
-- `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
-- `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
-- `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
-- `priority_queue_utils.py` — heap-based priority queue implementation
-- `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
-- `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
-- `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
-- `retry_utils.py` — retry utilities with exponential backoff and jitter
-- `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
-CHANGELOG
-
-# --- kilo.json ---
-cat > "$OUTPUT_DIR/kilo.json" <<'KILOJSON'
-{
-  "$schema": "https://app.kilo.ai/config.json",
-  "permission": "allow",
-  "agent": {
-    "scaffolder": {
-      "description": "Generates project scaffolding, templates, and boilerplate code for new features. Use when the task involves creating new files or project structure.",
-      "mode": "subagent",
-      "model": "kilo/kilo-auto/free"
-    }
-  }
-}
-KILOJSON
-
-# --- .kilo/agent/scaffolder.md ---
-cat > "$OUTPUT_DIR/.kilo/agent/scaffolder.md" <<'AGENT'
----
-description: Generates project scaffolding, templates, and boilerplate code
-mode: subagent
-model: kilo/kilo-auto/free
----
-
-You are a scaffolding specialist subagent. Your purpose is to generate project scaffolding, templates, and boilerplate code.
-
-When invoked:
-
-1. Analyze the requested scaffolding need (new project template, CI workflow, documentation structure, agent configuration, etc.)
-2. Generate clean, well-structured files following existing patterns in the repository
-3. Create a README or notes file explaining what was scaffolded and how to use it
-4. Follow the coding conventions defined in AGENTS.md
-
-Always match the existing file patterns, naming conventions, and documentation style already established in the repository.
-AGENT
 
 echo ""
 echo "Scaffolded project '$PROJECT_NAME' at: $OUTPUT_DIR"
@@ -7768,4 +7307,4 @@ echo "Next steps:"
 echo "  cd $OUTPUT_DIR"
 echo "  git init"
 echo "  git add -A"
-echo "  git commit -m \"Initial commit\""
+echo "  git commit -m 'Initial commit'"
