@@ -75,6 +75,28 @@ class TestPriorityQueue(unittest.TestCase):
         self.assertTrue(pq.is_empty())
         self.assertEqual(pq.size(), 0)
 
+    def test_len(self):
+        pq = PriorityQueue()
+        self.assertEqual(len(pq), 0)
+        pq.push("a", priority=1)
+        self.assertEqual(len(pq), 1)
+        pq.push("b", priority=2)
+        self.assertEqual(len(pq), 2)
+        pq.pop()
+        self.assertEqual(len(pq), 1)
+        pq.pop()
+        self.assertEqual(len(pq), 0)
+
+    def test_bool(self):
+        pq = PriorityQueue()
+        self.assertFalse(bool(pq))  # or simply: self.assertNot(pq)
+        pq.push("a", priority=1)
+        self.assertTrue(bool(pq))
+        pq.pop()
+        self.assertFalse(bool(pq))
+
+
+
 
 class TestHelperFunctions(unittest.TestCase):
     def test_push_priority(self):

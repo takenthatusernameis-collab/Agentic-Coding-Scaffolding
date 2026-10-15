@@ -126,6 +126,10 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_cache_utils.py",
             "timing_utils.py",
             "tests/test_timing_utils.py",
+            "concurrent_utils.py",
+            "tests/test_concurrent_utils.py",
+            "priority_queue_utils.py",
+            "tests/test_priority_queue_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -201,6 +205,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "logging_utils.py",
             "cache_utils.py",
             "timing_utils.py",
+            "concurrent_utils.py",
+            "priority_queue_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -218,6 +224,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_logging_utils.py",
             "tests/test_cache_utils.py",
             "tests/test_timing_utils.py",
+            "tests/test_concurrent_utils.py",
+            "tests/test_priority_queue_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -248,6 +256,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "logging_utils.py",
             "cache_utils.py",
             "timing_utils.py",
+            "concurrent_utils.py",
+            "priority_queue_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
@@ -440,6 +450,64 @@ class TestScaffoldKiloJson(unittest.TestCase):
         result = test_func()
         self.assertEqual(result, "success")
         self.assertEqual(call_count, 2)
+
+    def test_concurrent_utils_functions_work(self) -> None:
+        """Generated concurrent_utils.py should have working functions."""
+        import asyncio
+
+        from concurrent_utils import ThreadPool, ProcessPool, run_async, to_async, _double, _inc
+
+        with ThreadPool(max_workers=2) as pool:
+            results = list(pool.map(lambda x: x * 2, [1, 2, 3]))
+        self.assertEqual(results, [2, 4, 6])
+
+        with ProcessPool(max_workers=2) as pool:
+            results = list(pool.map(_inc, [1, 2, 3]))
+        self.assertEqual(results, [2, 3, 4])
+
+        async def async_add(a: int, b: int) -> int:
+            await asyncio.sleep(0.001)
+            return a + b
+
+        result = run_async(async_add(1, 2))
+        self.assertEqual(result, 3)
+
+        def sync_mul(a: int, b: int) -> int:
+            return a * b
+
+        async_mul = to_async(sync_mul)
+        result = run_async(async_mul(3, 4))
+        self.assertEqual(result, 12)
+
+    def test_priority_queue_utils_functions_work(self) -> None:
+        """Generated priority_queue_utils.py should have working functions."""
+        from priority_queue_utils import (
+            PriorityQueue,
+            create_priority_queue,
+            merge_queues,
+            pop_priority,
+            push_priority,
+        )
+
+        pq = PriorityQueue()
+        push_priority(pq, "low", priority=10)
+        push_priority(pq, "high", priority=1)
+        push_priority(pq, "medium", priority=5)
+        self.assertEqual(pop_priority(pq), "high")
+        self.assertEqual(pop_priority(pq), "medium")
+        self.assertEqual(pop_priority(pq), "low")
+
+        pq2 = create_priority_queue([(1, "a"), (2, "b")])
+        self.assertEqual(pq2.pop(), "a")
+        self.assertEqual(pq2.pop(), "b")
+
+        pq3 = PriorityQueue()
+        push_priority(pq3, "x", priority=3)
+        pq4 = PriorityQueue()
+        push_priority(pq4, "y", priority=1)
+        merged = merge_queues(pq3, pq4)
+        self.assertEqual(merged.pop(), "y")
+        self.assertEqual(merged.pop(), "x")
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

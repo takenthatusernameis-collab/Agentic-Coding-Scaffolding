@@ -69,6 +69,14 @@ class PriorityQueue(Generic[T]):
         """Return the number of items in the queue."""
         return len(self._heap)
 
+    def __len__(self) -> int:
+        """Return the number of items in the queue."""
+        return len(self._heap)
+
+    def __bool__(self) -> bool:
+        """Return True if the queue is non-empty."""
+        return len(self._heap) > 0
+
     def clear(self) -> None:
         """Remove all items from the queue."""
         self._heap.clear()

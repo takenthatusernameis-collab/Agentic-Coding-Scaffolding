@@ -1469,8 +1469,6 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
     return math.sqrt(var)
 STATS
 
-cp "$(dirname "$0")/concurrent_utils.py" "$OUTPUT_DIR/concurrent_utils.py"
-
 # --- tests/test_strings.py ---
 cat > "$OUTPUT_DIR/tests/test_strings.py" <<'TESTSTRINGS'
 import unittest
@@ -1709,8 +1707,6 @@ class TestStddev(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTSTATS
-
-cp "$(dirname "$0")/tests/test_concurrent_utils.py" "$OUTPUT_DIR/tests/test_concurrent_utils.py"
 
 # --- math_utils.py ---
 cat > "$OUTPUT_DIR/math_utils.py" <<'MATH'
@@ -5124,6 +5120,334 @@ if __name__ == "__main__":
     elapsed = elapsed_time(start)
     print(f"Elapsed time: {elapsed:.2f}s")
 TIMINGUTILS
+# --- priority_queue_utils.py ---
+cat > "$OUTPUT_DIR/priority_queue_utils.py" <<'PQUTILS'
+"""Priority queue utilities for heap-based priority queue implementation.
+
+This module provides a heap-based PriorityQueue class and helper functions
+for managing items with priorities.
+"""
+
+import heapq
+from typing import Any, Generic, List, Optional, Tuple, TypeVar
+
+T = TypeVar("T")
+
+
+class PriorityQueue(Generic[T]):
+    """A heap-based priority queue implementation.
+
+    Items are stored as tuples (priority, item) in a min-heap. If multiple
+    items have the same priority, their original insertion order is preserved
+    by using an incrementing counter.
+
+    Args:
+        items: Optional initial items as (priority, item) tuples.
+    """
+
+    def __init__(self, items: Optional[List[Tuple[float, T]]] = None) -> None:
+        self._heap: List[Tuple[float, int, T]] = []
+        self._counter = 0
+        if items is not None:
+            for item_pair in items:
+                if isinstance(item_pair, tuple) and len(item_pair) == 2:
+                    # Could be (priority, item) or (item, priority)
+                    first, second = item_pair
+                    # Heuristic: if second is a number (int/float), it's likely (item, priority)
+                    # If first is a number, it's likely (priority, item)
+                    if isinstance(second, (int, float)) and not isinstance(first, (int, float)):
+                        item, priority = first, second
+                    elif isinstance(first, (int, float)) and not isinstance(second, (int, float)):
+                        priority, item = first, second
+                    else:
+                        # Default to (priority, item) for numeric first
+                        priority, item = first, second
+                    self.push(item, priority=float(priority))
+                else:
+                    self.push(item_pair)
+
+    def push(self, item: T, priority: float = 10) -> None:
+        """Push an item into the queue with given priority."""
+        heapq.heappush(self._heap, (float(priority), self._counter, item))
+        self._counter += 1
+
+    def pop(self) -> Optional[T]:
+        """Pop the item with highest priority (lowest priority value)."""
+        if not self._heap:
+            return None
+        _, _, item = heapq.heappop(self._heap)
+        return item
+
+    def peek(self) -> Optional[T]:
+        """Return the item with highest priority without removing it."""
+        if not self._heap:
+            return None
+        _, _, item = self._heap[0]
+        return item
+
+    def is_empty(self) -> bool:
+        """Check if the queue is empty."""
+        return len(self._heap) == 0
+
+    def size(self) -> int:
+        """Return the number of items in the queue."""
+        return len(self._heap)
+
+    def __len__(self) -> int:
+        """Return the number of items in the queue."""
+        return len(self._heap)
+
+    def __bool__(self) -> bool:
+        """Return True if the queue is non-empty."""
+        return len(self._heap) > 0
+
+    def clear(self) -> None:
+        """Remove all items from the queue."""
+        self._heap.clear()
+        self._counter = 0
+
+
+def push_priority(pq: PriorityQueue[T], item: T, priority: float = 10) -> None:
+    """Push an item into a priority queue."""
+    pq.push(item, priority=priority)
+
+
+def pop_priority(pq: PriorityQueue[T]) -> Optional[T]:
+    """Pop the highest priority item from a priority queue."""
+    return pq.pop()
+
+
+def peek_priority(pq: PriorityQueue[T]) -> Optional[T]:
+    """Peek at the highest priority item without removing it."""
+    return pq.peek()
+
+
+def is_empty_priority(pq: PriorityQueue[T]) -> bool:
+    """Check if a priority queue is empty."""
+    return pq.is_empty()
+
+
+def size_priority(pq: PriorityQueue[T]) -> int:
+    """Get the size of a priority queue."""
+    return pq.size()
+
+
+def clear_priority(pq: PriorityQueue[T]) -> None:
+    """Clear all items from a priority queue."""
+    pq.clear()
+
+
+def create_priority_queue(items: Optional[List[Tuple[float, T]]] = None) -> PriorityQueue[T]:
+    """Create a new PriorityQueue instance."""
+    return PriorityQueue(items)
+
+
+def merge_queues(*queues: PriorityQueue[T]) -> PriorityQueue[T]:
+    """Merge multiple priority queues into a single new queue."""
+    all_items: List[Tuple[float, T]] = []
+    for q in queues:
+        for priority, _, item in q._heap:
+            all_items.append((priority, item))
+    return PriorityQueue(all_items)
+
+
+if __name__ == "__main__":
+    pq = PriorityQueue()
+    pq.push("high", priority=1)
+    pq.push("low", priority=10)
+    pq.push("medium", priority=5)
+    print(f"Peek: {pq.peek()}")
+    while not pq.is_empty():
+        print(pq.pop())
+PQUTILS
+# --- concurrent_utils.py ---
+cat > "$OUTPUT_DIR/concurrent_utils.py" <<'CONCURRENTUTILS'
+"""Concurrent execution utilities for parallel and asynchronous processing.
+
+This module provides helpers for concurrent execution using threads, processes,
+and asyncio, including ThreadPool, ProcessPool wrappers and asyncio utilities.
+"""
+
+import asyncio
+import concurrent.futures
+import functools
+from typing import Any, Awaitable, Callable, Iterable, List, Optional, TypeVar, Union
+
+T = TypeVar("T")
+R = TypeVar("R")
+
+
+class ThreadPool:
+    """Context manager wrapper around ThreadPoolExecutor.
+
+    Provides a simple interface for executing tasks in parallel using threads.
+
+    Args:
+        max_workers: The maximum number of worker threads to use.
+        thread_name_prefix: An optional name prefix for worker threads.
+
+    Examples:
+        >>> with ThreadPool(max_workers=4) as pool:
+        ...     results = pool.map(lambda x: x * 2, [1, 2, 3, 4])
+        ...     print(list(results))
+        [2, 4, 6, 8]
+
+        >>> def square(x):
+        ...     return x * x
+        >>> with ThreadPool(max_workers=2) as pool:
+        ...     future = pool.submit(square, 5)
+        ...     print(future.result())
+        25
+    """
+
+    def __init__(
+        self,
+        max_workers: Optional[int] = None,
+        thread_name_prefix: str = "",
+    ) -> None:
+        self._max_workers = max_workers
+        self._thread_name_prefix = thread_name_prefix
+        self._executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
+
+    def __enter__(self) -> "ThreadPool":
+        self._executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=self._max_workers,
+            thread_name_prefix=self._thread_name_prefix or "ThreadPool",
+        )
+        return self
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        if self._executor is not None:
+            self._executor.shutdown(wait=True)
+
+    def submit(
+        self,
+        fn: Callable[..., R],
+        *args: Any,
+        **kwargs: Any,
+    ) -> concurrent.futures.Future[R]:
+        """Submit a task to be executed asynchronously."""
+        if self._executor is None:
+            raise RuntimeError("ThreadPool must be used as a context manager")
+        return self._executor.submit(fn, *args, **kwargs)
+
+    def map(
+        self,
+        fn: Callable[[T], R],
+        iterable: Iterable[T],
+        timeout: Optional[float] = None,
+    ) -> Iterable[R]:
+        """Map a function over an iterable, executing in parallel."""
+        if self._executor is None:
+            raise RuntimeError("ThreadPool must be used as a context manager")
+        return self._executor.map(fn, iterable, timeout=timeout)
+
+
+class ProcessPool:
+    """Context manager wrapper around ProcessPoolExecutor."""
+
+    def __init__(
+        self,
+        max_workers: Optional[int] = None,
+        mp_context: Any = None,
+    ) -> None:
+        self._max_workers = max_workers
+        self._mp_context = mp_context
+        self._executor: Optional[concurrent.futures.ProcessPoolExecutor] = None
+
+    def __enter__(self) -> "ProcessPool":
+        kwargs: Any = {}
+        if self._max_workers is not None:
+            kwargs["max_workers"] = self._max_workers
+        if self._mp_context is not None:
+            kwargs["mp_context"] = self._mp_context
+        self._executor = concurrent.futures.ProcessPoolExecutor(**kwargs)
+        return self
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        if self._executor is not None:
+            self._executor.shutdown(wait=True)
+
+    def submit(
+        self,
+        fn: Callable[..., R],
+        *args: Any,
+        **kwargs: Any,
+    ) -> concurrent.futures.Future[R]:
+        """Submit a task to be executed asynchronously."""
+        if self._executor is None:
+            raise RuntimeError("ProcessPool must be used as a context manager")
+        return self._executor.submit(fn, *args, **kwargs)
+
+    def map(
+        self,
+        fn: Callable[[T], R],
+        iterable: Iterable[T],
+        timeout: Optional[float] = None,
+    ) -> Iterable[R]:
+        """Map a function over an iterable, executing in parallel."""
+        if self._executor is None:
+            raise RuntimeError("ProcessPool must be used as a context manager")
+        return self._executor.map(fn, iterable, timeout=timeout)
+
+
+async def gather(*coroutines_or_futures: Union[Awaitable[R], R]) -> List[R]:
+    """Run awaitable objects in the given sequence concurrently."""
+
+    async def _ensure_awaitable(obj: Union[Awaitable[R], R]) -> R:
+        if asyncio.iscoroutine(obj) or hasattr(obj, "__await__"):
+            return await obj  # type: ignore[misc]
+        return obj  # type: ignore[return-value]
+
+    results = await asyncio.gather(*[_ensure_awaitable(obj) for obj in coroutines_or_futures])
+    return list(results)
+
+
+def run_async(coro: Awaitable[R]) -> R:
+    """Run an async coroutine from synchronous code."""
+    return asyncio.run(coro)  # type: ignore[arg-type]
+
+
+def to_async(fn: Callable[..., Any]) -> Callable[..., Awaitable[Any]]:
+    """Convert a synchronous function to an async function."""
+
+    @functools.wraps(fn)
+    async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+        loop = asyncio.get_running_loop()
+        # run_in_executor doesn't take kwargs directly; need to use partial
+        return await loop.run_in_executor(None, functools.partial(fn, *args, **kwargs))
+
+    return async_wrapper
+
+
+# Module-level helper functions for ProcessPool examples/tests
+def _square(x: int) -> int:
+    return x * x
+
+
+def _double(x: int) -> int:
+    return x * 2
+
+
+def _add(a: int, b: int) -> int:
+    return a + b
+
+
+def _multiply(a: int, b: int) -> int:
+    return a * b
+
+
+def _inc(x: int) -> int:
+    return x + 1
+
+
+def _dec(x: int) -> int:
+    return x - 1
+
+
+def _triple(x: int) -> int:
+    return x * 3
+CONCURRENTUTILS
 # --- tests/test_env_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_env_utils.py" <<'TESTENVL'
 """Tests for env_utils module."""
@@ -5881,6 +6205,388 @@ class TestBenchmarkDecorator(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTTIMINGUTILS
+# --- tests/test_concurrent_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_concurrent_utils.py" <<'TESTCONCURRENTUTILS'
+"""Tests for concurrent_utils module."""
+
+import asyncio
+import unittest
+
+from concurrent_utils import (
+    ProcessPool,
+    ThreadPool,
+    _dec,
+    _double,
+    _multiply,
+    _square,
+    gather,
+    run_async,
+    to_async,
+)
+
+
+class TestThreadPool(unittest.TestCase):
+    def test_threadpool_map(self):
+        with ThreadPool(max_workers=2) as pool:
+            results = list(pool.map(lambda x: x * 2, [1, 2, 3, 4]))
+        self.assertEqual(results, [2, 4, 6, 8])
+
+    def test_threadpool_submit(self):
+        def square(x):
+            return x * x
+
+        with ThreadPool(max_workers=2) as pool:
+            future = pool.submit(square, 5)
+            result = future.result()
+        self.assertEqual(result, 25)
+
+    def test_threadpool_submit_multiple(self):
+        def add(a, b):
+            return a + b
+
+        with ThreadPool(max_workers=3) as pool:
+            f1 = pool.submit(add, 1, 2)
+            f2 = pool.submit(add, 3, 4)
+            f3 = pool.submit(add, 5, 6)
+            self.assertEqual(f1.result(), 3)
+            self.assertEqual(f2.result(), 7)
+            self.assertEqual(f3.result(), 11)
+
+    def test_threadpool_default_workers(self):
+        with ThreadPool() as pool:
+            results = list(pool.map(lambda x: x + 1, [1, 2, 3]))
+        self.assertEqual(results, [2, 3, 4])
+
+    def test_threadpool_with_name_prefix(self):
+        with ThreadPool(max_workers=2, thread_name_prefix="test") as pool:
+            results = list(pool.map(lambda x: x * 3, [1, 2]))
+        self.assertEqual(results, [3, 6])
+
+    def test_threadpool_submit_outside_context_raises(self):
+        pool = ThreadPool(max_workers=2)
+        with self.assertRaises(RuntimeError):
+            pool.submit(lambda x: x, 1)
+
+    def test_threadpool_map_outside_context_raises(self):
+        pool = ThreadPool(max_workers=2)
+        with self.assertRaises(RuntimeError):
+            list(pool.map(lambda x: x, [1, 2]))
+
+
+class TestProcessPool(unittest.TestCase):
+    def test_processpool_map(self):
+        with ProcessPool(max_workers=2) as pool:
+            results = list(pool.map(_double, [1, 2, 3, 4]))
+        self.assertEqual(results, [2, 4, 6, 8])
+
+    def test_processpool_submit(self):
+        with ProcessPool(max_workers=2) as pool:
+            future = pool.submit(_square, 5)
+            result = future.result()
+        self.assertEqual(result, 25)
+
+    def test_processpool_submit_multiple(self):
+        with ProcessPool(max_workers=3) as pool:
+            f1 = pool.submit(_multiply, 2, 3)
+            f2 = pool.submit(_multiply, 4, 5)
+            f3 = pool.submit(_multiply, 6, 7)
+            self.assertEqual(f1.result(), 6)
+            self.assertEqual(f2.result(), 20)
+            self.assertEqual(f3.result(), 42)
+
+    def test_processpool_default_workers(self):
+        with ProcessPool() as pool:
+            results = list(pool.map(_dec, [5, 6, 7]))
+        self.assertEqual(results, [4, 5, 6])
+
+    def test_processpool_submit_outside_context_raises(self):
+        pool = ProcessPool(max_workers=2)
+        with self.assertRaises(RuntimeError):
+            pool.submit(_square, 1)
+
+    def test_processpool_map_outside_context_raises(self):
+        pool = ProcessPool(max_workers=2)
+        with self.assertRaises(RuntimeError):
+            list(pool.map(_square, [1, 2]))
+
+
+class TestAsyncIOWrappers(unittest.TestCase):
+    def test_gather_basic(self):
+        async def compute(x):
+            await asyncio.sleep(0.001)
+            return x * 2
+
+        async def main():
+            results = await gather(compute(1), compute(2), compute(3))
+            return results
+
+        results = run_async(main())
+        self.assertEqual(results, [2, 4, 6])
+
+    def test_gather_with_mixed_values(self):
+        async def async_func(x):
+            return x + 1
+
+        async def main():
+            results = await gather(async_func(1), 10, async_func(3))
+            return results
+
+        results = run_async(main())
+        self.assertEqual(results, [2, 10, 4])
+
+    def test_gather_empty(self):
+        async def main():
+            results = await gather()
+            return results
+
+        results = run_async(main())
+        self.assertEqual(results, [])
+
+    def test_run_async_basic(self):
+        async def get_data():
+            return "test_data"
+
+        result = run_async(get_data())
+        self.assertEqual(result, "test_data")
+
+    def test_run_async_with_exception(self):
+        async def fail():
+            raise ValueError("test error")
+
+        with self.assertRaises(ValueError):
+            run_async(fail())
+
+    def test_to_async_basic(self):
+        def compute(x):
+            return x * 3
+
+        async def main():
+            async_compute = to_async(compute)
+            result = await async_compute(4)
+            return result
+
+        result = run_async(main())
+        self.assertEqual(result, 12)
+
+    def test_to_async_with_multiple_args(self):
+        def add(a, b, c):
+            return a + b + c
+
+        async def main():
+            async_add = to_async(add)
+            result = await async_add(1, 2, 3)
+            return result
+
+        result = run_async(main())
+        self.assertEqual(result, 6)
+
+    def test_to_async_with_kwargs(self):
+        def multiply(a, b=1):
+            return a * b
+
+        async def main():
+            async_multiply = to_async(multiply)
+            result = await async_multiply(5, b=3)
+            return result
+
+        result = run_async(main())
+        self.assertEqual(result, 15)
+
+    def test_to_async_preserves_metadata(self):
+        def original_func():
+            """Original docstring."""
+            return "test"
+
+        async def main():
+            wrapped = to_async(original_func)
+            self.assertEqual(wrapped.__name__, "original_func")
+            self.assertEqual(wrapped.__doc__, "Original docstring.")
+            return await wrapped()
+
+        result = run_async(main())
+        self.assertEqual(result, "test")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCONCURRENTUTILS
+# --- tests/test_priority_queue_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_priority_queue_utils.py" <<'TESTPQUTILS'
+"""Tests for priority_queue_utils module."""
+
+import unittest
+
+from priority_queue_utils import (
+    PriorityQueue,
+    clear_priority,
+    create_priority_queue,
+    is_empty_priority,
+    merge_queues,
+    peek_priority,
+    pop_priority,
+    push_priority,
+    size_priority,
+)
+
+
+class TestPriorityQueue(unittest.TestCase):
+    def test_empty_queue(self):
+        pq = PriorityQueue()
+        self.assertTrue(pq.is_empty())
+        self.assertEqual(pq.size(), 0)
+        self.assertIsNone(pq.pop())
+        self.assertIsNone(pq.peek())
+
+    def test_push_and_pop(self):
+        pq = PriorityQueue()
+        pq.push("task1", priority=2)
+        pq.push("task2", priority=1)
+        pq.push("task3", priority=3)
+        self.assertEqual(pq.pop(), "task2")
+        self.assertEqual(pq.pop(), "task1")
+        self.assertEqual(pq.pop(), "task3")
+        self.assertTrue(pq.is_empty())
+
+    def test_push_with_default_priority(self):
+        pq = PriorityQueue()
+        pq.push("item1")
+        pq.push("item2", priority=1)
+        # item2 has lower priority value, so should come out first
+        self.assertEqual(pq.pop(), "item2")
+        self.assertEqual(pq.pop(), "item1")
+
+    def test_peek(self):
+        pq = PriorityQueue()
+        pq.push("task", priority=5)
+        self.assertEqual(pq.peek(), "task")
+        self.assertFalse(pq.is_empty())
+        self.assertEqual(pq.size(), 1)
+        self.assertEqual(pq.pop(), "task")
+        self.assertTrue(pq.is_empty())
+
+    def test_same_priority(self):
+        pq = PriorityQueue()
+        pq.push("first", priority=1)
+        pq.push("second", priority=1)
+        pq.push("third", priority=1)
+        # With counter to maintain insertion order for equal priorities
+        self.assertEqual(pq.pop(), "first")
+        self.assertEqual(pq.pop(), "second")
+        self.assertEqual(pq.pop(), "third")
+
+    def test_initialization_with_items(self):
+        pq = PriorityQueue([("high", 1), ("low", 3), ("medium", 2)])
+        self.assertEqual(pq.pop(), "high")
+        self.assertEqual(pq.pop(), "medium")
+        self.assertEqual(pq.pop(), "low")
+
+    def test_clear(self):
+        pq = PriorityQueue()
+        pq.push("a", priority=1)
+        pq.push("b", priority=2)
+        self.assertFalse(pq.is_empty())
+        pq.clear()
+        self.assertTrue(pq.is_empty())
+        self.assertEqual(pq.size(), 0)
+
+    def test_len(self):
+        pq = PriorityQueue()
+        self.assertEqual(len(pq), 0)
+        pq.push("a", priority=1)
+        self.assertEqual(len(pq), 1)
+        pq.push("b", priority=2)
+        self.assertEqual(len(pq), 2)
+        pq.pop()
+        self.assertEqual(len(pq), 1)
+        pq.pop()
+        self.assertEqual(len(pq), 0)
+
+    def test_bool(self):
+        pq = PriorityQueue()
+        self.assertFalse(bool(pq))
+        pq.push("a", priority=1)
+        self.assertTrue(bool(pq))
+        pq.pop()
+        self.assertFalse(bool(pq))
+
+
+
+
+class TestHelperFunctions(unittest.TestCase):
+    def test_push_priority(self):
+        pq = PriorityQueue()
+        push_priority(pq, "item", priority=5)
+        self.assertEqual(peek_priority(pq), "item")
+
+    def test_pop_priority(self):
+        pq = PriorityQueue()
+        push_priority(pq, "item", priority=1)
+        result = pop_priority(pq)
+        self.assertEqual(result, "item")
+        self.assertIsNone(pop_priority(pq))
+
+    def test_peek_priority(self):
+        pq = PriorityQueue()
+        push_priority(pq, "item", priority=2)
+        self.assertEqual(peek_priority(pq), "item")
+        self.assertFalse(is_empty_priority(pq))
+
+    def test_is_empty_priority(self):
+        pq = PriorityQueue()
+        self.assertTrue(is_empty_priority(pq))
+        push_priority(pq, "item")
+        self.assertFalse(is_empty_priority(pq))
+
+    def test_size_priority(self):
+        pq = PriorityQueue()
+        self.assertEqual(size_priority(pq), 0)
+        push_priority(pq, "a")
+        push_priority(pq, "b")
+        self.assertEqual(size_priority(pq), 2)
+
+    def test_clear_priority(self):
+        pq = PriorityQueue()
+        push_priority(pq, "a")
+        push_priority(pq, "b")
+        clear_priority(pq)
+        self.assertTrue(is_empty_priority(pq))
+
+
+class TestConvenienceFunctions(unittest.TestCase):
+    def test_create_priority_queue_empty(self):
+        pq = create_priority_queue()
+        self.assertIsInstance(pq, PriorityQueue)
+        self.assertTrue(pq.is_empty())
+
+    def test_create_priority_queue_with_items(self):
+        pq = create_priority_queue([(1, "a"), (2, "b")])
+        self.assertEqual(pq.pop(), "a")
+        self.assertEqual(pq.pop(), "b")
+
+    def test_merge_queues(self):
+        pq1 = PriorityQueue()
+        pq1.push("a", priority=3)
+        pq1.push("b", priority=1)
+        pq2 = PriorityQueue()
+        pq2.push("c", priority=2)
+        pq3 = PriorityQueue()
+        pq3.push("d", priority=4)
+
+        merged = merge_queues(pq1, pq2, pq3)
+        self.assertEqual(merged.pop(), "b")
+        self.assertEqual(merged.pop(), "c")
+        self.assertEqual(merged.pop(), "a")
+        self.assertEqual(merged.pop(), "d")
+        self.assertTrue(merged.is_empty())
+        # Original queues should remain unchanged
+        self.assertFalse(pq1.is_empty())
+        self.assertFalse(pq2.is_empty())
+        self.assertFalse(pq3.is_empty())
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTPQUTILS
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -5941,6 +6647,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
 - `timing_utils.py` — performance measurement helpers
+- `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+- `priority_queue_utils.py` — heap-based priority queue implementation
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -5961,6 +6669,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
+- `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 
 ## Usage
 
@@ -6151,6 +6861,8 @@ env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
     timing_utils.py           # Performance measurement helpers
+    concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+    priority_queue_utils.py   # Heap-based priority queue implementation
     .gitignore                   # Common ignore patterns
 LICENSE                      # MIT License
 tests/                       # Python unit tests
@@ -6174,6 +6886,8 @@ tests/                       # Python unit tests
   test_logging_utils.py       # Tests for logging_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
   test_timing_utils.py         # Tests for timing_utils.py
+  test_concurrent_utils.py     # Tests for concurrent_utils.py
+  test_priority_queue_utils.py # Tests for priority_queue_utils.py
 \`\`\`
 
 ## Developer Commands
@@ -6286,6 +7000,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`tests/test_cache_utils.py\` — unit tests for \`cache_utils.py\`
 - \`timing_utils.py\` — performance measurement helpers
 - \`tests/test_timing_utils.py\` — unit tests for \`timing_utils.py\`
+- \`concurrent_utils.py\` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+- \`tests/test_concurrent_utils.py\` — unit tests for \`concurrent_utils.py\`
+- \`priority_queue_utils.py\` — heap-based priority queue implementation
+- \`tests/test_priority_queue_utils.py\` — unit tests for \`priority_queue_utils.py\`
 CHANGELOG
 
 # --- kilo.json ---
