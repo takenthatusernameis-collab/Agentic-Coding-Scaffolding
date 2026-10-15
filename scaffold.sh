@@ -79,6 +79,8 @@
 #   - tests/test_statistics_utils.py — unit tests for statistics_utils.py
 #   - string_utils.py — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 #   - tests/test_string_utils.py — unit tests for the string_utils module
+#   - type_utils.py — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
+#   - tests/test_type_utils.py — unit tests for the type_utils module
 #   - tree_utils.py tree and nested structure utilities
 #   - tests/test_tree_utils.py unit tests for the tree_utils module
 set -euo pipefail
@@ -457,6 +459,7 @@ py_modules = [
     "set_utils",
     "statistics_utils",
     "string_utils",
+    "type_utils",
     "retry_utils",
     "tree_utils",
 ]
@@ -3018,6 +3021,76 @@ if __name__ == "__main__":
     unittest.main()
 
 TESTTREEUTILS
+# --- tests/test_type_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_type_utils.py" <<'TESTTYPEUTILS'
+"""Unit tests for type_utils module."""
+import typing as t
+import unittest
+
+from type_utils import (
+    get_type_args,
+    is_generic,
+    is_optional,
+    is_subclass_safe,
+    is_union,
+    type_name,
+)
+
+
+class TestTypeUtils(unittest.TestCase):
+    def test_is_optional_none(self):
+        self.assertTrue(is_optional(t.Optional[int]))
+        self.assertTrue(is_optional(t.Optional[str]))
+        self.assertTrue(is_optional(t.Union[int, None]))
+        self.assertTrue(is_optional(type(None)))
+        self.assertFalse(is_optional(int))
+        self.assertFalse(is_optional(str))
+
+    def test_is_union(self):
+        self.assertTrue(is_union(t.Union[int, str]))
+        self.assertTrue(is_union(t.Union[int, str, None]))
+        self.assertFalse(is_union(int))
+        self.assertFalse(is_union(t.List[int]))
+
+    def test_is_generic(self):
+        self.assertTrue(is_generic(t.List[int]))
+        self.assertTrue(is_generic(t.Dict[str, int]))
+        self.assertTrue(is_generic(t.Set[str]))
+        self.assertFalse(is_generic(int))
+        self.assertFalse(is_generic(str))
+
+    def test_get_type_args(self):
+        self.assertEqual(get_type_args(t.List[int]), (int,))
+        self.assertEqual(get_type_args(t.Dict[str, int]), (str, int))
+        args = get_type_args(t.Union[int, str, None])
+        self.assertIn(int, args)
+        self.assertIn(str, args)
+        self.assertIn(type(None), args)
+
+    def test_type_name(self):
+        self.assertEqual(type_name(int), "int")
+        self.assertEqual(type_name(str), "str")
+        name = type_name(t.List[int])
+        self.assertTrue("List" in name or "list" in name)
+        self.assertIn("int", name)
+        name = type_name(t.Dict[str, int])
+        self.assertTrue("Dict" in name or "dict" in name)
+        self.assertIn("str", name)
+        self.assertIn("int", name)
+        self.assertEqual(type_name(None), "None")
+
+    def test_is_subclass_safe(self):
+        self.assertTrue(is_subclass_safe(bool, int))
+        self.assertTrue(is_subclass_safe(str, object))
+        self.assertFalse(is_subclass_safe(int, str))
+        self.assertTrue(is_subclass_safe(bool, (int, str)))
+        self.assertFalse(is_subclass_safe(is_subclass_safe, object))
+        self.assertFalse(is_subclass_safe(42, int))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTYPEUTILS
 # --- tests/test_math_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
 """Tests for math_utils module."""
@@ -7850,6 +7923,101 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
         return tree if pred(tree) else None  # type: ignore[return-value]
 
 TREEUTILS
+# --- type_utils.py ---
+cat > "$OUTPUT_DIR/type_utils.py" <<'TYPEUTILS'
+"""Type introspection utilities."""
+
+from __future__ import annotations
+
+import sys
+from typing import Any, List, Union, get_args, get_origin
+
+
+__all__: List[str] = [
+    "is_optional",
+    "is_union",
+    "is_generic",
+    "get_type_args",
+    "type_name",
+    "is_subclass_safe",
+]
+
+
+def _is_optional_type(tp: Any) -> bool:
+    origin = get_origin(tp)
+    args = get_args(tp)
+    if origin is Union:
+        return type(None) in args
+    if sys.version_info >= (3, 10):
+        from types import UnionType
+
+        if isinstance(tp, UnionType):
+            return type(None) in args
+    return False
+
+
+def is_optional(tp: Any) -> bool:
+    """Return True if the type is Optional[T] (Union[T, None])."""
+    if tp is type(None):
+        return True
+    return _is_optional_type(tp)
+
+
+def is_union(tp: Any) -> bool:
+    """Return True if the type is a Union."""
+    origin = get_origin(tp)
+    if origin is Union:
+        return True
+    if sys.version_info >= (3, 10):
+        from types import UnionType
+
+        if isinstance(tp, UnionType):
+            return True
+    return False
+
+
+def is_generic(tp: Any) -> bool:
+    """Return True if the type is a generic alias (e.g., List[int])."""
+    origin = get_origin(tp)
+    if origin is not None:
+        return True
+    if hasattr(tp, "__origin__") and getattr(tp, "__origin__") is not None:
+        return True
+    return False
+
+
+def get_type_args(tp: Any) -> tuple[Any, ...]:
+    """Return the type arguments of a generic type, if any."""
+    return get_args(tp)
+
+
+def type_name(tp: Any) -> str:
+    """Return a human-readable name for a type."""
+    if tp is None:
+        return "None"
+    origin = get_origin(tp)
+    if origin is not None:
+        args_list: List[str] = []
+        for a in get_args(tp):
+            args_list.append(type_name(a))
+        args_str = ", ".join(args_list)
+        origin_name = getattr(origin, "__name__", str(origin))
+        if args_str:
+            return f"{origin_name}[{args_str}]"
+        return str(origin_name)
+    if hasattr(tp, "__name__"):
+        name = getattr(tp, "__name__")
+        return str(name)
+    return str(tp)
+
+
+def is_subclass_safe(cls: Any, base: Any) -> bool:
+    """Safely check subclass relationship without raising TypeError."""
+    try:
+        return issubclass(cls, base)
+    except Exception:
+        return False
+TYPEUTILS
 # --- concurrent_utils.py ---
 cat > "$OUTPUT_DIR/concurrent_utils.py" <<'CONCURRENTUTILS'
 """Concurrent execution utilities for parallel and asynchronous processing.
@@ -9302,6 +9470,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 - `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 - `tree_utils.py` — tree and nested structure utilities (get_nested, set_nested, delete_nested, flatten_tree, unflatten_tree, map_tree, filter_tree)
+- `type_utils.py` — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -9333,6 +9502,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
 - `tests/test_string_utils.py` — unit tests for `string_utils.py`
 - `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
+- `tests/test_type_utils.py` — unit tests for `type_utils.py`
 
 ## Usage
 
@@ -9577,9 +9747,10 @@ dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten,
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
-statistics_utils.py             # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-string_utils.py         # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
-tree_utils.py                   # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
+statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
+type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
+tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -9613,7 +9784,7 @@ tests/                       # Python unit tests
   test_statistics_utils.py    # Tests for statistics_utils.py
   test_string_utils.py        # Tests for string_utils.py
   test_tree_utils.py           # Tests for tree_utils.py
-  test_tree_utils.py           # Tests for tree_utils.py
+  test_type_utils.py         # Tests for type_utils.py
 ```
 
 ## Getting Started
@@ -9696,6 +9867,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_string_utils.py` — unit tests for `string_utils.py`
 - `tree_utils.py` — tree and nested structure utilities (get_nested, set_nested, delete_nested, flatten_tree, unflatten_tree, map_tree, filter_tree)
 - `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
+- `type_utils.py` — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
+- `tests/test_type_utils.py` — unit tests for `type_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
 - `CHANGELOG.md` — changelog following Keep a Changelog format

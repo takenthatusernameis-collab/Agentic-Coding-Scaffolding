@@ -62,8 +62,9 @@ json_utils.py            # JSON utility functions (read/write/parse/dump/validat
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-string_utils.py         # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
-tree_utils.py               # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
+string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
+tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
+type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -97,6 +98,7 @@ tests/                       # Python unit tests
   test_statistics_utils.py    # Tests for statistics_utils.py
   test_string_utils.py        # Tests for string_utils.py
   test_tree_utils.py         # Tests for tree_utils.py
+  test_type_utils.py         # Tests for type_utils.py
 ```
 
 ## How It Works
@@ -252,12 +254,10 @@ The project includes a statistical utilities module in `statistics_utils.py` wit
 
 The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `indent_text`, `remove_extra_whitespace`, and `title_case`. Each function validates its inputs and raises `TypeError` for non-string arguments. The module is tested in `tests/test_string_utils.py`.
 
-Completed task: Added a new `set_utils.py` module with set operation utilities (`is_subset`, `is_superset`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, `power_set`) and its tests. Synchronized the scaffold template: added `set_utils.py` to the `scaffold.sh` header comment, generated `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Verified all 547 tests pass, ruff and mypy are clean, and the scaffold smoke test generates a fully consistent project.
+## Type Utilities Module
 
-Completed task: Added a new `statistics_utils.py` module with statistical utility functions (`harmonic_mean`, `geometric_mean`, `median_even`, `percentile`, `covariance`, `correlation`, `z_score`, `normalize`) and its tests. Synchronized the scaffold template: added `statistics_utils.py` to the `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Updated `test_scaffold.py` to verify `statistics_utils.py` generation.
+The project includes a type introspection utilities module in `type_utils.py` with functions for inspecting Python type objects: `is_optional` detects `Optional[T]` / `Union[T, None]`, `is_union` detects any `Union` type, `is_generic` detects generic aliases like `List[int]`, `get_type_args` returns the type arguments of a generic, `type_name` produces a human-readable name for a type, and `is_subclass_safe` checks subclass relationships without raising `TypeError`. The module is tested in `tests/test_type_utils.py`.
 
-Completed task: Added a new `string_utils.py` module with advanced string manipulation utilities (`slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `indent_text`, `remove_extra_whitespace`, `title_case`) and its tests. Synchronized the scaffold template: added `string_utils.py` to the `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Updated `test_scaffold.py` to verify `string_utils.py` generation.
+Completed task: Added a new `type_utils.py` module with type introspection utilities (`is_optional`, `is_union`, `is_generic`, `get_type_args`, `type_name`, `is_subclass_safe`) and its tests. Synchronized the scaffold template: added `type_utils.py` to the `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Verified all tests pass, ruff and mypy are clean, and the scaffold smoke test generates a fully consistent project.
 
-Completed task: Added a new `tree_utils.py` module with tree and nested structure utilities (`get_nested`, `set_nested`, `delete_nested`, `flatten_tree`, `unflatten_tree`, `map_tree`, `filter_tree`) and its tests. Synchronized the scaffold template: added `tree_utils.py` to the `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Updated `test_scaffold.py` to verify `tree_utils.py` generation.
-
-Next task: Add a new `type_utils.py` module with type introspection utilities (e.g., `is_optional`, `is_union`, `is_generic`, `get_type_args`, `type_name`, `is_subclass_safe`) and its tests, then sync the scaffold template (header comment, pyproject `py_modules`, README tree + module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests).
+Next task: Review the project for remaining gaps — consider adding a new utility module (e.g., `path_utils.py` for path manipulation, `color_utils.py` for color handling, or `pattern_utils.py` for design patterns), improving test coverage, or enhancing the scaffold script with new features.

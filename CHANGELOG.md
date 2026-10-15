@@ -184,3 +184,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 - `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
 - Updated `.kilo/command/scaffold-project.md`, `README.md`, and scaffold template to include set and statistics utilities
+- `string_utils.py` — advanced string manipulation utilities (`slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `indent_text`, `remove_extra_whitespace`, `title_case`)
+- `tests/test_string_utils.py` — unit tests for `string_utils.py`
+- Updated `scaffold.sh`, `README.md`, `.kilo/command/scaffold-project.md`, and scaffold template to include string utilities
+- `tree_utils.py` — tree and nested structure utilities (`get_nested`, `set_nested`, `delete_nested`, `flatten_tree`, `unflatten_tree`, `map_tree`, `filter_tree`)
+- `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
+- Updated `scaffold.sh` to generate `tree_utils.py` and its tests
+- `type_utils.py` — type introspection utilities (`is_optional`, `is_union`, `is_generic`, `get_type_args`, `type_name`, `is_subclass_safe`)
+- `tests/test_type_utils.py` — unit tests for `type_utils.py`
+- Updated `scaffold.sh`, `README.md`, `.kilo/command/scaffold-project.md`, and scaffold template to include type utilities

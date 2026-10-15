@@ -144,6 +144,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_string_utils.py",
             "tree_utils.py",
             "tests/test_tree_utils.py",
+            "type_utils.py",
+            "tests/test_type_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -235,6 +237,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_string_utils.py",
             "tree_utils.py",
             "tests/test_tree_utils.py",
+            "type_utils.py",
+            "tests/test_type_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -254,6 +258,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_timing_utils.py",
             "tests/test_concurrent_utils.py",
             "tests/test_priority_queue_utils.py",
+            "tests/test_type_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
