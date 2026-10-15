@@ -39,6 +39,8 @@
 #   - tests/test_data_utils.py unit tests for the data_utils module
 #   - file_utils.py file and path utility functions
 #   - tests/test_file_utils.py unit tests for the file_utils module
+#   - url_utils.py URL and web utility functions
+#   - tests/test_url_utils.py unit tests for the url_utils module
 #
 set -euo pipefail
 
@@ -1913,6 +1915,312 @@ class TestFileUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTFILEUTILS
+# --- url_utils.py ---
+cat > "$OUTPUT_DIR/url_utils.py" <<'URLUTILS'
+"""URL and web utility functions."""
+
+from typing import Dict, List, Optional, Union
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+
+
+def is_valid_url(url: str, schemes: Optional[List[str]] = None) -> bool:
+    """Validate a URL string.
+
+    Args:
+        url: The URL string to validate.
+        schemes: Optional list of allowed schemes (e.g. ``['http', 'https']``).
+            If ``None``, any non-empty scheme is accepted.
+
+    Returns:
+        ``True`` if the URL is valid and uses an allowed scheme, ``False`` otherwise.
+    """
+    try:
+        parsed = urlparse(url)
+    except (ValueError, TypeError):
+        return False
+    if not parsed.scheme:
+        return False
+    if not parsed.netloc:
+        return False
+    if schemes is not None and parsed.scheme not in schemes:
+        return False
+    return True
+
+
+def extract_domain(url: str) -> str:
+    """Extract the hostname from a URL.
+
+    Args:
+        url: The URL string to extract the domain from.
+
+    Returns:
+        The hostname portion of the URL.
+
+    Raises:
+        ValueError: If the URL has no valid hostname.
+    """
+    parsed = urlparse(url)
+    if not parsed.hostname:
+        raise ValueError(f"URL has no valid domain: {url}")
+    return parsed.hostname
+
+
+def get_query_params(url: str) -> Dict[str, str]:
+    """Get all query parameters from a URL as a flat dict.
+
+    When a parameter appears multiple times, the first value is used.
+
+    Args:
+        url: The URL string to parse.
+
+    Returns:
+        A dict mapping query parameter names to their first value.
+    """
+    parsed = urlparse(url)
+    params: Dict[str, str] = {}
+    query_dict = parse_qs(parsed.query, keep_blank_values=True)
+    for key, values in query_dict.items():
+        params[key] = values[0]
+    return params
+
+
+def get_query_param(url: str, key: str) -> Optional[str]:
+    """Get a single query parameter value from a URL.
+
+    Args:
+        url: The URL string to parse.
+        key: The query parameter name to look up.
+
+    Returns:
+        The first value for the given key, or ``None`` if the key is absent.
+    """
+    params = get_query_params(url)
+    return params.get(key)
+
+
+def add_query_param(url: str, key: str, value: Union[str, int, float]) -> str:
+    """Add or update a query parameter in a URL.
+
+    Args:
+        url: The URL string to modify.
+        key: The query parameter name.
+        value: The query parameter value (converted to string).
+
+    Returns:
+        The updated URL with the query parameter set.
+    """
+    parsed = urlparse(url)
+    params = get_query_params(url)
+    params[key] = str(value)
+    new_query = urlencode(params)
+    return urlunparse(parsed._replace(query=new_query))
+
+
+def remove_query_param(url: str, key: str) -> str:
+    """Remove a query parameter from a URL.
+
+    If the parameter does not exist, the URL is returned unchanged.
+
+    Args:
+        url: The URL string to modify.
+        key: The query parameter name to remove.
+
+    Returns:
+        The URL with the specified query parameter removed.
+    """
+    parsed = urlparse(url)
+    params = get_query_params(url)
+    params.pop(key, None)
+    new_query = urlencode(params) if params else ""
+    return urlunparse(parsed._replace(query=new_query))
+
+
+def build_url(
+    scheme: str = "https",
+    domain: str = "",
+    path: str = "",
+    port: Optional[int] = None,
+    params: Optional[Dict[str, Union[str, int, float]]] = None,
+) -> str:
+    """Build a URL from its individual components.
+
+    Args:
+        scheme: URL scheme (e.g. ``'http'``, ``'https'``).
+        domain: The domain or host name.
+        path: Path component (should start with ``'/'``).
+        port: Optional port number appended to the domain.
+        params: Optional query parameters dict.
+
+    Returns:
+        The constructed URL string.
+
+    Raises:
+        ValueError: If ``domain`` is empty.
+    """
+    if not domain:
+        raise ValueError("domain is required")
+    netloc = domain
+    if port is not None:
+        netloc = f"{domain}:{port}"
+    query = ""
+    if params:
+        query = urlencode(params)
+    return urlunparse((scheme, netloc, path, "", query, ""))
+URLUTILS
+# --- tests/test_url_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_url_utils.py" <<'TESTURLUTILS'
+"""Tests for url_utils module."""
+
+import unittest
+
+from url_utils import (
+    add_query_param,
+    build_url,
+    extract_domain,
+    get_query_param,
+    get_query_params,
+    is_valid_url,
+    remove_query_param,
+)
+
+
+class TestIsValidUrl(unittest.TestCase):
+    def test_valid_http(self) -> None:
+        self.assertTrue(is_valid_url("http://example.com"))
+
+    def test_valid_https(self) -> None:
+        self.assertTrue(is_valid_url("https://example.com/path"))
+
+    def test_valid_with_port(self) -> None:
+        self.assertTrue(is_valid_url("http://example.com:8080"))
+
+    def test_missing_scheme(self) -> None:
+        self.assertFalse(is_valid_url("example.com/path"))
+
+    def test_missing_domain(self) -> None:
+        self.assertFalse(is_valid_url("http://"))
+
+    def test_empty_string(self) -> None:
+        self.assertFalse(is_valid_url(""))
+
+    def test_scheme_restriction_allowed(self) -> None:
+        self.assertTrue(is_valid_url("https://example.com", schemes=["https"]))
+
+    def test_scheme_restriction_not_allowed(self) -> None:
+        self.assertFalse(is_valid_url("http://example.com", schemes=["https"]))
+
+    def test_ftp_scheme(self) -> None:
+        self.assertTrue(is_valid_url("ftp://example.com"))
+
+
+class TestExtractDomain(unittest.TestCase):
+    def test_extract_domain_basic(self) -> None:
+        self.assertEqual(extract_domain("https://example.com/path"), "example.com")
+
+    def test_extract_domain_with_subdomain(self) -> None:
+        self.assertEqual(extract_domain("https://api.sub.example.com"), "api.sub.example.com")
+
+    def test_extract_domain_with_port(self) -> None:
+        self.assertEqual(extract_domain("http://example.com:8080"), "example.com")
+
+    def test_extract_domain_no_hostname(self) -> None:
+        with self.assertRaises(ValueError):
+            extract_domain("not-a-url")
+
+
+class TestGetQueryParams(unittest.TestCase):
+    def test_get_params_basic(self) -> None:
+        params = get_query_params("https://example.com?name=alice&age=30")
+        self.assertEqual(params, {"name": "alice", "age": "30"})
+
+    def test_get_params_empty(self) -> None:
+        self.assertEqual(get_query_params("https://example.com"), {})
+
+    def test_get_params_blank_values(self) -> None:
+        params = get_query_params("https://example.com?empty=&full=yes")
+        self.assertEqual(params, {"empty": "", "full": "yes"})
+
+    def test_get_params_duplicate_uses_first(self) -> None:
+        params = get_query_params("https://example.com?color=red&color=blue")
+        self.assertEqual(params["color"], "red")
+
+
+class TestGetQueryParam(unittest.TestCase):
+    def test_get_param_exists(self) -> None:
+        self.assertEqual(
+            get_query_param("https://example.com?q=test&page=2", "q"), "test"
+        )
+
+    def test_get_param_missing(self) -> None:
+        self.assertIsNone(get_query_param("https://example.com?q=test", "missing"))
+
+
+class TestAddQueryParam(unittest.TestCase):
+    def test_add_new_param(self) -> None:
+        result = add_query_param("https://example.com", "key", "value")
+        self.assertIn("key=value", result)
+
+    def test_add_param_preserves_existing(self) -> None:
+        result = add_query_param("https://example.com?a=1", "b", "2")
+        self.assertIn("a=1", result)
+        self.assertIn("b=2", result)
+
+    def test_add_param_overwrites(self) -> None:
+        result = add_query_param("https://example.com?a=1", "a", "2")
+        self.assertIn("a=2", result)
+
+    def test_add_param_int_value(self) -> None:
+        result = add_query_param("https://example.com", "count", 42)
+        self.assertIn("count=42", result)
+
+
+class TestRemoveQueryParam(unittest.TestCase):
+    def test_remove_existing(self) -> None:
+        result = remove_query_param("https://example.com?a=1&b=2", "a")
+        self.assertNotIn("a=1", result)
+        self.assertIn("b=2", result)
+
+    def test_remove_missing_no_change(self) -> None:
+        result = remove_query_param("https://example.com?a=1", "b")
+        self.assertIn("a=1", result)
+
+    def test_remove_last_param(self) -> None:
+        result = remove_query_param("https://example.com?a=1", "a")
+        self.assertNotIn("a=1", result)
+        self.assertNotIn("?", result)
+
+
+class TestBuildUrl(unittest.TestCase):
+    def test_build_basic(self) -> None:
+        self.assertEqual(build_url(scheme="https", domain="example.com"), "https://example.com")
+
+    def test_build_with_path(self) -> None:
+        url = build_url(scheme="https", domain="example.com", path="/api/v1")
+        self.assertEqual(url, "https://example.com/api/v1")
+
+    def test_build_with_port(self) -> None:
+        url = build_url(scheme="http", domain="example.com", port=8080)
+        self.assertEqual(url, "http://example.com:8080")
+
+    def test_build_with_params(self) -> None:
+        url = build_url(
+            scheme="https", domain="example.com", path="/search", params={"q": "test", "n": 10}
+        )
+        self.assertIn("q=test", url)
+        self.assertIn("n=10", url)
+
+    def test_build_empty_domain_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            build_url(domain="")
+
+    def test_build_default_scheme(self) -> None:
+        url = build_url(domain="example.com")
+        self.assertTrue(url.startswith("https://"))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTURLUTILS
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -1963,6 +2271,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `data_utils.py` — data utility functions
 - `datetime_utils.py` — date and time utility functions
 - `file_utils.py` — file and path utility functions
+- `url_utils.py` — URL and web utility functions
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
@@ -1973,6 +2282,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
+- `tests/test_url_utils.py` — unit tests for `url_utils.py`
 
 ## Usage
 
@@ -2154,7 +2464,8 @@ math_utils.py               # Mathematical utility functions
 data_utils.py               # Data utility functions
 datetime_utils.py           # Date and time utility functions
 file_utils.py               # File and path utility functions
-.gitignore                   # Common ignore patterns
+url_utils.py                # URL and web utility functions
+  .gitignore                   # Common ignore patterns
 LICENSE                      # MIT License
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -2168,6 +2479,7 @@ tests/                       # Python unit tests
   test_data_utils.py          # Tests for data_utils.py
   test_datetime_utils.py      # Tests for datetime_utils.py
   test_file_utils.py         # Tests for file_utils.py
+  test_url_utils.py          # Tests for url_utils.py
 \`\`\`
 
 ## Developer Commands
@@ -2260,6 +2572,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`tests/test_file_utils.py\` — unit tests for \`file_utils.py\`
 - \`datetime_utils.py\` — date and time utility functions
 - \`tests/test_datetime_utils.py\` — unit tests for \`datetime_utils.py\`
+- \`url_utils.py\` — URL and web utility functions
+- \`tests/test_url_utils.py\` — unit tests for \`url_utils.py\`
 CHANGELOG
 
 # --- kilo.json ---

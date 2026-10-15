@@ -43,6 +43,7 @@ math_utils.py               # Mathematical utility functions
 data_utils.py               # Data utility functions
 datetime_utils.py           # Date and time utility functions
 file_utils.py               # File and path utility functions
+url_utils.py                # URL and web utility functions
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -55,6 +56,7 @@ tests/                       # Python unit tests
   test_data_utils.py         # Tests for data_utils.py
   test_datetime_utils.py     # Tests for datetime_utils.py
   test_file_utils.py         # Tests for file_utils.py
+  test_url_utils.py          # Tests for url_utils.py
 ```
 
 ## How It Works
@@ -129,3 +131,7 @@ The project includes a date and time utilities module in `datetime_utils.py` wit
 ## File Utilities Module
 
 The project includes a file utilities module in `file_utils.py` with functions for file and path operations: `read_text`, `write_text`, `read_json`, `write_json`, `ensure_dir`, `list_files`, `copy_file`, and `delete_file`. The module is tested in `tests/test_file_utils.py`.
+
+## URL Utilities Module
+
+The project includes a URL and web utilities module in `url_utils.py` with functions for URL validation and manipulation: `is_valid_url`, `extract_domain`, `get_query_params`, `get_query_param`, `add_query_param`, `remove_query_param`, and `build_url`. The module is tested in `tests/test_url_utils.py`.

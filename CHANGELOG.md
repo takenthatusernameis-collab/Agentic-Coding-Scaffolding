@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed inconsistent indentation in README.md project structure section (datetime_utils.py, file_utils.py, url_utils.py entries had extra leading spaces)
+- Fixed inconsistent indentation in scaffold.sh README.md template for the same entries
 - Removed duplicate `stats.py` heredoc section in `scaffold.sh` (was generated twice)
 - Removed unused `import os` from `scaffold.sh`'s `file_utils.py` template (matches repo version)
 - Added missing `math_utils.py`, `data_utils.py`, `datetime_utils.py`, and `file_utils.py` entries to `scaffold.sh`'s `scaffold-project.md` command doc template
@@ -18,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `url_utils.py` — URL and web utility module with `is_valid_url`, `extract_domain`, `get_query_params`, `get_query_param`, `add_query_param`, `remove_query_param`, and `build_url` functions
+- `tests/test_url_utils.py` — unit tests for `url_utils.py`
+- Updated scaffold template to generate `url_utils.py` and its tests
+- Updated `.kilo/command/scaffold-project.md`, `README.md`, and scaffold template to include URL utilities
+- Tests verifying `scaffold-project.md` and `CHANGELOG.md` list `url_utils.py` and its tests
 - `LICENSE` — MIT license file (added to repo, scaffold.sh template, and scaffold-project.md)
 - `PROJECT_YEARS` and `PROJECT_AUTHOR` variables in `scaffold.sh` for dynamic license generation
 - Tests in `tests/test_scaffold.py` verifying all modules are listed in generated `scaffold-project.md` and `CHANGELOG.md`

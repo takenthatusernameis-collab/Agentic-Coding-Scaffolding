@@ -106,6 +106,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_file_utils.py",
             "datetime_utils.py",
             "tests/test_datetime_utils.py",
+            "url_utils.py",
+            "tests/test_url_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -172,6 +174,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "data_utils.py",
             "datetime_utils.py",
             "file_utils.py",
+            "url_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -180,6 +183,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_data_utils.py",
             "tests/test_datetime_utils.py",
             "tests/test_file_utils.py",
+            "tests/test_url_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -201,6 +205,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "data_utils.py",
             "datetime_utils.py",
             "file_utils.py",
+            "url_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
@@ -263,6 +268,19 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertTrue(is_leap_year(2024))
         self.assertFalse(is_leap_year(2023))
         self.assertEqual(add_days("2024-01-01", 10), datetime(2024, 1, 11))
+
+    def test_url_utils_functions_work(self) -> None:
+        """Generated url_utils.py should have working functions."""
+        from url_utils import add_query_param, build_url, extract_domain, is_valid_url
+
+        self.assertTrue(is_valid_url("https://example.com"))
+        self.assertFalse(is_valid_url("not-a-url"))
+        self.assertEqual(extract_domain("https://api.example.com:8080"), "api.example.com")
+        result = add_query_param("https://example.com", "q", "test")
+        self.assertIn("q=test", result)
+        url = build_url(scheme="https", domain="example.com", path="/api", params={"k": "v"})
+        self.assertIn("/api", url)
+        self.assertIn("k=v", url)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):
