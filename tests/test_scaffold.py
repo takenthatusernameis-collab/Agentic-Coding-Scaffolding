@@ -82,6 +82,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "shapes.py",
             "strings.py",
             "utils.py",
+            "stats.py",
             ".gitignore",
             ".pre-commit-config.yaml",
             ".kilo/.gitignore",
@@ -95,6 +96,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_shapes.py",
             "tests/test_strings.py",
             "tests/test_utils.py",
+            "tests/test_stats.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -172,6 +174,24 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertIn(".pre-commit-config.yaml", content)
         self.assertIn("CHANGELOG.md", content)
         self.assertIn(".kilo/.gitignore", content)
+        self.assertIn("strings.py", content)
+        self.assertIn("utils.py", content)
+        self.assertIn("stats.py", content)
+        self.assertIn("tests/test_strings.py", content)
+        self.assertIn("tests/test_utils.py", content)
+        self.assertIn("tests/test_stats.py", content)
+
+    def test_stats_functions_work(self) -> None:
+        """Generated stats.py should have working functions."""
+        from stats import mean, median, mode, stddev, variance
+
+        self.assertEqual(mean([1, 2, 3]), 2.0)
+        self.assertEqual(median([1, 2, 3]), 2.0)
+        self.assertEqual(median([1, 2, 3, 4]), 2.5)
+        self.assertEqual(mode([1, 1, 2]), 1)
+        self.assertAlmostEqual(variance([1, 2, 3]), 0.6666666667, places=5)
+        self.assertAlmostEqual(stddev([1, 2, 3]), 0.8164965809, places=5)
+
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):
@@ -213,6 +233,8 @@ class TestScaffoldProjectNameNormalization(unittest.TestCase):
         for line in content.splitlines():
             if line.startswith("name = "):
                 self.assertRegex(line, r'name = "[a-z0-9-]+"')
+
+
 
 
 class TestScaffoldNoTestFlag(unittest.TestCase):

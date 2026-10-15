@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `strings.py` — string utility module with `reverse_string`, `is_palindrome`, and `count_vowels` functions
 - `tests/test_strings.py` — unit tests for `strings.py`
 
+- `stats.py` — statistics utility module with mean, median, mode, variance, and stddev functions
+- `tests/test_stats.py` — unit tests for `stats.py`
+
 - Ruff lint and format configuration in `pyproject.toml` (`[tool.ruff]` and `[tool.ruff.lint]` sections)
 - `.pre-commit-config.yaml` with hooks for ruff, mypy, unittest, end-of-file-fixer, trailing-whitespace, and scaffold.sh smoke testing
 - `pre-commit-install` and `pre-commit-run` Makefile targets

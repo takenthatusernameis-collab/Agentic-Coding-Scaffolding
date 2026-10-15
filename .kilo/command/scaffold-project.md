@@ -28,6 +28,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `tests/test_utils.py` — unit tests for `utils.py`
+- `stats.py` — statistical utility functions
+- `tests/test_stats.py` — unit tests for `stats.py`
 
 ## Usage
 

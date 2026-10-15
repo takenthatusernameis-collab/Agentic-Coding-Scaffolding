@@ -28,6 +28,8 @@
 #   - tests/test_strings.py unit tests for the strings module
 #   - utils.py general utility helper functions
 #   - tests/test_utils.py unit tests for the utils module
+#   - stats.py statistical utility functions
+#   - tests/test_stats.py unit tests for the stats module
 #
 set -euo pipefail
 
@@ -768,6 +770,123 @@ def is_empty(value: Any) -> bool:
     return False
 UTILS
 
+# --- stats.py ---
+cat > "$OUTPUT_DIR/stats.py" <<'STATS'
+"""Statistical utility functions for data analysis."""
+
+from typing import List, TypeVar
+
+T = TypeVar("T", int, float)
+
+
+def mean(numbers: List[T | float]) -> float:
+    """Return the arithmetic mean of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The average of all numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+    """
+    if not numbers:
+        raise ValueError("Cannot calculate mean of empty list")
+    return sum(numbers) / len(numbers)
+
+
+def median(numbers: List[T | float]) -> float:
+    """Return the median of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The median value.
+
+    Raises:
+        ValueError: If the list is empty.
+    """
+    if not numbers:
+        raise ValueError("Cannot calculate median of empty list")
+    sorted_nums = sorted(numbers)
+    n = len(sorted_nums)
+    if n % 2 == 1:
+        return float(sorted_nums[n // 2])
+    mid1 = sorted_nums[n // 2 - 1]
+    mid2 = sorted_nums[n // 2]
+    return (mid1 + mid2) / 2.0
+
+
+def mode(numbers: List[T | float]) -> T | float:
+    """Return the mode (most frequent value) of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The most frequently occurring value.
+
+    Raises:
+        ValueError: If the list is empty.
+    """
+    if not numbers:
+        raise ValueError("Cannot calculate mode of empty list")
+    frequency: dict = {}
+    for num in numbers:
+        frequency[num] = frequency.get(num, 0) + 1
+    max_count = max(frequency.values())
+    for num in sorted(frequency.keys()):
+        if frequency[num] == max_count:
+            return num
+
+
+def variance(numbers: List[T | float], population: bool = True) -> float:
+    """Return the variance of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+        population: If True, calculate population variance (divide by n).
+                    If False, calculate sample variance (divide by n-1).
+
+    Returns:
+        The variance.
+
+    Raises:
+        ValueError: If the list is empty or insufficient elements for sample.
+    """
+    if not numbers:
+        raise ValueError("Cannot calculate variance of empty list")
+    if not population and len(numbers) < 2:
+        raise ValueError("Cannot calculate sample variance with fewer than 2 elements")
+    avg = mean(numbers)
+    squared_diff = sum((x - avg) ** 2 for x in numbers)
+    if population:
+        return squared_diff / len(numbers)
+    return squared_diff / (len(numbers) - 1)
+
+
+def stddev(numbers: List[T | float], population: bool = True) -> float:
+    """Return the standard deviation of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+        population: If True, calculate population std dev (divide by n).
+                    If False, calculate sample std dev (divide by n-1).
+
+    Returns:
+        The standard deviation.
+
+    Raises:
+        ValueError: If the list is empty or insufficient elements for sample.
+    """
+    import math
+
+    var = variance(numbers, population=population)
+    return math.sqrt(var)
+STATS
+
 # --- tests/test_strings.py ---
 cat > "$OUTPUT_DIR/tests/test_strings.py" <<'TESTSTRINGS'
 import unittest
@@ -901,6 +1020,228 @@ class TestIsEmpty(unittest.TestCase):
         self.assertFalse(is_empty([1]))
         self.assertFalse(is_empty(5))
 TESTUTILS
+
+# --- tests/test_stats.py ---
+cat > "$OUTPUT_DIR/tests/test_stats.py" <<'TESTSTATS'
+"""Tests for stats module."""
+
+import unittest
+
+from stats import mean, median, mode, stddev, variance
+
+
+class TestMean(unittest.TestCase):
+    def test_mean_basic(self) -> None:
+        self.assertEqual(mean([1, 2, 3, 4, 5]), 3.0)
+
+    def test_mean_even(self) -> None:
+        self.assertEqual(mean([1, 3]), 2.0)
+
+    def test_mean_single(self) -> None:
+        self.assertEqual(mean([5]), 5.0)
+
+    def test_mean_negative(self) -> None:
+        self.assertEqual(mean([-1, 0, 1]), 0.0)
+
+    def test_mean_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            mean([])
+
+
+class TestMedian(unittest.TestCase):
+    def test_median_odd(self) -> None:
+        self.assertEqual(median([1, 2, 3, 4, 5]), 3.0)
+
+    def test_median_even(self) -> None:
+        self.assertEqual(median([1, 2, 3, 4]), 2.5)
+
+    def test_median_single(self) -> None:
+        self.assertEqual(median([5]), 5.0)
+
+    def test_median_unsorted(self) -> None:
+        self.assertEqual(median([5, 1, 3]), 3.0)
+
+    def test_median_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            median([])
+
+
+class TestMode(unittest.TestCase):
+    def test_mode_basic(self) -> None:
+        self.assertEqual(mode([1, 2, 2, 3, 4]), 2)
+
+    def test_mode_all_same(self) -> None:
+        self.assertEqual(mode([7, 7, 7]), 7)
+
+    def test_mode_bimodal_returns_first_in_sorted_order(self) -> None:
+        self.assertEqual(mode([1, 1, 2, 2]), 1)
+
+    def test_mode_single(self) -> None:
+        self.assertEqual(mode([5]), 5)
+
+    def test_mode_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            mode([])
+
+
+class TestVariance(unittest.TestCase):
+    def test_variance_population_basic(self) -> None:
+        result = variance([1, 2, 3, 4, 5])
+        self.assertAlmostEqual(result, 2.0, places=5)
+
+    def test_variance_population_single(self) -> None:
+        self.assertAlmostEqual(variance([5]), 0.0, places=5)
+
+    def test_variance_sample(self) -> None:
+        result = variance([1, 2, 3, 4, 5], population=False)
+        self.assertAlmostEqual(result, 2.5, places=5)
+
+    def test_variance_sample_requires_two_elements(self) -> None:
+        with self.assertRaises(ValueError):
+            variance([5], population=False)
+
+    def test_variance_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            variance([])
+
+
+class TestStddev(unittest.TestCase):
+    def test_stddev_population_basic(self) -> None:
+        result = stddev([1, 2, 3, 4, 5])
+        self.assertAlmostEqual(result, 1.4142135623730951, places=5)
+
+    def test_stddev_population_single(self) -> None:
+        self.assertAlmostEqual(stddev([5]), 0.0, places=5)
+
+    def test_stddev_sample(self) -> None:
+        result = stddev([1, 2, 3, 4, 5], population=False)
+        self.assertAlmostEqual(result, 1.5811388300841898, places=5)
+
+    def test_stddev_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            stddev([])
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSTATS
+
+# --- stats.py ---
+cat > "$OUTPUT_DIR/stats.py" <<'STATS'
+"""Statistical utility functions for data analysis."""
+
+from typing import List, TypeVar
+
+T = TypeVar("T", int, float)
+
+
+def mean(numbers: List[T | float]) -> float:
+    """Return the arithmetic mean of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The average of all numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+    """
+    if not numbers:
+        raise ValueError("Cannot calculate mean of empty list")
+    return sum(numbers) / len(numbers)
+
+
+def median(numbers: List[T | float]) -> float:
+    """Return the median of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The median value.
+
+    Raises:
+        ValueError: If the list is empty.
+    """
+    if not numbers:
+        raise ValueError("Cannot calculate median of empty list")
+    sorted_nums = sorted(numbers)
+    n = len(sorted_nums)
+    if n % 2 == 1:
+        return float(sorted_nums[n // 2])
+    mid1 = sorted_nums[n // 2 - 1]
+    mid2 = sorted_nums[n // 2]
+    return (mid1 + mid2) / 2.0
+
+
+def mode(numbers: List[T | float]) -> T | float:
+    """Return the mode (most frequent value) of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The most frequently occurring value.
+
+    Raises:
+        ValueError: If the list is empty.
+    """
+    if not numbers:
+        raise ValueError("Cannot calculate mode of empty list")
+    frequency: dict = {}
+    for num in numbers:
+        frequency[num] = frequency.get(num, 0) + 1
+    max_count = max(frequency.values())
+    for num in sorted(frequency.keys()):
+        if frequency[num] == max_count:
+            return num
+
+
+def variance(numbers: List[T | float], population: bool = True) -> float:
+    """Return the variance of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+        population: If True, calculate population variance (divide by n).
+                    If False, calculate sample variance (divide by n-1).
+
+    Returns:
+        The variance.
+
+    Raises:
+        ValueError: If the list is empty or insufficient elements for sample.
+    """
+    if not numbers:
+        raise ValueError("Cannot calculate variance of empty list")
+    if not population and len(numbers) < 2:
+        raise ValueError("Cannot calculate sample variance with fewer than 2 elements")
+    avg = mean(numbers)
+    squared_diff = sum((x - avg) ** 2 for x in numbers)
+    if population:
+        return squared_diff / len(numbers)
+    return squared_diff / (len(numbers) - 1)
+
+
+def stddev(numbers: List[T | float], population: bool = True) -> float:
+    """Return the standard deviation of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+        population: If True, calculate population std dev (divide by n).
+                    If False, calculate sample std dev (divide by n-1).
+
+    Returns:
+        The standard deviation.
+
+    Raises:
+        ValueError: If the list is empty or insufficient elements for sample.
+    """
+    import math
+
+    var = variance(numbers, population=population)
+    return math.sqrt(var)
+STATS
 
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
@@ -1102,6 +1443,8 @@ calculator.py                # Simple calculator module with arithmetic operatio
 shapes.py                    # Geometry utilities for areas and perimeters of common shapes
 strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
+stats.py                     # Statistical utility functions
+stats.py                     # Statistical utility functions
 .gitignore                   # Common ignore patterns
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -1110,6 +1453,8 @@ tests/                       # Python unit tests
   test_shapes.py             # Tests for shapes.py
   test_strings.py            # Tests for strings.py
   test_utils.py              # Tests for utils.py
+  test_stats.py              # Tests for stats.py
+  test_stats.py              # Tests for stats.py
 \`\`\`
 
 ## Developer Commands
@@ -1191,6 +1536,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `utils.py` — general utility helper functions
 - `tests/test_utils.py` — unit tests for `utils.py`
+- `stats.py` — statistical utility functions
+- `tests/test_stats.py` — unit tests for `stats.py`
 CHANGELOG
 
 # --- kilo.json ---

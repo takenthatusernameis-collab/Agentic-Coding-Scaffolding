@@ -36,6 +36,7 @@ calculator.py                # Simple calculator module
 shapes.py                    # Geometry utilities for areas and perimeters
 strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
+stats.py                     # Statistical utility functions
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -43,6 +44,7 @@ tests/                       # Python unit tests
   test_shapes.py             # Tests for shapes.py
   test_strings.py            # Tests for strings.py
   test_utils.py              # Tests for utils.py
+  test_stats.py              # Tests for stats.py
 ```
 
 ## How It Works
@@ -93,6 +95,10 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 ## Strings Module
 
 The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `is_palindrome`, and `count_vowels`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
+
+## Statistics Module
+
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `variance`, and `stddev`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 ## License
 
