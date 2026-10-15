@@ -21,9 +21,11 @@
 #   - hello.py sample application entry point
 #   - calculator.py simple calculator module with arithmetic operations
 #   - shapes.py geometry utilities for areas and perimeters of common shapes
+#   - strings.py string utilities for text operations
 #   - tests/test_hello.py unit tests for the sample application
 #   - tests/test_calculator.py unit tests for the calculator module
 #   - tests/test_shapes.py unit tests for the shapes module
+#   - tests/test_strings.py unit tests for the strings module
 #
 set -euo pipefail
 
@@ -662,6 +664,132 @@ if __name__ == '__main__':
     unittest.main()
 TESTSHAPES
 
+# --- strings.py ---
+cat > "$OUTPUT_DIR/strings.py" <<'STRINGS'
+"""String utility functions for common text operations."""
+
+
+def reverse_string(s: str) -> str:
+    """Return the reverse of the given string.
+
+    Args:
+        s: The string to reverse.
+
+    Examples:
+        >>> reverse_string("hello")
+        'olleh'
+        >>> reverse_string("")
+        ''
+    """
+    return s[::-1]
+
+
+def is_palindrome(s: str) -> bool:
+    """Return True if the string reads the same forwards and backwards.
+
+    Comparison is case-insensitive and ignores non-alphanumeric characters.
+
+    Args:
+        s: The string to check.
+
+    Examples:
+        >>> is_palindrome("racecar")
+        True
+        >>> is_palindrome("hello")
+        False
+        >>> is_palindrome("A man, a plan, a canal: Panama")
+        True
+    """
+    cleaned = "".join(ch.lower() for ch in s if ch.isalnum())
+    return cleaned == cleaned[::-1]
+
+
+def count_vowels(s: str) -> int:
+    """Return the number of vowels (a, e, i, o, u) in the given string.
+
+    Comparison is case-insensitive.
+
+    Args:
+        s: The string to count vowels in.
+
+    Examples:
+        >>> count_vowels("hello")
+        2
+        >>> count_vowels("rhythm")
+        0
+    """
+    vowels = {"a", "e", "i", "o", "u"}
+    return sum(1 for ch in s.lower() if ch in vowels)
+STRINGS
+
+# --- tests/test_strings.py ---
+cat > "$OUTPUT_DIR/tests/test_strings.py" <<'TESTSTRINGS'
+import unittest
+
+from strings import count_vowels, is_palindrome, reverse_string
+
+
+class TestReverseString(unittest.TestCase):
+    def test_reverse_basic(self):
+        self.assertEqual(reverse_string("hello"), "olleh")
+
+    def test_reverse_empty(self):
+        self.assertEqual(reverse_string(""), "")
+
+    def test_reverse_single_char(self):
+        self.assertEqual(reverse_string("a"), "a")
+
+    def test_reverse_palindrome(self):
+        self.assertEqual(reverse_string("racecar"), "racecar")
+
+    def test_reverse_with_spaces(self):
+        self.assertEqual(reverse_string("hello world"), "dlrow olleh")
+
+
+class TestIsPalindrome(unittest.TestCase):
+    def test_palindrome_odd(self):
+        self.assertTrue(is_palindrome("racecar"))
+
+    def test_palindrome_even(self):
+        self.assertTrue(is_palindrome("abba"))
+
+    def test_not_palindrome(self):
+        self.assertFalse(is_palindrome("hello"))
+
+    def test_case_insensitive(self):
+        self.assertTrue(is_palindrome("RaceCar"))
+
+    def test_ignores_non_alphanumeric(self):
+        self.assertTrue(is_palindrome("A man, a plan, a canal: Panama"))
+
+    def test_empty_is_palindrome(self):
+        self.assertTrue(is_palindrome(""))
+
+    def test_single_char_is_palindrome(self):
+        self.assertTrue(is_palindrome("a"))
+
+
+class TestCountVowels(unittest.TestCase):
+    def test_count_basic(self):
+        self.assertEqual(count_vowels("hello"), 2)
+
+    def test_count_no_vowels(self):
+        self.assertEqual(count_vowels("rhythm"), 0)
+
+    def test_count_case_insensitive(self):
+        self.assertEqual(count_vowels("AEIOU"), 5)
+
+    def test_count_empty(self):
+        self.assertEqual(count_vowels(""), 0)
+
+    def test_count_all_vowels(self):
+        self.assertEqual(count_vowels("aeiou"), 5)
+
+
+if __name__ == '__main__':
+    unittest.main()
+TESTSTRINGS
+
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -704,9 +832,11 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `hello.py` — sample application entry point
 - `calculator.py` — simple calculator module with arithmetic operations
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
+- `strings.py` — string utilities for text operations
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
+- `tests/test_strings.py` — unit tests for `strings.py`
 
 ## Usage
 
@@ -856,11 +986,14 @@ pyproject.toml               # Python project configuration (pytest, ruff, mypy)
 hello.py                     # Sample application entry point
 calculator.py                # Simple calculator module with arithmetic operations
 shapes.py                    # Geometry utilities for areas and perimeters of common shapes
+strings.py                   # String utilities for text operations
 .gitignore                   # Common ignore patterns
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
+  test_scaffold.py           # Tests for scaffold.sh
   test_shapes.py             # Tests for shapes.py
+  test_strings.py            # Tests for strings.py
 \`\`\`
 
 ## Developer Commands
@@ -934,10 +1067,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`README.md\` — project overview
 - \`CHANGELOG.md\` — changelog following Keep a Changelog format
 - \`.pre-commit-config.yaml\` — pre-commit hooks for ruff, mypy, tests, and scaffold
-- \`calculator.py\` — simple calculator module with arithmetic operations
-- \`tests/test_calculator.py\` — unit tests for \`calculator.py\`
-- \`shapes.py\` — geometry utilities for areas and perimeters of common shapes
-- \`tests/test_shapes.py\` — unit tests for \`shapes.py\`
+- `calculator.py` — simple calculator module with arithmetic operations
+- `tests/test_calculator.py` — unit tests for `calculator.py`
+- `shapes.py` — geometry utilities for areas and perimeters of common shapes
+- `tests/test_shapes.py` — unit tests for `shapes.py`
+- `strings.py` — string utilities for text operations
+- `tests/test_strings.py` — unit tests for `strings.py`
 CHANGELOG
 
 # --- kilo.json ---

@@ -34,11 +34,13 @@ scaffold.sh                  # Project scaffolding script
 hello.py                     # Sample application entry point
 calculator.py                # Simple calculator module
 shapes.py                    # Geometry utilities for areas and perimeters
+strings.py                   # String utilities for text operations
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
   test_scaffold.py           # Tests for scaffold.sh
   test_shapes.py             # Tests for shapes.py
+  test_strings.py            # Tests for strings.py
 ```
 
 ## How It Works
@@ -85,6 +87,10 @@ The project includes a simple calculator module in `calculator.py` with function
 ## Shapes Module
 
 The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, and triangles. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
+
+## Strings Module
+
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `is_palindrome`, and `count_vowels`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
 
 ## License
 
