@@ -33,6 +33,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `datetime_utils.py` — date and time utility functions
 - `file_utils.py` — file and path utility functions
 - `url_utils.py` — URL and web utility functions
+- `uuid_utils.py` — UUID utility functions for generating and validating UUIDs
+- `prompt_utils.py` — Prompt utility functions for working with text prompts
 - `random_utils.py` — random number generation and sampling utilities
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
@@ -61,6 +63,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
 - `tests/test_url_utils.py` — unit tests for `url_utils.py`
+- `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
+- `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `tests/test_random_utils.py` — unit tests for `random_utils.py`
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`

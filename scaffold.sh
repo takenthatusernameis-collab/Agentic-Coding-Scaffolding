@@ -442,6 +442,8 @@ py_modules = [
     "datetime_utils",
     "file_utils",
     "url_utils",
+    "uuid_utils",
+    "prompt_utils",
     "random_utils",
     "validation_utils",
     "crypto_utils",
@@ -2878,6 +2880,154 @@ class TestTitleCase(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTSTRINGUTILS
+# --- tests/test_uuid_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_uuid_utils.py" <<'TESTUUIDUTILS'
+"""Unit tests for uuid_utils module."""
+
+import unittest
+from uuid import UUID
+
+from uuid_utils import (
+    generate_uuid,
+    generate_uuid1,
+    generate_uuid4,
+    is_valid_uuid,
+    parse_uuid,
+)
+
+
+class TestGenerateUUID(unittest.TestCase):
+    def test_generate_uuid_default(self):
+        result = generate_uuid()
+        self.assertTrue(is_valid_uuid(result))
+        self.assertEqual(len(result), 36)
+
+    def test_generate_uuid4(self):
+        result = generate_uuid(version=4)
+        self.assertTrue(is_valid_uuid(result, version=4))
+
+    def test_generate_uuid1(self):
+        result = generate_uuid(version=1)
+        self.assertTrue(is_valid_uuid(result, version=1))
+
+    def test_generate_uuid_invalid_version(self):
+        with self.assertRaises(ValueError):
+            generate_uuid(version=2)
+
+
+class TestGenerateUUID4(unittest.TestCase):
+    def test_generate_uuid4_returns_valid(self):
+        result = generate_uuid4()
+        self.assertTrue(is_valid_uuid(result))
+        self.assertEqual(UUID(result).version, 4)
+
+
+class TestGenerateUUID1(unittest.TestCase):
+    def test_generate_uuid1_returns_valid(self):
+        result = generate_uuid1()
+        self.assertTrue(is_valid_uuid(result))
+        self.assertEqual(UUID(result).version, 1)
+
+
+class TestIsValidUUID(unittest.TestCase):
+    def test_valid_uuid4(self):
+        self.assertTrue(is_valid_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479"))
+
+    def test_valid_uuid4_with_version(self):
+        self.assertTrue(is_valid_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479", version=4))
+
+    def test_invalid_uuid_string(self):
+        self.assertFalse(is_valid_uuid("not-a-uuid"))
+        self.assertFalse(is_valid_uuid(""))
+
+    def test_invalid_uuid_types(self):
+        self.assertFalse(is_valid_uuid(123))  # type: ignore
+
+
+class TestParseUUID(unittest.TestCase):
+    def test_parse_valid_uuid(self):
+        uuid_str = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        result = parse_uuid(uuid_str)
+        self.assertIsInstance(result, UUID)
+        self.assertEqual(str(result), uuid_str)
+
+    def test_parse_invalid_uuid(self):
+        with self.assertRaises(ValueError):
+            parse_uuid("not-a-uuid")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTUUIDUTILS
+
+# --- tests/test_prompt_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_prompt_utils.py" <<'TESTPROMPTUTILS'
+"""Unit tests for prompt_utils module."""
+
+import unittest
+
+from prompt_utils import (
+    clean_prompt,
+    estimate_token_count,
+    extract_keywords,
+    format_prompt_template,
+    truncate_prompt,
+    wrap_prompt,
+)
+
+
+class TestTruncatePrompt(unittest.TestCase):
+    def test_truncate_short_text(self):
+        result = truncate_prompt("Hello", 10)
+        self.assertEqual(result, "Hello")
+
+    def test_truncate_long_text(self):
+        result = truncate_prompt("Hello world", 8)
+        self.assertEqual(result, "Hello...")
+
+    def test_truncate_with_custom_suffix(self):
+        result = truncate_prompt("Hello world", 8, suffix="***")
+        self.assertEqual(result, "Hello***")
+
+
+class TestFormatPromptTemplate(unittest.TestCase):
+    def test_format_template(self):
+        result = format_prompt_template("Hello {name}!", name="Alice")
+        self.assertEqual(result, "Hello Alice!")
+
+
+class TestCleanPrompt(unittest.TestCase):
+    def test_clean_whitespace(self):
+        result = clean_prompt("Hello   world\n\nTest")
+        self.assertEqual(result, "Hello world Test")
+
+
+class TestExtractKeywords(unittest.TestCase):
+    def test_extract_keywords_basic(self):
+        result = extract_keywords("The quick brown fox")
+        self.assertIn("quick", result)
+        self.assertIn("brown", result)
+
+
+class TestWrapPrompt(unittest.TestCase):
+    def test_wrap_short_text(self):
+        result = wrap_prompt("Hello world", 80)
+        self.assertEqual(result, "Hello world")
+
+
+class TestEstimateTokenCount(unittest.TestCase):
+    def test_estimate_empty(self):
+        self.assertEqual(estimate_token_count(""), 0)
+
+    def test_estimate_basic(self):
+        result = estimate_token_count("Hello world")
+        self.assertGreaterEqual(result, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTPROMPTUTILS
+
 # --- tests/test_tree_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_tree_utils.py" <<'TESTTREEUTILS'
 """Unit tests for tree_utils module."""
@@ -7923,6 +8073,163 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
         return tree if pred(tree) else None  # type: ignore[return-value]
 
 TREEUTILS
+# --- uuid_utils.py ---
+cat > "$OUTPUT_DIR/uuid_utils.py" <<'UUIDUTILS'
+"""UUID utility functions for generating and validating UUIDs."""
+
+from __future__ import annotations
+
+import uuid
+from typing import List, Optional
+
+__all__: List[str] = [
+    "generate_uuid",
+    "generate_uuid4",
+    "generate_uuid1",
+    "is_valid_uuid",
+    "parse_uuid",
+]
+
+
+def generate_uuid(version: int = 4) -> str:
+    """Generate a UUID string."""
+    if version == 4:
+        return str(uuid.uuid4())
+    elif version == 1:
+        return str(uuid.uuid1())
+    else:
+        raise ValueError("UUID version must be 1 or 4")
+
+
+def generate_uuid4() -> str:
+    """Generate a UUID4 string."""
+    return str(uuid.uuid4())
+
+
+def generate_uuid1() -> str:
+    """Generate a UUID1 string."""
+    return str(uuid.uuid1())
+
+
+def is_valid_uuid(uuid_str: str, version: Optional[int] = None) -> bool:
+    """Check if a string is a valid UUID."""
+    try:
+        parsed = uuid.UUID(uuid_str)
+        if version is not None:
+            return parsed.version == version
+        return True
+    except (ValueError, AttributeError, TypeError):
+        return False
+
+
+def parse_uuid(uuid_str: str) -> uuid.UUID:
+    """Parse a UUID string into a UUID object."""
+    return uuid.UUID(uuid_str)
+UUIDUTILS
+
+# --- prompt_utils.py ---
+cat > "$OUTPUT_DIR/prompt_utils.py" <<'PROMPTUTILS'
+"""Prompt utility functions for working with text prompts."""
+
+from __future__ import annotations
+
+import re
+from typing import Any, Dict, List, Optional
+
+__all__: List[str] = [
+    "truncate_prompt",
+    "format_prompt_template",
+    "clean_prompt",
+    "extract_keywords",
+    "wrap_prompt",
+    "estimate_token_count",
+]
+
+
+def truncate_prompt(text: str, max_length: int, suffix: str = "...") -> str:
+    """Truncate a prompt to a maximum length."""
+    if len(text) <= max_length:
+        return text
+    if max_length <= len(suffix):
+        return text[:max_length]
+    return text[: max_length - len(suffix)] + suffix
+
+
+def format_prompt_template(template: str, **kwargs: Any) -> str:
+    """Format a prompt template with keyword arguments."""
+    return template.format(**kwargs)
+
+
+def clean_prompt(text: str) -> str:
+    """Clean up whitespace in a prompt."""
+    cleaned = re.sub(r"\s+", " ", text)
+    return cleaned.strip()
+
+
+def extract_keywords(text: str, min_length: int = 3) -> List[str]:
+    """Extract keywords from text."""
+    words = re.findall(r"\b\w+\b", text.lower())
+    stop_words = {
+        "the",
+        "and",
+        "is",
+        "in",
+        "to",
+        "of",
+        "a",
+        "for",
+        "on",
+        "with",
+        "as",
+        "by",
+        "an",
+        "at",
+        "are",
+        "be",
+        "this",
+        "that",
+        "these",
+        "those",
+    }
+    keywords = [w for w in words if len(w) >= min_length and w not in stop_words]
+    seen = set()
+    result: List[str] = []
+    for k in keywords:
+        if k not in seen:
+            seen.add(k)
+            result.append(k)
+    return result
+
+
+def wrap_prompt(text: str, width: int = 80) -> str:
+    """Wrap prompt text to a specific width."""
+    if width <= 0:
+        return text
+    words = text.split()
+    lines: List[str] = []
+    current_line: List[str] = []
+
+    for word in words:
+        if len(" ".join(current_line + [word])) <= width:
+            current_line.append(word)
+        else:
+            if current_line:
+                lines.append(" ".join(current_line))
+                current_line = [word]
+            else:
+                lines.append(word)
+    if current_line:
+        lines.append(" ".join(current_line))
+    return "\n".join(lines)
+
+
+def estimate_token_count(text: str) -> int:
+    """Estimate token count for a text."""
+    if not text:
+        return 0
+    return max(1, len(text) // 4)
+PROMPTUTILS
+
 # --- type_utils.py ---
 cat > "$OUTPUT_DIR/type_utils.py" <<'TYPEUTILS'
 """Type introspection utilities."""
@@ -9451,6 +9758,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `datetime_utils.py` — date and time utility functions
 - `file_utils.py` — file and path utility functions
 - `url_utils.py` — URL and web utility functions
+- `uuid_utils.py` — UUID utility functions for generating and validating UUIDs
+- `prompt_utils.py` — Prompt utility functions for working with text prompts
 - `random_utils.py` — random number generation and sampling utilities
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
@@ -9471,6 +9780,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 - `tree_utils.py` — tree and nested structure utilities (get_nested, set_nested, delete_nested, flatten_tree, unflatten_tree, map_tree, filter_tree)
 - `type_utils.py` — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
+- `uuid_utils.py` — UUID utility functions for generating and validating UUIDs
+- `prompt_utils.py` — Prompt utility functions for working with text prompts
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -9483,6 +9794,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
 - `tests/test_url_utils.py` — unit tests for `url_utils.py`
+- `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
+- `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `tests/test_random_utils.py` — unit tests for `random_utils.py`
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
@@ -9503,6 +9816,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_string_utils.py` — unit tests for `string_utils.py`
 - `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
 - `tests/test_type_utils.py` — unit tests for `type_utils.py`
+- `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
+- `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 
 ## Usage
 
@@ -9846,6 +10161,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `datetime_utils.py` — date and time utility functions
 - `file_utils.py` — file and path utility functions
 - `url_utils.py` — URL and web utility functions
+- `uuid_utils.py` — UUID utility functions for generating and validating UUIDs
+- `prompt_utils.py` — Prompt utility functions for working with text prompts
 - `random_utils.py` — random number generation and sampling utilities
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
@@ -9869,6 +10186,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
 - `type_utils.py` — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 - `tests/test_type_utils.py` — unit tests for `type_utils.py`
+- `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
+- `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
 - `CHANGELOG.md` — changelog following Keep a Changelog format
@@ -9883,6 +10202,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
 - `tests/test_url_utils.py` — unit tests for `url_utils.py`
+- `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
+- `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `tests/test_random_utils.py` — unit tests for `random_utils.py`
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`

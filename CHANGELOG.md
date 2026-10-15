@@ -193,3 +193,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `type_utils.py` — type introspection utilities (`is_optional`, `is_union`, `is_generic`, `get_type_args`, `type_name`, `is_subclass_safe`)
 - `tests/test_type_utils.py` — unit tests for `type_utils.py`
 - Updated `scaffold.sh`, `README.md`, `.kilo/command/scaffold-project.md`, and scaffold template to include type utilities
+- `uuid_utils.py` — UUID utility functions (generate_uuid, generate_uuid4, generate_uuid1, is_valid_uuid, parse_uuid)
+- `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
+- `prompt_utils.py` — Prompt utility functions (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, wrap_prompt, estimate_token_count)
+- `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
+- Updated `scaffold.sh`, `README.md`, `.kilo/command/scaffold-project.md`, and scaffold template to include uuid and prompt utilities
+

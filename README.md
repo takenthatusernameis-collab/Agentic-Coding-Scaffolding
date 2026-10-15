@@ -45,6 +45,8 @@ data_utils.py               # Data utility functions
 datetime_utils.py           # Date and time utility functions
 file_utils.py               # File and path utility functions
 url_utils.py                # URL and web utility functions
+uuid_utils.py               # UUID utility functions for generating and validating UUIDs
+prompt_utils.py             # Prompt utility functions for working with text prompts
 random_utils.py             # Random number generation and sampling utilities
 validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities

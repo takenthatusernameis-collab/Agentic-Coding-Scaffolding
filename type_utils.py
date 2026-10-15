@@ -4,7 +4,6 @@ from __future__ import annotations
 import sys
 from typing import Any, List, Union, get_args, get_origin
 
-
 __all__: List[str] = [
     "is_optional",
     "is_union",
