@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CHANGELOG.md` to track project evolution across agent sessions
 - `calculator.py` — simple calculator module with add, subtract, multiply, and divide functions
 - `tests/test_calculator.py` — unit tests for `calculator.py`
+- `shapes.py` — geometry utilities for calculating areas and perimeters of circles, rectangles, and triangles
+- `tests/test_shapes.py` — unit tests for `shapes.py`
 
 ### Fixed
 
@@ -25,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `TestScaffoldNoTestFlag` test class verifying `--no-test` works as the third argument, without an output directory, and does not set `OUTPUT_DIR` to `--no-test`
 - Added tests for README completeness (`test_readme_contains_calculator_and_new_files`, `test_readme_makefile_table_includes_all_targets`) and CHANGELOG completeness (`test_changelog_lists_new_files`)
+- Added `tests/test_shapes.py` with unit tests for circle, rectangle, and triangle area/perimeter functions including input validation
 
 ### Changed
 

@@ -79,6 +79,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "pyproject.toml",
             "hello.py",
             "calculator.py",
+            "shapes.py",
             ".gitignore",
             ".pre-commit-config.yaml",
             ".kilo/.gitignore",
@@ -89,6 +90,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             ".github/workflows/main.yml",
             "tests/test_hello.py",
             "tests/test_calculator.py",
+            "tests/test_shapes.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -120,14 +122,37 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertIn("def multiply(", content)
         self.assertIn("def divide(", content)
 
+    def test_shapes_has_all_functions(self) -> None:
+        content = (self.project_dir / "shapes.py").read_text()
+        self.assertIn("def circle_area(", content)
+        self.assertIn("def circle_perimeter(", content)
+        self.assertIn("def rectangle_area(", content)
+        self.assertIn("def rectangle_perimeter(", content)
+        self.assertIn("def triangle_area(", content)
+        self.assertIn("def triangle_perimeter(", content)
+
     def test_readme_contains_calculator_and_new_files(self) -> None:
         """README.md should document all generated modules and config files."""
         content = (self.project_dir / "README.md").read_text()
         self.assertIn("calculator.py", content)
+        self.assertIn("shapes.py", content)
+        self.assertIn("test_shapes.py", content)
         self.assertIn("CHANGELOG.md", content)
         self.assertIn(".pre-commit-config.yaml", content)
         self.assertIn("Ignore patterns for .kilo directory", content)
         self.assertIn("test_calculator.py", content)
+
+    def test_scaffold_project_doc_lists_shapes(self) -> None:
+        """The scaffold-project command doc should list shapes.py and its tests."""
+        content = (self.project_dir / ".kilo/command/scaffold-project.md").read_text()
+        self.assertIn("shapes.py", content)
+        self.assertIn("tests/test_shapes.py", content)
+
+    def test_changelog_lists_shapes_module(self) -> None:
+        """Generated CHANGELOG.md should mention the shapes module and tests."""
+        content = (self.project_dir / "CHANGELOG.md").read_text()
+        self.assertIn("shapes.py", content)
+        self.assertIn("tests/test_shapes.py", content)
 
     def test_readme_makefile_table_includes_all_targets(self) -> None:
         """README Makefile table must include typecheck and pre-commit targets."""

@@ -33,10 +33,12 @@ pyproject.toml               # Python project configuration (pytest, ruff, mypy)
 scaffold.sh                  # Project scaffolding script
 hello.py                     # Sample application entry point
 calculator.py                # Simple calculator module
+shapes.py                    # Geometry utilities for areas and perimeters
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
   test_scaffold.py           # Tests for scaffold.sh
+  test_shapes.py             # Tests for shapes.py
 ```
 
 ## How It Works
@@ -79,6 +81,10 @@ kilo run --auto "Execute the task assigned by the previous agent and prepare a t
 ## Calculator Module
 
 The project includes a simple calculator module in `calculator.py` with functions for basic arithmetic operations: add, subtract, multiply, and divide. The module is tested in `tests/test_calculator.py`.
+
+## Shapes Module
+
+The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, and triangles. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
 
 ## License
 

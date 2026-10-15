@@ -20,8 +20,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pyproject.toml` — Python project configuration with pytest, ruff, and mypy settings
 - `hello.py` — sample application entry point
 - `calculator.py` — simple calculator module with arithmetic operations
+- `shapes.py` — geometry utilities for areas and perimeters of common shapes
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
+- `tests/test_shapes.py` — unit tests for `shapes.py`
 
 ## Usage
 

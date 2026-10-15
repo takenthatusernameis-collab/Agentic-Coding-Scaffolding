@@ -20,8 +20,10 @@
 #   - pyproject.toml for Python project configuration and dependencies
 #   - hello.py sample application entry point
 #   - calculator.py simple calculator module with arithmetic operations
+#   - shapes.py geometry utilities for areas and perimeters of common shapes
 #   - tests/test_hello.py unit tests for the sample application
 #   - tests/test_calculator.py unit tests for the calculator module
+#   - tests/test_shapes.py unit tests for the shapes module
 #
 set -euo pipefail
 
@@ -486,6 +488,180 @@ if __name__ == '__main__':
     unittest.main()
 TESTCALC
 
+# --- shapes.py ---
+cat > "$OUTPUT_DIR/shapes.py" <<'SHAPES'
+"""Geometry utilities for calculating areas and perimeters of common shapes."""
+
+import math
+
+
+def circle_area(radius: float) -> float:
+    """Return the area of a circle with the given radius.
+
+    Args:
+        radius: The radius of the circle.
+
+    Raises:
+        ValueError: If radius is negative.
+    """
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    return math.pi * radius ** 2
+
+def circle_perimeter(radius: float) -> float:
+    """Return the perimeter (circumference) of a circle with the given radius.
+
+    Args:
+        radius: The radius of the circle.
+
+    Raises:
+        ValueError: If radius is negative.
+    """
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    return 2 * math.pi * radius
+
+def rectangle_area(length: float, width: float) -> float:
+    """Return the area of a rectangle.
+
+    Args:
+        length: The length of the rectangle.
+        width: The width of the rectangle.
+
+    Raises:
+        ValueError: If length or width is negative.
+    """
+    if length < 0 or width < 0:
+        raise ValueError("Length and width cannot be negative.")
+    return length * width
+
+def rectangle_perimeter(length: float, width: float) -> float:
+    """Return the perimeter of a rectangle.
+
+    Args:
+        length: The length of the rectangle.
+        width: The width of the rectangle.
+
+    Raises:
+        ValueError: If length or width is negative.
+    """
+    if length < 0 or width < 0:
+        raise ValueError("Length and width cannot be negative.")
+    return 2 * (length + width)
+
+def triangle_area(base: float, height: float) -> float:
+    """Return the area of a triangle given its base and height.
+
+    Args:
+        base: The base length of the triangle.
+        height: The height of the triangle.
+
+    Raises:
+        ValueError: If base or height is negative.
+    """
+    if base < 0 or height < 0:
+        raise ValueError("Base and height cannot be negative.")
+    return 0.5 * base * height
+
+def triangle_perimeter(side_a: float, side_b: float, side_c: float) -> float:
+    """Return the perimeter of a triangle given its three sides.
+
+    Args:
+        side_a: Length of the first side.
+        side_b: Length of the second side.
+        side_c: Length of the third side.
+
+    Raises:
+        ValueError: If any side is negative or the sides violate the triangle inequality.
+    """
+    if side_a < 0 or side_b < 0 or side_c < 0:
+        raise ValueError("Sides cannot be negative.")
+    if not (side_a + side_b > side_c and side_a + side_c > side_b and side_b + side_c > side_a):
+        raise ValueError("Sides do not form a valid triangle.")
+    return side_a + side_b + side_c
+SHAPES
+
+# --- tests/test_shapes.py ---
+cat > "$OUTPUT_DIR/tests/test_shapes.py" <<'TESTSHAPES'
+import math
+import unittest
+
+from shapes import (
+    circle_area,
+    circle_perimeter,
+    rectangle_area,
+    rectangle_perimeter,
+    triangle_area,
+    triangle_perimeter,
+)
+
+
+class TestCircle(unittest.TestCase):
+    def test_area(self):
+        self.assertAlmostEqual(circle_area(0), 0)
+        self.assertAlmostEqual(circle_area(1), math.pi)
+        self.assertAlmostEqual(circle_area(2), math.pi * 4)
+
+    def test_perimeter(self):
+        self.assertAlmostEqual(circle_perimeter(0), 0)
+        self.assertAlmostEqual(circle_perimeter(1), 2 * math.pi)
+        self.assertAlmostEqual(circle_perimeter(2), 4 * math.pi)
+
+    def test_negative_radius_area(self):
+        with self.assertRaises(ValueError):
+            circle_area(-1)
+
+    def test_negative_radius_perimeter(self):
+        with self.assertRaises(ValueError):
+            circle_perimeter(-5)
+
+
+class TestRectangle(unittest.TestCase):
+    def test_area(self):
+        self.assertEqual(rectangle_area(3, 4), 12)
+        self.assertEqual(rectangle_area(0, 5), 0)
+        self.assertEqual(rectangle_area(2.5, 4), 10)
+
+    def test_perimeter(self):
+        self.assertEqual(rectangle_perimeter(3, 4), 14)
+        self.assertEqual(rectangle_perimeter(0, 0), 0)
+
+    def test_negative_length_area(self):
+        with self.assertRaises(ValueError):
+            rectangle_area(-1, 4)
+
+    def test_negative_width_perimeter(self):
+        with self.assertRaises(ValueError):
+            rectangle_perimeter(3, -2)
+
+
+class TestTriangle(unittest.TestCase):
+    def test_area(self):
+        self.assertEqual(triangle_area(4, 3), 6)
+        self.assertEqual(triangle_area(10, 5), 25)
+        self.assertEqual(triangle_area(0, 5), 0)
+
+    def test_perimeter(self):
+        self.assertEqual(triangle_perimeter(3, 4, 5), 12)
+        self.assertEqual(triangle_perimeter(1, 1, 1), 3)
+
+    def test_invalid_triangle_inequality(self):
+        with self.assertRaises(ValueError):
+            triangle_perimeter(1, 2, 10)
+
+    def test_negative_base_area(self):
+        with self.assertRaises(ValueError):
+            triangle_area(-1, 3)
+
+    def test_negative_side_perimeter(self):
+        with self.assertRaises(ValueError):
+            triangle_perimeter(3, 4, -5)
+
+
+if __name__ == '__main__':
+    unittest.main()
+TESTSHAPES
+
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -527,8 +703,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pyproject.toml` — Python project configuration with pytest, ruff, and mypy settings
 - `hello.py` — sample application entry point
 - `calculator.py` — simple calculator module with arithmetic operations
+- `shapes.py` — geometry utilities for areas and perimeters of common shapes
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
+- `tests/test_shapes.py` — unit tests for `shapes.py`
 
 ## Usage
 
@@ -677,10 +855,12 @@ Makefile                     # Common developer targets (test, lint, typecheck, 
 pyproject.toml               # Python project configuration (pytest, ruff, mypy)
 hello.py                     # Sample application entry point
 calculator.py                # Simple calculator module with arithmetic operations
+shapes.py                    # Geometry utilities for areas and perimeters of common shapes
 .gitignore                   # Common ignore patterns
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
+  test_shapes.py             # Tests for shapes.py
 \`\`\`
 
 ## Developer Commands
@@ -756,6 +936,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`.pre-commit-config.yaml\` — pre-commit hooks for ruff, mypy, tests, and scaffold
 - \`calculator.py\` — simple calculator module with arithmetic operations
 - \`tests/test_calculator.py\` — unit tests for \`calculator.py\`
+- \`shapes.py\` — geometry utilities for areas and perimeters of common shapes
+- \`tests/test_shapes.py\` — unit tests for \`shapes.py\`
 CHANGELOG
 
 # --- kilo.json ---
