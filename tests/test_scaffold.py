@@ -80,6 +80,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "hello.py",
             "calculator.py",
             "shapes.py",
+            "strings.py",
+            "utils.py",
             ".gitignore",
             ".pre-commit-config.yaml",
             ".kilo/.gitignore",
@@ -91,6 +93,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_hello.py",
             "tests/test_calculator.py",
             "tests/test_shapes.py",
+            "tests/test_strings.py",
+            "tests/test_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel

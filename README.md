@@ -35,6 +35,7 @@ hello.py                     # Sample application entry point
 calculator.py                # Simple calculator module
 shapes.py                    # Geometry utilities for areas and perimeters
 strings.py                   # String utilities for text operations
+utils.py                     # General utility helper functions
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py

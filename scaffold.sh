@@ -945,10 +945,12 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `calculator.py` — simple calculator module with arithmetic operations
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
 - `strings.py` — string utilities for text operations
+- `utils.py` — general utility helper functions
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `tests/test_strings.py` — unit tests for `strings.py`
+- `tests/test_utils.py` — unit tests for `utils.py`
 
 ## Usage
 
@@ -1187,10 +1189,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `strings.py` — string utilities for text operations
 - `tests/test_strings.py` — unit tests for `strings.py`
-- `utils.py` — general utility helper functions
-- `tests/test_utils.py` — unit tests for `utils.py`
-- `utils.py` — general utility helper functions
-- `tests/test_utils.py` — unit tests for `utils.py`
 - `utils.py` — general utility helper functions
 - `tests/test_utils.py` — unit tests for `utils.py`
 CHANGELOG

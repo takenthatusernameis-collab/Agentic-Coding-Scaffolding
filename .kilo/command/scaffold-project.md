@@ -21,9 +21,13 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `hello.py` — sample application entry point
 - `calculator.py` — simple calculator module with arithmetic operations
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
+- `strings.py` — string utilities for text operations
+- `utils.py` — general utility helper functions
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
+- `tests/test_strings.py` — unit tests for `strings.py`
+- `tests/test_utils.py` — unit tests for `utils.py`
 
 ## Usage
 
