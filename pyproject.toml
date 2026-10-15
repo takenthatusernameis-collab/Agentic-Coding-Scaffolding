@@ -66,5 +66,6 @@ py_modules = [
     "dict_utils",
     "json_utils",
     "csv_utils",
+    "set_utils",
     "retry_utils",
 ]

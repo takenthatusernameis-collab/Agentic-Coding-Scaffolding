@@ -73,6 +73,8 @@
 #   - tests/test_json_utils.py unit tests for the json_utils module
 #   - csv_utils.py CSV utility functions (read/write/append as dicts or lists)
 #   - tests/test_csv_utils.py unit tests for the csv_utils module
+#   - set_utils.py set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+#   - tests/test_set_utils.py unit tests for the set_utils module
 #
 set -euo pipefail
 
@@ -447,6 +449,7 @@ py_modules = [
     "dict_utils",
     "json_utils",
     "csv_utils",
+    "set_utils",
     "retry_utils",
 ]
 
@@ -2324,6 +2327,135 @@ class TestReadWriteCSV(unittest.TestCase):
                 os.unlink(path)
 
 TESTCSVUTILS
+# --- tests/test_set_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_set_utils.py" <<'TESTSETUTILS'
+"""Tests for set_utils module."""
+
+import unittest
+
+from set_utils import (
+    cartesian_product,
+    difference,
+    intersection,
+    is_subset,
+    is_superset,
+    power_set,
+    symmetric_difference,
+    union,
+)
+
+
+class TestIsSubset(unittest.TestCase):
+    def test_is_subset_true(self) -> None:
+        self.assertTrue(is_subset([1, 2], [1, 2, 3]))
+
+    def test_is_subset_false(self) -> None:
+        self.assertFalse(is_subset([1, 4], [1, 2, 3]))
+
+    def test_is_subset_equal(self) -> None:
+        self.assertTrue(is_subset([1, 2], [1, 2]))
+
+    def test_is_subset_empty(self) -> None:
+        self.assertTrue(is_subset([], [1, 2, 3]))
+
+
+class TestIsSuperset(unittest.TestCase):
+    def test_is_superset_true(self) -> None:
+        self.assertTrue(is_superset([1, 2, 3], [2]))
+
+    def test_is_superset_false(self) -> None:
+        self.assertFalse(is_superset([1, 2], [2, 3]))
+
+    def test_is_superset_equal(self) -> None:
+        self.assertTrue(is_superset([1, 2], [1, 2]))
+
+
+class TestIntersection(unittest.TestCase):
+    def test_intersection_basic(self) -> None:
+        self.assertEqual(intersection([1, 2, 3], [2, 3, 4]), {2, 3})
+
+    def test_intersection_disjoint(self) -> None:
+        self.assertEqual(intersection([1, 2], [3, 4]), set())
+
+    def test_intersection_no_overlap(self) -> None:
+        self.assertEqual(intersection([], [1, 2]), set())
+
+
+class TestUnion(unittest.TestCase):
+    def test_union_basic(self) -> None:
+        self.assertEqual(union([1, 2], [2, 3]), {1, 2, 3})
+
+    def test_union_disjoint(self) -> None:
+        self.assertEqual(union([1, 2], [3, 4]), {1, 2, 3, 4})
+
+    def test_union_empty(self) -> None:
+        self.assertEqual(union([], []), set())
+
+
+class TestDifference(unittest.TestCase):
+    def test_difference_basic(self) -> None:
+        self.assertEqual(difference([1, 2, 3], [2]), {1, 3})
+
+    def test_difference_no_overlap(self) -> None:
+        self.assertEqual(difference([1, 2], [3, 4]), {1, 2})
+
+    def test_difference_empty(self) -> None:
+        self.assertEqual(difference([], [1, 2]), set())
+
+
+class TestSymmetricDifference(unittest.TestCase):
+    def test_symmetric_difference_basic(self) -> None:
+        self.assertEqual(symmetric_difference([1, 2, 3], [2, 3, 4]), {1, 4})
+
+    def test_symmetric_difference_disjoint(self) -> None:
+        self.assertEqual(symmetric_difference([1, 2], [3, 4]), {1, 2, 3, 4})
+
+    def test_symmetric_difference_equal(self) -> None:
+        self.assertEqual(symmetric_difference([1, 2], [1, 2]), set())
+
+
+class TestCartesianProduct(unittest.TestCase):
+    def test_cartesian_product_basic(self) -> None:
+        result = list(cartesian_product([1, 2], ["a", "b"]))
+        self.assertEqual(result, [(1, "a"), (1, "b"), (2, "a"), (2, "b")])
+
+    def test_cartesian_product_empty(self) -> None:
+        self.assertEqual(list(cartesian_product([], [1, 2])), [])
+        self.assertEqual(list(cartesian_product([1, 2], [])), [])
+
+    def test_cartesian_product_single(self) -> None:
+        self.assertEqual(list(cartesian_product([1], ["x"])), [(1, "x")])
+
+
+class TestPowerSet(unittest.TestCase):
+    def test_power_set_empty(self) -> None:
+        result = list(power_set([]))
+        self.assertEqual(result, [()])
+
+    def test_power_set_single(self) -> None:
+        result = list(power_set([1]))
+        self.assertEqual(result, [(), (1,)])
+
+    def test_power_set_two(self) -> None:
+        result = list(power_set([1, 2]))
+        self.assertEqual(len(result), 4)
+        self.assertIn((), result)
+        self.assertIn((1,), result)
+        self.assertIn((2,), result)
+        self.assertIn((1, 2), result)
+
+    def test_power_set_three(self) -> None:
+        result = list(power_set([1, 2, 3]))
+        self.assertEqual(len(result), 8)
+
+    def test_power_set_preserves_order(self) -> None:
+        result = list(power_set(["a", "b"]))
+        self.assertEqual(result, [(), ("a",), ("b",), ("a", "b")])
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSETUTILS
 # --- tests/test_math_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
 """Tests for math_utils module."""
@@ -6084,6 +6216,224 @@ def append_csv_row(path: str, row: Dict[str, Any], fieldnames: Optional[List[str
         writer.writerow(row)
 
 CSVUTILS
+# --- set_utils.py ---
+cat > "$OUTPUT_DIR/set_utils.py" <<'SETUTILS'
+"""Set operation utilities for common set-theoretic and combinatorial tasks."""
+
+from itertools import product
+from typing import Any, Iterable, Iterator, List, Sequence, Set, Tuple, TypeVar
+
+T = TypeVar("T")
+
+__all__: List[str] = [
+    "is_subset",
+    "is_superset",
+    "intersection",
+    "union",
+    "difference",
+    "symmetric_difference",
+    "cartesian_product",
+    "power_set",
+]
+
+
+def _to_set(items: Iterable[Any]) -> Set[Any]:
+    """Convert an iterable to a set, raising ``TypeError`` for non-iterables.
+
+    Args:
+        items: An iterable of hashable elements.
+
+    Returns:
+        A set containing the elements of ``items``.
+
+    Raises:
+        TypeError: If ``items`` is not iterable.
+    """
+    try:
+        return set(items)
+    except TypeError as exc:
+        raise TypeError("items must be an iterable") from exc
+
+
+def is_subset(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether every element of ``a`` is contained in ``b``.
+
+    Args:
+        a: Candidate subset iterable.
+        b: Superset iterable.
+
+    Returns:
+        ``True`` if ``a`` is a subset of ``b``, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> is_subset([1, 2], [1, 2, 3])
+        True
+        >>> is_subset([1, 4], [1, 2, 3])
+        False
+    """
+    return _to_set(a).issubset(_to_set(b))
+
+
+def is_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether ``a`` contains every element of ``b``.
+
+    Args:
+        a: Candidate superset iterable.
+        b: Subset iterable.
+
+    Returns:
+        ``True`` if ``a`` is a superset of ``b``, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> is_superset([1, 2, 3], [2])
+        True
+        >>> is_superset([1, 2], [2, 3])
+        False
+    """
+    return _to_set(a).issuperset(_to_set(b))
+
+
+def intersection(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
+    """Return the set of elements common to both ``a`` and ``b``.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        A new set containing the intersection.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> intersection([1, 2, 3], [2, 3, 4])
+        {2, 3}
+    """
+    return _to_set(a) & _to_set(b)
+
+
+def union(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
+    """Return the set of elements present in either ``a`` or ``b``.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        A new set containing the union.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> union([1, 2], [2, 3])
+        {1, 2, 3}
+    """
+    return _to_set(a) | _to_set(b)
+
+
+def difference(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
+    """Return elements in ``a`` that are not in ``b``.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        A new set containing the difference ``a - b``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> difference([1, 2, 3], [2])
+        {1, 3}
+    """
+    return _to_set(a) - _to_set(b)
+
+
+def symmetric_difference(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
+    """Return elements in either ``a`` or ``b`` but not both.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        A new set containing the symmetric difference.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> symmetric_difference([1, 2, 3], [2, 3, 4])
+        {1, 4}
+    """
+    return _to_set(a) ^ _to_set(b)
+
+
+def cartesian_product(
+    a: Sequence[Any], b: Sequence[Any]
+) -> Iterator[Tuple[Any, Any]]:
+    """Yield ordered pairs from the Cartesian product of two sequences.
+
+    Args:
+        a: First sequence.
+        b: Second sequence.
+
+    Yields:
+        Tuples ``(x, y)`` for every ``x`` in ``a`` and ``y`` in ``b``,
+        preserving the iteration order of both inputs.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not a sequence.
+
+    Examples:
+        >>> list(cartesian_product([1, 2], ["a", "b"]))
+        [(1, 'a'), (1, 'b'), (2, 'a'), (2, 'b')]
+    """
+    if not isinstance(a, (list, tuple, str, bytes)) and not hasattr(a, "__iter__"):
+        raise TypeError("a must be a sequence")
+    if not isinstance(b, (list, tuple, str, bytes)) and not hasattr(b, "__iter__"):
+        raise TypeError("b must be a sequence")
+    for x in a:
+        for y in b:
+            yield (x, y)
+
+
+def power_set(items: Iterable[T]) -> Iterator[Tuple[T, ...]]:
+    """Yield every subset of ``items`` as a tuple.
+
+    The empty set is yielded first, followed by subsets ordered by
+    increasing cardinality. For an input of length ``n``, exactly
+    ``2 ** n`` subsets are produced.
+
+    Args:
+        items: An iterable of hashable elements.
+
+    Yields:
+        Tuples representing each subset, preserving the input order of
+        elements within each subset.
+
+    Raises:
+        TypeError: If ``items`` is not iterable.
+
+    Examples:
+        >>> [len(s) for s in power_set([1, 2])]
+        [0, 1, 1, 2]
+    """
+    elements: List[T] = list(items)
+    n = len(elements)
+    for mask in range(1 << n):
+        yield tuple(elements[i] for i in range(n) if mask & (1 << i))
+SETUTILS
 # --- concurrent_utils.py ---
 cat > "$OUTPUT_DIR/concurrent_utils.py" <<'CONCURRENTUTILS'
 """Concurrent execution utilities for parallel and asynchronous processing.
@@ -7532,6 +7882,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
 - `json_utils.py` — JSON utility functions (read/write/parse/dump/validate)
 - `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
+- `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -7559,6 +7910,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
 - `tests/test_json_utils.py` — unit tests for `json_utils.py`
 - `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
+- `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+- `tests/test_set_utils.py` — unit tests for `set_utils.py`
 
 ## Usage
 
@@ -7802,6 +8155,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
+set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -7831,6 +8185,7 @@ tests/                       # Python unit tests
   test_dict_utils.py         # Tests for dict_utils.py
   test_json_utils.py          # Tests for json_utils.py
   test_csv_utils.py           # Tests for csv_utils.py
+  test_set_utils.py           # Tests for set_utils.py
 ```
 
 ## Getting Started
@@ -7907,6 +8262,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
 - `json_utils.py` — JSON utility functions (read/write/parse/dump/validate)
 - `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
+- `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
 - `CHANGELOG.md` — changelog following Keep a Changelog format
@@ -7936,6 +8292,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
 - `tests/test_json_utils.py` — unit tests for `json_utils.py`
 - `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
+- `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+- `tests/test_set_utils.py` — unit tests for `set_utils.py`
 
 __CHANGELOG__
 

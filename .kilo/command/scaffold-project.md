@@ -73,6 +73,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_json_utils.py` — unit tests for `json_utils.py`
 - `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
 - `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
+- `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+- `tests/test_set_utils.py` — unit tests for `set_utils.py`
 
 ## Usage
 

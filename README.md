@@ -60,6 +60,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
+set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -89,6 +90,7 @@ tests/                       # Python unit tests
   test_dict_utils.py         # Tests for dict_utils.py
   test_json_utils.py          # Tests for json_utils.py
   test_csv_utils.py           # Tests for csv_utils.py
+  test_set_utils.py           # Tests for set_utils.py
 ```
 
 ## How It Works
@@ -232,6 +234,10 @@ The project includes a JSON utilities module in `json_utils.py` with functions f
 
 The project includes a CSV utilities module in `csv_utils.py` with functions for reading and writing CSV files as dictionaries or lists, and appending rows. The module is tested in `tests/test_csv_utils.py`.
 
-Completed task: Ran a full consistency audit across `scaffold.sh`, `README.md`, `CHANGELOG.md`, `pyproject.toml`, and `.kilo/command/scaffold-project.md`. Removed three duplicate heredoc blocks from `scaffold.sh` (`test_rate_limiter_utils.py`, `test_retry_utils.py`, `test_dict_utils.py` — the second copies lacked the `if __name__ == "__main__"` guard). Added missing `json_utils.py` and `csv_utils.py` entries to the `scaffold.sh` header comment, generated README tree, generated CHANGELOG, generated `scaffold-project.md` template, repo `README.md` tree and module sections, repo `CHANGELOG.md` Unreleased section, and repo `pyproject.toml` `py_modules`. Verified all 547 tests pass, ruff and mypy are clean, and the scaffold smoke test generates a fully consistent project.
+## Set Utilities Module
 
-Next task: Add a new `set_utils.py` module with set operation utilities (`is_subset`, `is_superset`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, `power_set`) and its tests, then sync the scaffold template (header comment, pyproject `py_modules`, README tree + module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs).
+The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+
+Completed task: Added a new `set_utils.py` module with set operation utilities (`is_subset`, `is_superset`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, `power_set`) and its tests. Synchronized the scaffold template: added `set_utils.py` to the `scaffold.sh` header comment, generated `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Verified all 547 tests pass, ruff and mypy are clean, and the scaffold smoke test generates a fully consistent project.
+
+Next task: Add a new `math_utils.py`-style `statistics_utils.py` module with statistical utility functions beyond `stats.py` (e.g., `harmonic_mean`, `geometric_mean`, `median_even`, `percentile`, `covariance`, `correlation`, `z_score`, `normalize`) and its tests, then sync the scaffold template (header comment, pyproject `py_modules`, README tree + module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs).
