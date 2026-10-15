@@ -108,6 +108,12 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_datetime_utils.py",
             "url_utils.py",
             "tests/test_url_utils.py",
+            "random_utils.py",
+            "tests/test_random_utils.py",
+            "validation_utils.py",
+            "tests/test_validation_utils.py",
+            "crypto_utils.py",
+            "tests/test_crypto_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -175,6 +181,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "datetime_utils.py",
             "file_utils.py",
             "url_utils.py",
+            "random_utils.py",
+            "validation_utils.py",
+            "crypto_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -184,6 +193,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_datetime_utils.py",
             "tests/test_file_utils.py",
             "tests/test_url_utils.py",
+            "tests/test_random_utils.py",
+            "tests/test_validation_utils.py",
+            "tests/test_crypto_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -206,6 +218,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "datetime_utils.py",
             "file_utils.py",
             "url_utils.py",
+            "random_utils.py",
+            "validation_utils.py",
+            "crypto_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
@@ -281,6 +296,15 @@ class TestScaffoldKiloJson(unittest.TestCase):
         url = build_url(scheme="https", domain="example.com", path="/api", params={"k": "v"})
         self.assertIn("/api", url)
         self.assertIn("k=v", url)
+
+    def test_crypto_utils_functions_work(self) -> None:
+        """Generated crypto_utils.py should have working functions."""
+        from crypto_utils import base64_decode, base64_encode, generate_token, hash_string
+
+        self.assertEqual(len(hash_string("hello")), 64)
+        self.assertEqual(len(hash_string("hello", algorithm="md5")), 32)
+        self.assertEqual(base64_decode(base64_encode("hello")), "hello")
+        self.assertEqual(len(generate_token(16)), 32)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

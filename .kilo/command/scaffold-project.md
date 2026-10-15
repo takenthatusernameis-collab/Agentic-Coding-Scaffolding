@@ -30,6 +30,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `datetime_utils.py` — date and time utility functions
 - `file_utils.py` — file and path utility functions
 - `url_utils.py` — URL and web utility functions
+- `random_utils.py` — random number generation and sampling utilities
+- `validation_utils.py` — input validation utilities
+- `crypto_utils.py` — cryptographic utilities
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
@@ -41,6 +44,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
 - `tests/test_url_utils.py` — unit tests for `url_utils.py`
+- `tests/test_random_utils.py` — unit tests for `random_utils.py`
+- `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
+- `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
 
 ## Usage
 
@@ -58,6 +64,3 @@ scaffold-project "My AI Project"
 scaffold-project my-cool-tool /tmp/projects/my-tool
 scaffold-project my-cool-tool ./out --no-test
 ```
-
-- `random_utils.py` — random number generation and sampling utilities
-- `tests/test_random_utils.py` — unit tests for `random_utils.py`

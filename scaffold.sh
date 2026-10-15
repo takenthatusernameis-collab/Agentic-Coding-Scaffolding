@@ -43,6 +43,10 @@
 #   - tests/test_url_utils.py unit tests for the url_utils module
 #   - random_utils.py random number generation and sampling utilities
 #   - tests/test_random_utils.py unit tests for the random_utils module
+#   - validation_utils.py input validation utilities
+#   - tests/test_validation_utils.py unit tests for the validation_utils module
+#   - crypto_utils.py cryptographic utilities
+#   - tests/test_crypto_utils.py unit tests for the crypto_utils module
 #
 set -euo pipefail
 
@@ -2619,6 +2623,716 @@ class TestRandomGaussian(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTRANDUTILS
+# --- validation_utils.py ---
+cat > "$OUTPUT_DIR/validation_utils.py" <<'VALUTILS'
+"""Validation utility functions for common input validation tasks."""
+
+import re
+from typing import Any, Union
+
+
+def is_email(email: Any) -> bool:
+    """
+    Check if a string is a valid email address (basic RFC-like validation).
+
+    Args:
+        email: The email string to validate.
+
+    Returns:
+        True if the email is valid, False otherwise.
+    """
+    if not isinstance(email, str) or not email:
+        return False
+
+    email = email.strip()
+    if not email:
+        return False
+    pattern = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+    return bool(pattern.match(email))
+
+
+def is_numeric(value: Any) -> bool:
+    """
+    Check if a value is numeric (int, float, or string representing a number).
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if the value is numeric, False otherwise.
+    """
+    if isinstance(value, bool):
+        return False
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return True
+    if isinstance(value, str):
+        try:
+            float(value)
+            return True
+        except (ValueError, TypeError):
+            return False
+    return False
+
+
+def is_integer(value: Any) -> bool:
+    """
+    Check if a value is an integer (or string representing an integer).
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if the value is an integer, False otherwise.
+    """
+    if isinstance(value, bool):
+        return False
+    if isinstance(value, int) and not isinstance(value, bool):
+        return True
+    if isinstance(value, float):
+        return value.is_integer()
+    if isinstance(value, str):
+        if re.match(r'^[-+]?\d+$', value.strip()):
+            return True
+        return False
+    return False
+
+
+def is_alphanumeric(value: Any) -> bool:
+    """
+    Check if a string contains only alphanumeric characters.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if the string is alphanumeric, False otherwise.
+    """
+    if not isinstance(value, str):
+        return False
+    if not value:
+        return False
+    return bool(re.match(r'^[a-zA-Z0-9]+$', value))
+
+
+def is_boolean_string(value: Any) -> bool:
+    """
+    Check if a string represents a boolean value.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if the string is a boolean string, False otherwise.
+    """
+    if not isinstance(value, str):
+        return False
+    return value.strip().lower() in ('true', 'false', '1', '0')
+
+
+def is_none_or_empty(value: Any) -> bool:
+    """
+    Check if a value is None or empty.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if the value is None or empty, False otherwise.
+    """
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return len(value) == 0
+    if isinstance(value, (list, dict, set, tuple)):
+        return len(value) == 0
+    return False
+
+
+def min_length(value: Any, length: int) -> bool:
+    """
+    Check if a value has at least the minimum length.
+
+    Args:
+        value: The value to check (string, list, etc.).
+        length: The minimum required length.
+
+    Returns:
+        True if the value meets the minimum length, False otherwise.
+    """
+    if not isinstance(length, int) or length < 0:
+        raise ValueError("length must be a non-negative integer")
+    if isinstance(value, str):
+        return len(value) >= length
+    if isinstance(value, (list, dict, set, tuple)):
+        return len(value) >= length
+    return False
+
+
+def max_length(value: Any, length: int) -> bool:
+    """
+    Check if a value has at most the maximum length.
+
+    Args:
+        value: The value to check (string, list, etc.).
+        length: The maximum allowed length.
+
+    Returns:
+        True if the value meets the maximum length, False otherwise.
+    """
+    if not isinstance(length, int) or length < 0:
+        raise ValueError("length must be a non-negative integer")
+    if isinstance(value, str):
+        return len(value) <= length
+    if isinstance(value, (list, dict, set, tuple)):
+        return len(value) <= length
+    return False
+
+
+def matches_regex(value: Any, pattern: Union[str, re.Pattern], flags: int = 0) -> bool:
+    """
+    Check if a string matches a regular expression pattern.
+
+    Args:
+        value: The string to check.
+        pattern: The regex pattern (string or compiled Pattern).
+        flags: Regex flags (optional).
+
+    Returns:
+        True if the string matches the pattern, False otherwise.
+    """
+    if not isinstance(value, str):
+        raise TypeError("value must be a string")
+    if isinstance(pattern, re.Pattern):
+        return bool(pattern.match(value))
+    elif isinstance(pattern, str):
+        try:
+            compiled = re.compile(pattern, flags)
+            return bool(compiled.match(value))
+        except re.error:
+            raise ValueError("invalid regex pattern")
+    else:
+        raise TypeError("pattern must be a string or re.Pattern")
+
+
+def is_valid_hostname(hostname: Any) -> bool:
+    """
+    Check if a string is a valid hostname (basic validation).
+
+    Args:
+        hostname: The hostname string to validate.
+
+    Returns:
+        True if the hostname is valid, False otherwise.
+    """
+    if not isinstance(hostname, str) or not hostname:
+        return False
+    hostname = hostname.strip()
+    if not hostname:
+        return False
+    if hostname.endswith('.') or hostname.endswith('..'):
+        return False
+    if len(hostname) > 253:
+        return False
+    if hostname.startswith('-') or hostname.endswith('-'):
+        return False
+    labels = hostname.split('.')
+    for label in labels:
+        if not label:
+            return False
+        if len(label) > 63:
+            return False
+        if not re.match(r'^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$', label):
+            return False
+    return True
+VALUTILS
+# --- tests/test_validation_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_validation_utils.py" <<'TESTVALUTILS'
+"""Tests for validation_utils module."""
+
+import re
+import unittest
+
+from validation_utils import (
+    is_alphanumeric,
+    is_boolean_string,
+    is_email,
+    is_integer,
+    is_none_or_empty,
+    is_numeric,
+    is_valid_hostname,
+    matches_regex,
+    max_length,
+    min_length,
+)
+
+
+class TestIsEmail(unittest.TestCase):
+    def test_valid_emails(self):
+        self.assertTrue(is_email("test@example.com"))
+        self.assertTrue(is_email("user.name@domain.org"))
+        self.assertTrue(is_email("user+tag@example.co.uk"))
+        self.assertTrue(is_email("user123@domain123.com"))
+
+    def test_invalid_emails(self):
+        self.assertFalse(is_email(None))
+        self.assertFalse(is_email(""))
+        self.assertFalse(is_email("   "))
+        self.assertFalse(is_email(123))
+        self.assertFalse(is_email("invalid"))
+        self.assertFalse(is_email("invalid@"))
+        self.assertFalse(is_email("@example.com"))
+        self.assertFalse(is_email("test@"))
+        self.assertFalse(is_email("test.example.com"))
+        self.assertFalse(is_email("test@ex@ample.com"))
+        self.assertFalse(is_email("test@.com"))
+
+    def test_whitespace_handling(self):
+        self.assertTrue(is_email("  test@example.com  "))
+
+
+class TestIsNumeric(unittest.TestCase):
+    def test_numeric_values(self):
+        self.assertTrue(is_numeric(123))
+        self.assertTrue(is_numeric(123.45))
+        self.assertTrue(is_numeric(0))
+        self.assertTrue(is_numeric(-10))
+        self.assertTrue(is_numeric("-10"))
+        self.assertTrue(is_numeric("123.45"))
+        self.assertTrue(is_numeric("0.0"))
+        self.assertTrue(is_numeric("+10"))
+
+    def test_non_numeric_values(self):
+        self.assertFalse(is_numeric(None))
+        self.assertFalse(is_numeric(""))
+        self.assertFalse(is_numeric("abc"))
+        self.assertFalse(is_numeric("12a3"))
+        self.assertFalse(is_numeric(True))
+        self.assertFalse(is_numeric(False))
+        self.assertFalse(is_numeric([]))
+        self.assertFalse(is_numeric({}))
+
+
+class TestIsInteger(unittest.TestCase):
+    def test_integer_values(self):
+        self.assertTrue(is_integer(123))
+        self.assertTrue(is_integer(0))
+        self.assertTrue(is_integer(-10))
+        self.assertTrue(is_integer("123"))
+        self.assertTrue(is_integer("-10"))
+        self.assertTrue(is_integer("+10"))
+        self.assertTrue(is_integer(10.0))
+
+    def test_non_integer_values(self):
+        self.assertFalse(is_integer(None))
+        self.assertFalse(is_integer(""))
+        self.assertFalse(is_integer("123.45"))
+        self.assertFalse(is_integer(123.45))
+        self.assertFalse(is_integer(True))
+        self.assertFalse(is_integer(False))
+        self.assertFalse(is_integer("abc"))
+
+
+class TestIsAlphanumeric(unittest.TestCase):
+    def test_alphanumeric_values(self):
+        self.assertTrue(is_alphanumeric("abc123"))
+        self.assertTrue(is_alphanumeric("ABC123"))
+        self.assertTrue(is_alphanumeric("123"))
+        self.assertTrue(is_alphanumeric("abc"))
+
+    def test_non_alphanumeric_values(self):
+        self.assertFalse(is_alphanumeric(None))
+        self.assertFalse(is_alphanumeric(""))
+        self.assertFalse(is_alphanumeric("abc 123"))
+        self.assertFalse(is_alphanumeric("abc-123"))
+        self.assertFalse(is_alphanumeric("abc_123"))
+        self.assertFalse(is_alphanumeric("abc.123"))
+        self.assertFalse(is_alphanumeric(123))
+        self.assertFalse(is_alphanumeric(True))
+
+
+class TestIsBooleanString(unittest.TestCase):
+    def test_boolean_strings(self):
+        self.assertTrue(is_boolean_string("true"))
+        self.assertTrue(is_boolean_string("false"))
+        self.assertTrue(is_boolean_string("TRUE"))
+        self.assertTrue(is_boolean_string("False"))
+        self.assertTrue(is_boolean_string("1"))
+        self.assertTrue(is_boolean_string("0"))
+
+    def test_non_boolean_strings(self):
+        self.assertFalse(is_boolean_string(None))
+        self.assertFalse(is_boolean_string(""))
+        self.assertFalse(is_boolean_string(1))
+        self.assertFalse(is_boolean_string(True))
+        self.assertFalse(is_boolean_string("yes"))
+        self.assertFalse(is_boolean_string("no"))
+        self.assertFalse(is_boolean_string("t"))
+        self.assertFalse(is_boolean_string("f"))
+
+
+class TestIsNoneOrEmpty(unittest.TestCase):
+    def test_none_or_empty_values(self):
+        self.assertTrue(is_none_or_empty(None))
+        self.assertTrue(is_none_or_empty(""))
+        self.assertTrue(is_none_or_empty([]))
+        self.assertTrue(is_none_or_empty({}))
+        self.assertTrue(is_none_or_empty(set()))
+        self.assertTrue(is_none_or_empty(()))
+
+    def test_non_empty_values(self):
+        self.assertFalse(is_none_or_empty("test"))
+        self.assertFalse(is_none_or_empty(123))
+        self.assertFalse(is_none_or_empty([1, 2]))
+        self.assertFalse(is_none_or_empty({"a": 1}))
+        self.assertFalse(is_none_or_empty({1}))
+        self.assertFalse(is_none_or_empty((1,)))
+        self.assertFalse(is_none_or_empty(0))
+        self.assertFalse(is_none_or_empty(False))
+
+
+class TestMinLength(unittest.TestCase):
+    def test_min_length_valid(self):
+        self.assertTrue(min_length("test", 2))
+        self.assertTrue(min_length("test", 4))
+        self.assertTrue(min_length([1, 2, 3], 2))
+        self.assertTrue(min_length({"a": 1}, 1))
+        self.assertTrue(min_length("", 0))
+        self.assertTrue(min_length("a", 0))
+
+    def test_min_length_invalid(self):
+        self.assertFalse(min_length("test", 5))
+        self.assertFalse(min_length([1, 2], 5))
+
+    def test_min_length_errors(self):
+        with self.assertRaises(ValueError):
+            min_length("test", -1)
+        with self.assertRaises(ValueError):
+            min_length("test", "4")
+
+
+class TestMaxLength(unittest.TestCase):
+    def test_max_length_valid(self):
+        self.assertTrue(max_length("test", 5))
+        self.assertTrue(max_length("test", 4))
+        self.assertTrue(max_length([1, 2], 3))
+        self.assertTrue(max_length("", 0))
+        self.assertTrue(max_length("", 5))
+
+    def test_max_length_invalid(self):
+        self.assertFalse(max_length("test", 2))
+        self.assertFalse(max_length([1, 2, 3, 4], 2))
+
+    def test_max_length_errors(self):
+        with self.assertRaises(ValueError):
+            max_length("test", -1)
+        with self.assertRaises(ValueError):
+            max_length("test", "4")
+
+
+class TestMatchesRegex(unittest.TestCase):
+    def test_matches_regex_string(self):
+        self.assertTrue(matches_regex("test", r"^test$"))
+        self.assertTrue(matches_regex("abc123", r"^[a-z]+\d+$"))
+        self.assertTrue(matches_regex("Hello", r"hello", re.IGNORECASE))
+
+    def test_matches_regex_pattern(self):
+        pattern = re.compile(r"^test$")
+        self.assertTrue(matches_regex("test", pattern))
+        self.assertFalse(matches_regex("other", pattern))
+
+    def test_matches_regex_errors(self):
+        with self.assertRaises(TypeError):
+            matches_regex(123, r"test")
+        with self.assertRaises(TypeError):
+            matches_regex("test", 123)
+        with self.assertRaises(ValueError):
+            matches_regex("test", r"[invalid")
+
+
+class TestIsValidHostname(unittest.TestCase):
+    def test_valid_hostnames(self):
+        self.assertTrue(is_valid_hostname("example.com"))
+        self.assertTrue(is_valid_hostname("sub.example.com"))
+        self.assertTrue(is_valid_hostname("localhost"))
+        self.assertTrue(is_valid_hostname("192.168.1.1"))
+        self.assertTrue(is_valid_hostname("test-domain.com"))
+        self.assertTrue(is_valid_hostname("a.b.c.d"))
+
+    def test_invalid_hostnames(self):
+        self.assertFalse(is_valid_hostname(None))
+        self.assertFalse(is_valid_hostname(""))
+        self.assertFalse(is_valid_hostname("   "))
+        self.assertFalse(is_valid_hostname("-example.com"))
+        self.assertFalse(is_valid_hostname("example-.com"))
+        self.assertFalse(is_valid_hostname("ex..ample.com"))
+        self.assertFalse(is_valid_hostname("." * 254))
+        self.assertFalse(is_valid_hostname("a" * 64 + ".com"))
+        self.assertFalse(is_valid_hostname("example.com."))
+        self.assertFalse(is_valid_hostname("example.com.."))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTVALUTILS
+# --- crypto_utils.py ---
+cat > "$OUTPUT_DIR/crypto_utils.py" <<'CRYPTOUTILS'
+"""Cryptographic utility functions for hashing, token generation, and encoding."""
+
+import base64
+import hashlib
+import secrets
+from typing import List
+
+__all__: List[str] = [
+    "hash_string",
+    "generate_token",
+    "base64_encode",
+    "base64_decode",
+]
+
+
+def hash_string(value: str, algorithm: str = "sha256") -> str:
+    """Hash a string using the specified algorithm.
+
+    Args:
+        value: The string to hash.
+        algorithm: The hashing algorithm to use (e.g., "sha256", "md5",
+            "sha1", "sha512"). Defaults to "sha256".
+
+    Returns:
+        The hexadecimal digest of the hash.
+
+    Raises:
+        TypeError: If ``value`` is not a string.
+        ValueError: If ``algorithm`` is not a supported hash algorithm.
+
+    Examples:
+        >>> isinstance(hash_string("hello"), str)
+        True
+        >>> len(hash_string("hello"))
+        64
+    """
+    if not isinstance(value, str):
+        raise TypeError("value must be a string")
+    algo = algorithm.lower()
+    try:
+        hasher = hashlib.new(algo)
+    except ValueError:
+        raise ValueError(f"unsupported hash algorithm: {algorithm}")
+    hasher.update(value.encode("utf-8"))
+    return hasher.hexdigest()
+
+
+def generate_token(length: int = 32) -> str:
+    """Generate a cryptographically secure random hexadecimal token.
+
+    Args:
+        length: The number of bytes to generate. The resulting hex string
+            will be ``2 * length`` characters long. Defaults to 32.
+
+    Returns:
+        A hexadecimal string token.
+
+    Raises:
+        TypeError: If ``length`` is not an integer.
+        ValueError: If ``length`` is not positive.
+
+    Examples:
+        >>> isinstance(generate_token(), str)
+        True
+        >>> len(generate_token(16))
+        32
+    """
+    if not isinstance(length, int) or isinstance(length, bool):
+        raise TypeError("length must be an integer")
+    if length <= 0:
+        raise ValueError("length must be a positive integer")
+    return secrets.token_hex(length)
+
+
+def base64_encode(value: str) -> str:
+    """Encode a string to base64.
+
+    Args:
+        value: The string to encode.
+
+    Returns:
+        The base64-encoded string.
+
+    Raises:
+        TypeError: If ``value`` is not a string.
+
+    Examples:
+        >>> base64_encode("hello")
+        'aGVsbG8='
+    """
+    if not isinstance(value, str):
+        raise TypeError("value must be a string")
+    encoded = base64.b64encode(value.encode("utf-8"))
+    return encoded.decode("ascii")
+
+
+def base64_decode(value: str) -> str:
+    """Decode a base64-encoded string.
+
+    Args:
+        value: The base64-encoded string to decode.
+
+    Returns:
+        The decoded string.
+
+    Raises:
+        TypeError: If ``value`` is not a string.
+        ValueError: If ``value`` is not valid base64.
+
+    Examples:
+        >>> base64_decode("aGVsbG8=")
+        'hello'
+    """
+    if not isinstance(value, str):
+        raise TypeError("value must be a string")
+    try:
+        decoded = base64.b64decode(value, validate=True)
+    except Exception as exc:
+        raise ValueError("invalid base64 string") from exc
+    return decoded.decode("utf-8")
+CRYPTOUTILS
+# --- tests/test_crypto_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_crypto_utils.py" <<'TESTCRYPTOUTILS'
+"""Tests for crypto_utils module."""
+
+import unittest
+
+from crypto_utils import base64_decode, base64_encode, generate_token, hash_string
+
+
+class TestHashString(unittest.TestCase):
+    def test_sha256_default(self) -> None:
+        result = hash_string("hello")
+        self.assertEqual(len(result), 64)
+        self.assertEqual(
+            result,
+            "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+        )
+
+    def test_md5(self) -> None:
+        result = hash_string("hello", algorithm="md5")
+        self.assertEqual(len(result), 32)
+        self.assertEqual(
+            result,
+            "5d41402abc4b2a76b9719d911017c592",
+        )
+
+    def test_sha1(self) -> None:
+        result = hash_string("hello", algorithm="sha1")
+        self.assertEqual(len(result), 40)
+
+    def test_sha512(self) -> None:
+        result = hash_string("hello", algorithm="sha512")
+        self.assertEqual(len(result), 128)
+
+    def test_uppercase_algorithm(self) -> None:
+        result = hash_string("hello", algorithm="SHA256")
+        self.assertEqual(len(result), 64)
+
+    def test_invalid_algorithm(self) -> None:
+        with self.assertRaises(ValueError):
+            hash_string("hello", algorithm="not-a-real-algo")
+
+    def test_non_string_value(self) -> None:
+        with self.assertRaises(TypeError):
+            hash_string(123)  # type: ignore[arg-type]
+
+    def test_empty_string(self) -> None:
+        result = hash_string("")
+        self.assertIsInstance(result, str)
+        self.assertEqual(len(result), 64)
+
+    def test_different_inputs_different_hashes(self) -> None:
+        self.assertNotEqual(hash_string("hello"), hash_string("world"))
+
+
+class TestGenerateToken(unittest.TestCase):
+    def test_default_length(self) -> None:
+        token = generate_token()
+        self.assertEqual(len(token), 64)
+
+    def test_custom_length(self) -> None:
+        token = generate_token(16)
+        self.assertEqual(len(token), 32)
+
+    def test_length_one(self) -> None:
+        token = generate_token(1)
+        self.assertEqual(len(token), 2)
+
+    def test_uniqueness(self) -> None:
+        tokens = {generate_token(16) for _ in range(100)}
+        self.assertEqual(len(tokens), 100)
+
+    def test_zero_length_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            generate_token(0)
+
+    def test_negative_length_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            generate_token(-1)
+
+    def test_non_integer_length_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            generate_token("16")  # type: ignore[arg-type]
+
+    def test_boolean_length_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            generate_token(True)
+
+    def test_hex_characters_only(self) -> None:
+        token = generate_token(16)
+        self.assertTrue(all(c in "0123456789abcdef" for c in token))
+
+
+class TestBase64Encode(unittest.TestCase):
+    def test_encode_hello(self) -> None:
+        self.assertEqual(base64_encode("hello"), "aGVsbG8=")
+
+    def test_encode_empty(self) -> None:
+        self.assertEqual(base64_encode(""), "")
+
+    def test_encode_unicode(self) -> None:
+        encoded = base64_encode("héllo")
+        self.assertEqual(base64_decode(encoded), "héllo")
+
+    def test_non_string_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            base64_encode(123)  # type: ignore[arg-type]
+
+    def test_roundtrip(self) -> None:
+        original = "The quick brown fox jumps over the lazy dog"
+        self.assertEqual(base64_decode(base64_encode(original)), original)
+
+
+class TestBase64Decode(unittest.TestCase):
+    def test_decode_hello(self) -> None:
+        self.assertEqual(base64_decode("aGVsbG8="), "hello")
+
+    def test_decode_empty(self) -> None:
+        self.assertEqual(base64_decode(""), "")
+
+    def test_invalid_base64_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            base64_decode("!!!not-base64!!!")
+
+    def test_non_string_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            base64_decode(123)  # type: ignore[arg-type]
+
+    def test_unpadded_input_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            base64_decode("aGVsbG8")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCRYPTOUTILS
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -2670,6 +3384,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `datetime_utils.py` — date and time utility functions
 - `file_utils.py` — file and path utility functions
 - `url_utils.py` — URL and web utility functions
+- `random_utils.py` — random number generation and sampling utilities
+- `validation_utils.py` — input validation utilities
+- `crypto_utils.py` — cryptographic utilities
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
@@ -2681,6 +3398,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
 - `tests/test_url_utils.py` — unit tests for `url_utils.py`
+- `tests/test_random_utils.py` — unit tests for `random_utils.py`
+- `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
+- `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
 
 ## Usage
 
@@ -2863,6 +3583,9 @@ data_utils.py               # Data utility functions
 datetime_utils.py           # Date and time utility functions
 file_utils.py               # File and path utility functions
 url_utils.py                # URL and web utility functions
+random_utils.py             # Random number generation and sampling utilities
+validation_utils.py         # Input validation utilities
+crypto_utils.py             # Cryptographic utilities
   .gitignore                   # Common ignore patterns
 LICENSE                      # MIT License
 tests/                       # Python unit tests
@@ -2878,6 +3601,9 @@ tests/                       # Python unit tests
   test_datetime_utils.py      # Tests for datetime_utils.py
   test_file_utils.py         # Tests for file_utils.py
   test_url_utils.py          # Tests for url_utils.py
+  test_random_utils.py       # Tests for random_utils.py
+  test_validation_utils.py   # Tests for validation_utils.py
+  test_crypto_utils.py       # Tests for crypto_utils.py
 \`\`\`
 
 ## Developer Commands
@@ -2972,6 +3698,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`tests/test_datetime_utils.py\` — unit tests for \`datetime_utils.py\`
 - \`url_utils.py\` — URL and web utility functions
 - \`tests/test_url_utils.py\` — unit tests for \`url_utils.py\`
+- \`random_utils.py\` — random number generation and sampling utilities
+- \`tests/test_random_utils.py\` — unit tests for \`random_utils.py\`
+- \`validation_utils.py\` — input validation utilities
+- \`tests/test_validation_utils.py\` — unit tests for \`validation_utils.py\`
+- \`crypto_utils.py\` — cryptographic utilities
+- \`tests/test_crypto_utils.py\` — unit tests for \`crypto_utils.py\`
 CHANGELOG
 
 # --- kilo.json ---

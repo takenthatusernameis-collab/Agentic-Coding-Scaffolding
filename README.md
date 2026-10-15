@@ -45,6 +45,8 @@ datetime_utils.py           # Date and time utility functions
 file_utils.py               # File and path utility functions
 url_utils.py                # URL and web utility functions
 random_utils.py             # Random number generation and sampling utilities
+validation_utils.py         # Input validation utilities
+crypto_utils.py             # Cryptographic utilities
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -58,7 +60,9 @@ tests/                       # Python unit tests
   test_datetime_utils.py     # Tests for datetime_utils.py
   test_file_utils.py         # Tests for file_utils.py
   test_url_utils.py          # Tests for url_utils.py
-  test_random_utils.py       # Tests for random_utils.py
+   test_random_utils.py       # Tests for random_utils.py
+   test_validation_utils.py   # Tests for validation_utils.py
+   test_crypto_utils.py       # Tests for crypto_utils.py
 ```
 
 ## How It Works
@@ -145,3 +149,7 @@ The project includes a random utilities module in `random_utils.py` with functio
 ## Validation Utilities Module
 
 The project includes a validation utilities module in `validation_utils.py` with functions for common input validation: `is_email`, `is_numeric`, `is_integer`, `is_alphanumeric`, `is_boolean_string`, `is_none_or_empty`, `min_length`, `max_length`, `matches_regex`, and `is_valid_hostname`. The module is tested in `tests/test_validation_utils.py`.
+
+## Cryptographic Utilities Module
+
+The project includes a cryptographic utilities module in `crypto_utils.py` with functions for hashing and encoding: `hash_string`, `generate_token`, `base64_encode`, and `base64_decode`. The module is tested in `tests/test_crypto_utils.py`.
