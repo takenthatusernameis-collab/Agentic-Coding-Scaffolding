@@ -26,6 +26,8 @@
 #   - tests/test_calculator.py unit tests for the calculator module
 #   - tests/test_shapes.py unit tests for the shapes module
 #   - tests/test_strings.py unit tests for the strings module
+#   - utils.py general utility helper functions
+#   - tests/test_utils.py unit tests for the utils module
 #
 set -euo pipefail
 
@@ -722,6 +724,50 @@ def count_vowels(s: str) -> int:
     return sum(1 for ch in s.lower() if ch in vowels)
 STRINGS
 
+# --- utils.py ---
+cat > "$OUTPUT_DIR/utils.py" <<'UTILS'
+"""Utility helper functions."""
+
+from typing import Any, List, TypeVar
+
+T = TypeVar("T")
+
+
+def flatten(lst: List[List[T]]) -> List[T]:
+    """Flatten a list of lists into a single list."""
+    result: List[T] = []
+    for item in lst:
+        result.extend(item)
+    return result
+
+
+def chunk(lst: List[T], size: int) -> List[List[T]]:
+    """Split a list into chunks of the specified size."""
+    if size <= 0:
+        raise ValueError("Chunk size must be positive")
+    return [lst[i : i + size] for i in range(0, len(lst), size)]
+
+
+def unique(lst: List[T]) -> List[T]:
+    """Return a list of unique elements preserving order."""
+    seen: set = set()
+    result: List[T] = []
+    for item in lst:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+
+def is_empty(value: Any) -> bool:
+    """Check if a value is considered empty."""
+    if value is None:
+        return True
+    if isinstance(value, (str, list, tuple, set, dict)):
+        return len(value) == 0
+    return False
+UTILS
+
 # --- tests/test_strings.py ---
 cat > "$OUTPUT_DIR/tests/test_strings.py" <<'TESTSTRINGS'
 import unittest
@@ -786,9 +832,75 @@ class TestCountVowels(unittest.TestCase):
         self.assertEqual(count_vowels("aeiou"), 5)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
+
 TESTSTRINGS
+
+# --- tests/test_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_utils.py" <<'TESTUTILS'
+"""Tests for utils module."""
+
+import unittest
+
+from utils import chunk, flatten, is_empty, unique
+
+
+class TestFlatten(unittest.TestCase):
+    def test_flatten_basic(self) -> None:
+        self.assertEqual(flatten([[1, 2], [3, 4]]), [1, 2, 3, 4])
+
+    def test_flatten_empty(self) -> None:
+        self.assertEqual(flatten([]), [])
+
+    def test_flatten_nested_empty(self) -> None:
+        self.assertEqual(flatten([[], [1], []]), [1])
+
+
+class TestChunk(unittest.TestCase):
+    def test_chunk_basic(self) -> None:
+        self.assertEqual(chunk([1, 2, 3, 4], 2), [[1, 2], [3, 4]])
+
+    def test_chunk_remainder(self) -> None:
+        self.assertEqual(chunk([1, 2, 3], 2), [[1, 2], [3]])
+
+    def test_chunk_size_larger(self) -> None:
+        self.assertEqual(chunk([1, 2], 5), [[1, 2]])
+
+    def test_chunk_invalid_size(self) -> None:
+        with self.assertRaises(ValueError):
+            chunk([1, 2, 3], 0)
+
+
+class TestUnique(unittest.TestCase):
+    def test_unique_basic(self) -> None:
+        self.assertEqual(unique([1, 2, 2, 3]), [1, 2, 3])
+
+    def test_unique_preserves_order(self) -> None:
+        self.assertEqual(unique([3, 1, 2, 1]), [3, 1, 2])
+
+    def test_unique_all_unique(self) -> None:
+        self.assertEqual(unique([1, 2, 3]), [1, 2, 3])
+
+
+class TestIsEmpty(unittest.TestCase):
+    def test_is_empty_none(self) -> None:
+        self.assertTrue(is_empty(None))
+
+    def test_is_empty_empty_string(self) -> None:
+        self.assertTrue(is_empty(""))
+
+    def test_is_empty_empty_list(self) -> None:
+        self.assertTrue(is_empty([]))
+
+    def test_is_empty_empty_dict(self) -> None:
+        self.assertTrue(is_empty({}))
+
+    def test_is_empty_non_empty(self) -> None:
+        self.assertFalse(is_empty("hello"))
+        self.assertFalse(is_empty([1]))
+        self.assertFalse(is_empty(5))
+TESTUTILS
 
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
@@ -987,6 +1099,7 @@ hello.py                     # Sample application entry point
 calculator.py                # Simple calculator module with arithmetic operations
 shapes.py                    # Geometry utilities for areas and perimeters of common shapes
 strings.py                   # String utilities for text operations
+utils.py                     # General utility helper functions
 .gitignore                   # Common ignore patterns
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -994,6 +1107,7 @@ tests/                       # Python unit tests
   test_scaffold.py           # Tests for scaffold.sh
   test_shapes.py             # Tests for shapes.py
   test_strings.py            # Tests for strings.py
+  test_utils.py              # Tests for utils.py
 \`\`\`
 
 ## Developer Commands
@@ -1073,6 +1187,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `strings.py` — string utilities for text operations
 - `tests/test_strings.py` — unit tests for `strings.py`
+- `utils.py` — general utility helper functions
+- `tests/test_utils.py` — unit tests for `utils.py`
+- `utils.py` — general utility helper functions
+- `tests/test_utils.py` — unit tests for `utils.py`
+- `utils.py` — general utility helper functions
+- `tests/test_utils.py` — unit tests for `utils.py`
 CHANGELOG
 
 # --- kilo.json ---

@@ -1,0 +1,61 @@
+"""Tests for utils module."""
+
+import unittest
+
+from utils import chunk, flatten, is_empty, unique
+
+
+class TestFlatten(unittest.TestCase):
+    def test_flatten_basic(self) -> None:
+        self.assertEqual(flatten([[1, 2], [3, 4]]), [1, 2, 3, 4])
+
+    def test_flatten_empty(self) -> None:
+        self.assertEqual(flatten([]), [])
+
+    def test_flatten_nested_empty(self) -> None:
+        self.assertEqual(flatten([[], [1], []]), [1])
+
+
+class TestChunk(unittest.TestCase):
+    def test_chunk_basic(self) -> None:
+        self.assertEqual(chunk([1, 2, 3, 4], 2), [[1, 2], [3, 4]])
+
+    def test_chunk_remainder(self) -> None:
+        self.assertEqual(chunk([1, 2, 3], 2), [[1, 2], [3]])
+
+    def test_chunk_size_larger(self) -> None:
+        self.assertEqual(chunk([1, 2], 5), [[1, 2]])
+
+    def test_chunk_invalid_size(self) -> None:
+        with self.assertRaises(ValueError):
+            chunk([1, 2, 3], 0)
+
+
+class TestUnique(unittest.TestCase):
+    def test_unique_basic(self) -> None:
+        self.assertEqual(unique([1, 2, 2, 3]), [1, 2, 3])
+
+    def test_unique_preserves_order(self) -> None:
+        self.assertEqual(unique([3, 1, 2, 1]), [3, 1, 2])
+
+    def test_unique_all_unique(self) -> None:
+        self.assertEqual(unique([1, 2, 3]), [1, 2, 3])
+
+
+class TestIsEmpty(unittest.TestCase):
+    def test_is_empty_none(self) -> None:
+        self.assertTrue(is_empty(None))
+
+    def test_is_empty_empty_string(self) -> None:
+        self.assertTrue(is_empty(""))
+
+    def test_is_empty_empty_list(self) -> None:
+        self.assertTrue(is_empty([]))
+
+    def test_is_empty_empty_dict(self) -> None:
+        self.assertTrue(is_empty({}))
+
+    def test_is_empty_non_empty(self) -> None:
+        self.assertFalse(is_empty("hello"))
+        self.assertFalse(is_empty([1]))
+        self.assertFalse(is_empty(5))

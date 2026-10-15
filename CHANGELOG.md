@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `shapes.py` — geometry utilities for calculating areas and perimeters of circles, rectangles, and triangles
 - `tests/test_shapes.py` — unit tests for `shapes.py`
+- `utils.py` — general utility helper functions
+- `tests/test_utils.py` — unit tests for `utils.py`
 
 ### Fixed
 

@@ -41,6 +41,7 @@ tests/                       # Python unit tests
   test_scaffold.py           # Tests for scaffold.sh
   test_shapes.py             # Tests for shapes.py
   test_strings.py            # Tests for strings.py
+  test_utils.py              # Tests for utils.py
 ```
 
 ## How It Works
