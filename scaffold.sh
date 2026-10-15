@@ -1243,6 +1243,151 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
     return math.sqrt(var)
 STATS
 
+# --- math_utils.py ---
+cat > "$OUTPUT_DIR/math_utils.py" <<'MATH'
+"""Mathematical utility functions."""
+
+import math
+
+
+def factorial(n: int) -> int:
+    """Calculate the factorial of a non-negative integer n."""
+    if n < 0:
+        raise ValueError("Factorial is not defined for negative numbers")
+    if n > 20:
+        result = 1
+        for i in range(2, n + 1):
+            result *= i
+        return result
+    return math.factorial(n)
+
+
+def fibonacci(n: int) -> int:
+    """Calculate the nth Fibonacci number."""
+    if n < 0:
+        raise ValueError("Fibonacci is not defined for negative numbers")
+    if n == 0:
+        return 0
+    if n == 1:
+        return 1
+    a, b = 0, 1
+    for _ in range(2, n + 1):
+        a, b = b, a + b
+    return b
+
+
+def gcd(a: int, b: int) -> int:
+    """Calculate the Greatest Common Divisor of two integers."""
+    return math.gcd(a, b)
+
+
+def lcm(a: int, b: int) -> int:
+    """Calculate the Least Common Multiple of two integers."""
+    if a == 0 or b == 0:
+        return 0
+    return abs(a * b) // math.gcd(a, b)
+
+
+def is_prime(n: int) -> bool:
+    """Check if a number is prime."""
+    if n < 2:
+        raise ValueError("Prime check is only defined for integers >= 2")
+    if n <= 3:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+
+def clamp(value: float, min_val: float, max_val: float) -> float:
+    """Clamp a value between min_val and max_val."""
+    if min_val > max_val:
+        raise ValueError("min_val must be <= max_val")
+    return max(min_val, min(value, max_val))
+MATH
+
+# --- tests/test_math_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
+"""Tests for math_utils module."""
+
+import unittest
+
+from math_utils import clamp, factorial, fibonacci, gcd, is_prime, lcm
+
+
+class TestFactorial(unittest.TestCase):
+    def test_factorial_zero(self) -> None:
+        self.assertEqual(factorial(0), 1)
+
+    def test_factorial_positive(self) -> None:
+        self.assertEqual(factorial(5), 120)
+
+    def test_factorial_negative_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            factorial(-1)
+
+
+class TestFibonacci(unittest.TestCase):
+    def test_fibonacci_zero(self) -> None:
+        self.assertEqual(fibonacci(0), 0)
+
+    def test_fibonacci_one(self) -> None:
+        self.assertEqual(fibonacci(1), 1)
+
+    def test_fibonacci_sequence(self) -> None:
+        self.assertEqual(fibonacci(5), 5)
+
+    def test_fibonacci_negative_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            fibonacci(-1)
+
+
+class TestGCD(unittest.TestCase):
+    def test_gcd_basic(self) -> None:
+        self.assertEqual(gcd(48, 18), 6)
+
+
+class TestLCM(unittest.TestCase):
+    def test_lcm_basic(self) -> None:
+        self.assertEqual(lcm(4, 6), 12)
+
+
+class TestIsPrime(unittest.TestCase):
+    def test_prime_numbers(self) -> None:
+        self.assertTrue(is_prime(2))
+        self.assertTrue(is_prime(3))
+
+    def test_non_prime_numbers(self) -> None:
+        self.assertFalse(is_prime(4))
+
+    def test_prime_edge_cases(self) -> None:
+        self.assertRaises(ValueError, is_prime, 1)
+
+
+class TestClamp(unittest.TestCase):
+    def test_clamp_inside_range(self) -> None:
+        self.assertEqual(clamp(5, 0, 10), 5)
+
+    def test_clamp_below_range(self) -> None:
+        self.assertEqual(clamp(-5, 0, 10), 0)
+
+    def test_clamp_above_range(self) -> None:
+        self.assertEqual(clamp(15, 0, 10), 10)
+
+    def test_clamp_invalid_range(self) -> None:
+        with self.assertRaises(ValueError):
+            clamp(5, 10, 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTMATH
+
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -1287,11 +1432,13 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
 - `strings.py` — string utilities for text operations
 - `utils.py` — general utility helper functions
+- `math_utils.py` — mathematical utility functions
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `tests/test_utils.py` — unit tests for `utils.py`
+- `tests/test_math_utils.py` — unit tests for `math_utils.py`
 
 ## Usage
 
@@ -1444,7 +1591,7 @@ shapes.py                    # Geometry utilities for areas and perimeters of co
 strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
-stats.py                     # Statistical utility functions
+math_utils.py               # Mathematical utility functions
 .gitignore                   # Common ignore patterns
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -1454,7 +1601,7 @@ tests/                       # Python unit tests
   test_strings.py            # Tests for strings.py
   test_utils.py              # Tests for utils.py
   test_stats.py              # Tests for stats.py
-  test_stats.py              # Tests for stats.py
+  test_math_utils.py         # Tests for math_utils.py
 \`\`\`
 
 ## Developer Commands

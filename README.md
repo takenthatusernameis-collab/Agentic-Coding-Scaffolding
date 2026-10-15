@@ -37,6 +37,7 @@ shapes.py                    # Geometry utilities for areas and perimeters
 strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
+math_utils.py               # Mathematical utility functions
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -45,6 +46,7 @@ tests/                       # Python unit tests
   test_strings.py            # Tests for strings.py
   test_utils.py              # Tests for utils.py
   test_stats.py              # Tests for stats.py
+  test_math_utils.py         # Tests for math_utils.py
 ```
 
 ## How It Works

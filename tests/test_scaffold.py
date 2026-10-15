@@ -83,6 +83,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "strings.py",
             "utils.py",
             "stats.py",
+            "math_utils.py",
             ".gitignore",
             ".pre-commit-config.yaml",
             ".kilo/.gitignore",
@@ -97,6 +98,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_strings.py",
             "tests/test_utils.py",
             "tests/test_stats.py",
+            "tests/test_math_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -191,6 +193,18 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertEqual(mode([1, 1, 2]), 1)
         self.assertAlmostEqual(variance([1, 2, 3]), 0.6666666667, places=5)
         self.assertAlmostEqual(stddev([1, 2, 3]), 0.8164965809, places=5)
+    def test_math_utils_functions_work(self) -> None:
+        """Generated math_utils.py should have working functions."""
+        from math_utils import clamp, factorial, fibonacci, gcd, is_prime, lcm
+
+        self.assertEqual(factorial(5), 120)
+        self.assertEqual(fibonacci(5), 5)
+        self.assertEqual(gcd(48, 18), 6)
+        self.assertEqual(lcm(4, 6), 12)
+        self.assertTrue(is_prime(17))
+        self.assertFalse(is_prime(9))
+        self.assertEqual(clamp(5, 0, 10), 5)
+
 
 
 

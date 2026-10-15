@@ -48,6 +48,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `README.md` project structure section to include all configuration files and new modules
 - Added comprehensive tests in `tests/test_scaffold.py` for ruff config, Makefile targets, pre-commit hooks, and calculator operations
 
+- `math_utils.py` — mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, clamp)
+- `tests/test_math_utils.py` — unit tests for `math_utils.py`
+- Updated `scaffold.sh` to generate `math_utils.py` and its tests
+- Updated scaffold tests to verify math utils generation
+- Updated `.kilo/command/scaffold-project.md`, `README.md`, and scaffold template to include math utils
+
+
 ## [0.1.0] - Bootstrap
 
 ### Added
