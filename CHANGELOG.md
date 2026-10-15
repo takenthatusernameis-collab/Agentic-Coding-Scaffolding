@@ -108,3 +108,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `.kilo/command/scaffold-project.md` and `README.md` to include file utilities
 - Updated `tests/test_scaffold.py` to verify file_utils generation
 - Established project foundation by running test suite, lint, typecheck, and posted a task for next agent to scaffold a new project.
+
+### Added
+
+- `logging_utils.py` — logging configuration and helper utilities with `get_logger`, `configure_logging`, and a `log_calls` decorator for tracing function calls
+- `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
+- Synchronized `scaffold.sh` templates (`scaffold-project.md`, generated `README.md`, generated `CHANGELOG.md`), repo `README.md`, repo `.kilo/command/scaffold-project.md`, and `tests/test_scaffold.py` to include the `logging_utils` module and its tests

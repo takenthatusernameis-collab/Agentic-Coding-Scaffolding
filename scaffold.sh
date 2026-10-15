@@ -53,6 +53,8 @@
 #   - tests/test_list_utils.py unit tests for the list_utils module
 #   - env_utils.py environment variable handling and typed accessors
 #   - tests/test_env_utils.py unit tests for the env_utils module
+#   - logging_utils.py logging configuration and helper utilities
+#   - tests/test_logging_utils.py unit tests for the logging_utils module
 #
 set -euo pipefail
 
@@ -4654,7 +4656,158 @@ def prefix_env(prefix: str) -> Dict[str, str]:
         raise TypeError("prefix must be a string")
     return {k: v for k, v in os.environ.items() if k.startswith(prefix)}
 ENVLUTILS
+# --- logging_utils.py ---
+cat > "$OUTPUT_DIR/logging_utils.py" <<'LOGUTILS'
+"""Logging configuration and helper utilities.
 
+This module provides a thin, consistent API around the standard :mod:`logging`
+module, including a ``get_logger`` helper, a ``configure_logging`` entry point
+for application-wide setup, and a ``log_calls`` decorator for tracing function
+entry and exit.
+"""
+
+import functools
+import logging
+from typing import Any, Callable, List, Optional, TypeVar, cast
+
+F = TypeVar("F", bound=Callable[..., Any])
+
+__all__: List[str] = [
+    "configure_logging",
+    "get_logger",
+    "log_calls",
+]
+
+_DEFAULT_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+_DEFAULT_LOGGER_NAME = "logging_utils"
+
+
+def get_logger(name: Optional[str] = None) -> logging.Logger:
+    """Return a :class:`logging.Logger` for the given name.
+
+    Args:
+        name: The name for the logger, typically the module's ``__name__``.
+            If ``None``, the root logger is returned.
+
+    Returns:
+        A :class:`logging.Logger` instance.
+
+    Example:
+        >>> logger = get_logger("my_app")
+        >>> logger.name
+        'my_app'
+    """
+    return logging.getLogger(name)
+
+
+def configure_logging(
+    level: Optional[int] = None,
+    format: str = _DEFAULT_FORMAT,
+    datefmt: Optional[str] = None,
+    handlers: Optional[List[logging.Handler]] = None,
+    force: bool = False,
+) -> logging.Logger:
+    """Configure the root logger with a consistent format and handlers.
+
+    This is a thin wrapper around :func:`logging.basicConfig` that returns the
+    configured root logger for convenience.
+
+    Args:
+        level: The logging level (e.g. ``logging.INFO``). When ``None``, the
+            :mod:`logging` default of ``logging.WARNING`` is used.
+        format: The log message format string. Defaults to a timestamped
+            format including the logger name and level.
+        datefmt: The date format string passed to
+            :func:`logging.basicConfig`. Defaults to ``None``.
+        handlers: Optional list of handlers to attach to the root logger.
+            When ``None``, a :class:`logging.StreamHandler` is used.
+        force: If ``True``, remove any existing handlers from the root logger
+            before applying this configuration. Defaults to ``False``.
+
+    Returns:
+        The configured root :class:`logging.Logger`.
+
+    Raises:
+        TypeError: If ``level`` is not an integer or ``None``.
+        TypeError: If ``handlers`` is not a list or ``None``.
+
+    Example:
+        >>> root = configure_logging(level=logging.INFO, force=True)
+        >>> root.level
+        20
+    """
+    if level is not None and not isinstance(level, int):
+        raise TypeError("level must be an integer or None")
+    if handlers is not None and not isinstance(handlers, list):
+        raise TypeError("handlers must be a list or None")
+
+    if level is None:
+        level = logging.WARNING
+
+    logging.basicConfig(
+        level=level,
+        format=format,
+        datefmt=datefmt,
+        handlers=handlers,
+        force=force,
+    )
+    return logging.getLogger()
+
+
+def log_calls(
+    logger: Optional[logging.Logger] = None,
+    level: int = logging.DEBUG,
+) -> Callable[[F], F]:
+    """Decorator factory that logs function calls and return values.
+
+    The decorator logs two messages per invocation: one before the wrapped
+    function runs (containing the arguments) and one after it returns
+    (containing the return value). ``functools.wraps`` is used, so the
+    decorated function's metadata (``__name__``, ``__doc__``, etc.) is
+    preserved.
+
+    Args:
+        logger: The logger to emit messages to. If ``None``, a logger named
+            ``"logging_utils"`` is used.
+        level: The logging level for the emitted messages. Defaults to
+            ``logging.DEBUG``.
+
+    Returns:
+        A decorator that wraps a function to log its calls.
+
+    Example:
+        >>> @log_calls()
+        ... def greet(name: str) -> str:
+        ...     return f"Hello, {name}!"
+        ...
+        >>> greet("World")
+        'Hello, World!'
+    """
+    log = logger if logger is not None else logging.getLogger(_DEFAULT_LOGGER_NAME)
+
+    def decorator(func: F) -> F:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            log.log(
+                level,
+                "Calling %s with args=%r, kwargs=%r",
+                func.__qualname__,
+                args,
+                kwargs,
+            )
+            result = func(*args, **kwargs)
+            log.log(
+                level,
+                "%s returned %r",
+                func.__qualname__,
+                result,
+            )
+            return result
+
+        return cast(F, wrapper)
+
+    return decorator
+LOGUTILS
 # --- tests/test_env_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_env_utils.py" <<'TESTENVL'
 """Tests for env_utils module."""
@@ -4894,7 +5047,163 @@ class TestPrefixEnv(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTENVL
+# --- tests/test_logging_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_logging_utils.py" <<'TESTLOGUTILS'
+"""Tests for logging_utils module."""
 
+import logging
+import unittest
+
+from logging_utils import configure_logging, get_logger, log_calls
+
+
+class TestGetLogger(unittest.TestCase):
+    def test_returns_logger_with_name(self) -> None:
+        logger = get_logger("my_app.module")
+        self.assertIsInstance(logger, logging.Logger)
+        self.assertEqual(logger.name, "my_app.module")
+
+    def test_returns_root_logger_when_no_name(self) -> None:
+        logger = get_logger()
+        self.assertIsInstance(logger, logging.Logger)
+        self.assertEqual(logger.name, "root")
+
+    def test_same_name_returns_same_instance(self) -> None:
+        logger1 = get_logger("shared_logger")
+        logger2 = get_logger("shared_logger")
+        self.assertIs(logger1, logger2)
+
+    def test_non_string_name_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            get_logger(123)  # type: ignore[arg-type]
+
+
+class TestConfigureLogging(unittest.TestCase):
+    def setUp(self) -> None:
+        self._root = logging.getLogger()
+        self._saved_handlers = self._root.handlers[:]
+        self._saved_level = self._root.level
+        self._root.handlers = []
+        self._root.setLevel(logging.NOTSET)
+
+    def tearDown(self) -> None:
+        self._root.handlers = self._saved_handlers
+        self._root.setLevel(self._saved_level)
+
+    def test_returns_root_logger(self) -> None:
+        root = configure_logging(level=logging.INFO, force=True)
+        self.assertIs(root, logging.getLogger())
+
+    def test_sets_level(self) -> None:
+        configure_logging(level=logging.DEBUG, force=True)
+        self.assertEqual(logging.getLogger().level, logging.DEBUG)
+
+    def test_default_level_is_warning(self) -> None:
+        configure_logging(force=True)
+        self.assertEqual(logging.getLogger().level, logging.WARNING)
+
+    def test_adds_default_handler(self) -> None:
+        configure_logging(level=logging.INFO, force=True)
+        self.assertTrue(len(logging.getLogger().handlers) > 0)
+
+    def test_custom_handlers(self) -> None:
+        handler = logging.StreamHandler()
+        configure_logging(level=logging.INFO, handlers=[handler], force=True)
+        self.assertIn(handler, logging.getLogger().handlers)
+
+    def test_force_removes_existing_handlers(self) -> None:
+        self._root.addHandler(logging.StreamHandler())
+        configure_logging(level=logging.INFO, force=True)
+        self.assertEqual(len(self._root.handlers), 1)
+
+    def test_format_applied_to_handler(self) -> None:
+        configure_logging(level=logging.INFO, format="%(message)s", force=True)
+        for handler in self._root.handlers:
+            if isinstance(handler, logging.StreamHandler) and handler.formatter is not None:
+                self.assertEqual(handler.formatter._fmt, "%(message)s")
+
+    def test_non_integer_level_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            configure_logging(level="INFO", force=True)  # type: ignore[arg-type]
+
+    def test_non_list_handlers_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            configure_logging(handlers="not-a-list", force=True)  # type: ignore[arg-type]
+
+    def test_non_list_handlers_with_none_allowed(self) -> None:
+        configure_logging(level=logging.INFO, handlers=None, force=True)
+        self.assertTrue(len(self._root.handlers) > 0)
+
+
+class TestLogCalls(unittest.TestCase):
+    def test_decorator_logs_call_and_result(self) -> None:
+        @log_calls(level=logging.DEBUG)
+        def add(a: int, b: int) -> int:
+            return a + b
+
+        with self.assertLogs("logging_utils", level="DEBUG") as cm:
+            result = add(2, 3)
+        self.assertEqual(result, 5)
+        self.assertEqual(len(cm.records), 2)
+        self.assertIn("Calling", cm.records[0].getMessage())
+        self.assertIn("returned", cm.records[1].getMessage())
+
+    def test_decorator_preserves_metadata(self) -> None:
+        @log_calls(level=logging.DEBUG)
+        def named_function(a: int, b: int) -> int:
+            """Original docstring."""
+            return a * b
+
+        self.assertEqual(named_function.__name__, "named_function")
+        self.assertEqual(named_function.__doc__, "Original docstring.")
+
+    def test_decorator_with_custom_logger(self) -> None:
+        logger = logging.getLogger("custom.log.test")
+        logger.setLevel(logging.DEBUG)
+
+        @log_calls(logger=logger, level=logging.INFO)
+        def greet(name: str) -> str:
+            return f"Hello, {name}!"
+
+        with self.assertLogs("custom.log.test", level="INFO") as cm:
+            result = greet("World")
+        self.assertEqual(result, "Hello, World!")
+        self.assertEqual(len(cm.records), 2)
+
+    def test_decorator_propagates_kwargs(self) -> None:
+        @log_calls(level=logging.DEBUG)
+        def join_values(sep: str, *parts: str) -> str:
+            return sep.join(parts)
+
+        with self.assertLogs("logging_utils", level="DEBUG") as cm:
+            self.assertEqual(join_values("-", "a", "b", "c"), "a-b-c")
+        first_msg = cm.records[0].getMessage()
+        self.assertIn("a", first_msg)
+        self.assertIn("b", first_msg)
+        self.assertIn("c", first_msg)
+
+    def test_decorator_custom_level(self) -> None:
+        @log_calls(level=logging.WARNING)
+        def echo(value: str) -> str:
+            return value
+
+        with self.assertLogs("logging_utils", level="WARNING") as cm:
+            self.assertEqual(echo("hello"), "hello")
+        self.assertEqual(cm.records[0].levelno, logging.WARNING)
+
+    def test_decorator_default_level_logs_debug(self) -> None:
+        @log_calls()
+        def echo(value: str) -> str:
+            return value
+
+        with self.assertLogs("logging_utils", level="DEBUG") as cm:
+            self.assertEqual(echo("hello"), "hello")
+        self.assertEqual(cm.records[0].levelno, logging.DEBUG)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTLOGUTILS
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -4952,6 +5261,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `crypto_utils.py` — cryptographic utilities
 - `list_utils.py` — advanced list manipulation utilities
 - `env_utils.py` — environment variable handling utilities
+- `logging_utils.py` — logging configuration and helper utilities
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -4969,6 +5279,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
 - `tests/test_list_utils.py` — unit tests for `list_utils.py`
 - `tests/test_env_utils.py` — unit tests for `env_utils.py`
+- `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 
 ## Usage
 
@@ -5156,6 +5467,7 @@ validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 list_utils.py              # Advanced list manipulation utilities
 env_utils.py               # Environment variable handling utilities
+logging_utils.py          # Logging configuration and helper utilities
   .gitignore                   # Common ignore patterns
 LICENSE                      # MIT License
 tests/                       # Python unit tests
@@ -5176,6 +5488,7 @@ tests/                       # Python unit tests
   test_crypto_utils.py       # Tests for crypto_utils.py
   test_list_utils.py         # Tests for list_utils.py
   test_env_utils.py          # Tests for env_utils.py
+  test_logging_utils.py       # Tests for logging_utils.py
 \`\`\`
 
 ## Developer Commands
@@ -5282,6 +5595,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`env_utils.py\` — environment variable handling utilities
 - \`tests/test_list_utils.py\` — unit tests for \`list_utils.py\`
 - \`tests/test_env_utils.py\` — unit tests for \`env_utils.py\`
+- \`logging_utils.py\` — logging configuration and helper utilities
+- \`tests/test_logging_utils.py\` — unit tests for \`logging_utils.py\`
 CHANGELOG
 
 # --- kilo.json ---

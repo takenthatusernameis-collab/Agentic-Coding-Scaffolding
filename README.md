@@ -49,6 +49,7 @@ validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 list_utils.py              # Advanced list manipulation utilities
 env_utils.py               # Environment variable handling utilities
+logging_utils.py          # Logging configuration and helper utilities
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -67,6 +68,7 @@ tests/                       # Python unit tests
   test_crypto_utils.py       # Tests for crypto_utils.py
   test_list_utils.py         # Tests for list_utils.py
   test_env_utils.py          # Tests for env_utils.py
+  test_logging_utils.py       # Tests for logging_utils.py
 ```
 
 ## How It Works
@@ -169,4 +171,9 @@ The project includes an advanced list manipulation utilities module in `list_uti
 ## Environment Utilities Module
 
 The project includes an environment variable utilities module in `env_utils.py` with functions for reading, writing, and parsing environment variables: `get_env`, `get_env_required`, `get_env_int`, `get_env_float`, `get_env_bool`, `set_env`, `ensure_env`, `unset_env`, and `prefix_env`. Typed accessors parse values as `int`, `float`, and `bool`, with required-variable and default fallbacks. The module is tested in `tests/test_env_utils.py`.
-Next task: Add a `logging_utils` module for logging configuration and helpers (`get_logger`, `configure_logging`, and a `log_calls` decorator) with tests and full scaffolding synchronization.
+
+## Logging Utilities Module
+
+The project includes a logging utilities module in `logging_utils.py` with helpers for logging configuration and function-call tracing: `get_logger` returns a named logger (or the root logger), `configure_logging` configures the root logger with a consistent format, handlers, and level, and `log_calls` is a decorator factory that logs function entry and return values using `functools.wraps` to preserve metadata. The module is tested in `tests/test_logging_utils.py`.
+
+Next task: Add a `cache_utils` module with caching helpers (`memoize` decorator, `clear_cache`, and `cache_info`) with tests and full scaffolding synchronization.

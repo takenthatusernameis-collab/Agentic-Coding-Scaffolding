@@ -36,6 +36,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `crypto_utils.py` — cryptographic utilities
 - `list_utils.py` — advanced list manipulation utilities
 - `env_utils.py` — environment variable handling utilities
+- `logging_utils.py` — logging configuration and helper utilities
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -53,6 +54,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
 - `tests/test_list_utils.py` — unit tests for `list_utils.py`
 - `tests/test_env_utils.py` — unit tests for `env_utils.py`
+- `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 
 ## Usage
 

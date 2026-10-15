@@ -120,6 +120,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_crypto_utils.py",
             "env_utils.py",
             "tests/test_env_utils.py",
+            "logging_utils.py",
+            "tests/test_logging_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -192,6 +194,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "crypto_utils.py",
             "config_utils.py",
             "env_utils.py",
+            "logging_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -206,6 +209,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_crypto_utils.py",
             "tests/test_config_utils.py",
             "tests/test_env_utils.py",
+            "tests/test_logging_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -233,6 +237,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "crypto_utils.py",
             "config_utils.py",
             "env_utils.py",
+            "logging_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
@@ -339,6 +344,35 @@ class TestScaffoldKiloJson(unittest.TestCase):
             self.assertEqual(os.environ["NEW_VAR"], "default")
             self.assertTrue(unset_env("NEW_VAR"))
             self.assertFalse(unset_env("NEW_VAR"))
+
+    def test_logging_utils_functions_work(self) -> None:
+        """Generated logging_utils.py should have working functions."""
+        import logging as _logging
+
+        from logging_utils import configure_logging, get_logger, log_calls
+
+        logger = get_logger("test_logging")
+        self.assertIsInstance(logger, _logging.Logger)
+        self.assertEqual(logger.name, "test_logging")
+        self.assertIs(logger, _logging.getLogger("test_logging"))
+
+        root = configure_logging(level=_logging.INFO, force=True)
+        try:
+            self.assertIs(root, _logging.getLogger())
+            self.assertEqual(_logging.getLogger().level, _logging.INFO)
+
+            @log_calls(level=_logging.DEBUG)
+            def add(a: int, b: int) -> int:
+                return a + b
+
+            with self.assertLogs("logging_utils", level="DEBUG") as cm:
+                result = add(2, 3)
+            self.assertEqual(result, 5)
+            self.assertEqual(len(cm.records), 2)
+            self.assertIn("Calling", cm.records[0].getMessage())
+            self.assertIn("returned", cm.records[1].getMessage())
+        finally:
+            _logging.getLogger().setLevel(_logging.WARNING)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):
