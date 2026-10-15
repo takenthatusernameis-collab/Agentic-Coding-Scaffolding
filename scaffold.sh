@@ -69,6 +69,10 @@
 #   - tests/test_retry_utils.py unit tests for the retry_utils module
 #   - dict_utils.py dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
 #   - tests/test_dict_utils.py unit tests for the dict_utils module
+#   - json_utils.py JSON utility functions (read/write/parse/dump/validate)
+#   - tests/test_json_utils.py unit tests for the json_utils module
+#   - csv_utils.py CSV utility functions (read/write/append as dicts or lists)
+#   - tests/test_csv_utils.py unit tests for the csv_utils module
 #
 set -euo pipefail
 
@@ -441,6 +445,8 @@ py_modules = [
     "priority_queue_utils",
     "rate_limiter_utils",
     "dict_utils",
+    "json_utils",
+    "csv_utils",
     "retry_utils",
 ]
 
@@ -2108,6 +2114,216 @@ def _coerce_datetime(value: DateTimeLike, *formats: str) -> datetime:
         f"Could not parse '{value}'. Expected formats: {list(formats)}"
     )
 DATETIME
+# --- tests/test_json_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_json_utils.py" <<'TESTJSONUTILS'
+"""Tests for json_utils module."""
+
+import json
+import os
+import tempfile
+import unittest
+
+from json_utils import (
+    dump_json_string,
+    is_valid_json,
+    load_json_string,
+    pretty_print_json,
+    read_json,
+    write_json,
+)
+
+
+class TestReadWriteJson(unittest.TestCase):
+    def test_read_write_json_basic(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+            path = f.name
+
+        try:
+            data = {"name": "test", "value": 42}
+            write_json(path, data)
+            loaded = read_json(path)
+            self.assertEqual(data, loaded)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_read_json_file_not_found(self) -> None:
+        with self.assertRaises(FileNotFoundError):
+            read_json("/nonexistent/path.json")
+
+    def test_write_json_with_indent(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+            path = f.name
+
+        try:
+            data = {"a": 1, "b": 2}
+            write_json(path, data, indent=2)
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
+            self.assertIn("  ", content)  # indentation
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_write_json_overwrite(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+            path = f.name
+
+        try:
+            write_json(path, {"a": 1})
+            write_json(path, {"b": 2})
+            loaded = read_json(path)
+            self.assertEqual({"b": 2}, loaded)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+
+class TestJsonStrings(unittest.TestCase):
+    def test_load_json_string(self) -> None:
+        s = '{"key": "value", "num": 123}'
+        result = load_json_string(s)
+        self.assertEqual(result, {"key": "value", "num": 123})
+
+    def test_load_json_string_invalid(self) -> None:
+        with self.assertRaises(json.JSONDecodeError):
+            load_json_string("{invalid json}")
+
+    def test_dump_json_string(self) -> None:
+        data = {"key": "value", "num": 123}
+        result = dump_json_string(data)
+        # Should be valid JSON
+        self.assertTrue(is_valid_json(result))
+        self.assertEqual(load_json_string(result), data)
+
+    def test_dump_json_string_compact(self) -> None:
+        data = {"a": 1, "b": 2}
+        result = dump_json_string(data, indent=0)
+        self.assertTrue(is_valid_json(result))
+
+    def test_dump_json_string_ensure_ascii(self) -> None:
+        data = {"text": "café"}
+        result = dump_json_string(data, ensure_ascii=True)
+        self.assertTrue(is_valid_json(result))
+
+
+class TestIsValidJson(unittest.TestCase):
+    def test_is_valid_json_true(self) -> None:
+        self.assertTrue(is_valid_json('{"a": 1}'))
+        self.assertTrue(is_valid_json("[]"))
+        self.assertTrue(is_valid_json('"string"'))
+        self.assertTrue(is_valid_json("123"))
+        self.assertTrue(is_valid_json("true"))
+        self.assertTrue(is_valid_json("null"))
+
+    def test_is_valid_json_false(self) -> None:
+        self.assertFalse(is_valid_json("{"))
+        self.assertFalse(is_valid_json("}"))
+        self.assertFalse(is_valid_json("{'a': 1}"))  # single quotes
+        self.assertFalse(is_valid_json("undefined"))
+        self.assertFalse(is_valid_json(""))
+        self.assertFalse(is_valid_json(None))  # type: ignore[arg-type]
+
+
+class TestPrettyPrintJson(unittest.TestCase):
+    def test_pretty_print_json_basic(self) -> None:
+        data = {"a": 1, "b": [2, 3]}
+        result = pretty_print_json(data)
+        self.assertTrue(is_valid_json(result))
+        self.assertIn("\n", result)  # formatted
+
+    def test_pretty_print_json_custom_indent(self) -> None:
+        data = {"a": 1}
+        result = pretty_print_json(data, indent=2)
+        self.assertTrue(is_valid_json(result))
+
+TESTJSONUTILS
+# --- tests/test_csv_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_csv_utils.py" <<'TESTCSVUTILS'
+"""Tests for csv_utils module."""
+
+import os
+import tempfile
+import unittest
+
+from csv_utils import (
+    append_csv_row,
+    read_csv,
+    read_csv_as_lists,
+    write_csv,
+    write_csv_from_lists,
+)
+
+
+class TestReadWriteCSV(unittest.TestCase):
+    def test_read_write_csv_dicts(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+            path = f.name
+
+        try:
+            rows = [
+                {"name": "Alice", "age": "30"},
+                {"name": "Bob", "age": "25"},
+            ]
+            write_csv(path, rows)
+            loaded = read_csv(path)
+            self.assertEqual(len(loaded), 2)
+            self.assertEqual(loaded[0]["name"], "Alice")
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_write_csv_empty_rows(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+            path = f.name
+
+        try:
+            write_csv(path, [])
+            self.assertTrue(True)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_read_write_csv_lists(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+            path = f.name
+
+        try:
+            rows = [["name", "age"], ["Alice", "30"], ["Bob", "25"]]
+            write_csv_from_lists(path, rows)
+            loaded = read_csv_as_lists(path)
+            self.assertEqual(loaded, rows)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_read_csv_with_custom_delimiter(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+            path = f.name
+
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write("name;age\nAlice;30\n")
+            loaded = read_csv(path, delimiter=";")
+            self.assertEqual(loaded[0]["name"], "Alice")
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_append_csv_row(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+            path = f.name
+
+        try:
+            append_csv_row(path, {"name": "Alice", "age": "30"})
+            append_csv_row(path, {"name": "Bob", "age": "25"})
+            loaded = read_csv(path)
+            self.assertEqual(len(loaded), 2)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+TESTCSVUTILS
 # --- tests/test_math_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
 """Tests for math_utils module."""
@@ -5770,6 +5986,104 @@ def filter_dict(d: Dict[K, V], predicate: Any) -> Dict[K, V]:
     """
     return {k: v for k, v in d.items() if predicate(k, v)}
 DICTUTILS
+# --- json_utils.py ---
+cat > "$OUTPUT_DIR/json_utils.py" <<'JSONUTILS'
+"""JSON utility functions."""
+
+import json
+from typing import Any, IO
+
+
+def read_json(path: str) -> Any:
+    """Read JSON data from a file."""
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def write_json(path: str, data: Any, indent: int = 4, ensure_ascii: bool = False) -> None:
+    """Write JSON data to a file."""
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=indent, ensure_ascii=ensure_ascii)
+
+
+def load_json_string(s: str) -> Any:
+    """Parse JSON from a string."""
+    return json.loads(s)
+
+
+def dump_json_string(data: Any, indent: int = 4, ensure_ascii: bool = False) -> str:
+    """Serialize data to JSON string."""
+    return json.dumps(data, indent=indent, ensure_ascii=ensure_ascii)
+
+
+def is_valid_json(s: str) -> bool:
+    """Check if a string is valid JSON."""
+    try:
+        json.loads(s)
+        return True
+    except (json.JSONDecodeError, TypeError):
+        return False
+
+
+def pretty_print_json(data: Any, indent: int = 4) -> str:
+    """Return a pretty-printed JSON string."""
+    return json.dumps(data, indent=indent, ensure_ascii=False, sort_keys=False)
+
+JSONUTILS
+# --- csv_utils.py ---
+cat > "$OUTPUT_DIR/csv_utils.py" <<'CSVUTILS'
+"""CSV utility functions."""
+
+import csv
+from typing import Any, Dict, List, Optional
+
+
+def read_csv(path: str, delimiter: str = ",", fieldnames: Optional[List[str]] = None) -> List[Dict[str, str]]:
+    """Read CSV file and return list of dictionaries."""
+    with open(path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f, fieldnames=fieldnames, delimiter=delimiter)
+        return [dict(row) for row in reader]
+
+
+def read_csv_as_lists(path: str, delimiter: str = ",") -> List[List[str]]:
+    """Read CSV file and return list of lists."""
+    with open(path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f, delimiter=delimiter)
+        return list(reader)
+
+
+def write_csv(path: str, rows: List[Dict[str, Any]], fieldnames: Optional[List[str]] = None, delimiter: str = ",") -> None:
+    """Write list of dictionaries to CSV file."""
+    if not rows:
+        return
+    if fieldnames is None:
+        fieldnames = list(rows[0].keys())
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=delimiter)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def write_csv_from_lists(path: str, rows: List[List[Any]], delimiter: str = ",") -> None:
+    """Write list of lists to CSV file."""
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        writer = csv.writer(f, delimiter=delimiter)
+        writer.writerows(rows)
+
+
+def append_csv_row(path: str, row: Dict[str, Any], fieldnames: Optional[List[str]] = None) -> None:
+    """Append a single row to CSV file."""
+    if fieldnames is None:
+        fieldnames = list(row.keys())
+    import os
+    file_exists = os.path.exists(path) and os.path.getsize(path) > 0
+    with open(path, "a", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(row)
+
+CSVUTILS
 # --- concurrent_utils.py ---
 cat > "$OUTPUT_DIR/concurrent_utils.py" <<'CONCURRENTUTILS'
 """Concurrent execution utilities for parallel and asynchronous processing.
@@ -7509,6 +7823,7 @@ tests/                       # Python unit tests
   test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
   test_retry_utils.py         # Tests for retry_utils.py
   test_dict_utils.py         # Tests for dict_utils.py
+  test_json_utils.py          # Tests for json_utils.py
 ```
 
 ## Getting Started

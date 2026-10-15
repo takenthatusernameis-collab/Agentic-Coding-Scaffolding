@@ -85,6 +85,8 @@ tests/                       # Python unit tests
   test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
   test_retry_utils.py         # Tests for retry_utils.py
   test_dict_utils.py         # Tests for dict_utils.py
+  test_json_utils.py          # Tests for json_utils.py
+  test_csv_utils.py           # Tests for csv_utils.py
 ```
 
 ## How It Works

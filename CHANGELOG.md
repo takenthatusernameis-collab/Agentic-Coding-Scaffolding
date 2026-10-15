@@ -136,3 +136,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed `scaffold.sh` README.md template Architecture section: added missing `config_utils.py` listing, added all missing test file entries (including `test_config_utils.py`), removed redundant `tests/` placeholder entry, and updated module descriptions to match the canonical README. Verified scaffold smoke test passes with all generated modules.
+### Added
+
+- `json_utils.py` — JSON utility functions (read/write/parse/dump/validate/pretty print)
+- `tests/test_json_utils.py` — unit tests for `json_utils.py`
+- Updated `scaffold.sh` to generate `json_utils.py` and its tests
+- Updated `.kilo/command/scaffold-project.md`, `README.md`, and scaffold template to include JSON utilities
+
+### Added
+
+- `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
+- `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
+- Updated `scaffold.sh`, `.kilo/command/scaffold-project.md`, and `README.md` to include CSV utilities
