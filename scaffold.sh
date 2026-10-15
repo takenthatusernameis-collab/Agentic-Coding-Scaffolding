@@ -7308,3 +7308,1091 @@ echo "  cd $OUTPUT_DIR"
 echo "  git init"
 echo "  git add -A"
 echo "  git commit -m 'Initial commit'"
+
+
+# --- LICENSE ---
+cat > "$OUTPUT_DIR/LICENSE" <<'__LIC__'
+MIT License
+Copyright (c) 2026 kilo-autonomous
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+__LIC__
+
+# --- kilo.json ---
+cat > "$OUTPUT_DIR/kilo.json" <<'__KILO__'
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "permission": "allow",
+  "agent": {
+    "scaffolder": {
+      "description": "Generates project scaffolding, templates, and boilerplate code for new features. Use when the task involves creating new files or project structure.",
+      "mode": "subagent",
+      "model": "kilo/kilo-auto/free"
+    }
+  }
+}
+
+__KILO__
+
+# --- AGENTS.md ---
+cat > "$OUTPUT_DIR/AGENTS.md" <<'__AGENTS__'
+# Agent Instructions
+
+Project: ${PROJECT_NAME}
+
+## Project Purpose
+
+This repository is a self-evolving scaffolding project for autonomous agentic coding. A GitHub Actions workflow runs a loop of Kilo agent sessions, each receiving the task: "Execute the task assigned by the previous agent and prepare a task for the next agent!"
+
+## Task Handover Protocol
+
+1. Check the shared Kilo board (`board_read`) for any messages from the previous agent
+2. If a task is found, execute it
+3. If no task is found (bootstrap session), establish the project foundation
+4. Post a new task for the next agent via `board_post` to `main`
+5. Ensure all work results in committed changes (non-workflow files) for the CI checkpoint
+
+## Workflow Rules
+
+- The CI workflow excludes `.github/workflows/**` from the project progress check
+- Only changes to files outside `.github/workflows/` count as "meaningful project progress"
+- The workflow auto-commits all non-workflow changes after each session
+- Do NOT modify `.github/workflows/` files — they are maintainer-managed
+
+## Coding Conventions
+
+- Write clean, well-documented code
+- Follow existing file patterns in the repository
+- Use descriptive file and function names
+- Keep changes focused and incremental
+
+## Agent Configuration
+
+- Project config: `kilo.json` at the repository root
+- Custom subagents: `.kilo/agent/*.md`
+- Custom commands: `.kilo/command/*.md`
+- Custom skills: `.kilo/skill/*.md`
+- Kilo permissions: `permission` key in `kilo.json`
+
+## Available Subagents
+
+- `scaffolder` - A subagent for generating project scaffolding and templates
+- `explore` (built-in) - Read-only codebase exploration
+
+## Available Commands
+
+- `scaffold-project` - Scaffold a new project structure
+- `handover` - Prepare and post the next task for the following agent
+
+## Developer Commands
+
+Use the following Makefile targets during development:
+
+- `make test` - Run the Python test suite
+- `make lint` - Run ruff code style checker
+- `make typecheck` - Run mypy static type checking
+- `make run` - Run hello.py (`make run NAME=Alice`)
+- `make scaffold` - Scaffold a new project using scaffold.sh
+- `make pre-commit-install` - Install pre-commit hooks into .git/hooks
+- `make pre-commit-run` - Run all pre-commit hooks against tracked files
+- `make clean` - Remove build artifacts
+- `make help` - Show all available targets
+
+## Notes
+
+- This project uses the `kilo/kilo-auto/free` model
+- Sessions have an idle timeout of 900 seconds
+- The overall CI job has a 355-minute safety cutoff
+
+__AGENTS__
+
+# --- README.md ---
+cat > "$OUTPUT_DIR/README.md" <<'__README__'
+# ${PROJECT_NAME}
+
+A self-evolving scaffolding project for autonomous agentic coding loops powered by Kilo.
+
+## Overview
+
+This repository provides a foundation for agentic coding projects. It includes:
+
+- A GitHub Actions workflow that runs a Kilo agent loop
+- Project configuration for Kilo (AGENTS.md, kilo.json)
+- Custom subagents and commands for scaffolding tasks
+- A task handover protocol between agent sessions
+
+## Architecture
+
+```
+.github/workflows/main.yml   # CI workflow: Kilo agent loop
+.kilo/                       # Kilo project configuration
+  agent/                     # Custom subagents
+    scaffolder.md            # Scaffolder subagent definition
+  command/                   # Custom commands
+    handover.md              # Handover task command
+    scaffold-project.md      # Scaffold-project command
+  skill/                     # Custom skills
+    scaffolding-helper.md    # Sample skill definition
+  .gitignore                 # Ignore patterns for .kilo directory
+.gitignore                   # Common ignore patterns
+LICENSE                      # MIT License
+.pre-commit-config.yaml      # Pre-commit hooks (ruff, mypy, tests, scaffold)
+AGENTS.md                    # AI agent instructions
+CHANGELOG.md                 # Changelog (Keep a Changelog format)
+kilo.json                    # Kilo project configuration
+Makefile                     # Common developer targets
+pyproject.toml               # Python project configuration (pytest, ruff, mypy)
+scaffold.sh                  # Project scaffolding script
+hello.py                     # Sample application entry point
+calculator.py                # Simple calculator module
+shapes.py                    # Geometry utilities
+strings.py                   # String utilities
+utils.py                     # General utilities
+stats.py                    # Statistical utilities
+math_utils.py               # Mathematical utilities
+data_utils.py               # Data utilities
+datetime_utils.py           # Date and time utilities
+file_utils.py               # File and path utilities
+url_utils.py                # URL utilities
+random_utils.py             # Random utilities
+validation_utils.py         # Validation utilities
+crypto_utils.py             # Cryptographic utilities
+list_utils.py              # List utilities
+env_utils.py               # Environment utilities
+logging_utils.py          # Logging utilities
+cache_utils.py            # Caching utilities
+timing_utils.py           # Timing utilities
+concurrent_utils.py       # Concurrent utilities
+priority_queue_utils.py   # Priority queue utilities
+rate_limiter_utils.py     # Rate limiting utilities
+retry_utils.py            # Retry utilities
+dict_utils.py            # Dictionary utilities
+tests/test_hello.py         # Tests for hello
+tests/test_calculator.py    # Tests for calculator
+tests/test_shapes.py        # Tests for shapes
+tests/                       # Python unit tests
+```
+
+## Getting Started
+
+1. Review `AGENTS.md` for agent instructions and the task handover protocol.
+2. Check `kilo.json` for Kilo project configuration and subagent definitions.
+3. Use `make test`, `make lint`, `make typecheck` for local development.
+4. Use `make pre-commit-install` to install pre-commit hooks.
+5. Use `scaffold.sh` to scaffold a new project: `./scaffold.sh "New Project"`
+
+## Makefile Targets
+
+| Target | Description |
+|---|---|
+| `make test` | Run the Python test suite |
+| `make lint` | Run ruff code style checker |
+| `make typecheck` | Run mypy static type checking |
+| `make run` | Run hello.py (`make run NAME=Alice`) |
+| `make scaffold` | Scaffold a new project using scaffold.sh |
+| `make pre-commit-install` | Install pre-commit hooks into .git/hooks |
+| `make pre-commit-run` | Run all pre-commit hooks against tracked files |
+| `make clean` | Remove build artifacts |
+| `make help` | Show all available targets |
+
+## GitHub Actions Workflow
+
+The workflow in `.github/workflows/main.yml` runs Kilo agent sessions in a continuous loop:
+- Each session runs the command: "Execute the task assigned by the previous agent and prepare a task for the next agent!"
+- After each session, it commits non-workflow changes as a checkpoint
+- The workflow excludes `.github/workflows/**` from progress checks
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+__README__
+
+# --- CHANGELOG.md ---
+cat > "$OUTPUT_DIR/CHANGELOG.md" <<'__CHANGELOG__'
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- `config_utils.py` — configuration utilities module with `load_config`, `save_config`, `get_config_value`, `set_config_value`, and `merge_configs` functions for working with JSON configuration files
+- `calculator.py` — simple calculator module with arithmetic operations
+- `shapes.py` — geometry utilities for areas and perimeters of common shapes
+- `strings.py` — string utilities for text operations
+- `utils.py` — general utility helper functions
+- `stats.py` — statistical utility functions
+- `math_utils.py` — mathematical utility functions
+- `data_utils.py` — data utility functions
+- `datetime_utils.py` — date and time utility functions
+- `file_utils.py` — file and path utility functions
+- `url_utils.py` — URL and web utility functions
+- `random_utils.py` — random number generation and sampling utilities
+- `validation_utils.py` — input validation utilities
+- `crypto_utils.py` — cryptographic utilities
+- `list_utils.py` — advanced list manipulation utilities
+- `env_utils.py` — environment variable handling utilities
+- `logging_utils.py` — logging configuration and helper utilities
+- `cache_utils.py` — caching utilities for memoizing function results
+- `timing_utils.py` — performance measurement helpers
+- `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+- `priority_queue_utils.py` — heap-based priority queue implementation
+- `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
+- `retry_utils.py` — retry utilities with exponential backoff and jitter
+- `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
+- `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
+- `.kilo/.gitignore` — ignore patterns for the .kilo directory
+- `CHANGELOG.md` — changelog following Keep a Changelog format
+- `tests/test_strings.py` — unit tests for `strings.py`
+- `tests/test_utils.py` — unit tests for `utils.py`
+- `tests/test_stats.py` — unit tests for `stats.py`
+- `tests/test_calculator.py` — unit tests for `calculator.py`
+- `tests/test_config_utils.py` — unit tests for `config_utils.py`
+- `tests/test_shapes.py` — unit tests for `shapes.py`
+- `tests/test_math_utils.py` — unit tests for `math_utils.py`
+- `tests/test_data_utils.py` — unit tests for `data_utils.py`
+- `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
+- `tests/test_file_utils.py` — unit tests for `file_utils.py`
+- `tests/test_url_utils.py` — unit tests for `url_utils.py`
+- `tests/test_random_utils.py` — unit tests for `random_utils.py`
+- `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
+- `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
+- `tests/test_list_utils.py` — unit tests for `list_utils.py`
+- `tests/test_env_utils.py` — unit tests for `env_utils.py`
+- `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
+- `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
+- `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
+- `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
+- `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
+- `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
+- `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
+
+__CHANGELOG__
+
+# --- tests/test_concurrent_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_concurrent_utils.py" <<'TESTCONCURRENT'
+"""Tests for concurrent_utils module."""
+
+import asyncio
+import unittest
+
+from concurrent_utils import (
+    ProcessPool,
+    ThreadPool,
+    _dec,
+    _double,
+    _multiply,
+    _square,
+    gather,
+    run_async,
+    to_async,
+)
+
+
+class TestThreadPool(unittest.TestCase):
+    def test_threadpool_map(self):
+        with ThreadPool(max_workers=2) as pool:
+            results = list(pool.map(lambda x: x * 2, [1, 2, 3, 4]))
+        self.assertEqual(results, [2, 4, 6, 8])
+
+    def test_threadpool_submit(self):
+        def square(x):
+            return x * x
+
+        with ThreadPool(max_workers=2) as pool:
+            future = pool.submit(square, 5)
+            result = future.result()
+        self.assertEqual(result, 25)
+
+    def test_threadpool_submit_multiple(self):
+        def add(a, b):
+            return a + b
+
+        with ThreadPool(max_workers=3) as pool:
+            f1 = pool.submit(add, 1, 2)
+            f2 = pool.submit(add, 3, 4)
+            f3 = pool.submit(add, 5, 6)
+            self.assertEqual(f1.result(), 3)
+            self.assertEqual(f2.result(), 7)
+            self.assertEqual(f3.result(), 11)
+
+    def test_threadpool_default_workers(self):
+        with ThreadPool() as pool:
+            results = list(pool.map(lambda x: x + 1, [1, 2, 3]))
+        self.assertEqual(results, [2, 3, 4])
+
+    def test_threadpool_with_name_prefix(self):
+        with ThreadPool(max_workers=2, thread_name_prefix="test") as pool:
+            results = list(pool.map(lambda x: x * 3, [1, 2]))
+        self.assertEqual(results, [3, 6])
+
+    def test_threadpool_submit_outside_context_raises(self):
+        pool = ThreadPool(max_workers=2)
+        with self.assertRaises(RuntimeError):
+            pool.submit(lambda x: x, 1)
+
+    def test_threadpool_map_outside_context_raises(self):
+        pool = ThreadPool(max_workers=2)
+        with self.assertRaises(RuntimeError):
+            list(pool.map(lambda x: x, [1, 2]))
+
+
+class TestProcessPool(unittest.TestCase):
+    def test_processpool_map(self):
+        with ProcessPool(max_workers=2) as pool:
+            results = list(pool.map(_double, [1, 2, 3, 4]))
+        self.assertEqual(results, [2, 4, 6, 8])
+
+    def test_processpool_submit(self):
+        with ProcessPool(max_workers=2) as pool:
+            future = pool.submit(_square, 5)
+            result = future.result()
+        self.assertEqual(result, 25)
+
+    def test_processpool_submit_multiple(self):
+        with ProcessPool(max_workers=3) as pool:
+            f1 = pool.submit(_multiply, 2, 3)
+            f2 = pool.submit(_multiply, 4, 5)
+            f3 = pool.submit(_multiply, 6, 7)
+            self.assertEqual(f1.result(), 6)
+            self.assertEqual(f2.result(), 20)
+            self.assertEqual(f3.result(), 42)
+
+    def test_processpool_default_workers(self):
+        with ProcessPool() as pool:
+            results = list(pool.map(_dec, [5, 6, 7]))
+        self.assertEqual(results, [4, 5, 6])
+
+    def test_processpool_submit_outside_context_raises(self):
+        pool = ProcessPool(max_workers=2)
+        with self.assertRaises(RuntimeError):
+            pool.submit(_square, 1)
+
+    def test_processpool_map_outside_context_raises(self):
+        pool = ProcessPool(max_workers=2)
+        with self.assertRaises(RuntimeError):
+            list(pool.map(_square, [1, 2]))
+
+
+class TestAsyncIOWrappers(unittest.TestCase):
+    def test_gather_basic(self):
+        async def compute(x):
+            await asyncio.sleep(0.001)
+            return x * 2
+
+        async def main():
+            results = await gather(compute(1), compute(2), compute(3))
+            return results
+
+        results = run_async(main())
+        self.assertEqual(results, [2, 4, 6])
+
+    def test_gather_with_mixed_values(self):
+        async def async_func(x):
+            return x + 1
+
+        async def main():
+            results = await gather(async_func(1), 10, async_func(3))
+            return results
+
+        results = run_async(main())
+        self.assertEqual(results, [2, 10, 4])
+
+    def test_gather_empty(self):
+        async def main():
+            results = await gather()
+            return results
+
+        results = run_async(main())
+        self.assertEqual(results, [])
+
+    def test_run_async_basic(self):
+        async def get_data():
+            return "test_data"
+
+        result = run_async(get_data())
+        self.assertEqual(result, "test_data")
+
+    def test_run_async_with_exception(self):
+        async def fail():
+            raise ValueError("test error")
+
+        with self.assertRaises(ValueError):
+            run_async(fail())
+
+    def test_to_async_basic(self):
+        def compute(x):
+            return x * 3
+
+        async def main():
+            async_compute = to_async(compute)
+            result = await async_compute(4)
+            return result
+
+        result = run_async(main())
+        self.assertEqual(result, 12)
+
+    def test_to_async_with_multiple_args(self):
+        def add(a, b, c):
+            return a + b + c
+
+        async def main():
+            async_add = to_async(add)
+            result = await async_add(1, 2, 3)
+            return result
+
+        result = run_async(main())
+        self.assertEqual(result, 6)
+
+    def test_to_async_with_kwargs(self):
+        def multiply(a, b=1):
+            return a * b
+
+        async def main():
+            async_multiply = to_async(multiply)
+            result = await async_multiply(5, b=3)
+            return result
+
+        result = run_async(main())
+        self.assertEqual(result, 15)
+
+    def test_to_async_preserves_metadata(self):
+        def original_func():
+            """Original docstring."""
+            return "test"
+
+        async def main():
+            wrapped = to_async(original_func)
+            self.assertEqual(wrapped.__name__, "original_func")
+            self.assertEqual(wrapped.__doc__, "Original docstring.")
+            return await wrapped()
+
+        result = run_async(main())
+        self.assertEqual(result, "test")
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+TESTCONCURRENT
+
+
+# --- tests/test_priority_queue_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_priority_queue_utils.py" <<'TESTPQ'
+"""Tests for priority_queue_utils module."""
+
+import unittest
+
+from priority_queue_utils import (
+    PriorityQueue,
+    clear_priority,
+    create_priority_queue,
+    is_empty_priority,
+    merge_queues,
+    peek_priority,
+    pop_priority,
+    push_priority,
+    size_priority,
+)
+
+
+class TestPriorityQueue(unittest.TestCase):
+    def test_empty_queue(self):
+        pq = PriorityQueue()
+        self.assertTrue(pq.is_empty())
+        self.assertEqual(pq.size(), 0)
+        self.assertIsNone(pq.pop())
+        self.assertIsNone(pq.peek())
+
+    def test_push_and_pop(self):
+        pq = PriorityQueue()
+        pq.push("task1", priority=2)
+        pq.push("task2", priority=1)
+        pq.push("task3", priority=3)
+        self.assertEqual(pq.pop(), "task2")
+        self.assertEqual(pq.pop(), "task1")
+        self.assertEqual(pq.pop(), "task3")
+        self.assertTrue(pq.is_empty())
+
+    def test_push_with_default_priority(self):
+        pq = PriorityQueue()
+        pq.push("item1")
+        pq.push("item2", priority=1)
+        # item2 has lower priority value, so should come out first
+        self.assertEqual(pq.pop(), "item2")
+        self.assertEqual(pq.pop(), "item1")
+
+    def test_peek(self):
+        pq = PriorityQueue()
+        pq.push("task", priority=5)
+        self.assertEqual(pq.peek(), "task")
+        self.assertFalse(pq.is_empty())
+        self.assertEqual(pq.size(), 1)
+        self.assertEqual(pq.pop(), "task")
+        self.assertTrue(pq.is_empty())
+
+    def test_same_priority(self):
+        pq = PriorityQueue()
+        pq.push("first", priority=1)
+        pq.push("second", priority=1)
+        pq.push("third", priority=1)
+        # With counter to maintain insertion order for equal priorities
+        self.assertEqual(pq.pop(), "first")
+        self.assertEqual(pq.pop(), "second")
+        self.assertEqual(pq.pop(), "third")
+
+    def test_initialization_with_items(self):
+        pq = PriorityQueue([("high", 1), ("low", 3), ("medium", 2)])
+        self.assertEqual(pq.pop(), "high")
+        self.assertEqual(pq.pop(), "medium")
+        self.assertEqual(pq.pop(), "low")
+
+    def test_clear(self):
+        pq = PriorityQueue()
+        pq.push("a", priority=1)
+        pq.push("b", priority=2)
+        self.assertFalse(pq.is_empty())
+        pq.clear()
+        self.assertTrue(pq.is_empty())
+        self.assertEqual(pq.size(), 0)
+
+    def test_len(self):
+        pq = PriorityQueue()
+        self.assertEqual(len(pq), 0)
+        pq.push("a", priority=1)
+        self.assertEqual(len(pq), 1)
+        pq.push("b", priority=2)
+        self.assertEqual(len(pq), 2)
+        pq.pop()
+        self.assertEqual(len(pq), 1)
+        pq.pop()
+        self.assertEqual(len(pq), 0)
+
+    def test_bool(self):
+        pq = PriorityQueue()
+        self.assertFalse(bool(pq))  # or simply: self.assertNot(pq)
+        pq.push("a", priority=1)
+        self.assertTrue(bool(pq))
+        pq.pop()
+        self.assertFalse(bool(pq))
+
+
+
+
+class TestHelperFunctions(unittest.TestCase):
+    def test_push_priority(self):
+        pq = PriorityQueue()
+        push_priority(pq, "item", priority=5)
+        self.assertEqual(peek_priority(pq), "item")
+
+    def test_pop_priority(self):
+        pq = PriorityQueue()
+        push_priority(pq, "item", priority=1)
+        result = pop_priority(pq)
+        self.assertEqual(result, "item")
+        self.assertIsNone(pop_priority(pq))
+
+    def test_peek_priority(self):
+        pq = PriorityQueue()
+        push_priority(pq, "item", priority=2)
+        self.assertEqual(peek_priority(pq), "item")
+        self.assertFalse(is_empty_priority(pq))
+
+    def test_is_empty_priority(self):
+        pq = PriorityQueue()
+        self.assertTrue(is_empty_priority(pq))
+        push_priority(pq, "item")
+        self.assertFalse(is_empty_priority(pq))
+
+    def test_size_priority(self):
+        pq = PriorityQueue()
+        self.assertEqual(size_priority(pq), 0)
+        push_priority(pq, "a")
+        push_priority(pq, "b")
+        self.assertEqual(size_priority(pq), 2)
+
+    def test_clear_priority(self):
+        pq = PriorityQueue()
+        push_priority(pq, "a")
+        push_priority(pq, "b")
+        clear_priority(pq)
+        self.assertTrue(is_empty_priority(pq))
+
+
+class TestConvenienceFunctions(unittest.TestCase):
+    def test_create_priority_queue_empty(self):
+        pq = create_priority_queue()
+        self.assertIsInstance(pq, PriorityQueue)
+        self.assertTrue(pq.is_empty())
+
+    def test_create_priority_queue_with_items(self):
+        pq = create_priority_queue([(1, "a"), (2, "b")])
+        self.assertEqual(pq.pop(), "a")
+        self.assertEqual(pq.pop(), "b")
+
+    def test_merge_queues(self):
+        pq1 = PriorityQueue()
+        pq1.push("a", priority=3)
+        pq1.push("b", priority=1)
+        pq2 = PriorityQueue()
+        pq2.push("c", priority=2)
+        pq3 = PriorityQueue()
+        pq3.push("d", priority=4)
+
+        merged = merge_queues(pq1, pq2, pq3)
+        self.assertEqual(merged.pop(), "b")
+        self.assertEqual(merged.pop(), "c")
+        self.assertEqual(merged.pop(), "a")
+        self.assertEqual(merged.pop(), "d")
+        self.assertTrue(merged.is_empty())
+        # Original queues should remain unchanged
+        self.assertFalse(pq1.is_empty())
+        self.assertFalse(pq2.is_empty())
+        self.assertFalse(pq3.is_empty())
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+TESTPQ
+
+
+# --- tests/test_rate_limiter_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_rate_limiter_utils.py" <<'TESTRL'
+"""Tests for rate_limiter_utils module."""
+
+import time
+import unittest
+
+from rate_limiter_utils import RateLimiter, rate_limit, token_bucket
+
+
+class TestRateLimiter(unittest.TestCase):
+    def test_initialization(self):
+        limiter = RateLimiter(rate=1.0)
+        self.assertEqual(limiter.rate, 1.0)
+        self.assertEqual(limiter.capacity, 1.0)
+        self.assertEqual(limiter.tokens, 1.0)
+
+        limiter = RateLimiter(rate=2.0, capacity=4.0)
+        self.assertEqual(limiter.rate, 2.0)
+        self.assertEqual(limiter.capacity, 4.0)
+        self.assertEqual(limiter.tokens, 4.0)
+
+    def test_acquire_immediate(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        # Should be able to acquire immediately
+        self.assertTrue(limiter.acquire(1.0))
+        # Now bucket is empty
+        self.assertFalse(limiter.acquire(1.0))
+        # Wait a bit and try again
+        time.sleep(1.1)
+        self.assertTrue(limiter.acquire(1.0))
+
+    def test_acquire_blocking(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        # Start with full bucket
+        start = time.monotonic()
+        limiter.acquire_blocking(1.0)  # Should return immediately
+        elapsed = time.monotonic() - start
+        self.assertLess(elapsed, 0.1)  # Should be very quick
+
+        # Now bucket is empty, next acquire should block for about 1 second
+        start = time.monotonic()
+        limiter.acquire_blocking(1.0)
+        elapsed = time.monotonic() - start
+        self.assertGreaterEqual(elapsed, 0.9)
+        self.assertLess(elapsed, 1.1)
+
+    def test_token_bucket_context_manager(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        # Acquire one token immediately
+        with token_bucket(limiter, 1.0):
+            pass  # Should not block
+        # Now bucket is empty, entering context should block
+        start = time.monotonic()
+        with token_bucket(limiter, 1.0):
+            pass
+        elapsed = time.monotonic() - start
+        self.assertGreaterEqual(elapsed, 0.9)
+        self.assertLess(elapsed, 1.1)
+
+    def test_rate_limit_decorator(self):
+        calls = []
+
+        @rate_limit(rate=2.0)  # 2 calls per second
+        def limited_function():
+            calls.append(time.monotonic())
+
+        # Call function 5 times
+        start = time.monotonic()
+        for i in range(5):
+            limited_function()
+        elapsed = time.monotonic() - start
+
+        # With rate 2 per second and capacity=2 (default), the first two calls are immediate.
+        # Then each additional call requires 0.5 seconds to regenerate one token.
+        # For 5 calls: 2 immediate + 3 * 0.5 = 1.5 seconds minimum.
+        self.assertGreaterEqual(elapsed, 1.4)
+        self.assertLess(elapsed, 2.0)  # Allow a little slack above 1.5
+
+        # Check that the calls are spaced appropriately after the bucket is depleted
+        # We expect intervals of about 0.5 seconds after the first two calls.
+        if len(calls) >= 3:
+            # Intervals between call2-call3, call3-call4, call4-call5 should be ~0.5
+            intervals = [calls[i+1] - calls[i] for i in range(1, len(calls)-1)]
+            for interval in intervals:
+                self.assertAlmostEqual(interval, 0.5, places=1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+TESTRL
+
+
+# --- tests/test_retry_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_retry_utils.py" <<'TESTRETRY'
+import time
+import unittest
+
+from retry_utils import retry, retry_count, retry_with_backoff
+
+
+class TestRetryDecorator(unittest.TestCase):
+    def test_retry_success_first_try(self):
+        """Test that function succeeds on first attempt."""
+        attempt_count = 0
+
+        @retry(max_attempts=3, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            return "success"
+
+        result = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(attempt_count, 1)
+
+    def test_retry_success_after_retries(self):
+        """Test that function succeeds after some retries."""
+        attempt_count = 0
+
+        @retry(max_attempts=3, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            if attempt_count < 3:
+                raise ValueError("Try again")
+            return "success"
+
+        result = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(attempt_count, 3)
+
+    def test_retry_fails_after_max_attempts(self):
+        """Test that function fails after exceeding max attempts."""
+        attempt_count = 0
+
+        @retry(max_attempts=2, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            raise ValueError("Always fails")
+
+        with self.assertRaises(ValueError):
+            func()
+        self.assertEqual(attempt_count, 2)
+
+    def test_retry_specific_exceptions(self):
+        """Test that only specified exceptions trigger retries."""
+        attempt_count = 0
+
+        @retry(max_attempts=3, delay=0.01, exceptions=(ValueError,))
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            if attempt_count < 2:
+                raise ValueError("Retry on this")
+            elif attempt_count == 2:
+                raise TypeError("Don't retry on this")
+            return "success"
+
+        with self.assertRaises(TypeError):
+            func()
+        self.assertEqual(attempt_count, 2)
+
+    def test_retry_with_zero_attempts(self):
+        """Test behavior with max_attempts=1 (no retries)."""
+        attempt_count = 0
+
+        @retry(max_attempts=1, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            raise ValueError("Fails")
+
+        with self.assertRaises(ValueError):
+            func()
+        self.assertEqual(attempt_count, 1)
+
+
+class TestRetryWithBackoffDecorator(unittest.TestCase):
+    def test_retry_with_backoff_success_first_try(self):
+        """Test that function succeeds on first attempt."""
+        attempt_count = 0
+
+        @retry_with_backoff(max_attempts=3, initial_delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            return "success"
+
+        result = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(attempt_count, 1)
+
+    def test_retry_with_backoff_success_after_retries(self):
+        """Test that function succeeds after some retries."""
+        attempt_count = 0
+
+        @retry_with_backoff(max_attempts=3, initial_delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            if attempt_count < 3:
+                raise ValueError("Try again")
+            return "success"
+
+        result = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(attempt_count, 3)
+
+    def test_retry_with_backoff_fails_after_max_attempts(self):
+        """Test that function fails after exceeding max attempts."""
+        attempt_count = 0
+
+        @retry_with_backoff(max_attempts=2, initial_delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            raise ValueError("Always fails")
+
+        with self.assertRaises(ValueError):
+            func()
+        self.assertEqual(attempt_count, 2)
+
+    def test_retry_with_backoff_jitter(self):
+        """Test that jitter affects delay (basic test)."""
+        delays = []
+
+        @retry_with_backoff(
+            max_attempts=3, initial_delay=0.01, backoff_factor=2.0, jitter=True
+        )
+        def func():
+            if len(delays) < 2:  # First two attempts
+                delays.append(time.time())
+                raise ValueError("Try again")
+            return "success"
+
+        # Mock time.sleep to capture delays
+        original_sleep = time.sleep
+        slept_durations = []
+
+        def mock_sleep(duration):
+            slept_durations.append(duration)
+            # Don't actually sleep in test
+            pass
+
+        time.sleep = mock_sleep
+        try:
+            result = func()
+            self.assertEqual(result, "success")
+            # Should have slept twice (after first and second attempts)
+            self.assertEqual(len(slept_durations), 2)
+            # Each sleep duration should be positive
+            for duration in slept_durations:
+                self.assertGreaterEqual(duration, 0)
+        finally:
+            time.sleep = original_sleep
+
+
+class TestRetryCountDecorator(unittest.TestCase):
+    def test_retry_count_no_retries(self):
+        """Test that retry_count returns 0 when no retries needed."""
+
+        @retry_count(max_attempts=3, delay=0.01)
+        def func():
+            return "success"
+
+        result, count = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(count, 0)
+
+    def test_retry_count_with_retries(self):
+        """Test that retry_count returns correct retry count."""
+        attempt_count = 0
+
+        @retry_count(max_attempts=3, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            if attempt_count < 3:
+                raise ValueError("Try again")
+            return "success"
+
+        result, count = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(count, 2)  # Retried twice
+
+    def test_retry_count_exhausted_attempts(self):
+        """Test that retry_count raises exception after max attempts."""
+        attempt_count = 0
+
+        @retry_count(max_attempts=2, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            raise ValueError("Always fails")
+
+        with self.assertRaises(ValueError):
+            func()
+        # Note: The wrapper re-raises the exception, so we don't get a count return
+        # This is expected behavior - when all attempts fail, the exception propagates
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+TESTRETRY
+
+
+# --- tests/test_dict_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_dict_utils.py" <<'TESTDICT'
+"""Tests for dict_utils module."""
+
+import unittest
+
+from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, safe_get, unflatten_dict
+
+
+class TestDeepMerge(unittest.TestCase):
+    def test_deep_merge_basic(self) -> None:
+        d1 = {"a": 1, "b": {"c": 2}}
+        d2 = {"b": {"d": 3}, "e": 4}
+        result = deep_merge(d1, d2)
+        self.assertEqual(result["a"], 1)
+        self.assertEqual(result["b"]["c"], 2)
+        self.assertEqual(result["b"]["d"], 3)
+        self.assertEqual(result["e"], 4)
+
+    def test_deep_merge_overwrite(self) -> None:
+        d1 = {"a": 1}
+        d2 = {"a": 2}
+        result = deep_merge(d1, d2)
+        self.assertEqual(result["a"], 2)
+
+    def test_deep_merge_no_overwrite_nested(self) -> None:
+        d1 = {"a": {"b": 1, "c": 2}}
+        d2 = {"a": {"b": 3}}
+        result = deep_merge(d1, d2)
+        self.assertEqual(result["a"]["b"], 3)
+        self.assertEqual(result["a"]["c"], 2)
+
+
+class TestFlattenDict(unittest.TestCase):
+    def test_flatten_basic(self) -> None:
+        d = {"a": 1, "b": {"c": 2, "d": 3}}
+        result = flatten_dict(d)
+        self.assertEqual(result["a"], 1)
+        self.assertEqual(result["b.c"], 2)
+        self.assertEqual(result["b.d"], 3)
+
+    def test_flatten_with_sep(self) -> None:
+        d = {"a": {"b": {"c": 1}}}
+        result = flatten_dict(d, sep="_")
+        self.assertEqual(result["a_b_c"], 1)
+
+    def test_flatten_parent_key(self) -> None:
+        d = {"b": 2}
+        result = flatten_dict(d, parent_key="a")
+        self.assertEqual(result["a.b"], 2)
+
+
+class TestUnflattenDict(unittest.TestCase):
+    def test_unflatten_basic(self) -> None:
+        d = {"a.b.c": 1, "a.b.d": 2}
+        result = unflatten_dict(d)
+        self.assertEqual(result["a"]["b"]["c"], 1)
+        self.assertEqual(result["a"]["b"]["d"], 2)
+
+    def test_unflatten_simple(self) -> None:
+        d = {"a": 1, "b": 2}
+        result = unflatten_dict(d)
+        self.assertEqual(result["a"], 1)
+        self.assertEqual(result["b"], 2)
+
+
+class TestSafeGet(unittest.TestCase):
+    def test_safe_get_basic(self) -> None:
+        d = {"a": {"b": {"c": 1}}}
+        self.assertEqual(safe_get(d, "a", "b", "c"), 1)
+
+    def test_safe_get_default(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(safe_get(d, "b", default="missing"), "missing")
+        self.assertIsNone(safe_get(d, "b"))
+
+    def test_safe_get_partial(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(safe_get(d, "a", "b", default="x"), "x")
+
+
+class TestInvertDict(unittest.TestCase):
+    def test_invert_basic(self) -> None:
+        d = {"a": 1, "b": 2}
+        result = invert_dict(d)
+        self.assertEqual(result[1], "a")
+        self.assertEqual(result[2], "b")
+
+    def test_invert_duplicate_values_raises(self) -> None:
+        d = {"a": 1, "b": 1}
+        with self.assertRaises(ValueError):
+            invert_dict(d)
+
+
+class TestFilterDict(unittest.TestCase):
+    def test_filter_dict_basic(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        result = filter_dict(d, lambda k, v: v > 1)
+        self.assertIn("b", result)
+        self.assertIn("c", result)
+        self.assertNotIn("a", result)
+
+    def test_filter_dict_by_key(self) -> None:
+        d = {"a1": 1, "b1": 2, "a2": 3}
+        result = filter_dict(d, lambda k, v: k.startswith("a"))
+        self.assertEqual(len(result), 2)
+
+TESTDICT
+
