@@ -2223,6 +2223,402 @@ class TestBuildUrl(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTURLUTILS
+# --- random_utils.py ---
+cat > "$OUTPUT_DIR/random_utils.py" <<'RANDUTILS'
+"""Random number generation and sampling utilities."""
+
+import random
+from typing import List, Optional, Sequence, TypeVar
+
+T = TypeVar("T")
+
+
+def _seed_rng(seed: Optional[int]) -> random.Random:
+    """Create a seeded ``random.Random`` instance for reproducible results."""
+    return random.Random(seed)
+
+
+def random_int(
+    low: int, high: int, seed: Optional[int] = None
+) -> int:
+    """Return a random integer N such that ``low <= N <= high``.
+
+    Args:
+        low: The inclusive lower bound of the range.
+        high: The inclusive upper bound of the range.
+        seed: Optional seed for reproducible results. When provided, the
+            returned value is deterministic for a given seed.
+
+    Returns:
+        A random integer in the inclusive range ``[low, high]``.
+
+    Raises:
+        ValueError: If ``low`` is greater than ``high``.
+
+    Examples:
+        >>> random_int(1, 10, seed=42) == random_int(1, 10, seed=42)
+        True
+    """
+    if low > high:
+        raise ValueError("low must be <= high")
+    return _seed_rng(seed).randint(low, high)
+
+
+def random_choice(
+    items: Sequence[T], seed: Optional[int] = None
+) -> T:
+    """Return a random element from ``items``.
+
+    Args:
+        items: A non-empty sequence to choose from.
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        A randomly selected element.
+
+    Raises:
+        ValueError: If ``items`` is empty.
+
+    Examples:
+        >>> random_choice(["a", "b", "c"], seed=0) in ("a", "b", "c")
+        True
+    """
+    if len(items) == 0:
+        raise ValueError("Cannot choose from an empty sequence")
+    return _seed_rng(seed).choice(items)
+
+
+def random_sample(
+    items: Sequence[T], n: int, seed: Optional[int] = None
+) -> List[T]:
+    """Return ``n`` unique elements sampled without replacement.
+
+    Args:
+        items: A sequence to sample from.
+        n: The number of elements to sample.
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        A list of ``n`` randomly selected, unique elements.
+
+    Raises:
+        ValueError: If ``items`` is empty, if ``n`` is negative, or if
+            ``n`` is greater than the number of items.
+
+    Examples:
+        >>> len(random_sample([1, 2, 3, 4], 2, seed=1))
+        2
+    """
+    if len(items) == 0:
+        raise ValueError("Cannot sample from an empty sequence")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n > len(items):
+        raise ValueError("n cannot be greater than the number of items")
+    return _seed_rng(seed).sample(list(items), n)
+
+
+def random_shuffle(
+    items: Sequence[T], seed: Optional[int] = None
+) -> List[T]:
+    """Return a shuffled copy of ``items``.
+
+    The original sequence is not modified.
+
+    Args:
+        items: The sequence to shuffle.
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        A new list containing the elements of ``items`` in random order.
+
+    Raises:
+        ValueError: If ``items`` is empty.
+
+    Examples:
+        >>> random_shuffle([1, 2, 3, 4], seed=7) != [1, 2, 3, 4]
+        True
+    """
+    if len(items) == 0:
+        raise ValueError("Cannot shuffle an empty sequence")
+    shuffled = list(items)
+    _seed_rng(seed).shuffle(shuffled)
+    return shuffled
+
+
+def weighted_choice(
+    items: Sequence[T],
+    weights: Sequence[float],
+    seed: Optional[int] = None,
+) -> T:
+    """Return an element from ``items`` chosen with probability proportional to ``weights``.
+
+    Args:
+        items: A non-empty sequence to choose from.
+        weights: A sequence of non-negative weights, one per item.
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        A randomly selected element, weighted by ``weights``.
+
+    Raises:
+        ValueError: If ``items`` is empty, if ``weights`` length does not
+            match ``items`` length, or if any weight is negative.
+
+    Examples:
+        >>> weighted_choice(["a", "b"], [0, 1], seed=5) == "b"
+        True
+    """
+    if len(items) == 0:
+        raise ValueError("Cannot choose from an empty sequence")
+    if len(weights) != len(items):
+        raise ValueError("weights length must match items length")
+    if any(w < 0 for w in weights):
+        raise ValueError("weights must be non-negative")
+    if sum(weights) == 0:
+        raise ValueError("weights must sum to a positive value")
+    return _seed_rng(seed).choices(items, weights=weights, k=1)[0]
+
+
+def random_uniform(low: float, high: float, seed: Optional[int] = None) -> float:
+    """Return a random floating-point number N such that ``low <= N <= high``.
+
+    Args:
+        low: The inclusive lower bound of the range.
+        high: The inclusive upper bound of the range.
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        A random float in the inclusive range ``[low, high]``.
+
+    Raises:
+        ValueError: If ``low`` is greater than ``high``.
+
+    Examples:
+        >>> 0 <= random_uniform(0, 1, seed=11) <= 1
+        True
+    """
+    if low > high:
+        raise ValueError("low must be <= high")
+    return _seed_rng(seed).uniform(low, high)
+
+
+def random_gaussian(
+    mu: float = 0.0, sigma: float = 1.0, seed: Optional[int] = None
+) -> float:
+    """Return a random number drawn from a Gaussian (normal) distribution.
+
+    Args:
+        mu: The mean of the distribution.
+        sigma: The standard deviation of the distribution.
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        A random float sampled from ``N(mu, sigma)``.
+
+    Raises:
+        ValueError: If ``sigma`` is negative.
+
+    Examples:
+        >>> isinstance(random_gaussian(seed=3), float)
+        True
+    """
+    if sigma < 0:
+        raise ValueError("sigma must be non-negative")
+    return _seed_rng(seed).gauss(mu, sigma)
+
+
+__all__: List[str] = [
+    "random_choice",
+    "random_gaussian",
+    "random_int",
+    "random_sample",
+    "random_shuffle",
+    "random_uniform",
+    "weighted_choice",
+]
+RANDUTILS
+# --- tests/test_random_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_random_utils.py" <<'TESTRANDUTILS'
+"""Tests for random_utils module."""
+
+import unittest
+
+from random_utils import (
+    random_choice,
+    random_gaussian,
+    random_int,
+    random_sample,
+    random_shuffle,
+    random_uniform,
+    weighted_choice,
+)
+
+
+class TestRandomInt(unittest.TestCase):
+    def test_in_range(self) -> None:
+        for _ in range(100):
+            value = random_int(1, 10)
+            self.assertTrue(1 <= value <= 10)
+
+    def test_single_value_range(self) -> None:
+        self.assertEqual(random_int(5, 5), 5)
+
+    def test_negative_range(self) -> None:
+        for _ in range(100):
+            value = random_int(-10, -1)
+            self.assertTrue(-10 <= value <= -1)
+
+    def test_invalid_range_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_int(10, 1)
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertEqual(random_int(1, 100, seed=42), random_int(1, 100, seed=42))
+
+    def test_different_seeds_differ(self) -> None:
+        # Over a large enough range, two distinct seeds should not always match.
+        a = [random_int(1, 1_000_000, seed=i) for i in range(10)]
+        self.assertEqual(len(set(a)), len(a))
+
+
+class TestRandomChoice(unittest.TestCase):
+    def test_returns_member(self) -> None:
+        items = ["apple", "banana", "cherry"]
+        self.assertIn(random_choice(items), items)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_choice([])
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertEqual(
+            random_choice(["a", "b", "c"], seed=0),
+            random_choice(["a", "b", "c"], seed=0),
+        )
+
+
+class TestRandomSample(unittest.TestCase):
+    def test_size(self) -> None:
+        sample = random_sample([1, 2, 3, 4, 5], 3)
+        self.assertEqual(len(sample), 3)
+
+    def test_unique_without_replacement(self) -> None:
+        sample = random_sample([1, 2, 3, 4], 2)
+        self.assertEqual(len(set(sample)), 2)
+
+    def test_sample_all(self) -> None:
+        sample = random_sample([1, 2, 3], 3)
+        self.assertEqual(sorted(sample), [1, 2, 3])
+
+    def test_zero_sample(self) -> None:
+        self.assertEqual(random_sample([1, 2, 3], 0), [])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_sample([], 1)
+
+    def test_negative_n_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_sample([1, 2, 3], -1)
+
+    def test_n_too_large_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_sample([1, 2, 3], 4)
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertEqual(
+            random_sample([1, 2, 3, 4, 5], 2, seed=7),
+            random_sample([1, 2, 3, 4, 5], 2, seed=7),
+        )
+
+
+class TestRandomShuffle(unittest.TestCase):
+    def test_returns_permutation(self) -> None:
+        items = [1, 2, 3, 4, 5]
+        shuffled = random_shuffle(items)
+        self.assertEqual(sorted(shuffled), sorted(items))
+        self.assertEqual(items, [1, 2, 3, 4, 5])  # original unchanged
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_shuffle([])
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertEqual(
+            random_shuffle([1, 2, 3, 4, 5], seed=99),
+            random_shuffle([1, 2, 3, 4, 5], seed=99),
+        )
+
+    def test_single_element(self) -> None:
+        self.assertEqual(random_shuffle([42]), [42])
+
+
+class TestWeightedChoice(unittest.TestCase):
+    def test_returns_member(self) -> None:
+        items = ["a", "b", "c"]
+        self.assertIn(weighted_choice(items, [1, 1, 1], seed=1), items)
+
+    def test_zero_weight_is_excluded(self) -> None:
+        # With only "b" having positive weight, it should always be chosen.
+        self.assertEqual(weighted_choice(["a", "b"], [0, 1], seed=5), "b")
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            weighted_choice([], [])
+
+    def test_mismatched_lengths_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            weighted_choice(["a", "b"], [1])
+
+    def test_negative_weight_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            weighted_choice(["a", "b"], [1, -1])
+
+    def test_all_zero_weights_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            weighted_choice(["a", "b"], [0, 0])
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertEqual(
+            weighted_choice(["a", "b", "c"], [1, 2, 3], seed=42),
+            weighted_choice(["a", "b", "c"], [1, 2, 3], seed=42),
+        )
+
+
+class TestRandomUniform(unittest.TestCase):
+    def test_in_range(self) -> None:
+        for _ in range(100):
+            value = random_uniform(0, 1)
+            self.assertTrue(0 <= value <= 1)
+
+    def test_invalid_range_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_uniform(10, 1)
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertAlmostEqual(
+            random_uniform(0, 1, seed=13), random_uniform(0, 1, seed=13)
+        )
+
+
+class TestRandomGaussian(unittest.TestCase):
+    def test_returns_float(self) -> None:
+        self.assertIsInstance(random_gaussian(seed=3), float)
+
+    def test_negative_sigma_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_gaussian(sigma=-1)
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertAlmostEqual(
+            random_gaussian(0, 1, seed=17), random_gaussian(0, 1, seed=17)
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTRANDUTILS
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---

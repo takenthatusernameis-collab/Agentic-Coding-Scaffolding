@@ -58,3 +58,6 @@ scaffold-project "My AI Project"
 scaffold-project my-cool-tool /tmp/projects/my-tool
 scaffold-project my-cool-tool ./out --no-test
 ```
+
+- `random_utils.py` — random number generation and sampling utilities
+- `tests/test_random_utils.py` — unit tests for `random_utils.py`
