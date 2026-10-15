@@ -76,4 +76,5 @@ py_modules = [
     "tree_utils",
     "path_utils",
     "pattern_utils",
+    "config_schema",
 ]

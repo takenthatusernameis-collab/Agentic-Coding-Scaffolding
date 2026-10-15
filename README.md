@@ -70,7 +70,8 @@ tree_utils.py              # Tree and nested structure utilities (get/set/delete
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
     path_utils.py             # Path manipulation utilities (join, normalize, components, extensions)
     color_utils.py            # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
-pattern_utils.py              # Design pattern utilities (Singleton, Factory, Observer, Strategy)
+    pattern_utils.py              # Design pattern utilities (Singleton, Factory, Observer, Strategy)
+    config_schema.py             # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
     tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -109,6 +110,7 @@ test_type_utils.py         # Tests for type_utils.py
     test_path_utils.py        # Tests for path_utils.py
     test_color_utils.py      # Tests for color_utils.py
 test_pattern_utils.py         # Tests for pattern_utils.py
+test_config_schema.py         # Tests for config_schema.py
     ```
 
 ## How It Works
@@ -280,6 +282,10 @@ The project includes a color manipulation utilities module in `color_utils.py` w
 
 The project includes a design pattern utilities module in `pattern_utils.py` with reusable implementations of common object-oriented design patterns: `Singleton` (a thread-safe metaclass and `SingletonBase` base class that restrict a class to a single instance), `Factory` (a registry-based factory that creates objects by name), `Observer`/`Observable` (a publish-subscribe mechanism for change notifications), and `Strategy`/`StrategyContext` (plug-and-play algorithm selection). The module is tested in `tests/test_pattern_utils.py`.
 
-Completed task: Added a new `pattern_utils.py` module with design pattern utilities (`Singleton`, `Factory`, `Observer`/`Observable`, `Strategy`/`StrategyContext`) and its tests. Synchronized the scaffold template: added `pattern_utils.py` to the `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Verified all tests pass, ruff and mypy are clean, and the scaffold smoke test generates a fully consistent project.
+## Configuration Schema Module
 
-Next task: Review the project for remaining gaps — consider adding a new utility module (e.g., `config_schema.py` for typed configuration schemas), improving test coverage, or enhancing the scaffold script with new features.
+The project includes a configuration schema module in `config_schema.py` with declarative, typed configuration schemas. `SchemaField` describes a single typed field (`str`, `int`, `float`, `bool`) with optional defaults, required flags, and validators, and `ConfigSchema` composes fields to validate, coerce, and normalize configuration dictionaries. Built-in validators include `int_validator`, `float_validator`, `str_validator`, `bool_validator`, `email_validator`, `hostname_validator`, `url_validator`, `range_validator`, `choices_validator`, and `regex_validator`. The module is tested in `tests/test_config_schema.py`.
+
+Completed task: Added a new `config_schema.py` module with typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators such as `range_validator`, `choices_validator`, `email_validator`) and its tests. Synchronized the scaffold template: added `config_schema.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions. Verified all tests pass, ruff and mypy are clean.
+
+Next task: Add example usage scripts under `examples/` demonstrating `config_schema.py` (loading and validating configuration dictionaries), with tests, and keep the scaffold template consistent.

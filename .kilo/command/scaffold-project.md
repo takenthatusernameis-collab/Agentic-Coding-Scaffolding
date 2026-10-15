@@ -68,6 +68,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pattern_utils.py` — design pattern utilities (Singleton, Factory, Observer, Strategy)
 - `tests/test_color_utils.py` — unit tests for `color_utils.py`
 - `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
+- `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators)
+- `tests/test_config_schema.py` — unit tests for `config_schema.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
