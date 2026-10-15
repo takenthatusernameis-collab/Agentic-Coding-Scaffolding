@@ -455,14 +455,14 @@ class TestScaffoldKiloJson(unittest.TestCase):
         """Generated concurrent_utils.py should have working functions."""
         import asyncio
 
-        from concurrent_utils import ThreadPool, ProcessPool, run_async, to_async, _double, _inc
+        from concurrent_utils import ProcessPool, ThreadPool, _inc, run_async, to_async
 
-        with ThreadPool(max_workers=2) as pool:
-            results = list(pool.map(lambda x: x * 2, [1, 2, 3]))
+        with ThreadPool(max_workers=2) as thread_pool:
+            results = list(thread_pool.map(lambda x: x * 2, [1, 2, 3]))
         self.assertEqual(results, [2, 4, 6])
 
-        with ProcessPool(max_workers=2) as pool:
-            results = list(pool.map(_inc, [1, 2, 3]))
+        with ProcessPool(max_workers=2) as process_pool:
+            results = list(process_pool.map(_inc, [1, 2, 3]))
         self.assertEqual(results, [2, 3, 4])
 
         async def async_add(a: int, b: int) -> int:
@@ -489,7 +489,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             push_priority,
         )
 
-        pq = PriorityQueue()
+        pq: PriorityQueue[str] = PriorityQueue()
         push_priority(pq, "low", priority=10)
         push_priority(pq, "high", priority=1)
         push_priority(pq, "medium", priority=5)
@@ -497,13 +497,13 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertEqual(pop_priority(pq), "medium")
         self.assertEqual(pop_priority(pq), "low")
 
-        pq2 = create_priority_queue([(1, "a"), (2, "b")])
+        pq2: PriorityQueue[str] = create_priority_queue([(1.0, "a"), (2.0, "b")])
         self.assertEqual(pq2.pop(), "a")
         self.assertEqual(pq2.pop(), "b")
 
-        pq3 = PriorityQueue()
+        pq3: PriorityQueue[str] = PriorityQueue()
         push_priority(pq3, "x", priority=3)
-        pq4 = PriorityQueue()
+        pq4: PriorityQueue[str] = PriorityQueue()
         push_priority(pq4, "y", priority=1)
         merged = merge_queues(pq3, pq4)
         self.assertEqual(merged.pop(), "y")

@@ -39,6 +39,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
 - `timing_utils.py` — performance measurement helpers
+- `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+- `priority_queue_utils.py` — heap-based priority queue implementation
+- `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
+- `retry_utils.py` — retry utilities with exponential backoff and jitter
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -59,6 +63,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
+- `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
+- `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
+- `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
 
 ## Usage
 

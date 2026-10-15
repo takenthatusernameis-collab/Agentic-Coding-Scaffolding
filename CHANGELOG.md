@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `cache_utils.py` — caching utilities module with `memoize` decorator factory (supporting `maxsize` LRU eviction and `typed` argument distinction), `clear_cache` helper to invalidate stored results, and `cache_info` helper to inspect cache statistics
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
+- `timing_utils.py` — performance measurement helpers with `timer` context manager, `elapsed_time` function, and `benchmark` decorator
+- `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `concurrent_utils.py` — concurrent execution utilities with `ThreadPool`, `ProcessPool`, `gather`, `run_async`, and `to_async` functions
+- `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
+- `priority_queue_utils.py` — heap-based priority queue implementation with `PriorityQueue` class and helper functions
+- `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
+- `rate_limiter_utils.py` — rate limiting utilities using token bucket algorithm with `RateLimiter`, `token_bucket`, and `rate_limit` decorator
+- `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
+- `retry_utils.py` — retry utilities with `retry`, `retry_with_backoff`, and `retry_count` decorators for exponential backoff and jitter
+- `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
 
 ### Added
 

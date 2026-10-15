@@ -51,6 +51,11 @@ list_utils.py              # Advanced list manipulation utilities
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
+timing_utils.py           # Performance measurement helpers
+concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+priority_queue_utils.py   # Heap-based priority queue implementation
+rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
+retry_utils.py            # Retry utilities with exponential backoff and jitter
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -71,6 +76,11 @@ tests/                       # Python unit tests
   test_env_utils.py          # Tests for env_utils.py
   test_logging_utils.py       # Tests for logging_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
+  test_timing_utils.py        # Tests for timing_utils.py
+  test_concurrent_utils.py    # Tests for concurrent_utils.py
+  test_priority_queue_utils.py # Tests for priority_queue_utils.py
+  test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
+  test_retry_utils.py         # Tests for retry_utils.py
 ```
 
 ## How It Works
@@ -182,6 +192,26 @@ The project includes a logging utilities module in `logging_utils.py` with helpe
 
 The project includes a caching utilities module in `cache_utils.py` with helpers for memoizing function results: `memoize` is a decorator factory that caches return values keyed by call arguments (with optional `maxsize` LRU eviction and `typed` argument distinction), `clear_cache` invalidates the cache of a memoized function, and `cache_info` returns a dictionary with `hits`, `misses`, `maxsize`, and `currsize` statistics. Decorated functions also expose `clear_cache` and `cache_info` attributes for direct introspection. The module is tested in `tests/test_cache_utils.py`.
 
-Completed task: Added a `concurrent_utils` module with concurrent execution helpers (ThreadPool, ProcessPool, asyncio wrappers) with tests and full scaffolding synchronization.
+## Timing Utilities Module
 
-Next task: Add a `priority_queue_utils` module with heap-based priority queue implementation, including tests and full scaffolding synchronization.
+The project includes a performance measurement utilities module in `timing_utils.py` with helpers for measuring and benchmarking code execution: `timer` is a context manager for timing code blocks, `elapsed_time` calculates elapsed time since a start time, and `benchmark` is a decorator that runs a function multiple times and reports average execution time. The module is tested in `tests/test_timing_utils.py`.
+
+## Concurrent Utilities Module
+
+The project includes a concurrent execution utilities module in `concurrent_utils.py` with helpers for parallel and asynchronous processing: `ThreadPool` and `ProcessPool` context manager wrappers around the standard library executors, `gather` for running awaitables concurrently, `run_async` for running async coroutines from synchronous code, and `to_async` for converting synchronous functions to async. The module is tested in `tests/test_concurrent_utils.py`.
+
+## Priority Queue Utilities Module
+
+The project includes a priority queue utilities module in `priority_queue_utils.py` with a heap-based `PriorityQueue` implementation and helper functions. The queue uses a min-heap with an incrementing counter to preserve insertion order for equal priorities. It provides `push`, `pop`, `peek`, `is_empty`, `size`, `clear`, and convenience functions like `create_priority_queue` and `merge_queues`. The module is tested in `tests/test_priority_queue_utils.py`.
+
+## Rate Limiter Utilities Module
+
+The project includes a rate limiting utilities module in `rate_limiter_utils.py` implementing the token bucket algorithm. It provides a `RateLimiter` class, a `token_bucket` context manager, and a `rate_limit` decorator for limiting function call frequency. The module is tested in `tests/test_rate_limiter_utils.py`.
+
+## Retry Utilities Module
+
+The project includes a retry utilities module in `retry_utils.py` with decorators for retrying operations with backoff: `retry` for simple retries with fixed delay and backoff, `retry_with_backoff` for exponential backoff with optional jitter, and `retry_count` which returns the result along with the number of retries performed. The module is tested in `tests/test_retry_utils.py`.
+
+Completed task: Synchronized all module documentation in README.md, added missing modules to Architecture section, and updated CHANGELOG.md.
+
+Next task: Fix indentation issues in scaffold.sh README.md template and verify scaffold smoke test passes with all modules.

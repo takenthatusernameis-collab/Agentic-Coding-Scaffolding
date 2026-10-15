@@ -59,6 +59,14 @@
 #   - tests/test_cache_utils.py unit tests for the cache_utils module
 #   - timing_utils.py performance measurement helpers
 #   - tests/test_timing_utils.py unit tests for the timing_utils module
+#   - concurrent_utils.py concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+#   - tests/test_concurrent_utils.py unit tests for the concurrent_utils module
+#   - priority_queue_utils.py heap-based priority queue implementation
+#   - tests/test_priority_queue_utils.py unit tests for the priority_queue_utils module
+#   - rate_limiter_utils.py rate limiting utilities (token bucket algorithm)
+#   - tests/test_rate_limiter_utils.py unit tests for the rate_limiter_utils module
+#   - retry_utils.py retry utilities with exponential backoff and jitter
+#   - tests/test_retry_utils.py unit tests for the retry_utils module
 #
 set -euo pipefail
 
@@ -403,6 +411,34 @@ strict = false
 exclude = [
     "build",
     "dist",
+]
+
+[tool.setuptools]
+py_modules = [
+    "hello",
+    "calculator",
+    "config_utils",
+    "shapes",
+    "strings",
+    "utils",
+    "stats",
+    "math_utils",
+    "data_utils",
+    "datetime_utils",
+    "file_utils",
+    "url_utils",
+    "random_utils",
+    "validation_utils",
+    "crypto_utils",
+    "list_utils",
+    "env_utils",
+    "logging_utils",
+    "cache_utils",
+    "timing_utils",
+    "concurrent_utils",
+    "priority_queue_utils",
+    "rate_limiter_utils",
+    "retry_utils",
 ]
 
 [tool.ruff]
@@ -5120,6 +5156,355 @@ if __name__ == "__main__":
     elapsed = elapsed_time(start)
     print(f"Elapsed time: {elapsed:.2f}s")
 TIMINGUTILS
+# --- rate_limiter_utils.py ---
+cat > "$OUTPUT_DIR/rate_limiter_utils.py" <<'RLUTILS'
+"""Rate limiting utilities for controlling the frequency of operations.
+
+This module provides helpers for rate limiting using the token bucket algorithm,
+including a RateLimiter class, a token_bucket context manager, and a rate_limit
+decorator.
+"""
+
+import time
+from typing import Any, Callable, Optional, TypeVar
+
+F = TypeVar("F", bound=Callable[..., Any])
+
+
+class RateLimiter:
+    """Token bucket rate limiter.
+
+    Args:
+        rate: Maximum frequency (in tokens per second).
+        capacity: Maximum tokens in the bucket. If not provided, defaults to rate.
+    """
+
+    def __init__(self, rate: float, capacity: Optional[float] = None):
+        if rate <= 0:
+            raise ValueError("rate must be positive")
+        self.rate = float(rate)
+        self.capacity = float(capacity if capacity is not None else rate)
+        self.tokens = self.capacity
+        self.last_updated = time.monotonic()
+
+    def _update(self) -> None:
+        now = time.monotonic()
+        elapsed = now - self.last_updated
+        self.tokens = min(self.capacity, self.tokens + elapsed * self.rate)
+        self.last_updated = now
+
+    def acquire(self, tokens: float = 1) -> bool:
+        """Acquire tokens from the bucket.
+
+        Args:
+            tokens: Number of tokens to acquire.
+
+        Returns:
+            True if tokens were acquired, False otherwise.
+        """
+        self._update()
+        if tokens > self.capacity:
+            # Cannot acquire more than capacity at once
+            return False
+        if self.tokens >= tokens:
+            self.tokens -= tokens
+            return True
+        return False
+
+    def acquire_blocking(self, tokens: float = 1) -> None:
+        """Block until tokens can be acquired.
+
+        Args:
+            tokens: Number of tokens to acquire.
+        """
+        while not self.acquire(tokens):
+            time.sleep(0.001)  # Sleep briefly to avoid busy loop
+
+
+class token_bucket:
+    """Context manager that acquires tokens from a RateLimiter.
+
+    Args:
+        rate_limiter: A RateLimiter instance.
+        tokens: Number of tokens to acquire. Defaults to 1.
+
+    Examples:
+        >>> limiter = RateLimiter(rate=2.0)  # 2 tokens per second
+        >>> with token_bucket(limiter):
+        ...     # This block will execute, but will be rate-limited
+        ...     pass
+    """
+
+    def __init__(self, rate_limiter: RateLimiter, tokens: float = 1):
+        self.rate_limiter = rate_limiter
+        self.tokens = tokens
+
+    def __enter__(self) -> None:
+        self.rate_limiter.acquire_blocking(self.tokens)
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        pass
+
+
+def rate_limit(
+    rate: float,
+    capacity: Optional[float] = None,
+) -> Callable[[F], F]:
+    """Decorator that limits the rate at which a function can be called.
+
+    Args:
+        rate: Maximum frequency (in calls per second).
+        capacity: Maximum burst size. If not provided, defaults to rate.
+
+    Returns:
+        Decorated function that will be rate-limited.
+
+    Examples:
+        >>> @rate_limit(rate=2.0)  # Allow at most 2 calls per second
+        ... def limited_function():
+        ...     return "result"
+        >>> result = limited_function()
+    """
+    limiter = RateLimiter(rate=rate, capacity=capacity)
+
+    def decorator(func: F) -> F:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            limiter.acquire_blocking()
+            return func(*args, **kwargs)
+
+        return wrapper  # type: ignore
+
+    return decorator
+
+
+if __name__ == "__main__":
+    # Simple demonstration when run directly
+    import time
+
+    @rate_limit(rate=2.0)  # 2 calls per second
+    def example_function():
+        return "completed"
+
+    # Call the function multiple times and see the rate limiting
+    start = time.monotonic()
+    for i in range(5):
+        result = example_function()
+        elapsed = time.monotonic() - start
+        print(f"Call {i+1}: {result} at {elapsed:.2f}s")
+        # We don't sleep here because the decorator will block if needed
+RLUTILS
+# --- retry_utils.py ---
+cat > "$OUTPUT_DIR/retry_utils.py" <<'RETRYUTILS'
+"""Retry utility functions for retrying operations with backoff."""
+
+import functools
+import random
+import time
+from typing import Any, Callable, Tuple, Type
+
+
+def retry(
+    max_attempts: int = 3,
+    delay: float = 0.1,
+    backoff: float = 1.0,
+    exceptions: Tuple[Type[BaseException], ...] = (Exception,),
+) -> Callable:
+    """
+    Decorator that retries a function if it raises an exception.
+
+    Args:
+        max_attempts: Maximum number of attempts (including initial attempt).
+        delay: Initial delay between attempts in seconds.
+        backoff: Multiplier applied to delay after each attempt.
+        exceptions: Tuple of exception types to catch and retry on.
+
+    Returns:
+        Decorated function that retries on specified exceptions.
+
+    Examples:
+        >>> @retry(max_attempts=3, delay=0.1, backoff=2.0)
+        ... def unreliable_function():
+        ...     import random
+        ...     if random.random() < 0.7:
+        ...         raise ValueError("Random failure")
+        ...     return "success"
+        >>> # May succeed after retries
+        >>> result = unreliable_function()
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            _delay = delay
+            for attempt in range(max_attempts):
+                try:
+                    return func(*args, **kwargs)
+                except exceptions:
+                    if attempt == max_attempts - 1:  # Last attempt
+                        raise
+                    time.sleep(_delay)
+                    _delay *= backoff
+            # Should never reach here due to raise on last attempt
+            raise RuntimeError("Unexpected state in retry decorator")
+
+        return wrapper
+
+    return decorator
+
+
+def retry_with_backoff(
+    max_attempts: int = 3,
+    initial_delay: float = 0.1,
+    backoff_factor: float = 2.0,
+    jitter: bool = True,
+    exceptions: Tuple[Type[BaseException], ...] = (Exception,),
+) -> Callable:
+    """
+    Decorator that retries a function with exponential backoff and optional jitter.
+
+    Args:
+        max_attempts: Maximum number of attempts (including initial attempt).
+        initial_delay: Initial delay between attempts in seconds.
+        backoff_factor: Multiplier for delay after each attempt.
+        jitter: If True, adds random jitter to delay to prevent thundering herd.
+        exceptions: Tuple of exception types to catch and retry on.
+
+    Returns:
+        Decorated function that retries with exponential backoff.
+
+    Examples:
+        >>> @retry_with_backoff(max_attempts=3, initial_delay=0.1, backoff_factor=2.0)
+        ... def unreliable_function():
+        ...     import random
+        ...     if random.random() < 0.7:
+        ...         raise ValueError("Random failure")
+        ...     return "success"
+        >>> # May succeed after retries with increasing delays
+        >>> result = unreliable_function()
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            delay = initial_delay
+            for attempt in range(max_attempts):
+                try:
+                    return func(*args, **kwargs)
+                except exceptions:
+                    if attempt == max_attempts - 1:  # Last attempt
+                        raise
+                    # Apply jitter if enabled
+                    actual_delay = delay
+                    if jitter:
+                        actual_delay *= random.uniform(0.5, 1.5)
+                    time.sleep(actual_delay)
+                    delay *= backoff_factor
+            # Should never reach here due to raise on last attempt
+            raise RuntimeError("Unexpected state in retry_with_backoff decorator")
+
+        return wrapper
+
+    return decorator
+
+
+def retry_count(
+    max_attempts: int = 3,
+    delay: float = 0.1,
+    backoff: float = 1.0,
+    exceptions: Tuple[Type[BaseException], ...] = (Exception,),
+) -> Callable:
+    """
+    Decorator that retries a function and returns the result along with retry count.
+
+    Args:
+        max_attempts: Maximum number of attempts (including initial attempt).
+        delay: Initial delay between attempts in seconds.
+        backoff: Multiplier applied to delay after each attempt.
+        exceptions: Tuple of exception types to catch and retry on.
+
+    Returns:
+        Decorated function that returns (result, retry_count) where retry_count
+        is the number of retries that occurred (0 if no retries needed).
+
+    Examples:
+        >>> @retry_count(max_attempts=3, delay=0.1)
+        ... def unreliable_function():
+        ...     import random
+        ...     if random.random() < 0.8:
+        ...         raise ValueError("Random failure")
+        ...     return "success"
+        >>> result, count = unreliable_function()  # count is number of retries
+        >>> isinstance(result, str)
+        True
+        >>> isinstance(count, int)
+        True
+        >>> count >= 0
+        True
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> tuple:
+            _delay = delay
+            retries = 0
+            for attempt in range(max_attempts):
+                try:
+                    result = func(*args, **kwargs)
+                    return result, retries
+                except exceptions:
+                    if attempt == max_attempts - 1:  # Last attempt
+                        raise
+                    retries += 1
+                    time.sleep(_delay)
+                    _delay *= backoff
+            # Should never reach here due to raise on last attempt
+            raise RuntimeError("Unexpected state in retry_count decorator")
+
+        return wrapper
+
+    return decorator
+
+
+if __name__ == "__main__":
+    # Simple demonstration when run directly
+    import random
+
+    @retry(max_attempts=3, delay=0.01, backoff=2.0)
+    def unstable_operation():
+        if random.random() < 0.8:
+            raise RuntimeError("Temporary failure")
+        return "Success!"
+
+    try:
+        result = unstable_operation()
+        print(f"Operation succeeded: {result}")
+    except Exception as e:
+        print(f"Operation failed after retries: {e}")
+
+    @retry_with_backoff(max_attempts=3, initial_delay=0.01, backoff_factor=2.0)
+    def unstable_operation_with_backoff():
+        if random.random() < 0.8:
+            raise RuntimeError("Temporary failure")
+        return "Success with backoff!"
+
+    try:
+        result = unstable_operation_with_backoff()
+        print(f"Operation succeeded with backoff: {result}")
+    except Exception as e:
+        print(f"Operation failed after retries with backoff: {e}")
+
+    @retry_count(max_attempts=3, delay=0.01)
+    def unstable_operation_with_count():
+        if random.random() < 0.8:
+            raise RuntimeError("Temporary failure")
+        return "Success with count!"
+
+    try:
+        result, count = unstable_operation_with_count()
+        print(f"Operation succeeded: {result} (retried {count} times)")
+    except Exception as e:
+        print(f"Operation failed after retries: {e}")
+RETRYUTILS
 # --- priority_queue_utils.py ---
 cat > "$OUTPUT_DIR/priority_queue_utils.py" <<'PQUTILS'
 """Priority queue utilities for heap-based priority queue implementation.
@@ -6205,6 +6590,310 @@ class TestBenchmarkDecorator(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTTIMINGUTILS
+# --- tests/test_rate_limiter_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_rate_limiter_utils.py" <<'TESTRLUTILS'
+"""Tests for rate_limiter_utils module."""
+
+import time
+import unittest
+
+from rate_limiter_utils import RateLimiter, rate_limit, token_bucket
+
+
+class TestRateLimiter(unittest.TestCase):
+    def test_initialization(self):
+        limiter = RateLimiter(rate=1.0)
+        self.assertEqual(limiter.rate, 1.0)
+        self.assertEqual(limiter.capacity, 1.0)
+        self.assertEqual(limiter.tokens, 1.0)
+
+        limiter = RateLimiter(rate=2.0, capacity=4.0)
+        self.assertEqual(limiter.rate, 2.0)
+        self.assertEqual(limiter.capacity, 4.0)
+        self.assertEqual(limiter.tokens, 4.0)
+
+    def test_acquire_immediate(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        # Should be able to acquire immediately
+        self.assertTrue(limiter.acquire(1.0))
+        # Now bucket is empty
+        self.assertFalse(limiter.acquire(1.0))
+        # Wait a bit and try again
+        time.sleep(1.1)
+        self.assertTrue(limiter.acquire(1.0))
+
+    def test_acquire_blocking(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        # Start with full bucket
+        start = time.monotonic()
+        limiter.acquire_blocking(1.0)  # Should return immediately
+        elapsed = time.monotonic() - start
+        self.assertLess(elapsed, 0.1)  # Should be very quick
+
+        # Now bucket is empty, next acquire should block for about 1 second
+        start = time.monotonic()
+        limiter.acquire_blocking(1.0)
+        elapsed = time.monotonic() - start
+        self.assertGreaterEqual(elapsed, 0.9)
+        self.assertLess(elapsed, 1.1)
+
+    def test_token_bucket_context_manager(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        # Acquire one token immediately
+        with token_bucket(limiter, 1.0):
+            pass  # Should not block
+        # Now bucket is empty, entering context should block
+        start = time.monotonic()
+        with token_bucket(limiter, 1.0):
+            pass
+        elapsed = time.monotonic() - start
+        self.assertGreaterEqual(elapsed, 0.9)
+        self.assertLess(elapsed, 1.1)
+
+    def test_rate_limit_decorator(self):
+        calls = []
+
+        @rate_limit(rate=2.0)  # 2 calls per second
+        def limited_function():
+            calls.append(time.monotonic())
+
+        # Call function 5 times
+        start = time.monotonic()
+        for i in range(5):
+            limited_function()
+        elapsed = time.monotonic() - start
+
+        # With rate 2 per second and capacity=2 (default), the first two calls are immediate.
+        # Then each additional call requires 0.5 seconds to regenerate one token.
+        # For 5 calls: 2 immediate + 3 * 0.5 = 1.5 seconds minimum.
+        self.assertGreaterEqual(elapsed, 1.4)
+        self.assertLess(elapsed, 2.0)  # Allow a little slack above 1.5
+
+        # Check that the calls are spaced appropriately after the bucket is depleted
+        # We expect intervals of about 0.5 seconds after the first two calls.
+        if len(calls) >= 3:
+            # Intervals between call2-call3, call3-call4, call4-call5 should be ~0.5
+            intervals = [calls[i+1] - calls[i] for i in range(1, len(calls)-1)]
+            for interval in intervals:
+                self.assertAlmostEqual(interval, 0.5, places=1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTRLUTILS
+# --- tests/test_retry_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_retry_utils.py" <<'TESTRETRYUTILS'
+import time
+import unittest
+
+from retry_utils import retry, retry_count, retry_with_backoff
+
+
+class TestRetryDecorator(unittest.TestCase):
+    def test_retry_success_first_try(self):
+        """Test that function succeeds on first attempt."""
+        attempt_count = 0
+
+        @retry(max_attempts=3, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            return "success"
+
+        result = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(attempt_count, 1)
+
+    def test_retry_success_after_retries(self):
+        """Test that function succeeds after some retries."""
+        attempt_count = 0
+
+        @retry(max_attempts=3, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            if attempt_count < 3:
+                raise ValueError("Try again")
+            return "success"
+
+        result = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(attempt_count, 3)
+
+    def test_retry_fails_after_max_attempts(self):
+        """Test that function fails after exceeding max attempts."""
+        attempt_count = 0
+
+        @retry(max_attempts=2, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            raise ValueError("Always fails")
+
+        with self.assertRaises(ValueError):
+            func()
+        self.assertEqual(attempt_count, 2)
+
+    def test_retry_specific_exceptions(self):
+        """Test that only specified exceptions trigger retries."""
+        attempt_count = 0
+
+        @retry(max_attempts=3, delay=0.01, exceptions=(ValueError,))
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            if attempt_count < 2:
+                raise ValueError("Retry on this")
+            elif attempt_count == 2:
+                raise TypeError("Don't retry on this")
+            return "success"
+
+        with self.assertRaises(TypeError):
+            func()
+        self.assertEqual(attempt_count, 2)
+
+    def test_retry_with_zero_attempts(self):
+        """Test behavior with max_attempts=1 (no retries)."""
+        attempt_count = 0
+
+        @retry(max_attempts=1, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            raise ValueError("Fails")
+
+        with self.assertRaises(ValueError):
+            func()
+        self.assertEqual(attempt_count, 1)
+
+
+class TestRetryWithBackoffDecorator(unittest.TestCase):
+    def test_retry_with_backoff_success_first_try(self):
+        """Test that function succeeds on first attempt."""
+        attempt_count = 0
+
+        @retry_with_backoff(max_attempts=3, initial_delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            return "success"
+
+        result = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(attempt_count, 1)
+
+    def test_retry_with_backoff_success_after_retries(self):
+        """Test that function succeeds after some retries."""
+        attempt_count = 0
+
+        @retry_with_backoff(max_attempts=3, initial_delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            if attempt_count < 3:
+                raise ValueError("Try again")
+            return "success"
+
+        result = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(attempt_count, 3)
+
+    def test_retry_with_backoff_fails_after_max_attempts(self):
+        """Test that function fails after exceeding max attempts."""
+        attempt_count = 0
+
+        @retry_with_backoff(max_attempts=2, initial_delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            raise ValueError("Always fails")
+
+        with self.assertRaises(ValueError):
+            func()
+        self.assertEqual(attempt_count, 2)
+
+    def test_retry_with_backoff_jitter(self):
+        """Test that jitter affects delay (basic test)."""
+        delays = []
+
+        @retry_with_backoff(
+            max_attempts=3, initial_delay=0.01, backoff_factor=2.0, jitter=True
+        )
+        def func():
+            if len(delays) < 2:  # First two attempts
+                delays.append(time.time())
+                raise ValueError("Try again")
+            return "success"
+
+        # Mock time.sleep to capture delays
+        original_sleep = time.sleep
+        slept_durations = []
+
+        def mock_sleep(duration):
+            slept_durations.append(duration)
+            # Don't actually sleep in test
+            pass
+
+        time.sleep = mock_sleep
+        try:
+            result = func()
+            self.assertEqual(result, "success")
+            # Should have slept twice (after first and second attempts)
+            self.assertEqual(len(slept_durations), 2)
+            # Each sleep duration should be positive
+            for duration in slept_durations:
+                self.assertGreaterEqual(duration, 0)
+        finally:
+            time.sleep = original_sleep
+
+
+class TestRetryCountDecorator(unittest.TestCase):
+    def test_retry_count_no_retries(self):
+        """Test that retry_count returns 0 when no retries needed."""
+
+        @retry_count(max_attempts=3, delay=0.01)
+        def func():
+            return "success"
+
+        result, count = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(count, 0)
+
+    def test_retry_count_with_retries(self):
+        """Test that retry_count returns correct retry count."""
+        attempt_count = 0
+
+        @retry_count(max_attempts=3, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            if attempt_count < 3:
+                raise ValueError("Try again")
+            return "success"
+
+        result, count = func()
+        self.assertEqual(result, "success")
+        self.assertEqual(count, 2)  # Retried twice
+
+    def test_retry_count_exhausted_attempts(self):
+        """Test that retry_count raises exception after max attempts."""
+        attempt_count = 0
+
+        @retry_count(max_attempts=2, delay=0.01)
+        def func():
+            nonlocal attempt_count
+            attempt_count += 1
+            raise ValueError("Always fails")
+
+        with self.assertRaises(ValueError):
+            func()
+        # Note: The wrapper re-raises the exception, so we don't get a count return
+        # This is expected behavior - when all attempts fail, the exception propagates
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTRETRYUTILS
 # --- tests/test_concurrent_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_concurrent_utils.py" <<'TESTCONCURRENTUTILS'
 """Tests for concurrent_utils module."""
@@ -6649,6 +7338,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `timing_utils.py` — performance measurement helpers
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 - `priority_queue_utils.py` — heap-based priority queue implementation
+- `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
+- `retry_utils.py` — retry utilities with exponential backoff and jitter
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -6671,6 +7362,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
+- `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
+- `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
 
 ## Usage
 
@@ -6860,10 +7553,12 @@ list_utils.py              # Advanced list manipulation utilities
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
-    timing_utils.py           # Performance measurement helpers
-    concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
-    priority_queue_utils.py   # Heap-based priority queue implementation
-    .gitignore                   # Common ignore patterns
+timing_utils.py           # Performance measurement helpers
+concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+priority_queue_utils.py   # Heap-based priority queue implementation
+rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
+retry_utils.py            # Retry utilities with exponential backoff and jitter
+.gitignore                   # Common ignore patterns
 LICENSE                      # MIT License
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -6885,9 +7580,11 @@ tests/                       # Python unit tests
   test_env_utils.py          # Tests for env_utils.py
   test_logging_utils.py       # Tests for logging_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
-  test_timing_utils.py         # Tests for timing_utils.py
-  test_concurrent_utils.py     # Tests for concurrent_utils.py
+  test_timing_utils.py        # Tests for timing_utils.py
+  test_concurrent_utils.py    # Tests for concurrent_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
+  test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
+  test_retry_utils.py         # Tests for retry_utils.py
 \`\`\`
 
 ## Developer Commands
@@ -7004,6 +7701,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`tests/test_concurrent_utils.py\` — unit tests for \`concurrent_utils.py\`
 - \`priority_queue_utils.py\` — heap-based priority queue implementation
 - \`tests/test_priority_queue_utils.py\` — unit tests for \`priority_queue_utils.py\`
+- \`rate_limiter_utils.py\` — rate limiting utilities (token bucket algorithm)
+- \`tests/test_rate_limiter_utils.py\` — unit tests for \`rate_limiter_utils.py\`
+- \`retry_utils.py\` — retry utilities with exponential backoff and jitter
+- \`tests/test_retry_utils.py\` — unit tests for \`retry_utils.py\`
 CHANGELOG
 
 # --- kilo.json ---

@@ -37,3 +37,31 @@ exclude = [
     "build",
     "dist",
 ]
+
+[tool.setuptools]
+py_modules = [
+    "hello",
+    "calculator",
+    "config_utils",
+    "shapes",
+    "strings",
+    "utils",
+    "stats",
+    "math_utils",
+    "data_utils",
+    "datetime_utils",
+    "file_utils",
+    "url_utils",
+    "random_utils",
+    "validation_utils",
+    "crypto_utils",
+    "list_utils",
+    "env_utils",
+    "logging_utils",
+    "cache_utils",
+    "timing_utils",
+    "concurrent_utils",
+    "priority_queue_utils",
+    "rate_limiter_utils",
+    "retry_utils",
+]

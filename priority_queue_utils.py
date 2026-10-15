@@ -5,7 +5,7 @@ for managing items with priorities.
 """
 
 import heapq
-from typing import Any, Generic, List, Optional, Tuple, TypeVar
+from typing import Generic, List, Optional, Tuple, TypeVar
 
 T = TypeVar("T")
 
@@ -128,7 +128,7 @@ def merge_queues(*queues: PriorityQueue[T]) -> PriorityQueue[T]:
 
 
 if __name__ == "__main__":
-    pq = PriorityQueue()
+    pq: PriorityQueue[str] = PriorityQueue()
     pq.push("high", priority=1)
     pq.push("low", priority=10)
     pq.push("medium", priority=5)
