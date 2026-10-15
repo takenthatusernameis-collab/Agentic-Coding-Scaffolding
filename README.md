@@ -60,9 +60,9 @@ tests/                       # Python unit tests
   test_datetime_utils.py     # Tests for datetime_utils.py
   test_file_utils.py         # Tests for file_utils.py
   test_url_utils.py          # Tests for url_utils.py
-   test_random_utils.py       # Tests for random_utils.py
-   test_validation_utils.py   # Tests for validation_utils.py
-   test_crypto_utils.py       # Tests for crypto_utils.py
+  test_random_utils.py       # Tests for random_utils.py
+  test_validation_utils.py   # Tests for validation_utils.py
+  test_crypto_utils.py       # Tests for crypto_utils.py
 ```
 
 ## How It Works
