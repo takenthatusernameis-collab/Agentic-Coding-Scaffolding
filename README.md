@@ -105,3 +105,7 @@ The project includes a statistics utilities module in `stats.py` with functions 
 ## License
 
 MIT
+
+## Math Utilities Module
+
+The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, and `clamp`. The module is tested in `tests/test_math_utils.py`.
