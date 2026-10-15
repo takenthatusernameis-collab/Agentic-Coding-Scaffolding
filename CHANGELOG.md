@@ -197,5 +197,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `prompt_utils.py` — Prompt utility functions (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, wrap_prompt, estimate_token_count)
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
+- `async_utils.py` — asynchronous utility functions (`run_in_thread`, `gather_with_timeout`, `async_sleep`, `retry_async`)
+- `tests/test_async_utils.py` — unit tests for `async_utils.py`
+- Updated `scaffold.sh` to generate `async_utils.py` and its tests
+- Updated `.kilo/command/scaffold-project.md`, `README.md`, and scaffold template to include async utilities
 - Updated `scaffold.sh`, `README.md`, `.kilo/command/scaffold-project.md`, and scaffold template to include uuid and prompt utilities
 

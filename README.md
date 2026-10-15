@@ -55,6 +55,7 @@ env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
 timing_utils.py           # Performance measurement helpers
+async_utils.py            # Asynchronous utility functions
 concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 priority_queue_utils.py   # Heap-based priority queue implementation
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
@@ -89,6 +90,7 @@ tests/                       # Python unit tests
   test_logging_utils.py       # Tests for logging_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
+  test_async_utils.py         # Tests for async_utils.py
   test_concurrent_utils.py    # Tests for concurrent_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py

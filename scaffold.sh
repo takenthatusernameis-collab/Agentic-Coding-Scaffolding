@@ -59,7 +59,9 @@
 #   - tests/test_cache_utils.py unit tests for the cache_utils module
 #   - timing_utils.py performance measurement helpers
 #   - tests/test_timing_utils.py unit tests for the timing_utils module
+#   - async_utils.py async utility functions
 #   - concurrent_utils.py concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+#   - tests/test_async_utils.py unit tests for the async_utils module
 #   - tests/test_concurrent_utils.py unit tests for the concurrent_utils module
 #   - priority_queue_utils.py heap-based priority queue implementation
 #   - tests/test_priority_queue_utils.py unit tests for the priority_queue_utils module
@@ -453,6 +455,7 @@ py_modules = [
     "logging_utils",
     "cache_utils",
     "timing_utils",
+    "async_utils",
     "concurrent_utils",
     "priority_queue_utils",
     "rate_limiter_utils",
@@ -8424,6 +8427,63 @@ def is_subclass_safe(cls: Any, base: Any) -> bool:
     except Exception:
         return False
 TYPEUTILS
+# --- async_utils.py ---
+cat > "$OUTPUT_DIR/async_utils.py" <<'ASYNCUTILS'
+"""Asynchronous utility functions."""
+
+from __future__ import annotations
+
+import asyncio
+from typing import Any, Awaitable, Callable, List, Optional, TypeVar
+
+T = TypeVar("T")
+
+__all__: List[str] = [
+    "run_in_thread",
+    "gather_with_timeout",
+    "async_sleep",
+    "retry_async",
+]
+
+
+async def run_in_thread(func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    """Run a synchronous function in a thread pool."""
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, lambda: func(*args, **kwargs))
+
+
+async def gather_with_timeout(
+    *coros: Awaitable[Any], timeout: Optional[float] = None
+) -> List[Any]:
+    """Gather multiple coroutines with an optional timeout."""
+    if timeout is None:
+        return await asyncio.gather(*coros)
+    return await asyncio.wait_for(asyncio.gather(*coros), timeout=timeout)
+
+
+async def async_sleep(seconds: float) -> None:
+    """Sleep for the specified number of seconds asynchronously."""
+    await asyncio.sleep(seconds)
+
+
+async def retry_async(
+    func: Callable[..., Awaitable[T]],
+    *args: Any,
+    max_attempts: int = 3,
+    delay: float = 0.1,
+    **kwargs: Any,
+) -> T:
+    """Retry an async function on exceptions."""
+    last_exception: Exception = Exception("No attempts made")
+    for attempt in range(max_attempts):
+        try:
+            return await func(*args, **kwargs)
+        except Exception as exc:  # noqa: BLE001
+            last_exception = exc
+            if attempt < max_attempts - 1:
+                await asyncio.sleep(delay)
+    raise last_exception
+ASYNCUTILS
 # --- concurrent_utils.py ---
 cat > "$OUTPUT_DIR/concurrent_utils.py" <<'CONCURRENTUTILS'
 """Concurrent execution utilities for parallel and asynchronous processing.
@@ -10153,6 +10213,7 @@ env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
 timing_utils.py           # Performance measurement helpers
+async_utils.py            # Asynchronous utility functions
 concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 priority_queue_utils.py   # Heap-based priority queue implementation
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
@@ -10326,6 +10387,109 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 __CHANGELOG__
 
+# --- tests/test_async_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_async_utils.py" <<'TESTASYNC'
+"""Unit tests for async_utils module."""
+
+import asyncio
+import unittest
+
+from async_utils import async_sleep, gather_with_timeout, retry_async, run_in_thread
+
+
+class TestRunInThread(unittest.TestCase):
+    def test_run_in_thread_basic(self):
+        async def run_test():
+            result = await run_in_thread(sum, [1, 2, 3, 4])
+            self.assertEqual(result, 10)
+
+        asyncio.run(run_test())
+
+    def test_run_in_thread_with_kwargs(self):
+        def multiply(a: int, b: int) -> int:
+            return a * b
+
+        async def run_test():
+            result = await run_in_thread(multiply, a=3, b=4)
+            self.assertEqual(result, 12)
+
+        asyncio.run(run_test())
+
+
+class TestGatherWithTimeout(unittest.TestCase):
+    def test_gather_with_timeout_no_timeout(self):
+        async def run_test():
+            results = await gather_with_timeout(
+                asyncio.sleep(0.01, result=1),
+                asyncio.sleep(0.01, result=2),
+                asyncio.sleep(0.01, result=3),
+            )
+            self.assertEqual(results, [1, 2, 3])
+
+        asyncio.run(run_test())
+
+    def test_gather_with_timeout_succeeds(self):
+        async def run_test():
+            results = await gather_with_timeout(
+                asyncio.sleep(0.01, result="a"),
+                asyncio.sleep(0.01, result="b"),
+                timeout=1.0,
+            )
+            self.assertEqual(results, ["a", "b"])
+
+        asyncio.run(run_test())
+
+
+class TestAsyncSleep(unittest.TestCase):
+    def test_async_sleep_completes(self):
+        async def run_test():
+            await async_sleep(0.001)
+            self.assertTrue(True)
+
+        asyncio.run(run_test())
+
+
+class TestRetryAsync(unittest.TestCase):
+    def test_retry_async_success_first_attempt(self):
+        async def always_succeeds():
+            return "ok"
+
+        async def run_test():
+            result = await retry_async(always_succeeds)
+            self.assertEqual(result, "ok")
+
+        asyncio.run(run_test())
+
+    def test_retry_async_succeeds_after_failures(self):
+        attempts = []
+
+        async def flaky():
+            attempts.append(1)
+            if len(attempts) < 2:
+                raise ValueError("failed")
+            return "success"
+
+        async def run_test():
+            result = await retry_async(flaky, max_attempts=3, delay=0.001)
+            self.assertEqual(result, "success")
+            self.assertEqual(len(attempts), 2)
+
+        asyncio.run(run_test())
+
+    def test_retry_async_fails_all_attempts(self):
+        async def always_fails():
+            raise ValueError("always fails")
+
+        async def run_test():
+            with self.assertRaises(ValueError):
+                await retry_async(always_fails, max_attempts=2, delay=0.001)
+
+        asyncio.run(run_test())
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTASYNC
 # --- tests/test_concurrent_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_concurrent_utils.py" <<'TESTCONCURRENT'
 """Tests for concurrent_utils module."""
