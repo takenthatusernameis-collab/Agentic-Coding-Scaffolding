@@ -83,6 +83,8 @@
 #   - tests/test_string_utils.py — unit tests for the string_utils module
 #   - type_utils.py — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 #   - tests/test_type_utils.py — unit tests for the type_utils module
+#   - path_utils.py — path manipulation utilities (join, normalize, components, extensions)
+#   - tests/test_path_utils.py — unit tests for the path_utils module
 #   - tree_utils.py tree and nested structure utilities
 #   - tests/test_tree_utils.py unit tests for the tree_utils module
 set -euo pipefail
@@ -468,6 +470,7 @@ py_modules = [
     "type_utils",
     "retry_utils",
     "tree_utils",
+    "path_utils",
 ]
 
 [tool.ruff]
@@ -3245,6 +3248,195 @@ class TestTypeUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTTYPEUTILS
+# --- tests/test_path_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_path_utils.py" <<'TESTPATHUTILS'
+"""Tests for path_utils module."""
+
+import os
+import unittest
+from pathlib import Path
+
+from path_utils import (
+    change_extension,
+    ensure_extension,
+    get_absolute_path,
+    get_common_path,
+    get_file_extension,
+    get_file_name,
+    get_file_stem,
+    get_parent_dir,
+    get_path_components,
+    get_relative_path,
+    is_absolute,
+    join_path,
+    normalize_path,
+)
+
+
+class TestPathJoin(unittest.TestCase):
+    def test_join_basic(self) -> None:
+        self.assertEqual(join_path("a", "b", "c"), os.path.join("a", "b", "c"))
+
+    def test_join_absolute(self) -> None:
+        self.assertEqual(join_path("/usr", "local", "bin"), "/usr/local/bin")
+
+    def test_join_with_path_objects(self) -> None:
+        result = join_path(Path("a"), Path("b"))
+        self.assertEqual(result, os.path.join("a", "b"))
+
+
+class TestNormalizePath(unittest.TestCase):
+    def test_normalize_redundant_separators(self) -> None:
+        self.assertEqual(normalize_path("a//b///c"), os.path.join("a", "b", "c"))
+
+    def test_normalize_dot_segments(self) -> None:
+        result = normalize_path("a/b/../c")
+        self.assertEqual(result, os.path.join("a", "c"))
+
+    def test_normalize_absolute(self) -> None:
+        result = normalize_path("/usr/./local//bin")
+        self.assertTrue(result.startswith("/usr/local"))
+
+
+class TestGetAbsolutePath(unittest.TestCase):
+    def test_absolute_returns_string(self) -> None:
+        result = get_absolute_path("foo")
+        self.assertIsInstance(result, str)
+        self.assertTrue(Path(result).is_absolute())
+
+
+class TestGetRelativePath(unittest.TestCase):
+    def test_relative_basic(self) -> None:
+        self.assertEqual(get_relative_path("/usr/local/bin", "/usr"), "local/bin")
+
+    def test_relative_same(self) -> None:
+        self.assertEqual(get_relative_path("/usr/local", "/usr/local"), ".")
+
+    def test_relative_raises_when_not_relative(self) -> None:
+        with self.assertRaises(ValueError):
+            get_relative_path("/usr/local", "/var")
+
+
+class TestGetParentDir(unittest.TestCase):
+    def test_parent_of_file(self) -> None:
+        self.assertEqual(get_parent_dir("/usr/local/bin/python"), "/usr/local/bin")
+
+    def test_parent_of_single_component(self) -> None:
+        self.assertEqual(get_parent_dir("file.txt"), ".")
+
+
+class TestGetFileName(unittest.TestCase):
+    def test_file_name(self) -> None:
+        self.assertEqual(get_file_name("/usr/local/bin/python"), "python")
+
+    def test_file_name_with_dots(self) -> None:
+        self.assertEqual(get_file_name("archive.tar.gz"), "archive.tar.gz")
+
+
+class TestGetFileStem(unittest.TestCase):
+    def test_stem_simple(self) -> None:
+        self.assertEqual(get_file_stem("/usr/local/script.py"), "script")
+
+    def test_stem_multiple_dots(self) -> None:
+        self.assertEqual(get_file_stem("archive.tar.gz"), "archive.tar")
+
+    def test_stem_no_extension(self) -> None:
+        self.assertEqual(get_file_stem("Makefile"), "Makefile")
+
+
+class TestGetFileExtension(unittest.TestCase):
+    def test_extension_simple(self) -> None:
+        self.assertEqual(get_file_extension("script.py"), ".py")
+
+    def test_extension_none(self) -> None:
+        self.assertEqual(get_file_extension("Makefile"), "")
+
+    def test_extension_last(self) -> None:
+        self.assertEqual(get_file_extension("archive.tar.gz"), ".gz")
+
+
+class TestChangeExtension(unittest.TestCase):
+    def test_change_to_new(self) -> None:
+        self.assertEqual(change_extension("script.py", ".txt"), "script.txt")
+
+    def test_change_without_dot(self) -> None:
+        self.assertEqual(change_extension("image.png", "jpg"), "image.jpg")
+
+    def test_change_same_extension(self) -> None:
+        self.assertEqual(change_extension("script.py", ".py"), "script.py")
+
+
+class TestIsAbsolute(unittest.TestCase):
+    def test_absolute(self) -> None:
+        self.assertTrue(is_absolute("/usr/local/bin"))
+
+    def test_relative(self) -> None:
+        self.assertFalse(is_absolute("relative/path"))
+
+
+class TestGetPathComponents(unittest.TestCase):
+    def test_absolute_path_components(self) -> None:
+        result = get_path_components("/usr/local/bin")
+        self.assertEqual(result, [os.sep, "usr", "local", "bin"])
+
+    def test_relative_path_components(self) -> None:
+        result = get_path_components("a/b/c")
+        self.assertEqual(result, ["a", "b", "c"])
+
+
+class TestGetCommonPath(unittest.TestCase):
+    def test_common_path(self) -> None:
+        self.assertEqual(get_common_path("/a/b/c", "/a/b/d"), "/a/b")
+
+    def test_common_path_relative(self) -> None:
+        self.assertEqual(get_common_path("x/y/z", "x/y/w"), "x/y")
+
+    def test_no_common_path(self) -> None:
+        # Only the root separator is shared; that is still a valid common prefix.
+        self.assertEqual(get_common_path("/a/b", "/c/d"), os.sep)
+
+    def test_requires_two_paths(self) -> None:
+        with self.assertRaises(ValueError):
+            get_common_path("/a/b")
+
+    def test_three_paths(self) -> None:
+        self.assertEqual(get_common_path("/a/b/c", "/a/b/d", "/a/b/e"), "/a/b")
+
+
+class TestEnsureExtension(unittest.TestCase):
+    def test_already_has_extension(self) -> None:
+        self.assertEqual(ensure_extension("script.py", ".py"), "script.py")
+
+    def test_missing_extension_added(self) -> None:
+        self.assertEqual(ensure_extension("script", ".py"), "script.py")
+
+    def test_wrong_extension_appended(self) -> None:
+        self.assertEqual(ensure_extension("image.png", ".py"), "image.png.py")
+
+    def test_extension_without_dot(self) -> None:
+        self.assertEqual(ensure_extension("script", "py"), "script.py")
+
+
+class TestReturnTypes(unittest.TestCase):
+    def test_all_return_strings(self) -> None:
+        self.assertIsInstance(join_path("a", "b"), str)
+        self.assertIsInstance(normalize_path("a/b"), str)
+        self.assertIsInstance(get_absolute_path("a"), str)
+        self.assertIsInstance(get_relative_path("a/b", "a"), str)
+        self.assertIsInstance(get_parent_dir("a/b"), str)
+        self.assertIsInstance(get_file_name("a/b.txt"), str)
+        self.assertIsInstance(get_file_stem("a/b.txt"), str)
+        self.assertIsInstance(get_file_extension("a/b.txt"), str)
+        self.assertIsInstance(change_extension("a/b.txt", ".md"), str)
+        self.assertIsInstance(is_absolute("/a"), bool)
+        self.assertIsInstance(get_path_components("/a/b"), list)
+        self.assertIsInstance(get_common_path("/a/b", "/a/c"), str)
+        self.assertIsInstance(ensure_extension("a", ".txt"), str)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTPATHUTILS
 # --- tests/test_math_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
 """Tests for math_utils module."""
@@ -8427,6 +8619,320 @@ def is_subclass_safe(cls: Any, base: Any) -> bool:
     except Exception:
         return False
 TYPEUTILS
+# --- path_utils.py ---
+cat > "$OUTPUT_DIR/path_utils.py" <<'PATHUTILS'
+"""Path manipulation utilities for working with filesystem paths."""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path, PurePath
+from typing import List, Union
+
+__all__: List[str] = [
+    "join_path",
+    "normalize_path",
+    "get_absolute_path",
+    "get_relative_path",
+    "get_parent_dir",
+    "get_file_name",
+    "get_file_stem",
+    "get_file_extension",
+    "change_extension",
+    "is_absolute",
+    "get_path_components",
+    "get_common_path",
+    "ensure_extension",
+]
+
+
+def join_path(*parts: Union[str, Path]) -> str:
+    """Join path components into a single path string.
+
+    Args:
+        *parts: Path components to join.
+
+    Returns:
+        The joined path as a string.
+
+    Examples:
+        >>> join_path('a', 'b', 'c')
+        'a/b/c'
+        >>> join_path('/usr', 'local', 'bin')
+        '/usr/local/bin'
+    """
+    return str(Path(*[str(p) for p in parts]))
+
+
+def normalize_path(path: Union[str, Path]) -> str:
+    """Normalize a path by resolving redundant separators and relative components.
+
+    Unlike :func:`get_absolute_path`, this does not resolve the path against the
+    current working directory; it only collapses redundant separators and ``..``
+    / ``.`` components.
+
+    Args:
+        path: The path to normalize.
+
+    Returns:
+        The normalized path as a string.
+
+    Examples:
+        >>> normalize_path('a//b/../c')
+        'a/c'
+        >>> normalize_path('/usr/./local//bin')
+        '/usr/local/bin'
+    """
+    parts: List[str] = []
+    is_absolute = PurePath(path).is_absolute()
+    for part in PurePath(path).parts:
+        if part == os.sep and is_absolute:
+            # Root separator is handled by the prefix below.
+            continue
+        if part in (".", ".."):
+            if part == "..":
+                if parts and parts[-1] != "..":
+                    parts.pop()
+                elif not is_absolute:
+                    parts.append("..")
+            continue
+        parts.append(part)
+    if not parts:
+        return os.sep if is_absolute else "."
+    if is_absolute:
+        return os.sep + os.sep.join(parts)
+    return os.sep.join(parts)
+
+
+def get_absolute_path(path: Union[str, Path]) -> str:
+    """Return the absolute version of a path.
+
+    Args:
+        path: The path to convert.
+
+    Returns:
+        The absolute path as a string.
+
+    Examples:
+        >>> isinstance(get_absolute_path('foo'), str)
+        True
+    """
+    return str(Path(path).absolute())
+
+
+def get_relative_path(path: Union[str, Path], start: Union[str, Path] = ".") -> str:
+    """Return a path relative to a starting directory.
+
+    Args:
+        path: The target path.
+        start: The base directory (default: current directory).
+
+    Returns:
+        The relative path as a string.
+
+    Raises:
+        ValueError: If the path is not relative to the start directory.
+
+    Examples:
+        >>> get_relative_path('/usr/local/bin', '/usr')
+        'local/bin'
+    """
+    return str(Path(path).relative_to(Path(start)))
+
+
+def get_parent_dir(path: Union[str, Path]) -> str:
+    """Return the parent directory of a path.
+
+    Args:
+        path: The file or directory path.
+
+    Returns:
+        The parent directory as a string.
+
+    Examples:
+        >>> get_parent_dir('/usr/local/bin/python')
+        '/usr/local/bin'
+        >>> get_parent_dir('file.txt')
+        '.'
+    """
+    return str(Path(path).parent)
+
+
+def get_file_name(path: Union[str, Path]) -> str:
+    """Return the file name (last component) of a path.
+
+    Args:
+        path: The file or directory path.
+
+    Returns:
+        The file name as a string.
+
+    Examples:
+        >>> get_file_name('/usr/local/bin/python')
+        'python'
+        >>> get_file_name('archive.tar.gz')
+        'archive.tar.gz'
+    """
+    return Path(path).name
+
+
+def get_file_stem(path: Union[str, Path]) -> str:
+    """Return the file name without its final extension.
+
+    Args:
+        path: The file path.
+
+    Returns:
+        The file stem as a string.
+
+    Examples:
+        >>> get_file_stem('/usr/local/script.py')
+        'script'
+        >>> get_file_stem('archive.tar.gz')
+        'archive.tar'
+    """
+    return Path(path).stem
+
+
+def get_file_extension(path: Union[str, Path]) -> str:
+    """Return the file extension (including the leading dot) of a path.
+
+    Args:
+        path: The file path.
+
+    Returns:
+        The file extension as a string, or an empty string if none.
+
+    Examples:
+        >>> get_file_extension('script.py')
+        '.py'
+        >>> get_file_extension('Makefile')
+        ''
+        >>> get_file_extension('archive.tar.gz')
+        '.gz'
+    """
+    return Path(path).suffix
+
+
+def change_extension(path: Union[str, Path], extension: str) -> str:
+    """Return a path with the file extension replaced.
+
+    The new extension should include the leading dot if desired.
+
+    Args:
+        path: The file path.
+        extension: The new extension (with or without leading dot).
+
+    Returns:
+        The path with the new extension as a string.
+
+    Examples:
+        >>> change_extension('script.py', '.txt')
+        'script.txt'
+        >>> change_extension('image.png', 'jpg')
+        'image.jpg'
+    """
+    if extension and not extension.startswith("."):
+        extension = "." + extension
+    return str(Path(path).with_suffix(extension))
+
+
+def is_absolute(path: Union[str, Path]) -> bool:
+    """Return True if the path is absolute.
+
+    Args:
+        path: The path to check.
+
+    Returns:
+        True if the path is absolute, False otherwise.
+
+    Examples:
+        >>> is_absolute('/usr/local/bin')
+        True
+        >>> is_absolute('relative/path')
+        False
+    """
+    return Path(path).is_absolute()
+
+
+def get_path_components(path: Union[str, Path]) -> List[str]:
+    """Split a path into its individual components.
+
+    Args:
+        path: The path to split.
+
+    Returns:
+        A list of path component strings.
+
+    Examples:
+        >>> get_path_components('/usr/local/bin')
+        ['/', 'usr', 'local', 'bin']
+        >>> get_path_components('a/b/c')
+        ['a', 'b', 'c']
+    """
+    parts = Path(path).parts
+    return [str(p) for p in parts]
+
+
+def get_common_path(*paths: Union[str, Path]) -> str:
+    """Return the longest common path prefix of the given paths.
+
+    Args:
+        *paths: Two or more paths to compare.
+
+    Returns:
+        The common path prefix as a string.
+
+    Raises:
+        ValueError: If fewer than two paths are provided.
+
+    Examples:
+        >>> get_common_path('/a/b/c', '/a/b/d')
+        '/a/b'
+        >>> get_common_path('x/y/z', 'x/y/w')
+        'x/y'
+    """
+    if len(paths) < 2:
+        raise ValueError("At least two paths are required")
+    resolved = [Path(p).parts for p in paths]
+    common: List[str] = []
+    for parts in zip(*resolved):
+        if all(part == parts[0] for part in parts):
+            common.append(parts[0])
+        else:
+            break
+    if not common:
+        return ""
+    return str(PurePath(*common))
+
+
+def ensure_extension(path: Union[str, Path], extension: str) -> str:
+    """Ensure a path has the given extension, adding it if missing.
+
+    The extension should include the leading dot if desired.
+
+    Args:
+        path: The file path.
+        extension: The required extension.
+
+    Returns:
+        The path with the extension guaranteed as a string.
+
+    Examples:
+        >>> ensure_extension('script.py', '.py')
+        'script.py'
+        >>> ensure_extension('script', '.py')
+        'script.py'
+        >>> ensure_extension('image.png', '.py')
+        'image.png.py'
+    """
+    if not extension.startswith("."):
+        extension = "." + extension
+    current = Path(path).suffix
+    if current == extension:
+        return str(path)
+    return str(Path(path).with_name(Path(path).name + extension))
+PATHUTILS
 # --- async_utils.py ---
 cat > "$OUTPUT_DIR/async_utils.py" <<'ASYNCUTILS'
 """Asynchronous utility functions."""
@@ -9939,6 +10445,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 - `tree_utils.py` — tree and nested structure utilities (get_nested, set_nested, delete_nested, flatten_tree, unflatten_tree, map_tree, filter_tree)
 - `type_utils.py` — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
+- `path_utils.py` — path manipulation utilities (join, normalize, components, extensions)
 - `uuid_utils.py` — UUID utility functions for generating and validating UUIDs
 - `prompt_utils.py` — Prompt utility functions for working with text prompts
 - `tests/test_hello.py` — unit tests for `hello.py`
@@ -9975,6 +10482,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_string_utils.py` — unit tests for `string_utils.py`
 - `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
 - `tests/test_type_utils.py` — unit tests for `type_utils.py`
+- `tests/test_path_utils.py` — unit tests for `path_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 
@@ -10225,6 +10733,7 @@ set_utils.py             # Set operation utilities (subset, superset, intersecti
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
+    path_utils.py             # Path manipulation utilities (join, normalize, components, extensions)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -10259,8 +10768,9 @@ tests/                       # Python unit tests
   test_statistics_utils.py    # Tests for statistics_utils.py
   test_string_utils.py        # Tests for string_utils.py
   test_tree_utils.py           # Tests for tree_utils.py
-  test_type_utils.py         # Tests for type_utils.py
-```
+test_type_utils.py         # Tests for type_utils.py
+    test_path_utils.py        # Tests for path_utils.py
+    ```
 
 ## Getting Started
 
@@ -10346,6 +10856,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
 - `type_utils.py` — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 - `tests/test_type_utils.py` — unit tests for `type_utils.py`
+- `path_utils.py` — path manipulation utilities (join, normalize, components, extensions)
+- `tests/test_path_utils.py` — unit tests for `path_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing

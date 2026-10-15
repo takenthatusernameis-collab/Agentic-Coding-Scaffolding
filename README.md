@@ -68,7 +68,8 @@ statistics_utils.py        # Statistical utility functions (harmonic mean, geome
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
-tests/                       # Python unit tests
+    path_utils.py             # Path manipulation utilities (join, normalize, components, extensions)
+    tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
   test_scaffold.py           # Tests for scaffold.sh
@@ -102,8 +103,9 @@ tests/                       # Python unit tests
   test_statistics_utils.py    # Tests for statistics_utils.py
   test_string_utils.py        # Tests for string_utils.py
   test_tree_utils.py         # Tests for tree_utils.py
-  test_type_utils.py         # Tests for type_utils.py
-```
+test_type_utils.py         # Tests for type_utils.py
+    test_path_utils.py        # Tests for path_utils.py
+    ```
 
 ## How It Works
 
@@ -262,6 +264,10 @@ The project includes a string utilities module in `string_utils.py` with advance
 
 The project includes a type introspection utilities module in `type_utils.py` with functions for inspecting Python type objects: `is_optional` detects `Optional[T]` / `Union[T, None]`, `is_union` detects any `Union` type, `is_generic` detects generic aliases like `List[int]`, `get_type_args` returns the type arguments of a generic, `type_name` produces a human-readable name for a type, and `is_subclass_safe` checks subclass relationships without raising `TypeError`. The module is tested in `tests/test_type_utils.py`.
 
-Completed task: Added a new `type_utils.py` module with type introspection utilities (`is_optional`, `is_union`, `is_generic`, `get_type_args`, `type_name`, `is_subclass_safe`) and its tests. Synchronized the scaffold template: added `type_utils.py` to the `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Verified all tests pass, ruff and mypy are clean, and the scaffold smoke test generates a fully consistent project.
+## Path Utilities Module
 
-Next task: Review the project for remaining gaps — consider adding a new utility module (e.g., `path_utils.py` for path manipulation, `color_utils.py` for color handling, or `pattern_utils.py` for design patterns), improving test coverage, or enhancing the scaffold script with new features.
+The project includes a path manipulation utilities module in `path_utils.py` with functions for joining, normalizing, splitting, and inspecting filesystem paths: `join_path`, `normalize_path`, `get_absolute_path`, `get_relative_path`, `get_parent_dir`, `get_file_name`, `get_file_stem`, `get_file_extension`, `change_extension`, `is_absolute`, `get_path_components`, `get_common_path`, and `ensure_extension`. The module is tested in `tests/test_path_utils.py`.
+
+Completed task: Added a new `path_utils.py` module with path manipulation utilities (`join_path`, `normalize_path`, `get_absolute_path`, `get_relative_path`, `get_parent_dir`, `get_file_name`, `get_file_stem`, `get_file_extension`, `change_extension`, `is_absolute`, `get_path_components`, `get_common_path`, `ensure_extension`) and its tests. Synchronized the scaffold template: added `path_utils.py` to the `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Verified all tests pass, ruff and mypy are clean, and the scaffold smoke test generates a fully consistent project.
+
+Next task: Review the project for remaining gaps — consider adding a new utility module (e.g., `color_utils.py` for color handling, `pattern_utils.py` for design patterns), improving test coverage, or enhancing the scaffold script with new features.

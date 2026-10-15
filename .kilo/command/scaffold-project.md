@@ -60,6 +60,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_string_utils.py` — unit tests for `string_utils.py`
 - `tree_utils.py` — tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 - `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
+- `type_utils.py` — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
+- `tests/test_type_utils.py` — unit tests for the type utilities module
+- `path_utils.py` — path manipulation utilities (join, normalize, components, extensions)
+- `tests/test_path_utils.py` — unit tests for `path_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
