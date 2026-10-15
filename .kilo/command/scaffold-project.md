@@ -33,6 +33,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `random_utils.py` — random number generation and sampling utilities
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
+- `list_utils.py` — advanced list manipulation utilities
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
@@ -47,6 +48,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_random_utils.py` — unit tests for `random_utils.py`
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
+- `tests/test_list_utils.py` — unit tests for `list_utils.py`
 
 ## Usage
 

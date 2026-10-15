@@ -47,6 +47,8 @@
 #   - tests/test_validation_utils.py unit tests for the validation_utils module
 #   - crypto_utils.py cryptographic utilities
 #   - tests/test_crypto_utils.py unit tests for the crypto_utils module
+#   - list_utils.py advanced list manipulation utilities
+#   - tests/test_list_utils.py unit tests for the list_utils module
 #
 set -euo pipefail
 
@@ -3494,6 +3496,371 @@ class TestBase64Decode(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTCRYPTOUTILS
+# --- list_utils.py ---
+cat > "$OUTPUT_DIR/list_utils.py" <<'LISTUTILS'
+"""Advanced list utility functions for common manipulation tasks."""
+
+from typing import Any, Callable, List, Optional, Tuple, TypeVar
+
+T = TypeVar("T")
+K = TypeVar("K")
+
+__all__: List[str] = [
+    "partition",
+    "group_by",
+    "safe_get",
+    "find",
+    "drop",
+    "take",
+    "intersperse",
+]
+
+
+def partition(
+    lst: List[T], predicate: Callable[[T], bool]
+) -> Tuple[List[T], List[T]]:
+    """Split a list into two lists based on a predicate.
+
+    Args:
+        lst: The list to partition.
+        predicate: A function that returns ``True`` for elements that should
+            be in the first result list.
+
+    Returns:
+        A tuple of ``(matching, non_matching)`` lists.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> partition([1, 2, 3, 4], lambda x: x % 2 == 0)
+        ([2, 4], [1, 3])
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    matching: List[T] = []
+    non_matching: List[T] = []
+    for item in lst:
+        if predicate(item):
+            matching.append(item)
+        else:
+            non_matching.append(item)
+    return matching, non_matching
+
+
+def group_by(lst: List[T], key_func: Callable[[T], K]) -> dict:
+    """Group elements of a list into a dict by key function.
+
+    Args:
+        lst: The list to group.
+        key_func: A function that extracts a grouping key from each element.
+
+    Returns:
+        A dict mapping each key to the list of elements that produced it,
+        preserving insertion order of first occurrence.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> result = group_by(["a", "b", "c"], lambda s: len(s))
+        >>> result == {1: ["a", "b", "c"]}
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    result: dict = {}
+    for item in lst:
+        key = key_func(item)
+        if key not in result:
+            result[key] = []
+        result[key].append(item)
+    return result
+
+
+def safe_get(lst: List[T], index: int, default: Optional[T] = None) -> Optional[T]:
+    """Safely retrieve an element by index, returning a default on out-of-range.
+
+    Args:
+        lst: The list to index into.
+        index: The index to retrieve. Supports negative indexing.
+        default: The value to return if the index is out of range.
+            Defaults to ``None``.
+
+    Returns:
+        The element at ``index``, or ``default`` if the index is out of range.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> safe_get([1, 2, 3], 0)
+        1
+        >>> safe_get([1, 2, 3], 10, default=0)
+        0
+        >>> safe_get([1, 2, 3], -1)
+        3
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    try:
+        return lst[index]
+    except IndexError:
+        return default
+
+
+def find(lst: List[T], predicate: Callable[[T], bool]) -> Optional[T]:
+    """Return the first element in the list that satisfies the predicate.
+
+    Args:
+        lst: The list to search.
+        predicate: A function that returns ``True`` for the desired element.
+
+    Returns:
+        The first matching element, or ``None`` if no element matches.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> find([1, 2, 3], lambda x: x > 2)
+        3
+        >>> find([1, 2, 3], lambda x: x > 5)
+
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    for item in lst:
+        if predicate(item):
+            return item
+    return None
+
+
+def drop(lst: List[T], n: int) -> List[T]:
+    """Drop the first ``n`` elements from a list and return the rest.
+
+    Args:
+        lst: The list to truncate.
+        n: The number of elements to drop from the front.
+
+    Returns:
+        A new list with the first ``n`` elements removed.
+        If ``n`` exceeds the list length, returns an empty list.
+
+    Raises:
+        TypeError: If ``lst`` is not a list or ``n`` is not an integer.
+        ValueError: If ``n`` is negative.
+
+    Examples:
+        >>> drop([1, 2, 3, 4, 5], 2)
+        [3, 4, 5]
+        >>> drop([1, 2, 3], 5)
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return lst[n:]
+
+
+def take(lst: List[T], n: int) -> List[T]:
+    """Take the first ``n`` elements from a list and return them.
+
+    Args:
+        lst: The list to take elements from.
+        n: The number of elements to take from the front.
+
+    Returns:
+        A new list containing the first ``n`` elements.
+        If ``n`` exceeds the list length, returns the whole list.
+
+    Raises:
+        TypeError: If ``lst`` is not a list or ``n`` is not an integer.
+        ValueError: If ``n`` is negative.
+
+    Examples:
+        >>> take([1, 2, 3, 4, 5], 3)
+        [1, 2, 3]
+        >>> take([1, 2, 3], 10)
+        [1, 2, 3]
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return lst[:n]
+
+
+def intersperse(lst: List[T], separator: T) -> List[T]:
+    """Insert a separator between each pair of adjacent elements in a list.
+
+    Args:
+        lst: The list to intersperse.
+        separator: The value to insert between each element.
+
+    Returns:
+        A new list with the separator inserted between every pair of
+        adjacent elements. Returns an empty list if ``lst`` is empty.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> intersperse([1, 2, 3], 0)
+        [1, 0, 2, 0, 3]
+        >>> intersperse(["a", "b"], "-")
+        ['a', '-', 'b']
+        >>> intersperse([], "-")
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not lst:
+        return []
+    result: List[T] = [lst[0]]
+    for item in lst[1:]:
+        result.append(separator)
+        result.append(item)
+    return result
+LISTUTILS
+# --- tests/test_list_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_list_utils.py" <<'TESTLISTUTILS'
+"""Tests for list_utils module."""
+import unittest
+
+from list_utils import drop, find, group_by, intersperse, partition, safe_get, take
+
+
+class TestPartition(unittest.TestCase):
+    def test_partition_even_odd(self) -> None:
+        matching, non_matching = partition([1, 2, 3, 4], lambda x: x % 2 == 0)
+        self.assertEqual(matching, [2, 4])
+        self.assertEqual(non_matching, [1, 3])
+
+    def test_partition_empty_list(self) -> None:
+        matching, non_matching = partition([], lambda x: True)
+        self.assertEqual(matching, [])
+        self.assertEqual(non_matching, [])
+
+    def test_partition_all_match(self) -> None:
+        matching, non_matching = partition([1, 2, 3], lambda x: True)
+        self.assertEqual(matching, [1, 2, 3])
+        self.assertEqual(non_matching, [])
+
+    def test_partition_none_match(self) -> None:
+        matching, non_matching = partition([1, 2, 3], lambda x: False)
+        self.assertEqual(matching, [])
+        self.assertEqual(non_matching, [1, 2, 3])
+
+    def test_partition_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            partition("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+class TestGroupBy(unittest.TestCase):
+    def test_group_by_length(self) -> None:
+        result = group_by(["a", "bb", "c", "ddd"], lambda s: len(s))
+        self.assertEqual(result[1], ["a", "c"])
+        self.assertEqual(result[2], ["bb"])
+        self.assertEqual(result[3], ["ddd"])
+
+    def test_group_by_empty_list(self) -> None:
+        result = group_by([], lambda x: x)
+        self.assertEqual(result, {})
+
+    def test_group_by_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            group_by("not a list", lambda x: x)  # type: ignore[arg-type]
+
+
+class TestSafeGet(unittest.TestCase):
+    def test_safe_get_valid_index(self) -> None:
+        self.assertEqual(safe_get([1, 2, 3], 0), 1)
+
+    def test_safe_get_negative_index(self) -> None:
+        self.assertEqual(safe_get([1, 2, 3], -1), 3)
+
+    def test_safe_get_out_of_range_default(self) -> None:
+        self.assertIsNone(safe_get([1, 2, 3], 10))
+
+    def test_safe_get_custom_default(self) -> None:
+        self.assertEqual(safe_get([1, 2, 3], 10, default=0), 0)
+
+    def test_safe_get_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            safe_get("not a list", 0)  # type: ignore[arg-type]
+
+
+class TestFind(unittest.TestCase):
+    def test_find_first_match(self) -> None:
+        self.assertEqual(find([1, 2, 3, 4], lambda x: x > 2), 3)
+
+    def test_find_no_match_returns_none(self) -> None:
+        self.assertIsNone(find([1, 2, 3], lambda x: x > 10))
+
+    def test_find_empty_list_returns_none(self) -> None:
+        self.assertIsNone(find([], lambda x: True))
+
+    def test_find_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+class TestDrop(unittest.TestCase):
+    def test_drop_basic(self) -> None:
+        self.assertEqual(drop([1, 2, 3, 4, 5], 2), [3, 4, 5])
+
+    def test_drop_zero(self) -> None:
+        self.assertEqual(drop([1, 2, 3], 0), [1, 2, 3])
+
+    def test_drop_more_than_length(self) -> None:
+        self.assertEqual(drop([1, 2, 3], 10), [])
+
+    def test_drop_negative_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            drop([1, 2, 3], -1)
+
+    def test_drop_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            drop("not a list", 1)  # type: ignore[arg-type]
+
+
+class TestTake(unittest.TestCase):
+    def test_take_basic(self) -> None:
+        self.assertEqual(take([1, 2, 3, 4, 5], 3), [1, 2, 3])
+
+    def test_take_more_than_length(self) -> None:
+        self.assertEqual(take([1, 2, 3], 10), [1, 2, 3])
+
+    def test_take_negative_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            take([1, 2, 3], -1)
+
+    def test_take_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            take("not a list", 1)  # type: ignore[arg-type]
+
+
+class TestIntersperse(unittest.TestCase):
+    def test_intersperse_ints(self) -> None:
+        self.assertEqual(intersperse([1, 2, 3], 0), [1, 0, 2, 0, 3])
+
+    def test_intersperse_empty_list(self) -> None:
+        self.assertEqual(intersperse([], "-"), [])
+
+    def test_intersperse_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            intersperse("not a list", "-")  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTLISTUTILS
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -3548,6 +3915,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `random_utils.py` — random number generation and sampling utilities
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
+- `list_utils.py` — advanced list manipulation utilities
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
@@ -3562,6 +3930,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_random_utils.py` — unit tests for `random_utils.py`
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
+- `tests/test_list_utils.py` — unit tests for `list_utils.py`
 
 ## Usage
 
@@ -3747,6 +4116,7 @@ url_utils.py                # URL and web utility functions
 random_utils.py             # Random number generation and sampling utilities
 validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
+list_utils.py              # Advanced list manipulation utilities
   .gitignore                   # Common ignore patterns
 LICENSE                      # MIT License
 tests/                       # Python unit tests
@@ -3765,6 +4135,7 @@ tests/                       # Python unit tests
   test_random_utils.py       # Tests for random_utils.py
   test_validation_utils.py   # Tests for validation_utils.py
   test_crypto_utils.py       # Tests for crypto_utils.py
+  test_list_utils.py         # Tests for list_utils.py
 \`\`\`
 
 ## Developer Commands
@@ -3865,6 +4236,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`tests/test_validation_utils.py\` — unit tests for \`validation_utils.py\`
 - \`crypto_utils.py\` — cryptographic utilities
 - \`tests/test_crypto_utils.py\` — unit tests for \`crypto_utils.py\`
+- \`list_utils.py\` — advanced list manipulation utilities
+- \`tests/test_list_utils.py\` — unit tests for \`list_utils.py\`
 CHANGELOG
 
 # --- kilo.json ---
