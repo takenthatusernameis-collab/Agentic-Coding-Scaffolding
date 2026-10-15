@@ -38,7 +38,8 @@ strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions
-  data_utils.py               # Data utility functions
+data_utils.py               # Data utility functions
+file_utils.py               # File and path utility functions
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -49,6 +50,8 @@ tests/                       # Python unit tests
   test_stats.py              # Tests for stats.py
   test_math_utils.py         # Tests for math_utils.py
   test_data_utils.py          # Tests for data_utils.py
+  test_file_utils.py         # Tests for file_utils.py
+  test_file_utils.py         # Tests for file_utils.py
 ```
 
 ## How It Works
@@ -115,3 +118,7 @@ The project includes a mathematical utilities module in `math_utils.py` with fun
 ## Data Utilities Module
 
 The project includes a data utilities module in `data_utils.py` with functions for data manipulation: `deep_copy`, `merge_dicts`, `pick`, `omit`, and `flatten_dict`. The module is tested in `tests/test_data_utils.py`.
+
+## File Utilities Module
+
+The project includes a file utilities module in `file_utils.py` with functions for file and path operations: `read_text`, `write_text`, `read_json`, `write_json`, `ensure_dir`, `list_files`, `copy_file`, and `delete_file`. The module is tested in `tests/test_file_utils.py`.

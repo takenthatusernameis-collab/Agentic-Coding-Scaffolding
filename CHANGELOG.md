@@ -57,6 +57,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - Updated scaffold template to generate `data_utils.py` and its tests
 
+### Added
+- `file_utils.py` — file and path utility functions
+- `tests/test_file_utils.py` — unit tests for `file_utils.py`
+- Updated scaffold template to generate `file_utils.py` and its tests
+- Updated `.kilo/command/scaffold-project.md` and `README.md` to include file utilities
+- Updated `tests/test_scaffold.py` to verify file_utils generation
 
 ## [0.1.0] - Bootstrap
 
