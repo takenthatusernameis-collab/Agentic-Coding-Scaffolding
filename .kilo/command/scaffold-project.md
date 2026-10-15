@@ -21,6 +21,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pyproject.toml` — Python project configuration with pytest, ruff, and mypy settings
 - `hello.py` — sample application entry point
 - `calculator.py` — simple calculator module with arithmetic operations
+- `config_utils.py` — configuration utilities for JSON file management
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
 - `strings.py` — string utilities for text operations
 - `utils.py` — general utility helper functions
@@ -34,8 +35,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
 - `list_utils.py` — advanced list manipulation utilities
+- `env_utils.py` — environment variable handling utilities
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
+- `tests/test_config_utils.py` — unit tests for the config utilities module
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `tests/test_utils.py` — unit tests for `utils.py`
@@ -49,6 +52,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
 - `tests/test_list_utils.py` — unit tests for `list_utils.py`
+- `tests/test_env_utils.py` — unit tests for `env_utils.py`
 
 ## Usage
 

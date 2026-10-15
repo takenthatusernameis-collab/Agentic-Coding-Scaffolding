@@ -51,6 +51,8 @@
 #   - tests/test_crypto_utils.py unit tests for the crypto_utils module
 #   - list_utils.py advanced list manipulation utilities
 #   - tests/test_list_utils.py unit tests for the list_utils module
+#   - env_utils.py environment variable handling and typed accessors
+#   - tests/test_env_utils.py unit tests for the env_utils module
 #
 set -euo pipefail
 
@@ -4376,6 +4378,523 @@ class TestIntersperse(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTLISTUTILS
+
+# --- env_utils.py ---
+cat > "$OUTPUT_DIR/env_utils.py" <<'ENVLUTILS'
+"""Environment variable utility functions for reading, writing, and parsing values.
+
+This module provides a small, consistent API around :mod:`os` environment
+variables, including typed accessors (``int``, ``float``, ``bool``) and helpers
+for required variables, defaults, and prefix-based grouping.
+"""
+
+import os
+from typing import Dict, List, Optional
+
+__all__: List[str] = [
+    "ensure_env",
+    "get_env",
+    "get_env_bool",
+    "get_env_float",
+    "get_env_int",
+    "get_env_required",
+    "prefix_env",
+    "set_env",
+    "unset_env",
+]
+
+_TRUE_VALUES = frozenset({"1", "true", "yes", "y", "on", "t"})
+_FALSE_VALUES = frozenset({"0", "false", "no", "n", "off", "f", ""})
+
+
+def get_env(key: str, default: Optional[str] = None) -> Optional[str]:
+    """Return the value of an environment variable, or ``default`` if unset.
+
+    Args:
+        key: The name of the environment variable.
+        default: The value to return if the variable is not set. Defaults to ``None``.
+
+    Returns:
+        The environment variable value as a string, or ``default`` if unset.
+
+    Raises:
+        TypeError: If ``key`` is not a string.
+
+    Example:
+        >>> import os
+        >>> os.environ.pop("MISSING_VAR", None)
+        >>> get_env("MISSING_VAR", "fallback")
+        'fallback'
+    """
+    if not isinstance(key, str):
+        raise TypeError("key must be a string")
+    return os.environ.get(key, default)
+
+
+def get_env_required(key: str) -> str:
+    """Return the value of a required environment variable.
+
+    Args:
+        key: The name of the environment variable.
+
+    Returns:
+        The environment variable value as a string.
+
+    Raises:
+        TypeError: If ``key`` is not a string.
+        KeyError: If the environment variable is not set.
+
+    Example:
+        >>> import os
+        >>> os.environ["MY_VAR"] = "hello"
+        >>> get_env_required("MY_VAR")
+        'hello'
+    """
+    if not isinstance(key, str):
+        raise TypeError("key must be a string")
+    value = os.environ.get(key)
+    if value is None:
+        raise KeyError(f"Required environment variable not set: {key}")
+    return value
+
+
+def get_env_int(key: str, default: Optional[int] = None) -> Optional[int]:
+    """Return an environment variable parsed as an integer.
+
+    Args:
+        key: The name of the environment variable.
+        default: The value to return if the variable is not set. Defaults to ``None``.
+
+    Returns:
+        The environment variable value as an integer, or ``default`` if unset.
+
+    Raises:
+        TypeError: If ``key`` is not a string.
+        ValueError: If the variable is set but cannot be parsed as an integer.
+
+    Example:
+        >>> import os
+        >>> os.environ["PORT"] = "8080"
+        >>> get_env_int("PORT")
+        8080
+    """
+    if not isinstance(key, str):
+        raise TypeError("key must be a string")
+    value = os.environ.get(key)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        raise ValueError(
+            f"Environment variable {key!r} is not a valid integer: {value!r}"
+        ) from None
+
+
+def get_env_float(key: str, default: Optional[float] = None) -> Optional[float]:
+    """Return an environment variable parsed as a floating-point number.
+
+    Args:
+        key: The name of the environment variable.
+        default: The value to return if the variable is not set. Defaults to ``None``.
+
+    Returns:
+        The environment variable value as a float, or ``default`` if unset.
+
+    Raises:
+        TypeError: If ``key`` is not a string.
+        ValueError: If the variable is set but cannot be parsed as a float.
+
+    Example:
+        >>> import os
+        >>> os.environ["RATIO"] = "3.14"
+        >>> get_env_float("RATIO")
+        3.14
+    """
+    if not isinstance(key, str):
+        raise TypeError("key must be a string")
+    value = os.environ.get(key)
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except ValueError:
+        raise ValueError(f"Environment variable {key!r} is not a valid float: {value!r}") from None
+
+
+def get_env_bool(key: str, default: Optional[bool] = None) -> Optional[bool]:
+    """Return an environment variable parsed as a boolean.
+
+    The following case-insensitive values are recognized as ``True``:
+    ``"1"``, ``"true"``, ``"yes"``, ``"y"``, ``"on"``, ``"t"``.
+
+    The following case-insensitive values are recognized as ``False``:
+    ``"0"``, ``"false"``, ``"no"``, ``"n"``, ``"off"``, ``"f"``, ``""``.
+
+    Args:
+        key: The name of the environment variable.
+        default: The value to return if the variable is not set. Defaults to ``None``.
+
+    Returns:
+        The environment variable value as a boolean, or ``default`` if unset.
+
+    Raises:
+        TypeError: If ``key`` is not a string.
+        ValueError: If the variable is set but is not a recognized boolean string.
+
+    Example:
+        >>> import os
+        >>> os.environ["DEBUG"] = "true"
+        >>> get_env_bool("DEBUG")
+        True
+    """
+    if not isinstance(key, str):
+        raise TypeError("key must be a string")
+    value = os.environ.get(key)
+    if value is None:
+        return default
+    lowered = value.strip().lower()
+    if lowered in _TRUE_VALUES:
+        return True
+    if lowered in _FALSE_VALUES:
+        return False
+    raise ValueError(f"Environment variable {key!r} is not a valid boolean: {value!r}")
+
+
+def set_env(key: str, value: object) -> None:
+    """Set an environment variable to the string representation of ``value``.
+
+    Args:
+        key: The name of the environment variable.
+        value: The value to set. Non-string values are converted via ``str()``.
+
+    Raises:
+        TypeError: If ``key`` is not a string.
+        ValueError: If ``key`` is empty or contains ``=``.
+    """
+    if not isinstance(key, str):
+        raise TypeError("key must be a string")
+    if not key:
+        raise ValueError("key must not be empty")
+    if "=" in key:
+        raise ValueError("key must not contain '='")
+    os.environ[key] = str(value)
+
+
+def ensure_env(key: str, default: str) -> str:
+    """Ensure an environment variable is set, populating it with ``default`` if missing.
+
+    If the variable is already set, its current value is returned unchanged.
+    Otherwise ``default`` is set and returned.
+
+    Args:
+        key: The name of the environment variable.
+        default: The value to use (and set) if the variable is not already set.
+
+    Returns:
+        The current value of the environment variable.
+
+    Raises:
+        TypeError: If ``key`` or ``default`` is not a string.
+        ValueError: If ``key`` is empty or contains ``=``.
+
+    Example:
+        >>> import os
+        >>> os.environ.pop("NEW_VAR", None)
+        >>> ensure_env("NEW_VAR", "default")
+        'default'
+    """
+    if not isinstance(key, str):
+        raise TypeError("key must be a string")
+    if not isinstance(default, str):
+        raise TypeError("default must be a string")
+    value = os.environ.get(key)
+    if value is None:
+        set_env(key, default)
+        return default
+    return value
+
+
+def unset_env(key: str) -> bool:
+    """Unset (remove) an environment variable.
+
+    Args:
+        key: The name of the environment variable.
+
+    Returns:
+        ``True`` if the variable was present and removed, ``False`` if it was not set.
+
+    Raises:
+        TypeError: If ``key`` is not a string.
+    """
+    if not isinstance(key, str):
+        raise TypeError("key must be a string")
+    return os.environ.pop(key, None) is not None
+
+
+def prefix_env(prefix: str) -> Dict[str, str]:
+    """Return all environment variables whose names start with ``prefix``.
+
+    Args:
+        prefix: The prefix to filter environment variable names by.
+
+    Returns:
+        A dictionary mapping matching variable names to their values.
+
+    Raises:
+        TypeError: If ``prefix`` is not a string.
+
+    Example:
+        >>> import os
+        >>> os.environ["APP_DEBUG"] = "1"
+        >>> prefix_env("APP_")
+        {'APP_DEBUG': '1'}
+    """
+    if not isinstance(prefix, str):
+        raise TypeError("prefix must be a string")
+    return {k: v for k, v in os.environ.items() if k.startswith(prefix)}
+ENVLUTILS
+
+# --- tests/test_env_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_env_utils.py" <<'TESTENVL'
+"""Tests for env_utils module."""
+
+import os
+import unittest
+from unittest import mock
+
+from env_utils import (
+    ensure_env,
+    get_env,
+    get_env_bool,
+    get_env_float,
+    get_env_int,
+    get_env_required,
+    prefix_env,
+    set_env,
+    unset_env,
+)
+
+
+class TestGetEnv(unittest.TestCase):
+    def test_returns_value_when_set(self) -> None:
+        with mock.patch.dict(os.environ, {"MY_VAR": "value"}, clear=True):
+            self.assertEqual(get_env("MY_VAR"), "value")
+
+    def test_returns_default_when_unset(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertIsNone(get_env("MISSING"))
+            self.assertEqual(get_env("MISSING", "fallback"), "fallback")
+
+    def test_returns_empty_string_when_set_empty(self) -> None:
+        with mock.patch.dict(os.environ, {"EMPTY_VAR": ""}, clear=True):
+            self.assertEqual(get_env("EMPTY_VAR"), "")
+
+    def test_non_string_key_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            get_env(123)  # type: ignore[arg-type]
+
+
+class TestGetEnvRequired(unittest.TestCase):
+    def test_returns_value_when_set(self) -> None:
+        with mock.patch.dict(os.environ, {"REQUIRED_VAR": "abc"}, clear=True):
+            self.assertEqual(get_env_required("REQUIRED_VAR"), "abc")
+
+    def test_raises_when_unset(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            with self.assertRaises(KeyError):
+                get_env_required("MISSING_REQUIRED")
+
+    def test_error_message_contains_key(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            with self.assertRaises(KeyError) as ctx:
+                get_env_required("MISSING_REQUIRED")
+            self.assertIn("MISSING_REQUIRED", str(ctx.exception))
+
+    def test_non_string_key_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            get_env_required(123)  # type: ignore[arg-type]
+
+
+class TestGetEnvInt(unittest.TestCase):
+    def test_returns_int_when_valid(self) -> None:
+        with mock.patch.dict(os.environ, {"PORT": "8080"}, clear=True):
+            self.assertEqual(get_env_int("PORT"), 8080)
+
+    def test_returns_default_when_unset(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(get_env_int("MISSING", 42), 42)
+            self.assertIsNone(get_env_int("MISSING"))
+
+    def test_raises_when_invalid(self) -> None:
+        with mock.patch.dict(os.environ, {"PORT": "not-a-number"}, clear=True):
+            with self.assertRaises(ValueError):
+                get_env_int("PORT")
+
+    def test_handles_negative(self) -> None:
+        with mock.patch.dict(os.environ, {"OFFSET": "-5"}, clear=True):
+            self.assertEqual(get_env_int("OFFSET"), -5)
+
+    def test_non_string_key_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            get_env_int(123)  # type: ignore[arg-type]
+
+
+class TestGetEnvFloat(unittest.TestCase):
+    def test_returns_float_when_valid(self) -> None:
+        with mock.patch.dict(os.environ, {"RATIO": "3.14"}, clear=True):
+            result = get_env_float("RATIO")
+            assert result is not None
+            self.assertAlmostEqual(result, 3.14)
+
+    def test_returns_int_as_float(self) -> None:
+        with mock.patch.dict(os.environ, {"COUNT": "10"}, clear=True):
+            result = get_env_float("COUNT")
+            assert result is not None
+            self.assertEqual(result, 10.0)
+
+    def test_returns_default_when_unset(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertIsNone(get_env_float("MISSING"))
+            result = get_env_float("MISSING", 1.5)
+            assert result is not None
+            self.assertAlmostEqual(result, 1.5)
+
+    def test_raises_when_invalid(self) -> None:
+        with mock.patch.dict(os.environ, {"RATE": "abc"}, clear=True):
+            with self.assertRaises(ValueError):
+                get_env_float("RATE")
+
+    def test_non_string_key_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            get_env_float(123)  # type: ignore[arg-type]
+
+
+class TestGetEnvBool(unittest.TestCase):
+    def test_true_values(self) -> None:
+        for val in ["1", "true", "TRUE", "Yes", "on", "Y", "t"]:
+            with mock.patch.dict(os.environ, {"FLAG": val}, clear=True):
+                self.assertIs(get_env_bool("FLAG"), True, f"{val!r} should be True")
+
+    def test_false_values(self) -> None:
+        for val in ["0", "false", "NO", "off", "f", "", "  "]:
+            with mock.patch.dict(os.environ, {"FLAG": val}, clear=True):
+                self.assertIs(get_env_bool("FLAG"), False, f"{val!r} should be False")
+
+    def test_returns_default_when_unset(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertIs(get_env_bool("MISSING", True), True)
+            self.assertIs(get_env_bool("MISSING", False), False)
+            self.assertIsNone(get_env_bool("MISSING"))
+
+    def test_raises_when_invalid(self) -> None:
+        with mock.patch.dict(os.environ, {"FLAG": "maybe"}, clear=True):
+            with self.assertRaises(ValueError):
+                get_env_bool("FLAG")
+
+    def test_non_string_key_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            get_env_bool(123)  # type: ignore[arg-type]
+
+
+class TestSetEnv(unittest.TestCase):
+    def test_sets_string_value(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            set_env("KEY", "value")
+            self.assertEqual(os.environ["KEY"], "value")
+
+    def test_converts_non_string_value(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            set_env("COUNT", 42)
+            self.assertEqual(os.environ["COUNT"], "42")
+
+    def test_overwrites_existing(self) -> None:
+        with mock.patch.dict(os.environ, {"KEY": "old"}, clear=True):
+            set_env("KEY", "new")
+            self.assertEqual(os.environ["KEY"], "new")
+
+    def test_rejects_non_string_key(self) -> None:
+        with self.assertRaises(TypeError):
+            set_env(123, "value")  # type: ignore[arg-type]
+
+    def test_rejects_empty_key(self) -> None:
+        with self.assertRaises(ValueError):
+            set_env("", "value")
+
+    def test_rejects_key_with_equals(self) -> None:
+        with self.assertRaises(ValueError):
+            set_env("KEY=VAL", "value")
+
+
+class TestEnsureEnv(unittest.TestCase):
+    def test_sets_default_when_missing(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            result = ensure_env("NEW_VAR", "default")
+            self.assertEqual(result, "default")
+            self.assertEqual(os.environ["NEW_VAR"], "default")
+
+    def test_preserves_existing_value(self) -> None:
+        with mock.patch.dict(os.environ, {"EXISTING": "old"}, clear=True):
+            result = ensure_env("EXISTING", "new")
+            self.assertEqual(result, "old")
+            self.assertEqual(os.environ["EXISTING"], "old")
+
+    def test_rejects_non_string_key(self) -> None:
+        with self.assertRaises(TypeError):
+            ensure_env(123, "default")  # type: ignore[arg-type]
+
+    def test_rejects_non_string_default(self) -> None:
+        with self.assertRaises(TypeError):
+            ensure_env("NEW_VAR", 42)  # type: ignore[arg-type]
+
+    def test_rejects_empty_key(self) -> None:
+        with self.assertRaises(ValueError):
+            ensure_env("", "default")
+
+
+class TestUnsetEnv(unittest.TestCase):
+    def test_removes_existing(self) -> None:
+        with mock.patch.dict(os.environ, {"TO_REMOVE": "x"}, clear=True):
+            self.assertTrue(unset_env("TO_REMOVE"))
+            self.assertNotIn("TO_REMOVE", os.environ)
+
+    def test_returns_false_when_not_set(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertFalse(unset_env("MISSING"))
+            self.assertFalse(unset_env("MISSING"))
+
+    def test_non_string_key_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            unset_env(123)  # type: ignore[arg-type]
+
+
+class TestPrefixEnv(unittest.TestCase):
+    def test_returns_filtered_vars(self) -> None:
+        env = {"APP_DEBUG": "1", "APP_HOST": "x", "PATH": "/bin"}
+        with mock.patch.dict(os.environ, env, clear=False):
+            result = prefix_env("APP_")
+            self.assertEqual(result, {"APP_DEBUG": "1", "APP_HOST": "x"})
+
+    def test_empty_prefix_returns_all(self) -> None:
+        env = {"A": "1", "B": "2"}
+        with mock.patch.dict(os.environ, env, clear=False):
+            result = prefix_env("")
+            self.assertIn("A", result)
+            self.assertIn("B", result)
+
+    def test_no_matches_returns_empty(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(prefix_env("NOPE_"), {})
+
+    def test_non_string_prefix_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            prefix_env(123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTENVL
+
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -4432,6 +4951,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
 - `list_utils.py` — advanced list manipulation utilities
+- `env_utils.py` — environment variable handling utilities
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -4448,6 +4968,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
 - `tests/test_list_utils.py` — unit tests for `list_utils.py`
+- `tests/test_env_utils.py` — unit tests for `env_utils.py`
 
 ## Usage
 
@@ -4634,6 +5155,7 @@ random_utils.py             # Random number generation and sampling utilities
 validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 list_utils.py              # Advanced list manipulation utilities
+env_utils.py               # Environment variable handling utilities
   .gitignore                   # Common ignore patterns
 LICENSE                      # MIT License
 tests/                       # Python unit tests
@@ -4653,6 +5175,7 @@ tests/                       # Python unit tests
   test_validation_utils.py   # Tests for validation_utils.py
   test_crypto_utils.py       # Tests for crypto_utils.py
   test_list_utils.py         # Tests for list_utils.py
+  test_env_utils.py          # Tests for env_utils.py
 \`\`\`
 
 ## Developer Commands
@@ -4756,7 +5279,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`crypto_utils.py\` — cryptographic utilities
 - \`tests/test_crypto_utils.py\` — unit tests for \`crypto_utils.py\`
 - \`list_utils.py\` — advanced list manipulation utilities
+- \`env_utils.py\` — environment variable handling utilities
 - \`tests/test_list_utils.py\` — unit tests for \`list_utils.py\`
+- \`tests/test_env_utils.py\` — unit tests for \`env_utils.py\`
 CHANGELOG
 
 # --- kilo.json ---

@@ -5,11 +5,13 @@ verify that the generated project configuration is complete and consistent.
 """
 
 import json
+import os
 import shutil
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 SCAFFOLD = ROOT / "scaffold.sh"
@@ -116,6 +118,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_validation_utils.py",
             "crypto_utils.py",
             "tests/test_crypto_utils.py",
+            "env_utils.py",
+            "tests/test_env_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -187,6 +191,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "validation_utils.py",
             "crypto_utils.py",
             "config_utils.py",
+            "env_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -200,6 +205,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_validation_utils.py",
             "tests/test_crypto_utils.py",
             "tests/test_config_utils.py",
+            "tests/test_env_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -226,6 +232,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "validation_utils.py",
             "crypto_utils.py",
             "config_utils.py",
+            "env_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
@@ -310,6 +317,28 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertEqual(len(hash_string("hello", algorithm="md5")), 32)
         self.assertEqual(base64_decode(base64_encode("hello")), "hello")
         self.assertEqual(len(generate_token(16)), 32)
+
+    def test_env_utils_functions_work(self) -> None:
+        """Generated env_utils.py should have working functions."""
+        from env_utils import (
+            ensure_env,
+            get_env,
+            get_env_bool,
+            get_env_int,
+            set_env,
+            unset_env,
+        )
+
+        with mock.patch.dict(os.environ, {}, clear=True):
+            set_env("TEST_ENV_INT", 42)
+            self.assertEqual(get_env("TEST_ENV_INT"), "42")
+            self.assertEqual(get_env_int("TEST_ENV_INT"), 42)
+            set_env("TEST_ENV_BOOL", "true")
+            self.assertIs(get_env_bool("TEST_ENV_BOOL"), True)
+            self.assertEqual(ensure_env("NEW_VAR", "default"), "default")
+            self.assertEqual(os.environ["NEW_VAR"], "default")
+            self.assertTrue(unset_env("NEW_VAR"))
+            self.assertFalse(unset_env("NEW_VAR"))
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

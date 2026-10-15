@@ -48,6 +48,7 @@ random_utils.py             # Random number generation and sampling utilities
 validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 list_utils.py              # Advanced list manipulation utilities
+env_utils.py               # Environment variable handling utilities
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -65,6 +66,7 @@ tests/                       # Python unit tests
   test_validation_utils.py   # Tests for validation_utils.py
   test_crypto_utils.py       # Tests for crypto_utils.py
   test_list_utils.py         # Tests for list_utils.py
+  test_env_utils.py          # Tests for env_utils.py
 ```
 
 ## How It Works
@@ -163,4 +165,8 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 ## List Utilities Module
 
 The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `drop`, `take`, and `intersperse`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
-Next task: Add env_utils module for environment variable handling.
+
+## Environment Utilities Module
+
+The project includes an environment variable utilities module in `env_utils.py` with functions for reading, writing, and parsing environment variables: `get_env`, `get_env_required`, `get_env_int`, `get_env_float`, `get_env_bool`, `set_env`, `ensure_env`, `unset_env`, and `prefix_env`. Typed accessors parse values as `int`, `float`, and `bool`, with required-variable and default fallbacks. The module is tested in `tests/test_env_utils.py`.
+Next task: Add a `logging_utils` module for logging configuration and helpers (`get_logger`, `configure_logging`, and a `log_calls` decorator) with tests and full scaffolding synchronization.

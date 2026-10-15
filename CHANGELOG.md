@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
 - `list_utils.py` — advanced list manipulation utilities with `partition`, `group_by`, `safe_get`, `find`, `drop`, `take`, and `intersperse` functions
 - `tests/test_list_utils.py` — unit tests for `list_utils.py`
+- `env_utils.py` — environment variable handling utilities with `get_env`, `get_env_required`, `get_env_int`, `get_env_float`, `get_env_bool`, `set_env`, `ensure_env`, `unset_env`, and `prefix_env` functions
+- `tests/test_env_utils.py` — unit tests for `env_utils.py`
 
 ### Fixed
 
