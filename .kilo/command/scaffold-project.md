@@ -32,8 +32,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `stats.py` — statistical utility functions
 - `tests/test_stats.py` — unit tests for `stats.py`
-- `file_utils.py` — file and path utility functions
-- `tests/test_file_utils.py` — unit tests for `file_utils.py`
+ - `file_utils.py` — file and path utility functions
+ - `tests/test_file_utils.py` — unit tests for `file_utils.py`
+ - `datetime_utils.py` — date and time utility functions
+ - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 

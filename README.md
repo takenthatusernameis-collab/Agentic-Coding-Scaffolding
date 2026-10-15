@@ -39,6 +39,7 @@ utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions
 data_utils.py               # Data utility functions
+datetime_utils.py           # Date and time utility functions
 file_utils.py               # File and path utility functions
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -49,8 +50,8 @@ tests/                       # Python unit tests
   test_utils.py              # Tests for utils.py
   test_stats.py              # Tests for stats.py
   test_math_utils.py         # Tests for math_utils.py
-  test_data_utils.py          # Tests for data_utils.py
-  test_file_utils.py         # Tests for file_utils.py
+  test_data_utils.py         # Tests for data_utils.py
+  test_datetime_utils.py     # Tests for datetime_utils.py
   test_file_utils.py         # Tests for file_utils.py
 ```
 
@@ -118,6 +119,10 @@ The project includes a mathematical utilities module in `math_utils.py` with fun
 ## Data Utilities Module
 
 The project includes a data utilities module in `data_utils.py` with functions for data manipulation: `deep_copy`, `merge_dicts`, `pick`, `omit`, and `flatten_dict`. The module is tested in `tests/test_data_utils.py`.
+
+## Datetime Utilities Module
+
+The project includes a date and time utilities module in `datetime_utils.py` with functions for date/time parsing, formatting, and arithmetic: `parse_datetime`, `format_datetime`, `days_between`, `is_leap_year`, `add_days`, and `get_weekday_name`. The module is tested in `tests/test_datetime_utils.py`.
 
 ## File Utilities Module
 

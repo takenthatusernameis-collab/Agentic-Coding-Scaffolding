@@ -103,6 +103,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_data_utils.py",
             "file_utils.py",
             "tests/test_file_utils.py",
+            "datetime_utils.py",
+            "tests/test_datetime_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -209,7 +211,17 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertFalse(is_prime(9))
         self.assertEqual(clamp(5, 0, 10), 5)
 
+    def test_datetime_utils_functions_work(self) -> None:
+        """Generated datetime_utils.py should have working functions."""
+        from datetime import datetime
 
+        from datetime_utils import add_days, days_between, is_leap_year, parse_datetime
+
+        self.assertEqual(parse_datetime("2024-03-15 10:30:00"), datetime(2024, 3, 15, 10, 30, 0))
+        self.assertEqual(days_between("2024-01-01", "2024-01-10"), 9)
+        self.assertTrue(is_leap_year(2024))
+        self.assertFalse(is_leap_year(2023))
+        self.assertEqual(add_days("2024-01-01", 10), datetime(2024, 1, 11))
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

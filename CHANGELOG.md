@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `datetime_utils.py` — date and time utility module with `parse_datetime`, `format_datetime`, `days_between`, `is_leap_year`, `add_days`, and `get_weekday_name` functions
+- `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
+- Updated scaffold template to generate `datetime_utils.py` and its tests
 - Verified project foundation by running test suite, lint, and typecheck
 - `strings.py` — string utility module with `reverse_string`, `is_palindrome`, and `count_vowels` functions
 - `tests/test_strings.py` — unit tests for `strings.py`

@@ -30,6 +30,8 @@
 #   - tests/test_utils.py unit tests for the utils module
 #   - stats.py statistical utility functions
 #   - tests/test_stats.py unit tests for the stats module
+#   - datetime_utils.py date and time utility functions
+#   - tests/test_datetime_utils.py unit tests for the datetime_utils module
 #
 set -euo pipefail
 
@@ -1364,6 +1366,139 @@ def flatten_dict(
             items.append((new_key, v))
     return dict(items)
 DATA
+
+# --- datetime_utils.py ---
+cat > "$OUTPUT_DIR/datetime_utils.py" <<'DATETIME'
+"""Date and time utility functions."""
+
+from datetime import datetime, timedelta
+from typing import Union
+
+DateTimeLike = Union[str, datetime]
+
+
+def parse_datetime(value: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> datetime:
+    """Parse a string into a datetime object.
+
+    Args:
+        value: The string to parse.
+        fmt: The expected format string. Defaults to %Y-%m-%d %H:%M:%S.
+
+    Returns:
+        The parsed datetime object.
+
+    Raises:
+        ValueError: If the string does not match the format.
+    """
+    return datetime.strptime(value, fmt)
+
+
+def format_datetime(dt: datetime, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
+    """Format a datetime object as a string.
+
+    Args:
+        dt: The datetime to format.
+        fmt: The desired format string. Defaults to %Y-%m-%d %H:%M:%S.
+
+    Returns:
+        The formatted string.
+    """
+    return dt.strftime(fmt)
+
+
+def days_between(start: DateTimeLike, end: DateTimeLike) -> int:
+    """Return the absolute number of whole days between two dates.
+
+    Args:
+        start: A datetime or parseable string (format %Y-%m-%d).
+        end: A datetime or parseable string (format %Y-%m-%d).
+
+    Returns:
+        The absolute difference in days.
+
+    Raises:
+        ValueError: If a string argument cannot be parsed.
+    """
+    start_dt = _coerce_datetime(start, "%Y-%m-%d")
+    end_dt = _coerce_datetime(end, "%Y-%m-%d")
+    delta = end_dt - start_dt
+    return abs(delta.days)
+
+
+def is_leap_year(year: int) -> bool:
+    """Return True if year is a leap year.
+
+    Args:
+        year: The year to check.
+
+    Returns:
+        True if the year is a leap year, False otherwise.
+
+    Raises:
+        ValueError: If year is less than 1.
+    """
+    if year < 1:
+        raise ValueError("Year must be a positive integer.")
+    return (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0)
+
+
+def add_days(dt: DateTimeLike, days: int) -> datetime:
+    """Add (or subtract, if negative) a number of days to a datetime.
+
+    Args:
+        dt: A datetime or a string parseable with %Y-%m-%d or %Y-%m-%d %H:%M:%S.
+        days: The number of days to add. May be negative.
+
+    Returns:
+        A new datetime shifted by the given number of days.
+
+    Raises:
+        ValueError: If a string argument cannot be parsed.
+    """
+    dt_val = _coerce_datetime(dt, "%Y-%m-%d", "%Y-%m-%d %H:%M:%S")
+    return dt_val + timedelta(days=days)
+
+
+def get_weekday_name(dt: DateTimeLike) -> str:
+    """Return the full weekday name for a given date.
+
+    Args:
+        dt: A datetime or a string parseable with %Y-%m-%d.
+
+    Returns:
+        The weekday name (e.g. Monday).
+
+    Raises:
+        ValueError: If a string argument cannot be parsed.
+    """
+    dt_val = _coerce_datetime(dt, "%Y-%m-%d")
+    return dt_val.strftime("%A")
+
+
+def _coerce_datetime(value: DateTimeLike, *formats: str) -> datetime:
+    """Coerce a value into a datetime, trying multiple formats if needed.
+
+    Args:
+        value: A datetime (returned as-is) or a string to parse.
+        *formats: Format strings to try when parsing.
+
+    Returns:
+        The resulting datetime.
+
+    Raises:
+        ValueError: If value is a string that matches none of the formats.
+    """
+    if isinstance(value, datetime):
+        return value
+    for fmt in formats:
+        try:
+            return datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+    raise ValueError(
+        f"Could not parse '{value}'. Expected formats: {list(formats)}"
+    )
+DATETIME
 # --- tests/test_math_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
 """Tests for math_utils module."""
@@ -1561,6 +1696,153 @@ class TestFlattenDict(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTDATA
+
+# --- tests/test_datetime_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_datetime_utils.py" <<'TESTDATETIME'
+"""Tests for datetime_utils module."""
+
+import unittest
+from datetime import datetime
+
+from datetime_utils import (
+    add_days,
+    days_between,
+    format_datetime,
+    get_weekday_name,
+    is_leap_year,
+    parse_datetime,
+)
+
+
+class TestParseDatetime(unittest.TestCase):
+    def test_parse_default_format(self) -> None:
+        result = parse_datetime("2024-03-15 10:30:00")
+        self.assertEqual(result, datetime(2024, 3, 15, 10, 30, 0))
+
+    def test_parse_custom_format(self) -> None:
+        result = parse_datetime("15/03/2024", "%d/%m/%Y")
+        self.assertEqual(result, datetime(2024, 3, 15))
+
+    def test_parse_invalid_string_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            parse_datetime("not-a-date")
+
+
+class TestFormatDatetime(unittest.TestCase):
+    def test_format_default(self) -> None:
+        dt = datetime(2024, 3, 15, 10, 30, 0)
+        self.assertEqual(format_datetime(dt), "2024-03-15 10:30:00")
+
+    def test_format_custom(self) -> None:
+        dt = datetime(2024, 3, 15, 10, 30, 0)
+        self.assertEqual(format_datetime(dt, "%Y-%m-%d"), "2024-03-15")
+
+    def test_format_iso(self) -> None:
+        dt = datetime(2024, 3, 15, 10, 30, 0)
+        self.assertEqual(format_datetime(dt, "%Y%m%dT%H%M%S"), "20240315T103000")
+
+
+class TestDaysBetween(unittest.TestCase):
+    def test_days_between_basic(self) -> None:
+        self.assertEqual(days_between("2024-01-01", "2024-01-10"), 9)
+
+    def test_days_between_negative(self) -> None:
+        self.assertEqual(days_between("2024-01-10", "2024-01-01"), 9)
+
+    def test_days_between_same_day(self) -> None:
+        self.assertEqual(days_between("2024-01-01", "2024-01-01"), 0)
+
+    def test_days_between_different_months(self) -> None:
+        self.assertEqual(days_between("2024-02-01", "2024-03-01"), 29)
+
+    def test_days_between_with_datetime_objects(self) -> None:
+        d1 = datetime(2024, 1, 1)
+        d2 = datetime(2024, 1, 10)
+        self.assertEqual(days_between(d1, d2), 9)
+
+    def test_days_between_invalid_string_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            days_between("not-a-date", "2024-01-01")
+
+
+class TestIsLeapYear(unittest.TestCase):
+    def test_leap_year_divisible_by_4(self) -> None:
+        self.assertTrue(is_leap_year(2024))
+        self.assertTrue(is_leap_year(2020))
+
+    def test_leap_year_divisible_by_100_not_400(self) -> None:
+        self.assertFalse(is_leap_year(1900))
+        self.assertFalse(is_leap_year(2100))
+
+    def test_leap_year_divisible_by_400(self) -> None:
+        self.assertTrue(is_leap_year(2000))
+        self.assertTrue(is_leap_year(2400))
+
+    def test_non_leap_year(self) -> None:
+        self.assertFalse(is_leap_year(2023))
+        self.assertFalse(is_leap_year(2025))
+
+    def test_invalid_year_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            is_leap_year(0)
+        with self.assertRaises(ValueError):
+            is_leap_year(-1)
+
+
+class TestAddDays(unittest.TestCase):
+    def test_add_positive_days(self) -> None:
+        result = add_days("2024-01-01", 10)
+        self.assertEqual(result, datetime(2024, 1, 11))
+
+    def test_add_negative_days(self) -> None:
+        result = add_days("2024-01-10", -5)
+        self.assertEqual(result, datetime(2024, 1, 5))
+
+    def test_add_zero_days(self) -> None:
+        result = add_days("2024-01-01", 0)
+        self.assertEqual(result, datetime(2024, 1, 1))
+
+    def test_add_with_datetime_object(self) -> None:
+        dt = datetime(2024, 1, 1, 12, 0, 0)
+        result = add_days(dt, 15)
+        self.assertEqual(result, datetime(2024, 1, 16, 12, 0, 0))
+
+    def test_add_crosses_month_boundary(self) -> None:
+        result = add_days("2024-01-25", 10)
+        self.assertEqual(result, datetime(2024, 2, 4))
+
+    def test_add_crosses_year_boundary(self) -> None:
+        result = add_days("2024-12-25", 10)
+        self.assertEqual(result, datetime(2025, 1, 4))
+
+    def test_add_invalid_string_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            add_days("not-a-date", 5)
+
+
+class TestGetWeekdayName(unittest.TestCase):
+    def test_weekday_name_monday(self) -> None:
+        result = get_weekday_name("2024-03-11")
+        self.assertEqual(result, "Monday")
+
+    def test_weekday_name_friday(self) -> None:
+        result = get_weekday_name("2024-03-15")
+        self.assertEqual(result, "Friday")
+
+    def test_weekday_name_with_datetime_object(self) -> None:
+        dt = datetime(2024, 3, 15)
+        result = get_weekday_name(dt)
+        self.assertEqual(result, "Friday")
+
+    def test_weekday_name_invalid_string_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            get_weekday_name("not-a-date")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTDATETIME
+
 # --- file_utils.py ---
 cat > "$OUTPUT_DIR/file_utils.py" <<'FILEUTILS'
 """File and path utility functions."""
@@ -1945,6 +2227,7 @@ utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions
   data_utils.py               # Data utility functions
+datetime_utils.py           # Date and time utility functions
 file_utils.py               # File and path utility functions
 .gitignore                   # Common ignore patterns
 tests/                       # Python unit tests
@@ -1957,6 +2240,7 @@ tests/                       # Python unit tests
   test_stats.py              # Tests for stats.py
   test_math_utils.py         # Tests for math_utils.py
   test_data_utils.py          # Tests for data_utils.py
+  test_datetime_utils.py      # Tests for datetime_utils.py
   test_file_utils.py         # Tests for file_utils.py
 \`\`\`
 
@@ -2041,8 +2325,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `stats.py` — statistical utility functions
 - `tests/test_stats.py` — unit tests for `stats.py`
-- `file_utils.py` — file and path utility functions
+ - `file_utils.py` — file and path utility functions
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
+- `datetime_utils.py` — date and time utility functions
+- `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 CHANGELOG
 
 # --- kilo.json ---
