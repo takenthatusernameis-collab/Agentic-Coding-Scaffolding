@@ -85,6 +85,8 @@
 #   - tests/test_type_utils.py — unit tests for the type_utils module
 #   - path_utils.py — path manipulation utilities (join, normalize, components, extensions)
 #   - tests/test_path_utils.py — unit tests for the path_utils module
+#   - color_utils.py — color manipulation utilities (hex/rgb/hsl conversion, luminance, contrast, accessibility)
+#   - tests/test_color_utils.py — unit tests for the color_utils module
 #   - tree_utils.py tree and nested structure utilities
 #   - tests/test_tree_utils.py unit tests for the tree_utils module
 set -euo pipefail
@@ -8933,6 +8935,683 @@ def ensure_extension(path: Union[str, Path], extension: str) -> str:
         return str(path)
     return str(Path(path).with_name(Path(path).name + extension))
 PATHUTILS
+# --- color_utils.py ---
+cat > "$OUTPUT_DIR/color_utils.py" <<'COLORUTILS'
+"""Color manipulation utilities.
+
+This module provides functions for converting between color representations
+(hexadecimal, RGB, HSL), computing WCAG relative luminance and contrast ratios,
+checking accessibility, and adjusting/blending colors.
+
+Colors are accepted either as a hexadecimal string (``"#RRGGBB"`` or
+``"RRGGBB"``) or as an RGB tuple ``(r, g, b)`` with integer channels in the
+range ``0``-``255``.
+"""
+
+from typing import List, Sequence, Tuple, Union
+
+__all__: List[str] = [
+    "validate_hex",
+    "hex_to_rgb",
+    "rgb_to_hex",
+    "rgb_to_hsl",
+    "hsl_to_rgb",
+    "get_luminance",
+    "get_contrast_ratio",
+    "is_accessible",
+    "adjust_brightness",
+    "blend_colors",
+]
+
+_RGB = Tuple[int, int, int]
+_Color = Union[str, _RGB]
+
+_HEX_DIGITS = set("0123456789abcdefABCDEF")
+
+_ACCESSIBILITY_THRESHOLDS = {
+    ("AA", "normal"): 4.5,
+    ("AA", "large"): 3.0,
+    ("AAA", "normal"): 7.0,
+    ("AAA", "large"): 4.5,
+}
+
+
+def _require_string(value: str, name: str) -> str:
+    """Validate that ``value`` is a string, raising ``TypeError`` otherwise."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string")
+    return value
+
+
+def _require_int_range(value: int, name: str, minimum: int = 0, maximum: int = 255) -> int:
+    """Validate that ``value`` is an int within ``[minimum, maximum]``."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an integer")
+    if value < minimum or value > maximum:
+        raise ValueError(f"{name} must be between {minimum} and {maximum}")
+    return value
+
+
+def _parse_color(color: _Color, name: str = "color") -> _RGB:
+    """Normalize a hex string or RGB tuple to an ``(r, g, b)`` tuple."""
+    if isinstance(color, str):
+        return hex_to_rgb(color)
+    if (
+        isinstance(color, tuple)
+        and len(color) == 3
+        and all(isinstance(channel, int) and not isinstance(channel, bool) for channel in color)
+    ):
+        r, g, b = color
+        return (
+            _require_int_range(r, f"{name}[0]"),
+            _require_int_range(g, f"{name}[1]"),
+            _require_int_range(b, f"{name}[2]"),
+        )
+    raise TypeError(f"{name} must be a hex string or an (r, g, b) tuple of ints")
+
+
+def validate_hex(hex_color: str) -> bool:
+    """Return ``True`` if ``hex_color`` is a valid ``#RRGGBB`` or ``RRGGBB`` string.
+
+    Args:
+        hex_color: The hexadecimal color string to validate.
+
+    Returns:
+        ``True`` for a valid 6-digit hex color, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``hex_color`` is not a string.
+
+    Examples:
+        >>> validate_hex("#ff5733")
+        True
+        >>> validate_hex("ff5733")
+        True
+        >>> validate_hex("#gg5733")
+        False
+        >>> validate_hex("#ff57")
+        False
+    """
+    _require_string(hex_color, "hex_color")
+    value = hex_color.lstrip("#")
+    if len(value) != 6:
+        return False
+    return all(ch in _HEX_DIGITS for ch in value)
+
+
+def hex_to_rgb(hex_color: str) -> _RGB:
+    """Convert a hexadecimal color string to an ``(r, g, b)`` tuple.
+
+    Args:
+        hex_color: A ``#RRGGBB`` or ``RRGGBB`` color string.
+
+    Returns:
+        A tuple of three integers ``(r, g, b)`` in the range ``0``-``255``.
+
+    Raises:
+        TypeError: If ``hex_color`` is not a string.
+        ValueError: If ``hex_color`` is not a valid 6-digit hex color.
+
+    Examples:
+        >>> hex_to_rgb("#ff5733")
+        (255, 87, 51)
+        >>> hex_to_rgb("000000")
+        (0, 0, 0)
+        >>> hex_to_rgb("#FFFFFF")
+        (255, 255, 255)
+    """
+    _require_string(hex_color, "hex_color")
+    if not validate_hex(hex_color):
+        raise ValueError(f"Invalid hex color: {hex_color!r}")
+    value = hex_color.lstrip("#")
+    return tuple(int(value[i : i + 2], 16) for i in (0, 2, 4))
+
+
+def rgb_to_hex(r: int, g: int, b: int) -> str:
+    """Convert RGB channel values to a ``#RRGGBB`` hexadecimal string.
+
+    Args:
+        r: Red channel (0-255).
+        g: Green channel (0-255).
+        b: Blue channel (0-255).
+
+    Returns:
+        A lowercase ``#RRGGBB`` hexadecimal color string.
+
+    Raises:
+        TypeError: If any channel is not an integer.
+        ValueError: If any channel is outside ``0``-``255``.
+
+    Examples:
+        >>> rgb_to_hex(255, 87, 51)
+        '#ff5733'
+        >>> rgb_to_hex(0, 0, 0)
+        '#000000'
+    """
+    r = _require_int_range(r, "r")
+    g = _require_int_range(g, "g")
+    b = _require_int_range(b, "b")
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def _srgb_linear(channel: int) -> float:
+    """Linearize an sRGB 8-bit channel per the WCAG 2.1 relative luminance formula."""
+    c = channel / 255.0
+    if c <= 0.03928:
+        return c / 12.92
+    return ((c + 0.055) / 1.055) ** 2.4
+
+
+def get_luminance(color: _Color) -> float:
+    """Return the WCAG 2.1 relative luminance of a color.
+
+    The result is in the range ``0.0`` (black) to ``1.0`` (white).
+
+    Args:
+        color: A hex string or an ``(r, g, b)`` tuple.
+
+    Returns:
+        The relative luminance as a float.
+
+    Raises:
+        TypeError: If ``color`` is not a hex string or RGB tuple.
+        ValueError: If an RGB channel is outside ``0``-``255``.
+
+    Examples:
+        >>> round(get_luminance("#ffffff"), 4)
+        1.0
+        >>> round(get_luminance("#000000"), 4)
+        0.0
+        >>> round(get_luminance((255, 255, 255)), 4)
+        1.0
+    """
+    r, g, b = _parse_color(color, "color")
+    return 0.2126 * _srgb_linear(r) + 0.7152 * _srgb_linear(g) + 0.0722 * _srgb_linear(b)
+
+
+def rgb_to_hsl(r: int, g: int, b: int) -> Tuple[float, float, float]:
+    """Convert RGB channel values to HSL ``(h, s, l)``.
+
+    Hue is in degrees ``[0, 360)``; saturation and lightness are in ``[0, 1]``.
+
+    Args:
+        r: Red channel (0-255).
+        g: Green channel (0-255).
+        b: Blue channel (0-255).
+
+    Returns:
+        A tuple ``(h, s, l)`` with ``h`` in degrees and ``s``, ``l`` in ``[0, 1]``.
+
+    Raises:
+        TypeError: If any channel is not an integer.
+        ValueError: If any channel is outside ``0``-``255``.
+
+    Examples:
+        >>> h, s, l = rgb_to_hsl(255, 0, 0)
+        >>> round(h), round(s, 2), round(l, 2)
+        (0, 1.0, 0.5)
+    """
+    r = _require_int_range(r, "r") / 255.0
+    g = _require_int_range(g, "g") / 255.0
+    b = _require_int_range(b, "b") / 255.0
+    max_c = max(r, g, b)
+    min_c = min(r, g, b)
+    l = (max_c + min_c) / 2.0
+    if max_c == min_c:
+        return 0.0, 0.0, l
+    d = max_c - min_c
+    s = d / (2.0 - max_c - min_c) if l > 0.5 else d / (max_c + min_c)
+    if max_c == r:
+        h = (60.0 * ((g - b) / d) + 360.0) % 360.0
+    elif max_c == g:
+        h = (60.0 * ((b - r) / d) + 120.0) % 360.0
+    else:
+        h = (60.0 * ((r - g) / d) + 240.0) % 360.0
+    return h, s, l
+
+
+def hsl_to_rgb(h: float, s: float, l: float) -> _RGB:
+    """Convert HSL ``(h, s, l)`` to RGB ``(r, g, b)``.
+
+    Hue ``h`` is in degrees; saturation ``s`` and lightness ``l`` are in ``[0, 1]``.
+
+    Args:
+        h: Hue in degrees.
+        s: Saturation in ``[0, 1]``.
+        l: Lightness in ``[0, 1]``.
+
+    Returns:
+        A tuple of three integers ``(r, g, b)`` in the range ``0``-``255``.
+
+    Raises:
+        TypeError: If any argument is not a number.
+        ValueError: If ``s`` or ``l`` is outside ``[0, 1]``.
+
+    Examples:
+        >>> hsl_to_rgb(0, 1.0, 0.5)
+        (255, 0, 0)
+        >>> hsl_to_rgb(0, 0.0, 0.0)
+        (0, 0, 0)
+    """
+    if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in (h, s, l)):
+        raise TypeError("h, s, and l must be numbers")
+    if not 0.0 <= s <= 1.0 or not 0.0 <= l <= 1.0:
+        raise ValueError("s and l must be in the range [0, 1]")
+
+    def _hue_to_rgb(p: float, q: float, t: float) -> float:
+        t %= 1.0
+        if t < 1.0 / 6.0:
+            return p + (q - p) * 6.0 * t
+        if t < 0.5:
+            return q
+        if t < 2.0 / 3.0:
+            return p + (q - p) * (2.0 / 3.0 - t) * 6.0
+        return p
+
+    if s == 0.0:
+        r = g = b = l
+    else:
+        q = l * (1.0 + s) if l < 0.5 else l + s - l * s
+        p = 2.0 * l - q
+        r = _hue_to_rgb(p, q, h / 360.0 + 1.0 / 3.0)
+        g = _hue_to_rgb(p, q, h / 360.0)
+        b = _hue_to_rgb(p, q, h / 360.0 - 1.0 / 3.0)
+    return (
+        _require_int_range(round(r * 255), "r"),
+        _require_int_range(round(g * 255), "g"),
+        _require_int_range(round(b * 255), "b"),
+    )
+
+
+def get_contrast_ratio(color1: _Color, color2: _Color) -> float:
+    """Return the WCAG 2.1 contrast ratio between two colors.
+
+    The ratio is in the range ``1.0`` (identical colors) to ``21.0`` (black vs
+    white). The lighter color's luminance is used as the numerator.
+
+    Args:
+        color1: First color (hex string or ``(r, g, b)`` tuple).
+        color2: Second color (hex string or ``(r, g, b)`` tuple).
+
+    Returns:
+        The contrast ratio as a float.
+
+    Raises:
+        TypeError: If either color is not a hex string or RGB tuple.
+        ValueError: If an RGB channel is outside ``0``-``255``.
+
+    Examples:
+        >>> round(get_contrast_ratio("#ffffff", "#000000"), 2)
+        21.0
+        >>> round(get_contrast_ratio("#ffffff", "#ffffff"), 2)
+        1.0
+    """
+    lum1 = get_luminance(color1)
+    lum2 = get_luminance(color2)
+    lighter = max(lum1, lum2)
+    darker = min(lum1, lum2)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def is_accessible(
+    foreground: _Color,
+    background: _Color,
+    level: str = "AA",
+    size: str = "normal",
+) -> bool:
+    """Return ``True`` if the color pair meets a WCAG contrast threshold.
+
+    Args:
+        foreground: Foreground color (hex string or ``(r, g, b)`` tuple).
+        background: Background color (hex string or ``(r, g, b)`` tuple).
+        level: Conformance level, either ``"AA"`` or ``"AAA"``.
+        size: Text size, either ``"normal"`` or ``"large"``.
+
+    Returns:
+        ``True`` when the contrast ratio meets the threshold for the given
+        level and size, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``level`` or ``size`` is not a string.
+        ValueError: If ``level`` or ``size`` is not a recognized value.
+
+    Examples:
+        >>> is_accessible("#000000", "#ffffff")
+        True
+        >>> is_accessible("#ffffff", "#ffffff", level="AA")
+        False
+    """
+    _require_string(level, "level")
+    _require_string(size, "size")
+    key = (level.upper(), size.lower())
+    if key not in _ACCESSIBILITY_THRESHOLDS:
+        raise ValueError(
+            f"Unknown level/size combination: {level!r}/{size!r}; "
+            "expected level in {'AA', 'AAA'} and size in {'normal', 'large'}"
+        )
+    return get_contrast_ratio(foreground, background) >= _ACCESSIBILITY_THRESHOLDS[key]
+
+
+def adjust_brightness(hex_color: str, factor: float) -> str:
+    """Scale each RGB channel of ``hex_color`` by ``factor`` and return a hex string.
+
+    ``factor`` of ``1.0`` returns the color unchanged; ``0.0`` returns black;
+    values above ``1.0`` brighten the color (channels are clamped to 255).
+
+    Args:
+        hex_color: A ``#RRGGBB`` or ``RRGGBB`` color string.
+        factor: Brightness multiplier (must be non-negative).
+
+    Returns:
+        A lowercase ``#RRGGBB`` hexadecimal color string.
+
+    Raises:
+        TypeError: If ``hex_color`` is not a string or ``factor`` is not a number.
+        ValueError: If ``hex_color`` is invalid or ``factor`` is negative.
+
+    Examples:
+        >>> adjust_brightness("#ff5733", 0.5)
+        '#802c1a'
+        >>> adjust_brightness("#000000", 2.0)
+        '#000000'
+    """
+    _require_string(hex_color, "hex_color")
+    if not isinstance(factor, (int, float)) or isinstance(factor, bool):
+        raise TypeError("factor must be a number")
+    if factor < 0:
+        raise ValueError("factor must be non-negative")
+    if not validate_hex(hex_color):
+        raise ValueError(f"Invalid hex color: {hex_color!r}")
+    r, g, b = hex_to_rgb(hex_color)
+    return rgb_to_hex(
+        min(255, int(round(r * factor))),
+        min(255, int(round(g * factor))),
+        min(255, int(round(b * factor))),
+    )
+
+
+def blend_colors(color1: _Color, color2: _Color, weight: float = 0.5) -> str:
+    """Linearly blend two colors and return the result as a hex string.
+
+    ``weight`` of ``0.0`` returns ``color1``; ``1.0`` returns ``color2``;
+    intermediate values interpolate between them.
+
+    Args:
+        color1: First color (hex string or ``(r, g, b)`` tuple).
+        color2: Second color (hex string or ``(r, g, b)`` tuple).
+        weight: Blend weight for ``color2`` in ``[0, 1]`` (default: 0.5).
+
+    Returns:
+        A lowercase ``#RRGGBB`` hexadecimal color string.
+
+    Raises:
+        TypeError: If either color is invalid or ``weight`` is not a number.
+        ValueError: If ``weight`` is outside ``[0, 1]`` or an RGB channel is
+            outside ``0``-``255``.
+
+    Examples:
+        >>> blend_colors("#000000", "#ffffff", 0.5)
+        '#808080'
+        >>> blend_colors("#ff0000", "#0000ff", 0.0)
+        '#ff0000'
+    """
+    if not isinstance(weight, (int, float)) or isinstance(weight, bool):
+        raise TypeError("weight must be a number")
+    if not 0.0 <= weight <= 1.0:
+        raise ValueError("weight must be in the range [0, 1]")
+    r1, g1, b1 = _parse_color(color1, "color1")
+    r2, g2, b2 = _parse_color(color2, "color2")
+    return rgb_to_hex(
+        int(round(r1 + (r2 - r1) * weight)),
+        int(round(g1 + (g2 - g1) * weight)),
+        int(round(b1 + (b2 - b1) * weight)),
+    )
+COLORUTILS
+# --- tests/test_color_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_color_utils.py" <<'TESTCOLORUTILS'
+"""Tests for color_utils module."""
+
+import unittest
+
+from color_utils import (
+    adjust_brightness,
+    blend_colors,
+    get_contrast_ratio,
+    get_luminance,
+    hsl_to_rgb,
+    hex_to_rgb,
+    is_accessible,
+    rgb_to_hsl,
+    rgb_to_hex,
+    validate_hex,
+)
+
+
+class TestValidateHex(unittest.TestCase):
+    def test_valid_hash_hex(self) -> None:
+        self.assertTrue(validate_hex("#ff5733"))
+        self.assertTrue(validate_hex("#000000"))
+        self.assertTrue(validate_hex("#FFFFFF"))
+        self.assertTrue(validate_hex("#abcdef"))
+
+    def test_valid_plain_hex(self) -> None:
+        self.assertTrue(validate_hex("ff5733"))
+        self.assertTrue(validate_hex("000000"))
+
+    def test_invalid_hex(self) -> None:
+        self.assertFalse(validate_hex("#gg5733"))
+        self.assertFalse(validate_hex("#ff57"))
+        self.assertFalse(validate_hex("#ff5733aa"))
+        self.assertFalse(validate_hex(""))
+        self.assertFalse(validate_hex("#"))
+        self.assertFalse(validate_hex("not-a-color"))
+
+    def test_non_string_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            validate_hex(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            validate_hex(None)  # type: ignore[arg-type]
+
+
+class TestHexToRgb(unittest.TestCase):
+    def test_basic_conversion(self) -> None:
+        self.assertEqual(hex_to_rgb("#ff5733"), (255, 87, 51))
+        self.assertEqual(hex_to_rgb("ff5733"), (255, 87, 51))
+        self.assertEqual(hex_to_rgb("#000000"), (0, 0, 0))
+        self.assertEqual(hex_to_rgb("#FFFFFF"), (255, 255, 255))
+        self.assertEqual(hex_to_rgb("#00ff00"), (0, 255, 0))
+        self.assertEqual(hex_to_rgb("#0000ff"), (0, 0, 255))
+
+    def test_invalid_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            hex_to_rgb("#gg5733")
+        with self.assertRaises(ValueError):
+            hex_to_rgb("#ff57")
+        with self.assertRaises(TypeError):
+            hex_to_rgb(123)  # type: ignore[arg-type]
+
+
+class TestRgbToHex(unittest.TestCase):
+    def test_basic_conversion(self) -> None:
+        self.assertEqual(rgb_to_hex(255, 87, 51), "#ff5733")
+        self.assertEqual(rgb_to_hex(0, 0, 0), "#000000")
+        self.assertEqual(rgb_to_hex(255, 255, 255), "#ffffff")
+        self.assertEqual(rgb_to_hex(0, 255, 0), "#00ff00")
+
+    def test_invalid_channels(self) -> None:
+        with self.assertRaises(ValueError):
+            rgb_to_hex(256, 0, 0)
+        with self.assertRaises(ValueError):
+            rgb_to_hex(0, -1, 0)
+        with self.assertRaises(TypeError):
+            rgb_to_hex(1.5, 0, 0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rgb_to_hex(0, 0, None)  # type: ignore[arg-type]
+
+
+class TestRgbToHsl(unittest.TestCase):
+    def test_red(self) -> None:
+        h, s, l = rgb_to_hsl(255, 0, 0)
+        self.assertAlmostEqual(h, 0.0)
+        self.assertAlmostEqual(s, 1.0)
+        self.assertAlmostEqual(l, 0.5)
+
+    def test_gray(self) -> None:
+        h, s, l = rgb_to_hsl(128, 128, 128)
+        self.assertAlmostEqual(h, 0.0)
+        self.assertAlmostEqual(s, 0.0)
+        self.assertAlmostEqual(l, 128 / 255.0, places=6)
+
+    def test_white(self) -> None:
+        h, s, l = rgb_to_hsl(255, 255, 255)
+        self.assertAlmostEqual(h, 0.0)
+        self.assertAlmostEqual(s, 0.0)
+        self.assertAlmostEqual(l, 1.0)
+
+    def test_invalid_channels(self) -> None:
+        with self.assertRaises(ValueError):
+            rgb_to_hsl(256, 0, 0)
+        with self.assertRaises(TypeError):
+            rgb_to_hsl("a", 0, 0)  # type: ignore[arg-type]
+
+
+class TestHslToRgb(unittest.TestCase):
+    def test_red(self) -> None:
+        self.assertEqual(hsl_to_rgb(0, 1.0, 0.5), (255, 0, 0))
+
+    def test_black_white(self) -> None:
+        self.assertEqual(hsl_to_rgb(0, 0.0, 0.0), (0, 0, 0))
+        self.assertEqual(hsl_to_rgb(0, 0.0, 1.0), (255, 255, 255))
+
+    def test_green_blue(self) -> None:
+        self.assertEqual(hsl_to_rgb(120, 1.0, 0.5), (0, 255, 0))
+        self.assertEqual(hsl_to_rgb(240, 1.0, 0.5), (0, 0, 255))
+
+    def test_invalid_s_l(self) -> None:
+        with self.assertRaises(ValueError):
+            hsl_to_rgb(0, 1.5, 0.5)
+        with self.assertRaises(ValueError):
+            hsl_to_rgb(0, 0.5, -0.1)
+        with self.assertRaises(TypeError):
+            hsl_to_rgb("x", 0.5, 0.5)  # type: ignore[arg-type]
+
+
+class TestGetLuminance(unittest.TestCase):
+    def test_bounds(self) -> None:
+        self.assertEqual(get_luminance("#000000"), 0.0)
+        self.assertEqual(get_luminance("#ffffff"), 1.0)
+        self.assertEqual(get_luminance((0, 0, 0)), 0.0)
+        self.assertEqual(get_luminance((255, 255, 255)), 1.0)
+
+    def test_gray_midpoint(self) -> None:
+        # Mid gray 128 has a known relative luminance.
+        self.assertAlmostEqual(get_luminance("#808080"), 0.2159, places=4)
+
+    def test_invalid_color(self) -> None:
+        with self.assertRaises(ValueError):
+            get_luminance("#gg5733")
+        with self.assertRaises(TypeError):
+            get_luminance(123)  # type: ignore[arg-type]
+
+
+class TestGetContrastRatio(unittest.TestCase):
+    def test_black_white(self) -> None:
+        self.assertAlmostEqual(get_contrast_ratio("#000000", "#ffffff"), 21.0)
+        self.assertAlmostEqual(get_contrast_ratio("#ffffff", "#000000"), 21.0)
+
+    def test_identical(self) -> None:
+        self.assertAlmostEqual(get_contrast_ratio("#ff5733", "#ff5733"), 1.0)
+
+    def test_range(self) -> None:
+        ratio = get_contrast_ratio("#000000", "#ffffff")
+        self.assertGreaterEqual(ratio, 1.0)
+        self.assertLessEqual(ratio, 21.0)
+
+    def test_tuples_accepted(self) -> None:
+        self.assertAlmostEqual(
+            get_contrast_ratio((0, 0, 0), (255, 255, 255)), 21.0
+        )
+
+    def test_invalid_color(self) -> None:
+        with self.assertRaises(ValueError):
+            get_contrast_ratio("#gg5733", "#000000")
+        with self.assertRaises(TypeError):
+            get_contrast_ratio(123, "#000000")  # type: ignore[arg-type]
+
+
+class TestIsAccessible(unittest.TestCase):
+    def test_aa_normal_black_white(self) -> None:
+        self.assertTrue(is_accessible("#000000", "#ffffff"))
+        self.assertTrue(is_accessible("#000000", "#ffffff", level="AA", size="normal"))
+
+    def test_aa_normal_identical_fails(self) -> None:
+        self.assertFalse(is_accessible("#ffffff", "#ffffff"))
+        self.assertFalse(is_accessible("#ffffff", "#ffffff", level="AA", size="large"))
+
+    def test_aaa_threshold(self) -> None:
+        self.assertTrue(is_accessible("#000000", "#ffffff", level="AAA", size="normal"))
+        self.assertFalse(is_accessible("#777777", "#ffffff", level="AAA", size="normal"))
+
+    def test_large_text_threshold(self) -> None:
+        self.assertTrue(is_accessible("#777777", "#ffffff", level="AA", size="large"))
+
+    def test_invalid_level_size(self) -> None:
+        with self.assertRaises(ValueError):
+            is_accessible("#000000", "#ffffff", level="ZZZ")
+        with self.assertRaises(ValueError):
+            is_accessible("#000000", "#ffffff", size="tiny")
+        with self.assertRaises(TypeError):
+            is_accessible("#000000", "#ffffff", level=1)  # type: ignore[arg-type]
+
+
+class TestAdjustBrightness(unittest.TestCase):
+    def test_half_brightness(self) -> None:
+        # Python's round() rounds half to even: 127.5 -> 128, 43.5 -> 44, 25.5 -> 26.
+        self.assertEqual(adjust_brightness("#ff5733", 0.5), "#802c1a")
+
+    def test_unchanged_and_black(self) -> None:
+        self.assertEqual(adjust_brightness("#ff5733", 1.0), "#ff5733")
+        self.assertEqual(adjust_brightness("#000000", 2.0), "#000000")
+
+    def test_clamp(self) -> None:
+        self.assertEqual(adjust_brightness("#ffffff", 2.0), "#ffffff")
+
+    def test_invalid(self) -> None:
+        with self.assertRaises(ValueError):
+            adjust_brightness("#gg5733", 0.5)
+        with self.assertRaises(ValueError):
+            adjust_brightness("#ff5733", -0.1)
+        with self.assertRaises(TypeError):
+            adjust_brightness("#ff5733", "high")  # type: ignore[arg-type]
+
+
+class TestBlendColors(unittest.TestCase):
+    def test_midpoint(self) -> None:
+        self.assertEqual(blend_colors("#000000", "#ffffff", 0.5), "#808080")
+
+    def test_edges(self) -> None:
+        self.assertEqual(blend_colors("#ff0000", "#0000ff", 0.0), "#ff0000")
+        self.assertEqual(blend_colors("#ff0000", "#0000ff", 1.0), "#0000ff")
+
+    def test_tuples(self) -> None:
+        self.assertEqual(blend_colors((255, 0, 0), (0, 0, 255), 0.5), "#800080")
+
+    def test_invalid_weight(self) -> None:
+        with self.assertRaises(ValueError):
+            blend_colors("#000000", "#ffffff", 1.5)
+        with self.assertRaises(ValueError):
+            blend_colors("#000000", "#ffffff", -0.1)
+        with self.assertRaises(TypeError):
+            blend_colors("#000000", "#ffffff", "half")  # type: ignore[arg-type]
+
+    def test_invalid_color(self) -> None:
+        with self.assertRaises(ValueError):
+            blend_colors("#gg5733", "#000000")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCOLORUTILS
 # --- async_utils.py ---
 cat > "$OUTPUT_DIR/async_utils.py" <<'ASYNCUTILS'
 """Asynchronous utility functions."""

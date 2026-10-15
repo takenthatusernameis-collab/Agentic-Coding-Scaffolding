@@ -158,6 +158,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_type_utils.py",
             "path_utils.py",
             "tests/test_path_utils.py",
+            "color_utils.py",
+            "tests/test_color_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -610,6 +612,32 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertAlmostEqual(z[0], -1.414213562373095)
         self.assertAlmostEqual(z[4], 1.414213562373095)
         self.assertEqual(normalize([1, 2, 3, 4, 5]), [0.0, 0.25, 0.5, 0.75, 1.0])
+
+    def test_color_utils_functions_work(self) -> None:
+        """Generated color_utils.py should have working functions."""
+        from color_utils import (
+            adjust_brightness,
+            blend_colors,
+            get_contrast_ratio,
+            get_luminance,
+            hex_to_rgb,
+            hsl_to_rgb,
+            is_accessible,
+            rgb_to_hex,
+            validate_hex,
+        )
+
+        self.assertTrue(validate_hex("#ff5733"))
+        self.assertFalse(validate_hex("#gg5733"))
+        self.assertEqual(hex_to_rgb("#ff5733"), (255, 87, 51))
+        self.assertEqual(rgb_to_hex(255, 87, 51), "#ff5733")
+        self.assertAlmostEqual(get_luminance("#000000"), 0.0)
+        self.assertAlmostEqual(get_luminance("#ffffff"), 1.0)
+        self.assertAlmostEqual(get_contrast_ratio("#000000", "#ffffff"), 21.0)
+        self.assertTrue(is_accessible("#000000", "#ffffff"))
+        self.assertEqual(hsl_to_rgb(0, 1.0, 0.5), (255, 0, 0))
+        self.assertEqual(adjust_brightness("#000000", 2.0), "#000000")
+        self.assertEqual(blend_colors("#000000", "#ffffff", 0.5), "#808080")
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

@@ -64,6 +64,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_type_utils.py` — unit tests for the type utilities module
 - `path_utils.py` — path manipulation utilities (join, normalize, components, extensions)
 - `tests/test_path_utils.py` — unit tests for `path_utils.py`
+- `color_utils.py` — color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
+- `tests/test_color_utils.py` — unit tests for `color_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
@@ -91,6 +93,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
 - `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 - `tests/test_set_utils.py` — unit tests for `set_utils.py`
+- `tests/test_color_utils.py` — unit tests for `color_utils.py`
 
 ## Usage
 
