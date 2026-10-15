@@ -1561,6 +1561,183 @@ class TestFlattenDict(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTDATA
+# --- file_utils.py ---
+cat > "$OUTPUT_DIR/file_utils.py" <<'FILEUTILS'
+"""File and path utility functions."""
+
+import os
+import shutil
+from pathlib import Path
+from typing import Any, List, Optional, Union
+
+
+def read_text(path: Union[str, Path]) -> str:
+    """Read text content from a file."""
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def write_text(path: Union[str, Path], content: str, encoding: str = "utf-8") -> None:
+    """Write text content to a file."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding=encoding) as f:
+        f.write(content)
+
+
+def read_json(path: Union[str, Path]) -> Any:
+    """Read JSON content from a file."""
+    import json
+
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def write_json(
+    path: Union[str, Path],
+    data: Any,
+    indent: Optional[int] = 2,
+    ensure_ascii: bool = False,
+) -> None:
+    """Write JSON content to a file."""
+    import json
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=indent, ensure_ascii=ensure_ascii)
+
+
+def ensure_dir(path: Union[str, Path]) -> Path:
+    """Ensure a directory exists and return its Path."""
+    path = Path(path)
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def list_files(
+    path: Union[str, Path],
+    pattern: Optional[str] = None,
+    recursive: bool = False,
+) -> List[Path]:
+    """List files in a directory."""
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"Directory not found: {path}")
+    if not path.is_dir():
+        raise ValueError(f"Path is not a directory: {path}")
+
+    if recursive:
+        if pattern:
+            return sorted(path.rglob(pattern))
+        return sorted([p for p in path.rglob("*") if p.is_file()])
+    else:
+        if pattern:
+            return sorted(path.glob(pattern))
+        return sorted([p for p in path.iterdir() if p.is_file()])
+
+
+def copy_file(src: Union[str, Path], dst: Union[str, Path]) -> None:
+    """Copy a file from src to dst."""
+    src = Path(src)
+    dst = Path(dst)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dst)
+
+
+def delete_file(path: Union[str, Path]) -> None:
+    """Delete a file if it exists."""
+    path = Path(path)
+    if path.exists() and path.is_file():
+        path.unlink()
+FILEUTILS
+# --- tests/test_file_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_file_utils.py" <<'TESTFILEUTILS'
+"""Tests for file_utils module."""
+
+import tempfile
+import unittest
+from pathlib import Path
+
+from file_utils import (
+    copy_file,
+    delete_file,
+    ensure_dir,
+    list_files,
+    read_json,
+    read_text,
+    write_json,
+    write_text,
+)
+
+
+class TestFileUtils(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self) -> None:
+        import shutil
+
+        shutil.rmtree(self.temp_dir)
+
+    def test_read_write_text(self) -> None:
+        file_path = Path(self.temp_dir) / "test.txt"
+        content = "Hello, World!"
+        write_text(file_path, content)
+        self.assertTrue(file_path.exists())
+        self.assertEqual(read_text(file_path), content)
+
+    def test_read_write_json(self) -> None:
+        file_path = Path(self.temp_dir) / "test.json"
+        data = {"name": "test", "value": 42}
+        write_json(file_path, data)
+        self.assertTrue(file_path.exists())
+        result = read_json(file_path)
+        self.assertEqual(result, data)
+
+    def test_ensure_dir(self) -> None:
+        dir_path = Path(self.temp_dir) / "nested" / "dir"
+        result = ensure_dir(dir_path)
+        self.assertTrue(dir_path.exists())
+        self.assertTrue(dir_path.is_dir())
+        self.assertEqual(result, dir_path)
+
+    def test_list_files(self) -> None:
+        temp_path = Path(self.temp_dir)
+        (temp_path / "file1.txt").write_text("1")
+        (temp_path / "file2.py").write_text("2")
+        (temp_path / "subdir").mkdir()
+        (temp_path / "subdir" / "file3.txt").write_text("3")
+
+        files = list_files(temp_path)
+        self.assertEqual(len(files), 2)
+
+        txt_files = list_files(temp_path, pattern="*.txt")
+        self.assertEqual(len(txt_files), 1)
+
+        all_files = list_files(temp_path, recursive=True)
+        self.assertEqual(len(all_files), 3)
+
+    def test_copy_file(self) -> None:
+        src = Path(self.temp_dir) / "src.txt"
+        dst = Path(self.temp_dir) / "copy" / "dst.txt"
+        src.write_text("hello")
+        copy_file(src, dst)
+        self.assertTrue(dst.exists())
+        self.assertEqual(dst.read_text(), "hello")
+
+    def test_delete_file(self) -> None:
+        file_path = Path(self.temp_dir) / "to_delete.txt"
+        file_path.write_text("delete me")
+        self.assertTrue(file_path.exists())
+        delete_file(file_path)
+        self.assertFalse(file_path.exists())
+        delete_file(file_path)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTFILEUTILS
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -1612,6 +1789,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
+- `file_utils.py` — file and path utility functions
+- `tests/test_file_utils.py` — unit tests for `file_utils.py`
 
 ## Usage
 
@@ -1766,6 +1945,7 @@ utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions
   data_utils.py               # Data utility functions
+file_utils.py               # File and path utility functions
 .gitignore                   # Common ignore patterns
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -1777,6 +1957,7 @@ tests/                       # Python unit tests
   test_stats.py              # Tests for stats.py
   test_math_utils.py         # Tests for math_utils.py
   test_data_utils.py          # Tests for data_utils.py
+  test_file_utils.py         # Tests for file_utils.py
 \`\`\`
 
 ## Developer Commands
@@ -1860,6 +2041,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `stats.py` — statistical utility functions
 - `tests/test_stats.py` — unit tests for `stats.py`
+- `file_utils.py` — file and path utility functions
+- `tests/test_file_utils.py` — unit tests for `file_utils.py`
 CHANGELOG
 
 # --- kilo.json ---
