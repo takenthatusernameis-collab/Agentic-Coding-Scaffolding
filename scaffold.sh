@@ -54,9 +54,11 @@
 #   - env_utils.py environment variable handling and typed accessors
 #   - tests/test_env_utils.py unit tests for the env_utils module
 #   - logging_utils.py logging configuration and helper utilities
-#   - cache_utils.py caching utilities for memoizing function results
 #   - tests/test_logging_utils.py unit tests for the logging_utils module
+#   - cache_utils.py caching utilities for memoizing function results
 #   - tests/test_cache_utils.py unit tests for the cache_utils module
+#   - timing_utils.py performance measurement helpers
+#   - tests/test_timing_utils.py unit tests for the timing_utils module
 #
 set -euo pipefail
 
@@ -6002,6 +6004,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`tests/test_logging_utils.py\` — unit tests for \`logging_utils.py\`
 - \`cache_utils.py\` — caching utilities for memoizing function results
 - \`tests/test_cache_utils.py\` — unit tests for \`cache_utils.py\`
+- \`timing_utils.py\` — performance measurement helpers
+- \`tests/test_timing_utils.py\` — unit tests for \`timing_utils.py\`
 CHANGELOG
 
 # --- kilo.json ---
