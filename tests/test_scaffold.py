@@ -124,6 +124,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_logging_utils.py",
             "cache_utils.py",
             "tests/test_cache_utils.py",
+            "timing_utils.py",
+            "tests/test_timing_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -198,6 +200,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "env_utils.py",
             "logging_utils.py",
             "cache_utils.py",
+            "timing_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -214,6 +217,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_env_utils.py",
             "tests/test_logging_utils.py",
             "tests/test_cache_utils.py",
+            "tests/test_timing_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -243,6 +247,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "env_utils.py",
             "logging_utils.py",
             "cache_utils.py",
+            "timing_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
@@ -408,6 +413,33 @@ class TestScaffoldKiloJson(unittest.TestCase):
 
         info = cache_info(square)
         self.assertEqual(info["misses"], 1)
+
+    def test_timing_utils_functions_work(self) -> None:
+        """Generated timing_utils.py should have working functions."""
+        import time
+
+        from timing_utils import benchmark, elapsed_time, timer
+
+        with timer("Test") as t:
+            pass
+        self.assertGreaterEqual(t.elapsed, 0.0)
+
+        start = time.perf_counter()
+        elapsed = elapsed_time(start)
+        self.assertGreaterEqual(elapsed, 0.0)
+        self.assertIsInstance(elapsed, float)
+
+        call_count = 0
+
+        @benchmark(iterations=2)
+        def test_func():
+            nonlocal call_count
+            call_count += 1
+            return "success"
+
+        result = test_func()
+        self.assertEqual(result, "success")
+        self.assertEqual(call_count, 2)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

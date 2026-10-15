@@ -4988,6 +4988,138 @@ def cache_info(func: F) -> Dict[str, Any]:
         )
     return cast(Dict[str, Any], info())
 CACHEUTILS
+# --- timing_utils.py ---
+cat > "$OUTPUT_DIR/timing_utils.py" <<'TIMINGUTILS'
+"""Performance measurement utilities for timing code execution.
+
+This module provides helpers for measuring and benchmarking code execution,
+including a context manager for timing blocks, a function to calculate elapsed
+time, and a decorator for benchmarking function execution.
+"""
+
+import functools
+import time
+from typing import Any, Callable, TypeVar, cast
+
+F = TypeVar("F", bound=Callable[..., Any])
+
+
+class timer:
+    """Context manager for measuring execution time of a code block.
+
+    Args:
+        label: Optional label to display with the timing result.
+
+    Examples:
+        >>> with timer("Database query"):
+        ...     # Execute database query
+        ...     pass
+        Database query: 0.00s
+
+        >>> with timer():
+        ...     time.sleep(0.1)
+        Elapsed: 0.10s
+    """
+
+    def __init__(self, label: str = "Elapsed") -> None:
+        self.label = label
+        self.start_time: float = 0.0
+        self.elapsed: float = 0.0
+
+    def __enter__(self) -> "timer":
+        self.start_time = time.perf_counter()
+        return self
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        self.elapsed = time.perf_counter() - self.start_time
+        if self.label:
+            print(f"{self.label}: {self.elapsed:.2f}s")
+
+
+def elapsed_time(start_time: float) -> float:
+    """Calculate elapsed time since a start time.
+
+    Args:
+        start_time: Start time as returned by time.perf_counter() or time.time().
+
+    Returns:
+        Elapsed time in seconds.
+
+    Examples:
+        >>> start = time.perf_counter()
+        >>> time.sleep(0.05)
+        >>> elapsed_time(start)
+        0.05...
+    """
+    return time.perf_counter() - start_time
+
+
+def benchmark(
+    iterations: int = 1,
+) -> Callable[[F], F]:
+    """Decorator that benchmarks a function by running it multiple times.
+
+    Args:
+        iterations: Number of times to run the function for averaging.
+                   Must be positive. Defaults to 1.
+
+    Returns:
+        Decorated function that prints timing information and returns the
+        result of the final function call.
+
+    Examples:
+        >>> @benchmark(iterations=3)
+        ... def slow_function():
+        ...     time.sleep(0.1)
+        ...     return "done"
+        >>> result = slow_function()
+        slow_function (avg of 3 runs): 0.30s
+        >>> result
+        'done'
+    """
+    if iterations < 1:
+        raise ValueError("iterations must be positive")
+
+    def decorator(func: F) -> F:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            total_time = 0.0
+            result = None
+            for i in range(iterations):
+                start = time.perf_counter()
+                result = func(*args, **kwargs)
+                total_time += time.perf_counter() - start
+            avg_time = total_time / iterations
+            print(f"{func.__name__} (avg of {iterations} runs): {avg_time:.2f}s")
+            return result
+
+        return cast(F, wrapper)
+
+    return decorator
+
+
+if __name__ == "__main__":
+    # Simple demonstration when run directly
+
+    @benchmark(iterations=2)
+    def example_function():
+        time.sleep(0.05)
+        return "completed"
+
+    result = example_function()
+    print(f"Function returned: {result}")
+
+    # Example of timer context manager
+    with timer("Example block"):
+        time.sleep(0.02)
+        print("Inside timed block")
+
+    # Example of elapsed_time function
+    start = time.perf_counter()
+    time.sleep(0.03)
+    elapsed = elapsed_time(start)
+    print(f"Elapsed time: {elapsed:.2f}s")
+TIMINGUTILS
 # --- tests/test_env_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_env_utils.py" <<'TESTENVL'
 """Tests for env_utils module."""
@@ -5605,6 +5737,146 @@ class TestMemoizeExceptions(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTCACHEUTILS
+# --- tests/test_timing_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_timing_utils.py" <<'TESTTIMINGUTILS'
+"""Tests for timing_utils module."""
+
+import time
+import unittest
+from unittest.mock import patch
+
+from timing_utils import benchmark, elapsed_time, timer
+
+
+class TestTimer(unittest.TestCase):
+    """Test the timer context manager."""
+
+    def test_timer_context_manager(self):
+        """Test that timer measures time correctly."""
+        with timer("Test") as t:
+            time.sleep(0.01)  # Sleep for 10ms
+            # Check that start_time was set
+            self.assertGreater(t.start_time, 0)
+
+        # After context, elapsed should be set
+        self.assertGreater(t.elapsed, 0)
+        # Should be approximately 0.01 seconds (allowing for variance)
+        self.assertAlmostEqual(t.elapsed, 0.01, places=1)
+
+    def test_timer_with_label(self):
+        """Test timer with custom label."""
+        with patch('builtins.print') as mock_print:
+            with timer("Custom Label"):
+                time.sleep(0.01)
+            # Check that print was called with expected format
+            mock_print.assert_called_once()
+            call_args = mock_print.call_args[0][0]
+            self.assertIn("Custom Label", call_args)
+            self.assertIn("s", call_args)
+
+    def test_timer_without_label(self):
+        """Test timer with default label."""
+        with patch('builtins.print') as mock_print:
+            with timer():
+                time.sleep(0.01)
+            mock_print.assert_called_once()
+            call_args = mock_print.call_args[0][0]
+            self.assertIn("Elapsed", call_args)
+
+
+class TestElapsedTime(unittest.TestCase):
+    """Test the elapsed_time function."""
+
+    def test_elapsed_time_basic(self):
+        """Test that elapsed_time calculates correctly."""
+        start = time.perf_counter()
+        time.sleep(0.01)
+        elapsed = elapsed_time(start)
+        self.assertGreater(elapsed, 0)
+        self.assertAlmostEqual(elapsed, 0.01, places=1)
+
+    def test_elapsed_time_zero(self):
+        """Test elapsed_time with same start and end time."""
+        start = time.perf_counter()
+        elapsed = elapsed_time(start)
+        self.assertAlmostEqual(elapsed, 0.0, places=2)
+
+    def test_elapsed_time_precision(self):
+        """Test that elapsed_time returns a float."""
+        start = time.perf_counter()
+        elapsed = elapsed_time(start)
+        self.assertIsInstance(elapsed, float)
+
+
+class TestBenchmarkDecorator(unittest.TestCase):
+    """Test the benchmark decorator."""
+
+    def test_benchmark_default_iterations(self):
+        """Test benchmark with default iterations=1."""
+        call_count = 0
+
+        @benchmark()
+        def test_func():
+            nonlocal call_count
+            call_count += 1
+            return "success"
+
+        with patch('builtins.print') as mock_print:
+            result = test_func()
+
+        self.assertEqual(result, "success")
+        self.assertEqual(call_count, 1)
+        mock_print.assert_called_once()
+        call_args = mock_print.call_args[0][0]
+        self.assertIn("test_func", call_args)
+        self.assertIn("avg of 1 runs", call_args)
+
+    def test_benchmark_multiple_iterations(self):
+        """Test benchmark with multiple iterations."""
+        call_count = 0
+
+        @benchmark(iterations=3)
+        def test_func():
+            nonlocal call_count
+            call_count += 1
+            time.sleep(0.01)
+            return "success"
+
+        with patch('builtins.print') as mock_print:
+            result = test_func()
+
+        self.assertEqual(result, "success")
+        self.assertEqual(call_count, 3)
+        mock_print.assert_called_once()
+        call_args = mock_print.call_args[0][0]
+        self.assertIn("test_func", call_args)
+        self.assertIn("avg of 3 runs", call_args)
+
+    def test_benchmark_returns_correct_result(self):
+        """Test that benchmark returns the function's actual result."""
+        @benchmark(iterations=2)
+        def test_func():
+            return [1, 2, 3]
+
+        result = test_func()
+        self.assertEqual(result, [1, 2, 3])
+
+    def test_benchmark_invalid_iterations(self):
+        """Test that benchmark raises ValueError for invalid iterations."""
+        with self.assertRaises(ValueError):
+            @benchmark(iterations=0)
+            def test_func():
+                pass
+
+        with self.assertRaises(ValueError):
+            @benchmark(iterations=-1)
+            def test_func():
+                pass
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTIMINGUTILS
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -5664,6 +5936,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `env_utils.py` — environment variable handling utilities
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
+- `timing_utils.py` — performance measurement helpers
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -5683,6 +5956,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_env_utils.py` — unit tests for `env_utils.py`
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
+- `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 
 ## Usage
 
@@ -5872,7 +6146,8 @@ list_utils.py              # Advanced list manipulation utilities
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
-  .gitignore                   # Common ignore patterns
+    timing_utils.py           # Performance measurement helpers
+    .gitignore                   # Common ignore patterns
 LICENSE                      # MIT License
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -5894,6 +6169,7 @@ tests/                       # Python unit tests
   test_env_utils.py          # Tests for env_utils.py
   test_logging_utils.py       # Tests for logging_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
+  test_timing_utils.py         # Tests for timing_utils.py
 \`\`\`
 
 ## Developer Commands

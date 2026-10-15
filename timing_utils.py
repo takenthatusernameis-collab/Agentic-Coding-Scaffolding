@@ -7,7 +7,7 @@ time, and a decorator for benchmarking function execution.
 
 import functools
 import time
-from typing import Any, Callable, Generator, TypeVar, cast
+from typing import Any, Callable, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -108,7 +108,6 @@ def benchmark(
 
 if __name__ == "__main__":
     # Simple demonstration when run directly
-    import random
 
     @benchmark(iterations=2)
     def example_function():
