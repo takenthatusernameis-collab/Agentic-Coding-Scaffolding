@@ -58,6 +58,8 @@ priority_queue_utils.py   # Heap-based priority queue implementation
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
 dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
+json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
+csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -217,6 +219,18 @@ The project includes a rate limiting utilities module in `rate_limiter_utils.py`
 ## Retry Utilities Module
 
 The project includes a retry utilities module in `retry_utils.py` with decorators for retrying operations with backoff: `retry` for simple retries with fixed delay and backoff, `retry_with_backoff` for exponential backoff with optional jitter, and `retry_count` which returns the result along with the number of retries performed. The module is tested in `tests/test_retry_utils.py`.
+
+## Dictionary Utilities Module
+
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, and predicate-based filtering. The module is tested in `tests/test_dict_utils.py`.
+
+## JSON Utilities Module
+
+The project includes a JSON utilities module in `json_utils.py` with functions for reading, writing, parsing, serializing, validating, and pretty-printing JSON data. The module is tested in `tests/test_json_utils.py`.
+
+## CSV Utilities Module
+
+The project includes a CSV utilities module in `csv_utils.py` with functions for reading and writing CSV files as dictionaries or lists, and appending rows. The module is tested in `tests/test_csv_utils.py`.
 
 Completed task: Fixed indentation and missing entries in scaffold.sh README.md template Architecture section — added `config_utils.py`, all test file listings, and correct module descriptions. Fixed the same in the repo README.md. Verified scaffold smoke test passes with all modules.
 

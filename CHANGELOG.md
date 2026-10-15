@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
 - `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
 - `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
+- `json_utils.py` — JSON utility functions (read/write/parse/dump/validate/pretty print)
+- `tests/test_json_utils.py` — unit tests for `json_utils.py`
+- `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
+- `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
 
 
 ### Added
