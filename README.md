@@ -182,6 +182,6 @@ The project includes a logging utilities module in `logging_utils.py` with helpe
 
 The project includes a caching utilities module in `cache_utils.py` with helpers for memoizing function results: `memoize` is a decorator factory that caches return values keyed by call arguments (with optional `maxsize` LRU eviction and `typed` argument distinction), `clear_cache` invalidates the cache of a memoized function, and `cache_info` returns a dictionary with `hits`, `misses`, `maxsize`, and `currsize` statistics. Decorated functions also expose `clear_cache` and `cache_info` attributes for direct introspection. The module is tested in `tests/test_cache_utils.py`.
 
-Completed task: Added a `rate_limiter_utils` module with rate limiting helpers (`rate_limit` decorator, `token_bucket` context manager, and `RateLimiter` class) with tests and full scaffolding synchronization.
+Completed task: Added a `concurrent_utils` module with concurrent execution helpers (ThreadPool, ProcessPool, asyncio wrappers) with tests and full scaffolding synchronization.
 
-Next task: Add a `concurrent_utils` module with concurrent execution helpers (ThreadPool, ProcessPool, asyncio wrappers) with tests and full scaffolding synchronization.
+Next task: Add a `priority_queue_utils` module with heap-based priority queue implementation, including tests and full scaffolding synchronization.

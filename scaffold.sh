@@ -1469,6 +1469,8 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
     return math.sqrt(var)
 STATS
 
+cp "$(dirname "$0")/concurrent_utils.py" "$OUTPUT_DIR/concurrent_utils.py"
+
 # --- tests/test_strings.py ---
 cat > "$OUTPUT_DIR/tests/test_strings.py" <<'TESTSTRINGS'
 import unittest
@@ -1707,6 +1709,8 @@ class TestStddev(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTSTATS
+
+cp "$(dirname "$0")/tests/test_concurrent_utils.py" "$OUTPUT_DIR/tests/test_concurrent_utils.py"
 
 # --- math_utils.py ---
 cat > "$OUTPUT_DIR/math_utils.py" <<'MATH'
