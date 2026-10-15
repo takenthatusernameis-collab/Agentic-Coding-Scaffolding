@@ -1,7 +1,7 @@
 """Random number generation and sampling utilities."""
 
 import random
-from typing import Any, List, Optional, Sequence, TypeVar, Union
+from typing import List, Optional, Sequence, TypeVar
 
 T = TypeVar("T")
 
