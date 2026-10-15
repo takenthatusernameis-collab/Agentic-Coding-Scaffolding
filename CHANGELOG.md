@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `crypto_utils.py` — cryptographic utilities with `hash_string`, `generate_token`, `base64_encode`, and `base64_decode` functions
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
+- `list_utils.py` — advanced list manipulation utilities with `partition`, `group_by`, `safe_get`, `find`, `drop`, `take`, and `intersperse` functions
+- `tests/test_list_utils.py` — unit tests for `list_utils.py`
 
 ### Fixed
 

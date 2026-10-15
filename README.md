@@ -47,6 +47,7 @@ url_utils.py                # URL and web utility functions
 random_utils.py             # Random number generation and sampling utilities
 validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
+list_utils.py              # Advanced list manipulation utilities
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -63,6 +64,7 @@ tests/                       # Python unit tests
   test_random_utils.py       # Tests for random_utils.py
   test_validation_utils.py   # Tests for validation_utils.py
   test_crypto_utils.py       # Tests for crypto_utils.py
+  test_list_utils.py         # Tests for list_utils.py
 ```
 
 ## How It Works
@@ -153,3 +155,7 @@ The project includes a validation utilities module in `validation_utils.py` with
 ## Cryptographic Utilities Module
 
 The project includes a cryptographic utilities module in `crypto_utils.py` with functions for hashing and encoding: `hash_string`, `generate_token`, `base64_encode`, and `base64_decode`. The module is tested in `tests/test_crypto_utils.py`.
+
+## List Utilities Module
+
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `drop`, `take`, and `intersperse`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
