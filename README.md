@@ -44,6 +44,7 @@ data_utils.py               # Data utility functions
 datetime_utils.py           # Date and time utility functions
 file_utils.py               # File and path utility functions
 url_utils.py                # URL and web utility functions
+random_utils.py             # Random number generation and sampling utilities
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -57,6 +58,7 @@ tests/                       # Python unit tests
   test_datetime_utils.py     # Tests for datetime_utils.py
   test_file_utils.py         # Tests for file_utils.py
   test_url_utils.py          # Tests for url_utils.py
+  test_random_utils.py       # Tests for random_utils.py
 ```
 
 ## How It Works
@@ -135,3 +137,7 @@ The project includes a file utilities module in `file_utils.py` with functions f
 ## URL Utilities Module
 
 The project includes a URL and web utilities module in `url_utils.py` with functions for URL validation and manipulation: `is_valid_url`, `extract_domain`, `get_query_params`, `get_query_param`, `add_query_param`, `remove_query_param`, and `build_url`. The module is tested in `tests/test_url_utils.py`.
+
+## Random Utilities Module
+
+The project includes a random utilities module in `random_utils.py` with functions for random number generation and sampling: `random_int`, `random_choice`, `random_sample`, `random_shuffle`, `weighted_choice`, `random_uniform`, and `random_gaussian`. Every function accepts an optional `seed` argument for reproducible results and validates its inputs. The module is tested in `tests/test_random_utils.py`.

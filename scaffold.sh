@@ -41,6 +41,8 @@
 #   - tests/test_file_utils.py unit tests for the file_utils module
 #   - url_utils.py URL and web utility functions
 #   - tests/test_url_utils.py unit tests for the url_utils module
+#   - random_utils.py random number generation and sampling utilities
+#   - tests/test_random_utils.py unit tests for the random_utils module
 #
 set -euo pipefail
 
