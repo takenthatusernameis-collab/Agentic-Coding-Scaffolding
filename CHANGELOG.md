@@ -132,3 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `logging_utils.py` — logging configuration and helper utilities with `get_logger`, `configure_logging`, and a `log_calls` decorator for tracing function calls
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - Synchronized `scaffold.sh` templates (`scaffold-project.md`, generated `README.md`, generated `CHANGELOG.md`), repo `README.md`, repo `.kilo/command/scaffold-project.md`, and `tests/test_scaffold.py` to include the `logging_utils` module and its tests
+
+### Fixed
+
+- Fixed `scaffold.sh` README.md template Architecture section: added missing `config_utils.py` listing, added all missing test file entries (including `test_config_utils.py`), removed redundant `tests/` placeholder entry, and updated module descriptions to match the canonical README. Verified scaffold smoke test passes with all generated modules.

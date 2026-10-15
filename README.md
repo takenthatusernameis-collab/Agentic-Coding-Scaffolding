@@ -34,7 +34,8 @@ Makefile                     # Common developer targets
 pyproject.toml               # Python project configuration (pytest, ruff, mypy)
 scaffold.sh                  # Project scaffolding script
 hello.py                     # Sample application entry point
-calculator.py                # Simple calculator module
+calculator.py                # Simple calculator module with arithmetic operations
+config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
 strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
@@ -56,11 +57,12 @@ concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessP
 priority_queue_utils.py   # Heap-based priority queue implementation
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
-dict_utils.py            # Dictionary utilities (deep merge, flatten, safe get, etc.)
+dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
   test_scaffold.py           # Tests for scaffold.sh
+  test_config_utils.py       # Tests for config_utils.py
   test_shapes.py             # Tests for shapes.py
   test_strings.py            # Tests for strings.py
   test_utils.py              # Tests for utils.py
@@ -214,6 +216,6 @@ The project includes a rate limiting utilities module in `rate_limiter_utils.py`
 
 The project includes a retry utilities module in `retry_utils.py` with decorators for retrying operations with backoff: `retry` for simple retries with fixed delay and backoff, `retry_with_backoff` for exponential backoff with optional jitter, and `retry_count` which returns the result along with the number of retries performed. The module is tested in `tests/test_retry_utils.py`.
 
-Completed task: Synchronized all module documentation in README.md, added missing modules to Architecture section, and updated CHANGELOG.md.
+Completed task: Fixed indentation and missing entries in scaffold.sh README.md template Architecture section — added `config_utils.py`, all test file listings, and correct module descriptions. Fixed the same in the repo README.md. Verified scaffold smoke test passes with all modules.
 
-Next task: Fix indentation issues in scaffold.sh README.md template and verify scaffold smoke test passes with all modules.
+Next task: Add a `config_utils.py` entry to the scaffold-project.md template's header comment listing and run a full consistency audit across scaffold.sh, README.md, CHANGELOG.md, and .kilo/command/scaffold-project.md to ensure all modules and tests are consistently documented in every location.

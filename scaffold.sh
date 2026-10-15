@@ -7458,33 +7458,57 @@ Makefile                     # Common developer targets
 pyproject.toml               # Python project configuration (pytest, ruff, mypy)
 scaffold.sh                  # Project scaffolding script
 hello.py                     # Sample application entry point
-calculator.py                # Simple calculator module
-shapes.py                    # Geometry utilities
-strings.py                   # String utilities
-utils.py                     # General utilities
-stats.py                    # Statistical utilities
-math_utils.py               # Mathematical utilities
-data_utils.py               # Data utilities
-datetime_utils.py           # Date and time utilities
-file_utils.py               # File and path utilities
-url_utils.py                # URL utilities
-random_utils.py             # Random utilities
-validation_utils.py         # Validation utilities
+calculator.py                # Simple calculator module with arithmetic operations
+config_utils.py              # Configuration utilities for JSON file management
+shapes.py                    # Geometry utilities for areas and perimeters
+strings.py                   # String utilities for text operations
+utils.py                     # General utility helper functions
+stats.py                     # Statistical utility functions
+math_utils.py               # Mathematical utility functions
+data_utils.py               # Data utility functions
+datetime_utils.py           # Date and time utility functions
+file_utils.py               # File and path utility functions
+url_utils.py                # URL and web utility functions
+random_utils.py             # Random number generation and sampling utilities
+validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
-list_utils.py              # List utilities
-env_utils.py               # Environment utilities
-logging_utils.py          # Logging utilities
-cache_utils.py            # Caching utilities
-timing_utils.py           # Timing utilities
-concurrent_utils.py       # Concurrent utilities
-priority_queue_utils.py   # Priority queue utilities
-rate_limiter_utils.py     # Rate limiting utilities
-retry_utils.py            # Retry utilities
-dict_utils.py            # Dictionary utilities
-tests/test_hello.py         # Tests for hello
-tests/test_calculator.py    # Tests for calculator
-tests/test_shapes.py        # Tests for shapes
+list_utils.py              # Advanced list manipulation utilities
+env_utils.py               # Environment variable handling utilities
+logging_utils.py          # Logging configuration and helper utilities
+cache_utils.py            # Caching utilities for memoizing function results
+timing_utils.py           # Performance measurement helpers
+concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+priority_queue_utils.py   # Heap-based priority queue implementation
+rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
+retry_utils.py            # Retry utilities with exponential backoff and jitter
+dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
 tests/                       # Python unit tests
+  test_hello.py              # Tests for hello.py
+  test_calculator.py         # Tests for calculator.py
+  test_scaffold.py           # Tests for scaffold.sh
+  test_config_utils.py       # Tests for config_utils.py
+  test_shapes.py             # Tests for shapes.py
+  test_strings.py            # Tests for strings.py
+  test_utils.py              # Tests for utils.py
+  test_stats.py              # Tests for stats.py
+  test_math_utils.py         # Tests for math_utils.py
+  test_data_utils.py         # Tests for data_utils.py
+  test_datetime_utils.py     # Tests for datetime_utils.py
+  test_file_utils.py         # Tests for file_utils.py
+  test_url_utils.py          # Tests for url_utils.py
+  test_random_utils.py       # Tests for random_utils.py
+  test_validation_utils.py   # Tests for validation_utils.py
+  test_crypto_utils.py       # Tests for crypto_utils.py
+  test_list_utils.py         # Tests for list_utils.py
+  test_env_utils.py          # Tests for env_utils.py
+  test_logging_utils.py       # Tests for logging_utils.py
+  test_cache_utils.py         # Tests for cache_utils.py
+  test_timing_utils.py        # Tests for timing_utils.py
+  test_concurrent_utils.py    # Tests for concurrent_utils.py
+  test_priority_queue_utils.py # Tests for priority_queue_utils.py
+  test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
+  test_retry_utils.py         # Tests for retry_utils.py
+  test_dict_utils.py         # Tests for dict_utils.py
 ```
 
 ## Getting Started
