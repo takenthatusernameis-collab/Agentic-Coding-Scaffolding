@@ -24,6 +24,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `strings.py` — string utilities for text operations
 - `utils.py` — general utility helper functions
 - `math_utils.py` — mathematical utility functions
+- `data_utils.py` — data utility functions
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
@@ -32,6 +33,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `stats.py` — statistical utility functions
 - `tests/test_stats.py` — unit tests for `stats.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
+- `tests/test_data_utils.py` — unit tests for `data_utils.py`
 
 ## Usage
 

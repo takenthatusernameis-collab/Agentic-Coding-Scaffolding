@@ -1311,6 +1311,59 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
     return max(min_val, min(value, max_val))
 MATH
 
+# --- data_utils.py ---
+cat > "$OUTPUT_DIR/data_utils.py" <<'DATA'
+"""Data utility functions."""
+
+import copy
+from typing import Any, Dict, Iterable, List, Set, TypeVar
+
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+def deep_copy(obj: Any) -> Any:
+    """Create a deep copy of an object."""
+    try:
+        return copy.deepcopy(obj)
+    except Exception:
+        return copy.copy(obj)
+
+
+def merge_dicts(*dicts: Dict[Any, Any]) -> Dict[Any, Any]:
+    """Merge multiple dictionaries, later values override earlier ones."""
+    result: Dict[Any, Any] = {}
+    for d in dicts:
+        if d:
+            result.update(d)
+    return result
+
+
+def pick(d: Dict[K, V], keys: Iterable[K]) -> Dict[K, V]:
+    """Return a new dict with only specified keys."""
+    key_set: Set[K] = set(keys)
+    return {k: d[k] for k in d if k in key_set}
+
+
+def omit(d: Dict[K, V], keys: Iterable[K]) -> Dict[K, V]:
+    """Return a new dict without specified keys."""
+    key_set: Set[K] = set(keys)
+    return {k: v for k, v in d.items() if k not in key_set}
+
+
+def flatten_dict(
+    d: Dict[str, Any], parent_key: str = "", sep: str = "."
+) -> Dict[str, Any]:
+    """Flatten nested dict to dot-notation keys."""
+    items: List[tuple] = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+DATA
 # --- tests/test_math_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
 """Tests for math_utils module."""
@@ -1388,6 +1441,126 @@ if __name__ == "__main__":
     unittest.main()
 TESTMATH
 
+# --- tests/test_data_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_data_utils.py" <<'TESTDATA'
+"""Tests for data_utils module."""
+
+import unittest
+
+from data_utils import deep_copy, flatten_dict, merge_dicts, omit, pick
+
+
+class TestDeepCopy(unittest.TestCase):
+    def test_deep_copy_simple_dict(self) -> None:
+        original = {"a": 1, "b": 2}
+        copied = deep_copy(original)
+        self.assertEqual(original, copied)
+        self.assertIsNot(original, copied)
+
+    def test_deep_copy_nested(self) -> None:
+        original = {"a": 1, "b": {"c": 3, "d": 4}}
+        copied = deep_copy(original)
+        self.assertEqual(original, copied)
+        self.assertIsNot(original["b"], copied["b"])
+        copied["b"]["c"] = 99
+        self.assertEqual(original["b"]["c"], 3)
+
+    def test_deep_copy_list(self) -> None:
+        original = [1, 2, [3, 4]]
+        copied = deep_copy(original)
+        self.assertEqual(original, copied)
+        self.assertIsNot(original, copied)
+        self.assertIsNot(original[2], copied[2])
+
+    def test_deep_copy_primitive(self) -> None:
+        self.assertEqual(deep_copy(5), 5)
+        self.assertEqual(deep_copy("hello"), "hello")
+
+
+class TestMergeDicts(unittest.TestCase):
+    def test_merge_dicts_basic(self) -> None:
+        result = merge_dicts({"a": 1}, {"b": 2})
+        self.assertEqual(result, {"a": 1, "b": 2})
+
+    def test_merge_dicts_override(self) -> None:
+        result = merge_dicts({"a": 1}, {"a": 3, "b": 2})
+        self.assertEqual(result, {"a": 3, "b": 2})
+
+    def test_merge_dicts_multiple(self) -> None:
+        result = merge_dicts({"a": 1}, {"b": 2}, {"c": 3, "a": 4})
+        self.assertEqual(result, {"a": 4, "b": 2, "c": 3})
+
+    def test_merge_dicts_empty(self) -> None:
+        self.assertEqual(merge_dicts(), {})
+        self.assertEqual(merge_dicts({}, {"a": 1}), {"a": 1})
+
+
+class TestPick(unittest.TestCase):
+    def test_pick_basic(self) -> None:
+        result = pick({"a": 1, "b": 2, "c": 3}, ["a", "c"])
+        self.assertEqual(result, {"a": 1, "c": 3})
+
+    def test_pick_missing_keys(self) -> None:
+        result = pick({"a": 1, "b": 2}, ["a", "d"])
+        self.assertEqual(result, {"a": 1})
+
+    def test_pick_empty_keys(self) -> None:
+        result = pick({"a": 1, "b": 2}, [])
+        self.assertEqual(result, {})
+
+    def test_pick_no_overlap(self) -> None:
+        result = pick({"a": 1}, ["b", "c"])
+        self.assertEqual(result, {})
+
+
+class TestOmit(unittest.TestCase):
+    def test_omit_basic(self) -> None:
+        result = omit({"a": 1, "b": 2, "c": 3}, ["a", "c"])
+        self.assertEqual(result, {"b": 2})
+
+    def test_omit_missing_keys(self) -> None:
+        result = omit({"a": 1, "b": 2}, ["c", "d"])
+        self.assertEqual(result, {"a": 1, "b": 2})
+
+    def test_omit_empty_keys(self) -> None:
+        result = omit({"a": 1, "b": 2}, [])
+        self.assertEqual(result, {"a": 1, "b": 2})
+
+    def test_omit_all(self) -> None:
+        result = omit({"a": 1, "b": 2}, ["a", "b"])
+        self.assertEqual(result, {})
+
+
+class TestFlattenDict(unittest.TestCase):
+    def test_flatten_dict_simple(self) -> None:
+        d = {"a": 1, "b": 2}
+        result = flatten_dict(d)
+        self.assertEqual(result, {"a": 1, "b": 2})
+
+    def test_flatten_dict_nested(self) -> None:
+        d = {"a": 1, "b": {"c": 2, "d": 3}}
+        result = flatten_dict(d)
+        self.assertEqual(result, {"a": 1, "b.c": 2, "b.d": 3})
+
+    def test_flatten_dict_deep_nested(self) -> None:
+        d = {"a": {"b": {"c": {"d": 1}}}}
+        result = flatten_dict(d)
+        self.assertEqual(result, {"a.b.c.d": 1})
+
+    def test_flatten_dict_custom_sep(self) -> None:
+        d = {"a": {"b": 2}}
+        result = flatten_dict(d, sep="_")
+        self.assertEqual(result, {"a_b": 2})
+
+    def test_flatten_dict_mixed(self) -> None:
+        d = {"a": 1, "b": {"c": 2}, "d": {"e": {"f": 3}}}
+        result = flatten_dict(d)
+        self.assertEqual(result, {"a": 1, "b.c": 2, "d.e.f": 3})
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTDATA
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -1592,6 +1765,7 @@ strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions
+  data_utils.py               # Data utility functions
 .gitignore                   # Common ignore patterns
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -1602,6 +1776,7 @@ tests/                       # Python unit tests
   test_utils.py              # Tests for utils.py
   test_stats.py              # Tests for stats.py
   test_math_utils.py         # Tests for math_utils.py
+  test_data_utils.py          # Tests for data_utils.py
 \`\`\`
 
 ## Developer Commands

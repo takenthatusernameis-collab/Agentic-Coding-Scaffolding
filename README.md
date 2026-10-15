@@ -38,6 +38,7 @@ strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions
+  data_utils.py               # Data utility functions
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -47,6 +48,7 @@ tests/                       # Python unit tests
   test_utils.py              # Tests for utils.py
   test_stats.py              # Tests for stats.py
   test_math_utils.py         # Tests for math_utils.py
+  test_data_utils.py          # Tests for data_utils.py
 ```
 
 ## How It Works
@@ -109,3 +111,7 @@ MIT
 ## Math Utilities Module
 
 The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, and `clamp`. The module is tested in `tests/test_math_utils.py`.
+
+## Data Utilities Module
+
+The project includes a data utilities module in `data_utils.py` with functions for data manipulation: `deep_copy`, `merge_dicts`, `pick`, `omit`, and `flatten_dict`. The module is tested in `tests/test_data_utils.py`.

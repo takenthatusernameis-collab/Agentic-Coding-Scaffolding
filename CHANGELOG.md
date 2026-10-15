@@ -53,6 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `scaffold.sh` to generate `math_utils.py` and its tests
 - Updated scaffold tests to verify math utils generation
 - Updated `.kilo/command/scaffold-project.md`, `README.md`, and scaffold template to include math utils
+- `data_utils.py` — data utility module with `deep_copy`, `merge_dicts`, `pick`, `omit`, and `flatten_dict` functions
+- `tests/test_data_utils.py` — unit tests for `data_utils.py`
+- Updated scaffold template to generate `data_utils.py` and its tests
 
 
 ## [0.1.0] - Bootstrap
