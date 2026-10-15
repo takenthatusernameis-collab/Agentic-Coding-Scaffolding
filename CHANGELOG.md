@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Synchronized `scaffold.sh` embedded `math_utils.py` template with the repository version, restoring full Args/Raises/Examples docstrings and the `n > 20` branch comment
+- Synchronized `scaffold.sh` embedded `stats.py` template with the repository version: added Examples docstrings, deterministic mode tie-breaking, sample-variance element-count guard, and `float` return type on `mode`
+- Synchronized `scaffold.sh` embedded `datetime_utils.py` template with the repository version: restored multiline function signatures and RST-style `` `` `` inline literals in docstrings
+- Synchronized `scaffold.sh` embedded `tests/test_math_utils.py` template with the repository version, adding coprime/same GCD cases, zero LCM case, expanded prime edge cases, and `factorial(1)`/`fibonacci(6)` assertions
+- Updated `scaffold.sh` embedded `.kilo/command/scaffold-project.md` template wording for the `kilo.json` scaffolder description to match the repo version
 - Fixed inconsistent indentation in README.md project structure section (datetime_utils.py, file_utils.py, url_utils.py entries had extra leading spaces)
 - Fixed inconsistent indentation in scaffold.sh README.md template for the same entries
 - Removed duplicate `stats.py` heredoc section in `scaffold.sh` (was generated twice)

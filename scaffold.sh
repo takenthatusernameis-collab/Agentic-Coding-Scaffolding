@@ -811,6 +811,12 @@ def mean(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty.
+
+    Examples:
+        >>> mean([1, 2, 3, 4, 5])
+        3.0
+        >>> mean([2, 4])
+        3.0
     """
     if not numbers:
         raise ValueError("Cannot calculate mean of empty list")
@@ -828,6 +834,12 @@ def median(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty.
+
+    Examples:
+        >>> median([1, 2, 3, 4, 5])
+        3
+        >>> median([1, 2, 3, 4])
+        2.5
     """
     if not numbers:
         raise ValueError("Cannot calculate median of empty list")
@@ -840,8 +852,11 @@ def median(numbers: List[T | float]) -> float:
     return (mid1 + mid2) / 2.0
 
 
-def mode(numbers: List[T | float]) -> T | float:
+def mode(numbers: List[T | float]) -> float:
     """Return the mode (most frequent value) of a list of numbers.
+
+    If there is more than one mode, returns the first one encountered
+    in terms of the value that appears first in sorted order of values.
 
     Args:
         numbers: A list of numeric values.
@@ -851,6 +866,12 @@ def mode(numbers: List[T | float]) -> T | float:
 
     Raises:
         ValueError: If the list is empty.
+
+    Examples:
+        >>> mode([1, 2, 2, 3, 4])
+        2
+        >>> mode([1, 1, 2, 2, 3])
+        1
     """
     if not numbers:
         raise ValueError("Cannot calculate mode of empty list")
@@ -858,9 +879,12 @@ def mode(numbers: List[T | float]) -> T | float:
     for num in numbers:
         frequency[num] = frequency.get(num, 0) + 1
     max_count = max(frequency.values())
+    # Return the smallest value (in sorted order) among those with max frequency
+    # for deterministic behavior
     for num in sorted(frequency.keys()):
         if frequency[num] == max_count:
-            return num
+            return float(num)
+    raise ValueError("Cannot calculate mode of empty list")
 
 
 def variance(numbers: List[T | float], population: bool = True) -> float:
@@ -870,12 +894,18 @@ def variance(numbers: List[T | float], population: bool = True) -> float:
         numbers: A list of numeric values.
         population: If True, calculate population variance (divide by n).
                     If False, calculate sample variance (divide by n-1).
+                    Defaults to True.
 
     Returns:
         The variance.
 
     Raises:
-        ValueError: If the list is empty or insufficient elements for sample.
+        ValueError: If the list is empty, or if calculating sample variance
+                    with fewer than 2 elements.
+
+    Examples:
+        >>> variance([1, 2, 3, 4, 5])
+        2.0
     """
     if not numbers:
         raise ValueError("Cannot calculate variance of empty list")
@@ -895,12 +925,18 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
         numbers: A list of numeric values.
         population: If True, calculate population std dev (divide by n).
                     If False, calculate sample std dev (divide by n-1).
+                    Defaults to True.
 
     Returns:
         The standard deviation.
 
     Raises:
-        ValueError: If the list is empty or insufficient elements for sample.
+        ValueError: If the list is empty, or if calculating sample std dev
+                    with fewer than 2 elements.
+
+    Examples:
+        >>> stddev([1, 2, 3, 4, 5])
+        1.4142135623730951
     """
     import math
 
@@ -1155,10 +1191,27 @@ import math
 
 
 def factorial(n: int) -> int:
-    """Calculate the factorial of a non-negative integer n."""
+    """Calculate the factorial of a non-negative integer n.
+
+    Args:
+        n: The number to calculate factorial for.
+
+    Returns:
+        The factorial of n (n!).
+
+    Raises:
+        ValueError: If n is negative.
+        OverflowError: If n is too large.
+
+    Examples:
+        >>> factorial(0)
+        1
+        >>> factorial(5)
+        120
+    """
     if n < 0:
         raise ValueError("Factorial is not defined for negative numbers")
-    if n > 20:
+    if n > 20:  # Prevent large numbers that might cause issues
         result = 1
         for i in range(2, n + 1):
             result *= i
@@ -1167,7 +1220,25 @@ def factorial(n: int) -> int:
 
 
 def fibonacci(n: int) -> int:
-    """Calculate the nth Fibonacci number."""
+    """Calculate the nth Fibonacci number.
+
+    Args:
+        n: The index of the Fibonacci number (n >= 0).
+
+    Returns:
+        The nth Fibonacci number.
+
+    Raises:
+        ValueError: If n is negative.
+
+    Examples:
+        >>> fibonacci(0)
+        0
+        >>> fibonacci(1)
+        1
+        >>> fibonacci(5)
+        5
+    """
     if n < 0:
         raise ValueError("Fibonacci is not defined for negative numbers")
     if n == 0:
@@ -1181,19 +1252,65 @@ def fibonacci(n: int) -> int:
 
 
 def gcd(a: int, b: int) -> int:
-    """Calculate the Greatest Common Divisor of two integers."""
+    """Calculate the Greatest Common Divisor of two integers.
+
+    Args:
+        a: First integer.
+        b: Second integer.
+
+    Returns:
+        The GCD of a and b.
+
+    Examples:
+        >>> gcd(48, 18)
+        6
+        >>> gcd(17, 13)
+        1
+    """
     return math.gcd(a, b)
 
 
 def lcm(a: int, b: int) -> int:
-    """Calculate the Least Common Multiple of two integers."""
+    """Calculate the Least Common Multiple of two integers.
+
+    Args:
+        a: First integer.
+        b: Second integer.
+
+    Returns:
+        The LCM of a and b.
+
+    Examples:
+        >>> lcm(4, 6)
+        12
+        >>> lcm(3, 5)
+        15
+    """
     if a == 0 or b == 0:
         return 0
     return abs(a * b) // math.gcd(a, b)
 
 
 def is_prime(n: int) -> bool:
-    """Check if a number is prime."""
+    """Check if a number is prime.
+
+    Args:
+        n: The number to check.
+
+    Returns:
+        True if n is prime, False otherwise.
+
+    Raises:
+        ValueError: If n < 2.
+
+    Examples:
+        >>> is_prime(2)
+        True
+        >>> is_prime(9)
+        False
+        >>> is_prime(17)
+        True
+    """
     if n < 2:
         raise ValueError("Prime check is only defined for integers >= 2")
     if n <= 3:
@@ -1209,7 +1326,27 @@ def is_prime(n: int) -> bool:
 
 
 def clamp(value: float, min_val: float, max_val: float) -> float:
-    """Clamp a value between min_val and max_val."""
+    """Clamp a value between min_val and max_val.
+
+    Args:
+        value: The value to clamp.
+        min_val: The minimum allowed value.
+        max_val: The maximum allowed value.
+
+    Returns:
+        The clamped value.
+
+    Raises:
+        ValueError: If min_val > max_val.
+
+    Examples:
+        >>> clamp(5, 0, 10)
+        5
+        >>> clamp(-5, 0, 10)
+        0
+        >>> clamp(15, 0, 10)
+        10
+    """
     if min_val > max_val:
         raise ValueError("min_val must be <= max_val")
     return max(min_val, min(value, max_val))
@@ -1279,12 +1416,14 @@ from typing import Union
 DateTimeLike = Union[str, datetime]
 
 
-def parse_datetime(value: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> datetime:
+def parse_datetime(
+    value: str, fmt: str = "%Y-%m-%d %H:%M:%S"
+) -> datetime:
     """Parse a string into a datetime object.
 
     Args:
         value: The string to parse.
-        fmt: The expected format string. Defaults to %Y-%m-%d %H:%M:%S.
+        fmt: The expected format string. Defaults to ``%Y-%m-%d %H:%M:%S``.
 
     Returns:
         The parsed datetime object.
@@ -1295,12 +1434,14 @@ def parse_datetime(value: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> datetime:
     return datetime.strptime(value, fmt)
 
 
-def format_datetime(dt: datetime, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
+def format_datetime(
+    dt: datetime, fmt: str = "%Y-%m-%d %H:%M:%S"
+) -> str:
     """Format a datetime object as a string.
 
     Args:
         dt: The datetime to format.
-        fmt: The desired format string. Defaults to %Y-%m-%d %H:%M:%S.
+        fmt: The desired format string. Defaults to ``%Y-%m-%d %H:%M:%S``.
 
     Returns:
         The formatted string.
@@ -1312,8 +1453,8 @@ def days_between(start: DateTimeLike, end: DateTimeLike) -> int:
     """Return the absolute number of whole days between two dates.
 
     Args:
-        start: A datetime or parseable string (format %Y-%m-%d).
-        end: A datetime or parseable string (format %Y-%m-%d).
+        start: A datetime or parseable string (format ``%Y-%m-%d``).
+        end: A datetime or parseable string (format ``%Y-%m-%d``).
 
     Returns:
         The absolute difference in days.
@@ -1328,7 +1469,7 @@ def days_between(start: DateTimeLike, end: DateTimeLike) -> int:
 
 
 def is_leap_year(year: int) -> bool:
-    """Return True if year is a leap year.
+    """Return True if *year* is a leap year.
 
     Args:
         year: The year to check.
@@ -1348,7 +1489,7 @@ def add_days(dt: DateTimeLike, days: int) -> datetime:
     """Add (or subtract, if negative) a number of days to a datetime.
 
     Args:
-        dt: A datetime or a string parseable with %Y-%m-%d or %Y-%m-%d %H:%M:%S.
+        dt: A datetime or a string parseable with ``%Y-%m-%d``/``%Y-%m-%d %H:%M:%S``.
         days: The number of days to add. May be negative.
 
     Returns:
@@ -1365,10 +1506,10 @@ def get_weekday_name(dt: DateTimeLike) -> str:
     """Return the full weekday name for a given date.
 
     Args:
-        dt: A datetime or a string parseable with %Y-%m-%d.
+        dt: A datetime or a string parseable with ``%Y-%m-%d``.
 
     Returns:
-        The weekday name (e.g. Monday).
+        The weekday name (e.g. ``Monday``).
 
     Raises:
         ValueError: If a string argument cannot be parsed.
@@ -1416,6 +1557,7 @@ class TestFactorial(unittest.TestCase):
 
     def test_factorial_positive(self) -> None:
         self.assertEqual(factorial(5), 120)
+        self.assertEqual(factorial(1), 1)
 
     def test_factorial_negative_raises(self) -> None:
         with self.assertRaises(ValueError):
@@ -1431,6 +1573,7 @@ class TestFibonacci(unittest.TestCase):
 
     def test_fibonacci_sequence(self) -> None:
         self.assertEqual(fibonacci(5), 5)
+        self.assertEqual(fibonacci(6), 8)
 
     def test_fibonacci_negative_raises(self) -> None:
         with self.assertRaises(ValueError):
@@ -1441,22 +1584,40 @@ class TestGCD(unittest.TestCase):
     def test_gcd_basic(self) -> None:
         self.assertEqual(gcd(48, 18), 6)
 
+    def test_gcd_coprime(self) -> None:
+        self.assertEqual(gcd(17, 13), 1)
+
+    def test_gcd_same(self) -> None:
+        self.assertEqual(gcd(5, 5), 5)
+
 
 class TestLCM(unittest.TestCase):
     def test_lcm_basic(self) -> None:
         self.assertEqual(lcm(4, 6), 12)
+
+    def test_lcm_coprime(self) -> None:
+        self.assertEqual(lcm(3, 5), 15)
+
+    def test_lcm_zero(self) -> None:
+        self.assertEqual(lcm(0, 5), 0)
 
 
 class TestIsPrime(unittest.TestCase):
     def test_prime_numbers(self) -> None:
         self.assertTrue(is_prime(2))
         self.assertTrue(is_prime(3))
+        self.assertTrue(is_prime(5))
+        self.assertTrue(is_prime(17))
 
     def test_non_prime_numbers(self) -> None:
         self.assertFalse(is_prime(4))
+        self.assertFalse(is_prime(9))
+        self.assertFalse(is_prime(15))
 
     def test_prime_edge_cases(self) -> None:
         self.assertRaises(ValueError, is_prime, 1)
+        self.assertRaises(ValueError, is_prime, 0)
+        self.assertRaises(ValueError, is_prime, -7)
 
 
 class TestClamp(unittest.TestCase):
@@ -3363,7 +3524,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `README.md` — project overview and getting-started guide
 - `CHANGELOG.md` — changelog following Keep a Changelog format
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, tests, and scaffold smoke testing
-- `kilo.json` — Kilo project configuration with the `scaffolder` subagent
+- `kilo.json` — Kilo project configuration, including the `scaffolder` subagent
 - `.kilo/agent/scaffolder.md` — subagent definition for scaffolding tasks
 - `.kilo/command/handover.md` — handover command for task handoffs
 - `.kilo/command/scaffold-project.md` — scaffold-project command documentation
