@@ -70,6 +70,7 @@ tree_utils.py              # Tree and nested structure utilities (get/set/delete
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
     path_utils.py             # Path manipulation utilities (join, normalize, components, extensions)
     color_utils.py            # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
+pattern_utils.py              # Design pattern utilities (Singleton, Factory, Observer, Strategy)
     tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -107,6 +108,7 @@ type_utils.py              # Type introspection utilities (is_optional, is_union
 test_type_utils.py         # Tests for type_utils.py
     test_path_utils.py        # Tests for path_utils.py
     test_color_utils.py      # Tests for color_utils.py
+test_pattern_utils.py         # Tests for pattern_utils.py
     ```
 
 ## How It Works
@@ -274,6 +276,10 @@ The project includes a path manipulation utilities module in `path_utils.py` wit
 
 The project includes a color manipulation utilities module in `color_utils.py` with functions for converting between color representations (hexadecimal, RGB, HSL), computing WCAG 2.1 relative luminance and contrast ratios, checking accessibility, and adjusting/blending colors: `validate_hex`, `hex_to_rgb`, `rgb_to_hex`, `rgb_to_hsl`, `hsl_to_rgb`, `get_luminance`, `get_contrast_ratio`, `is_accessible`, `adjust_brightness`, and `blend_colors`. Colors are accepted as either a hex string (``#RRGGBB``) or an RGB tuple. The module is tested in `tests/test_color_utils.py`.
 
-Completed task: Added a new `color_utils.py` module with color manipulation utilities (`validate_hex`, `hex_to_rgb`, `rgb_to_hex`, `rgb_to_hsl`, `hsl_to_rgb`, `get_luminance`, `get_contrast_ratio`, `is_accessible`, `adjust_brightness`, `blend_colors`) and its tests. Synchronized the scaffold template: added `color_utils.py` to the `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Verified all tests pass, ruff and mypy are clean, and the scaffold smoke test generates a fully consistent project.
+## Design Pattern Utilities Module
 
-Next task: Review the project for remaining gaps — consider adding a new utility module (e.g., `pattern_utils.py` for design patterns), improving test coverage, or enhancing the scaffold script with new features.
+The project includes a design pattern utilities module in `pattern_utils.py` with reusable implementations of common object-oriented design patterns: `Singleton` (a thread-safe metaclass and `SingletonBase` base class that restrict a class to a single instance), `Factory` (a registry-based factory that creates objects by name), `Observer`/`Observable` (a publish-subscribe mechanism for change notifications), and `Strategy`/`StrategyContext` (plug-and-play algorithm selection). The module is tested in `tests/test_pattern_utils.py`.
+
+Completed task: Added a new `pattern_utils.py` module with design pattern utilities (`Singleton`, `Factory`, `Observer`/`Observable`, `Strategy`/`StrategyContext`) and its tests. Synchronized the scaffold template: added `pattern_utils.py` to the `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Verified all tests pass, ruff and mypy are clean, and the scaffold smoke test generates a fully consistent project.
+
+Next task: Review the project for remaining gaps — consider adding a new utility module (e.g., `config_schema.py` for typed configuration schemas), improving test coverage, or enhancing the scaffold script with new features.

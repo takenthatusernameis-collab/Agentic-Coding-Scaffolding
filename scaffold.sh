@@ -86,7 +86,9 @@
 #   - path_utils.py — path manipulation utilities (join, normalize, components, extensions)
 #   - tests/test_path_utils.py — unit tests for the path_utils module
 #   - color_utils.py — color manipulation utilities (hex/rgb/hsl conversion, luminance, contrast, accessibility)
+#   - pattern_utils.py — design pattern utilities (Singleton, Factory, Observer, Strategy)
 #   - tests/test_color_utils.py — unit tests for the color_utils module
+#   - tests/test_pattern_utils.py — unit tests for the pattern_utils module
 #   - tree_utils.py tree and nested structure utilities
 #   - tests/test_tree_utils.py unit tests for the tree_utils module
 set -euo pipefail
@@ -469,10 +471,10 @@ py_modules = [
     "set_utils",
     "statistics_utils",
     "string_utils",
-    "type_utils",
-    "retry_utils",
-    "tree_utils",
-    "path_utils",
+   "type_utils",
+   "tree_utils",
+   "path_utils",
+   "pattern_utils",
 ]
 
 [tool.ruff]
@@ -11162,6 +11164,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
 - `tests/test_type_utils.py` — unit tests for `type_utils.py`
 - `tests/test_path_utils.py` — unit tests for `path_utils.py`
+- `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 
@@ -11414,6 +11417,7 @@ string_utils.py            # Advanced string manipulation utilities (slugify, ca
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
     path_utils.py             # Path manipulation utilities (join, normalize, components, extensions)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
+pattern_utils.py              # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -11449,6 +11453,7 @@ tests/                       # Python unit tests
   test_tree_utils.py           # Tests for tree_utils.py
 test_type_utils.py         # Tests for type_utils.py
     test_path_utils.py        # Tests for path_utils.py
+test_pattern_utils.py         # Tests for pattern_utils.py
     ```
 
 ## Getting Started
@@ -11536,7 +11541,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `type_utils.py` — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 - `tests/test_type_utils.py` — unit tests for `type_utils.py`
 - `path_utils.py` — path manipulation utilities (join, normalize, components, extensions)
+- `pattern_utils.py` — design pattern utilities (Singleton, Factory, Observer, Strategy)
 - `tests/test_path_utils.py` — unit tests for `path_utils.py`
+- `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
@@ -12067,3 +12074,360 @@ if __name__ == "__main__":
     unittest.main()
 
 TESTPQ
+# --- pattern_utils.py ---
+cat > "$OUTPUT_DIR/pattern_utils.py" <<'PATTERNUTILS'
+"""Design pattern utilities.
+
+This module provides reusable implementations of common software design
+patterns: Singleton, Factory, Observer, and Strategy.
+"""
+
+from __future__ import annotations
+
+import threading
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
+
+T = TypeVar("T")
+
+
+class Singleton(type):
+    """Metaclass that restricts a class to a single instance.
+
+    Thread-safe: only one instance is created per class, even when multiple
+    threads attempt construction concurrently.
+
+    Example:
+        >>> class Service(metaclass=Singleton):
+        ...     pass
+        >>> Service() is Service()
+        True
+    """
+
+    _instances: Dict[type, Any] = {}
+    _lock: threading.Lock = threading.Lock()
+
+    def __call__(cls, *args, **kwargs):  # type: ignore[override]
+        if cls not in Singleton._instances:
+            with Singleton._lock:
+                if cls not in Singleton._instances:
+                    Singleton._instances[cls] = super().__call__(*args, **kwargs)
+        return Singleton._instances[cls]
+
+
+class SingletonBase(metaclass=Singleton):
+    """Base class for classes that should have only one instance.
+
+    Subclasses automatically share a single instance per subclass.
+    """
+
+
+class Factory:
+    """Registry-based factory for creating objects by name.
+
+    Creators are registered under a string key and invoked with any
+    positional or keyword arguments when :meth:`create` is called.
+    """
+
+    def __init__(self) -> None:
+        self._creators: Dict[str, Callable[..., Any]] = {}
+
+    def register(self, name: str, creator: Callable[..., Any]) -> None:
+        """Register a creator callable under ``name``.
+
+        Args:
+            name: Key used to look up the creator.
+            creator: Callable used to create instances.
+
+        Raises:
+            TypeError: If ``creator`` is not callable.
+        """
+        if not callable(creator):
+            raise TypeError("creator must be callable")
+        self._creators[name] = creator
+
+    def create(self, name: str, *args, **kwargs) -> Any:
+        """Create and return an object registered under ``name``.
+
+        Args:
+            name: Key of the registered creator.
+            args: Positional arguments forwarded to the creator.
+            kwargs: Keyword arguments forwarded to the creator.
+
+        Raises:
+            KeyError: If no creator is registered for ``name``.
+        """
+        if name not in self._creators:
+            raise KeyError(f"Unknown type: {name!r}")
+        return self._creators[name](*args, **kwargs)
+
+    def unregister(self, name: str) -> None:
+        """Remove the creator registered under ``name``.
+
+        Raises:
+            KeyError: If no creator is registered for ``name``.
+        """
+        if name not in self._creators:
+            raise KeyError(f"Unknown type: {name!r}")
+        del self._creators[name]
+
+    def types(self) -> List[str]:
+        """Return the sorted list of registered creator names."""
+        return sorted(self._creators)
+
+
+class Observer:
+    """Base class for observer objects.
+
+    Subclasses implement :meth:`update` to react to changes in an
+    :class:`Observable` subject.
+    """
+
+    def update(self, subject: Any, data: Any = None) -> None:
+        """Called when the observed subject changes.
+
+        Args:
+            subject: The observable that changed.
+            data: Optional data describing the change.
+        """
+        raise NotImplementedError
+
+
+class Observable:
+    """Subject that notifies registered observers of changes."""
+
+    def __init__(self) -> None:
+        self._observers: List[Observer] = []
+
+    def attach(self, observer: Observer) -> None:
+        """Register ``observer`` to receive change notifications.
+
+        Args:
+            observer: The observer to attach.
+
+        Raises:
+            TypeError: If ``observer`` is not an :class:`Observer` instance.
+        """
+        if not isinstance(observer, Observer):
+            raise TypeError("observer must be an Observer instance")
+        if observer in self._observers:
+            return
+        self._observers.append(observer)
+
+    def detach(self, observer: Observer) -> None:
+        """Unregister ``observer``.
+
+        Raises:
+            ValueError: If ``observer`` is not attached.
+        """
+        self._observers.remove(observer)
+
+    def notify(self, data: Any = None) -> None:
+        """Notify all attached observers with optional ``data``."""
+        for observer in list(self._observers):
+            observer.update(self, data)
+
+
+class Strategy:
+    """Base class for strategy objects.
+
+    Subclasses implement :meth:`execute` to encapsulate an interchangeable
+    algorithm.
+    """
+
+    def execute(self, *args, **kwargs) -> Any:
+        """Execute the strategy algorithm.
+
+        Args:
+            args: Positional arguments for the algorithm.
+            kwargs: Keyword arguments for the algorithm.
+
+        Returns:
+            The result of the algorithm.
+        """
+        raise NotImplementedError
+
+
+class StrategyContext:
+    """Context that delegates work to a pluggable :class:`Strategy`."""
+
+    def __init__(self, strategy: Strategy) -> None:
+        """Initialize the context with ``strategy``.
+
+        Args:
+            strategy: The strategy to delegate to.
+
+        Raises:
+            TypeError: If ``strategy`` is not a :class:`Strategy` instance.
+        """
+        if not isinstance(strategy, Strategy):
+            raise TypeError("strategy must be a Strategy instance")
+        self._strategy = strategy
+
+    @property
+    def strategy(self) -> Strategy:
+        """The currently configured strategy."""
+        return self._strategy
+
+    @strategy.setter
+    def strategy(self, strategy: Strategy) -> None:
+        """Replace the current strategy.
+
+        Raises:
+            TypeError: If ``strategy`` is not a :class:`Strategy` instance.
+        """
+        if not isinstance(strategy, Strategy):
+            raise TypeError("strategy must be a Strategy instance")
+        self._strategy = strategy
+
+    def execute(self, *args, **kwargs) -> Any:
+        """Delegate to the current strategy."""
+        return self._strategy.execute(*args, **kwargs)
+PATTERNUTILS
+# --- tests/test_pattern_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_pattern_utils.py" <<'TESTPATTERNUTILS'
+"""Tests for pattern_utils module."""
+
+import unittest
+
+from pattern_utils import (
+    Factory,
+    Observable,
+    Observer,
+    Singleton,
+    SingletonBase,
+    Strategy,
+    StrategyContext,
+)
+
+
+class TestSingleton(unittest.TestCase):
+    def test_same_instance(self):
+        class Service(metaclass=Singleton):
+            def __init__(self):
+                self.value = 0
+
+        self.assertIs(Service(), Service())
+
+    def test_distinct_classes_distinct_instances(self):
+        class Alpha(metaclass=Singleton):
+            pass
+
+        class Beta(metaclass=Singleton):
+            pass
+
+        self.assertIsNot(Alpha(), Beta())
+
+    def test_singleton_base(self):
+        class Logger(SingletonBase):
+            pass
+
+        self.assertIs(Logger(), Logger())
+
+
+class TestFactory(unittest.TestCase):
+    def setUp(self):
+        self.factory = Factory()
+
+    def test_register_and_create(self):
+        self.factory.register("adder", lambda a, b: a + b)
+        self.assertEqual(self.factory.create("adder", 2, 3), 5)
+
+    def test_create_unknown_raises(self):
+        with self.assertRaises(KeyError):
+            self.factory.create("missing")
+
+    def test_unregister(self):
+        self.factory.register("x", lambda: 1)
+        self.factory.unregister("x")
+        self.assertEqual(self.factory.types(), [])
+        with self.assertRaises(KeyError):
+            self.factory.unregister("x")
+
+    def test_register_non_callable_raises(self):
+        with self.assertRaises(TypeError):
+            self.factory.register("bad", 42)  # type: ignore[arg-type]
+
+    def test_types_sorted(self):
+        self.factory.register("zeta", lambda: 1)
+        self.factory.register("alpha", lambda: 1)
+        self.factory.register("mid", lambda: 1)
+        self.assertEqual(self.factory.types(), ["alpha", "mid", "zeta"])
+
+
+class RecordingObserver(Observer):
+    def __init__(self):
+        self.calls = []
+
+    def update(self, subject, data=None):
+        self.calls.append((subject, data))
+
+
+class TestObservable(unittest.TestCase):
+    def setUp(self):
+        self.subject = Observable()
+        self.observer = RecordingObserver()
+
+    def test_attach_and_notify(self):
+        self.subject.attach(self.observer)
+        self.subject.notify("hello")
+        self.assertEqual(len(self.observer.calls), 1)
+        self.assertEqual(self.observer.calls[0], (self.subject, "hello"))
+
+    def test_detach_stops_notification(self):
+        self.subject.attach(self.observer)
+        self.subject.detach(self.observer)
+        self.subject.notify("hello")
+        self.assertEqual(self.observer.calls, [])
+
+    def test_detach_unattached_raises(self):
+        with self.assertRaises(ValueError):
+            self.subject.detach(self.observer)
+
+    def test_attach_non_observer_raises(self):
+        with self.assertRaises(TypeError):
+            self.subject.attach("not an observer")  # type: ignore[arg-type]
+
+    def test_multiple_observers(self):
+        other = RecordingObserver()
+        self.subject.attach(self.observer)
+        self.subject.attach(other)
+        self.subject.notify("data")
+        self.assertEqual(len(self.observer.calls), 1)
+        self.assertEqual(len(other.calls), 1)
+
+
+class ConcreteStrategy(Strategy):
+    def __init__(self, label):
+        self.label = label
+
+    def execute(self, *args, **kwargs):
+        return self.label
+
+
+class TestStrategy(unittest.TestCase):
+    def test_strategy_abstract(self):
+        with self.assertRaises(NotImplementedError):
+            Strategy().execute()
+
+    def test_context_delegates(self):
+        context = StrategyContext(ConcreteStrategy("first"))
+        self.assertEqual(context.execute(), "first")
+        self.assertIsInstance(context.strategy, ConcreteStrategy)
+
+    def test_context_swap_strategy(self):
+        context = StrategyContext(ConcreteStrategy("first"))
+        context.strategy = ConcreteStrategy("second")
+        self.assertEqual(context.execute(), "second")
+        self.assertEqual(context.strategy.label, "second")
+
+    def test_context_invalid_strategy_raises(self):
+        with self.assertRaises(TypeError):
+            StrategyContext("not a strategy")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            StrategyContext(ConcreteStrategy("x")).strategy = 42  # type: ignore[assignment]
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+TESTPATTERNUTILS

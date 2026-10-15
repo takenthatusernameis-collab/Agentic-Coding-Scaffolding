@@ -65,7 +65,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `path_utils.py` — path manipulation utilities (join, normalize, components, extensions)
 - `tests/test_path_utils.py` — unit tests for `path_utils.py`
 - `color_utils.py` — color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
+- `pattern_utils.py` — design pattern utilities (Singleton, Factory, Observer, Strategy)
 - `tests/test_color_utils.py` — unit tests for `color_utils.py`
+- `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`

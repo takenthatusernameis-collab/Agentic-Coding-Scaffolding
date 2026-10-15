@@ -160,6 +160,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_path_utils.py",
             "color_utils.py",
             "tests/test_color_utils.py",
+            "pattern_utils.py",
+            "tests/test_pattern_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -638,6 +640,38 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertEqual(hsl_to_rgb(0, 1.0, 0.5), (255, 0, 0))
         self.assertEqual(adjust_brightness("#000000", 2.0), "#000000")
         self.assertEqual(blend_colors("#000000", "#ffffff", 0.5), "#808080")
+
+    def test_pattern_utils_functions_work(self) -> None:
+        """Generated pattern_utils.py should have working functions."""
+        from pattern_utils import Factory, Observable, Observer, Singleton, Strategy
+
+        class Service(metaclass=Singleton):
+            pass
+
+        self.assertIs(Service(), Service())
+
+        factory = Factory()
+        factory.register("greeter", lambda name: f"hi {name}")
+        self.assertEqual(factory.create("greeter", "pat"), "hi pat")
+
+        class MyObserver(Observer):
+            def __init__(self) -> None:
+                self.calls: list = []
+
+            def update(self, subject, data=None):
+                self.calls.append(data)
+
+        subject = Observable()
+        observer = MyObserver()
+        subject.attach(observer)
+        subject.notify("event")
+        self.assertEqual(observer.calls, ["event"])
+
+        class MyStrategy(Strategy):
+            def execute(self, value: int) -> int:
+                return value * 2
+
+        self.assertEqual(MyStrategy().execute(21), 42)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

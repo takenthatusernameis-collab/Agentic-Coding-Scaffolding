@@ -75,4 +75,5 @@ py_modules = [
     "retry_utils",
     "tree_utils",
     "path_utils",
+    "pattern_utils",
 ]
