@@ -67,6 +67,8 @@
 #   - tests/test_rate_limiter_utils.py unit tests for the rate_limiter_utils module
 #   - retry_utils.py retry utilities with exponential backoff and jitter
 #   - tests/test_retry_utils.py unit tests for the retry_utils module
+#   - dict_utils.py dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
+#   - tests/test_dict_utils.py unit tests for the dict_utils module
 #
 set -euo pipefail
 
@@ -438,6 +440,7 @@ py_modules = [
     "concurrent_utils",
     "priority_queue_utils",
     "rate_limiter_utils",
+    "dict_utils",
     "retry_utils",
 ]
 
@@ -7541,23 +7544,23 @@ shapes.py                    # Geometry utilities for areas and perimeters of co
 strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
-math_utils.py               # Mathematical utility functions
-data_utils.py               # Data utility functions
-datetime_utils.py           # Date and time utility functions
-file_utils.py               # File and path utility functions
-url_utils.py                # URL and web utility functions
-random_utils.py             # Random number generation and sampling utilities
-validation_utils.py         # Input validation utilities
-crypto_utils.py             # Cryptographic utilities
-list_utils.py              # Advanced list manipulation utilities
-env_utils.py               # Environment variable handling utilities
-logging_utils.py          # Logging configuration and helper utilities
-cache_utils.py            # Caching utilities for memoizing function results
-timing_utils.py           # Performance measurement helpers
-concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
-priority_queue_utils.py   # Heap-based priority queue implementation
-rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
-retry_utils.py            # Retry utilities with exponential backoff and jitter
+math_utils.py                # Mathematical utility functions
+data_utils.py                # Data utility functions
+datetime_utils.py            # Date and time utility functions
+file_utils.py                # File and path utility functions
+url_utils.py                 # URL and web utility functions
+random_utils.py              # Random number generation and sampling utilities
+validation_utils.py          # Input validation utilities
+crypto_utils.py              # Cryptographic utilities
+list_utils.py                # Advanced list manipulation utilities
+env_utils.py                 # Environment variable handling utilities
+logging_utils.py             # Logging configuration and helper utilities
+cache_utils.py               # Caching utilities for memoizing function results
+timing_utils.py              # Performance measurement helpers
+concurrent_utils.py          # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+priority_queue_utils.py      # Heap-based priority queue implementation
+rate_limiter_utils.py        # Rate limiting utilities (token bucket algorithm)
+retry_utils.py               # Retry utilities with exponential backoff and jitter
 .gitignore                   # Common ignore patterns
 LICENSE                      # MIT License
 tests/                       # Python unit tests
@@ -7569,8 +7572,8 @@ tests/                       # Python unit tests
   test_utils.py              # Tests for utils.py
   test_stats.py              # Tests for stats.py
   test_math_utils.py         # Tests for math_utils.py
-  test_data_utils.py          # Tests for data_utils.py
-  test_datetime_utils.py      # Tests for datetime_utils.py
+  test_data_utils.py         # Tests for data_utils.py
+  test_datetime_utils.py     # Tests for datetime_utils.py
   test_file_utils.py         # Tests for file_utils.py
   test_url_utils.py          # Tests for url_utils.py
   test_random_utils.py       # Tests for random_utils.py
@@ -7578,13 +7581,13 @@ tests/                       # Python unit tests
   test_crypto_utils.py       # Tests for crypto_utils.py
   test_list_utils.py         # Tests for list_utils.py
   test_env_utils.py          # Tests for env_utils.py
-  test_logging_utils.py       # Tests for logging_utils.py
-  test_cache_utils.py         # Tests for cache_utils.py
-  test_timing_utils.py        # Tests for timing_utils.py
-  test_concurrent_utils.py    # Tests for concurrent_utils.py
+  test_logging_utils.py      # Tests for logging_utils.py
+  test_cache_utils.py        # Tests for cache_utils.py
+  test_timing_utils.py       # Tests for timing_utils.py
+  test_concurrent_utils.py   # Tests for concurrent_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
-  test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
-  test_retry_utils.py         # Tests for retry_utils.py
+  test_rate_limiter_utils.py # Tests for rate_limiter_utils.py
+  test_retry_utils.py        # Tests for retry_utils.py
 \`\`\`
 
 ## Developer Commands
@@ -7669,42 +7672,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `utils.py` — general utility helper functions
 - `tests/test_utils.py` — unit tests for `utils.py`
-- \`stats.py\` — statistical utility functions
-- \`tests/test_stats.py\` — unit tests for \`stats.py\`
-- \`math_utils.py\` — mathematical utility functions
-- \`tests/test_math_utils.py\` — unit tests for \`math_utils.py\`
-- \`data_utils.py\` — data utility functions
-- \`tests/test_data_utils.py\` — unit tests for \`data_utils.py\`
-- \`file_utils.py\` — file and path utility functions
-- \`tests/test_file_utils.py\` — unit tests for \`file_utils.py\`
-- \`datetime_utils.py\` — date and time utility functions
-- \`tests/test_datetime_utils.py\` — unit tests for \`datetime_utils.py\`
-- \`url_utils.py\` — URL and web utility functions
-- \`tests/test_url_utils.py\` — unit tests for \`url_utils.py\`
-- \`random_utils.py\` — random number generation and sampling utilities
-- \`tests/test_random_utils.py\` — unit tests for \`random_utils.py\`
-- \`validation_utils.py\` — input validation utilities
-- \`tests/test_validation_utils.py\` — unit tests for \`validation_utils.py\`
-- \`crypto_utils.py\` — cryptographic utilities
-- \`tests/test_crypto_utils.py\` — unit tests for \`crypto_utils.py\`
-- \`list_utils.py\` — advanced list manipulation utilities
-- \`env_utils.py\` — environment variable handling utilities
-- \`tests/test_list_utils.py\` — unit tests for \`list_utils.py\`
-- \`tests/test_env_utils.py\` — unit tests for \`env_utils.py\`
-- \`logging_utils.py\` — logging configuration and helper utilities
-- \`tests/test_logging_utils.py\` — unit tests for \`logging_utils.py\`
-- \`cache_utils.py\` — caching utilities for memoizing function results
-- \`tests/test_cache_utils.py\` — unit tests for \`cache_utils.py\`
-- \`timing_utils.py\` — performance measurement helpers
-- \`tests/test_timing_utils.py\` — unit tests for \`timing_utils.py\`
-- \`concurrent_utils.py\` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
-- \`tests/test_concurrent_utils.py\` — unit tests for \`concurrent_utils.py\`
-- \`priority_queue_utils.py\` — heap-based priority queue implementation
-- \`tests/test_priority_queue_utils.py\` — unit tests for \`priority_queue_utils.py\`
-- \`rate_limiter_utils.py\` — rate limiting utilities (token bucket algorithm)
-- \`tests/test_rate_limiter_utils.py\` — unit tests for \`rate_limiter_utils.py\`
-- \`retry_utils.py\` — retry utilities with exponential backoff and jitter
-- \`tests/test_retry_utils.py\` — unit tests for \`retry_utils.py\`
+- `stats.py` — statistical utility functions
+- `tests/test_stats.py` — unit tests for `stats.py`
+- `math_utils.py` — mathematical utility functions
+- `tests/test_math_utils.py` — unit tests for `math_utils.py`
+- `data_utils.py` — data utility functions
+- `tests/test_data_utils.py` — unit tests for `data_utils.py`
+- `file_utils.py` — file and path utility functions
+- `tests/test_file_utils.py` — unit tests for `file_utils.py`
+- `datetime_utils.py` — date and time utility functions
+- `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
+- `url_utils.py` — URL and web utility functions
+- `tests/test_url_utils.py` — unit tests for `url_utils.py`
+- `random_utils.py` — random number generation and sampling utilities
+- `tests/test_random_utils.py` — unit tests for `random_utils.py`
+- `validation_utils.py` — input validation utilities
+- `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
+- `crypto_utils.py` — cryptographic utilities
+- `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
+- `list_utils.py` — advanced list manipulation utilities
+- `env_utils.py` — environment variable handling utilities
+- `tests/test_list_utils.py` — unit tests for `list_utils.py`
+- `tests/test_env_utils.py` — unit tests for `env_utils.py`
+- `logging_utils.py` — logging configuration and helper utilities
+- `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
+- `cache_utils.py` — caching utilities for memoizing function results
+- `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
+- `timing_utils.py` — performance measurement helpers
+- `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+- `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
+- `priority_queue_utils.py` — heap-based priority queue implementation
+- `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
+- `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
+- `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
+- `retry_utils.py` — retry utilities with exponential backoff and jitter
+- `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
 CHANGELOG
 
 # --- kilo.json ---
