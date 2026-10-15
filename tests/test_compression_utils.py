@@ -1,6 +1,5 @@
 """Tests for compression_utils module."""
 
-import os
 import tempfile
 import unittest
 from pathlib import Path

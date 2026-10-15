@@ -6,7 +6,7 @@ import io
 import tarfile
 import zipfile
 from pathlib import Path
-from typing import Any, BinaryIO, List, Optional, Union
+from typing import List, Optional, Union
 
 
 def gzip_compress(data: Union[bytes, str], encoding: str = "utf-8") -> bytes:
@@ -73,10 +73,12 @@ def zip_extract(archive_path: Union[str, Path], extract_path: Union[str, Path] =
         zf.extractall(extract_path)
 
 
-def tar_compress(files: List[Union[str, Path]], output_path: Union[str, Path], mode: str = "w") -> None:
+def tar_compress(
+    files: List[Union[str, Path]], output_path: Union[str, Path], mode: str = "w"
+) -> None:
     """Compress files into a tar archive."""
     output_path = Path(output_path)
-    with tarfile.open(output_path, mode) as tf:
+    with tarfile.open(str(output_path), mode) as tf:  # type: ignore[call-overload]
         for file_path in files:
             file_path = Path(file_path)
             if file_path.exists():
