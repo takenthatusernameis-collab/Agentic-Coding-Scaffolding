@@ -27,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
 - `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
 
+### Fixed
+
+- Removed three duplicate heredoc blocks from `scaffold.sh` (`tests/test_rate_limiter_utils.py`, `tests/test_retry_utils.py`, `tests/test_dict_utils.py`) — the second copies were missing the `if __name__ == "__main__"` guard and would have overwritten the correct files during scaffolding
+- Added missing `json_utils.py` and `csv_utils.py` entries to `scaffold.sh` header comment, generated README tree, generated CHANGELOG, generated `.kilo/command/scaffold-project.md` template, repo `README.md` tree and module sections, repo `CHANGELOG.md` Unreleased section, and repo `pyproject.toml` `py_modules`
+
 
 ### Added
 
