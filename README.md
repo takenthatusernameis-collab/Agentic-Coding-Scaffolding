@@ -182,4 +182,6 @@ The project includes a logging utilities module in `logging_utils.py` with helpe
 
 The project includes a caching utilities module in `cache_utils.py` with helpers for memoizing function results: `memoize` is a decorator factory that caches return values keyed by call arguments (with optional `maxsize` LRU eviction and `typed` argument distinction), `clear_cache` invalidates the cache of a memoized function, and `cache_info` returns a dictionary with `hits`, `misses`, `maxsize`, and `currsize` statistics. Decorated functions also expose `clear_cache` and `cache_info` attributes for direct introspection. The module is tested in `tests/test_cache_utils.py`.
 
-Next task: Add a `retry_utils` module with retry and backoff helpers (`retry` decorator, `retry_with_backoff`, and `retry_count`) with tests and full scaffolding synchronization.
+Completed task: Added a `retry_utils` module with retry and backoff helpers (`retry` decorator, `retry_with_backoff`, and `retry_count`) with tests and full scaffolding synchronization.
+
+Next task: Add a `timing_utils` module with performance measurement helpers (`timer` context manager, `elapsed_time` function, and `benchmark` decorator) with tests and full scaffolding synchronization.
