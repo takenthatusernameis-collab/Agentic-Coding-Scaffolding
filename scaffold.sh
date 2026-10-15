@@ -21,10 +21,12 @@
 #   - pyproject.toml for Python project configuration and dependencies
 #   - hello.py sample application entry point
 #   - calculator.py simple calculator module with arithmetic operations
+#   - config_utils.py configuration utilities for JSON file management
 #   - shapes.py geometry utilities for areas and perimeters of common shapes
 #   - strings.py string utilities for text operations
 #   - tests/test_hello.py unit tests for the sample application
 #   - tests/test_calculator.py unit tests for the calculator module
+#   - tests/test_config_utils.py unit tests for the config utilities module
 #   - tests/test_shapes.py unit tests for the shapes module
 #   - tests/test_strings.py unit tests for the strings module
 #   - utils.py general utility helper functions
@@ -516,6 +518,519 @@ class TestCalculator(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 TESTCALC
+
+# --- config_utils.py ---
+cat > "$OUTPUT_DIR/config_utils.py" <<'CONFIG_UTILS'
+"""Configuration utility functions for loading and managing configuration files.
+
+This module provides utilities for working with configuration files,
+currently supporting JSON format with potential for extension to other formats.
+"""
+
+import json
+from typing import Any, Dict, Optional, Union
+from pathlib import Path
+
+
+def load_config(file_path: Union[str, Path]) -> Dict[str, Any]:
+    """Load configuration from a JSON file.
+
+    Args:
+        file_path: Path to the JSON configuration file
+
+    Returns:
+        Dictionary containing the configuration data
+
+    Raises:
+        FileNotFoundError: If the configuration file does not exist
+        json.JSONDecodeError: If the file contains invalid JSON
+        TypeError: If file_path is not a string or Path object
+    """
+    path = Path(file_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Configuration file not found: {file_path}")
+
+    with open(path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def save_config(config: Dict[str, Any], file_path: Union[str, Path], indent: int = 2) -> None:
+    """Save configuration to a JSON file.
+
+    Args:
+        config: Dictionary containing configuration data to save
+        file_path: Path where the JSON configuration file should be saved
+        indent: Number of spaces for indentation in the JSON output (default: 2)
+
+    Raises:
+        TypeError: If config is not a dictionary or file_path is not a string/Path
+        OSError: If there is an issue writing to the file
+    """
+    if not isinstance(config, dict):
+        raise TypeError("config must be a dictionary")
+
+    path = Path(file_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(config, f, indent=indent, ensure_ascii=False)
+
+
+def get_config_value(
+    config: Dict[str, Any],
+    key_path: str,
+    default: Any = None,
+    separator: str = "."
+) -> Any:
+    """Get a value from a nested configuration dictionary using dot notation.
+
+    Args:
+        config: Configuration dictionary
+        key_path: Dot-separated path to the desired value (e.g., "database.host")
+        default: Value to return if the key path is not found (default: None)
+        separator: Separator character for the key path (default: ".")
+
+    Returns:
+        The value at the specified key path, or default if not found
+
+    Example:
+        >>> config = {"database": {"host": "localhost", "port": 5432}}
+        >>> get_config_value(config, "database.host")
+        'localhost'
+        >>> get_config_value(config, "database.username", "admin")
+        'admin'
+    """
+    if not isinstance(config, dict):
+        return default
+
+    keys = key_path.split(separator)
+    current = config
+
+    for key in keys:
+        if isinstance(current, dict) and key in current:
+            current = current[key]
+        else:
+            return default
+
+    return current
+
+
+def set_config_value(
+    config: Dict[str, Any],
+    key_path: str,
+    value: Any,
+    separator: str = "."
+) -> None:
+    """Set a value in a nested configuration dictionary using dot notation.
+
+    Args:
+        config: Configuration dictionary to modify
+        key_path: Dot-separated path where the value should be set (e.g., "database.host")
+        value: Value to set at the specified location
+        separator: Separator character for the key path (default: ".")
+
+    Raises:
+        TypeError: If config is not a dictionary
+
+    Example:
+        >>> config = {"database": {"host": "localhost"}}
+        >>> set_config_value(config, "database.port", 5432)
+        >>> config
+        {'database': {'host': 'localhost', 'port': 5432}}
+        >>> set_config_value(config, "database.username", "admin")
+        >>> config
+        {'database': {'host': 'localhost', 'port': 5432, 'username': 'admin'}}
+    """
+    if not isinstance(config, dict):
+        raise TypeError("config must be a dictionary")
+
+    keys = key_path.split(separator)
+    current = config
+
+    # Navigate to the parent of the target key
+    for key in keys[:-1]:
+        if key not in current:
+            current[key] = {}
+        elif not isinstance(current[key], dict):
+            # Overwrite non-dict value with dict to continue path
+            current[key] = {}
+        current = current[key]
+
+    # Set the final key
+    current[keys[-1]] = value
+
+
+def merge_configs(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    """Merge two configuration dictionaries, with override taking precedence.
+
+    Args:
+        base: Base configuration dictionary
+        override: Override configuration dictionary
+
+    Returns:
+        New dictionary with merged configuration
+
+    Note:
+        This function performs a deep merge. Nested dictionaries are merged
+        recursively rather than replaced.
+
+    Example:
+        >>> base = {"database": {"host": "localhost", "port": 5432}, "debug": False}
+        >>> override = {"database": {"port": 5433}, "debug": True}
+        >>> merge_configs(base, override)
+        {'database': {'host': 'localhost', 'port': 5433}, 'debug': True}
+    """
+    if not isinstance(base, dict) or not isinstance(override, dict):
+        raise TypeError("Both base and override must be dictionaries")
+
+    result = base.copy()
+
+    for key, value in override.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = merge_configs(result[key], value)
+        else:
+            result[key] = value
+
+    return result
+CONFIG_UTILS
+
+# --- tests/test_config_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_config_utils.py" <<'TESTCONFIGUTILS'
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from config_utils import (
+    load_config,
+    save_config,
+    get_config_value,
+    set_config_value,
+    merge_configs
+)
+
+
+class TestLoadConfig(unittest.TestCase):
+    """Test the load_config function."""
+
+    def test_load_valid_json(self):
+        """Test loading a valid JSON configuration file."""
+        config_data = {"key": "value", "number": 42, "nested": {"inner": "data"}}
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(config_data, f)
+            temp_path = f.name
+
+        try:
+            loaded = load_config(temp_path)
+            self.assertEqual(loaded, config_data)
+        finally:
+            Path(temp_path).unlink()
+
+    def test_load_file_not_found(self):
+        """Test loading a non-existent file raises FileNotFoundError."""
+        with self.assertRaises(FileNotFoundError):
+            load_config("/non/existent/file.json")
+
+    def test_load_invalid_json(self):
+        """Test loading invalid JSON raises json.JSONDecodeError."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            f.write('{"invalid": json}')  # Missing quotes around json
+            temp_path = f.name
+
+        try:
+            with self.assertRaises(json.JSONDecodeError):
+                load_config(temp_path)
+        finally:
+            Path(temp_path).unlink()
+
+    def test_load_with_path_object(self):
+        """Test loading works with Path objects."""
+        config_data = {"test": "value"}
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(config_data, f)
+            temp_path = Path(f.name)
+
+        try:
+            loaded = load_config(temp_path)
+            self.assertEqual(loaded, config_data)
+        finally:
+            temp_path.unlink()
+
+
+class TestSaveConfig(unittest.TestCase):
+    """Test the save_config function."""
+
+    def test_save_and_load_roundtrip(self):
+        """Test saving and loading preserves data."""
+        original_config = {
+            "database": {
+                "host": "localhost",
+                "port": 5432,
+                "credentials": {
+                    "username": "admin",
+                    "password": "secret"
+                }
+            },
+            "debug": True,
+            "tags": ["production", "web"]
+        }
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            temp_path = f.name
+
+        try:
+            save_config(original_config, temp_path)
+            loaded_config = load_config(temp_path)
+            self.assertEqual(loaded_config, original_config)
+        finally:
+            Path(temp_path).unlink()
+
+    def test_save_creates_directories(self):
+        """Test that save_config creates parent directories if needed."""
+        config = {"test": "value"}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            nested_path = Path(tmp_dir) / "nested" / "deep" / "config.json"
+
+            # Directory should not exist yet
+            self.assertFalse(nested_path.parent.exists())
+
+            save_config(config, nested_path)
+
+            # Directory and file should now exist
+            self.assertTrue(nested_path.exists())
+            self.assertTrue(nested_path.parent.exists())
+
+            loaded = load_config(nested_path)
+            self.assertEqual(loaded, config)
+        finally:
+            pass
+
+    def test_save_invalid_config_type(self):
+        """Test that saving non-dict config raises TypeError."""
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+            temp_path = f.name
+
+        try:
+            with self.assertRaises(TypeError):
+                save_config(["not", "a", "dict"], temp_path)
+        finally:
+            Path(temp_path).unlink()
+
+    def test_save_custom_indent(self):
+        """Test saving with custom indentation."""
+        config = {"key": "value"}
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            temp_path = f.name
+
+        try:
+            save_config(config, temp_path, indent=4)
+
+            with open(temp_path, 'r') as f:
+                content = f.read()
+
+            # Should contain indentation
+            self.assertIn('    "key": "value"', content)
+        finally:
+            Path(temp_path).unlink()
+
+
+class TestGetConfigValue(unittest.TestCase):
+    """Test the get_config_value function."""
+
+    def setUp(self):
+        """Set up test configuration."""
+        self.config = {
+            "database": {
+                "host": "localhost",
+                "port": 5432,
+                "credentials": {
+                    "username": "admin",
+                    "password": "secret"
+                }
+            },
+            "debug": True,
+            "tags": ["production", "web"],
+            "simple_value": 42
+        }
+
+    def test_get_top_level_value(self):
+        """Test getting a top-level configuration value."""
+        self.assertEqual(get_config_value(self.config, "debug"), True)
+        self.assertEqual(get_config_value(self.config, "simple_value"), 42)
+
+    def test_get_nested_value(self):
+        """Test getting a nested configuration value."""
+        self.assertEqual(get_config_value(self.config, "database.host"), "localhost")
+        self.assertEqual(get_config_value(self.config, "database.port"), 5432)
+        self.assertEqual(
+            get_config_value(self.config, "database.credentials.username"),
+            "admin"
+        )
+
+    def test_get_missing_key_returns_default(self):
+        """Test that missing keys return the default value."""
+        self.assertIsNone(get_config_value(self.config, "missing_key"))
+        self.assertEqual(get_config_value(self.config, "missing_key", "default"), "default")
+        self.assertEqual(get_config_value(self.config, "database.missing", 999), 999)
+
+    def test_get_value_via_nested_missing_parent(self):
+        """Test getting a value when an intermediate parent is missing."""
+        self.assertIsNone(get_config_value(self.config, "missing.parent.child"))
+        self.assertEqual(
+            get_config_value(self.config, "missing.parent.child", "found"),
+            "found"
+        )
+
+    def test_get_with_custom_separator(self):
+        """Test using a custom separator."""
+        config = {"a/b": {"c/d": "value"}}
+        self.assertEqual(get_config_value(config, "a/b/c/d", separator="/"), "value")
+
+    def test_get_with_non_dict_config(self):
+        """Test getting value from non-dict config returns default."""
+        self.assertIsNone(get_config_value("not a dict", "key", "default"))
+        self.assertEqual(get_config_value([], "key", "default"), "default")
+        self.assertEqual(get_config_value(42, "key", "default"), "default")
+
+
+class TestSetConfigValue(unittest.TestCase):
+    """Test the set_config_value function."""
+
+    def test_set_top_level_value(self):
+        """Test setting a top-level configuration value."""
+        config = {}
+        set_config_value(config, "new_key", "new_value")
+        self.assertEqual(config["new_key"], "new_value")
+
+    def test_set_nested_value(self):
+        """Test setting a nested configuration value."""
+        config = {}
+        set_config_value(config, "database.host", "localhost")
+        set_config_value(config, "database.port", 5432)
+
+        expected = {"database": {"host": "localhost", "port": 5432}}
+        self.assertEqual(config, expected)
+
+    def test_set_overwrites_existing(self):
+        """Test that setting overwrites existing values."""
+        config = {"key": "old_value"}
+        set_config_value(config, "key", "new_value")
+        self.assertEqual(config["key"], "new_value")
+
+    def test_set_creates_intermediate_dicts(self):
+        """Test that intermediate dictionaries are created as needed."""
+        config = {"existing": "value"}
+        set_config_value(config, "new.nested.path", "final")
+
+        expected = {
+            "existing": "value",
+            "new": {
+                "nested": {
+                    "path": "final"
+                }
+            }
+        }
+        self.assertEqual(config, expected)
+
+    def test_set_with_custom_separator(self):
+        """Test using a custom separator."""
+        config = {}
+        set_config_value(config, "a/b/c", "value", separator="/")
+        expected = {"a": {"b": {"c": "value"}}}
+        self.assertEqual(config, expected)
+
+    def test_set_invalid_config_type(self):
+        """Test that setting value in non-dict config raises TypeError."""
+        with self.assertRaises(TypeError):
+            set_config_value(["not", "a", "dict"], "key", "value")
+
+        with self.assertRaises(TypeError):
+            set_config_value("string", "key", "value")
+
+        with self.assertRaises(TypeError):
+            set_config_value(42, "key", "value")
+
+
+class TestMergeConfigs(unittest.TestCase):
+    """Test the merge_configs function."""
+
+    def test_merge_simple_dicts(self):
+        """Test merging simple flat dictionaries."""
+        base = {"a": 1, "b": 2}
+        override = {"b": 3, "c": 4}
+        expected = {"a": 1, "b": 3, "c": 4}
+        self.assertEqual(merge_configs(base, override), expected)
+
+    def test_merge_nested_dicts(self):
+        """Test merging nested dictionaries."""
+        base = {
+            "database": {
+                "host": "localhost",
+                "port": 5432
+            },
+            "debug": False
+        }
+        override = {
+            "database": {
+                "port": 5433,
+                "credentials": {
+                    "user": "admin"
+                }
+            },
+            "debug": True
+        }
+        expected = {
+            "database": {
+                "host": "localhost",
+                "port": 5433,
+                "credentials": {
+                    "user": "admin"
+                }
+            },
+            "debug": True
+        }
+        self.assertEqual(merge_configs(base, override), expected)
+
+    def test_merge_preserves_base_when_no_override(self):
+        """Test that base values are preserved when not overridden."""
+        base = {"a": 1, "b": {"x": 10}}
+        override = {"b": {"y": 20}}
+        expected = {"a": 1, "b": {"x": 10, "y": 20}}
+        self.assertEqual(merge_configs(base, override), expected)
+
+    def test_merge_with_empty_dicts(self):
+        """Test merging with empty dictionaries."""
+        base = {"a": 1}
+        override = {}
+        self.assertEqual(merge_configs(base, override), base)
+
+        base = {}
+        override = {"b": 2}
+        self.assertEqual(merge_configs(base, override), override)
+
+        base = {}
+        override = {}
+        self.assertEqual(merge_configs(base, override), {})
+
+    def test_merge_invalid_types(self):
+        """Test that merging invalid types raises TypeError."""
+        with self.assertRaises(TypeError):
+            merge_configs("not a dict", {"a": 1})
+
+        with self.assertRaises(TypeError):
+            merge_configs({"a": 1}, "not a dict")
+
+        with self.assertRaises(TypeError):
+            merge_configs(["a"], {"b": 2})
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCONFIGUTILS
 
 # --- shapes.py ---
 cat > "$OUTPUT_DIR/shapes.py" <<'SHAPES'
@@ -3903,6 +4418,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pyproject.toml` — Python project configuration with pytest, ruff, and mypy settings
 - `hello.py` — sample application entry point
 - `calculator.py` — simple calculator module with arithmetic operations
+- `config_utils.py` — configuration utilities for JSON file management
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
 - `strings.py` — string utilities for text operations
 - `utils.py` — general utility helper functions
@@ -3918,6 +4434,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `list_utils.py` — advanced list manipulation utilities
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
+- `tests/test_config_utils.py` — unit tests for the config utilities module
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `tests/test_utils.py` — unit tests for `utils.py`
@@ -4212,6 +4729,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, tests, and scaffold
 - `calculator.py` — simple calculator module with arithmetic operations
 - `tests/test_calculator.py` — unit tests for `calculator.py`
+- `config_utils.py` — configuration utilities for JSON file management
+- `tests/test_config_utils.py` — unit tests for the config utilities module
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `strings.py` — string utilities for text operations

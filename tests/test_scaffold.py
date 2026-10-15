@@ -79,6 +79,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "pyproject.toml",
             "hello.py",
             "calculator.py",
+            "config_utils.py",
             "shapes.py",
             "strings.py",
             "utils.py",
@@ -96,6 +97,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             ".github/workflows/main.yml",
             "tests/test_hello.py",
             "tests/test_calculator.py",
+            "tests/test_config_utils.py",
             "tests/test_shapes.py",
             "tests/test_strings.py",
             "tests/test_utils.py",
@@ -184,6 +186,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "random_utils.py",
             "validation_utils.py",
             "crypto_utils.py",
+            "config_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -196,6 +199,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_random_utils.py",
             "tests/test_validation_utils.py",
             "tests/test_crypto_utils.py",
+            "tests/test_config_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -221,6 +225,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "random_utils.py",
             "validation_utils.py",
             "crypto_utils.py",
+            "config_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
