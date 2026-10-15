@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `cache_utils.py` — caching utilities module with `memoize` decorator factory (supporting `maxsize` LRU eviction and `typed` argument distinction), `clear_cache` helper to invalidate stored results, and `cache_info` helper to inspect cache statistics
+- `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
+
+### Added
+
 - `config_utils.py` — configuration utilities module with `load_config`, `save_config`, `get_config_value`, `set_config_value`, and `merge_configs` functions for working with JSON configuration files
 - `tests/test_config_utils.py` — unit tests for `config_utils.py`
 

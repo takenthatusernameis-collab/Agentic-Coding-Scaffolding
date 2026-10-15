@@ -122,6 +122,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_env_utils.py",
             "logging_utils.py",
             "tests/test_logging_utils.py",
+            "cache_utils.py",
+            "tests/test_cache_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -195,6 +197,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "config_utils.py",
             "env_utils.py",
             "logging_utils.py",
+            "cache_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -210,6 +213,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_config_utils.py",
             "tests/test_env_utils.py",
             "tests/test_logging_utils.py",
+            "tests/test_cache_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -238,6 +242,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "config_utils.py",
             "env_utils.py",
             "logging_utils.py",
+            "cache_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
@@ -373,6 +378,36 @@ class TestScaffoldKiloJson(unittest.TestCase):
             self.assertIn("returned", cm.records[1].getMessage())
         finally:
             _logging.getLogger().setLevel(_logging.WARNING)
+
+    def test_cache_utils_functions_work(self) -> None:
+        """Generated cache_utils.py should have working functions."""
+        from cache_utils import cache_info, clear_cache, memoize
+
+        calls = [0]
+
+        @memoize()
+        def square(n: int) -> int:
+            calls[0] += 1
+            return n * n
+
+        self.assertEqual(square(4), 16)
+        self.assertEqual(square(4), 16)
+        self.assertEqual(calls[0], 1)
+
+        info = square.cache_info()  # type: ignore[attr-defined]
+        self.assertEqual(info["hits"], 1)
+        self.assertEqual(info["misses"], 1)
+
+        square.clear_cache()  # type: ignore[attr-defined]
+        info = square.cache_info()  # type: ignore[attr-defined]
+        self.assertEqual(info["currsize"], 0)
+
+        clear_cache(square)
+        self.assertEqual(square(4), 16)
+        self.assertEqual(calls[0], 2)
+
+        info = cache_info(square)
+        self.assertEqual(info["misses"], 1)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

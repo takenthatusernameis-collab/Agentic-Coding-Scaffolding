@@ -54,7 +54,9 @@
 #   - env_utils.py environment variable handling and typed accessors
 #   - tests/test_env_utils.py unit tests for the env_utils module
 #   - logging_utils.py logging configuration and helper utilities
+#   - cache_utils.py caching utilities for memoizing function results
 #   - tests/test_logging_utils.py unit tests for the logging_utils module
+#   - tests/test_cache_utils.py unit tests for the cache_utils module
 #
 set -euo pipefail
 
@@ -4808,6 +4810,182 @@ def log_calls(
 
     return decorator
 LOGUTILS
+# --- cache_utils.py ---
+cat > "$OUTPUT_DIR/cache_utils.py" <<'CACHEUTILS'
+"""Caching utilities for memoizing function results.
+
+This module provides a small, consistent API around function result caching,
+including a ``memoize`` decorator factory, a ``clear_cache`` helper to invalidate
+stored results, and a ``cache_info`` helper to inspect cache statistics.
+"""
+
+import functools
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, cast
+
+F = TypeVar("F", bound=Callable[..., Any])
+
+__all__: List[str] = [
+    "cache_info",
+    "clear_cache",
+    "memoize",
+]
+
+
+def memoize(
+    maxsize: Optional[int] = 128,
+    typed: bool = False,
+) -> Callable[[F], F]:
+    """Decorator factory that caches a function's return values.
+
+    The wrapped function stores results keyed by its call arguments so that
+    subsequent invocations with the same arguments return the cached value
+    without re-executing the body. ``functools.wraps`` is used, so the
+    decorated function's metadata (``__name__``, ``__doc__``, etc.) is
+    preserved.
+
+    Args:
+        maxsize: The maximum number of cached entries to retain. When the
+            cache exceeds this size, the least-recently-used entry is evicted.
+            Pass ``None`` for an unbounded cache. Defaults to ``128``.
+        typed: If ``True``, arguments of the same value but different types
+            (e.g. ``1`` and ``1.0``) are cached separately. Defaults to
+            ``False``.
+
+    Returns:
+        A decorator that wraps a function with caching behavior.
+
+    Example:
+        >>> @memoize()
+        ... def square(n: int) -> int:
+        ...     return n * n
+        ...
+        >>> square(4)
+        16
+    """
+    if maxsize is not None and (not isinstance(maxsize, int) or isinstance(maxsize, bool)):
+        raise TypeError("maxsize must be an integer or None")
+    if maxsize is not None and maxsize < 1:
+        raise ValueError("maxsize must be a positive integer or None")
+
+    def decorator(func: F) -> F:
+        cache: Dict[Any, Any] = {}
+        order: List[Any] = []
+        hits = [0]
+        misses = [0]
+
+        def _make_key(args: Tuple[Any, ...], kwargs: Dict[str, Any]) -> Any:
+            """Build a hashable cache key from positional and keyword arguments."""
+            key_args: Tuple[Any, ...] = tuple(args)
+            key_kwargs: Tuple[Tuple[str, Any], ...] = tuple(sorted(kwargs.items()))
+            if typed:
+                return (key_args, key_kwargs, tuple(type(a) for a in args))
+            return (key_args, key_kwargs)
+
+        def _evict_if_needed() -> None:
+            """Evict the least-recently-used entry when the cache is full."""
+            if maxsize is None or len(cache) <= maxsize:
+                return
+            for old_key in order:
+                if old_key in cache:
+                    cache.pop(old_key, None)
+                    order.remove(old_key)
+                    return
+
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            key = _make_key(args, kwargs)
+            if key in cache:
+                hits[0] += 1
+                return cache[key]
+            misses[0] += 1
+            result = func(*args, **kwargs)
+            cache[key] = result
+            order.append(key)
+            _evict_if_needed()
+            return result
+
+        def clear() -> None:
+            """Remove all cached entries and reset statistics."""
+            cache.clear()
+            order.clear()
+            hits[0] = 0
+            misses[0] = 0
+
+        def info() -> Dict[str, Any]:
+            """Return a dictionary describing the current cache state."""
+            return {
+                "hits": hits[0],
+                "misses": misses[0],
+                "maxsize": maxsize,
+                "currsize": len(cache),
+            }
+
+        wrapper.clear_cache = clear  # type: ignore[attr-defined]
+        wrapper.cache_info = info  # type: ignore[attr-defined]
+        return cast(F, wrapper)
+
+    return decorator
+
+
+def clear_cache(func: F) -> None:
+    """Clear the cache of a function decorated with :func:`memoize`.
+
+    Args:
+        func: A function previously decorated with :func:`memoize`.
+
+    Raises:
+        TypeError: If ``func`` does not expose a ``clear_cache`` attribute,
+            meaning it was not memoized.
+
+    Example:
+        >>> @memoize()
+        ... def add(a: int, b: int) -> int:
+        ...     return a + b
+        ...
+        >>> add(1, 2)
+        3
+        >>> clear_cache(add)
+    """
+    clear = getattr(func, "clear_cache", None)
+    if not callable(clear):
+        raise TypeError(
+            "clear_cache can only be used on functions decorated with memoize"
+        )
+    clear()
+
+
+def cache_info(func: F) -> Dict[str, Any]:
+    """Return cache statistics for a function decorated with :func:`memoize`.
+
+    Args:
+        func: A function previously decorated with :func:`memoize`.
+
+    Returns:
+        A dictionary with ``hits``, ``misses``, ``maxsize``, and ``currsize``
+        keys describing the current state of the cache.
+
+    Raises:
+        TypeError: If ``func`` does not expose a ``cache_info`` attribute,
+            meaning it was not memoized.
+
+    Example:
+        >>> @memoize()
+        ... def mul(a: int, b: int) -> int:
+        ...     return a * b
+        ...
+        >>> mul(2, 3)
+        6
+        >>> info = cache_info(mul)
+        >>> info["misses"]
+        1
+    """
+    info = getattr(func, "cache_info", None)
+    if not callable(info):
+        raise TypeError(
+            "cache_info can only be used on functions decorated with memoize"
+        )
+    return cast(Dict[str, Any], info())
+CACHEUTILS
 # --- tests/test_env_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_env_utils.py" <<'TESTENVL'
 """Tests for env_utils module."""
@@ -5204,6 +5382,227 @@ class TestLogCalls(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTLOGUTILS
+# --- tests/test_cache_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_cache_utils.py" <<'TESTCACHEUTILS'
+"""Tests for cache_utils module."""
+
+import unittest
+
+from cache_utils import cache_info, clear_cache, memoize
+
+
+class TestMemoize(unittest.TestCase):
+    def test_caches_repeated_calls(self) -> None:
+        calls = [0]
+
+        @memoize()
+        def square(n: int) -> int:
+            calls[0] += 1
+            return n * n
+
+        self.assertEqual(square(4), 16)
+        self.assertEqual(square(4), 16)
+        self.assertEqual(calls[0], 1)
+
+    def test_different_args_recompute(self) -> None:
+        calls = [0]
+
+        @memoize()
+        def add(a: int, b: int) -> int:
+            calls[0] += 1
+            return a + b
+
+        self.assertEqual(add(1, 2), 3)
+        self.assertEqual(add(2, 3), 5)
+        self.assertEqual(calls[0], 2)
+
+    def test_kwargs_normalized(self) -> None:
+        calls = [0]
+
+        @memoize()
+        def greet(name: str, greeting: str = "Hello") -> str:
+            calls[0] += 1
+            return f"{greeting}, {name}!"
+
+        self.assertEqual(greet("Alice", greeting="Hi"), "Hi, Alice!")
+        self.assertEqual(greet("Alice", greeting="Hi"), "Hi, Alice!")
+        self.assertEqual(calls[0], 1)
+
+    def test_unbounded_cache(self) -> None:
+        calls = [0]
+
+        @memoize(maxsize=None)
+        def double(n: int) -> int:
+            calls[0] += 1
+            return n * 2
+
+        for i in range(50):
+            self.assertEqual(double(i), i * 2)
+        self.assertEqual(calls[0], 50)
+        for i in range(50):
+            self.assertEqual(double(i), i * 2)
+        self.assertEqual(calls[0], 50)
+
+    def test_typed_distinct(self) -> None:
+        calls = [0]
+
+        @memoize(typed=True)
+        def identity(value: object) -> object:
+            calls[0] += 1
+            return value
+
+        self.assertEqual(identity(1), 1)
+        self.assertEqual(identity(1.0), 1.0)
+        self.assertEqual(calls[0], 2)
+
+    def test_typed_false_collapses(self) -> None:
+        calls = [0]
+
+        @memoize(typed=False)
+        def identity(value: object) -> object:
+            calls[0] += 1
+            return value
+
+        self.assertEqual(identity(1), 1)
+        self.assertEqual(identity(1.0), 1.0)
+        self.assertEqual(calls[0], 1)
+
+    def test_maxsize_eviction(self) -> None:
+        calls = [0]
+
+        @memoize(maxsize=2)
+        def value(n: int) -> int:
+            calls[0] += 1
+            return n
+
+        self.assertEqual(value(1), 1)
+        self.assertEqual(value(2), 2)
+        self.assertEqual(value(3), 3)
+        self.assertEqual(value(1), 1)
+        self.assertEqual(calls[0], 4)
+
+    def test_clear_cache_method(self) -> None:
+        calls = [0]
+
+        @memoize()
+        def triple(n: int) -> int:
+            calls[0] += 1
+            return n * 3
+
+        self.assertEqual(triple(5), 15)
+        self.assertEqual(triple(5), 15)
+        self.assertEqual(calls[0], 1)
+        triple.clear_cache()  # type: ignore[attr-defined]
+        self.assertEqual(triple(5), 15)
+        self.assertEqual(calls[0], 2)
+
+    def test_cache_info_method(self) -> None:
+        @memoize()
+        def add(a: int, b: int) -> int:
+            return a + b
+
+        add(1, 1)
+        add(2, 2)
+        add(1, 1)  # hit
+        info = add.cache_info()  # type: ignore[attr-defined]
+        self.assertEqual(info["hits"], 1)
+        self.assertEqual(info["misses"], 2)
+        self.assertEqual(info["currsize"], 2)
+        self.assertEqual(info["maxsize"], 128)
+
+    def test_preserves_metadata(self) -> None:
+        @memoize()
+        def named(a: int) -> int:
+            """Original docstring."""
+            return a
+
+        self.assertEqual(named.__name__, "named")
+        self.assertEqual(named.__doc__, "Original docstring.")
+
+    def test_invalid_maxsize_type_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            memoize(maxsize="not-an-int")  # type: ignore[arg-type]
+
+    def test_invalid_maxsize_value_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            memoize(maxsize=0)
+        with self.assertRaises(ValueError):
+            memoize(maxsize=-5)
+
+    def test_maxsize_none_allowed(self) -> None:
+        @memoize(maxsize=None)
+        def fn(x: int) -> int:
+            return x
+
+        self.assertEqual(fn(1), 1)
+        self.assertEqual(fn.cache_info()["maxsize"], None)  # type: ignore[attr-defined]
+
+
+class TestClearCacheFunction(unittest.TestCase):
+    def test_clears_memoized_cache(self) -> None:
+        calls = [0]
+
+        @memoize()
+        def inc(n: int) -> int:
+            calls[0] += 1
+            return n + 1
+
+        inc(1)
+        inc(1)
+        self.assertEqual(calls[0], 1)
+        clear_cache(inc)
+        inc(1)
+        self.assertEqual(calls[0], 2)
+
+    def test_non_memoized_raises(self) -> None:
+        def plain(x: int) -> int:
+            return x
+
+        with self.assertRaises(TypeError):
+            clear_cache(plain)  # type: ignore[arg-type]
+
+
+class TestCacheInfoFunction(unittest.TestCase):
+    def test_returns_info_for_memoized(self) -> None:
+        @memoize()
+        def mul(a: int, b: int) -> int:
+            return a * b
+
+        mul(2, 3)
+        info = cache_info(mul)
+        self.assertEqual(info["misses"], 1)
+        self.assertEqual(info["hits"], 0)
+
+    def test_non_memoized_raises(self) -> None:
+        def plain(x: int) -> int:
+            return x
+
+        with self.assertRaises(TypeError):
+            cache_info(plain)  # type: ignore[arg-type]
+
+
+class TestMemoizeExceptions(unittest.TestCase):
+    def test_function_raising_is_not_cached(self) -> None:
+        calls = [0]
+
+        @memoize()
+        def fail(x: int) -> int:
+            calls[0] += 1
+            if x < 0:
+                raise ValueError("negative")
+            return x
+
+        self.assertEqual(fail(1), 1)
+        with self.assertRaises(ValueError):
+            fail(-1)
+        with self.assertRaises(ValueError):
+            fail(-1)
+        self.assertEqual(calls[0], 3)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCACHEUTILS
 # --- .kilo/command/handover.md ---
 cat > "$OUTPUT_DIR/.kilo/command/handover.md" <<'HANDOVER'
 ---
@@ -5262,6 +5661,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `list_utils.py` — advanced list manipulation utilities
 - `env_utils.py` — environment variable handling utilities
 - `logging_utils.py` — logging configuration and helper utilities
+- `cache_utils.py` — caching utilities for memoizing function results
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -5280,6 +5680,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_list_utils.py` — unit tests for `list_utils.py`
 - `tests/test_env_utils.py` — unit tests for `env_utils.py`
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
+- `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
 
 ## Usage
 
@@ -5468,6 +5869,7 @@ crypto_utils.py             # Cryptographic utilities
 list_utils.py              # Advanced list manipulation utilities
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
+cache_utils.py            # Caching utilities for memoizing function results
   .gitignore                   # Common ignore patterns
 LICENSE                      # MIT License
 tests/                       # Python unit tests
@@ -5489,6 +5891,7 @@ tests/                       # Python unit tests
   test_list_utils.py         # Tests for list_utils.py
   test_env_utils.py          # Tests for env_utils.py
   test_logging_utils.py       # Tests for logging_utils.py
+  test_cache_utils.py         # Tests for cache_utils.py
 \`\`\`
 
 ## Developer Commands
@@ -5597,6 +6000,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - \`tests/test_env_utils.py\` — unit tests for \`env_utils.py\`
 - \`logging_utils.py\` — logging configuration and helper utilities
 - \`tests/test_logging_utils.py\` — unit tests for \`logging_utils.py\`
+- \`cache_utils.py\` — caching utilities for memoizing function results
+- \`tests/test_cache_utils.py\` — unit tests for \`cache_utils.py\`
 CHANGELOG
 
 # --- kilo.json ---

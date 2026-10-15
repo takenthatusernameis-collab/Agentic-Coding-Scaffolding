@@ -50,6 +50,7 @@ crypto_utils.py             # Cryptographic utilities
 list_utils.py              # Advanced list manipulation utilities
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
+cache_utils.py            # Caching utilities for memoizing function results
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -69,6 +70,7 @@ tests/                       # Python unit tests
   test_list_utils.py         # Tests for list_utils.py
   test_env_utils.py          # Tests for env_utils.py
   test_logging_utils.py       # Tests for logging_utils.py
+  test_cache_utils.py         # Tests for cache_utils.py
 ```
 
 ## How It Works
@@ -176,4 +178,8 @@ The project includes an environment variable utilities module in `env_utils.py` 
 
 The project includes a logging utilities module in `logging_utils.py` with helpers for logging configuration and function-call tracing: `get_logger` returns a named logger (or the root logger), `configure_logging` configures the root logger with a consistent format, handlers, and level, and `log_calls` is a decorator factory that logs function entry and return values using `functools.wraps` to preserve metadata. The module is tested in `tests/test_logging_utils.py`.
 
-Next task: Add a `cache_utils` module with caching helpers (`memoize` decorator, `clear_cache`, and `cache_info`) with tests and full scaffolding synchronization.
+## Cache Utilities Module
+
+The project includes a caching utilities module in `cache_utils.py` with helpers for memoizing function results: `memoize` is a decorator factory that caches return values keyed by call arguments (with optional `maxsize` LRU eviction and `typed` argument distinction), `clear_cache` invalidates the cache of a memoized function, and `cache_info` returns a dictionary with `hits`, `misses`, `maxsize`, and `currsize` statistics. Decorated functions also expose `clear_cache` and `cache_info` attributes for direct introspection. The module is tested in `tests/test_cache_utils.py`.
+
+Next task: Add a `retry_utils` module with retry and backoff helpers (`retry` decorator, `retry_with_backoff`, and `retry_count`) with tests and full scaffolding synchronization.
