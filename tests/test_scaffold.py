@@ -138,6 +138,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_dict_utils.py",
             "set_utils.py",
             "tests/test_set_utils.py",
+            "statistics_utils.py",
+            "tests/test_statistics_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -223,6 +225,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_dict_utils.py",
             "set_utils.py",
             "tests/test_set_utils.py",
+            "statistics_utils.py",
+            "tests/test_statistics_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -282,6 +286,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_dict_utils.py",
             "set_utils.py",
             "tests/test_set_utils.py",
+            "statistics_utils.py",
+            "tests/test_statistics_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
@@ -532,6 +538,28 @@ class TestScaffoldKiloJson(unittest.TestCase):
         merged = merge_queues(pq3, pq4)
         self.assertEqual(merged.pop(), "y")
         self.assertEqual(merged.pop(), "x")
+
+    def test_statistics_utils_functions_work(self) -> None:
+        """Generated statistics_utils.py should have working functions."""
+        from statistics_utils import (
+            correlation,
+            covariance,
+            geometric_mean,
+            harmonic_mean,
+            normalize,
+            percentile,
+            z_score,
+        )
+
+        self.assertAlmostEqual(harmonic_mean([1, 2, 4]), 1.7142857142857142)
+        self.assertAlmostEqual(geometric_mean([1, 2, 3, 4, 5]), 2.605171084697352)
+        self.assertEqual(percentile([1, 2, 3, 4, 5], 50), 3.0)
+        self.assertAlmostEqual(covariance([1, 2, 3, 4, 5], [5, 4, 3, 2, 1]), -2.5)
+        self.assertAlmostEqual(correlation([1, 2, 3, 4, 5], [5, 4, 3, 2, 1]), -1.0)
+        z = z_score([1, 2, 3, 4, 5])
+        self.assertAlmostEqual(z[0], -1.414213562373095)
+        self.assertAlmostEqual(z[4], 1.414213562373095)
+        self.assertEqual(normalize([1, 2, 3, 4, 5]), [0.0, 0.25, 0.5, 0.75, 1.0])
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

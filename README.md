@@ -92,6 +92,7 @@ tests/                       # Python unit tests
   test_json_utils.py          # Tests for json_utils.py
   test_csv_utils.py           # Tests for csv_utils.py
   test_set_utils.py           # Tests for set_utils.py
+  test_statistics_utils.py    # Tests for statistics_utils.py
 ```
 
 ## How It Works
@@ -239,6 +240,12 @@ The project includes a CSV utilities module in `csv_utils.py` with functions for
 
 The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
 
+## Statistical Utilities Module
+
+The project includes a statistical utilities module in `statistics_utils.py` with functions for data analysis beyond `stats.py`: `harmonic_mean`, `geometric_mean`, `median_even`, `percentile`, `covariance`, `correlation`, `z_score`, and `normalize`. The module is tested in `tests/test_statistics_utils.py`.
+
 Completed task: Added a new `set_utils.py` module with set operation utilities (`is_subset`, `is_superset`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, `power_set`) and its tests. Synchronized the scaffold template: added `set_utils.py` to the `scaffold.sh` header comment, generated `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Verified all 547 tests pass, ruff and mypy are clean, and the scaffold smoke test generates a fully consistent project.
 
-Next task: Add a new `math_utils.py`-style `statistics_utils.py` module with statistical utility functions beyond `stats.py` (e.g., `harmonic_mean`, `geometric_mean`, `median_even`, `percentile`, `covariance`, `correlation`, `z_score`, `normalize`) and its tests, then sync the scaffold template (header comment, pyproject `py_modules`, README tree + module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs).
+Completed task: Added a new `statistics_utils.py` module with statistical utility functions (`harmonic_mean`, `geometric_mean`, `median_even`, `percentile`, `covariance`, `correlation`, `z_score`, `normalize`) and its tests. Synchronized the scaffold template: added `statistics_utils.py` to the `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests. Updated `test_scaffold.py` to verify `statistics_utils.py` generation.
+
+Next task: Add a new `string_utils.py` module with advanced string manipulation utilities (e.g., `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `indent_text`, `remove_extra_whitespace`, `title_case`) and its tests, then sync the scaffold template (header comment, pyproject `py_modules`, README tree + module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests).

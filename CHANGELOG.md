@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `statistics_utils.py` — statistical utility functions (`harmonic_mean`, `geometric_mean`, `median_even`, `percentile`, `covariance`, `correlation`, `z_score`, `normalize`) beyond `stats.py`
+- `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
+- Added `statistics_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
+- Synchronized `scaffold.sh` templates (`scaffold-project.md`, generated `README.md`, generated `CHANGELOG.md`) to include `statistics_utils.py` entries
+- Updated `test_scaffold.py` to verify `statistics_utils.py` and `tests/test_statistics_utils.py` generation
+- Fixed `# --- statistics_utils.py ---` and `# --- tests/test_statistics_utils.py ---` heredoc blocks in `scaffold.sh` to generate the module and its tests in scaffolded projects
+
+### Added
+
 - `cache_utils.py` — caching utilities module with `memoize` decorator factory (supporting `maxsize` LRU eviction and `typed` argument distinction), `clear_cache` helper to invalidate stored results, and `cache_info` helper to inspect cache statistics
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
 - `timing_utils.py` — performance measurement helpers with `timer` context manager, `elapsed_time` function, and `benchmark` decorator
@@ -165,4 +174,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `scaffold.sh` to generate `set_utils.py` and its tests
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 - `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
-- Updated `.kilo/command/scaffold-project.md`, `README.md`, and scaffold template to include set utilities
+- Updated `.kilo/command/scaffold-project.md`, `README.md`, and scaffold template to include set and statistics utilities
