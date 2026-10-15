@@ -1,7 +1,7 @@
 """JSON utility functions."""
 
 import json
-from typing import Any, IO
+from typing import Any
 
 
 def read_json(path: str) -> Any:

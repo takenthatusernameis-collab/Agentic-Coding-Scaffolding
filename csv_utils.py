@@ -4,7 +4,11 @@ import csv
 from typing import Any, Dict, List, Optional
 
 
-def read_csv(path: str, delimiter: str = ",", fieldnames: Optional[List[str]] = None) -> List[Dict[str, str]]:
+def read_csv(
+    path: str,
+    delimiter: str = ",",
+    fieldnames: Optional[List[str]] = None,
+) -> List[Dict[str, str]]:
     """Read CSV file and return list of dictionaries."""
     with open(path, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f, fieldnames=fieldnames, delimiter=delimiter)
@@ -18,7 +22,12 @@ def read_csv_as_lists(path: str, delimiter: str = ",") -> List[List[str]]:
         return list(reader)
 
 
-def write_csv(path: str, rows: List[Dict[str, Any]], fieldnames: Optional[List[str]] = None, delimiter: str = ",") -> None:
+def write_csv(
+    path: str,
+    rows: List[Dict[str, Any]],
+    fieldnames: Optional[List[str]] = None,
+    delimiter: str = ",",
+) -> None:
     """Write list of dictionaries to CSV file."""
     if not rows:
         return
