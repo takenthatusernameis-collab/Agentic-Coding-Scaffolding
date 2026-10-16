@@ -149,6 +149,9 @@
 #   - version_utils.py — version parsing, comparison, and normalization utilities
 #   - tests/test_version_utils.py — unit tests for version_utils.py
 #   - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+#   - tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
+#   - calendar_utils.py — calendar utilities (is_leap_year, days_in_month, first_day_of_month, month_name, day_name, month_calendar, weekdays_in_month, weekend_days_in_month, is_weekend, add_months)
+#   - tests/test_calendar_utils.py — unit tests for calendar_utils.py
 #   - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
 #   - tests/test_bytes_utils.py — unit tests for bytes_utils.py
 #   - tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
@@ -565,6 +568,7 @@ py_modules = [
     "sys_utils",
     "networking_utils",
     "textwrap_utils",
+    "calendar_utils",
 ]
 
 [tool.ruff]
@@ -14820,6 +14824,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - networking_utils.py — networking utilities for TCP ports, hostname resolution, and local IP detection
 - tests/test_networking_utils.py — unit tests for `networking_utils.py`
 - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+- calendar_utils.py — calendar utilities (is_leap_year, days_in_month, first_day_of_month, month_name, day_name, month_calendar, weekdays_in_month, weekend_days_in_month, is_weekend, add_months)
+- tests/test_calendar_utils.py — unit tests for `calendar_utils.py`
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
 - tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
 - tests/test_textwrap_utils.py — unit tests for `textwrap_utils.py`
@@ -15096,6 +15102,8 @@ version_utils.py           # Version parsing, comparison, and normalization util
 sys_utils.py               # Python runtime and system information utilities
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+calendar_utils.py          # Calendar utilities (is_leap_year, days_in_month, month_name, day_name, add_months)
+tests/test_calendar_utils.py  # Tests for calendar_utils.py
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -15291,6 +15299,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - networking_utils.py — networking utilities for TCP ports, hostname resolution, and local IP detection
 - tests/test_networking_utils.py — unit tests for `networking_utils.py`
 - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+- calendar_utils.py — calendar utilities (is_leap_year, days_in_month, first_day_of_month, month_name, day_name, month_calendar, weekdays_in_month, weekend_days_in_month, is_weekend, add_months)
+- tests/test_calendar_utils.py — unit tests for `calendar_utils.py`
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
 - tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
 - tests/test_textwrap_utils.py — unit tests for `textwrap_utils.py`
