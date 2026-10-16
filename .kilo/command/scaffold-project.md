@@ -114,6 +114,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
+- `hash_utils.py` — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+- `tests/test_hash_utils.py` — unit tests for `hash_utils.py`
 
 ## Usage
 

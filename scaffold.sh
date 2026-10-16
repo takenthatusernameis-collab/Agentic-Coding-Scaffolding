@@ -108,6 +108,7 @@
 #   - terminal_utils.py — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 #   - tests/test_terminal_utils.py — unit tests for terminal_utils.py
 #   - cli_utils.py — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
+#     - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 #   - tests/test_cli_utils.py — unit tests for cli_utils.py
 set -euo pipefail
 
@@ -12171,8 +12172,324 @@ def main_wrapper(func: Callable[[List[str]], int]) -> Callable[[List[str]], int]
     return wrapper
 CLI_UTILS
 
+cat > "$OUTPUT_DIR/hash_utils.py" <<'HASH_UTILS'
+"""Hashing and checksum utility functions for computing and verifying hashes.
+
+This module provides utilities for computing common cryptographic hashes
+(MD5, SHA1, SHA256, SHA512) and CRC32 checksums, with support for both
+string and bytes inputs.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import zlib
+from typing import Union
+
+__all__: list[str] = [
+    "md5",
+    "sha1",
+    "sha256",
+    "sha512",
+    "crc32",
+    "hash_file",
+]
+
+
+def _normalize_input(data: Union[str, bytes]) -> bytes:
+    """Normalize input to bytes."""
+    if isinstance(data, str):
+        return data.encode("utf-8")
+    if isinstance(data, bytes):
+        return data
+    raise TypeError("data must be str or bytes")
+
+
+def md5(data: Union[str, bytes]) -> str:
+    """Compute the MD5 hash of the input.
+
+    Args:
+        data: Input string or bytes.
+
+    Returns:
+        Hexadecimal digest of the MD5 hash.
+
+    Raises:
+        TypeError: If data is not str or bytes.
+    """
+    normalized = _normalize_input(data)
+    return hashlib.md5(normalized).hexdigest()
+
+
+def sha1(data: Union[str, bytes]) -> str:
+    """Compute the SHA1 hash of the input.
+
+    Args:
+        data: Input string or bytes.
+
+    Returns:
+        Hexadecimal digest of the SHA1 hash.
+
+    Raises:
+        TypeError: If data is not str or bytes.
+    """
+    normalized = _normalize_input(data)
+    return hashlib.sha1(normalized).hexdigest()
+
+
+def sha256(data: Union[str, bytes]) -> str:
+    """Compute the SHA256 hash of the input.
+
+    Args:
+        data: Input string or bytes.
+
+    Returns:
+        Hexadecimal digest of the SHA256 hash.
+
+    Raises:
+        TypeError: If data is not str or bytes.
+    """
+    normalized = _normalize_input(data)
+    return hashlib.sha256(normalized).hexdigest()
+
+
+def sha512(data: Union[str, bytes]) -> str:
+    """Compute the SHA512 hash of the input.
+
+    Args:
+        data: Input string or bytes.
+
+    Returns:
+        Hexadecimal digest of the SHA512 hash.
+
+    Raises:
+        TypeError: If data is not str or bytes.
+    """
+    normalized = _normalize_input(data)
+    return hashlib.sha512(normalized).hexdigest()
+
+
+def crc32(data: Union[str, bytes]) -> int:
+    """Compute the CRC32 checksum of the input.
+
+    Args:
+        data: Input string or bytes.
+
+    Returns:
+        Integer CRC32 checksum.
+
+    Raises:
+        TypeError: If data is not str or bytes.
+    """
+    normalized = _normalize_input(data)
+    return zlib.crc32(normalized) & 0xFFFFFFFF
+
+
+def hash_file(file_path: Union[str, bytes], algorithm: str = "sha256") -> str:
+    """Compute the hash of a file.
+
+    Args:
+        file_path: Path to the file to hash.
+        algorithm: Hash algorithm name (md5, sha1, sha256, sha512).
+        Defaults to "sha256".
+
+    Returns:
+        Hexadecimal digest of the file hash.
+
+    Raises:
+        TypeError: If file_path is not str or bytes.
+        ValueError: If algorithm is not supported.
+        FileNotFoundError: If the file does not exist.
+        IOError: If there is an error reading the file.
+    """
+    if not isinstance(file_path, (str, bytes)):
+        raise TypeError("file_path must be str or bytes")
+
+    path_str = file_path.decode("utf-8") if isinstance(file_path, bytes) else file_path
+
+    algorithm = algorithm.lower()
+    hash_func = hashlib.new(algorithm) if algorithm in (
+        "md5",
+        "sha1",
+        "sha256",
+        "sha512",
+    ) else None
+
+    if hash_func is None:
+        raise ValueError(f"Unsupported algorithm: {algorithm}")
+
+    try:
+        with open(path_str, "rb") as f:
+            for chunk in iter(lambda: f.read(8192), b""):
+                hash_func.update(chunk)
+        return hash_func.hexdigest()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"File not found: {path_str}")
+    except (IOError, OSError) as e:
+        raise IOError(f"Error reading file {path_str}: {e}")
+HASH_UTILS
+
+# --- tests/test_hash_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_hash_utils.py" <<'TESTHASHUTILS'
+"""Unit tests for hash_utils module."""
+
+import tempfile
+import unittest
+from pathlib import Path
+
+from hash_utils import (
+    crc32,
+    hash_file,
+    md5,
+    sha1,
+    sha256,
+    sha512,
+)
+
+
+class TestMD5(unittest.TestCase):
+    def test_md5_string(self):
+        result = md5("hello")
+        self.assertEqual(result, "5d41402abc4b2a76b9719d911017c592")
+
+    def test_md5_bytes(self):
+        result = md5(b"hello")
+        self.assertEqual(result, "5d41402abc4b2a76b9719d911017c592")
+
+    def test_md5_empty_string(self):
+        result = md5("")
+        self.assertEqual(result, "d41d8cd98f00b204e9800998ecf8427e")
+
+    def test_md5_type_error(self):
+        with self.assertRaises(TypeError):
+            md5(123)  # type: ignore[arg-type]
+
+
+class TestSHA1(unittest.TestCase):
+    def test_sha1_string(self):
+        result = sha1("hello")
+        self.assertEqual(result, "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
+
+    def test_sha1_bytes(self):
+        result = sha1(b"hello")
+        self.assertEqual(result, "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
+
+    def test_sha1_empty(self):
+        result = sha1("")
+        self.assertEqual(result, "da39a3ee5e6b4b0d3255bfef95601890afd80709")
+
+    def test_sha1_type_error(self):
+        with self.assertRaises(TypeError):
+            sha1(123)  # type: ignore[arg-type]
+
+
+class TestSHA256(unittest.TestCase):
+    def test_sha256_string(self):
+        result = sha256("hello")
+        self.assertEqual(
+            result,
+            "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+        )
+
+    def test_sha256_bytes(self):
+        result = sha256(b"hello")
+        self.assertEqual(
+            result,
+            "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+        )
+
+    def test_sha256_type_error(self):
+        with self.assertRaises(TypeError):
+            sha256({})  # type: ignore[arg-type]
+
+
+class TestSHA512(unittest.TestCase):
+    def test_sha512_string(self):
+        result = sha512("hello")
+        self.assertTrue(result.startswith("9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"))
+
+    def test_sha512_type_error(self):
+        with self.assertRaises(TypeError):
+            sha512(None)  # type: ignore[arg-type]
+
+
+class TestCRC32(unittest.TestCase):
+    def test_crc32_string(self):
+        result = crc32("hello")
+        self.assertEqual(result, 0x3610A686)
+
+    def test_crc32_bytes(self):
+        result = crc32(b"hello")
+        self.assertEqual(result, 0x3610A686)
+
+    def test_crc32_type_error(self):
+        with self.assertRaises(TypeError):
+            crc32([1, 2, 3])  # type: ignore[arg-type]
+
+
+class TestHashFile(unittest.TestCase):
+    def test_hash_file_sha256(self):
+        content = "hello world"
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
+            f.write(content)
+            temp_path = f.name
+
+        try:
+            result = hash_file(temp_path)
+            expected = sha256(content)
+            self.assertEqual(result, expected)
+        finally:
+            Path(temp_path).unlink()
+
+    def test_hash_file_md5(self):
+        content = "test data"
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+            f.write(content)
+            temp_path = f.name
+
+        try:
+            result = hash_file(temp_path, algorithm="md5")
+            expected = md5(content)
+            self.assertEqual(result, expected)
+        finally:
+            Path(temp_path).unlink()
+
+    def test_hash_file_with_bytes_path(self):
+        content = "test"
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+            f.write(content)
+            temp_path = f.name.encode("utf-8")
+
+        try:
+            result = hash_file(temp_path, algorithm="sha1")
+            expected = sha1(content)
+            self.assertEqual(result, expected)
+        finally:
+            Path(f.name).unlink()
+
+    def test_hash_file_not_found(self):
+        with self.assertRaises(FileNotFoundError):
+            hash_file("/non/existent/file.txt")
+
+    def test_hash_file_unsupported_algorithm(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+            f.write("data")
+            temp_path = f.name
+
+        try:
+            with self.assertRaises(ValueError):
+                hash_file(temp_path, algorithm="invalid")
+        finally:
+            Path(temp_path).unlink()
+
+    def test_hash_file_type_error(self):
+        with self.assertRaises(TypeError):
+            hash_file(123)  # type: ignore[arg-type]
+TESTHASHUTILS
 # --- tests/test_cli_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_cli_utils.py" <<'TESTCLIUTILS'
+hash_utils.py               # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+tests/test_hash_utils.py    # Unit tests for hash_utils.py
 """Unit tests for cli_utils module."""
 
 import argparse
@@ -12594,6 +12911,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 - `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
+  - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+  - tests/test_hash_utils.py — unit tests for `hash_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -12994,6 +13313,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 - `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
+  - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+  - tests/test_hash_utils.py — unit tests for `hash_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
