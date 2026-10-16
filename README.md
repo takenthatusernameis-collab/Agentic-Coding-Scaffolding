@@ -90,6 +90,7 @@ textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, d
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
+markdown_utils.py          # Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
@@ -157,6 +158,7 @@ tests/                     # Python unit tests
   test_textwrap_utils.py        # Tests for textwrap_utils.py
   test_prime_utils.py           # Tests for prime_utils.py
   test_heapq_utils.py           # Tests for heapq_utils.py
+  test_markdown_utils.py        # Tests for markdown_utils.py
   test_functools_utils.py       # Tests for functools_utils.py
   test_exceptions_utils.py    # Tests for exceptions_utils.py
   test_io_utils.py            # Tests for io_utils.py
@@ -508,3 +510,7 @@ The project includes context manager utilities in `context_utils.py` for tempora
 ## Networking Utilities Module
 
 The project includes networking utilities in `networking_utils.py` for TCP port and host operations: `is_valid_port` validates port numbers (1-65535), `is_port_open` checks whether a TCP port is reachable on a host, `find_free_port` returns an unused local TCP port, `resolve_hostname` resolves a hostname to its IPv4 address, `get_local_ip` returns the local machine's IPv4 address, and `tcp_ping` measures TCP connection latency. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_networking_utils.py`.
+
+## Markdown Utilities Module
+
+The project includes Markdown utility functions in `markdown_utils.py` for working with Markdown text: `extract_code_blocks` extracts fenced code blocks (``` ... ```), `strip_markdown` removes common Markdown formatting while keeping readable text, `count_words` counts whitespace-delimited words, `is_heading` detects Markdown headings, and `heading_level` returns the heading level (1-6) or 0 if not a heading. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_markdown_utils.py`.

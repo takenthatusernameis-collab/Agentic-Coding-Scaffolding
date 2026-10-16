@@ -170,6 +170,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`
 - `heapq_utils.py` — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)
 - `tests/test_heapq_utils.py` — unit tests for `heapq_utils.py`
+- `markdown_utils.py` — Markdown utility functions (`extract_code_blocks`, `strip_markdown`, `count_words`, `is_heading`, `heading_level`)
+- `tests/test_markdown_utils.py` — unit tests for `markdown_utils.py`
 
 ## Usage
 

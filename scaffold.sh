@@ -165,6 +165,8 @@
 #   - tests/test_decimal_utils.py — unit tests for decimal_utils.py
 #   - heapq_utils.py — heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
 #   - tests/test_heapq_utils.py — unit tests for heapq_utils.py
+#   - markdown_utils.py — Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
+#   - tests/test_markdown_utils.py — unit tests for markdown_utils.py
 set -euo pipefail
 
 usage() {
@@ -24393,3 +24395,132 @@ class TestNsmallest(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTHEAPQUTILS
+# --- markdown_utils.py ---
+cat > "$OUTPUT_DIR/markdown_utils.py" <<'MARKDOWNUTILS'
+"""Markdown utility functions."""
+
+from __future__ import annotations
+
+import re
+from typing import List
+
+
+def extract_code_blocks(text: str) -> List[str]:
+    """Extract fenced code blocks (``` ... ```) from markdown text."""
+    pattern = re.compile(r"```(?:[a-zA-Z0-9_+-]*)\n(.*?)```", re.DOTALL)
+    return [block.strip("\n") for block in pattern.findall(text)]
+
+
+def strip_markdown(text: str) -> str:
+    """Strip common markdown formatting from text."""
+    # Remove fenced code blocks entirely, keeping inner content
+    text = re.sub(r"```[a-zA-Z0-9_+-]*\n", "", text)
+    text = text.replace("```", "")
+    # Remove inline code backticks
+    text = re.sub(r"`([^`]+)`", r"\1", text)
+    # Remove emphasis markers
+    text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
+    text = re.sub(r"\*([^*]+)\*", r"\1", text)
+    text = re.sub(r"__([^_]+)__", r"\1", text)
+    text = re.sub(r"_([^_]+)_", r"\1", text)
+    # Remove heading markers
+    text = re.sub(r"^#{1,6}\s*", "", text, flags=re.MULTILINE)
+    # Remove link markup, keep label
+    text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
+    # Remove blockquote markers
+    text = re.sub(r"^>\s?", "", text, flags=re.MULTILINE)
+    return text
+
+
+def count_words(text: str) -> int:
+    """Count whitespace-delimited words in text."""
+    return len(text.split())
+
+
+def is_heading(line: str) -> bool:
+    """Return True if line is a markdown heading."""
+    return bool(re.match(r"^#{1,6}\s+\S", line))
+
+
+def heading_level(line: str) -> int:
+    """Return heading level (1-6) or 0 if not a heading."""
+    match = re.match(r"^(#{1,6})\s+\S", line)
+    if not match:
+        return 0
+    return len(match.group(1))
+MARKDOWNUTILS
+# --- tests/test_markdown_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_markdown_utils.py" <<'TESTMARKDOWNUTILS'
+"""Tests for markdown_utils module."""
+
+import unittest
+
+from markdown_utils import (
+    count_words,
+    extract_code_blocks,
+    heading_level,
+    is_heading,
+    strip_markdown,
+)
+
+
+class TestExtractCodeBlocks(unittest.TestCase):
+    def test_extracts_single_block(self) -> None:
+        text = "intro\n```python\nprint('hi')\n```\noutro"
+        self.assertEqual(extract_code_blocks(text), ["print('hi')"])
+
+    def test_extracts_multiple_blocks(self) -> None:
+        text = "```js\na()\n```\n\n```py\nb()\n```"
+        self.assertEqual(extract_code_blocks(text), ["a()", "b()"])
+
+    def test_no_blocks(self) -> None:
+        self.assertEqual(extract_code_blocks("no code here"), [])
+
+    def test_language_tag_optional(self) -> None:
+        text = "```\nplain\n```"
+        self.assertEqual(extract_code_blocks(text), ["plain"])
+
+
+class TestStripMarkdown(unittest.TestCase):
+    def test_strips_bold(self) -> None:
+        self.assertEqual(strip_markdown("this is **bold** text"), "this is bold text")
+
+    def test_strips_italic(self) -> None:
+        self.assertEqual(strip_markdown("this is *italic* text"), "this is italic text")
+
+    def test_strips_inline_code(self) -> None:
+        self.assertEqual(strip_markdown("use `foo()` here"), "use foo() here")
+
+    def test_strips_heading(self) -> None:
+        self.assertEqual(strip_markdown("# Title"), "Title")
+
+    def test_strips_link(self) -> None:
+        self.assertEqual(strip_markdown("[label](http://example.com)"), "label")
+
+    def test_strips_blockquote(self) -> None:
+        self.assertEqual(strip_markdown("> quoted"), "quoted")
+
+
+class TestCountWords(unittest.TestCase):
+    def test_counts_words(self) -> None:
+        self.assertEqual(count_words("hello world foo"), 3)
+
+    def test_empty(self) -> None:
+        self.assertEqual(count_words(""), 0)
+
+
+class TestHeading(unittest.TestCase):
+    def test_is_heading(self) -> None:
+        self.assertTrue(is_heading("# Title"))
+        self.assertTrue(is_heading("## Sub"))
+        self.assertFalse(is_heading("not heading"))
+
+    def test_heading_level(self) -> None:
+        self.assertEqual(heading_level("# Title"), 1)
+        self.assertEqual(heading_level("### Deep"), 3)
+        self.assertEqual(heading_level("not heading"), 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTMARKDOWNUTILS

@@ -230,6 +230,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_networking_utils.py",
             "decimal_utils.py",
             "tests/test_decimal_utils.py",
+            "markdown_utils.py",
+            "tests/test_markdown_utils.py",
             "heapq_utils.py",
             "tests/test_heapq_utils.py",
         ]
