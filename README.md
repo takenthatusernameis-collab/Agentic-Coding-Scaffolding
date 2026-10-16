@@ -135,8 +135,9 @@ tests/                     # Python unit tests
   test_ip_utils.py             # Tests for ip_utils.py
   test_regex_utils.py         # Tests for regex_utils.py
   test_config_schema.py         # Tests for config_schema.py
-  test_http_utils.py            # Tests for http_utils.py
-    ```
+test_http_utils.py            # Tests for http_utils.py
+  test_struct_utils.py          # Tests for struct_utils.py
+  ```
 
 ## How It Works
 

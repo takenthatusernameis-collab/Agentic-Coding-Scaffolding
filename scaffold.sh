@@ -14265,6 +14265,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_type_utils.py` — unit tests for `type_utils.py`
 - `tests/test_path_utils.py` — unit tests for `path_utils.py`
 - `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
+- `tests/test_struct_utils.py` — unit tests for `struct_utils.py`
 - `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
 - `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`

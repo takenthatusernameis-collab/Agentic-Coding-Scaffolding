@@ -124,6 +124,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
 - `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
 - `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
+- `struct_utils.py` — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
+- `tests/test_struct_utils.py` — unit tests for `struct_utils.py`
 
 ## Usage
 

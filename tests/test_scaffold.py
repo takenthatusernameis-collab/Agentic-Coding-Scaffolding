@@ -186,6 +186,10 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_http_utils.py",
             "html_utils.py",
             "tests/test_html_utils.py",
+            "base64_utils.py",
+            "tests/test_base64_utils.py",
+            "struct_utils.py",
+            "tests/test_struct_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -310,6 +314,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_base64_utils.py",
             "http_utils.py",
             "tests/test_http_utils.py",
+            "struct_utils.py",
+            "tests/test_struct_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
