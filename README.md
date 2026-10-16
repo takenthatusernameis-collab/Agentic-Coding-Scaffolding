@@ -87,6 +87,7 @@ networking_utils.py         # Networking utilities for TCP ports, hostname resol
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 version_utils.py           # Version utility functions (parse, compare, normalize)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
@@ -150,6 +151,7 @@ tests/                     # Python unit tests
   test_queue_utils.py           # Tests for queue_utils.py
   test_version_utils.py         # Tests for version_utils.py
   test_textwrap_utils.py        # Tests for textwrap_utils.py
+  test_prime_utils.py           # Tests for prime_utils.py
   test_functools_utils.py       # Tests for functools_utils.py
   test_exceptions_utils.py    # Tests for exceptions_utils.py
   test_io_utils.py            # Tests for io_utils.py
@@ -473,6 +475,9 @@ The project includes version utility functions in `version_utils.py` for parsing
 
 The project includes text wrapping utility functions in `textwrap_utils.py` for wrapping, shortening, dedenting, indenting, and filling text using the standard library `textwrap` module: `wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, and `fill_text`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_textwrap_utils.py`.
 
+## Prime Number Utilities Module
+
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `next_prime` finds the next prime after a given number, and `previous_prime` finds the previous prime before a given number. The module builds on `math_utils.is_prime` and validates its inputs. The module is tested in `tests/test_prime_utils.py`.
 
 
 ## Operator Utilities Module

@@ -216,6 +216,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_textwrap_utils.py",
             "bytes_utils.py",
             "tests/test_bytes_utils.py",
+            "prime_utils.py",
+            "tests/test_prime_utils.py",
             "sys_utils.py",
             "tests/test_sys_utils.py",
             "networking_utils.py",
@@ -356,6 +358,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "textwrap_utils.py",
             "bytes_utils.py",
             "tests/test_bytes_utils.py",
+            "prime_utils.py",
+            "tests/test_prime_utils.py",
             "sys_utils.py",
             "networking_utils.py",
         ]:
@@ -388,6 +392,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_seq_utils.py",
             "tests/test_graphlib_utils.py",
             "tests/test_sys_utils.py",
+            "tests/test_prime_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -485,6 +490,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_textwrap_utils.py",
             "bytes_utils.py",
             "tests/test_bytes_utils.py",
+            "prime_utils.py",
+            "tests/test_prime_utils.py",
             "sys_utils.py",
             "tests/test_sys_utils.py",
             "networking_utils.py",

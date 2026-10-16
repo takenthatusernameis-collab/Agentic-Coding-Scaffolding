@@ -155,6 +155,8 @@
 #   - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
 #   - tests/test_bytes_utils.py — unit tests for bytes_utils.py
 #   - tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
+#   - prime_utils.py — prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
+#   - tests/test_prime_utils.py — unit tests for prime_utils.py
 set -euo pipefail
 
 usage() {
@@ -14826,9 +14828,11 @@ Generate scaffolding files for a new agentic coding project. This command create
 - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 - calendar_utils.py — calendar utilities (is_leap_year, days_in_month, first_day_of_month, month_name, day_name, month_calendar, weekdays_in_month, weekend_days_in_month, is_weekend, add_months)
 - tests/test_calendar_utils.py — unit tests for `calendar_utils.py`
+- prime_utils.py — prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
+- tests/test_prime_utils.py — unit tests for prime_utils.py
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
 - tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
-- tests/test_textwrap_utils.py — unit tests for `textwrap_utils.py`
+- tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -15299,6 +15303,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - networking_utils.py — networking utilities for TCP ports, hostname resolution, and local IP detection
 - tests/test_networking_utils.py — unit tests for `networking_utils.py`
 - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+- prime_utils.py — prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
+- tests/test_prime_utils.py — unit tests for prime_utils.py
 - calendar_utils.py — calendar utilities (is_leap_year, days_in_month, first_day_of_month, month_name, day_name, month_calendar, weekdays_in_month, weekend_days_in_month, is_weekend, add_months)
 - tests/test_calendar_utils.py — unit tests for `calendar_utils.py`
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
@@ -22930,3 +22936,238 @@ class TestTcpPing(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTNETWORKINGUTILS
+# --- prime_utils.py ---
+cat > "$OUTPUT_DIR/prime_utils.py" <<'PRIMEUTILS'
+"""Prime number utilities."""
+
+from math_utils import is_prime
+
+
+def prime_factors(n: int) -> list[int]:
+    """Return the prime factors of n in non-decreasing order.
+
+    Args:
+        n: The integer to factorize (n >= 2).
+
+    Returns:
+        A list of prime factors whose product is n.
+
+    Raises:
+        ValueError: If n < 2.
+
+    Examples:
+        >>> prime_factors(12)
+        [2, 2, 3]
+        >>> prime_factors(17)
+        [17]
+    """
+    if n < 2:
+        raise ValueError("Prime factorization is only defined for integers >= 2")
+    factors: list[int] = []
+    while n % 2 == 0:
+        factors.append(2)
+        n //= 2
+    divisor = 3
+    while divisor * divisor <= n:
+        while n % divisor == 0:
+            factors.append(divisor)
+            n //= divisor
+        divisor += 2
+    if n > 1:
+        factors.append(n)
+    return factors
+
+
+def nth_prime(n: int) -> int:
+    """Return the nth prime number (1-indexed).
+
+    Args:
+        n: The position of the prime to return (n >= 1).
+
+    Returns:
+        The nth prime number.
+
+    Raises:
+        ValueError: If n < 1.
+
+    Examples:
+        >>> nth_prime(1)
+        2
+        >>> nth_prime(6)
+        13
+    """
+    if n < 1:
+        raise ValueError("nth_prime is only defined for n >= 1")
+    count = 0
+    candidate = 2
+    while True:
+        if is_prime(candidate):
+            count += 1
+            if count == n:
+                return candidate
+        candidate = 3 if candidate == 2 else candidate + 2
+
+
+def primes_up_to(limit: int) -> list[int]:
+    """Return all prime numbers less than or equal to limit.
+
+    Args:
+        limit: The upper bound (inclusive).
+
+    Returns:
+        A list of primes <= limit.
+
+    Examples:
+        >>> primes_up_to(10)
+        [2, 3, 5, 7]
+    """
+    if limit < 2:
+        return []
+    return [p for p in range(2, limit + 1) if is_prime(p)]
+
+
+def next_prime(n: int) -> int:
+    """Return the smallest prime strictly greater than n.
+
+    Args:
+        n: The integer to start from.
+
+    Returns:
+        The next prime after n.
+
+    Examples:
+        >>> next_prime(7)
+        11
+        >>> next_prime(1)
+        2
+    """
+    candidate = n + 1
+    if candidate <= 2:
+        return 2
+    if candidate % 2 == 0:
+        candidate += 1
+    while not is_prime(candidate):
+        candidate += 2
+    return candidate
+
+
+def previous_prime(n: int) -> int:
+    """Return the largest prime strictly less than n.
+
+    Args:
+        n: The integer to start from (n > 2).
+
+    Returns:
+        The previous prime before n.
+
+    Raises:
+        ValueError: If n <= 2.
+
+    Examples:
+        >>> previous_prime(11)
+        7
+        >>> previous_prime(3)
+        2
+    """
+    if n <= 2:
+        raise ValueError("previous_prime is only defined for n > 2")
+    candidate = n - 1
+    while candidate >= 2:
+        if is_prime(candidate):
+            return candidate
+        candidate -= 1
+    raise ValueError("No prime found below n")
+PRIMEUTILS
+# --- tests/test_prime_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_prime_utils.py" <<'TESTPRIMEUTILS'
+"""Tests for prime_utils module."""
+
+import unittest
+
+from prime_utils import next_prime, nth_prime, previous_prime, prime_factors, primes_up_to
+
+
+class TestPrimeFactors(unittest.TestCase):
+    def test_small_composite(self) -> None:
+        self.assertEqual(prime_factors(12), [2, 2, 3])
+
+    def test_prime_itself(self) -> None:
+        self.assertEqual(prime_factors(17), [17])
+
+    def test_power_of_two(self) -> None:
+        self.assertEqual(prime_factors(16), [2, 2, 2, 2])
+
+    def test_large(self) -> None:
+        self.assertEqual(prime_factors(100), [2, 2, 5, 5])
+
+    def test_product_matches(self) -> None:
+        from math import prod
+        for n in range(2, 200):
+            self.assertEqual(prod(prime_factors(n)), n)
+
+    def test_less_than_two_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            prime_factors(1)
+        with self.assertRaises(ValueError):
+            prime_factors(0)
+        with self.assertRaises(ValueError):
+            prime_factors(-5)
+
+
+class TestNthPrime(unittest.TestCase):
+    def test_first(self) -> None:
+        self.assertEqual(nth_prime(1), 2)
+
+    def test_sixth(self) -> None:
+        self.assertEqual(nth_prime(6), 13)
+
+    def test_tenth(self) -> None:
+        self.assertEqual(nth_prime(10), 29)
+
+    def test_less_than_one_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            nth_prime(0)
+        with self.assertRaises(ValueError):
+            nth_prime(-3)
+
+
+class TestPrimesUpTo(unittest.TestCase):
+    def test_below_two(self) -> None:
+        self.assertEqual(primes_up_to(0), [])
+        self.assertEqual(primes_up_to(1), [])
+
+    def test_ten(self) -> None:
+        self.assertEqual(primes_up_to(10), [2, 3, 5, 7])
+
+    def test_twenty(self) -> None:
+        self.assertEqual(primes_up_to(20), [2, 3, 5, 7, 11, 13, 17, 19])
+
+
+class TestNextPrime(unittest.TestCase):
+    def test_after_one(self) -> None:
+        self.assertEqual(next_prime(1), 2)
+
+    def test_after_seven(self) -> None:
+        self.assertEqual(next_prime(7), 11)
+
+    def test_after_prime(self) -> None:
+        self.assertEqual(next_prime(13), 17)
+
+
+class TestPreviousPrime(unittest.TestCase):
+    def test_before_three(self) -> None:
+        self.assertEqual(previous_prime(3), 2)
+
+    def test_before_eleven(self) -> None:
+        self.assertEqual(previous_prime(11), 7)
+
+    def test_before_two_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            previous_prime(2)
+        with self.assertRaises(ValueError):
+            previous_prime(1)
+
+
+if __name__ == '__main__':
+    unittest.main()
+TESTPRIMEUTILS
