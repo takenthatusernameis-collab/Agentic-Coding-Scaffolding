@@ -73,6 +73,7 @@ type_utils.py              # Type introspection utilities (is_optional, is_union
 path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
+temp_utils.py              # Temporary file and directory management utilities
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
@@ -402,5 +403,9 @@ The project includes HTTP utility functions in `http_utils.py` for working with 
 ## Time Duration Utilities Module
 
 The project includes time duration utilities in `duration_utils.py` for parsing, formatting, and converting time durations: `parse_duration` parses human-readable duration strings (e.g. `"1h30m"`, `"90s"`, `"2.5 days"`) into total seconds, `format_duration` renders seconds as a compact human-readable string, `seconds_to_hms` and `hms_to_seconds` convert between seconds and `(hours, minutes, seconds)`, `to_seconds` combines time components into seconds, `duration_between` computes the `timedelta` between two datetimes, and `add_duration` adds a parsed duration to a datetime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_duration_utils.py`.
+
+## Temporary File and Directory Utilities Module
+
+The project includes temporary file and directory utilities in `temp_utils.py` for creating, writing, reading, and cleaning up temporary filesystem resources: `create_temp_file` and `create_temp_dir` create named temp files/directories, `temp_file` and `temp_dir` are context managers that remove resources on exit, `write_temp_file` and `read_temp_file` read/write temp file contents, `cleanup_temp_path` removes a temp file or directory, `is_temp_path` checks whether a path lives under the system temp directory, and `temp_path_exists` reports whether a path exists. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_temp_utils.py`.
 
 

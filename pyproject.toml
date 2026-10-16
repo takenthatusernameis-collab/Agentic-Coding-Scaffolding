@@ -95,4 +95,5 @@ py_modules = [
     "html_utils",
     "base64_utils",
     "struct_utils",
+    "temp_utils",
 ]

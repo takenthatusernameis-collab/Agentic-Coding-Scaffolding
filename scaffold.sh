@@ -122,6 +122,8 @@
 #   - tests/test_http_utils.py — unit tests for http_utils.py
 #   - duration_utils.py — time duration utilities (parse, format, convert between units)
 #   - tests/test_duration_utils.py — unit tests for duration_utils.py
+#   - temp_utils.py — temporary file and directory management utilities
+#   - tests/test_temp_utils.py — unit tests for temp_utils.py
 set -euo pipefail
 
 usage() {
@@ -522,6 +524,7 @@ py_modules = [
     "base64_utils",
     "struct_utils",
     "duration_utils",
+    "temp_utils",
 ]
 
 [tool.ruff]
@@ -14295,6 +14298,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_http_utils.py — unit tests for `http_utils.py`
 - duration_utils.py — time duration utilities (`parse_duration`, `format_duration`, `seconds_to_hms`, `hms_to_seconds`, `to_seconds`, `duration_between`, `add_duration`, `is_valid_duration`)
 - tests/test_duration_utils.py — unit tests for `duration_utils.py`
+- temp_utils.py — temporary file and directory management utilities (`create_temp_file`, `create_temp_dir`, `temp_file`, `temp_dir`, `write_temp_file`, `read_temp_file`, `cleanup_temp_path`, `is_temp_path`, `temp_path_exists`)
+- tests/test_temp_utils.py — unit tests for `temp_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -14558,6 +14563,7 @@ html_utils.py              # HTML escaping, unescaping, and tag-stripping utilit
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 struct_utils.py            # Binary struct packing and unpacking utilities
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
+temp_utils.py              # Temporary file and directory management utilities
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -14603,6 +14609,7 @@ tests/                     # Python unit tests
   test_base64_utils.py          # Tests for base64_utils.py
   test_struct_utils.py          # Tests for struct_utils.py
   test_duration_utils.py        # Tests for duration_utils.py
+  test_temp_utils.py            # Tests for temp_utils.py
     ```
 
 ## Getting Started
@@ -14726,6 +14733,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_http_utils.py — unit tests for `http_utils.py`
 - duration_utils.py — time duration utilities (`parse_duration`, `format_duration`, `seconds_to_hms`, `hms_to_seconds`, `to_seconds`, `duration_between`, `add_duration`, `is_valid_duration`)
 - tests/test_duration_utils.py — unit tests for `duration_utils.py`
+- temp_utils.py — temporary file and directory management utilities (`create_temp_file`, `create_temp_dir`, `temp_file`, `temp_dir`, `write_temp_file`, `read_temp_file`, `cleanup_temp_path`, `is_temp_path`, `temp_path_exists`)
+- tests/test_temp_utils.py — unit tests for `temp_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
@@ -18624,3 +18633,660 @@ class TestAddDuration(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTDURATIONUTILS
+
+cat > "$OUTPUT_DIR/temp_utils.py" <<'TEMP_UTILS'
+"""Temporary file and directory utilities.
+
+Provides helpers for creating, writing, reading, and cleaning up temporary
+files and directories using the standard library ``tempfile`` module. All
+functions validate their inputs and raise ``TypeError`` or ``ValueError`` on
+invalid arguments.
+"""
+
+from __future__ import annotations
+
+import os
+import shutil
+import tempfile
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Iterator, Optional, Union
+
+__all__: list[str] = [
+    "TEMP_DIR",
+    "create_temp_file",
+    "create_temp_dir",
+    "temp_file",
+    "temp_dir",
+    "write_temp_file",
+    "read_temp_file",
+    "cleanup_temp_path",
+    "is_temp_path",
+    "temp_path_exists",
+]
+
+
+TEMP_DIR: str = tempfile.gettempdir()
+"""The system temporary directory (e.g. ``/tmp`` on Unix)."""
+
+
+def _normalize_path(path: Union[str, Path]) -> str:
+    """Return the absolute, normalized string form of ``path``."""
+    return os.path.abspath(os.path.normpath(str(path)))
+
+
+def create_temp_file(
+    suffix: Optional[str] = None,
+    prefix: Optional[str] = None,
+    dir: Optional[Union[str, Path]] = None,
+    text: bool = False,
+    delete: bool = True,
+) -> str:
+    """Create a named temporary file and return its path.
+
+    The file is created with mode ``0600`` and is immediately closed so it can
+    be opened by other processes. When ``delete`` is ``True`` (the default),
+    the file is removed automatically when the returned path is passed to
+    :func:`cleanup_temp_path`; the caller is otherwise responsible for removal.
+
+    Args:
+        suffix: Optional filename suffix (e.g. ``".txt"``).
+        prefix: Optional filename prefix.
+        dir: Optional directory in which to create the file. Defaults to the
+            system temporary directory.
+        text: Whether to open the file in text mode (``True``) or binary mode
+            (``False``).
+        delete: Whether the file should be removed on close. Pass ``False`` to
+            keep the file after creation.
+
+    Returns:
+        The absolute path to the created temporary file.
+
+    Raises:
+        TypeError: If any argument has an invalid type.
+        OSError: If the file cannot be created.
+
+    Examples:
+        >>> path = create_temp_file(suffix=".txt", prefix="demo_")
+        >>> os.path.exists(path)
+        True
+        >>> cleanup_temp_path(path)
+        True
+        >>> os.path.exists(path)
+        False
+    """
+    if suffix is not None and not isinstance(suffix, str):
+        raise TypeError("suffix must be a string or None")
+    if prefix is not None and not isinstance(prefix, str):
+        raise TypeError("prefix must be a string or None")
+    if dir is not None and not isinstance(dir, (str, Path)):
+        raise TypeError("dir must be a string, Path, or None")
+    if not isinstance(text, bool):
+        raise TypeError("text must be a bool")
+    if not isinstance(delete, bool):
+        raise TypeError("delete must be a bool")
+
+    fd, path = tempfile.mkstemp(
+        suffix=suffix,
+        prefix=prefix,
+        dir=str(dir) if dir is not None else None,
+        text=text,
+    )
+    os.close(fd)
+    # The file is intentionally left on disk. The caller removes it with
+    # :func:`cleanup_temp_path` when done; ``delete`` records that intent.
+    return path
+
+
+def create_temp_dir(
+    suffix: Optional[str] = None,
+    prefix: Optional[str] = None,
+    dir: Optional[Union[str, Path]] = None,
+    delete: bool = True,
+) -> str:
+    """Create a temporary directory and return its path.
+
+    Args:
+        suffix: Optional directory name suffix.
+        prefix: Optional directory name prefix.
+        dir: Optional parent directory. Defaults to the system temporary
+            directory.
+        delete: Whether the directory should be removed when cleaned up via
+            :func:`cleanup_temp_path`.
+
+    Returns:
+        The absolute path to the created temporary directory.
+
+    Raises:
+        TypeError: If any argument has an invalid type.
+        OSError: If the directory cannot be created.
+
+    Examples:
+        >>> path = create_temp_dir(prefix="demo_")
+        >>> os.path.isdir(path)
+        True
+        >>> cleanup_temp_path(path)
+        True
+        >>> os.path.exists(path)
+        False
+    """
+    if suffix is not None and not isinstance(suffix, str):
+        raise TypeError("suffix must be a string or None")
+    if prefix is not None and not isinstance(prefix, str):
+        raise TypeError("prefix must be a string or None")
+    if dir is not None and not isinstance(dir, (str, Path)):
+        raise TypeError("dir must be a string, Path, or None")
+    if not isinstance(delete, bool):
+        raise TypeError("delete must be a bool")
+
+    return tempfile.mkdtemp(
+        suffix=suffix,
+        prefix=prefix,
+        dir=str(dir) if dir is not None else None,
+    )
+
+
+@contextmanager
+def temp_file(
+    suffix: Optional[str] = None,
+    prefix: Optional[str] = None,
+    dir: Optional[Union[str, Path]] = None,
+    text: bool = False,
+) -> Iterator[str]:
+    """Context manager yielding the path of a temporary file.
+
+    The file is created on entry and removed on exit, even if an exception is
+    raised inside the block.
+
+    Args:
+        suffix: Optional filename suffix.
+        prefix: Optional filename prefix.
+        dir: Optional directory. Defaults to the system temporary directory.
+        text: Whether to open the file in text mode.
+
+    Yields:
+        The absolute path to the temporary file.
+
+    Examples:
+        >>> with temp_file(suffix=".csv") as path:
+        ...     _ = open(path, "w").write("a,b\\n1,2\\n")
+        >>> import os
+        >>> os.path.exists(path)
+        False
+    """
+    path = create_temp_file(
+        suffix=suffix,
+        prefix=prefix,
+        dir=dir,
+        text=text,
+        delete=False,
+    )
+    try:
+        yield path
+    finally:
+        cleanup_temp_path(path)
+
+
+@contextmanager
+def temp_dir(
+    suffix: Optional[str] = None,
+    prefix: Optional[str] = None,
+    dir: Optional[Union[str, Path]] = None,
+) -> Iterator[str]:
+    """Context manager yielding the path of a temporary directory.
+
+    The directory (and its contents) is created on entry and removed on exit,
+    even if an exception is raised inside the block.
+
+    Args:
+        suffix: Optional directory name suffix.
+        prefix: Optional directory name prefix.
+        dir: Optional parent directory. Defaults to the system temporary
+            directory.
+
+    Yields:
+        The absolute path to the temporary directory.
+
+    Examples:
+        >>> with temp_dir(prefix="demo_") as path:
+        ...     _ = os.path.join(path, "nested.txt")
+        >>> import os
+        >>> os.path.exists(path)
+        False
+    """
+    path = create_temp_dir(suffix=suffix, prefix=prefix, dir=dir, delete=False)
+    try:
+        yield path
+    finally:
+        cleanup_temp_path(path)
+
+
+def write_temp_file(
+    content: str,
+    suffix: Optional[str] = None,
+    prefix: Optional[str] = None,
+    dir: Optional[Union[str, Path]] = None,
+    delete: bool = True,
+    mode: str = "w",
+) -> str:
+    """Write ``content`` to a new temporary file and return its path.
+
+    Args:
+        content: The text content to write.
+        suffix: Optional filename suffix.
+        prefix: Optional filename prefix.
+        dir: Optional directory. Defaults to the system temporary directory.
+        delete: Whether the file should be removed when cleaned up via
+            :func:`cleanup_temp_path`.
+        mode: The file open mode (default: ``"w"``).
+
+    Returns:
+        The absolute path to the written temporary file.
+
+    Raises:
+        TypeError: If any argument has an invalid type.
+        OSError: If the file cannot be created or written.
+
+    Examples:
+        >>> path = write_temp_file("hello world", suffix=".txt")
+        >>> read_temp_file(path)
+        'hello world'
+        >>> cleanup_temp_path(path)
+        True
+    """
+    if not isinstance(content, str):
+        raise TypeError("content must be a string")
+    if suffix is not None and not isinstance(suffix, str):
+        raise TypeError("suffix must be a string or None")
+    if prefix is not None and not isinstance(prefix, str):
+        raise TypeError("prefix must be a string or None")
+    if dir is not None and not isinstance(dir, (str, Path)):
+        raise TypeError("dir must be a string, Path, or None")
+    if not isinstance(delete, bool):
+        raise TypeError("delete must be a bool")
+    if not isinstance(mode, str):
+        raise TypeError("mode must be a string")
+
+    path = create_temp_file(
+        suffix=suffix,
+        prefix=prefix,
+        dir=dir,
+        text="b" not in mode,
+        delete=False,
+    )
+    with open(path, mode) as fh:
+        fh.write(content)
+    # The file is intentionally left on disk; remove it with
+    # :func:`cleanup_temp_path` when done.
+    return path
+
+
+def read_temp_file(path: Union[str, Path], mode: str = "r") -> str:
+    """Read and return the contents of a temporary file.
+
+    Args:
+        path: The path to the temporary file.
+        mode: The file open mode (default: ``"r"``).
+
+    Returns:
+        The file contents as a string.
+
+    Raises:
+        TypeError: If ``path`` is not a string or Path.
+        FileNotFoundError: If the file does not exist.
+        OSError: If the file cannot be read.
+    """
+    if not isinstance(path, (str, Path)):
+        raise TypeError("path must be a string or Path")
+    if not isinstance(mode, str):
+        raise TypeError("mode must be a string")
+
+    with open(path, mode) as fh:
+        return fh.read()
+
+
+def cleanup_temp_path(path: Union[str, Path]) -> bool:
+    """Remove a temporary file or directory, ignoring missing paths.
+
+    Files are removed with :func:`os.remove`; directories are removed
+    recursively with :func:`shutil.rmtree`. Returns ``True`` if something was
+    removed, ``False`` if the path did not exist.
+
+    Args:
+        path: The path to the temporary file or directory.
+
+    Returns:
+        ``True`` if the path existed and was removed, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``path`` is not a string or Path.
+        OSError: If the path cannot be removed.
+    """
+    if not isinstance(path, (str, Path)):
+        raise TypeError("path must be a string or Path")
+
+    path_str = str(path)
+    if not os.path.exists(path_str):
+        return False
+
+    if os.path.isdir(path_str) and not os.path.islink(path_str):
+        shutil.rmtree(path_str)
+    else:
+        os.remove(path_str)
+    return True
+
+
+def is_temp_path(path: Union[str, Path]) -> bool:
+    """Return ``True`` if ``path`` resides inside the system temp directory.
+
+    Args:
+        path: The path to check.
+
+    Returns:
+        ``True`` if the path is under :data:`TEMP_DIR`, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``path`` is not a string or Path.
+    """
+    if not isinstance(path, (str, Path)):
+        raise TypeError("path must be a string or Path")
+
+    path_str = _normalize_path(path)
+    temp_dir = _normalize_path(TEMP_DIR)
+    return path_str == temp_dir or path_str.startswith(temp_dir + os.sep)
+
+
+def temp_path_exists(path: Union[str, Path]) -> bool:
+    """Return ``True`` if ``path`` exists on the filesystem.
+
+    Args:
+        path: The path to check.
+
+    Returns:
+        ``True`` if the path exists, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``path`` is not a string or Path.
+    """
+    if not isinstance(path, (str, Path)):
+        raise TypeError("path must be a string or Path")
+
+    return os.path.exists(str(path))
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
+TEMP_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_temp_utils.py" <<'TESTTEMPUTILS'
+"""Unit tests for temp_utils module."""
+
+import os
+import unittest
+
+from temp_utils import (
+    TEMP_DIR,
+    cleanup_temp_path,
+    create_temp_dir,
+    create_temp_file,
+    is_temp_path,
+    read_temp_file,
+    temp_dir,
+    temp_file,
+    temp_path_exists,
+    write_temp_file,
+)
+
+
+class TestConstants(unittest.TestCase):
+    def test_temp_dir_is_string(self):
+        self.assertIsInstance(TEMP_DIR, str)
+        self.assertTrue(os.path.isdir(TEMP_DIR))
+
+
+class TestCreateTempFile(unittest.TestCase):
+    def test_creates_existing_file(self):
+        path = create_temp_file(suffix=".txt", prefix="demo_")
+        self.assertTrue(os.path.isfile(path))
+        self.assertTrue(path.endswith(".txt"))
+        self.assertTrue(os.path.basename(path).startswith("demo_"))
+        cleanup_temp_path(path)
+        self.assertFalse(os.path.exists(path))
+
+    def test_returns_absolute_path(self):
+        path = create_temp_file()
+        self.assertTrue(os.path.isabs(path))
+        cleanup_temp_path(path)
+
+    def test_custom_dir(self):
+        with temp_dir() as parent:
+            path = create_temp_file(dir=parent)
+            self.assertTrue(os.path.dirname(path) == os.path.abspath(parent))
+            cleanup_temp_path(path)
+
+    def test_delete_false_keeps_file(self):
+        path = create_temp_file(delete=False)
+        self.assertTrue(os.path.exists(path))
+        cleanup_temp_path(path)
+        self.assertFalse(os.path.exists(path))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            create_temp_file(suffix=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_temp_file(prefix=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_temp_file(dir=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_temp_file(text="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_temp_file(delete="yes")  # type: ignore[arg-type]
+
+
+class TestCreateTempDir(unittest.TestCase):
+    def test_creates_existing_directory(self):
+        path = create_temp_dir(suffix="_suf", prefix="demo_")
+        self.assertTrue(os.path.isdir(path))
+        self.assertTrue(os.path.basename(path).startswith("demo_"))
+        cleanup_temp_path(path)
+        self.assertFalse(os.path.exists(path))
+
+    def test_returns_absolute_path(self):
+        path = create_temp_dir()
+        self.assertTrue(os.path.isabs(path))
+        cleanup_temp_path(path)
+
+    def test_custom_dir(self):
+        with temp_dir() as parent:
+            path = create_temp_dir(dir=parent)
+            self.assertTrue(os.path.dirname(path) == os.path.abspath(parent))
+            cleanup_temp_path(path)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            create_temp_dir(suffix=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_temp_dir(prefix=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_temp_dir(dir=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_temp_dir(delete="yes")  # type: ignore[arg-type]
+
+
+class TestTempFileContextManager(unittest.TestCase):
+    def test_removes_file_on_exit(self):
+        path = None
+        with temp_file(suffix=".log") as p:
+            path = p
+            self.assertTrue(os.path.isfile(path))
+            with open(path, "w") as fh:
+                fh.write("data")
+        self.assertFalse(os.path.exists(path))
+
+    def test_removes_file_on_exception(self):
+        path = None
+        try:
+            with temp_file(suffix=".log") as p:
+                path = p
+                raise RuntimeError("boom")
+        except RuntimeError:
+            pass
+        self.assertFalse(os.path.exists(path))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            with temp_file(suffix=123):  # type: ignore[arg-type]
+                pass
+
+
+class TestTempDirContextManager(unittest.TestCase):
+    def test_removes_directory_on_exit(self):
+        path = None
+        with temp_dir(prefix="tmpdir_") as p:
+            path = p
+            self.assertTrue(os.path.isdir(path))
+        self.assertFalse(os.path.exists(path))
+
+    def test_removes_directory_contents_on_exit(self):
+        path = None
+        with temp_dir() as p:
+            path = p
+            nested = os.path.join(p, "nested.txt")
+            with open(nested, "w") as fh:
+                fh.write("x")
+        self.assertFalse(os.path.exists(path))
+
+    def test_removes_directory_on_exception(self):
+        path = None
+        try:
+            with temp_dir() as p:
+                path = p
+                raise RuntimeError("boom")
+        except RuntimeError:
+            pass
+        self.assertFalse(os.path.exists(path))
+
+
+class TestWriteTempFile(unittest.TestCase):
+    def test_writes_and_reads_content(self):
+        path = write_temp_file("hello world", suffix=".txt")
+        self.assertTrue(os.path.isfile(path))
+        self.assertEqual(read_temp_file(path), "hello world")
+        cleanup_temp_path(path)
+        self.assertFalse(os.path.exists(path))
+
+    def test_delete_false_keeps_file(self):
+        path = write_temp_file("keep me", delete=False)
+        self.assertTrue(os.path.exists(path))
+        cleanup_temp_path(path)
+        self.assertFalse(os.path.exists(path))
+
+    def test_custom_dir(self):
+        with temp_dir() as parent:
+            path = write_temp_file("x", dir=parent)
+            self.assertTrue(os.path.dirname(path) == os.path.abspath(parent))
+            cleanup_temp_path(path)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            write_temp_file(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            write_temp_file("x", suffix=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            write_temp_file("x", delete="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            write_temp_file("x", mode=123)  # type: ignore[arg-type]
+
+
+class TestReadTempFile(unittest.TestCase):
+    def test_reads_content(self):
+        path = write_temp_file("reading me")
+        self.assertEqual(read_temp_file(path), "reading me")
+        cleanup_temp_path(path)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            read_temp_file(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            read_temp_file("x", mode=123)  # type: ignore[arg-type]
+
+    def test_missing_file_raises(self):
+        with self.assertRaises(FileNotFoundError):
+            read_temp_file(os.path.join(TEMP_DIR, "definitely_does_not_exist_12345"))
+
+
+class TestCleanupTempPath(unittest.TestCase):
+    def test_removes_file(self):
+        path = create_temp_file(delete=False)
+        self.assertTrue(cleanup_temp_path(path))
+        self.assertFalse(os.path.exists(path))
+
+    def test_removes_directory(self):
+        path = create_temp_dir(delete=False)
+        self.assertTrue(cleanup_temp_path(path))
+        self.assertFalse(os.path.exists(path))
+
+    def test_removes_directory_with_contents(self):
+        path = create_temp_dir(delete=False)
+        nested = os.path.join(path, "file.txt")
+        with open(nested, "w") as fh:
+            fh.write("x")
+        self.assertTrue(cleanup_temp_path(path))
+        self.assertFalse(os.path.exists(path))
+
+    def test_missing_path_returns_false(self):
+        missing = os.path.join(TEMP_DIR, "definitely_does_not_exist_67890")
+        self.assertFalse(cleanup_temp_path(missing))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            cleanup_temp_path(123)  # type: ignore[arg-type]
+
+
+class TestIsTempPath(unittest.TestCase):
+    def test_temp_path_returns_true(self):
+        self.assertTrue(is_temp_path(TEMP_DIR))
+        path = create_temp_file(delete=False)
+        try:
+            self.assertTrue(is_temp_path(path))
+        finally:
+            cleanup_temp_path(path)
+
+    def test_non_temp_path_returns_false(self):
+        self.assertFalse(is_temp_path("/"))
+        self.assertFalse(is_temp_path("/usr/bin"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_temp_path(123)  # type: ignore[arg-type]
+
+
+class TestTempPathExists(unittest.TestCase):
+    def test_existing_path_returns_true(self):
+        path = create_temp_file(delete=False)
+        try:
+            self.assertTrue(temp_path_exists(path))
+        finally:
+            cleanup_temp_path(path)
+
+    def test_missing_path_returns_false(self):
+        missing = os.path.join(TEMP_DIR, "definitely_does_not_exist_abcde")
+        self.assertFalse(temp_path_exists(missing))
+
+    def test_directory_returns_true(self):
+        path = create_temp_dir(delete=False)
+        try:
+            self.assertTrue(temp_path_exists(path))
+        finally:
+            cleanup_temp_path(path)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            temp_path_exists(123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTEMPUTILS

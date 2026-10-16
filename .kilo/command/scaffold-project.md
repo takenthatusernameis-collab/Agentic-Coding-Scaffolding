@@ -130,6 +130,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_struct_utils.py` — unit tests for `struct_utils.py`
 - `duration_utils.py` — time duration utilities (`parse_duration`, `format_duration`, `seconds_to_hms`, `hms_to_seconds`, `to_seconds`, `duration_between`, `add_duration`, `is_valid_duration`)
 - `tests/test_duration_utils.py` — unit tests for `duration_utils.py`
+- `temp_utils.py` — temporary file and directory management utilities (`create_temp_file`, `create_temp_dir`, `temp_file`, `temp_dir`, `write_temp_file`, `read_temp_file`, `cleanup_temp_path`, `is_temp_path`, `temp_path_exists`)
+- `tests/test_temp_utils.py` — unit tests for `temp_utils.py`
 
 ## Usage
 
