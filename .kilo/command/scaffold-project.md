@@ -172,6 +172,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_heapq_utils.py` — unit tests for `heapq_utils.py`
 - `markdown_utils.py` — Markdown utility functions (`extract_code_blocks`, `strip_markdown`, `count_words`, `is_heading`, `heading_level`)
 - `tests/test_markdown_utils.py` — unit tests for `markdown_utils.py`
+- `time_utils.py` — time utility functions for working with timestamps and durations (`now_epoch`, `now_iso`, `epoch_to_iso`, `iso_to_epoch`)
+- `tests/test_time_utils.py` — unit tests for `time_utils.py`
 
 ## Usage
 

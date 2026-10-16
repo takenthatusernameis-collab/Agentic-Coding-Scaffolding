@@ -167,6 +167,8 @@
 #   - tests/test_heapq_utils.py — unit tests for heapq_utils.py
 #   - markdown_utils.py — Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
 #   - tests/test_markdown_utils.py — unit tests for markdown_utils.py
+#   - time_utils.py — time utility functions for working with timestamps and durations (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
+#   - tests/test_time_utils.py — unit tests for time_utils.py
 set -euo pipefail
 
 usage() {
@@ -585,6 +587,7 @@ py_modules = [
     "calendar_utils",
     "decimal_utils",
     "heapq_utils",
+    "time_utils",
 ]
 
 [tool.ruff]
@@ -15077,6 +15080,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
 - tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
+- time_utils.py — time utility functions for working with timestamps and durations (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
+- tests/test_time_utils.py — unit tests for time_utils.py
 
 ## Usage
 
@@ -15349,6 +15354,7 @@ version_utils.py           # Version parsing, comparison, and normalization util
 sys_utils.py               # Python runtime and system information utilities
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
 calendar_utils.py          # Calendar utilities (is_leap_year, days_in_month, month_name, day_name, add_months)
 tests/test_calendar_utils.py  # Tests for calendar_utils.py
 tests/                     # Python unit tests
@@ -15405,6 +15411,7 @@ tests/                     # Python unit tests
   test_version_utils.py         # Tests for version_utils.py
   test_sys_utils.py             # Tests for sys_utils.py
   test_networking_utils.py      # Tests for networking_utils.py
+  test_time_utils.py            # Tests for time_utils.py
     ```
 
 ## Getting Started
@@ -15568,6 +15575,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
 - tests/test_textwrap_utils.py — unit tests for `textwrap_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
+- time_utils.py — time utility functions for working with timestamps and durations (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
+- tests/test_time_utils.py — unit tests for time_utils.py
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
 - `CHANGELOG.md` — changelog following Keep a Changelog format
@@ -24449,6 +24458,49 @@ def heading_level(line: str) -> int:
         return 0
     return len(match.group(1))
 MARKDOWNUTILS
+# --- time_utils.py ---
+cat > "$OUTPUT_DIR/time_utils.py" <<'TIMEUTILS'
+"""Time utility functions for working with timestamps and durations."""
+
+from __future__ import annotations
+
+import time
+from datetime import datetime, timezone
+from typing import Optional
+
+__all__ = [
+    "now_epoch",
+    "now_iso",
+    "epoch_to_iso",
+    "iso_to_epoch",
+]
+
+
+def now_epoch() -> int:
+    """Return the current Unix timestamp in seconds."""
+    return int(time.time())
+
+
+def now_iso() -> str:
+    """Return the current UTC time as an ISO 8601 string."""
+    return datetime.now(timezone.utc).isoformat()
+
+
+def epoch_to_iso(timestamp: int) -> str:
+    """Convert a Unix timestamp to an ISO 8601 UTC string."""
+    return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat()
+
+
+def iso_to_epoch(value: str) -> Optional[int]:
+    """Parse an ISO 8601 string into a Unix timestamp."""
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return int(dt.timestamp())
+TIMEUTILS
 # --- tests/test_markdown_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_markdown_utils.py" <<'TESTMARKDOWNUTILS'
 """Tests for markdown_utils module."""
@@ -24524,3 +24576,31 @@ class TestHeading(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTMARKDOWNUTILS
+# --- tests/test_time_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_time_utils.py" <<'TESTTIMEUTILS'
+"""Tests for time_utils module."""
+
+from datetime import datetime
+
+import time_utils
+
+
+def test_now_epoch_is_int():
+    assert isinstance(time_utils.now_epoch(), int)
+
+
+def test_now_iso_parseable():
+    value = time_utils.now_iso()
+    dt = datetime.fromisoformat(value)
+    assert dt.tzinfo is not None
+
+
+def test_epoch_roundtrip():
+    ts = 1700000000
+    iso = time_utils.epoch_to_iso(ts)
+    assert time_utils.iso_to_epoch(iso) == ts
+
+
+def test_iso_to_epoch_invalid():
+    assert time_utils.iso_to_epoch("not-a-date") is None
+TESTTIMEUTILS
