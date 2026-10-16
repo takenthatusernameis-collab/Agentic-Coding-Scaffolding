@@ -110,7 +110,7 @@
 #   - terminal_utils.py — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 #   - tests/test_terminal_utils.py — unit tests for terminal_utils.py
 #   - cli_utils.py — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
-# - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+#   - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 #   - tests/test_hash_utils.py — unit tests for hash_utils.py
 #   - html_utils.py — HTML escaping, unescaping, and tag-stripping utilities
 #   - tests/test_html_utils.py — unit tests for html_utils.py
