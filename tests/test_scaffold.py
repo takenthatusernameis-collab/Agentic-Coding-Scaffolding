@@ -134,6 +134,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_timing_utils.py",
             "async_utils.py",
             "tests/test_async_utils.py",
+            "bit_utils.py",
+            "tests/test_bit_utils.py",
             "concurrent_utils.py",
             "tests/test_concurrent_utils.py",
             "priority_queue_utils.py",

@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+### Added
+
+- `bit_utils.py` — bitwise utility functions for working with binary representations of integers (`count_set_bits`, `is_power_of_two`, `next_power_of_two`, `prev_power_of_two`, `reverse_bits`, `rotate_left`, `rotate_right`, `get_bit`, `set_bit`, `clear_bit`, `toggle_bit`, `is_even`, `is_odd`) with input validation
+- `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
+- Added `bit_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
+
 ### Changed
 
 - Synchronized `pyproject.toml` `py_modules` with the repository: added missing `prompt_utils` and `uuid_utils` modules (both exist as source files with tests and are already listed in `README.md`, `scaffold.sh`, and `.kilo/command/scaffold-project.md`) so package metadata matches the actual modules.

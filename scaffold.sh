@@ -62,8 +62,10 @@
 #   - timing_utils.py performance measurement helpers
 #   - tests/test_timing_utils.py unit tests for the timing_utils module
 #   - async_utils.py async utility functions
+#   - bit_utils.py bitwise utility functions for working with binary representations of integers
 #   - concurrent_utils.py concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 #   - tests/test_async_utils.py unit tests for the async_utils module
+#   - tests/test_bit_utils.py unit tests for the bit_utils module
 #   - tests/test_concurrent_utils.py unit tests for the concurrent_utils module
 #   - priority_queue_utils.py heap-based priority queue implementation
 #   - tests/test_priority_queue_utils.py unit tests for the priority_queue_utils module
@@ -484,6 +486,7 @@ py_modules = [
     "cache_utils",
     "timing_utils",
     "async_utils",
+    "bit_utils",
     "concurrent_utils",
     "priority_queue_utils",
     "rate_limiter_utils",
@@ -10425,6 +10428,386 @@ async def retry_async(
                 await asyncio.sleep(delay)
     raise last_exception
 ASYNCUTILS
+
+# --- bit_utils.py ---
+cat > "$OUTPUT_DIR/bit_utils.py" <<'BITUTILS'
+"""Bitwise utility functions for working with binary representations of integers.
+
+This module provides utilities for counting bits, manipulating individual bits,
+detecting powers of two, reversing bits, and rotating bit fields. All functions
+operate on non-negative integers unless otherwise noted.
+"""
+
+from __future__ import annotations
+
+from typing import Optional
+
+__all__: list[str] = [
+    "count_set_bits",
+    "is_power_of_two",
+    "next_power_of_two",
+    "prev_power_of_two",
+    "reverse_bits",
+    "rotate_left",
+    "rotate_right",
+    "get_bit",
+    "set_bit",
+    "clear_bit",
+    "toggle_bit",
+    "is_even",
+    "is_odd",
+]
+
+
+def _validate_nonnegative_int(value: int, name: str = "value") -> None:
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an integer")
+    if value < 0:
+        raise ValueError(f"{name} must be non-negative")
+
+
+def _validate_index(index: int) -> None:
+    if not isinstance(index, int) or isinstance(index, bool):
+        raise TypeError("index must be an integer")
+    if index < 0:
+        raise ValueError("index must be non-negative")
+
+
+def _validate_positive_int(value: int, name: str = "value") -> None:
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an integer")
+    if value <= 0:
+        raise ValueError(f"{name} must be positive")
+
+
+def count_set_bits(value: int) -> int:
+    """Return the number of set bits (1s) in the binary representation of value.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        The count of set bits.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> count_set_bits(0)
+        0
+        >>> count_set_bits(5)  # 0b101
+        2
+        >>> count_set_bits(7)  # 0b111
+        3
+    """
+    _validate_nonnegative_int(value)
+    return bin(value).count("1")
+
+
+def is_power_of_two(value: int) -> bool:
+    """Return True if value is a power of two.
+
+    Args:
+        value: An integer.
+
+    Returns:
+        True if value is a power of two, False otherwise.
+
+    Examples:
+        >>> is_power_of_two(1)
+        True
+        >>> is_power_of_two(16)
+        True
+        >>> is_power_of_two(18)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError("value must be an integer")
+    return value > 0 and (value & (value - 1)) == 0
+
+
+def next_power_of_two(value: int) -> int:
+    """Return the smallest power of two greater than or equal to value.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        The next power of two.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> next_power_of_two(0)
+        1
+        >>> next_power_of_two(5)
+        8
+        >>> next_power_of_two(16)
+        16
+    """
+    _validate_nonnegative_int(value)
+    if value == 0:
+        return 1
+    return 1 << (value - 1).bit_length()
+
+
+def prev_power_of_two(value: int) -> int:
+    """Return the largest power of two less than or equal to value.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        The previous power of two, or 0 if value is 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> prev_power_of_two(0)
+        0
+        >>> prev_power_of_two(5)
+        4
+        >>> prev_power_of_two(16)
+        16
+    """
+    _validate_nonnegative_int(value)
+    if value == 0:
+        return 0
+    return 1 << (value.bit_length() - 1)
+
+
+def reverse_bits(value: int, width: Optional[int] = None) -> int:
+    """Reverse the bits of value within the given width.
+
+    Args:
+        value: A non-negative integer.
+        width: The bit width to reverse within. Defaults to the minimal width
+            needed to represent value.
+
+    Returns:
+        The integer with bits reversed.
+
+    Raises:
+        TypeError: If value or width is not an integer.
+        ValueError: If value is negative or width is not positive.
+
+    Examples:
+        >>> reverse_bits(0b0001, 4)
+        8
+        >>> reverse_bits(13, 4)  # 1101 -> 1011
+        11
+    """
+    _validate_nonnegative_int(value)
+    if width is None:
+        width = value.bit_length() or 1
+    _validate_positive_int(width, "width")
+    result = 0
+    for i in range(width):
+        if (value >> i) & 1:
+            result |= 1 << (width - 1 - i)
+    return result
+
+
+def rotate_left(value: int, shift: int, width: int) -> int:
+    """Rotate the bits of value left by shift positions within width bits.
+
+    Args:
+        value: A non-negative integer.
+        shift: Number of positions to rotate.
+        width: The bit width to rotate within.
+
+    Returns:
+        The rotated integer.
+
+    Raises:
+        TypeError: If arguments are not integers.
+        ValueError: If value is negative or width is not positive.
+
+    Examples:
+        >>> rotate_left(0b0001, 1, 4)
+        2
+        >>> rotate_left(0b1000, 1, 4)
+        1
+    """
+    _validate_nonnegative_int(value)
+    if not isinstance(shift, int) or isinstance(shift, bool):
+        raise TypeError("shift must be an integer")
+    _validate_positive_int(width, "width")
+    shift %= width
+    mask = (1 << width) - 1
+    return ((value << shift) | (value >> (width - shift))) & mask
+
+
+def rotate_right(value: int, shift: int, width: int) -> int:
+    """Rotate the bits of value right by shift positions within width bits.
+
+    Args:
+        value: A non-negative integer.
+        shift: Number of positions to rotate.
+        width: The bit width to rotate within.
+
+    Returns:
+        The rotated integer.
+
+    Raises:
+        TypeError: If arguments are not integers.
+        ValueError: If value is negative or width is not positive.
+
+    Examples:
+        >>> rotate_right(0b1000, 1, 4)
+        4
+        >>> rotate_right(0b0001, 1, 4)
+        8
+    """
+    _validate_nonnegative_int(value)
+    if not isinstance(shift, int) or isinstance(shift, bool):
+        raise TypeError("shift must be an integer")
+    _validate_positive_int(width, "width")
+    shift %= width
+    mask = (1 << width) - 1
+    return ((value >> shift) | (value << (width - shift))) & mask
+
+
+def get_bit(value: int, index: int) -> int:
+    """Return the bit at index (0 = least significant bit).
+
+    Args:
+        value: A non-negative integer.
+        index: The bit index to read.
+
+    Returns:
+        0 or 1.
+
+    Raises:
+        TypeError: If arguments are not integers.
+        ValueError: If value is negative or index is negative.
+
+    Examples:
+        >>> get_bit(0b1010, 1)
+        1
+        >>> get_bit(0b1010, 2)
+        0
+    """
+    _validate_nonnegative_int(value)
+    _validate_index(index)
+    return (value >> index) & 1
+
+
+def set_bit(value: int, index: int) -> int:
+    """Return value with the bit at index set to 1.
+
+    Args:
+        value: A non-negative integer.
+        index: The bit index to set.
+
+    Returns:
+        The updated integer.
+
+    Raises:
+        TypeError: If arguments are not integers.
+        ValueError: If value is negative or index is negative.
+
+    Examples:
+        >>> set_bit(0b0000, 2)
+        4
+    """
+    _validate_nonnegative_int(value)
+    _validate_index(index)
+    return value | (1 << index)
+
+
+def clear_bit(value: int, index: int) -> int:
+    """Return value with the bit at index cleared to 0.
+
+    Args:
+        value: A non-negative integer.
+        index: The bit index to clear.
+
+    Returns:
+        The updated integer.
+
+    Raises:
+        TypeError: If arguments are not integers.
+        ValueError: If value is negative or index is negative.
+
+    Examples:
+        >>> clear_bit(0b1111, 1)
+        13
+    """
+    _validate_nonnegative_int(value)
+    _validate_index(index)
+    return value & ~(1 << index)
+
+
+def toggle_bit(value: int, index: int) -> int:
+    """Return value with the bit at index flipped.
+
+    Args:
+        value: A non-negative integer.
+        index: The bit index to toggle.
+
+    Returns:
+        The updated integer.
+
+    Raises:
+        TypeError: If arguments are not integers.
+        ValueError: If value is negative or index is negative.
+
+    Examples:
+        >>> toggle_bit(0b1010, 1)
+        8
+        >>> toggle_bit(0b1010, 0)
+        11
+    """
+    _validate_nonnegative_int(value)
+    _validate_index(index)
+    return value ^ (1 << index)
+
+
+def is_even(value: int) -> bool:
+    """Return True if value is even.
+
+    Args:
+        value: An integer.
+
+    Returns:
+        True if value is even, False otherwise.
+
+    Examples:
+        >>> is_even(4)
+        True
+        >>> is_even(7)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError("value must be an integer")
+    return (value & 1) == 0
+
+
+def is_odd(value: int) -> bool:
+    """Return True if value is odd.
+
+    Args:
+        value: An integer.
+
+    Returns:
+        True if value is odd, False otherwise.
+
+    Examples:
+        >>> is_odd(4)
+        False
+        >>> is_odd(7)
+        True
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError("value must be an integer")
+    return (value & 1) == 1
+BITUTILS
 # --- concurrent_utils.py ---
 cat > "$OUTPUT_DIR/concurrent_utils.py" <<'CONCURRENTUTILS'
 """Concurrent execution utilities for parallel and asynchronous processing.
@@ -12841,6 +13224,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
 - `timing_utils.py` — performance measurement helpers
+- `async_utils.py` — asynchronous utility functions
+- `bit_utils.py` — bitwise utility functions for working with binary representations of integers
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 - `priority_queue_utils.py` — heap-based priority queue implementation
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
@@ -12881,6 +13266,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `tests/test_async_utils.py` — unit tests for `async_utils.py`
+- `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
@@ -13150,6 +13537,7 @@ logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
 timing_utils.py           # Performance measurement helpers
 async_utils.py            # Asynchronous utility functions
+bit_utils.py              # Bitwise utility functions for working with binary representations
 concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 priority_queue_utils.py   # Heap-based priority queue implementation
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
@@ -13190,6 +13578,7 @@ tests/                     # Python unit tests
   test_logging_utils.py       # Tests for logging_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
+  test_bit_utils.py           # Tests for bit_utils.py
   test_concurrent_utils.py    # Tests for concurrent_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
@@ -13256,6 +13645,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `bit_utils.py` — bitwise utility functions for working with binary representations of integers (`count_set_bits`, `is_power_of_two`, `next_power_of_two`, `prev_power_of_two`, `reverse_bits`, `rotate_left`, `rotate_right`, `get_bit`, `set_bit`, `clear_bit`, `toggle_bit`, `is_even`, `is_odd`) with input validation
+- `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
+- Added `bit_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
 - `config_utils.py` — configuration utilities module with `load_config`, `save_config`, `get_config_value`, `set_config_value`, and `merge_configs` functions for working with JSON configuration files
 - `calculator.py` — simple calculator module with arithmetic operations
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
@@ -13277,6 +13669,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
 - `timing_utils.py` — performance measurement helpers
+- `async_utils.py` — asynchronous utility functions
+- `bit_utils.py` — bitwise utility functions for working with binary representations of integers
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 - `priority_queue_utils.py` — heap-based priority queue implementation
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
@@ -13339,6 +13733,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `tests/test_async_utils.py` — unit tests for `async_utils.py`
+- `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
@@ -13458,6 +13854,188 @@ class TestRetryAsync(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTASYNC
+
+# --- tests/test_bit_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_bit_utils.py" <<'TESTBITUTILS'
+"""Unit tests for bit_utils module."""
+
+import unittest
+
+from bit_utils import (
+    clear_bit,
+    count_set_bits,
+    get_bit,
+    is_even,
+    is_odd,
+    is_power_of_two,
+    next_power_of_two,
+    prev_power_of_two,
+    reverse_bits,
+    rotate_left,
+    rotate_right,
+    set_bit,
+    toggle_bit,
+)
+
+
+class TestCountSetBits(unittest.TestCase):
+    def test_zero(self):
+        self.assertEqual(count_set_bits(0), 0)
+
+    def test_single_bit(self):
+        self.assertEqual(count_set_bits(1), 1)
+        self.assertEqual(count_set_bits(8), 1)
+
+    def test_multiple_bits(self):
+        self.assertEqual(count_set_bits(5), 2)  # 0b101
+        self.assertEqual(count_set_bits(7), 3)  # 0b111
+        self.assertEqual(count_set_bits(255), 8)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_set_bits("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_set_bits(True)  # type: ignore[arg-type]
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            count_set_bits(-1)
+
+
+class TestIsPowerOfTwo(unittest.TestCase):
+    def test_powers_of_two(self):
+        self.assertTrue(is_power_of_two(1))
+        self.assertTrue(is_power_of_two(2))
+        self.assertTrue(is_power_of_two(1024))
+
+    def test_not_powers_of_two(self):
+        self.assertFalse(is_power_of_two(0))
+        self.assertFalse(is_power_of_two(3))
+        self.assertFalse(is_power_of_two(18))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_power_of_two("8")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two(True)  # type: ignore[arg-type]
+
+
+class TestNextPrevPowerOfTwo(unittest.TestCase):
+    def test_next_power_of_two(self):
+        self.assertEqual(next_power_of_two(0), 1)
+        self.assertEqual(next_power_of_two(1), 1)
+        self.assertEqual(next_power_of_two(5), 8)
+        self.assertEqual(next_power_of_two(16), 16)
+        self.assertEqual(next_power_of_two(17), 32)
+
+    def test_prev_power_of_two(self):
+        self.assertEqual(prev_power_of_two(0), 0)
+        self.assertEqual(prev_power_of_two(1), 1)
+        self.assertEqual(prev_power_of_two(5), 4)
+        self.assertEqual(prev_power_of_two(16), 16)
+        self.assertEqual(prev_power_of_two(17), 16)
+
+    def test_errors(self):
+        with self.assertRaises(ValueError):
+            next_power_of_two(-1)
+        with self.assertRaises(ValueError):
+            prev_power_of_two(-1)
+        with self.assertRaises(TypeError):
+            next_power_of_two("5")  # type: ignore[arg-type]
+
+
+class TestReverseBits(unittest.TestCase):
+    def test_reverse_within_width(self):
+        self.assertEqual(reverse_bits(0b0001, 4), 0b1000)
+        self.assertEqual(reverse_bits(13, 4), 11)  # 1101 -> 1011
+        self.assertEqual(reverse_bits(0, 4), 0)
+
+    def test_default_width(self):
+        self.assertEqual(reverse_bits(1), 1)
+        self.assertEqual(reverse_bits(0), 0)
+
+    def test_errors(self):
+        with self.assertRaises(ValueError):
+            reverse_bits(-1, 4)
+        with self.assertRaises(ValueError):
+            reverse_bits(5, 0)
+        with self.assertRaises(TypeError):
+            reverse_bits(5, "4")  # type: ignore[arg-type]
+
+
+class TestRotate(unittest.TestCase):
+    def test_rotate_left(self):
+        self.assertEqual(rotate_left(0b0001, 1, 4), 0b0010)
+        self.assertEqual(rotate_left(0b1000, 1, 4), 0b0001)
+        self.assertEqual(rotate_left(0b0011, 2, 4), 0b1100)
+
+    def test_rotate_right(self):
+        self.assertEqual(rotate_right(0b1000, 1, 4), 0b0100)
+        self.assertEqual(rotate_right(0b0001, 1, 4), 0b1000)
+        self.assertEqual(rotate_right(0b1100, 2, 4), 0b0011)
+
+    def test_shift_wraps(self):
+        self.assertEqual(rotate_left(0b0001, 5, 4), 0b0010)
+        self.assertEqual(rotate_right(0b0001, 5, 4), 0b1000)
+
+    def test_errors(self):
+        with self.assertRaises(ValueError):
+            rotate_left(-1, 1, 4)
+        with self.assertRaises(ValueError):
+            rotate_left(1, 1, 0)
+        with self.assertRaises(TypeError):
+            rotate_left(1, "1", 4)  # type: ignore[arg-type]
+
+
+class TestBitAccess(unittest.TestCase):
+    def test_get_bit(self):
+        self.assertEqual(get_bit(0b1010, 0), 0)
+        self.assertEqual(get_bit(0b1010, 1), 1)
+        self.assertEqual(get_bit(0b1010, 2), 0)
+        self.assertEqual(get_bit(0b1010, 3), 1)
+
+    def test_set_bit(self):
+        self.assertEqual(set_bit(0b0000, 2), 0b0100)
+        self.assertEqual(set_bit(0b1010, 0), 0b1011)
+
+    def test_clear_bit(self):
+        self.assertEqual(clear_bit(0b1111, 1), 0b1101)
+        self.assertEqual(clear_bit(0b1010, 3), 0b0010)
+
+    def test_toggle_bit(self):
+        self.assertEqual(toggle_bit(0b1010, 1), 0b1000)
+        self.assertEqual(toggle_bit(0b1010, 0), 0b1011)
+
+    def test_errors(self):
+        with self.assertRaises(ValueError):
+            get_bit(-1, 0)
+        with self.assertRaises(ValueError):
+            set_bit(0, -1)
+        with self.assertRaises(TypeError):
+            get_bit(0, "0")  # type: ignore[arg-type]
+
+
+class TestEvenOdd(unittest.TestCase):
+    def test_is_even(self):
+        self.assertTrue(is_even(0))
+        self.assertTrue(is_even(4))
+        self.assertFalse(is_even(7))
+
+    def test_is_odd(self):
+        self.assertFalse(is_odd(0))
+        self.assertFalse(is_odd(4))
+        self.assertTrue(is_odd(7))
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            is_even("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(True)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTBITUTILS
 # --- tests/test_concurrent_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_concurrent_utils.py" <<'TESTCONCURRENT'
 """Tests for concurrent_utils module."""

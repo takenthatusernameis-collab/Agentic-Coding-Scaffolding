@@ -45,6 +45,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `cache_utils.py` — caching utilities for memoizing function results
 - `timing_utils.py` — performance measurement helpers
 - `async_utils.py` — asynchronous utility functions
+- `bit_utils.py` — bitwise utility functions for working with binary representations of integers
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 - `priority_queue_utils.py` — heap-based priority queue implementation
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
@@ -97,6 +98,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
+- `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`

@@ -56,6 +56,7 @@ logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
 timing_utils.py           # Performance measurement helpers
 async_utils.py            # Asynchronous utility functions
+bit_utils.py              # Bitwise utility functions for working with binary representations
 concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 priority_queue_utils.py   # Heap-based priority queue implementation
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
@@ -106,6 +107,7 @@ tests/                     # Python unit tests
   test_cache_utils.py         # Tests for cache_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
   test_async_utils.py         # Tests for async_utils.py
+  test_bit_utils.py           # Tests for bit_utils.py
   test_concurrent_utils.py    # Tests for concurrent_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
@@ -321,6 +323,10 @@ The project includes terminal output utilities in `terminal_utils.py` for format
 ## Async Utilities Module
 
 The project includes asynchronous utility functions in `async_utils.py` for running blocking code in threads, gathering coroutines with timeouts, sleeping asynchronously, and retrying async operations: `run_in_thread`, `gather_with_timeout`, `async_sleep`, and `retry_async`. The module is tested in `tests/test_async_utils.py`.
+
+## Bit Utilities Module
+
+The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits` counts the number of 1 bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
 
 ## Collections Utilities Module
 
