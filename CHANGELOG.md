@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+### Fixed
+
+- Fixed inconsistent indentation in the `README.md` project structure tree: `path_utils.py`, `color_utils.py`, `pattern_utils.py`, `functools_utils.py`, `config_schema.py`, `exceptions_utils.py`, `io_utils.py`, `compression_utils.py`, `ip_utils.py`, `regex_utils.py`, `terminal_utils.py`, and the `tests/` sub-section were indented with 4 extra leading spaces instead of aligning with their siblings; also fixed `test_type_utils.py`, `test_path_utils.py`, `test_color_utils.py`, `test_pattern_utils.py`, `test_functools_utils.py`, `test_exceptions_utils.py`, `test_io_utils.py`, `test_compression_utils.py`, `test_ip_utils.py`, `test_regex_utils.py`, and `test_config_schema.py` entries in the tests sub-section. Synchronized the same fix into `scaffold.sh`'s generated `README.md` template so scaffolded projects inherit consistent indentation.
+
 ### Added
 
 - `regex_utils.py` — regular expression utilities (`compile_pattern`, `is_valid_pattern`, `match_pattern`, `search_pattern`, `find_all`, `replace_pattern`, `split_pattern`, `escape_pattern`, `extract_groups`, `named_groups`) for safe regex compilation, matching, extraction, and manipulation

@@ -12089,12 +12089,12 @@ set_utils.py             # Set operation utilities (subset, superset, intersecti
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
-    path_utils.py             # Path manipulation utilities (join, normalize, components, extensions)
+path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
-pattern_utils.py              # Design pattern utilities (Singleton, Factory, Observer, Strategy)
-config_schema.py             # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
-terminal_utils.py           # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
-tests/                       # Python unit tests
+pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
+config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
+terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
   test_scaffold.py           # Tests for scaffold.sh
@@ -12127,11 +12127,11 @@ tests/                       # Python unit tests
   test_statistics_utils.py    # Tests for statistics_utils.py
   test_string_utils.py        # Tests for string_utils.py
   test_tree_utils.py           # Tests for tree_utils.py
-test_type_utils.py         # Tests for type_utils.py
-    test_path_utils.py        # Tests for path_utils.py
-test_pattern_utils.py         # Tests for pattern_utils.py
-    test_functools_utils.py       # Tests for functools_utils.py
-test_config_schema.py         # Tests for config_schema.py
+  test_type_utils.py         # Tests for type_utils.py
+  test_path_utils.py        # Tests for path_utils.py
+  test_pattern_utils.py         # Tests for pattern_utils.py
+  test_functools_utils.py       # Tests for functools_utils.py
+  test_config_schema.py         # Tests for config_schema.py
     ```
 
 ## Getting Started
