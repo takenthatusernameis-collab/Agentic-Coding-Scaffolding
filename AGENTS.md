@@ -65,3 +65,4 @@ Use the following Makefile targets during development:
 - This project uses the `kilo/kilo-auto/free` model
 - Sessions have an idle timeout of 900 seconds
 - The overall CI job has a 355-minute safety cutoff
+- All tests, ruff, and mypy pass as of the latest bootstrap session
