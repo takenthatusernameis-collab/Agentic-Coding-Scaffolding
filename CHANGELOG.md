@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Fixed `scaffold.sh` so it actually generates `functools_utils.py`, `itertools_utils.py`, and `regex_utils.py` (and their tests) in scaffolded projects: the modules were registered in `pyproject.toml` `py_modules` and listed in the scaffold header comment but had no heredoc blocks, so scaffolded projects were missing them. Added the 6 missing heredoc blocks and verified the scaffold smoke test generates all modules with passing tests, ruff, and mypy.
+
 - Registered `template_utils` in `pyproject.toml` `py_modules`, where it was missing and causing an inconsistency with `scaffold.sh`, the README tree, and the CHANGELOG.
 
 - `template_utils.py` — string template rendering utilities (`render_template`, `substitute`, `safe_substitute`, `render_from_dict`, `has_placeholders`, `extract_placeholders`) supporting `str.format()` and `string.Template` styles with placeholder extraction

@@ -13136,6 +13136,808 @@ def main_wrapper(func: Callable[[List[str]], int]) -> Callable[[List[str]], int]
     return wrapper
 CLI_UTILS
 
+# --- functools_utils.py ---
+cat > "$OUTPUT_DIR/functools_utils.py" <<'FUNCTOOLS_UTILS'
+"""Functional programming utilities for composing and transforming functions."""
+
+from typing import Any, Callable, List, TypeVar
+
+T = TypeVar("T")
+R = TypeVar("R")
+
+__all__: List[str] = [
+    "compose",
+    "pipe",
+    "curry",
+    "apply",
+]
+
+
+def compose(*functions: Callable[[Any], Any]) -> Callable[[Any], Any]:
+    """Compose multiple functions from right to left.
+
+    Args:
+        *functions: Functions to compose. The rightmost function is applied
+            first, and its result is passed to the function to its left.
+
+    Returns:
+        A composed function.
+
+    Raises:
+        ValueError: If no functions are provided.
+
+    Examples:
+        >>> def add_one(x: int) -> int: return x + 1
+        >>> def multiply_by_two(x: int) -> int: return x * 2
+        >>> composed = compose(multiply_by_two, add_one)
+        >>> composed(3)
+        8
+    """
+
+    if not functions:
+        raise ValueError("At least one function must be provided")
+
+    def composed(arg: Any) -> Any:
+        result = arg
+        for func in reversed(functions):
+            result = func(result)
+        return result
+
+    return composed
+
+
+def pipe(arg: Any, *functions: Callable[[Any], Any]) -> Any:
+    """Apply a value through a pipeline of functions from left to right.
+
+    Args:
+        arg: The initial value to pass through the pipeline.
+        *functions: Functions to apply in order.
+
+    Returns:
+        The final result after applying all functions.
+
+    Examples:
+        >>> def add_one(x: int) -> int: return x + 1
+        >>> def multiply_by_two(x: int) -> int: return x * 2
+        >>> pipe(3, add_one, multiply_by_two)
+        8
+    """
+    result = arg
+    for func in functions:
+        result = func(result)
+    return result
+
+
+def curry(func: Callable[..., R]) -> Callable[..., Any]:
+    """Curry a function to allow partial application.
+
+    Args:
+        func: The function to curry.
+
+    Returns:
+        A curried version of the function.
+
+    Raises:
+        TypeError: If ``func`` is not callable.
+
+    Examples:
+        >>> def add(x: int, y: int) -> int: return x + y
+        >>> curried = curry(add)
+        >>> curried(1)(2)
+        3
+    """
+    if not callable(func):
+        raise TypeError("func must be callable")
+
+    def curried(*args: Any, **kwargs: Any) -> Any:
+        if len(args) + len(kwargs) >= func.__code__.co_argcount:
+            return func(*args, **kwargs)
+        return lambda *more_args, **more_kwargs: curried(
+            *args, *more_args, **kwargs, **more_kwargs
+        )
+
+    return curried
+
+
+def apply(func: Callable[[T], R], value: T) -> R:
+    """Apply a function to a value.
+
+    Args:
+        func: The function to apply.
+        value: The value to apply the function to.
+
+    Returns:
+        The result of applying the function.
+
+    Raises:
+        TypeError: If ``func`` is not callable.
+
+    Examples:
+        >>> apply(lambda x: x * 2, 5)
+        10
+    """
+    if not callable(func):
+        raise TypeError("func must be callable")
+    return func(value)
+FUNCTOOLS_UTILS
+
+# --- tests/test_functools_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_functools_utils.py" <<'TESTFUNCTOOLSUTILS'
+"""Tests for functools_utils module."""
+
+import unittest
+
+from functools_utils import apply, compose, curry, pipe
+
+
+class TestCompose(unittest.TestCase):
+    def test_compose_basic(self) -> None:
+        def add_one(x: int) -> int:
+            return x + 1
+
+        def multiply_by_two(x: int) -> int:
+            return x * 2
+
+        composed = compose(multiply_by_two, add_one)
+        self.assertEqual(composed(3), 8)
+
+    def test_compose_single_function(self) -> None:
+        def double(x: int) -> int:
+            return x * 2
+
+        composed = compose(double)
+        self.assertEqual(composed(5), 10)
+
+    def test_compose_multiple_functions(self) -> None:
+        def add_one(x: int) -> int:
+            return x + 1
+
+        def double(x: int) -> int:
+            return x * 2
+
+        def subtract_three(x: int) -> int:
+            return x - 3
+
+        composed = compose(subtract_three, double, add_one)
+        self.assertEqual(composed(4), 7)
+
+    def test_compose_no_functions_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            compose()
+
+
+class TestPipe(unittest.TestCase):
+    def test_pipe_basic(self) -> None:
+        def add_one(x: int) -> int:
+            return x + 1
+
+        def multiply_by_two(x: int) -> int:
+            return x * 2
+
+        result = pipe(3, add_one, multiply_by_two)
+        self.assertEqual(result, 8)
+
+    def test_pipe_no_functions(self) -> None:
+        result = pipe(5)
+        self.assertEqual(result, 5)
+
+    def test_pipe_multiple_functions(self) -> None:
+        def double(x: int) -> int:
+            return x * 2
+
+        def add_three(x: int) -> int:
+            return x + 3
+
+        def subtract_one(x: int) -> int:
+            return x - 1
+
+        result = pipe(2, double, add_three, subtract_one)
+        self.assertEqual(result, 6)
+
+
+class TestCurry(unittest.TestCase):
+    def test_curry_simple_function(self) -> None:
+        def add(x: int, y: int) -> int:
+            return x + y
+
+        curried = curry(add)
+        self.assertEqual(curried(1)(2), 3)
+
+    def test_curry_full_application_immediate(self) -> None:
+        def add(x: int, y: int) -> int:
+            return x + y
+
+        curried = curry(add)
+        self.assertEqual(curried(1, 2), 3)
+
+    def test_curry_three_args(self) -> None:
+        def multiply(a: int, b: int, c: int) -> int:
+            return a * b * c
+
+        curried = curry(multiply)
+        self.assertEqual(curried(2)(3)(4), 24)
+        self.assertEqual(curried(2, 3)(4), 24)
+        self.assertEqual(curried(2)(3, 4), 24)
+
+    def test_curry_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            curry("not callable")  # type: ignore[arg-type]
+
+
+class TestApply(unittest.TestCase):
+    def test_apply_basic(self) -> None:
+        result = apply(lambda x: x * 2, 5)
+        self.assertEqual(result, 10)
+
+    def test_apply_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            apply("not callable", 5)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTFUNCTOOLSUTILS
+
+# --- itertools_utils.py ---
+cat > "$OUTPUT_DIR/itertools_utils.py" <<'ITERTOOLS_UTILS'
+"""itertools utilities for common iteration patterns.
+
+Provides convenient wrappers around the standard library ``itertools``
+module with input validation.
+"""
+
+
+from itertools import (
+    accumulate,
+    chain,
+    combinations,
+    cycle,
+    groupby,
+    islice,
+    permutations,
+    product,
+    repeat,
+    takewhile,
+)
+from typing import Any, Callable, Iterable, List, Optional, Tuple
+
+
+def _ensure_iterable(value: Any, name: str = "iterable") -> None:
+    if not hasattr(value, "__iter__"):
+        raise TypeError(f"{name} must be iterable, got {type(value).__name__}")
+
+
+def chain_iterables(*iterables: Iterable[Any]) -> List[Any]:
+    """Chain multiple iterables into one list."""
+    for it in iterables:
+        _ensure_iterable(it)
+    return list(chain(*iterables))
+
+
+def flatten_once(iterable: Iterable[Iterable[Any]]) -> List[Any]:
+    """Flatten one level of nesting."""
+    _ensure_iterable(iterable)
+    return list(chain.from_iterable(iterable))
+
+
+def take_while_pred(
+    iterable: Iterable[Any], predicate: Callable[[Any], bool]
+) -> List[Any]:
+    """Take elements while predicate is truthy."""
+    _ensure_iterable(iterable)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return list(takewhile(predicate, iterable))
+
+
+def chunk_iterable(iterable: Iterable[Any], size: int) -> List[List[Any]]:
+    """Split an iterable into chunks of the given size."""
+    _ensure_iterable(iterable)
+    if not isinstance(size, int):
+        raise TypeError("size must be an int")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    it = iter(iterable)
+    result: List[List[Any]] = []
+    while True:
+        chunk = list(islice(it, size))
+        if not chunk:
+            break
+        result.append(chunk)
+    return result
+
+
+def product_of(iterables: Iterable[Iterable[Any]]) -> List[Tuple[Any, ...]]:
+    """Compute the Cartesian product of the given iterables."""
+    _ensure_iterable(iterables)
+    lists = [list(x) for x in iterables]
+    for original in iterables:
+        _ensure_iterable(original)
+    return list(product(*lists))
+
+
+def combinations_of(iterable: Iterable[Any], r: int) -> List[Tuple[Any, ...]]:
+    """Return all r-combinations of the input iterable."""
+    _ensure_iterable(iterable)
+    if not isinstance(r, int):
+        raise TypeError("r must be an int")
+    if r < 0:
+        raise ValueError("r must be non-negative")
+    return list(combinations(iterable, r))
+
+
+def permutations_of(iterable: Iterable[Any], r: Optional[int] = None) -> List[Tuple[Any, ...]]:
+    """Return all r-permutations of the input iterable."""
+    _ensure_iterable(iterable)
+    if r is None:
+        return list(permutations(iterable))
+    if not isinstance(r, int):
+        raise TypeError("r must be an int")
+    if r < 0:
+        raise ValueError("r must be non-negative")
+    return list(permutations(iterable, r))
+
+
+def group_by_key(iterable: Iterable[Any], key: Callable[[Any], Any]) -> dict:
+    """Group consecutive items by key, returning {key: [...]} dict."""
+    _ensure_iterable(iterable)
+    if not callable(key):
+        raise TypeError("key must be callable")
+    result: dict = {}
+    for k, g in groupby(iterable, key=key):
+        result.setdefault(k, []).extend(g)
+    return result
+
+
+def accumulate_values(
+    iterable: Iterable[Any], func: Optional[Callable[[Any, Any], Any]] = None
+) -> List[Any]:
+    """Running accumulation of the input iterable."""
+    _ensure_iterable(iterable)
+    if func is None:
+        return list(accumulate(iterable))
+    if not callable(func):
+        raise TypeError("func must be callable")
+    return list(accumulate(iterable, func))
+
+
+def repeat_value(value: Any, times: Optional[int] = None) -> List[Any]:
+    """Repeat a value; if times is None, repeat 3 times by default."""
+    if times is None:
+        times = 3
+    if not isinstance(times, int):
+        raise TypeError("times must be an int")
+    if times < 0:
+        raise ValueError("times must be non-negative")
+    return list(repeat(value, times))
+
+
+def cycle_take(iterable: Iterable[Any], n: int) -> List[Any]:
+    """Take n items from an infinitely cycled iterable."""
+    _ensure_iterable(iterable)
+    if not isinstance(n, int):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return list(islice(cycle(iterable), n))
+
+
+__all__ = [
+    "chain_iterables",
+    "flatten_once",
+    "take_while_pred",
+    "chunk_iterable",
+    "product_of",
+    "combinations_of",
+    "permutations_of",
+    "group_by_key",
+    "accumulate_values",
+    "repeat_value",
+    "cycle_take",
+]
+ITERTOOLS_UTILS
+
+# --- tests/test_itertools_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_itertools_utils.py" <<'TESTITERTOOLSUTILS'
+import unittest
+
+from itertools_utils import (
+    chain_iterables,
+    chunk_iterable,
+    combinations_of,
+    group_by_key,
+    permutations_of,
+    product_of,
+)
+
+
+class TestIterToolsUtils(unittest.TestCase):
+    def test_chain_iterables(self):
+        self.assertEqual(chain_iterables([1, 2], [3, 4]), [1, 2, 3, 4])
+
+    def test_chunk_iterable(self):
+        self.assertEqual(chunk_iterable(range(10), 3), [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]])
+
+    def test_combinations(self):
+        self.assertEqual(combinations_of([1, 2, 3], 2), [(1, 2), (1, 3), (2, 3)])
+
+    def test_permutations(self):
+        self.assertEqual(len(permutations_of([1, 2, 3], 2)), 6)
+
+    def test_product(self):
+        self.assertEqual(product_of([[1, 2], [3, 4]]), [(1, 3), (1, 4), (2, 3), (2, 4)])
+
+    def test_group_by_key(self):
+        res = group_by_key([1, 2, 3, 4], lambda x: x % 2)
+        self.assertEqual(res[0], [2, 4])
+        self.assertEqual(res[1], [1, 3])
+
+    def test_invalid_types(self):
+        with self.assertRaises(ValueError):
+            chunk_iterable([1, 2, 3], 0)
+        with self.assertRaises(ValueError):
+            chunk_iterable([1, 2, 3], -1)
+        with self.assertRaises(TypeError):
+            chunk_iterable([1, 2, 3], "x")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTITERTOOLSUTILS
+
+# --- regex_utils.py ---
+cat > "$OUTPUT_DIR/regex_utils.py" <<'REGEX_UTILS'
+"""Regular expression utility functions.
+
+Provides safe, documented helpers for compiling, matching, searching,
+replacing, splitting, and extracting with regular expressions.
+"""
+
+from __future__ import annotations
+
+import re
+from typing import List, Match, Optional, Pattern, Tuple
+
+__all__: List[str] = [
+    "compile_pattern",
+    "is_valid_pattern",
+    "match_pattern",
+    "search_pattern",
+    "find_all",
+    "replace_pattern",
+    "split_pattern",
+    "escape_pattern",
+    "extract_groups",
+    "named_groups",
+]
+
+
+def compile_pattern(pattern: str, flags: int = 0) -> Pattern[str]:
+    """Compile a regular expression pattern into a reusable pattern object.
+
+    Args:
+        pattern: The regular expression string to compile.
+        flags: Regex flags to control matching behavior (e.g. re.IGNORECASE).
+
+    Returns:
+        A compiled regular expression pattern object.
+
+    Raises:
+        ValueError: If the pattern is not a valid regular expression.
+
+    Examples:
+        >>> compile_pattern(r"\\d+")
+        re.compile(r'\\d+')
+    """
+    try:
+        return re.compile(pattern, flags)
+    except re.error as exc:
+        raise ValueError(f"Invalid regular expression: {exc}") from exc
+
+
+def is_valid_pattern(pattern: str, flags: int = 0) -> bool:
+    r"""Return True if the pattern is a valid regular expression.
+
+    Args:
+        pattern: The regular expression string to validate.
+        flags: Regex flags to control matching behavior.
+
+    Returns:
+        True if the pattern compiles successfully, False otherwise.
+
+    Examples:
+        >>> is_valid_pattern(r"\d+")
+        True
+        >>> is_valid_pattern("(")
+        False
+    """
+    try:
+        re.compile(pattern, flags)
+        return True
+    except re.error:
+        return False
+
+
+def match_pattern(pattern: str, text: str, flags: int = 0) -> Optional[Match[str]]:
+    """Check if the pattern matches at the beginning of the text.
+
+    Args:
+        pattern: The regular expression string.
+        text: The text to match against.
+        flags: Regex flags to control matching behavior.
+
+    Returns:
+        A match object if the pattern matches at the start, else None.
+
+    Examples:
+        >>> match_pattern(r"Hello", "Hello world")
+        <re.Match object; span=(0, 5), match='Hello'>
+        >>> match_pattern(r"World", "Hello world") is None
+        True
+    """
+    return re.match(pattern, text, flags)
+
+
+def search_pattern(pattern: str, text: str, flags: int = 0) -> Optional[Match[str]]:
+    """Search the text for the first location where the pattern matches.
+
+    Args:
+        pattern: The regular expression string.
+        text: The text to search.
+        flags: Regex flags to control matching behavior.
+
+    Returns:
+        A match object for the first match, else None.
+
+    Examples:
+        >>> search_pattern(r"world", "Hello world")
+        <re.Match object; span=(6, 11), match='world'>
+        >>> search_pattern(r"zzz", "Hello world") is None
+        True
+    """
+    return re.search(pattern, text, flags)
+
+
+def find_all(pattern: str, text: str, flags: int = 0) -> List[str]:
+    r"""Return all non-overlapping matches of the pattern in the text.
+
+    Args:
+        pattern: The regular expression string.
+        text: The text to search.
+        flags: Regex flags to control matching behavior.
+
+    Returns:
+        A list of matched strings.
+
+    Examples:
+        >>> find_all(r"\d+", "abc123def456")
+        ['123', '456']
+        >>> find_all(r"\d+", "no numbers here")
+        []
+    """
+    return re.findall(pattern, text, flags)
+
+
+def replace_pattern(pattern: str, repl: str, text: str, flags: int = 0) -> str:
+    r"""Replace occurrences of the pattern in the text with repl.
+
+    Args:
+        pattern: The regular expression string.
+        repl: The replacement string.
+        text: The text to modify.
+        flags: Regex flags to control matching behavior.
+
+    Returns:
+        The text with replacements applied.
+
+    Examples:
+        >>> replace_pattern(r"\s+", "-", "Hello   world")
+        'Hello-world'
+    """
+    return re.sub(pattern, repl, text, flags=flags)
+
+
+def split_pattern(pattern: str, text: str, flags: int = 0) -> List[str]:
+    """Split the text by occurrences of the pattern.
+
+    Args:
+        pattern: The regular expression string.
+        text: The text to split.
+        flags: Regex flags to control matching behavior.
+
+    Returns:
+        A list of substrings.
+
+    Examples:
+        >>> split_pattern(r",\\s*", "a, b, c")
+        ['a', 'b', 'c']
+    """
+    return re.split(pattern, text, flags=flags)
+
+
+def escape_pattern(text: str) -> str:
+    """Escape all special regular expression characters in the text.
+
+    Args:
+        text: The literal text to escape.
+
+    Returns:
+        The escaped string safe to use as a regex pattern.
+
+    Examples:
+        >>> escape_pattern("a.b*c?")
+        'a\\.b\\*c\\?'
+    """
+    return re.escape(text)
+
+
+def extract_groups(pattern: str, text: str, flags: int = 0) -> Optional[Tuple[str, ...]]:
+    """Return the captured groups of the first match, if any.
+
+    Args:
+        pattern: The regular expression string with capturing groups.
+        text: The text to match against.
+        flags: Regex flags to control matching behavior.
+
+    Returns:
+        A tuple of captured group strings, or None if no match.
+
+    Examples:
+        >>> extract_groups(r"(\\d+)-(\\d+)", "ID 12-34 here")
+        ('12', '34')
+    """
+    match = re.search(pattern, text, flags)
+    if match is None:
+        return None
+    return match.groups()
+
+
+def named_groups(pattern: str, text: str, flags: int = 0) -> Optional[dict]:
+    """Return the named captured groups of the first match, if any.
+
+    Args:
+        pattern: The regular expression string with named capturing groups.
+        text: The text to match against.
+        flags: Regex flags to control matching behavior.
+
+    Returns:
+        A dictionary mapping group names to matched strings, or None if no match.
+
+    Examples:
+        >>> named_groups(r"(?P<year>\\d{4})-(?P<month>\\d{2})", "2024-01")
+        {'year': '2024', 'month': '01'}
+    """
+    match = re.search(pattern, text, flags)
+    if match is None:
+        return None
+    return match.groupdict()
+REGEX_UTILS
+
+# --- tests/test_regex_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_regex_utils.py" <<'TESTREGEXUTILS'
+"""Unit tests for regex_utils module."""
+
+import re
+import unittest
+
+from regex_utils import (
+    compile_pattern,
+    escape_pattern,
+    extract_groups,
+    find_all,
+    is_valid_pattern,
+    match_pattern,
+    named_groups,
+    replace_pattern,
+    search_pattern,
+    split_pattern,
+)
+
+
+class TestCompilePattern(unittest.TestCase):
+    def test_compiles_valid_pattern(self):
+        pattern = compile_pattern(r"\d+")
+        self.assertIsNotNone(pattern)
+        self.assertEqual(pattern.findall("a12b34"), ["12", "34"])
+
+    def test_compiles_with_flags(self):
+        pattern = compile_pattern(r"hello", flags=re.IGNORECASE)
+        self.assertIsNotNone(pattern.search("HELLO"))
+
+    def test_raises_on_invalid_pattern(self):
+        with self.assertRaises(ValueError):
+            compile_pattern("(")
+
+
+class TestIsValidPattern(unittest.TestCase):
+    def test_valid_pattern(self):
+        self.assertTrue(is_valid_pattern(r"\d+"))
+        self.assertTrue(is_valid_pattern(r"[a-z]+"))
+
+    def test_invalid_pattern(self):
+        self.assertFalse(is_valid_pattern("("))
+        self.assertFalse(is_valid_pattern("["))
+
+
+class TestMatchPattern(unittest.TestCase):
+    def test_match_at_start(self):
+        match = match_pattern(r"Hello", "Hello world")
+        self.assertIsNotNone(match)
+        self.assertEqual(match.group(), "Hello")
+
+    def test_no_match_at_start(self):
+        self.assertIsNone(match_pattern(r"World", "Hello world"))
+
+    def test_match_with_flags(self):
+        match = match_pattern(r"hello", "Hello world", flags=re.IGNORECASE)
+        self.assertIsNotNone(match)
+
+
+class TestSearchPattern(unittest.TestCase):
+    def test_search_finds_match(self):
+        match = search_pattern(r"world", "Hello world")
+        self.assertIsNotNone(match)
+        self.assertEqual(match.group(), "world")
+
+    def test_search_no_match(self):
+        self.assertIsNone(search_pattern(r"zzz", "Hello world"))
+
+
+class TestFindAll(unittest.TestCase):
+    def test_find_all_matches(self):
+        self.assertEqual(find_all(r"\d+", "abc123def456"), ["123", "456"])
+
+    def test_find_all_no_matches(self):
+        self.assertEqual(find_all(r"\d+", "no numbers here"), [])
+
+
+class TestReplacePattern(unittest.TestCase):
+    def test_replace_whitespace(self):
+        self.assertEqual(replace_pattern(r"\s+", "-", "Hello   world"), "Hello-world")
+
+    def test_replace_no_change(self):
+        self.assertEqual(replace_pattern(r"zzz", "x", "abc"), "abc")
+
+
+class TestSplitPattern(unittest.TestCase):
+    def test_split_by_comma(self):
+        self.assertEqual(split_pattern(r",\s*", "a, b, c"), ["a", "b", "c"])
+
+    def test_split_no_separator(self):
+        self.assertEqual(split_pattern(r",", "abc"), ["abc"])
+
+
+class TestEscapePattern(unittest.TestCase):
+    def test_escape_special_chars(self):
+        self.assertEqual(escape_pattern("a.b*c?"), r"a\.b\*c\?")
+
+    def test_escape_plain_text(self):
+        self.assertEqual(escape_pattern("hello"), "hello")
+
+
+class TestExtractGroups(unittest.TestCase):
+    def test_extract_captured_groups(self):
+        self.assertEqual(
+            extract_groups(r"(\d+)-(\d+)", "ID 12-34 here"), ("12", "34")
+        )
+
+    def test_extract_no_match(self):
+        self.assertIsNone(extract_groups(r"\d+", "no digits"))
+
+
+class TestNamedGroups(unittest.TestCase):
+    def test_extract_named_groups(self):
+        result = named_groups(r"(?P<year>\d{4})-(?P<month>\d{2})", "2024-01")
+        self.assertEqual(result, {"year": "2024", "month": "01"})
+
+    def test_named_groups_no_match(self):
+        self.assertIsNone(named_groups(r"\d+", "no digits"))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTREGEXUTILS
+
 cat > "$OUTPUT_DIR/hash_utils.py" <<'HASH_UTILS'
 """Hashing and checksum utility functions for computing and verifying hashes.
 
