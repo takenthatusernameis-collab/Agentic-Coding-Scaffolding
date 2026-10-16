@@ -35,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `scaffold.sh` to include `tree_utils.py` and its tests in header, `py_modules`, and heredocs
 - Updated `README.md`, `.kilo/command/scaffold-project.md`, and `CHANGELOG.md` to list `tree_utils.py` and `tests/test_tree_utils.py`
 - Updated `test_scaffold.py` to expect `tree_utils.py` and `tests/test_tree_utils.py` in scaffolded outputs
+- `terminal_utils.py` — terminal output utilities (`supports_color`, `colorize`, `print_colored`, `clear_screen`, `get_terminal_size`, `ProgressBar`, `progress_bar`, `prompt`) for ANSI-colored terminal output, progress bars, and user input
+- `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
+- Added `terminal_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
+- Updated `test_scaffold.py` to verify `terminal_utils.py` and `tests/test_terminal_utils.py` generation
 
 
 ### Added

@@ -84,4 +84,5 @@ py_modules = [
     "compression_utils",
     "ip_utils",
     "regex_utils",
+    "terminal_utils",
 ]

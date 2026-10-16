@@ -101,6 +101,8 @@
 #   - tests/test_io_utils.py — unit tests for io_utils.py
 #   - regex_utils.py — regular expression utilities (compile, match, search, replace, split, escape, extract groups, named groups)
 #   - tests/test_regex_utils.py — unit tests for regex_utils.py
+#   - terminal_utils.py — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+#   - tests/test_terminal_utils.py — unit tests for terminal_utils.py
 set -euo pipefail
 
 usage() {
@@ -491,6 +493,7 @@ py_modules = [
    "config_schema",
    "exceptions_utils",
    "io_utils",
+   "terminal_utils",
 ]
 
 [tool.ruff]
@@ -11213,6 +11216,486 @@ if __name__ == "__main__":
     unittest.main()
 TESTDICTUTILS
 
+# --- terminal_utils.py ---
+cat > "$OUTPUT_DIR/terminal_utils.py" <<'TERMINAL_UTILS'
+"""Terminal output utilities for colored text, progress bars, and prompts.
+
+This module provides helpers for formatting terminal output using ANSI escape
+sequences, rendering progress bars, clearing the screen, querying terminal
+size, and reading user input. Output degrades gracefully when the stream is
+not a terminal (for example, when piped to a file or captured in tests).
+"""
+
+from __future__ import annotations
+
+import os
+import shutil
+import sys
+from typing import Iterable, Iterator, Optional, TextIO, Tuple
+
+_RESET = "\033[0m"
+_BOLD = "\033[1m"
+
+_COLOR_CODES: dict = {
+    "black": "\033[30m",
+    "red": "\033[31m",
+    "green": "\033[32m",
+    "yellow": "\033[33m",
+    "blue": "\033[34m",
+    "magenta": "\033[35m",
+    "cyan": "\033[36m",
+    "white": "\033[37m",
+}
+
+_VALID_COLORS = frozenset(_COLOR_CODES)
+
+
+def supports_color(stream: Optional[TextIO] = None) -> bool:
+    """Return True if *stream* (default stdout) supports ANSI colors.
+
+    Color is disabled when the stream is not a TTY, when the ``NO_COLOR``
+    environment variable is set, or when the stream lacks an ``isatty``
+    method.
+    """
+    if stream is None:
+        stream = sys.stdout
+    if "NO_COLOR" in os.environ:
+        return False
+    if not hasattr(stream, "isatty") or not stream.isatty():
+        return False
+    return True
+
+
+def colorize(text: str, color: str = "white", bold: bool = False) -> str:
+    """Wrap *text* in ANSI color escape codes.
+
+    Args:
+        text: The text to colorize.
+        color: One of black, red, green, yellow, blue, magenta, cyan, white.
+        bold: Whether to render the text in bold.
+
+    Returns:
+        The colorized text, or the original text unchanged when color is not
+        supported on stdout.
+
+    Raises:
+        TypeError: If *text* or *color* is not a string.
+        ValueError: If *color* is not a supported color name.
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    if not isinstance(color, str):
+        raise TypeError("color must be a string")
+    if color not in _VALID_COLORS:
+        raise ValueError(
+            f"unsupported color {color!r}; supported colors are "
+            f"{sorted(_VALID_COLORS)!r}"
+        )
+    if not supports_color():
+        return text
+    codes = [_COLOR_CODES[color]]
+    if bold:
+        codes.insert(0, _BOLD)
+    return f"\033[{';'.join(codes)}m{text}{_RESET}"
+
+
+def print_colored(
+    text: str,
+    color: str = "white",
+    bold: bool = False,
+    stream: Optional[TextIO] = None,
+) -> None:
+    """Print colorized text to *stream* (default stdout).
+
+    Args:
+        text: The text to print.
+        color: One of black, red, green, yellow, blue, magenta, cyan, white.
+        bold: Whether to render the text in bold.
+        stream: The output stream (defaults to sys.stdout).
+    """
+    if stream is None:
+        stream = sys.stdout
+    stream.write(colorize(text, color=color, bold=bold) + "\n")
+    stream.flush()
+
+
+def clear_screen() -> None:
+    """Clear the terminal screen.
+
+    Uses the ANSI clear-screen escape sequence when supported, falling back
+    to printing newlines otherwise.
+    """
+    if supports_color(sys.stdout):
+        sys.stdout.write("\033[2J\033[H")
+        sys.stdout.flush()
+    else:
+        sys.stdout.write("\n" * 50)
+        sys.stdout.flush()
+
+
+def get_terminal_size() -> Tuple[int, int]:
+    """Return the terminal size as ``(columns, lines)``.
+
+    Falls back to ``(80, 24)`` when the size cannot be determined.
+    """
+    try:
+        size = shutil.get_terminal_size(fallback=(80, 24))
+    except Exception:
+        return (80, 24)
+    return (size.columns, size.lines)
+
+
+class ProgressBar:
+    """A simple terminal progress bar.
+
+    Args:
+        total: The total number of steps. Must be a positive integer.
+        width: The character width of the bar (excluding labels). Defaults
+            to a size derived from the terminal width.
+        fill: The single character used for the completed portion.
+        empty: The single character used for the remaining portion.
+        stream: The output stream (defaults to sys.stdout).
+    """
+
+    def __init__(
+        self,
+        total: int,
+        width: Optional[int] = None,
+        fill: str = "#",
+        empty: str = "-",
+        stream: Optional[TextIO] = None,
+    ) -> None:
+        if isinstance(total, bool) or not isinstance(total, int) or total <= 0:
+            raise ValueError("total must be a positive integer")
+        if not isinstance(fill, str) or len(fill) != 1:
+            raise ValueError("fill must be a single character")
+        if not isinstance(empty, str) or len(empty) != 1:
+            raise ValueError("empty must be a single character")
+        if stream is None:
+            stream = sys.stdout
+        self.total = total
+        if width is None:
+            width = max(10, min(40, _term_width(stream) - 12))
+        self.width = width
+        self.fill = fill
+        self.empty = empty
+        self.stream = stream
+        self._current = 0
+        self._finished = False
+
+    def update(self, current: Optional[int] = None, increment: int = 1) -> None:
+        """Advance the progress bar to *current* or by *increment*.
+
+        Args:
+            current: The absolute step to advance to, within [0, total].
+            increment: The number of steps to advance (default 1).
+
+        Raises:
+            TypeError: If *current* is not an integer.
+            ValueError: If the resulting position is outside [0, total].
+        """
+        if self._finished:
+            return
+        if current is None:
+            current = self._current + increment
+        if isinstance(current, bool) or not isinstance(current, int):
+            raise TypeError("current must be an integer")
+        if current < 0 or current > self.total:
+            raise ValueError(f"current {current} is outside [0, {self.total}]")
+        self._current = current
+        self._render()
+        if self._current >= self.total:
+            self._finished = True
+            self.stream.write("\n")
+            self.stream.flush()
+
+    def finish(self) -> None:
+        """Mark the progress bar as complete and print a final newline."""
+        if not self._finished:
+            self._current = self.total
+            self._finished = True
+            self.stream.write("\n")
+            self.stream.flush()
+
+    def _render(self) -> None:
+        ratio = self._current / self.total
+        filled = int(ratio * self.width)
+        bar = self.fill * filled + self.empty * (self.width - filled)
+        percent = int(ratio * 100)
+        line = f"\r[{bar}] {percent}% ({self._current}/{self.total})"
+        self.stream.write(line)
+        self.stream.flush()
+
+    def __enter__(self) -> "ProgressBar":
+        return self
+
+    def __exit__(self, *args) -> None:
+        self.finish()
+
+
+def progress_bar(
+    iterable: Iterable,
+    total: Optional[int] = None,
+    width: Optional[int] = None,
+    fill: str = "#",
+    empty: str = "-",
+    stream: Optional[TextIO] = None,
+) -> Iterator:
+    """Yield items from *iterable* while rendering a progress bar.
+
+    Args:
+        iterable: The iterable to wrap.
+        total: The total number of items. Inferred from ``len`` when
+            available; otherwise must be provided.
+        width: The character width of the bar.
+        fill: The character used for the completed portion.
+        empty: The character used for the remaining portion.
+        stream: The output stream (defaults to sys.stdout).
+
+    Raises:
+        ValueError: If *total* cannot be inferred and is not provided.
+    """
+    if total is None:
+        try:
+            total = len(iterable)  # type: ignore[arg-type]
+        except TypeError as exc:
+            raise ValueError(
+                "total must be provided for iterables without len()"
+            ) from exc
+    bar = ProgressBar(total, width=width, fill=fill, empty=empty, stream=stream)
+    with bar:
+        for item in iterable:
+            bar.update(increment=1)
+            yield item
+
+
+def prompt(message: str, default: Optional[str] = None) -> str:
+    """Prompt the user for input and return the entered value.
+
+    Args:
+        message: The prompt message to display.
+        default: The value returned when the user enters nothing.
+
+    Returns:
+        The user's input, or *default* when the input is empty.
+
+    Raises:
+        TypeError: If *message* or *default* is not a string/None.
+        EOFError: If the input stream is closed.
+    """
+    if not isinstance(message, str):
+        raise TypeError("message must be a string")
+    if default is not None and not isinstance(default, str):
+        raise TypeError("default must be a string or None")
+    suffix = f" [{default}]" if default is not None else ""
+    full_message = message + suffix + ": "
+    if supports_color(sys.stdout):
+        full_message = colorize(full_message, color="cyan")
+    try:
+        value = input(full_message)
+    except EOFError as exc:
+        raise EOFError("input stream closed") from exc
+    if value == "":
+        return default if default is not None else ""
+    return value
+
+
+def _term_width(stream: TextIO) -> int:
+    try:
+        return shutil.get_terminal_size(fallback=(80, 24)).columns
+    except Exception:
+        return 80
+TERMINAL_UTILS
+
+# --- tests/test_terminal_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_terminal_utils.py" <<'TESTTERMINALUTILS'
+"""Tests for terminal_utils module."""
+
+import io
+import unittest
+from unittest.mock import patch
+
+from terminal_utils import (
+    ProgressBar,
+    clear_screen,
+    colorize,
+    get_terminal_size,
+    progress_bar,
+    print_colored,
+    prompt,
+    supports_color,
+)
+
+
+class TestSupportsColor(unittest.TestCase):
+    def test_returns_bool(self):
+        self.assertIsInstance(supports_color(), bool)
+
+
+class TestColorize(unittest.TestCase):
+    def test_returns_plain_text_when_not_a_tty(self):
+        self.assertEqual(colorize("hello", "red"), "hello")
+        self.assertEqual(colorize("hello", "red", bold=True), "hello")
+
+    def test_all_valid_colors_return_string(self):
+        for color in ("black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"):
+            self.assertIsInstance(colorize("x", color), str)
+
+    def test_invalid_color_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            colorize("hello", "purple")
+
+    def test_non_string_text_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            colorize(123, "red")
+
+    def test_non_string_color_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            colorize("hello", 5)
+
+
+class TestPrintColored(unittest.TestCase):
+    def test_writes_to_stream(self):
+        stream = io.StringIO()
+        print_colored("hello", color="red", stream=stream)
+        self.assertEqual(stream.getvalue(), "hello\n")
+
+    def test_default_stream_is_stdout(self):
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+            print_colored("hi")
+            self.assertEqual(mock_stdout.getvalue(), "hi\n")
+
+
+class TestClearScreen(unittest.TestCase):
+    def test_writes_newlines_when_not_a_tty(self):
+        stream = io.StringIO()
+        with patch("terminal_utils.sys.stdout", stream):
+            clear_screen()
+        self.assertEqual(stream.getvalue(), "\n" * 50)
+
+
+class TestGetTerminalSize(unittest.TestCase):
+    def test_returns_tuple_of_two_positive_ints(self):
+        columns, lines = get_terminal_size()
+        self.assertIsInstance(columns, int)
+        self.assertIsInstance(lines, int)
+        self.assertGreater(columns, 0)
+        self.assertGreater(lines, 0)
+
+
+class TestProgressBar(unittest.TestCase):
+    def test_total_must_be_positive(self):
+        with self.assertRaises(ValueError):
+            ProgressBar(0)
+        with self.assertRaises(ValueError):
+            ProgressBar(-3)
+        with self.assertRaises(ValueError):
+            ProgressBar(True)
+
+    def test_fill_and_empty_must_be_single_characters(self):
+        with self.assertRaises(ValueError):
+            ProgressBar(1, fill="ab")
+        with self.assertRaises(ValueError):
+            ProgressBar(1, empty="")
+
+    def test_render_shows_progress(self):
+        stream = io.StringIO()
+        bar = ProgressBar(10, width=10, stream=stream)
+        bar.update(5)
+        output = stream.getvalue()
+        self.assertIn("[#####-----]", output)
+        self.assertIn("50%", output)
+        self.assertIn("(5/10)", output)
+
+    def test_update_out_of_range_raises_value_error(self):
+        bar = ProgressBar(5, stream=io.StringIO())
+        with self.assertRaises(ValueError):
+            bar.update(6)
+        with self.assertRaises(ValueError):
+            bar.update(-1)
+
+    def test_update_non_integer_raises_type_error(self):
+        bar = ProgressBar(5, stream=io.StringIO())
+        with self.assertRaises(TypeError):
+            bar.update("3")
+
+    def test_update_after_finish_is_noop(self):
+        stream = io.StringIO()
+        bar = ProgressBar(2, stream=stream)
+        bar.finish()
+        before = stream.getvalue()
+        bar.update(1)
+        self.assertEqual(stream.getvalue(), before)
+
+    def test_finish_writes_final_newline(self):
+        stream = io.StringIO()
+        bar = ProgressBar(3, stream=stream)
+        bar.finish()
+        self.assertIn("\n", stream.getvalue())
+
+    def test_context_manager_finishes(self):
+        stream = io.StringIO()
+        with ProgressBar(4, stream=stream) as bar:
+            bar.update(2)
+        self.assertTrue(bar._finished)
+
+    def test_yields_items(self):
+        stream = io.StringIO()
+        result = list(progress_bar([1, 2, 3], stream=stream))
+        self.assertEqual(result, [1, 2, 3])
+
+    def test_total_inferred_from_len(self):
+        stream = io.StringIO()
+        result = list(progress_bar([10, 20], stream=stream))
+        self.assertEqual(result, [10, 20])
+
+    def test_iterable_without_len_requires_total(self):
+        def generator():
+            yield 1
+            yield 2
+
+        with self.assertRaises(ValueError):
+            list(progress_bar(generator()))
+
+    def test_increment_advances(self):
+        stream = io.StringIO()
+        bar = ProgressBar(3, stream=stream)
+        bar.update(increment=1)
+        bar.update(increment=1)
+        self.assertEqual(bar._current, 2)
+
+
+class TestPrompt(unittest.TestCase):
+    def test_returns_entered_value(self):
+        with patch("builtins.input", return_value="Alice"):
+            self.assertEqual(prompt("Name"), "Alice")
+
+    def test_returns_default_on_empty_input(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(prompt("Name", default="Guest"), "Guest")
+
+    def test_returns_empty_string_when_no_default(self):
+        with patch("builtins.input", return_value=""):
+            self.assertEqual(prompt("Name"), "")
+
+    def test_raises_eof_error_on_closed_stream(self):
+        with patch("builtins.input", side_effect=EOFError):
+            with self.assertRaises(EOFError):
+                prompt("Name")
+
+    def test_non_string_message_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            prompt(123)
+
+    def test_non_string_default_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            prompt("Name", default=5)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTERMINALUTILS
+
 # --- .kilo/agent/scaffolder.md ---
 cat > "$OUTPUT_DIR/.kilo/agent/scaffolder.md" <<'AGENT'
 ---
@@ -11356,6 +11839,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_io_utils.py` — unit tests for `io_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
+- `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+- `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
 
@@ -11608,6 +12093,7 @@ type_utils.py              # Type introspection utilities (is_optional, is_union
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 pattern_utils.py              # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 config_schema.py             # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
+terminal_utils.py           # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -11746,6 +12232,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_io_utils.py` — unit tests for `io_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
+- `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+- `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
 - `CHANGELOG.md` — changelog following Keep a Changelog format

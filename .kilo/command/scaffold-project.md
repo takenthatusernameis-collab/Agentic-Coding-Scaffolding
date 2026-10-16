@@ -106,6 +106,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 - `tests/test_set_utils.py` — unit tests for `set_utils.py`
 - `tests/test_color_utils.py` — unit tests for `color_utils.py`
+- `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+- `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
 

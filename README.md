@@ -78,6 +78,7 @@ type_utils.py              # Type introspection utilities (is_optional, is_union
     compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
     ip_utils.py                 # IP address validation and manipulation utilities
     regex_utils.py              # Regular expression utilities (compile, match, search, replace, split, escape)
+    terminal_utils.py           # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
     tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -307,4 +308,8 @@ The project includes custom exception types and utilities in `exceptions_utils.p
 ## IO Utilities Module
 
 The project includes line-oriented and atomic input/output utilities in `io_utils.py`: `read_lines` and `write_lines` for line-based file IO, `append_text` to append to files, `atomic_write_text` to write content atomically via a temp file and `os.replace`, `stream_copy` to copy file contents in chunks, `count_lines` to count lines, and `iter_lines` to stream lines without loading the file into memory. The module is tested in `tests/test_io_utils.py`.
+
+## Terminal Utilities Module
+
+The project includes terminal output utilities in `terminal_utils.py` for formatting terminal output with ANSI escape sequences: `supports_color` detects color support, `colorize` and `print_colored` render text in ANSI colors (black, red, green, yellow, blue, magenta, cyan, white) with optional bold, `clear_screen` clears the terminal, `get_terminal_size` returns the `(columns, lines)`, `ProgressBar` renders a terminal progress bar (usable as a context manager), `progress_bar` wraps an iterable with a progress bar, and `prompt` reads user input with an optional default. Color output is automatically disabled when the stream is not a TTY or the `NO_COLOR` environment variable is set. The module is tested in `tests/test_terminal_utils.py`.
 

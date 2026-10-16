@@ -170,6 +170,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_exceptions_utils.py",
             "io_utils.py",
             "tests/test_io_utils.py",
+            "terminal_utils.py",
+            "tests/test_terminal_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -279,6 +281,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_exceptions_utils.py",
             "io_utils.py",
             "tests/test_io_utils.py",
+            "terminal_utils.py",
+            "tests/test_terminal_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -304,6 +308,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_type_utils.py",
             "tests/test_config_schema.py",
             "tests/test_io_utils.py",
+            "tests/test_terminal_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -368,6 +373,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_exceptions_utils.py",
             "io_utils.py",
             "tests/test_io_utils.py",
+            "terminal_utils.py",
+            "tests/test_terminal_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
