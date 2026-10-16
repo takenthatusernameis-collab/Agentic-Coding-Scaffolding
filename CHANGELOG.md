@@ -74,6 +74,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
 - Added `html_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
 
+- `bytes_utils.py` — bytes and binary utilities (`to_hex`, `from_hex`, `xor`, `chunk`) for working with raw bytes and binary data with input validation
+- `tests/test_bytes_utils.py` — unit tests for `bytes_utils.py`
+- Fixed `scaffold.sh` syntax error introduced by a previous checkpoint commit: two bare module-list lines (missing `#   ` comment prefix) inside the script header broke bash parsing for project names containing parentheses. Replaced them with properly commented header lines and added the missing `bytes_utils.py` / `tests/test_bytes_utils.py` heredoc blocks so scaffolded projects generate the module and its tests. Added `bytes_utils` to `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `tests/test_scaffold.py` assertions.
+
 - `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`) using the standard library `base64` module with input validation
 - `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
 - Added `base64_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions

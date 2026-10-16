@@ -143,8 +143,8 @@
 #   - version_utils.py — version parsing, comparison, and normalization utilities
 #   - tests/test_version_utils.py — unit tests for version_utils.py
 #   - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-- bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
-- tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
+#   - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
+#   - tests/test_bytes_utils.py — unit tests for bytes_utils.py
 #   - tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
 set -euo pipefail
 
@@ -13134,6 +13134,133 @@ class TestEscapeAttribute(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTHTMLUTILS
+
+# --- bytes_utils.py ---
+cat > "$OUTPUT_DIR/bytes_utils.py" <<'BYTES_UTILS'
+"""Utilities for working with bytes and binary data."""
+
+
+def to_hex(data: bytes) -> str:
+    """Return the hexadecimal representation of *data*.
+
+    Args:
+        data: A bytes or bytearray object.
+
+    Returns:
+        A lowercase hexadecimal string.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).hex()
+
+
+def from_hex(text: str) -> bytes:
+    """Decode a hex string into bytes.
+
+    Args:
+        text: A hexadecimal string.
+
+    Returns:
+        The decoded bytes.
+
+    Raises:
+        TypeError: If *text* is not a str.
+        ValueError: If *text* is not valid hexadecimal.
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    return bytes.fromhex(text)
+
+
+def xor(data: bytes, key: bytes) -> bytes:
+    """XOR *data* with a repeating *key*.
+
+    Args:
+        data: The data to encrypt/decrypt.
+        key: The XOR key (must be non-empty).
+
+    Returns:
+        The XOR result as bytes.
+
+    Raises:
+        TypeError: If *data* or *key* is not bytes or bytearray.
+        ValueError: If *key* is empty.
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(key, (bytes, bytearray)) or not key:
+        raise ValueError("key must be non-empty bytes or bytearray")
+    key_bytes = bytes(key)
+    return bytes(b ^ key_bytes[i % len(key_bytes)] for i, b in enumerate(data))
+
+
+def chunk(data: bytes, size: int) -> list[bytes]:
+    """Split *data* into chunks of *size* bytes.
+
+    Args:
+        data: The data to split.
+        size: The chunk size (must be a positive integer).
+
+    Returns:
+        A list of bytes chunks.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray, or *size* is not an int.
+        ValueError: If *size* is not positive.
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(size, int) or size <= 0:
+        raise ValueError("size must be a positive integer")
+    data = bytes(data)
+    return [data[i:i + size] for i in range(0, len(data), size)]
+BYTES_UTILS
+
+# --- tests/test_bytes_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_bytes_utils.py" <<'TESTBYTESUTILS'
+"""Unit tests for bytes_utils module."""
+
+import unittest
+
+from bytes_utils import chunk, from_hex, to_hex, xor
+
+
+class TestBytesUtils(unittest.TestCase):
+    def test_to_hex(self):
+        self.assertEqual(to_hex(b"abc"), "616263")
+
+    def test_from_hex(self):
+        self.assertEqual(from_hex("616263"), b"abc")
+
+    def test_xor(self):
+        self.assertEqual(xor(b"abc", b"\x01"), b"`cb")
+
+    def test_chunk(self):
+        self.assertEqual(chunk(b"abcdef", 2), [b"ab", b"cd", b"ef"])
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            to_hex("abc")
+        with self.assertRaises(TypeError):
+            from_hex(123)
+        with self.assertRaises(TypeError):
+            xor("abc", b"x")
+        with self.assertRaises(TypeError):
+            chunk(123, 2)
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            xor(b"abc", b"")
+        with self.assertRaises(ValueError):
+            chunk(b"abc", 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTBYTESUTILS
 
 # --- base64_utils.py ---
 cat > "$OUTPUT_DIR/base64_utils.py" <<'BASE64_UTILS'

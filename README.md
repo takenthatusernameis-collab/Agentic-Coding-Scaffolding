@@ -89,6 +89,7 @@ cli_utils.py               # Command-line interface utilities (argparse parser, 
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
@@ -156,6 +157,7 @@ tests/                     # Python unit tests
   test_config_schema.py         # Tests for config_schema.py
 test_http_utils.py            # Tests for http_utils.py
   test_struct_utils.py          # Tests for struct_utils.py
+  test_bytes_utils.py           # Tests for bytes_utils.py
   ```
 
 ## How It Works
@@ -408,6 +410,10 @@ The project includes an INI configuration utilities module in `ini_utils.py` for
 ## HTML Utilities Module
 
 The project includes HTML utility functions in `html_utils.py` for escaping, unescaping, and sanitizing HTML content: `escape_html` escapes special characters (`&`, `<`, `>`, `"`, `'`) for safe insertion into HTML documents, `unescape_html` decodes named and numeric HTML entities back to their original characters, `strip_tags` removes all HTML tags leaving only text content, and `escape_attribute` escapes values for safe use inside HTML attributes. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_html_utils.py`.
+
+## Bytes Utilities Module
+
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, and `chunk` splits bytes into fixed-size chunks. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
 
 ## Base64 Utilities Module
 
