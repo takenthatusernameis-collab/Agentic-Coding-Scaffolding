@@ -1,7 +1,6 @@
 """IP address utility functions."""
 
 import ipaddress
-from typing import Union
 
 
 def is_valid_ip(ip_str: str) -> bool:
