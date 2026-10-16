@@ -118,6 +118,8 @@
 #   - tests/test_base64_utils.py — unit tests for base64_utils.py
 #   - struct_utils.py — Binary struct packing and unpacking utilities
 #   - tests/test_struct_utils.py — unit tests for struct_utils.py
+#   - http_utils.py — HTTP status codes and response handling utilities
+#   - tests/test_http_utils.py — unit tests for http_utils.py
 set -euo pipefail
 
 usage() {
@@ -513,6 +515,7 @@ py_modules = [
    "cli_utils",
    "terminal_utils",
     "hash_utils",
+    "http_utils",
     "html_utils",
     "base64_utils",
     "struct_utils",
@@ -14284,6 +14287,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_base64_utils.py — unit tests for `base64_utils.py`
 - struct_utils.py — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
 - tests/test_struct_utils.py — unit tests for `struct_utils.py`
+- http_utils.py — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`)
+- tests/test_http_utils.py — unit tests for `http_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -14541,6 +14546,8 @@ pattern_utils.py           # Design pattern utilities (Singleton, Factory, Obser
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
+hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+http_utils.py              # HTTP status codes and response handling utilities
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 struct_utils.py            # Binary struct packing and unpacking utilities
@@ -14583,6 +14590,8 @@ tests/                     # Python unit tests
   test_pattern_utils.py         # Tests for pattern_utils.py
   test_functools_utils.py       # Tests for functools_utils.py
   test_config_schema.py         # Tests for config_schema.py
+  test_hash_utils.py            # Tests for hash_utils.py
+  test_http_utils.py            # Tests for http_utils.py
   test_html_utils.py            # Tests for html_utils.py
   test_base64_utils.py          # Tests for base64_utils.py
   test_struct_utils.py          # Tests for struct_utils.py
@@ -14705,6 +14714,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_base64_utils.py — unit tests for `base64_utils.py`
 - struct_utils.py — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
 - tests/test_struct_utils.py — unit tests for `struct_utils.py`
+- http_utils.py — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`)
+- tests/test_http_utils.py — unit tests for `http_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
@@ -17735,3 +17746,233 @@ if __name__ == "__main__":
     unittest.main()
 TESTINIUTILS
 
+
+
+# --- http_utils.py ---
+cat > "$OUTPUT_DIR/http_utils.py" <<'HTTP_UTILS'
+"""HTTP utility functions for status codes and response handling."""
+
+from typing import Dict, Optional
+
+# HTTP status code category prefixes (1xx through 5xx)
+HTTP_INFORMATIONAL = 1
+HTTP_SUCCESS = 2
+HTTP_REDIRECTION = 3
+HTTP_CLIENT_ERROR = 4
+HTTP_SERVER_ERROR = 5
+
+
+STATUS_CODES: Dict[int, str] = {
+    # 1xx Informational
+    100: "Continue",
+    101: "Switching Protocols",
+    102: "Processing",
+    # 2xx Success
+    200: "OK",
+    201: "Created",
+    202: "Accepted",
+    203: "Non-Authoritative Information",
+    204: "No Content",
+    205: "Reset Content",
+    206: "Partial Content",
+    207: "Multi-Status",
+    # 3xx Redirection
+    300: "Multiple Choices",
+    301: "Moved Permanently",
+    302: "Found",
+    303: "See Other",
+    304: "Not Modified",
+    305: "Use Proxy",
+    307: "Temporary Redirect",
+    308: "Permanent Redirect",
+    # 4xx Client Error
+    400: "Bad Request",
+    401: "Unauthorized",
+    402: "Payment Required",
+    403: "Forbidden",
+    404: "Not Found",
+    405: "Method Not Allowed",
+    406: "Not Acceptable",
+    407: "Proxy Authentication Required",
+    408: "Request Timeout",
+    409: "Conflict",
+    410: "Gone",
+    411: "Length Required",
+    412: "Precondition Failed",
+    413: "Payload Too Large",
+    414: "URI Too Long",
+    415: "Unsupported Media Type",
+    416: "Range Not Satisfiable",
+    417: "Expectation Failed",
+    418: "I'm a teapot",
+    421: "Misdirected Request",
+    422: "Unprocessable Entity",
+    423: "Locked",
+    424: "Failed Dependency",
+    425: "Too Early",
+    426: "Upgrade Required",
+    428: "Precondition Required",
+    429: "Too Many Requests",
+    431: "Request Header Fields Too Large",
+    451: "Unavailable For Legal Reasons",
+    # 5xx Server Error
+    500: "Internal Server Error",
+    501: "Not Implemented",
+    502: "Bad Gateway",
+    503: "Service Unavailable",
+    504: "Gateway Timeout",
+    505: "HTTP Version Not Supported",
+    506: "Variant Also Negotiates",
+    507: "Insufficient Storage",
+    508: "Loop Detected",
+    510: "Not Extended",
+    511: "Network Authentication Required",
+}
+
+
+def status_code_category(code: int) -> int:
+    """Return the HTTP status code category (1-5) for a given code.
+
+    Args:
+        code: The HTTP status code.
+
+    Returns:
+        The leading digit of the status code (1 through 5).
+    """
+    return code // 100
+
+
+def status_message(code: int) -> Optional[str]:
+    """Return the standard reason phrase for an HTTP status code.
+
+    Args:
+        code: The HTTP status code.
+
+    Returns:
+        The standard reason phrase, or ``None`` if the code is unknown.
+    """
+    return STATUS_CODES.get(code)
+
+
+def is_informational(code: int) -> bool:
+    """Return ``True`` if the status code is a 1xx informational response."""
+    return status_code_category(code) == HTTP_INFORMATIONAL
+
+
+def is_success(code: int) -> bool:
+    """Return ``True`` if the status code is a 2xx success response."""
+    return status_code_category(code) == HTTP_SUCCESS
+
+
+def is_redirection(code: int) -> bool:
+    """Return ``True`` if the status code is a 3xx redirection response."""
+    return status_code_category(code) == HTTP_REDIRECTION
+
+
+def is_client_error(code: int) -> bool:
+    """Return ``True`` if the status code is a 4xx client error response."""
+    return status_code_category(code) == HTTP_CLIENT_ERROR
+
+
+def is_server_error(code: int) -> bool:
+    """Return ``True`` if the status code is a 5xx server error response."""
+    return status_code_category(code) == HTTP_SERVER_ERROR
+
+
+def is_error(code: int) -> bool:
+    """Return ``True`` if the status code is a 4xx or 5xx error response."""
+    category = status_code_category(code)
+    return category in (HTTP_CLIENT_ERROR, HTTP_SERVER_ERROR)
+HTTP_UTILS
+
+# --- tests/test_http_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_http_utils.py" <<'TESTHTTPUTILS'
+import unittest
+
+from http_utils import (
+    HTTP_CLIENT_ERROR,
+    HTTP_INFORMATIONAL,
+    HTTP_REDIRECTION,
+    HTTP_SERVER_ERROR,
+    HTTP_SUCCESS,
+    is_client_error,
+    is_error,
+    is_informational,
+    is_redirection,
+    is_server_error,
+    is_success,
+    status_code_category,
+    status_message,
+)
+
+
+class TestStatusCodeCategory(unittest.TestCase):
+    def test_informational(self):
+        self.assertEqual(status_code_category(100), HTTP_INFORMATIONAL)
+        self.assertEqual(status_code_category(199), HTTP_INFORMATIONAL)
+
+    def test_success(self):
+        self.assertEqual(status_code_category(200), HTTP_SUCCESS)
+        self.assertEqual(status_code_category(299), HTTP_SUCCESS)
+
+    def test_redirection(self):
+        self.assertEqual(status_code_category(300), HTTP_REDIRECTION)
+        self.assertEqual(status_code_category(399), HTTP_REDIRECTION)
+
+    def test_client_error(self):
+        self.assertEqual(status_code_category(400), HTTP_CLIENT_ERROR)
+        self.assertEqual(status_code_category(499), HTTP_CLIENT_ERROR)
+
+    def test_server_error(self):
+        self.assertEqual(status_code_category(500), HTTP_SERVER_ERROR)
+        self.assertEqual(status_code_category(599), HTTP_SERVER_ERROR)
+
+
+class TestStatusMessage(unittest.TestCase):
+    def test_known_codes(self):
+        self.assertEqual(status_message(200), "OK")
+        self.assertEqual(status_message(201), "Created")
+        self.assertEqual(status_message(404), "Not Found")
+        self.assertEqual(status_message(500), "Internal Server Error")
+        self.assertEqual(status_message(418), "I'm a teapot")
+
+    def test_unknown_code_returns_none(self):
+        self.assertIsNone(status_message(999))
+        self.assertIsNone(status_message(0))
+
+
+class TestBooleanChecks(unittest.TestCase):
+    def test_is_informational(self):
+        self.assertTrue(is_informational(100))
+        self.assertFalse(is_informational(200))
+
+    def test_is_success(self):
+        self.assertTrue(is_success(200))
+        self.assertTrue(is_success(204))
+        self.assertFalse(is_success(300))
+
+    def test_is_redirection(self):
+        self.assertTrue(is_redirection(301))
+        self.assertTrue(is_redirection(308))
+        self.assertFalse(is_redirection(200))
+
+    def test_is_client_error(self):
+        self.assertTrue(is_client_error(400))
+        self.assertTrue(is_client_error(404))
+        self.assertFalse(is_client_error(500))
+
+    def test_is_server_error(self):
+        self.assertTrue(is_server_error(500))
+        self.assertTrue(is_server_error(503))
+        self.assertFalse(is_server_error(400))
+
+    def test_is_error(self):
+        self.assertTrue(is_error(400))
+        self.assertTrue(is_error(500))
+        self.assertFalse(is_error(200))
+        self.assertFalse(is_error(300))
+
+
+if __name__ == '__main__':
+    unittest.main()
+TESTHTTPUTILS

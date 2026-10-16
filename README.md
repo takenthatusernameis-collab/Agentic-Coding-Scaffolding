@@ -74,6 +74,7 @@ type_utils.py              # Type introspection utilities (is_optional, is_union
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+http_utils.py              # HTTP status codes and response handling utilities
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 struct_utils.py            # Binary struct packing and unpacking utilities
@@ -134,6 +135,7 @@ tests/                     # Python unit tests
   test_ip_utils.py             # Tests for ip_utils.py
   test_regex_utils.py         # Tests for regex_utils.py
   test_config_schema.py         # Tests for config_schema.py
+  test_http_utils.py            # Tests for http_utils.py
     ```
 
 ## How It Works
@@ -390,5 +392,9 @@ The project includes Base64 and hexadecimal encoding/decoding utilities in `base
 ## Binary Struct Utilities Module
 
 The project includes binary struct packing and unpacking utilities in `struct_utils.py` wrapping the standard library `struct` module: `pack` and `unpack` convert between values and bytes, `pack_into` and `unpack_from` read/write at a buffer offset, `calcsize` reports the byte size of a format string, and `is_valid_format` validates a format string. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid input. The module is tested in `tests/test_struct_utils.py`.
+
+## HTTP Status Codes and Response Handling Module
+
+The project includes HTTP utility functions in `http_utils.py` for working with HTTP status codes and response handling: `STATUS_CODES` is a mapping of standard HTTP status codes to their reason phrases, `status_code_category` returns the leading digit (1-5) of a status code, `status_message` returns the standard reason phrase or `None` for unknown codes, and the `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, and `is_error` predicates classify a status code into its response category. The module is tested in `tests/test_http_utils.py`.
 
 
