@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `sys_utils.py` — runtime/system utilities (`platform_name`, `python_version`, `cpu_count`, `memory_usage`, `environment_variables` helpers wrapping the standard library with input validation) (sync pending: scaffold.sh, pyproject.toml, README, and tests/test_scaffold.py assertions) (self-task handover note: see final response)
 - Bootstrap verification: all 1462 tests, ruff checks, and mypy checks pass on 2026-10-16
 
+- `networking_utils.py` — networking utilities for TCP port and host operations (`is_valid_port`, `is_port_open`, `find_free_port`, `resolve_hostname`, `get_local_ip`, `tcp_ping`) wrapping the standard library `socket` module with input validation
+- `tests/test_networking_utils.py` — unit tests for `networking_utils.py`
+- Added `networking_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+
 - `itertools_utils.py` — iteration helpers (`chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, and more) wrapping the standard library `itertools` module with input validation
 - `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
 - Added `itertools_utils.py` to README tree and module section, CHANGELOG Unreleased entry, and scaffold.sh module list

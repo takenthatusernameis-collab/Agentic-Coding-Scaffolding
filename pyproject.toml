@@ -111,5 +111,6 @@ py_modules = [
     "queue_utils",
     "sort_utils",
     "sys_utils",
+    "networking_utils",
     "version_utils",
 ]

@@ -144,6 +144,8 @@
 #   - tests/test_queue_utils.py — unit tests for queue_utils.py
 #   - sys_utils.py — Python runtime and system information utilities (interpreter version, platform, argv, path, recursion limit, stream encodings)
 #   - tests/test_sys_utils.py — unit tests for sys_utils.py
+#   - networking_utils.py — networking utilities for TCP ports, hostname resolution, and local IP detection
+#   - tests/test_networking_utils.py — unit tests for networking_utils.py
 #   - version_utils.py — version parsing, comparison, and normalization utilities
 #   - tests/test_version_utils.py — unit tests for version_utils.py
 #   - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -561,6 +563,7 @@ py_modules = [
     "queue_utils",
     "version_utils",
     "sys_utils",
+    "networking_utils",
     "textwrap_utils",
 ]
 
@@ -14814,6 +14817,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_version_utils.py — unit tests for `version_utils.py`
 - sys_utils.py — Python runtime and system information utilities (`get_python_version`, `get_executable`, `get_platform`, `get_path`, `get_argv`, `get_recursion_limit`, `set_recursion_limit`, stream encodings, frame info, refcount)
 - tests/test_sys_utils.py — unit tests for `sys_utils.py`
+- networking_utils.py — networking utilities for TCP ports, hostname resolution, and local IP detection
+- tests/test_networking_utils.py — unit tests for `networking_utils.py`
 - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
 - tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
@@ -15089,6 +15094,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 queue_utils.py             # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
 version_utils.py           # Version parsing, comparison, and normalization utilities
 sys_utils.py               # Python runtime and system information utilities
+networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -15143,6 +15149,7 @@ tests/                     # Python unit tests
   test_queue_utils.py           # Tests for queue_utils.py
   test_version_utils.py         # Tests for version_utils.py
   test_sys_utils.py             # Tests for sys_utils.py
+  test_networking_utils.py      # Tests for networking_utils.py
     ```
 
 ## Getting Started
@@ -15281,6 +15288,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_version_utils.py — unit tests for `version_utils.py`
 - sys_utils.py — Python runtime and system information utilities (`get_python_version`, `get_executable`, `get_platform`, `get_path`, `get_argv`, `get_recursion_limit`, `set_recursion_limit`, stream encodings, frame info, refcount)
 - tests/test_sys_utils.py — unit tests for `sys_utils.py`
+- networking_utils.py — networking utilities for TCP ports, hostname resolution, and local IP detection
+- tests/test_networking_utils.py — unit tests for `networking_utils.py`
 - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
 - tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
@@ -22536,3 +22545,378 @@ class TestGetRefcount(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTSYSUTILS
+
+# --- networking_utils.py ---
+cat > "$OUTPUT_DIR/networking_utils.py" <<'NETWORKING_UTILS'
+"""Networking utilities for TCP port and host operations.
+
+This module provides helpers for validating TCP ports, checking whether a port
+is open on a host, finding a free local port, resolving hostnames to IP
+addresses, detecting the local IP address, and measuring TCP connect latency.
+All functions validate their inputs and raise ``TypeError`` or ``ValueError``
+on invalid arguments.
+"""
+
+from __future__ import annotations
+
+import socket
+import time
+from typing import Optional
+
+__all__: list[str] = [
+    "is_valid_port",
+    "is_port_open",
+    "find_free_port",
+    "resolve_hostname",
+    "get_local_ip",
+    "tcp_ping",
+]
+
+
+def is_valid_port(port: int) -> bool:
+    """Return ``True`` if *port* is a valid TCP/UDP port number (1-65535).
+
+    Args:
+        port: The port number to validate.
+
+    Returns:
+        ``True`` if *port`` is within the valid range, otherwise ``False``.
+
+    Raises:
+        TypeError: If *port`` is not an integer.
+
+    Examples:
+        >>> is_valid_port(80)
+        True
+        >>> is_valid_port(0)
+        False
+        >>> is_valid_port(65536)
+        False
+    """
+    if isinstance(port, bool) or not isinstance(port, int):
+        raise TypeError(f"port must be an integer, got {type(port).__name__}")
+    return 1 <= port <= 65535
+
+
+def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    """Return ``True`` if a TCP connection to *host*:*port* can be established.
+
+    Args:
+        host: The hostname or IP address to connect to.
+        port: The port number to connect to.
+        timeout: The connection timeout in seconds (default: 1.0).
+
+    Returns:
+        ``True`` if the port is open and reachable, otherwise ``False``.
+
+    Raises:
+        TypeError: If *host`` is not a string, *port`` is not an integer, or
+            *timeout`` is not a number.
+        ValueError: If *port`` is not a valid port number or *timeout`` is
+            negative.
+
+    Examples:
+        >>> is_port_open("127.0.0.1", 1)  # doctest: +SKIP
+        False
+    """
+    if not isinstance(host, str):
+        raise TypeError(f"host must be a string, got {type(host).__name__}")
+    if isinstance(port, bool) or not isinstance(port, int):
+        raise TypeError(f"port must be an integer, got {type(port).__name__}")
+    if not 1 <= port <= 65535:
+        raise ValueError(f"port {port} is not a valid port number (1-65535)")
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+        raise TypeError(f"timeout must be a number, got {type(timeout).__name__}")
+    if timeout < 0:
+        raise ValueError("timeout must not be negative")
+
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+def find_free_port(start: int = 1024, end: int = 65535) -> int:
+    """Return a free local TCP port by binding a temporary listener.
+
+    The function binds to port 0 to let the OS assign an unused port, then
+    returns that port number. The *start* and *end* bounds are validated but
+    the OS-assigned port is returned regardless of the range.
+
+    Args:
+        start: The inclusive lower bound of the acceptable port range.
+        end: The inclusive upper bound of the acceptable port range.
+
+    Returns:
+        A free local TCP port number.
+
+    Raises:
+        TypeError: If *start`` or *end`` is not an integer.
+        ValueError: If either bound is not a valid port number, or
+            *start`` is greater than *end``.
+
+    Examples:
+        >>> port = find_free_port()
+        >>> is_valid_port(port)
+        True
+    """
+    if isinstance(start, bool) or not isinstance(start, int):
+        raise TypeError(f"start must be an integer, got {type(start).__name__}")
+    if isinstance(end, bool) or not isinstance(end, int):
+        raise TypeError(f"end must be an integer, got {type(end).__name__}")
+    if not 1 <= start <= 65535:
+        raise ValueError(f"start {start} is not a valid port number (1-65535)")
+    if not 1 <= end <= 65535:
+        raise ValueError(f"end {end} is not a valid port number (1-65535)")
+    if start > end:
+        raise ValueError(f"start {start} must be <= end {end}")
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    return port
+
+
+def resolve_hostname(hostname: str) -> str:
+    """Resolve *hostname* to its IPv4 address.
+
+    Args:
+        hostname: The hostname to resolve.
+
+    Returns:
+        The IPv4 address as a string.
+
+    Raises:
+        TypeError: If *hostname`` is not a string.
+        ValueError: If *hostname`` is empty or cannot be resolved.
+
+    Examples:
+        >>> resolve_hostname("localhost")  # doctest: +SKIP
+        '127.0.0.1'
+    """
+    if not isinstance(hostname, str):
+        raise TypeError(f"hostname must be a string, got {type(hostname).__name__}")
+    if not hostname.strip():
+        raise ValueError("hostname must not be empty")
+
+    try:
+        return socket.gethostbyname(hostname)
+    except OSError as exc:
+        raise ValueError(f"could not resolve hostname {hostname!r}: {exc}") from exc
+
+
+def get_local_ip() -> str:
+    """Return the local machine's IPv4 address used for outbound connections.
+
+    Returns:
+        The local IPv4 address as a string, or ``"127.0.0.1"`` if it cannot
+        be determined.
+    """
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.connect(("8.8.8.8", 80))
+            return sock.getsockname()[0]
+    except OSError:
+        return "127.0.0.1"
+
+
+def tcp_ping(host: str, port: int, timeout: float = 1.0) -> Optional[float]:
+    """Measure the time in seconds to establish a TCP connection to *host*:*port*.
+
+    Args:
+        host: The hostname or IP address to connect to.
+        port: The port number to connect to.
+        timeout: The connection timeout in seconds (default: 1.0).
+
+    Returns:
+        The connection time in seconds, or ``None`` if the connection could
+        not be established within *timeout``.
+
+    Raises:
+        TypeError: If *host`` is not a string, *port`` is not an integer, or
+            *timeout`` is not a number.
+        ValueError: If *port`` is not a valid port number or *timeout`` is
+            negative.
+
+    Examples:
+        >>> tcp_ping("127.0.0.1", 1)  # doctest: +SKIP
+        None
+    """
+    if not isinstance(host, str):
+        raise TypeError(f"host must be a string, got {type(host).__name__}")
+    if isinstance(port, bool) or not isinstance(port, int):
+        raise TypeError(f"port must be an integer, got {type(port).__name__}")
+    if not 1 <= port <= 65535:
+        raise ValueError(f"port {port} is not a valid port number (1-65535)")
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+        raise TypeError(f"timeout must be a number, got {type(timeout).__name__}")
+    if timeout < 0:
+        raise ValueError("timeout must not be negative")
+
+    start = time.perf_counter()
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return time.perf_counter() - start
+    except OSError:
+        return None
+NETWORKING_UTILS
+
+# --- tests/test_networking_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_networking_utils.py" <<'TESTNETWORKINGUTILS'
+import socket
+import unittest
+
+from networking_utils import (
+    find_free_port,
+    get_local_ip,
+    is_port_open,
+    is_valid_port,
+    resolve_hostname,
+    tcp_ping,
+)
+
+
+class TestIsValidPort(unittest.TestCase):
+    def test_valid_ports(self):
+        self.assertTrue(is_valid_port(1))
+        self.assertTrue(is_valid_port(80))
+        self.assertTrue(is_valid_port(443))
+        self.assertTrue(is_valid_port(65535))
+
+    def test_invalid_ports(self):
+        self.assertFalse(is_valid_port(0))
+        self.assertFalse(is_valid_port(-1))
+        self.assertFalse(is_valid_port(65536))
+        self.assertFalse(is_valid_port(100000))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_valid_port("80")
+        with self.assertRaises(TypeError):
+            is_valid_port(80.0)
+        with self.assertRaises(TypeError):
+            is_valid_port(True)
+
+
+class TestIsPortOpen(unittest.TestCase):
+    def setUp(self):
+        self.server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_sock.bind(("127.0.0.1", 0))
+        self.server_sock.listen(1)
+        self.port = self.server_sock.getsockname()[1]
+
+    def tearDown(self):
+        self.server_sock.close()
+
+    def test_open_port(self):
+        self.assertTrue(is_port_open("127.0.0.1", self.port))
+
+    def test_closed_port(self):
+        port = find_free_port()
+        self.assertFalse(is_port_open("127.0.0.1", port, timeout=0.1))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_port_open(127, 80)
+        with self.assertRaises(TypeError):
+            is_port_open("127.0.0.1", "80")
+        with self.assertRaises(TypeError):
+            is_port_open("127.0.0.1", 80, timeout="1")
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            is_port_open("127.0.0.1", 0)
+        with self.assertRaises(ValueError):
+            is_port_open("127.0.0.1", 65536)
+        with self.assertRaises(ValueError):
+            is_port_open("127.0.0.1", 80, timeout=-1)
+
+
+class TestFindFreePort(unittest.TestCase):
+    def test_returns_valid_port(self):
+        port = find_free_port()
+        self.assertTrue(is_valid_port(port))
+
+    def test_returns_different_ports(self):
+        ports = {find_free_port() for _ in range(5)}
+        self.assertEqual(len(ports), 5)
+
+    def test_range_validation(self):
+        with self.assertRaises(ValueError):
+            find_free_port(0, 100)
+        with self.assertRaises(ValueError):
+            find_free_port(100, 65536)
+        with self.assertRaises(ValueError):
+            find_free_port(5000, 1000)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            find_free_port("1024", 65535)
+        with self.assertRaises(TypeError):
+            find_free_port(1024, "65535")
+
+
+class TestResolveHostname(unittest.TestCase):
+    def test_resolves_localhost(self):
+        self.assertEqual(resolve_hostname("localhost"), "127.0.0.1")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            resolve_hostname(127)
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            resolve_hostname("")
+        with self.assertRaises(ValueError):
+            resolve_hostname("   ")
+        with self.assertRaises(ValueError):
+            resolve_hostname("this-hostname-does-not-exist.example.invalid")
+
+
+class TestGetLocalIp(unittest.TestCase):
+    def test_returns_string(self):
+        ip = get_local_ip()
+        self.assertIsInstance(ip, str)
+        self.assertTrue(ip)
+
+
+class TestTcpPing(unittest.TestCase):
+    def setUp(self):
+        self.server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_sock.bind(("127.0.0.1", 0))
+        self.server_sock.listen(1)
+        self.port = self.server_sock.getsockname()[1]
+
+    def tearDown(self):
+        self.server_sock.close()
+
+    def test_open_port_returns_float(self):
+        result = tcp_ping("127.0.0.1", self.port)
+        self.assertIsInstance(result, float)
+        self.assertGreaterEqual(result, 0.0)
+
+    def test_closed_port_returns_none(self):
+        port = find_free_port()
+        self.assertIsNone(tcp_ping("127.0.0.1", port, timeout=0.1))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            tcp_ping(127, 80)
+        with self.assertRaises(TypeError):
+            tcp_ping("127.0.0.1", "80")
+        with self.assertRaises(TypeError):
+            tcp_ping("127.0.0.1", 80, timeout="1")
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            tcp_ping("127.0.0.1", 0)
+        with self.assertRaises(ValueError):
+            tcp_ping("127.0.0.1", 65536)
+        with self.assertRaises(ValueError):
+            tcp_ping("127.0.0.1", 80, timeout=-1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTNETWORKINGUTILS
