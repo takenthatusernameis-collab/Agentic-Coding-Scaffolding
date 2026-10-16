@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import socket
 import time
-from typing import Optional
+from typing import Optional, cast
 
 __all__: list[str] = [
     "is_valid_port",
@@ -124,7 +124,7 @@ def find_free_port(start: int = 1024, end: int = 65535) -> int:
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.bind(("127.0.0.1", 0))
-        port = sock.getsockname()[1]
+        port = cast(int, sock.getsockname()[1])
     return port
 
 
@@ -166,7 +166,7 @@ def get_local_ip() -> str:
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
             sock.connect(("8.8.8.8", 80))
-            return sock.getsockname()[0]
+            return cast(str, sock.getsockname()[0])
     except OSError:
         return "127.0.0.1"
 
