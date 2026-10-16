@@ -116,6 +116,8 @@
 #   - tests/test_html_utils.py — unit tests for html_utils.py
 #   - base64_utils.py — Base64 and hexadecimal encoding/decoding utilities
 #   - tests/test_base64_utils.py — unit tests for base64_utils.py
+#   - struct_utils.py — Binary struct packing and unpacking utilities
+#   - tests/test_struct_utils.py — unit tests for struct_utils.py
 set -euo pipefail
 
 usage() {
@@ -510,9 +512,10 @@ py_modules = [
    "io_utils",
    "cli_utils",
    "terminal_utils",
-   "hash_utils",
-   "html_utils",
-   "base64_utils",
+    "hash_utils",
+    "html_utils",
+    "base64_utils",
+    "struct_utils",
 ]
 
 [tool.ruff]
@@ -13470,6 +13473,382 @@ if __name__ == "__main__":
     unittest.main()
 TESTBASE64UTILS
 
+# --- struct_utils.py ---
+cat > "$OUTPUT_DIR/struct_utils.py" <<'STRUCT_UTILS'
+"""Binary struct packing and unpacking utilities.
+
+This module provides utilities for converting between Python values and
+binary :mod:`struct` format representations, with configurable byte order,
+input validation, and helpers for calculating the size of a format string
+and validating format strings. All functions wrap the standard library
+:mod:`struct` module and raise :class:`TypeError` or :class:`ValueError`
+on invalid input.
+"""
+
+from __future__ import annotations
+
+import struct
+from typing import Any, Tuple, Union
+
+__all__: list[str] = [
+    "pack",
+    "unpack",
+    "pack_into",
+    "unpack_from",
+    "calcsize",
+    "is_valid_format",
+]
+
+
+def _require_string(value: Any, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string")
+    return value
+
+
+def _validate_format(fmt: str) -> str:
+    """Validate ``fmt`` as a :mod:`struct` format string and return it.
+
+    Raises:
+        TypeError: If ``fmt`` is not a string.
+        ValueError: If ``fmt`` is not a valid struct format string.
+    """
+    _require_string(fmt, "fmt")
+    try:
+        struct.calcsize(fmt)
+    except struct.error as exc:
+        raise ValueError(f"invalid struct format string: {exc}") from exc
+    return fmt
+
+
+def pack(fmt: str, *values: Any) -> bytes:
+    """Pack ``values`` according to ``fmt`` and return the resulting bytes.
+
+    Args:
+        fmt: A :mod:`struct` format string (e.g. ``"<iif"``).
+        values: The values to pack, matching the format specifiers.
+
+    Returns:
+        The packed binary data as a :class:`bytes` object.
+
+    Raises:
+        TypeError: If ``fmt`` is not a string.
+        ValueError: If ``fmt`` is invalid or the values do not match the format.
+
+    Examples:
+        >>> pack("<B", 65)
+        b'A'
+        >>> pack(">I", 0x41424344)
+        b'ABCD'
+    """
+    _validate_format(fmt)
+    try:
+        return struct.pack(fmt, *values)
+    except struct.error as exc:
+        raise ValueError(f"failed to pack values for format {fmt!r}: {exc}") from exc
+
+
+def unpack(fmt: str, buffer: Union[bytes, bytearray]) -> Tuple[Any, ...]:
+    """Unpack ``buffer`` according to ``fmt`` and return the resulting values.
+
+    Args:
+        fmt: A :mod:`struct` format string.
+        buffer: The binary data to unpack. Its length must match
+            :func:`calcsize` for ``fmt``.
+
+    Returns:
+        A tuple of unpacked values.
+
+    Raises:
+        TypeError: If ``fmt`` is not a string or ``buffer`` is not bytes/bytearray.
+        ValueError: If ``fmt`` is invalid or the buffer size is incorrect.
+
+    Examples:
+        >>> unpack("<B", b'A')
+        (65,)
+    """
+    _validate_format(fmt)
+    if not isinstance(buffer, (bytes, bytearray)):
+        raise TypeError("buffer must be bytes or bytearray")
+    try:
+        return struct.unpack(fmt, buffer)
+    except struct.error as exc:
+        raise ValueError(f"failed to unpack buffer for format {fmt!r}: {exc}") from exc
+
+
+def pack_into(fmt: str, buffer: bytearray, offset: int, *values: Any) -> None:
+    """Pack ``values`` into ``buffer`` at ``offset`` according to ``fmt``.
+
+    Args:
+        fmt: A :mod:`struct` format string.
+        buffer: A mutable :class:`bytearray` to pack into.
+        offset: The byte offset in ``buffer`` to start writing at.
+        values: The values to pack, matching the format specifiers.
+
+    Raises:
+        TypeError: If ``fmt`` is not a string, ``buffer`` is not a bytearray,
+            or ``offset`` is not an integer.
+        ValueError: If ``fmt`` is invalid, ``offset`` is negative, or there is
+            not enough room in ``buffer``.
+
+    Examples:
+        >>> buf = bytearray(4)
+        >>> pack_into(">I", buf, 0, 0x41424344)
+        >>> buf
+        bytearray(b'ABCD')
+    """
+    _validate_format(fmt)
+    if not isinstance(buffer, bytearray):
+        raise TypeError("buffer must be a bytearray")
+    if not isinstance(offset, int) or isinstance(offset, bool):
+        raise TypeError("offset must be an integer")
+    if offset < 0:
+        raise ValueError("offset must be non-negative")
+    try:
+        struct.pack_into(fmt, buffer, offset, *values)
+    except struct.error as exc:
+        raise ValueError(f"failed to pack into buffer for format {fmt!r}: {exc}") from exc
+
+
+def unpack_from(fmt: str, buffer: Union[bytes, bytearray], offset: int = 0) -> Tuple[Any, ...]:
+    """Unpack values from ``buffer`` starting at ``offset`` according to ``fmt``.
+
+    Args:
+        fmt: A :mod:`struct` format string.
+        buffer: The binary data to unpack from.
+        offset: The byte offset to start reading from. Defaults to 0.
+
+    Returns:
+        A tuple of unpacked values.
+
+    Raises:
+        TypeError: If ``fmt`` is not a string, ``buffer`` is not bytes/bytearray,
+            or ``offset`` is not an integer.
+        ValueError: If ``fmt`` is invalid, ``offset`` is negative, or there is
+            not enough data in ``buffer``.
+
+    Examples:
+        >>> unpack_from(">I", b'ABCD', 0)
+        (1094861636,)
+    """
+    _validate_format(fmt)
+    if not isinstance(buffer, (bytes, bytearray)):
+        raise TypeError("buffer must be bytes or bytearray")
+    if not isinstance(offset, int) or isinstance(offset, bool):
+        raise TypeError("offset must be an integer")
+    if offset < 0:
+        raise ValueError("offset must be non-negative")
+    try:
+        return struct.unpack_from(fmt, buffer, offset)
+    except struct.error as exc:
+        raise ValueError(f"failed to unpack from buffer for format {fmt!r}: {exc}") from exc
+
+
+def calcsize(fmt: str) -> int:
+    """Return the size in bytes of a value described by ``fmt``.
+
+    Args:
+        fmt: A :mod:`struct` format string.
+
+    Returns:
+        The number of bytes required to pack ``fmt``.
+
+    Raises:
+        TypeError: If ``fmt`` is not a string.
+        ValueError: If ``fmt`` is invalid.
+
+    Examples:
+        >>> calcsize("<h")
+        2
+        >>> calcsize(">I")
+        4
+    """
+    return struct.calcsize(_validate_format(fmt))
+
+
+def is_valid_format(fmt: str) -> bool:
+    """Return True if ``fmt`` is a valid :mod:`struct` format string.
+
+    Args:
+        fmt: The format string to validate.
+
+    Returns:
+        True if ``fmt`` is a valid struct format string, False otherwise.
+
+    Examples:
+        >>> is_valid_format("<h")
+        True
+        >>> is_valid_format("!!invalid!!")
+        False
+    """
+    if not isinstance(fmt, str):
+        return False
+    try:
+        struct.calcsize(fmt)
+        return True
+    except struct.error:
+        return False
+STRUCT_UTILS
+
+# --- tests/test_struct_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_struct_utils.py" <<'TESTSTRUCTUTILS'
+"""Unit tests for struct_utils module."""
+
+import unittest
+
+from struct_utils import (
+    calcsize,
+    is_valid_format,
+    pack,
+    pack_into,
+    unpack,
+    unpack_from,
+)
+
+
+class TestPack(unittest.TestCase):
+    def test_pack_short_little_endian(self):
+        self.assertEqual(pack("<h", 255), b"\xff\x00")
+
+    def test_pack_ints_big_endian(self):
+        self.assertEqual(pack(">ii", 1, 2), b"\x00\x00\x00\x01\x00\x00\x00\x02")
+
+    def test_pack_roundtrip(self):
+        self.assertEqual(unpack("<h", pack("<h", 255)), (255,))
+
+    def test_pack_type_error_fmt(self):
+        with self.assertRaises(TypeError):
+            pack(123, 1)  # type: ignore[arg-type]
+
+    def test_pack_invalid_format(self):
+        with self.assertRaises(ValueError):
+            pack("!!invalid!!", 1)
+
+    def test_pack_wrong_number_of_values(self):
+        with self.assertRaises(ValueError):
+            pack("<ii", 1)
+
+
+class TestUnpack(unittest.TestCase):
+    def test_unpack_short_little_endian(self):
+        self.assertEqual(unpack("<h", b"\xff\x00"), (255,))
+
+    def test_unpack_ints_big_endian(self):
+        self.assertEqual(
+            unpack(">ii", b"\x00\x00\x00\x01\x00\x00\x00\x02"), (1, 2)
+        )
+
+    def test_unpack_type_error_fmt(self):
+        with self.assertRaises(TypeError):
+            unpack(123, b"\x00\x00")  # type: ignore[arg-type]
+
+    def test_unpack_type_error_buffer(self):
+        with self.assertRaises(TypeError):
+            unpack("<h", "not bytes")  # type: ignore[arg-type]
+
+    def test_unpack_invalid_format(self):
+        with self.assertRaises(ValueError):
+            unpack("!!invalid!!", b"\x00\x00")
+
+    def test_unpack_buffer_too_short(self):
+        with self.assertRaises(ValueError):
+            unpack("<ii", b"\x00\x00\x00\x01")
+
+
+class TestPackInto(unittest.TestCase):
+    def test_pack_into(self):
+        buf = bytearray(8)
+        pack_into(">ii", buf, 0, 1, 2)
+        self.assertEqual(buf, bytearray(b"\x00\x00\x00\x01\x00\x00\x00\x02"))
+
+    def test_pack_into_offset(self):
+        buf = bytearray(12)
+        pack_into(">ii", buf, 4, 1, 2)
+        self.assertEqual(buf[4:12], b"\x00\x00\x00\x01\x00\x00\x00\x02")
+
+    def test_pack_into_type_error_buffer(self):
+        with self.assertRaises(TypeError):
+            pack_into("<h", b"\x00\x00", 0, 1)  # type: ignore[arg-type]
+
+    def test_pack_into_type_error_offset(self):
+        with self.assertRaises(TypeError):
+            pack_into("<h", bytearray(2), "0", 1)  # type: ignore[arg-type]
+
+    def test_pack_into_negative_offset(self):
+        with self.assertRaises(ValueError):
+            pack_into("<h", bytearray(2), -1, 1)
+
+    def test_pack_into_invalid_format(self):
+        with self.assertRaises(ValueError):
+            pack_into("!!invalid!!", bytearray(2), 0, 1)
+
+    def test_pack_into_not_enough_room(self):
+        with self.assertRaises(ValueError):
+            pack_into("<ii", bytearray(2), 0, 1, 2)
+
+
+class TestUnpackFrom(unittest.TestCase):
+    def test_unpack_from(self):
+        data = b"\x00\x00\x00\x01\x00\x00\x00\x02"
+        self.assertEqual(unpack_from(">ii", data, 0), (1, 2))
+
+    def test_unpack_from_offset(self):
+        data = b"\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02"
+        self.assertEqual(unpack_from(">ii", data, 4), (1, 2))
+
+    def test_unpack_from_type_error_fmt(self):
+        with self.assertRaises(TypeError):
+            unpack_from(123, b"\x00\x00\x00\x01")  # type: ignore[arg-type]
+
+    def test_unpack_from_type_error_buffer(self):
+        with self.assertRaises(TypeError):
+            unpack_from("<h", "not bytes", 0)  # type: ignore[arg-type]
+
+    def test_unpack_from_type_error_offset(self):
+        with self.assertRaises(TypeError):
+            unpack_from("<h", b"\x00\x00", "0")  # type: ignore[arg-type]
+
+    def test_unpack_from_negative_offset(self):
+        with self.assertRaises(ValueError):
+            unpack_from("<h", b"\x00\x00", -1)
+
+    def test_unpack_from_invalid_format(self):
+        with self.assertRaises(ValueError):
+            unpack_from("!!invalid!!", b"\x00\x00")
+
+
+class TestCalcsize(unittest.TestCase):
+    def test_calcsize_short(self):
+        self.assertEqual(calcsize("<h"), 2)
+
+    def test_calcsize_ints(self):
+        self.assertEqual(calcsize(">ii"), 8)
+
+    def test_calcsize_type_error(self):
+        with self.assertRaises(TypeError):
+            calcsize(123)  # type: ignore[arg-type]
+
+    def test_calcsize_invalid_format(self):
+        with self.assertRaises(ValueError):
+            calcsize("!!invalid!!")
+
+
+class TestIsValidFormat(unittest.TestCase):
+    def test_is_valid_format_true(self):
+        self.assertTrue(is_valid_format("<h"))
+        self.assertTrue(is_valid_format(">ii"))
+
+    def test_is_valid_format_false(self):
+        self.assertFalse(is_valid_format("!!invalid!!"))
+
+    def test_is_valid_format_type_error_returns_false(self):
+        self.assertFalse(is_valid_format(123))  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSTRUCTUTILS
+
 # --- tests/test_cli_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_cli_utils.py" <<'TESTCLIUTILS'
 """Unit tests for cli_utils module."""
@@ -13903,6 +14282,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_html_utils.py — unit tests for `html_utils.py`
 - base64_utils.py — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
 - tests/test_base64_utils.py — unit tests for `base64_utils.py`
+- struct_utils.py — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
+- tests/test_struct_utils.py — unit tests for `struct_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -14162,6 +14543,7 @@ terminal_utils.py          # Terminal output utilities (ANSI color, progress bar
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
+struct_utils.py            # Binary struct packing and unpacking utilities
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -14203,6 +14585,7 @@ tests/                     # Python unit tests
   test_config_schema.py         # Tests for config_schema.py
   test_html_utils.py            # Tests for html_utils.py
   test_base64_utils.py          # Tests for base64_utils.py
+  test_struct_utils.py          # Tests for struct_utils.py
     ```
 
 ## Getting Started
@@ -14320,6 +14703,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_html_utils.py — unit tests for `html_utils.py`
 - base64_utils.py — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
 - tests/test_base64_utils.py — unit tests for `base64_utils.py`
+- struct_utils.py — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
+- tests/test_struct_utils.py — unit tests for `struct_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory

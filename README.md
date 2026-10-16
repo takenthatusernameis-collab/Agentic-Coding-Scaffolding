@@ -76,6 +76,7 @@ cli_utils.py               # Command-line interface utilities (argparse parser, 
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
+struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
@@ -385,5 +386,9 @@ The project includes HTML utility functions in `html_utils.py` for escaping, une
 ## Base64 Utilities Module
 
 The project includes Base64 and hexadecimal encoding/decoding utilities in `base64_utils.py`: `base64_encode` and `base64_decode` for standard and URL-safe Base64, `base64_encode_bytes` and `base64_decode_bytes` for raw bytes, `hex_encode` and `hex_decode` for hexadecimal, and `is_valid_base64` / `is_valid_hex` for validation. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_base64_utils.py`.
+
+## Binary Struct Utilities Module
+
+The project includes binary struct packing and unpacking utilities in `struct_utils.py` wrapping the standard library `struct` module: `pack` and `unpack` convert between values and bytes, `pack_into` and `unpack_from` read/write at a buffer offset, `calcsize` reports the byte size of a format string, and `is_valid_format` validates a format string. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid input. The module is tested in `tests/test_struct_utils.py`.
 
 

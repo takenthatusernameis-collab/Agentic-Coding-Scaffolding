@@ -93,4 +93,5 @@ py_modules = [
     "hash_utils",
     "html_utils",
     "base64_utils",
+    "struct_utils",
 ]
