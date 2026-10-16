@@ -93,6 +93,7 @@ py_modules = [
     "compression_utils",
     "ip_utils",
     "prompt_utils",
+    "prime_utils",
     "regex_utils",
     "terminal_utils",
     "textwrap_utils",
