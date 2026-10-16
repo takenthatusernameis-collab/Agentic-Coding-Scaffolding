@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `context_utils.py` — context manager utilities (`chdir`, `temp_environ`, `redirect_stdout`, `redirect_stderr`, `suppress`) for temporarily altering the runtime environment (working directory, environment variables, standard streams) and restoring it on exit using the standard library with input validation
+- `tests/test_context_utils.py` — unit tests for `context_utils.py`
+- Added `context_utils.py` to `pyproject.toml` `py_modules`, README tree and module section, and CHANGELOG Unreleased entry
+
 - `textwrap_utils.py` — text wrapping utilities (`wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, `fill_text`) using the standard library `textwrap` module with input validation
 - `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
 - Added `textwrap_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions

@@ -54,6 +54,7 @@ list_utils.py              # Advanced list manipulation utilities
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
+context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 timing_utils.py           # Performance measurement helpers
 async_utils.py            # Asynchronous utility functions
 bit_utils.py              # Bitwise utility functions for working with binary representations
@@ -469,3 +470,7 @@ The project includes operator utilities in `operator_utils.py` for common functi
 ## System Utilities Module
 
 The project includes Python runtime and system information utilities in `sys_utils.py` for inspecting the interpreter and runtime environment: `get_python_version` returns the version as a dictionary, `get_python_version_string` returns the full version string, `get_executable` returns the interpreter path, `get_argv` returns command-line arguments, `get_platform` returns the platform identifier, `get_path` returns the module search path, `get_recursion_limit`/`set_recursion_limit` read and set the recursion limit, `get_stdout_encoding`/`get_stderr_encoding`/`get_stdin_encoding` report stream encodings, `is_interactive` detects interactive sessions, `get_frame_info` inspects a stack frame, and `get_refcount` returns an object's reference count. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_sys_utils.py`.
+
+## Context Utilities Module
+
+The project includes context manager utilities in `context_utils.py` for temporarily altering the runtime environment and restoring it on exit: `chdir` changes the current working directory, `temp_environ` updates environment variables (optionally clearing the rest), `redirect_stdout` and `redirect_stderr` redirect the standard streams, and `suppress` swallows listed exceptions. All context managers restore the previous state even when an exception is raised within the context. The module is tested in `tests/test_context_utils.py`.
