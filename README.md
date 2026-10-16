@@ -94,6 +94,7 @@ http_utils.py              # HTTP status codes and response handling utilities
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
+calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
@@ -106,6 +107,7 @@ compression_utils.py       # Compression and decompression utilities (gzip, bz2,
 ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py

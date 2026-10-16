@@ -65,9 +65,11 @@
 #   - tests/test_timing_utils.py unit tests for the timing_utils module
 #   - async_utils.py async utility functions
 #   - bit_utils.py bitwise utility functions for working with binary representations of integers
+#   - operator_utils.py operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between) for common functional operations
 #   - concurrent_utils.py concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 #   - tests/test_async_utils.py unit tests for the async_utils module
 #   - tests/test_bit_utils.py unit tests for the bit_utils module
+#   - tests/test_operator_utils.py unit tests for the operator_utils module
 #   - tests/test_concurrent_utils.py unit tests for the concurrent_utils module
 #   - priority_queue_utils.py heap-based priority queue implementation
 #   - tests/test_priority_queue_utils.py unit tests for the priority_queue_utils module
@@ -111,6 +113,8 @@
 #   - tests/test_regex_utils.py — unit tests for regex_utils.py
 #   - terminal_utils.py — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 #   - tests/test_terminal_utils.py — unit tests for terminal_utils.py
+#   - subprocess_utils.py subprocess utilities (run_command, check_output, check_call)
+#   - tests/test_subprocess_utils.py unit tests for the subprocess_utils module
 #   - cli_utils.py — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 #   - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 #   - tests/test_hash_utils.py — unit tests for hash_utils.py
@@ -533,6 +537,7 @@ py_modules = [
     "timing_utils",
     "async_utils",
     "bit_utils",
+    "operator_utils",
     "concurrent_utils",
     "priority_queue_utils",
     "rate_limiter_utils",
@@ -552,7 +557,8 @@ py_modules = [
    "io_utils",
    "cli_utils",
    "terminal_utils",
-    "hash_utils",
+   "subprocess_utils",
+   "hash_utils",
     "http_utils",
     "html_utils",
     "bytes_utils",
@@ -11045,6 +11051,98 @@ def is_odd(value: int) -> bool:
         raise TypeError("value must be an integer")
     return (value & 1) == 1
 BITUTILS
+# --- operator_utils.py ---
+cat > "$OUTPUT_DIR/operator_utils.py" <<'OPUTILS'
+"""Operator utility functions for common functional operations.
+
+This module provides helpers wrapping standard operators and predicates
+for transforming, combining, and comparing values.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+__all__: list[str] = [
+    "identity",
+    "negate",
+    "add",
+    "subtract",
+    "multiply",
+    "divide",
+    "power",
+    "modulo",
+    "clamp",
+    "between",
+]
+
+
+def identity(value: Any) -> Any:
+    """Return ``value`` unchanged."""
+    return value
+
+
+def negate(value: Any) -> Any:
+    """Return the negation of ``value`` (``-value``)."""
+    return -value
+
+
+def add(a: Any, b: Any) -> Any:
+    """Return ``a + b``."""
+    return a + b
+
+
+def subtract(a: Any, b: Any) -> Any:
+    """Return ``a - b``."""
+    return a - b
+
+
+def multiply(a: Any, b: Any) -> Any:
+    """Return ``a * b``."""
+    return a * b
+
+
+def divide(a: Any, b: Any) -> Any:
+    """Return ``a / b``."""
+    return a / b
+
+
+def power(base: Any, exponent: Any) -> Any:
+    """Return ``base ** exponent``."""
+    return base ** exponent
+
+
+def modulo(a: Any, b: Any) -> Any:
+    """Return ``a % b``."""
+    return a % b
+
+
+def clamp(value: Any, min_value: Any, max_value: Any) -> Any:
+    """Return ``value`` clamped to the range ``[min_value, max_value]``.
+
+    Ensures ``min_value <= max_value`` before clamping.
+    """
+    if min_value > max_value:
+        raise ValueError("min_value must be <= max_value")
+    if value < min_value:
+        return min_value
+    if value > max_value:
+        return max_value
+    return value
+
+
+def between(value: Any, min_value: Any, max_value: Any, *, inclusive: bool = True) -> bool:
+    """Return ``True`` if ``value`` is between ``min_value`` and ``max_value``.
+
+    By default the interval is inclusive (``min_value <= value <= max_value``).
+    Set ``inclusive=False`` for an exclusive interval.
+    """
+    if min_value > max_value:
+        raise ValueError("min_value must be <= max_value")
+    if inclusive:
+        return min_value <= value <= max_value
+    return min_value < value < max_value
+OPUTILS
 # --- concurrent_utils.py ---
 cat > "$OUTPUT_DIR/concurrent_utils.py" <<'CONCURRENTUTILS'
 """Concurrent execution utilities for parallel and asynchronous processing.
@@ -12860,6 +12958,72 @@ def _term_width(stream: TextIO) -> int:
         return 80
 TERMINAL_UTILS
 
+# --- subprocess_utils.py ---
+cat > "$OUTPUT_DIR/subprocess_utils.py" <<'SUBPROCESSUTILS'
+"""Subprocess utility functions.
+
+This module provides helpers for running shell commands safely and
+conveniently using the standard library ``subprocess`` module.
+"""
+
+from __future__ import annotations
+
+import subprocess
+from typing import Any
+
+__all__: list[str] = [
+    "run_command",
+    "check_output",
+    "check_call",
+]
+
+
+def run_command(
+    cmd: list[str] | str,
+    *,
+    capture_output: bool = False,
+    text: bool = True,
+    check: bool = False,
+    timeout: float | None = None,
+    **kwargs: Any,
+) -> subprocess.CompletedProcess[Any]:
+    """Run a command using ``subprocess.run``."""
+    if not isinstance(cmd, (str, list)):
+        raise TypeError("cmd must be a string or list of strings")
+    return subprocess.run(
+        cmd,
+        capture_output=capture_output,
+        text=text,
+        check=check,
+        timeout=timeout,
+        **kwargs,
+    )
+
+
+def check_output(
+    cmd: list[str] | str,
+    *,
+    text: bool = True,
+    timeout: float | None = None,
+    **kwargs: Any,
+) -> Any:
+    """Run a command and return its stdout."""
+    if not isinstance(cmd, (str, list)):
+        raise TypeError("cmd must be a string or list of strings")
+    return subprocess.check_output(cmd, text=text, timeout=timeout, **kwargs)
+
+
+def check_call(
+    cmd: list[str] | str,
+    *,
+    timeout: float | None = None,
+    **kwargs: Any,
+) -> int:
+    """Run a command and return the exit code (0 on success)."""
+    if not isinstance(cmd, (str, list)):
+        raise TypeError("cmd must be a string or list of strings")
+    return subprocess.check_call(cmd, timeout=timeout, **kwargs)
+SUBPROCESSUTILS
 # --- cli_utils.py ---
 cat > "$OUTPUT_DIR/cli_utils.py" <<'CLI_UTILS'
 """Command-line interface utility functions.
@@ -14638,6 +14802,68 @@ if __name__ == "__main__":
     unittest.main()
 TESTTERMINALUTILS
 
+# --- tests/test_subprocess_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_subprocess_utils.py" <<'TESTSUBPROCESSUTILS'
+"""Tests for subprocess_utils module."""
+
+from __future__ import annotations
+
+import subprocess
+import unittest
+
+from subprocess_utils import check_call, check_output, run_command
+
+
+class TestRunCommand(unittest.TestCase):
+    def test_run_command_echo(self) -> None:
+        result = run_command(["echo", "hello"], capture_output=True)
+        self.assertEqual(result.returncode, 0)
+
+    def test_run_command_check_true_success(self) -> None:
+        result = run_command(["true"], check=True)
+        self.assertEqual(result.returncode, 0)
+
+    def test_run_command_check_true_failure(self) -> None:
+        with self.assertRaises(subprocess.CalledProcessError):
+            run_command(["false"], check=True)
+
+    def test_run_command_invalid_type(self) -> None:
+        with self.assertRaises(TypeError):
+            run_command(123)  # type: ignore[arg-type]
+
+
+class TestCheckOutput(unittest.TestCase):
+    def test_check_output_echo(self) -> None:
+        output = check_output(["echo", "test"], text=True)
+        if isinstance(output, str):
+            self.assertEqual(output.strip(), "test")
+
+    def test_check_output_failure(self) -> None:
+        with self.assertRaises(subprocess.CalledProcessError):
+            check_output(["false"])
+
+    def test_check_output_invalid_type(self) -> None:
+        with self.assertRaises(TypeError):
+            check_output(123)  # type: ignore[arg-type]
+
+
+class TestCheckCall(unittest.TestCase):
+    def test_check_call_success(self) -> None:
+        returncode = check_call(["true"])
+        self.assertEqual(returncode, 0)
+
+    def test_check_call_failure(self) -> None:
+        with self.assertRaises(subprocess.CalledProcessError):
+            check_call(["false"])
+
+    def test_check_call_invalid_type(self) -> None:
+        with self.assertRaises(TypeError):
+            check_call(123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSUBPROCESSUTILS
 # --- .kilo/agent/scaffolder.md ---
 cat > "$OUTPUT_DIR/.kilo/agent/scaffolder.md" <<'AGENT'
 ---
@@ -14724,6 +14950,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `timing_utils.py` — performance measurement helpers
 - `async_utils.py` — asynchronous utility functions
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
+- `operator_utils.py` — operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 - `priority_queue_utils.py` — heap-based priority queue implementation
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
@@ -14767,6 +14994,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
+- `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
@@ -14795,6 +15023,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+- `tests/test_terminal_utils.py` — unit tests for terminal_utils.py
+- `subprocess_utils.py` — subprocess utilities (`run_command`, `check_output`, `check_call`) using the standard library `subprocess` module with input validation
+- `tests/test_subprocess_utils.py` — unit tests for `subprocess_utils.py`
 - `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
 - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
@@ -15215,6 +15446,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers (`count_set_bits`, `is_power_of_two`, `next_power_of_two`, `prev_power_of_two`, `reverse_bits`, `rotate_left`, `rotate_right`, `get_bit`, `set_bit`, `clear_bit`, `toggle_bit`, `is_even`, `is_odd`) with input validation
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - Added `bit_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
+- `operator_utils.py` — operator utilities (`identity`, `negate`, `add`, `subtract`, `multiply`, `divide`, `power`, `modulo`, `clamp`, `between`) for common functional operations
+- `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
+- Added `operator_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
+- `subprocess_utils.py` — subprocess utilities (`run_command`, `check_output`, `check_call`) using the standard library `subprocess` module with input validation
+- `tests/test_subprocess_utils.py` — unit tests for `subprocess_utils.py`
+- Added `subprocess_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
 - `config_utils.py` — configuration utilities module with `load_config`, `save_config`, `get_config_value`, `set_config_value`, and `merge_configs` functions for working with JSON configuration files
 - `calculator.py` — simple calculator module with arithmetic operations
 - `shapes.py` — geometry utilities for areas and perimeters of common shapes
@@ -15239,6 +15476,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `timing_utils.py` — performance measurement helpers
 - `async_utils.py` — asynchronous utility functions
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
+- `operator_utils.py` — operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 - `priority_queue_utils.py` — heap-based priority queue implementation
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
@@ -15272,6 +15510,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+- `tests/test_terminal_utils.py` — unit tests for terminal_utils.py
+- `subprocess_utils.py` — subprocess utilities (`run_command`, `check_output`, `check_call`) using the standard library `subprocess` module with input validation
+- `tests/test_subprocess_utils.py` — unit tests for `subprocess_utils.py`
 - `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
 - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
@@ -15338,6 +15579,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
+- `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
@@ -15457,6 +15699,111 @@ class TestRetryAsync(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTASYNC
+
+# --- tests/test_operator_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_operator_utils.py" <<'TESTOPUTILS'
+"""Tests for operator_utils module."""
+
+from __future__ import annotations
+
+import unittest
+
+from operator_utils import (
+    add,
+    between,
+    clamp,
+    divide,
+    identity,
+    modulo,
+    multiply,
+    negate,
+    power,
+    subtract,
+)
+
+
+class TestIdentity(unittest.TestCase):
+    def test_identity_returns_same_value(self) -> None:
+        self.assertEqual(identity(5), 5)
+        self.assertIs(identity(None), None)
+        self.assertEqual(identity("hello"), "hello")
+        obj = {"key": "value"}
+        self.assertIs(identity(obj), obj)
+
+
+class TestNegate(unittest.TestCase):
+    def test_negate_numbers(self) -> None:
+        self.assertEqual(negate(5), -5)
+        self.assertEqual(negate(-3), 3)
+        self.assertEqual(negate(0), 0)
+
+
+class TestArithmetic(unittest.TestCase):
+    def test_add(self) -> None:
+        self.assertEqual(add(2, 3), 5)
+
+    def test_subtract(self) -> None:
+        self.assertEqual(subtract(5, 2), 3)
+
+    def test_multiply(self) -> None:
+        self.assertEqual(multiply(3, 4), 12)
+
+    def test_divide(self) -> None:
+        self.assertEqual(divide(6, 2), 3)
+
+    def test_power(self) -> None:
+        self.assertEqual(power(2, 3), 8)
+
+    def test_modulo(self) -> None:
+        self.assertEqual(modulo(7, 3), 1)
+
+
+class TestClamp(unittest.TestCase):
+    def test_clamp_within_range(self) -> None:
+        self.assertEqual(clamp(5, 0, 10), 5)
+
+    def test_clamp_below_range(self) -> None:
+        self.assertEqual(clamp(-5, 0, 10), 0)
+
+    def test_clamp_above_range(self) -> None:
+        self.assertEqual(clamp(15, 0, 10), 10)
+
+    def test_clamp_min_equal_max(self) -> None:
+        self.assertEqual(clamp(5, 7, 7), 7)
+
+    def test_clamp_invalid_range(self) -> None:
+        with self.assertRaises(ValueError):
+            clamp(5, 10, 0)
+
+
+class TestBetween(unittest.TestCase):
+    def test_between_inclusive_within(self) -> None:
+        self.assertTrue(between(5, 0, 10))
+        self.assertTrue(between(0, 0, 10))
+        self.assertTrue(between(10, 0, 10))
+
+    def test_between_inclusive_outside(self) -> None:
+        self.assertFalse(between(-1, 0, 10))
+        self.assertFalse(between(11, 0, 10))
+
+    def test_between_exclusive_within(self) -> None:
+        self.assertTrue(between(5, 0, 10, inclusive=False))
+
+    def test_between_exclusive_boundaries(self) -> None:
+        self.assertFalse(between(0, 0, 10, inclusive=False))
+        self.assertFalse(between(10, 0, 10, inclusive=False))
+
+    def test_between_exclusive_outside(self) -> None:
+        self.assertFalse(between(-1, 0, 10, inclusive=False))
+
+    def test_between_invalid_range(self) -> None:
+        with self.assertRaises(ValueError):
+            between(5, 10, 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTOPUTILS
 
 # --- tests/test_bit_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_bit_utils.py" <<'TESTBITUTILS'
@@ -23171,3 +23518,179 @@ class TestPreviousPrime(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 TESTPRIMEUTILS
+
+# --- calendar_utils.py ---
+cat > "$OUTPUT_DIR/calendar_utils.py" <<'CALENDARUTILS'
+"""Calendar utilities for date and month calculations using stdlib calendar."""
+
+from __future__ import annotations
+
+import calendar
+from datetime import date
+
+__all__: list[str] = [
+    "is_leap_year",
+    "days_in_month",
+    "first_day_of_month",
+    "month_name",
+    "day_name",
+    "month_calendar",
+    "weekdays_in_month",
+    "weekend_days_in_month",
+    "is_weekend",
+    "add_months",
+]
+
+
+def is_leap_year(year: int) -> bool:
+    """Return True if ``year`` is a leap year."""
+    if not isinstance(year, int) or isinstance(year, bool):
+        raise TypeError("year must be an integer")
+    return calendar.isleap(year)
+
+
+def days_in_month(year: int, month: int) -> int:
+    """Return the number of days in ``month`` of ``year``."""
+    if not isinstance(year, int) or isinstance(year, bool):
+        raise TypeError("year must be an integer")
+    if not isinstance(month, int) or isinstance(month, bool):
+        raise TypeError("month must be an integer")
+    if month < 1 or month > 12:
+        raise ValueError("month must be between 1 and 12")
+    return calendar.monthrange(year, month)[1]
+
+
+def first_day_of_month(year: int, month: int) -> int:
+    """Return the weekday (0=Monday) of the first day of ``month`` in ``year``."""
+    if not isinstance(year, int) or isinstance(year, bool):
+        raise TypeError("year must be an integer")
+    if not isinstance(month, int) or isinstance(month, bool):
+        raise TypeError("month must be an integer")
+    if month < 1 or month > 12:
+        raise ValueError("month must be between 1 and 12")
+    return calendar.monthrange(year, month)[0]
+
+
+def month_name(month: int) -> str:
+    """Return the name of ``month``."""
+    if not isinstance(month, int) or isinstance(month, bool):
+        raise TypeError("month must be an integer")
+    if month < 1 or month > 12:
+        raise ValueError("month must be between 1 and 12")
+    return calendar.month_name[month]
+
+
+def day_name(weekday: int) -> str:
+    """Return the name of the weekday (0=Monday)."""
+    if not isinstance(weekday, int) or isinstance(weekday, bool):
+        raise TypeError("weekday must be an integer")
+    if weekday < 0 or weekday > 6:
+        raise ValueError("weekday must be between 0 and 6")
+    return calendar.day_name[weekday]
+
+
+def month_calendar(year: int, month: int) -> list[list[int]]:
+    """Return a matrix representing a month's calendar."""
+    if not isinstance(year, int) or isinstance(year, bool):
+        raise TypeError("year must be an integer")
+    if not isinstance(month, int) or isinstance(month, bool):
+        raise TypeError("month must be an integer")
+    if month < 1 or month > 12:
+        raise ValueError("month must be between 1 and 12")
+    return calendar.monthcalendar(year, month)
+
+
+def weekdays_in_month(year: int, month: int) -> int:
+    """Return the number of weekdays in ``month`` of ``year``."""
+    if not isinstance(year, int) or isinstance(year, bool):
+        raise TypeError("year must be an integer")
+    if not isinstance(month, int) or isinstance(month, bool):
+        raise TypeError("month must be an integer")
+    if month < 1 or month > 12:
+        raise ValueError("month must be between 1 and 12")
+    return sum(1 for week in calendar.monthcalendar(year, month) for day in week if day != 0)
+
+
+def weekend_days_in_month(year: int, month: int) -> int:
+    """Return the number of weekend days in ``month`` of ``year``."""
+    if not isinstance(year, int) or isinstance(year, bool):
+        raise TypeError("year must be an integer")
+    if not isinstance(month, int) or isinstance(month, bool):
+        raise TypeError("month must be an integer")
+    if month < 1 or month > 12:
+        raise ValueError("month must be between 1 and 12")
+    return sum(1 for week in calendar.monthcalendar(year, month) for i, day in enumerate(week) if day != 0 and i >= 5)
+
+
+def is_weekend(year: int, month: int, day: int) -> bool:
+    """Return True if ``day`` of ``month`` in ``year`` is a weekend day."""
+    if not isinstance(year, int) or isinstance(year, bool):
+        raise TypeError("year must be an integer")
+    if not isinstance(month, int) or isinstance(month, bool):
+        raise TypeError("month must be an integer")
+    if not isinstance(day, int) or isinstance(day, bool):
+        raise TypeError("day must be an integer")
+    if month < 1 or month > 12:
+        raise ValueError("month must be between 1 and 12")
+    if day < 1 or day > 31:
+        raise ValueError("day must be between 1 and 31")
+    return calendar.weekday(year, month, day) >= 5
+
+
+def add_months(year: int, month: int, months: int) -> tuple[int, int]:
+    """Add ``months`` to ``year``/``month`` and return the new (year, month)."""
+    if not isinstance(year, int) or isinstance(year, bool):
+        raise TypeError("year must be an integer")
+    if not isinstance(month, int) or isinstance(month, bool):
+        raise TypeError("month must be an integer")
+    if not isinstance(months, int) or isinstance(months, bool):
+        raise TypeError("months must be an integer")
+    if month < 1 or month > 12:
+        raise ValueError("month must be between 1 and 12")
+    total = year * 12 + (month - 1) + months
+    return total // 12, total % 12 + 1
+CALENDARUTILS
+
+# --- tests/test_calendar_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_calendar_utils.py" <<'TESTCALENDARUTILS'
+"""Tests for calendar_utils module."""
+
+from __future__ import annotations
+
+import unittest
+
+import calendar_utils as m
+
+
+class TestIsLeapYear(unittest.TestCase):
+    def test_leap_year(self) -> None:
+        self.assertTrue(m.is_leap_year(2020))
+        self.assertTrue(m.is_leap_year(2000))
+
+    def test_not_leap_year(self) -> None:
+        self.assertFalse(m.is_leap_year(2021))
+        self.assertFalse(m.is_leap_year(1900))
+
+
+class TestDaysInMonth(unittest.TestCase):
+    def test_february_leap(self) -> None:
+        self.assertEqual(m.days_in_month(2020, 2), 29)
+
+    def test_february_non_leap(self) -> None:
+        self.assertEqual(m.days_in_month(2021, 2), 28)
+
+    def test_april(self) -> None:
+        self.assertEqual(m.days_in_month(2021, 4), 30)
+
+
+class TestAddMonths(unittest.TestCase):
+    def test_add(self) -> None:
+        self.assertEqual(m.add_months(2021, 1, 1), (2021, 2))
+
+    def test_add_year_rollover(self) -> None:
+        self.assertEqual(m.add_months(2021, 12, 1), (2022, 1))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCALENDARUTILS

@@ -8,11 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`) for date and month calculations using stdlib `calendar` with input validation
+- `tests/test_calendar_utils.py` — unit tests for `calendar_utils.py`
+- Synchronized `calendar_utils.py` across `scaffold.sh`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, and `tests/test_scaffold.py` assertions
+
 - `prime_utils.py` — prime number utilities (`prime_factors`, `nth_prime`, `primes_up_to`, `next_prime`, `previous_prime`) building on `math_utils.is_prime` with input validation
 - `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
 - Added `prime_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
 
-- `operator_utils.py` — operator utilities (`identity`, `negate`, `add`, `subtract`, `multiply`, `divide`, `power`, `modulo`, `clamp`, `between`) for common functional operations (module present; scaffold template synchronization pending) (module present; scaffold template synchronization pending)
+- `operator_utils.py` — operator utilities (`identity`, `negate`, `add`, `subtract`, `multiply`, `divide`, `power`, `modulo`, `clamp`, `between`) for common functional operations
 
 - `sys_utils.py` — Python runtime and system information utilities (`get_python_version`, `get_python_version_string`, `get_executable`, `get_argv`, `get_platform`, `get_path`, `get_recursion_limit`, `set_recursion_limit`, `get_stdout_encoding`, `get_stderr_encoding`, `get_stdin_encoding`, `is_interactive`, `get_frame_info`, `get_refcount`) wrapping the standard library `sys` module with input validation
 - `tests/test_sys_utils.py` — unit tests for `sys_utils.py`
@@ -104,6 +108,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers (`count_set_bits`, `is_power_of_two`, `next_power_of_two`, `prev_power_of_two`, `reverse_bits`, `rotate_left`, `rotate_right`, `get_bit`, `set_bit`, `clear_bit`, `toggle_bit`, `is_even`, `is_odd`) with input validation
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - Added `bit_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
+- `operator_utils.py` — operator utilities (`identity`, `negate`, `add`, `subtract`, `multiply`, `divide`, `power`, `modulo`, `clamp`, `between`) for common functional operations
+- `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
+- Added `operator_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
 
 ### Changed
 

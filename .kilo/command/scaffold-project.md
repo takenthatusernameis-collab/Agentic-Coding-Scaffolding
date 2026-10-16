@@ -118,6 +118,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_color_utils.py` — unit tests for `color_utils.py`
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
+- `subprocess_utils.py` — subprocess utilities (`run_command`, `check_output`, `check_call`) using the standard library `subprocess` module with input validation
+- `tests/test_subprocess_utils.py` — unit tests for `subprocess_utils.py`
 - `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
 - `hash_utils.py` — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
@@ -130,6 +132,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_bytes_utils.py` — unit tests for `bytes_utils.py`
 - `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
 - `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
+- `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
+- `tests/test_calendar_utils.py` — unit tests for `calendar_utils.py`
 - `struct_utils.py` — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
 - `tests/test_struct_utils.py` — unit tests for `struct_utils.py`
 - `duration_utils.py` — time duration utilities (`parse_duration`, `format_duration`, `seconds_to_hms`, `hms_to_seconds`, `to_seconds`, `duration_between`, `add_duration`, `is_valid_duration`)
