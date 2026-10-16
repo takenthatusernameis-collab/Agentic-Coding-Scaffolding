@@ -99,6 +99,7 @@ py_modules = [
     "terminal_utils",
     "subprocess_utils",
     "textwrap_utils",
+    "template_utils",
     "time_utils",
     "uuid_utils",
     "hash_utils",
