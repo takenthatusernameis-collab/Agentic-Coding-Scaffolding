@@ -140,6 +140,8 @@
 #   - tests/test_queue_utils.py — unit tests for queue_utils.py
 #   - version_utils.py — version parsing, comparison, and normalization utilities
 #   - tests/test_version_utils.py — unit tests for version_utils.py
+#   - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+#   - tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
 set -euo pipefail
 
 usage() {
@@ -547,6 +549,7 @@ py_modules = [
     "graphlib_utils",
     "queue_utils",
     "version_utils",
+    "textwrap_utils",
 ]
 
 [tool.ruff]
@@ -14332,6 +14335,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_queue_utils.py — unit tests for `queue_utils.py`
 - version_utils.py — version parsing, comparison, and normalization utilities
 - tests/test_version_utils.py — unit tests for `version_utils.py`
+- textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+- tests/test_textwrap_utils.py — unit tests for `textwrap_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -14601,6 +14606,7 @@ seq_utils.py               # Sequence utilities (first, last, nth, head, tail, s
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 queue_utils.py             # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
 version_utils.py           # Version parsing, comparison, and normalization utilities
+textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -14787,6 +14793,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_queue_utils.py — unit tests for `queue_utils.py`
 - version_utils.py — version parsing, comparison, and normalization utilities
 - tests/test_version_utils.py — unit tests for `version_utils.py`
+- textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+- tests/test_textwrap_utils.py — unit tests for `textwrap_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
@@ -21551,3 +21559,100 @@ class TestNormalizeVersion(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTVERSIONUTILS
+
+# --- textwrap_utils.py ---
+cat > "$OUTPUT_DIR/textwrap_utils.py" <<'TEXTWRAP_UTILS'
+"""Text wrapping utility functions."""
+
+import textwrap
+from typing import List
+
+
+def wrap_text(text: str, width: int = 70) -> List[str]:
+    """Wrap *text* into a list of lines no longer than *width*."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    if isinstance(width, bool) or not isinstance(width, int):
+        raise TypeError("width must be an integer")
+    if width < 1:
+        raise ValueError("width must be at least 1")
+    return textwrap.wrap(text, width=width)
+
+
+def shorten_text(text: str, width: int, placeholder: str = "...") -> str:
+    """Shorten *text* to fit within *width*, appending *placeholder* if trimmed."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    if isinstance(width, bool) or not isinstance(width, int):
+        raise TypeError("width must be an integer")
+    if width < 1:
+        raise ValueError("width must be at least 1")
+    if not isinstance(placeholder, str):
+        raise TypeError("placeholder must be a string")
+    return textwrap.shorten(text, width=width, placeholder=placeholder)
+
+
+def dedent_text(text: str) -> str:
+    """Remove common leading whitespace from every line of *text*."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return textwrap.dedent(text)
+
+
+def indent_text(text: str, prefix: str) -> str:
+    """Indent every line of *text* with *prefix*."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    if not isinstance(prefix, str):
+        raise TypeError("prefix must be a string")
+    return textwrap.indent(text, prefix)
+
+
+def fill_text(text: str, width: int = 70) -> str:
+    """Fill *text* so each line is no longer than *width*."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    if isinstance(width, bool) or not isinstance(width, int):
+        raise TypeError("width must be an integer")
+    if width < 1:
+        raise ValueError("width must be at least 1")
+    return textwrap.fill(text, width=width)
+TEXTWRAP_UTILS
+
+# --- tests/test_textwrap_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_textwrap_utils.py" <<'TESTTEXTWRAPUTILS'
+import textwrap
+
+import textwrap_utils
+
+
+def test_wrap_text():
+    lines = textwrap_utils.wrap_text("hello world", width=5)
+    assert lines == textwrap.wrap("hello world", width=5)
+
+
+def test_shorten_text():
+    assert textwrap_utils.shorten_text("hello world", width=8) == "hello..."
+
+
+def test_dedent_text():
+    assert textwrap_utils.dedent_text("    a\n    b") == "a\nb"
+
+
+def test_indent_text():
+    assert textwrap_utils.indent_text("a\nb", "> ") == "> a\n> b"
+
+
+def test_fill_text():
+    assert textwrap_utils.fill_text("hello world", width=5) == textwrap.fill("hello world", width=5)
+
+
+def test_validation():
+    for f in (textwrap_utils.wrap_text, textwrap_utils.fill_text):
+        try:
+            f(123)
+        except TypeError:
+            pass
+        else:
+            raise AssertionError("TypeError expected")
+TESTTEXTWRAPUTILS

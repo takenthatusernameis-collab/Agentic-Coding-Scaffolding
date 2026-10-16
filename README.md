@@ -83,6 +83,7 @@ sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, 
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 version_utils.py           # Version utility functions (parse, compare, normalize)
+textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
@@ -144,6 +145,7 @@ tests/                     # Python unit tests
   test_graphlib_utils.py        # Tests for graphlib_utils.py
   test_queue_utils.py           # Tests for queue_utils.py
   test_version_utils.py         # Tests for version_utils.py
+  test_textwrap_utils.py        # Tests for textwrap_utils.py
   test_functools_utils.py       # Tests for functools_utils.py
   test_exceptions_utils.py    # Tests for exceptions_utils.py
   test_io_utils.py            # Tests for io_utils.py
@@ -453,6 +455,10 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 ## Version Utilities Module
 
 The project includes version utility functions in `version_utils.py` for parsing, comparing, and normalizing dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_greater` returns whether one version is greater than another, and `normalize_version` pads or truncates a version to a fixed component count. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+
+## Text Wrapping Utilities Module
+
+The project includes text wrapping utility functions in `textwrap_utils.py` for wrapping, shortening, dedenting, indenting, and filling text using the standard library `textwrap` module: `wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, and `fill_text`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_textwrap_utils.py`.
 
 
 

@@ -93,6 +93,7 @@ py_modules = [
     "prompt_utils",
     "regex_utils",
     "terminal_utils",
+    "textwrap_utils",
     "uuid_utils",
     "hash_utils",
     "http_utils",

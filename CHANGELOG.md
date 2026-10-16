@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `textwrap_utils.py` — text wrapping utilities (`wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, `fill_text`) using the standard library `textwrap` module with input validation
+- `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
+- Added `textwrap_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+
 - `sys_utils.py` — Python runtime and system information utilities (`get_python_version`, `get_python_version_string`, `get_executable`, `get_argv`, `get_platform`, `get_path`, `get_recursion_limit`, `set_recursion_limit`, `get_stdout_encoding`, `get_stderr_encoding`, `get_stdin_encoding`, `is_interactive`, `get_frame_info`, `get_refcount`) for inspecting the interpreter and runtime environment using the standard library `sys` module with input validation
 - `tests/test_sys_utils.py` — unit tests for `sys_utils.py`
 - Added `sys_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions

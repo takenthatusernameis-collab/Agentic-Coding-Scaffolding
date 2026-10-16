@@ -210,6 +210,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_queue_utils.py",
             "version_utils.py",
             "tests/test_version_utils.py",
+            "textwrap_utils.py",
+            "tests/test_textwrap_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -343,6 +345,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "graphlib_utils.py",
             "queue_utils.py",
             "version_utils.py",
+            "textwrap_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -465,6 +468,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_queue_utils.py",
             "version_utils.py",
             "tests/test_version_utils.py",
+            "textwrap_utils.py",
+            "tests/test_textwrap_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
