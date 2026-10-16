@@ -82,6 +82,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "hello.py",
             "calculator.py",
             "config_utils.py",
+            "collections_utils.py",
             "shapes.py",
             "strings.py",
             "utils.py",
@@ -100,6 +101,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_hello.py",
             "tests/test_calculator.py",
             "tests/test_config_utils.py",
+            "tests/test_collections_utils.py",
             "tests/test_shapes.py",
             "tests/test_strings.py",
             "tests/test_utils.py",
@@ -245,6 +247,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "validation_utils.py",
             "crypto_utils.py",
             "config_utils.py",
+            "collections_utils.py",
             "env_utils.py",
             "logging_utils.py",
             "cache_utils.py",
@@ -299,6 +302,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_path_utils.py",
             "tests/test_crypto_utils.py",
             "tests/test_config_utils.py",
+            "tests/test_collections_utils.py",
             "tests/test_env_utils.py",
             "tests/test_logging_utils.py",
             "tests/test_cache_utils.py",
@@ -337,6 +341,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "validation_utils.py",
             "crypto_utils.py",
             "config_utils.py",
+            "collections_utils.py",
             "env_utils.py",
             "logging_utils.py",
             "cache_utils.py",
@@ -425,6 +430,45 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertTrue(is_prime(17))
         self.assertFalse(is_prime(9))
         self.assertEqual(clamp(5, 0, 10), 5)
+
+    def test_collections_utils_functions_work(self) -> None:
+        """Generated collections_utils.py should have working functions."""
+        from collections_utils import (
+            chunk,
+            compact,
+            deep_flatten,
+            flatten,
+            frequency,
+            least_common,
+            merge_dicts,
+            most_common,
+            partition_by,
+            pluck,
+            to_deque,
+            uniq,
+            uniq_by,
+            windowed,
+        )
+
+        self.assertEqual(list(chunk([1, 2, 3, 4, 5], 2)), [[1, 2], [3, 4], [5]])
+        self.assertEqual(flatten([1, [2, 3], [4], 5]), [1, 2, 3, 4, 5])
+        self.assertEqual(deep_flatten([1, [2, [3, 4]], 5]), [1, 2, 3, 4, 5])
+        self.assertEqual(list(windowed([1, 2, 3, 4], 2)), [(1, 2), (2, 3), (3, 4)])
+        self.assertEqual(uniq([1, 2, 2, 3, 1]), [1, 2, 3])
+        self.assertEqual(
+            uniq_by([{"id": 1}, {"id": 2}, {"id": 1}], lambda x: x["id"]),
+            [{"id": 1}, {"id": 2}],
+        )
+        self.assertEqual(frequency([1, 2, 2, 3])[2], 2)
+        self.assertEqual(most_common([1, 2, 2, 3, 3, 3])[0], (3, 3))
+        self.assertEqual(least_common([1, 2, 2, 3, 3, 3], n=1), [(1, 1)])
+        self.assertEqual(merge_dicts({"a": 1}, {"b": 2}, {"a": 3}), {"a": 3, "b": 2})
+        self.assertEqual(len(to_deque([1, 2, 3])), 3)
+        self.assertEqual(pluck([{"a": 1}, {"a": 2}, {"b": 3}], "a"), [1, 2])
+        self.assertEqual(compact([0, 1, False, 2, "", 3, None]), [1, 2, 3])
+        self.assertEqual(
+            partition_by([1, 1, 2, 2, 3], lambda x: x), [[1, 1], [2, 2], [3]]
+        )
 
     def test_datetime_utils_functions_work(self) -> None:
         """Generated datetime_utils.py should have working functions."""

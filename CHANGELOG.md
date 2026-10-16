@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `collections_utils.py` — collection utilities (`chunk`, `flatten`, `deep_flatten`, `windowed`, `uniq`, `uniq_by`, `frequency`, `most_common`, `least_common`, `merge_dicts`, `to_deque`, `pluck`, `compact`, `partition_by`) for working with iterables and data structures
+- `tests/test_collections_utils.py` — unit tests for `collections_utils.py`
 - `regex_utils.py` — regular expression utilities (`compile_pattern`, `is_valid_pattern`, `match_pattern`, `search_pattern`, `find_all`, `replace_pattern`, `split_pattern`, `escape_pattern`, `extract_groups`, `named_groups`) for safe regex compilation, matching, extraction, and manipulation
 - `tests/test_regex_utils.py` — unit tests for `regex_utils.py`
 - `tests/test_io_utils.py` — unit tests for `io_utils.py`

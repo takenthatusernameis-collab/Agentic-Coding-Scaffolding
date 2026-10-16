@@ -62,6 +62,7 @@ rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
 dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
+collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
@@ -108,6 +109,7 @@ tests/                     # Python unit tests
   test_retry_utils.py         # Tests for retry_utils.py
   test_dict_utils.py         # Tests for dict_utils.py
   test_json_utils.py          # Tests for json_utils.py
+  test_collections_utils.py   # Tests for collections_utils.py
   test_csv_utils.py           # Tests for csv_utils.py
   test_set_utils.py           # Tests for set_utils.py
   test_statistics_utils.py    # Tests for statistics_utils.py
