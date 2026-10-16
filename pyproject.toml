@@ -88,4 +88,5 @@ py_modules = [
     "ip_utils",
     "regex_utils",
     "terminal_utils",
+    "hash_utils",
 ]

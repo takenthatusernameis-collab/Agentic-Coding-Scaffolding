@@ -108,7 +108,7 @@
 #   - terminal_utils.py — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 #   - tests/test_terminal_utils.py — unit tests for terminal_utils.py
 #   - cli_utils.py — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
-#     - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+# - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 #   - tests/test_cli_utils.py — unit tests for cli_utils.py
 set -euo pipefail
 
@@ -503,6 +503,7 @@ py_modules = [
    "io_utils",
    "cli_utils",
    "terminal_utils",
+   "hash_utils",
 ]
 
 [tool.ruff]
@@ -12488,8 +12489,6 @@ class TestHashFile(unittest.TestCase):
 TESTHASHUTILS
 # --- tests/test_cli_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_cli_utils.py" <<'TESTCLIUTILS'
-hash_utils.py               # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
-tests/test_hash_utils.py    # Unit tests for hash_utils.py
 """Unit tests for cli_utils module."""
 
 import argparse
@@ -12911,8 +12910,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 - `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
-  - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
-  - tests/test_hash_utils.py — unit tests for `hash_utils.py`
+- hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+- tests/test_hash_utils.py — unit tests for `hash_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -13313,8 +13312,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 - `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
-  - hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
-  - tests/test_hash_utils.py — unit tests for `hash_utils.py`
+- hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+- tests/test_hash_utils.py — unit tests for `hash_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory

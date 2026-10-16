@@ -72,6 +72,7 @@ type_utils.py              # Type introspection utilities (is_optional, is_union
     path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
+hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
