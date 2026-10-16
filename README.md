@@ -74,6 +74,7 @@ path_utils.py              # Path manipulation utilities (join, normalize, compo
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
+xml_utils.py               # XML parsing and generation utilities
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
@@ -407,5 +408,9 @@ The project includes time duration utilities in `duration_utils.py` for parsing,
 ## Temporary File and Directory Utilities Module
 
 The project includes temporary file and directory utilities in `temp_utils.py` for creating, writing, reading, and cleaning up temporary filesystem resources: `create_temp_file` and `create_temp_dir` create named temp files/directories, `temp_file` and `temp_dir` are context managers that remove resources on exit, `write_temp_file` and `read_temp_file` read/write temp file contents, `cleanup_temp_path` removes a temp file or directory, `is_temp_path` checks whether a path lives under the system temp directory, and `temp_path_exists` reports whether a path exists. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_temp_utils.py`.
+
+## XML Parsing and Generation Utilities Module
+
+The project includes XML parsing and generation utilities in `xml_utils.py` for parsing XML documents and strings, building XML elements, converting between elements and dictionaries, querying with XPath, and serializing elements back to strings using the standard library `xml.etree.ElementTree` module: `parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, and `validate_well_formed`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_xml_utils.py`.
 
 

@@ -132,6 +132,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_duration_utils.py` — unit tests for `duration_utils.py`
 - `temp_utils.py` — temporary file and directory management utilities (`create_temp_file`, `create_temp_dir`, `temp_file`, `temp_dir`, `write_temp_file`, `read_temp_file`, `cleanup_temp_path`, `is_temp_path`, `temp_path_exists`)
 - `tests/test_temp_utils.py` — unit tests for `temp_utils.py`
+- `xml_utils.py` — XML parsing and generation utilities (`parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, `validate_well_formed`)
+- `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
 
 ## Usage
 

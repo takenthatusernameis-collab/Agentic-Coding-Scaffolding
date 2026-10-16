@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_temp_utils.py` — unit tests for `temp_utils.py`
 - Added `temp_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
 
+- `xml_utils.py` — XML parsing and generation utilities (`parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, `validate_well_formed`) wrapping the standard library `xml.etree.ElementTree` module with input validation
+- `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
+- Added `xml_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+
 - `duration_utils.py` — time duration utilities (`parse_duration`, `format_duration`, `seconds_to_hms`, `hms_to_seconds`, `to_seconds`, `duration_between`, `add_duration`, `is_valid_duration`) for parsing, formatting, and converting time durations with input validation
 - `tests/test_duration_utils.py` — unit tests for `duration_utils.py`
 - Added `duration_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
