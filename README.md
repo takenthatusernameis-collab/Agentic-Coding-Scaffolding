@@ -75,6 +75,7 @@ color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminanc
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
+base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
@@ -380,4 +381,9 @@ The project includes an INI configuration utilities module in `ini_utils.py` for
 ## HTML Utilities Module
 
 The project includes HTML utility functions in `html_utils.py` for escaping, unescaping, and sanitizing HTML content: `escape_html` escapes special characters (`&`, `<`, `>`, `"`, `'`) for safe insertion into HTML documents, `unescape_html` decodes named and numeric HTML entities back to their original characters, `strip_tags` removes all HTML tags leaving only text content, and `escape_attribute` escapes values for safe use inside HTML attributes. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_html_utils.py`.
+
+## Base64 Utilities Module
+
+The project includes Base64 and hexadecimal encoding/decoding utilities in `base64_utils.py`: `base64_encode` and `base64_decode` for standard and URL-safe Base64, `base64_encode_bytes` and `base64_decode_bytes` for raw bytes, `hex_encode` and `hex_decode` for hexadecimal, and `is_valid_base64` / `is_valid_hex` for validation. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_base64_utils.py`.
+
 

@@ -92,4 +92,5 @@ py_modules = [
     "uuid_utils",
     "hash_utils",
     "html_utils",
+    "base64_utils",
 ]

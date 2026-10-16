@@ -120,6 +120,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_hash_utils.py` — unit tests for `hash_utils.py`
 - `html_utils.py` — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
+- `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
+- `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
 
 ## Usage
 

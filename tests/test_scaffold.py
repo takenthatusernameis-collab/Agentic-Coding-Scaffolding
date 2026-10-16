@@ -304,6 +304,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_hash_utils.py",
             "html_utils.py",
             "tests/test_html_utils.py",
+            "base64_utils.py",
+            "tests/test_base64_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -406,6 +408,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_hash_utils.py",
             "html_utils.py",
             "tests/test_html_utils.py",
+            "base64_utils.py",
+            "tests/test_base64_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 

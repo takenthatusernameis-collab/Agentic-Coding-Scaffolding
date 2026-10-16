@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
 - Added `html_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
 
+- `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`) using the standard library `base64` module with input validation
+- `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
+- Added `base64_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers (`count_set_bits`, `is_power_of_two`, `next_power_of_two`, `prev_power_of_two`, `reverse_bits`, `rotate_left`, `rotate_right`, `get_bit`, `set_bit`, `clear_bit`, `toggle_bit`, `is_even`, `is_odd`) with input validation
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - Added `bit_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests

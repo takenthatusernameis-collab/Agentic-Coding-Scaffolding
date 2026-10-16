@@ -114,6 +114,8 @@
 #   - tests/test_hash_utils.py — unit tests for hash_utils.py
 #   - html_utils.py — HTML escaping, unescaping, and tag-stripping utilities
 #   - tests/test_html_utils.py — unit tests for html_utils.py
+#   - base64_utils.py — Base64 and hexadecimal encoding/decoding utilities
+#   - tests/test_base64_utils.py — unit tests for base64_utils.py
 set -euo pipefail
 
 usage() {
@@ -510,6 +512,7 @@ py_modules = [
    "terminal_utils",
    "hash_utils",
    "html_utils",
+   "base64_utils",
 ]
 
 [tool.ruff]
@@ -13090,6 +13093,383 @@ if __name__ == "__main__":
     unittest.main()
 TESTHTMLUTILS
 
+# --- base64_utils.py ---
+cat > "$OUTPUT_DIR/base64_utils.py" <<'BASE64_UTILS'
+"""Base64 and hexadecimal encoding/decoding utilities.
+
+This module provides utilities for encoding and decoding data using Base64
+(standard and URL-safe alphabets) and hexadecimal representations, with input
+validation and helpers for checking whether a string is valid Base64 or hex.
+All functions operate on :class:`str` or :class:`bytes` and raise
+:class:`TypeError` or :class:`ValueError` on invalid input.
+"""
+
+from __future__ import annotations
+
+import base64
+import binascii
+from typing import Union
+
+__all__: list[str] = [
+    "base64_encode",
+    "base64_decode",
+    "base64_encode_bytes",
+    "base64_decode_bytes",
+    "hex_encode",
+    "hex_decode",
+    "is_valid_base64",
+    "is_valid_hex",
+]
+
+
+def _to_bytes(data: Union[str, bytes]) -> bytes:
+    if isinstance(data, str):
+        return data.encode("utf-8")
+    if isinstance(data, bytes):
+        return data
+    raise TypeError("data must be a string or bytes")
+
+
+def base64_encode(data: Union[str, bytes], urlsafe: bool = False) -> str:
+    """Encode ``data`` as a Base64 string.
+
+    Args:
+        data: The string or bytes to encode.
+        urlsafe: If True, use the URL-safe Base64 alphabet (``-`` and ``_``
+            instead of ``+`` and ``/``). Defaults to False.
+
+    Returns:
+        The Base64-encoded ASCII string.
+
+    Raises:
+        TypeError: If ``data`` is not a string or bytes.
+
+    Examples:
+        >>> base64_encode("hello")
+        'aGVsbG8='
+        >>> base64_encode("hello", urlsafe=True)
+        'aGVsbG8='
+    """
+    encoded = (
+        base64.urlsafe_b64encode(_to_bytes(data))
+        if urlsafe
+        else base64.b64encode(_to_bytes(data))
+    )
+    return encoded.decode("ascii")
+
+
+def base64_decode(encoded: str, urlsafe: bool = False) -> str:
+    """Decode a Base64-encoded string back to a UTF-8 string.
+
+    Args:
+        encoded: The Base64-encoded string to decode.
+        urlsafe: If True, interpret ``encoded`` using the URL-safe alphabet.
+            Defaults to False.
+
+    Returns:
+        The decoded UTF-8 string.
+
+    Raises:
+        TypeError: If ``encoded`` is not a string.
+        ValueError: If ``encoded`` is not valid Base64.
+        UnicodeDecodeError: If the decoded bytes are not valid UTF-8.
+
+    Examples:
+        >>> base64_decode("aGVsbG8=")
+        'hello'
+    """
+    if not isinstance(encoded, str):
+        raise TypeError("encoded must be a string")
+    encoded_bytes = encoded.encode("ascii")
+    try:
+        decoded = (
+            base64.urlsafe_b64decode(encoded_bytes)
+            if urlsafe
+            else base64.b64decode(encoded_bytes)
+        )
+    except (binascii.Error, ValueError) as exc:
+        raise ValueError(f"invalid base64 data: {exc}") from exc
+    return decoded.decode("utf-8")
+
+
+def base64_encode_bytes(data: Union[str, bytes]) -> bytes:
+    """Encode ``data`` as Base64 bytes.
+
+    Args:
+        data: The string or bytes to encode.
+
+    Returns:
+        The Base64-encoded bytes.
+
+    Raises:
+        TypeError: If ``data`` is not a string or bytes.
+
+    Examples:
+        >>> base64_encode_bytes("hello")
+        b'aGVsbG8='
+    """
+    return base64.b64encode(_to_bytes(data))
+
+
+def base64_decode_bytes(encoded: Union[str, bytes]) -> bytes:
+    """Decode a Base64-encoded string or bytes back to raw bytes.
+
+    Args:
+        encoded: The Base64-encoded data to decode.
+
+    Returns:
+        The decoded bytes.
+
+    Raises:
+        TypeError: If ``encoded`` is not a string or bytes.
+        ValueError: If ``encoded`` is not valid Base64.
+
+    Examples:
+        >>> base64_decode_bytes("aGVsbG8=")
+        b'hello'
+    """
+    if isinstance(encoded, str):
+        encoded_bytes = encoded.encode("ascii")
+    elif isinstance(encoded, bytes):
+        encoded_bytes = encoded
+    else:
+        raise TypeError("encoded must be a string or bytes")
+    try:
+        return base64.b64decode(encoded_bytes)
+    except (binascii.Error, ValueError) as exc:
+        raise ValueError(f"invalid base64 data: {exc}") from exc
+
+
+def hex_encode(data: Union[str, bytes]) -> str:
+    """Encode ``data`` as a lowercase hexadecimal string.
+
+    Args:
+        data: The string or bytes to encode.
+
+    Returns:
+        The lowercase hexadecimal-encoded string.
+
+    Raises:
+        TypeError: If ``data`` is not a string or bytes.
+
+    Examples:
+        >>> hex_encode("hello")
+        '68656c6c6f'
+    """
+    return _to_bytes(data).hex()
+
+
+def hex_decode(encoded: str) -> str:
+    """Decode a hexadecimal-encoded string back to a UTF-8 string.
+
+    Args:
+        encoded: The hexadecimal-encoded string to decode.
+
+    Returns:
+        The decoded UTF-8 string.
+
+    Raises:
+        TypeError: If ``encoded`` is not a string.
+        ValueError: If ``encoded`` is not valid hexadecimal or the decoded
+            bytes are not valid UTF-8.
+
+    Examples:
+        >>> hex_decode("68656c6c6f")
+        'hello'
+    """
+    if not isinstance(encoded, str):
+        raise TypeError("encoded must be a string")
+    try:
+        decoded = bytes.fromhex(encoded)
+    except ValueError as exc:
+        raise ValueError(f"invalid hexadecimal data: {exc}") from exc
+    return decoded.decode("utf-8")
+
+
+def is_valid_base64(encoded: str, urlsafe: bool = False) -> bool:
+    """Return True if ``encoded`` is valid Base64 data.
+
+    Args:
+        encoded: The string to validate.
+        urlsafe: If True, validate against the URL-safe alphabet.
+            Defaults to False.
+
+    Returns:
+        True if ``encoded`` is valid Base64, False otherwise.
+
+    Examples:
+        >>> is_valid_base64("aGVsbG8=")
+        True
+        >>> is_valid_base64("not valid base64!!!")
+        False
+    """
+    if not isinstance(encoded, str):
+        return False
+    try:
+        base64_decode(encoded, urlsafe=urlsafe)
+        return True
+    except (TypeError, ValueError, UnicodeDecodeError):
+        return False
+
+
+def is_valid_hex(encoded: str) -> bool:
+    """Return True if ``encoded`` is valid hexadecimal data.
+
+    Args:
+        encoded: The string to validate.
+
+    Returns:
+        True if ``encoded`` is valid hexadecimal, False otherwise.
+
+    Examples:
+        >>> is_valid_hex("68656c6c6f")
+        True
+        >>> is_valid_hex("zzzz")
+        False
+    """
+    if not isinstance(encoded, str):
+        return False
+    try:
+        bytes.fromhex(encoded)
+        return True
+    except ValueError:
+        return False
+BASE64_UTILS
+
+# --- tests/test_base64_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_base64_utils.py" <<'TESTBASE64UTILS'
+"""Unit tests for base64_utils module."""
+
+import unittest
+
+from base64_utils import (
+    base64_decode,
+    base64_decode_bytes,
+    base64_encode,
+    base64_encode_bytes,
+    hex_decode,
+    hex_encode,
+    is_valid_base64,
+    is_valid_hex,
+)
+
+
+class TestBase64Encode(unittest.TestCase):
+    def test_base64_encode_string(self):
+        self.assertEqual(base64_encode("hello"), "aGVsbG8=")
+
+    def test_base64_encode_bytes(self):
+        self.assertEqual(base64_encode(b"hello"), "aGVsbG8=")
+
+    def test_base64_encode_empty(self):
+        self.assertEqual(base64_encode(""), "")
+
+    def test_base64_encode_urlsafe(self):
+        self.assertEqual(base64_encode("hello", urlsafe=True), "aGVsbG8=")
+
+    def test_base64_encode_type_error(self):
+        with self.assertRaises(TypeError):
+            base64_encode(123)  # type: ignore[arg-type]
+
+
+class TestBase64Decode(unittest.TestCase):
+    def test_base64_decode_basic(self):
+        self.assertEqual(base64_decode("aGVsbG8="), "hello")
+
+    def test_base64_decode_roundtrip(self):
+        self.assertEqual(base64_decode(base64_encode("hello")), "hello")
+
+    def test_base64_decode_invalid(self):
+        with self.assertRaises(ValueError):
+            base64_decode("not valid base64!!!")
+
+    def test_base64_decode_type_error(self):
+        with self.assertRaises(TypeError):
+            base64_decode(123)  # type: ignore[arg-type]
+
+
+class TestBase64EncodeBytes(unittest.TestCase):
+    def test_base64_encode_bytes_basic(self):
+        self.assertEqual(base64_encode_bytes("hello"), b"aGVsbG8=")
+
+    def test_base64_encode_bytes_type_error(self):
+        with self.assertRaises(TypeError):
+            base64_encode_bytes(123)  # type: ignore[arg-type]
+
+
+class TestBase64DecodeBytes(unittest.TestCase):
+    def test_base64_decode_bytes_basic(self):
+        self.assertEqual(base64_decode_bytes("aGVsbG8="), b"hello")
+
+    def test_base64_decode_bytes_roundtrip(self):
+        self.assertEqual(base64_decode_bytes(base64_encode("hello")), b"hello")
+
+    def test_base64_decode_bytes_invalid(self):
+        with self.assertRaises(ValueError):
+            base64_decode_bytes("not valid base64!!!")
+
+    def test_base64_decode_bytes_type_error(self):
+        with self.assertRaises(TypeError):
+            base64_decode_bytes(123)  # type: ignore[arg-type]
+
+
+class TestHexEncode(unittest.TestCase):
+    def test_hex_encode_string(self):
+        self.assertEqual(hex_encode("hello"), "68656c6c6f")
+
+    def test_hex_encode_bytes(self):
+        self.assertEqual(hex_encode(b"hello"), "68656c6c6f")
+
+    def test_hex_encode_empty(self):
+        self.assertEqual(hex_encode(""), "")
+
+    def test_hex_encode_type_error(self):
+        with self.assertRaises(TypeError):
+            hex_encode(123)  # type: ignore[arg-type]
+
+
+class TestHexDecode(unittest.TestCase):
+    def test_hex_decode_basic(self):
+        self.assertEqual(hex_decode("68656c6c6f"), "hello")
+
+    def test_hex_decode_roundtrip(self):
+        self.assertEqual(hex_decode(hex_encode("hello")), "hello")
+
+    def test_hex_decode_invalid(self):
+        with self.assertRaises(ValueError):
+            hex_decode("zzzz")
+
+    def test_hex_decode_type_error(self):
+        with self.assertRaises(TypeError):
+            hex_decode(123)  # type: ignore[arg-type]
+
+
+class TestIsValidBase64(unittest.TestCase):
+    def test_is_valid_base64_true(self):
+        self.assertTrue(is_valid_base64("aGVsbG8="))
+
+    def test_is_valid_base64_false(self):
+        self.assertFalse(is_valid_base64("not valid base64!!!"))
+
+    def test_is_valid_base64_type_error_returns_false(self):
+        self.assertFalse(is_valid_base64(123))  # type: ignore[arg-type]
+
+
+class TestIsValidHex(unittest.TestCase):
+    def test_is_valid_hex_true(self):
+        self.assertTrue(is_valid_hex("68656c6c6f"))
+
+    def test_is_valid_hex_false(self):
+        self.assertFalse(is_valid_hex("zzzz"))
+
+    def test_is_valid_hex_type_error_returns_false(self):
+        self.assertFalse(is_valid_hex(123))  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTBASE64UTILS
+
 # --- tests/test_cli_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_cli_utils.py" <<'TESTCLIUTILS'
 """Unit tests for cli_utils module."""
@@ -13521,6 +13901,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_hash_utils.py — unit tests for `hash_utils.py`
 - html_utils.py — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
 - tests/test_html_utils.py — unit tests for `html_utils.py`
+- base64_utils.py — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
+- tests/test_base64_utils.py — unit tests for `base64_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -13779,6 +14161,7 @@ config_schema.py           # Typed configuration schema utilities (SchemaField, 
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
+base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -13819,6 +14202,7 @@ tests/                     # Python unit tests
   test_functools_utils.py       # Tests for functools_utils.py
   test_config_schema.py         # Tests for config_schema.py
   test_html_utils.py            # Tests for html_utils.py
+  test_base64_utils.py          # Tests for base64_utils.py
     ```
 
 ## Getting Started
@@ -13934,6 +14318,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_hash_utils.py — unit tests for `hash_utils.py`
 - html_utils.py — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
 - tests/test_html_utils.py — unit tests for `html_utils.py`
+- base64_utils.py — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
+- tests/test_base64_utils.py — unit tests for `base64_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
