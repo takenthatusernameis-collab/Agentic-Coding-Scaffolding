@@ -128,6 +128,10 @@
 #   - tests/test_xml_utils.py — unit tests for xml_utils.py
 #   - seq_utils.py — sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
 #   - tests/test_seq_utils.py — unit tests for seq_utils.py
+#   - number_utils.py — number utility functions (clamp, round_to, is_integer, format_number, percentage)
+#   - tests/test_number_utils.py — unit tests for number_utils.py
+#   - sort_utils.py — sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
+#   - tests/test_sort_utils.py — unit tests for sort_utils.py
 set -euo pipefail
 
 usage() {
@@ -20531,3 +20535,232 @@ class TestIsSorted(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTSEQUTILS
+
+# --- number_utils.py ---
+cat > "$OUTPUT_DIR/number_utils.py" <<'NUMBER_UTILS'
+"""Number utility functions."""
+
+from typing import Union
+
+Number = Union[int, float]
+
+
+def clamp(value: Number, minimum: Number, maximum: Number) -> Number:
+    """Clamp a value to a closed interval [minimum, maximum]."""
+    if minimum > maximum:
+        raise ValueError("minimum must not exceed maximum")
+    return max(minimum, min(maximum, value))
+
+
+def round_to(value: float, places: int = 0) -> float:
+    """Round a value to the given number of decimal places."""
+    return round(value, places)
+
+
+def is_integer(value: Number) -> bool:
+    """Return True if the value is integral."""
+    return isinstance(value, int) or float(value).is_integer()
+
+
+def format_number(value: Number, precision: int = 2) -> str:
+    """Format a number with thousands separators and fixed decimals."""
+    return f"{value:,.{precision}f}"
+
+
+def percentage(part: Number, total: Number, precision: int = 1) -> str:
+    """Return part as a percentage of total formatted as string."""
+    if total == 0:
+        return "0.0%"
+    return f"{(part / total) * 100:.{precision}f}%"
+NUMBER_UTILS
+
+# --- tests/test_number_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_number_utils.py" <<'TESTNUMBERUTILS'
+"""Tests for number_utils module."""
+
+import unittest
+
+from number_utils import clamp, format_number, is_integer, percentage, round_to
+
+
+class TestClamp(unittest.TestCase):
+    def test_within_range(self) -> None:
+        self.assertEqual(clamp(5, 0, 10), 5)
+
+    def test_below(self) -> None:
+        self.assertEqual(clamp(-3, 0, 10), 0)
+
+    def test_above(self) -> None:
+        self.assertEqual(clamp(15, 0, 10), 10)
+
+    def test_invalid_range(self) -> None:
+        with self.assertRaises(ValueError):
+            clamp(5, 10, 0)
+
+
+class TestRoundTo(unittest.TestCase):
+    def test_default(self) -> None:
+        self.assertEqual(round_to(3.14159), 3)
+
+    def test_places(self) -> None:
+        self.assertEqual(round_to(3.14159, 2), 3.14)
+
+
+class TestIsInteger(unittest.TestCase):
+    def test_int(self) -> None:
+        self.assertTrue(is_integer(5))
+
+    def test_float_integral(self) -> None:
+        self.assertTrue(is_integer(5.0))
+
+    def test_float_non_integral(self) -> None:
+        self.assertFalse(is_integer(5.5))
+
+
+class TestFormatNumber(unittest.TestCase):
+    def test_format(self) -> None:
+        self.assertEqual(format_number(1234.5, 2), "1,234.50")
+
+
+class TestPercentage(unittest.TestCase):
+    def test_normal(self) -> None:
+        self.assertEqual(percentage(1, 4), "25.0%")
+
+    def test_zero_total(self) -> None:
+        self.assertEqual(percentage(5, 0), "0.0%")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTNUMBERUTILS
+
+# --- sort_utils.py ---
+cat > "$OUTPUT_DIR/sort_utils.py" <<'SORT_UTILS'
+"""Sorting utility functions."""
+
+
+def is_sorted(items, *, key=None, reverse=False):
+    """Return True if items is sorted according to key and direction."""
+    iterator = iter(items)
+    previous = next(iterator, None)
+    if key is None:
+        def key(x):
+            return x
+    for current in iterator:
+        left = key(previous)
+        right = key(current)
+        if reverse:
+            if left < right:
+                return False
+        else:
+            if left > right:
+                return False
+        previous = current
+    return True
+
+
+def bubble_sort(items, *, key=None, reverse=False):
+    """Return a new list sorted using bubble sort."""
+    result = list(items)
+    if key is None:
+        def key(x):
+            return x
+    swapped = True
+    while swapped:
+        swapped = False
+        for i in range(len(result) - 1):
+            left = key(result[i])
+            right = key(result[i + 1])
+            cond = left > right if not reverse else left < right
+            if cond:
+                result[i], result[i + 1] = result[i + 1], result[i]
+                swapped = True
+    return result
+
+
+def merge_sort(items, *, key=None, reverse=False):
+    """Return a new list sorted using merge sort."""
+    if key is None:
+        def key(x):
+            return x
+    result = list(items)
+    if len(result) <= 1:
+        return result
+
+    def merge(left, right):
+        out = []
+        i = j = 0
+        while i < len(left) and j < len(right):
+            comparison = key(left[i]) <= key(right[j])
+            if reverse:
+                if key(left[i]) >= key(right[j]):
+                    out.append(left[i])
+                    i += 1
+                else:
+                    out.append(right[j])
+                    j += 1
+            else:
+                if comparison:
+                    out.append(left[i])
+                    i += 1
+                else:
+                    out.append(right[j])
+                    j += 1
+        out.extend(left[i:])
+        out.extend(right[j:])
+        return out
+
+    mid = len(result) // 2
+    left = merge_sort(result[:mid], key=key, reverse=reverse)
+    right = merge_sort(result[mid:], key=key, reverse=reverse)
+    return merge(left, right)
+
+
+def nth_largest(items, n, *, key=None):
+    """Return the n-th largest element (1-based)."""
+    if n < 1:
+        raise ValueError("n must be at least 1")
+    sorted_items = merge_sort(items, key=key, reverse=True)
+    if n > len(sorted_items):
+        raise ValueError("n exceeds number of items")
+    return sorted_items[n - 1]
+
+
+def top_n(items, n, *, key=None, reverse=True):
+    """Return the top n items sorted by key."""
+    return merge_sort(items, key=key, reverse=reverse)[:n]
+SORT_UTILS
+
+# --- tests/test_sort_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_sort_utils.py" <<'TESTSORTUTILS'
+"""Tests for sort_utils."""
+
+import unittest
+
+import sort_utils
+
+
+class TestSortUtils(unittest.TestCase):
+    def test_is_sorted(self):
+        self.assertTrue(sort_utils.is_sorted([1, 2, 3]))
+        self.assertFalse(sort_utils.is_sorted([3, 1, 2]))
+
+    def test_bubble_sort(self):
+        self.assertEqual(sort_utils.bubble_sort([3, 1, 2]), [1, 2, 3])
+
+    def test_merge_sort(self):
+        self.assertEqual(sort_utils.merge_sort([3, 1, 2]), [1, 2, 3])
+
+    def test_reverse(self):
+        self.assertEqual(sort_utils.merge_sort([1, 2, 3], reverse=True), [3, 2, 1])
+
+    def test_key(self):
+        self.assertEqual(sort_utils.top_n([("a", 2), ("b", 1)], 1, key=lambda x: x[1]), [("a", 2)])
+
+    def test_nth_largest(self):
+        self.assertEqual(sort_utils.nth_largest([1, 2, 3], 2), 2)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSORTUTILS

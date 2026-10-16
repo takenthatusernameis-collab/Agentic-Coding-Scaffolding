@@ -198,6 +198,10 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_xml_utils.py",
             "seq_utils.py",
             "tests/test_seq_utils.py",
+            "number_utils.py",
+            "tests/test_number_utils.py",
+            "sort_utils.py",
+            "tests/test_sort_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel

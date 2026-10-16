@@ -136,6 +136,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
 - `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `interleave`, `adjacent_pairs`, `is_sorted`)
 - `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
+- `number_utils.py` — number utility functions (`clamp`, `round_to`, `is_integer`, `format_number`, `percentage`)
+- `tests/test_number_utils.py` — unit tests for `number_utils.py`
+- `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
+- `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
 
 ## Usage
 
