@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `itertools_utils.py` — iteration helpers (`chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, and more) wrapping the standard library `itertools` module with input validation
+- `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
+- Added `itertools_utils.py` to README tree and module section, CHANGELOG Unreleased entry, and scaffold.sh module list
+
 - `context_utils.py` — context manager utilities (`chdir`, `temp_environ`, `redirect_stdout`, `redirect_stderr`, `suppress`) for temporarily altering the runtime environment (working directory, environment variables, standard streams) and restoring it on exit using the standard library with input validation
 - `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - Added `context_utils.py` to `pyproject.toml` `py_modules`, README tree and module section, `scaffold.sh` header comment and heredocs, `.kilo/command/scaffold-project.md`, and `tests/test_scaffold.py` assertions, plus this CHANGELOG Unreleased entry

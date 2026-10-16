@@ -55,6 +55,7 @@ env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
+itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
 timing_utils.py           # Performance measurement helpers
 async_utils.py            # Asynchronous utility functions
 bit_utils.py              # Bitwise utility functions for working with binary representations
@@ -414,6 +415,10 @@ The project includes HTML utility functions in `html_utils.py` for escaping, une
 ## Bytes Utilities Module
 
 The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, and `chunk` splits bytes into fixed-size chunks. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+
+## Itertools Utilities Module
+
+The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, and more. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
 
 ## Base64 Utilities Module
 

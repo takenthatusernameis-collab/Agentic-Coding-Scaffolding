@@ -547,6 +547,7 @@ py_modules = [
     "http_utils",
     "html_utils",
     "bytes_utils",
+    "itertools_utils",
     "base64_utils",
     "struct_utils",
     "duration_utils",
