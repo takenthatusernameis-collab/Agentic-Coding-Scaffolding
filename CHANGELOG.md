@@ -223,3 +223,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `.kilo/command/scaffold-project.md`, `README.md`, and scaffold template to include async utilities
 - Updated `scaffold.sh`, `README.md`, `.kilo/command/scaffold-project.md`, and scaffold template to include uuid and prompt utilities
 
+### Added
+
+- `compression_utils.py` — compression and decompression utilities (gzip, bz2, zip, tar) with support for bytes/strings and archive operations
+- `tests/test_compression_utils.py` — unit tests for `compression_utils.py`
+- Updated `scaffold.sh`, `README.md`, `.kilo/command/scaffold-project.md`, and `pyproject.toml` to include compression utilities
+
+### Added
+
+- `ip_utils.py` — IP address validation and manipulation utilities (IPv4/IPv6 validation, version detection, conversion between strings and integers, property checks like private/loopback/multicast/link-local/reserved, normalization, and subnet membership)
+- `tests/test_ip_utils.py` — unit tests for `ip_utils.py`
+- Updated `scaffold.sh`, `README.md`, `.kilo/command/scaffold-project.md`, and `pyproject.toml` to include IP utilities
+

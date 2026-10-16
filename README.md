@@ -75,6 +75,8 @@ type_utils.py              # Type introspection utilities (is_optional, is_union
     config_schema.py             # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
     exceptions_utils.py        # Custom exception classes and error handling utilities
     io_utils.py                # Line-oriented and atomic input/output utilities
+    compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
+    ip_utils.py                 # IP address validation and manipulation utilities
     tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -116,6 +118,8 @@ test_pattern_utils.py         # Tests for pattern_utils.py
     test_functools_utils.py       # Tests for functools_utils.py
     test_exceptions_utils.py    # Tests for exceptions_utils.py
     test_io_utils.py            # Tests for io_utils.py
+    test_compression_utils.py   # Tests for compression_utils.py
+    test_ip_utils.py             # Tests for ip_utils.py
 test_config_schema.py         # Tests for config_schema.py
     ```
 
