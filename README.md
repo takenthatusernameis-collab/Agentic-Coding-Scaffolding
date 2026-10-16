@@ -43,6 +43,7 @@ stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions
 data_utils.py               # Data utility functions
 datetime_utils.py           # Date and time utility functions
+523: The project includes string template utilities in `template_utils.py` with functions for rendering and substituting variables: `render_template`, `substitute`, `safe_substitute`, `render_from_dict`, `has_placeholders`, and `extract_placeholders`. The module supports both `str.format()` style and `string.Template` style placeholders. The module is tested in `tests/test_template_utils.py`.
 file_utils.py               # File and path utility functions
 url_utils.py                # URL and web utility functions
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs

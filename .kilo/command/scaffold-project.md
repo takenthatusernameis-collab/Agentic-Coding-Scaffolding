@@ -174,6 +174,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_markdown_utils.py` — unit tests for `markdown_utils.py`
 - `time_utils.py` — time utility functions for working with timestamps and durations (`now_epoch`, `now_iso`, `epoch_to_iso`, `iso_to_epoch`)
 - `tests/test_time_utils.py` — unit tests for `time_utils.py`
+- `template_utils.py` — string template rendering utilities (`render_template`, `substitute`, `safe_substitute`, `render_from_dict`, `has_placeholders`, `extract_placeholders`)
+- `tests/test_template_utils.py` — unit tests for `template_utils.py`
 
 ## Usage
 

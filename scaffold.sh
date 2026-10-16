@@ -168,7 +168,10 @@
 #   - markdown_utils.py — Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
 #   - tests/test_markdown_utils.py — unit tests for markdown_utils.py
 #   - time_utils.py — time utility functions for working with timestamps and durations (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
+#   - tests/test_time_utils.py — time utility functions for working with timestamps and durations (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
 #   - tests/test_time_utils.py — unit tests for time_utils.py
+#   - template_utils.py — string template rendering utilities (render, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
+#   - tests/test_template_utils.py — unit tests for the template_utils module
 set -euo pipefail
 
 usage() {
@@ -558,6 +561,7 @@ py_modules = [
    "type_utils",
    "tree_utils",
    "path_utils",
+   "color_utils",
    "pattern_utils",
    "functools_utils",
    "config_schema",
@@ -588,6 +592,7 @@ py_modules = [
     "decimal_utils",
     "heapq_utils",
     "time_utils",
+    "template_utils",
 ]
 
 [tool.ruff]
@@ -15082,6 +15087,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - time_utils.py — time utility functions for working with timestamps and durations (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
 - tests/test_time_utils.py — unit tests for time_utils.py
+- `template_utils.py` — string template rendering utilities (`render_template`, `substitute`, `safe_substitute`, `render_from_dict`, `has_placeholders`, `extract_placeholders`) supporting `str.format()` and `string.Template` styles with placeholder extraction
+- `tests/test_template_utils.py` — unit tests for `template_utils.py`
 
 ## Usage
 
@@ -15132,6 +15139,434 @@ echo "Created files:"
 find "$OUTPUT_DIR" -type f | sort | sed "s/^/  /"
 echo ""
 
+# --- template_utils.py ---
+cat > "$OUTPUT_DIR/template_utils.py" <<'TEMPLATEUTILS'
+"""String template utilities.
+
+This module provides functions for simple string template rendering and
+variable substitution. It supports both ``str.format()``-style templates
+and ``string.Template``-style substitution.
+"""
+
+from __future__ import annotations
+
+import re
+from string import Template
+from typing import Any, Mapping
+
+
+def render_template(template: str, *args: Any, **kwargs: Any) -> str:
+    """Render a template string using ``str.format()``.
+
+    Args:
+        template: The template string containing ``{placeholder}`` style
+            placeholders.
+        *args: Positional arguments to substitute into the template.
+        **kwargs: Keyword arguments to substitute into the template.
+
+    Returns:
+        The rendered template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+        KeyError: If a required placeholder is missing.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    return template.format(*args, **kwargs)
+
+
+def substitute(
+    template: str,
+    mapping: Mapping[str, Any] | None = None,
+    **kwargs: Any,
+) -> str:
+    """Substitute variables into a template using ``string.Template``.
+
+    This is the standard substitution that raises an error if a placeholder
+    is missing from the mapping.
+
+    Args:
+        template: The template string containing ``$placeholder`` or
+            ``${placeholder}`` style placeholders.
+        mapping: Optional mapping of placeholder names to values.
+        **kwargs: Additional keyword arguments to substitute.
+
+    Returns:
+        The substituted template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+        KeyError: If a required placeholder is missing.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if mapping is None:
+        mapping = {}
+    full_mapping: dict[str, Any] = dict(mapping)
+    full_mapping.update(kwargs)
+    return Template(template).substitute(full_mapping)
+
+
+def safe_substitute(
+    template: str,
+    mapping: Mapping[str, Any] | None = None,
+    **kwargs: Any,
+) -> str:
+    """Safely substitute variables into a template using ``string.Template``.
+
+    This leaves missing placeholders unchanged instead of raising an error.
+
+    Args:
+        template: The template string containing ``$placeholder`` or
+            ``${placeholder}`` style placeholders.
+        mapping: Optional mapping of placeholder names to values.
+        **kwargs: Additional keyword arguments to substitute.
+
+    Returns:
+        The substituted template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if mapping is None:
+        mapping = {}
+    full_mapping: dict[str, Any] = dict(mapping)
+    full_mapping.update(kwargs)
+    return Template(template).safe_substitute(full_mapping)
+
+
+def render_from_dict(
+    template: str,
+    context: Mapping[str, Any] | None = None,
+    default: str = "",
+) -> str:
+    """Render a template by substituting values from a context dictionary.
+
+    Uses ``str.format()`` style placeholders. For missing keys, the provided
+    default value is used.
+
+    Args:
+        template: The template string containing ``{placeholder}`` style
+            placeholders.
+        context: Dictionary containing values to substitute.
+        default: Default value to use for missing placeholders.
+
+    Returns:
+        The rendered template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string or if ``context`` is
+            provided but not a mapping.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if context is None:
+        context = {}
+    if not isinstance(context, Mapping):
+        raise TypeError("context must be a mapping or None")
+    class DefaultFormatter(dict):
+        def __missing__(self, key: str) -> str:
+            return default
+
+    try:
+        return template.format_map(DefaultFormatter(context))
+    except Exception:
+        result = template
+        for key in extract_placeholders(template):
+            pattern = re.compile(r"\{" + re.escape(key) + r"(:[^}]*)?\}")
+            if key in context:
+                result = pattern.sub(str(context[key]), result)
+            else:
+                result = pattern.sub(default, result)
+        return result
+
+
+def has_placeholders(template: str) -> bool:
+    """Check if the template contains any placeholders.
+
+    Checks for both ``str.format()`` style (``{name}``) and
+    ``string.Template`` style (``$name``, ``${name}``) placeholders.
+
+    Args:
+        template: The template string to check.
+
+    Returns:
+        ``True`` if the template contains placeholders, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    format_pattern = re.compile(r"\{[^}]+\}")
+    if format_pattern.search(template):
+        return True
+    template_pattern = re.compile(r"\$[A-Za-z_][A-Za-z0-9_]*|\$\{[^}]+\}")
+    if template_pattern.search(template):
+        return True
+    return False
+
+
+def extract_placeholders(template: str) -> list[str]:
+    """Extract placeholder names from a template string.
+
+    Extracts names from both ``str.format()`` style (``{name}`` or
+    ``{name:format}``) and ``string.Template`` style (``$name`` or
+    ``${name}``) placeholders.
+
+    Args:
+        template: The template string to analyze.
+
+    Returns:
+        A list of placeholder names.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    placeholders: list[str] = []
+    format_pattern = re.compile(r"\{([^}:]+)(?::[^}]*)?\}")
+    for match in format_pattern.finditer(template):
+        name = match.group(1)
+        if name.isdigit():
+            continue
+        if name not in placeholders:
+            placeholders.append(name)
+    template_pattern = re.compile(r"\$\{([^}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)")
+    for match in template_pattern.finditer(template):
+        name = match.group(1) if match.group(1) else match.group(2)
+        if name and name not in placeholders:
+            placeholders.append(name)
+    return placeholders
+
+TEMPLATEUTILS
+# --- tests/test_template_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_template_utils.py" <<'TESTTEMPLATEUTILS'
+"""Unit tests for the template_utils module."""
+
+import unittest
+
+from template_utils import (
+    extract_placeholders,
+    has_placeholders,
+    render_from_dict,
+    render_template,
+    safe_substitute,
+    substitute,
+)
+
+
+class TestRenderTemplate(unittest.TestCase):
+    """Test cases for render_template function."""
+
+    def test_basic_substitution(self) -> None:
+        result = render_template("Hello {name}!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_placeholders(self) -> None:
+        result = render_template(
+            "{greeting} {name}, you are {age} years old",
+            greeting="Hi",
+            name="Alice",
+            age=30,
+        )
+        self.assertEqual(result, "Hi Alice, you are 30 years old")
+
+    def test_no_placeholders(self) -> None:
+        result = render_template("Hello World")
+        self.assertEqual(result, "Hello World")
+
+    def test_numeric_formatting(self) -> None:
+        result = render_template("Pi is {0:.2f}", 3.14159)
+        self.assertEqual(result, "Pi is 3.14")
+
+    def test_missing_key_raises(self) -> None:
+        with self.assertRaises(KeyError):
+            render_template("Hello {name}!")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            render_template(123)  # type: ignore
+
+
+class TestSubstitute(unittest.TestCase):
+    """Test cases for substitute function."""
+
+    def test_basic_substitution(self) -> None:
+        result = substitute("Hello $name!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_braces_substitution(self) -> None:
+        result = substitute("Hello ${name}!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_placeholders(self) -> None:
+        result = substitute("$greeting $name", greeting="Hi", name="Alice")
+        self.assertEqual(result, "Hi Alice")
+
+    def test_with_mapping(self) -> None:
+        result = substitute("Hello $name", mapping={"name": "World"})
+        self.assertEqual(result, "Hello World")
+
+    def test_mapping_and_kwargs(self) -> None:
+        result = substitute("$a $b", mapping={"a": "Hello"}, b="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_missing_key_raises(self) -> None:
+        with self.assertRaises(KeyError):
+            substitute("Hello $name!")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            substitute(123)  # type: ignore
+
+
+class TestSafeSubstitute(unittest.TestCase):
+    """Test cases for safe_substitute function."""
+
+    def test_basic_substitution(self) -> None:
+        result = safe_substitute("Hello $name!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_missing_key_preserved(self) -> None:
+        result = safe_substitute("Hello $name!")
+        self.assertEqual(result, "Hello $name!")
+
+    def test_partial_substitution(self) -> None:
+        result = safe_substitute("Hello $name, you are $age", name="Alice")
+        self.assertEqual(result, "Hello Alice, you are $age")
+
+    def test_with_braces(self) -> None:
+        result = safe_substitute("Hello ${name}", name="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            safe_substitute(123)  # type: ignore
+
+
+class TestRenderFromDict(unittest.TestCase):
+    """Test cases for render_from_dict function."""
+
+    def test_basic_render(self) -> None:
+        result = render_from_dict("Hello {name}!", {"name": "World"})
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_keys(self) -> None:
+        result = render_from_dict("{a} {b}", {"a": "Hi", "b": "there"})
+        self.assertEqual(result, "Hi there")
+
+    def test_missing_key_with_default(self) -> None:
+        result = render_from_dict("Hello {name}!", {}, default="Guest")
+        self.assertEqual(result, "Hello Guest!")
+
+    def test_partial_keys(self) -> None:
+        result = render_from_dict("{greeting} {name}", {"greeting": "Hi"}, default="Friend")
+        self.assertEqual(result, "Hi Friend")
+
+    def test_no_context(self) -> None:
+        result = render_from_dict("Hello {name}", default="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_none_context(self) -> None:
+        result = render_from_dict("Hello {name}", context=None, default="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            render_from_dict(123, {})  # type: ignore
+
+    def test_non_mapping_context(self) -> None:
+        with self.assertRaises(TypeError):
+            render_from_dict("Hi", "not a dict")  # type: ignore
+
+
+class TestHasPlaceholders(unittest.TestCase):
+    """Test cases for has_placeholders function."""
+
+    def test_has_format_placeholder(self) -> None:
+        self.assertTrue(has_placeholders("Hello {name}"))
+
+    def test_has_multiple_format_placeholders(self) -> None:
+        self.assertTrue(has_placeholders("{a} {b} {c}"))
+
+    def test_has_template_placeholder(self) -> None:
+        self.assertTrue(has_placeholders("Hello $name"))
+
+    def test_has_template_braces(self) -> None:
+        self.assertTrue(has_placeholders("Hello ${name}"))
+
+    def test_no_placeholders(self) -> None:
+        self.assertFalse(has_placeholders("Hello World"))
+
+    def test_empty_string(self) -> None:
+        self.assertFalse(has_placeholders(""))
+
+    def test_mixed_placeholders(self) -> None:
+        self.assertTrue(has_placeholders("Hello {name} and $age"))
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            has_placeholders(123)  # type: ignore
+
+
+class TestExtractPlaceholders(unittest.TestCase):
+    """Test cases for extract_placeholders function."""
+
+    def test_extract_format_placeholders(self) -> None:
+        result = extract_placeholders("Hello {name}, you are {age}")
+        self.assertIn("name", result)
+        self.assertIn("age", result)
+
+    def test_extract_format_with_spec(self) -> None:
+        result = extract_placeholders("Value: {num:.2f}, Text: {name}")
+        self.assertIn("num", result)
+        self.assertIn("name", result)
+
+    def test_extract_template_placeholders(self) -> None:
+        result = extract_placeholders("Hello $name and $age")
+        self.assertIn("name", result)
+        self.assertIn("age", result)
+
+    def test_extract_template_braces(self) -> None:
+        result = extract_placeholders("Hello ${name}")
+        self.assertIn("name", result)
+
+    def test_extract_mixed(self) -> None:
+        result = extract_placeholders("{greeting} $name")
+        self.assertIn("greeting", result)
+        self.assertIn("name", result)
+
+    def test_extract_no_duplicates(self) -> None:
+        result = extract_placeholders("{name} $name")
+        self.assertEqual(result.count("name"), 1)
+
+    def test_no_placeholders(self) -> None:
+        result = extract_placeholders("Hello World")
+        self.assertEqual(result, [])
+
+    def test_skip_numeric_indices(self) -> None:
+        result = extract_placeholders("Hello {0} and {1}")
+        # Numeric indices should be skipped
+        self.assertEqual(result, [])
+
+    def test_empty_string(self) -> None:
+        result = extract_placeholders("")
+        self.assertEqual(result, [])
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            extract_placeholders(123)  # type: ignore
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+TESTTEMPLATEUTILS
 if [[ "$SMOKE_TEST" == "1" ]] && command -v python >/dev/null 2>&1; then
   echo "Running smoke test in $OUTPUT_DIR ..."
   if (cd "$OUTPUT_DIR" && python -m unittest discover tests/ -v); then
@@ -15577,6 +16012,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - time_utils.py — time utility functions for working with timestamps and durations (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
 - tests/test_time_utils.py — unit tests for time_utils.py
+- `template_utils.py` — string template rendering utilities (`render_template`, `substitute`, `safe_substitute`, `render_from_dict`, `has_placeholders`, `extract_placeholders`) supporting `str.format()` and `string.Template` styles with placeholder extraction
+- `tests/test_template_utils.py` — unit tests for `template_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
 - `CHANGELOG.md` — changelog following Keep a Changelog format
@@ -24576,8 +25013,835 @@ class TestHeading(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTMARKDOWNUTILS
+
 # --- tests/test_time_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_time_utils.py" <<'TESTTIMEUTILS'
+"""Tests for time_utils module."""
+
+from datetime import datetime
+
+import time_utils
+
+
+def test_now_epoch_is_int():
+    assert isinstance(time_utils.now_epoch(), int)
+
+
+def test_now_iso_is_str():
+    assert isinstance(time_utils.now_iso(), str)
+
+
+def test_epoch_to_iso():
+    ts = 0
+    s = time_utils.epoch_to_iso(ts)
+    assert isinstance(s, str)
+
+
+def test_iso_to_epoch():
+    s = "1970-01-01T00:00:00"
+    ts = time_utils.iso_to_epoch(s)
+    assert isinstance(ts, int)
+    assert ts == 0
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTIMEUTILS# --- tests/test_template_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_template_utils.py" <<'TESTTEMPLATEUTILS'
+"""Unit tests for the template_utils module."""
+
+import unittest
+
+from template_utils import (
+    extract_placeholders,
+    has_placeholders,
+    render_from_dict,
+    render_template,
+    safe_substitute,
+    substitute,
+)
+
+
+class TestRenderTemplate(unittest.TestCase):
+    """Test cases for render_template function."""
+
+    def test_basic_substitution(self) -> None:
+        result = render_template("Hello {name}!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_placeholders(self) -> None:
+        result = render_template(
+            "{greeting} {name}, you are {age} years old",
+            greeting="Hi",
+            name="Alice",
+            age=30,
+        )
+        self.assertEqual(result, "Hi Alice, you are 30 years old")
+
+    def test_no_placeholders(self) -> None:
+        result = render_template("Hello World")
+        self.assertEqual(result, "Hello World")
+
+    def test_numeric_formatting(self) -> None:
+        result = render_template("Pi is {0:.2f}", 3.14159)
+        self.assertEqual(result, "Pi is 3.14")
+
+    def test_missing_key_raises(self) -> None:
+        with self.assertRaises(KeyError):
+            render_template("Hello {name}!")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            render_template(123)  # type: ignore
+
+
+class TestSubstitute(unittest.TestCase):
+    """Test cases for substitute function."""
+
+    def test_basic_substitution(self) -> None:
+        result = substitute("Hello $name!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_braces_substitution(self) -> None:
+        result = substitute("Hello ${name}!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_placeholders(self) -> None:
+        result = substitute("$greeting $name", greeting="Hi", name="Alice")
+        self.assertEqual(result, "Hi Alice")
+
+    def test_with_mapping(self) -> None:
+        result = substitute("Hello $name", mapping={"name": "World"})
+        self.assertEqual(result, "Hello World")
+
+    def test_mapping_and_kwargs(self) -> None:
+        result = substitute("$a $b", mapping={"a": "Hello"}, b="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_missing_key_raises(self) -> None:
+        with self.assertRaises(KeyError):
+            substitute("Hello $name!")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            substitute(123)  # type: ignore
+
+
+class TestSafeSubstitute(unittest.TestCase):
+    """Test cases for safe_substitute function."""
+
+    def test_basic_substitution(self) -> None:
+        result = safe_substitute("Hello $name!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_missing_key_preserved(self) -> None:
+        result = safe_substitute("Hello $name!")
+        self.assertEqual(result, "Hello $name!")
+
+    def test_partial_substitution(self) -> None:
+        result = safe_substitute("Hello $name, you are $age", name="Alice")
+        self.assertEqual(result, "Hello Alice, you are $age")
+
+    def test_with_braces(self) -> None:
+        result = safe_substitute("Hello ${name}", name="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            safe_substitute(123)  # type: ignore
+
+
+class TestRenderFromDict(unittest.TestCase):
+    """Test cases for render_from_dict function."""
+
+    def test_basic_render(self) -> None:
+        result = render_from_dict("Hello {name}!", {"name": "World"})
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_keys(self) -> None:
+        result = render_from_dict("{a} {b}", {"a": "Hi", "b": "there"})
+        self.assertEqual(result, "Hi there")
+
+    def test_missing_key_with_default(self) -> None:
+        result = render_from_dict("Hello {name}!", {}, default="Guest")
+        self.assertEqual(result, "Hello Guest!")
+
+    def test_partial_keys(self) -> None:
+        result = render_from_dict("{greeting} {name}", {"greeting": "Hi"}, default="Friend")
+        self.assertEqual(result, "Hi Friend")
+
+    def test_no_context(self) -> None:
+        result = render_from_dict("Hello {name}", default="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_none_context(self) -> None:
+        result = render_from_dict("Hello {name}", context=None, default="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            render_from_dict(123, {})  # type: ignore
+
+    def test_non_mapping_context(self) -> None:
+        with self.assertRaises(TypeError):
+            render_from_dict("Hi", "not a dict")  # type: ignore
+
+
+class TestHasPlaceholders(unittest.TestCase):
+    """Test cases for has_placeholders function."""
+
+    def test_has_format_placeholder(self) -> None:
+        self.assertTrue(has_placeholders("Hello {name}"))
+
+    def test_has_multiple_format_placeholders(self) -> None:
+        self.assertTrue(has_placeholders("{a} {b} {c}"))
+
+    def test_has_template_placeholder(self) -> None:
+        self.assertTrue(has_placeholders("Hello $name"))
+
+    def test_has_template_braces(self) -> None:
+        self.assertTrue(has_placeholders("Hello ${name}"))
+
+    def test_no_placeholders(self) -> None:
+        self.assertFalse(has_placeholders("Hello World"))
+
+    def test_empty_string(self) -> None:
+        self.assertFalse(has_placeholders(""))
+
+    def test_mixed_placeholders(self) -> None:
+        self.assertTrue(has_placeholders("Hello {name} and $age"))
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            has_placeholders(123)  # type: ignore
+
+
+class TestExtractPlaceholders(unittest.TestCase):
+    """Test cases for extract_placeholders function."""
+
+    def test_extract_format_placeholders(self) -> None:
+        result = extract_placeholders("Hello {name}, you are {age}")
+        self.assertIn("name", result)
+        self.assertIn("age", result)
+
+    def test_extract_format_with_spec(self) -> None:
+        result = extract_placeholders("Value: {num:.2f}, Text: {name}")
+        self.assertIn("num", result)
+        self.assertIn("name", result)
+
+    def test_extract_template_placeholders(self) -> None:
+        result = extract_placeholders("Hello $name and $age")
+        self.assertIn("name", result)
+        self.assertIn("age", result)
+
+    def test_extract_template_braces(self) -> None:
+        result = extract_placeholders("Hello ${name}")
+        self.assertIn("name", result)
+
+    def test_extract_mixed(self) -> None:
+        result = extract_placeholders("{greeting} $name")
+        self.assertIn("greeting", result)
+        self.assertIn("name", result)
+
+    def test_extract_no_duplicates(self) -> None:
+        result = extract_placeholders("{name} $name")
+        self.assertEqual(result.count("name"), 1)
+
+    def test_no_placeholders(self) -> None:
+        result = extract_placeholders("Hello World")
+        self.assertEqual(result, [])
+
+    def test_skip_numeric_indices(self) -> None:
+        result = extract_placeholders("Hello {0} and {1}")
+        # Numeric indices should be skipped
+        self.assertEqual(result, [])
+
+    def test_empty_string(self) -> None:
+        result = extract_placeholders("")
+        self.assertEqual(result, [])
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            extract_placeholders(123)  # type: ignore
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+TESTTEMPLATEUTILS
+"""Unit tests for the template_utils module."""
+
+import unittest
+
+from template_utils import (
+    extract_placeholders,
+    has_placeholders,
+    render_from_dict,
+    render_template,
+    safe_substitute,
+    substitute,
+)
+
+
+class TestRenderTemplate(unittest.TestCase):
+    def test_basic_substitution(self) -> None:
+        result = render_template("Hello {name}!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_placeholders(self) -> None:
+        result = render_template(
+            "{greeting} {name}, you are {age} years old",
+            greeting="Hi",
+            name="Alice",
+            age=30,
+        )
+        self.assertEqual(result, "Hi Alice, you are 30 years old")
+
+    def test_no_placeholders(self) -> None:
+        result = render_template("Hello World")
+        self.assertEqual(result, "Hello World")
+
+    def test_numeric_formatting(self) -> None:
+        result = render_template("Pi is {0:.2f}", 3.14159)
+        self.assertEqual(result, "Pi is 3.14")
+
+    def test_missing_key_raises(self) -> None:
+        with self.assertRaises(KeyError):
+            render_template("Hello {name}!")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            render_template(123)  # type: ignore
+
+
+class TestSubstitute(unittest.TestCase):
+    def test_basic_substitution(self) -> None:
+        result = substitute("Hello $name!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_braces_substitution(self) -> None:
+        result = substitute("Hello ${name}!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_placeholders(self) -> None:
+        result = substitute("$greeting $name", greeting="Hi", name="Alice")
+        self.assertEqual(result, "Hi Alice")
+
+    def test_with_mapping(self) -> None:
+        result = substitute("Hello $name", mapping={"name": "World"})
+        self.assertEqual(result, "Hello World")
+
+    def test_mapping_and_kwargs(self) -> None:
+        result = substitute("$a $b", mapping={"a": "Hello"}, b="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_missing_key_raises(self) -> None:
+        with self.assertRaises(KeyError):
+            substitute("Hello $name!")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            substitute(123)  # type: ignore
+
+
+class TestSafeSubstitute(unittest.TestCase):
+    def test_basic_substitution(self) -> None:
+        result = safe_substitute("Hello $name!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_missing_key_preserved(self) -> None:
+        result = safe_substitute("Hello $name!")
+        self.assertEqual(result, "Hello $name!")
+
+    def test_partial_substitution(self) -> None:
+        result = safe_substitute("Hello $name, you are $age", name="Alice")
+        self.assertEqual(result, "Hello Alice, you are $age")
+
+    def test_with_braces(self) -> None:
+        result = safe_substitute("Hello ${name}", name="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            safe_substitute(123)  # type: ignore
+
+
+class TestRenderFromDict(unittest.TestCase):
+    def test_basic_render(self) -> None:
+        result = render_from_dict("Hello {name}!", {"name": "World"})
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_keys(self) -> None:
+        result = render_from_dict("{a} {b}", {"a": "Hi", "b": "there"})
+        self.assertEqual(result, "Hi there")
+
+    def test_missing_key_with_default(self) -> None:
+        result = render_from_dict("Hello {name}!", {}, default="Guest")
+        self.assertEqual(result, "Hello Guest!")
+
+    def test_partial_keys(self) -> None:
+        result = render_from_dict("{greeting} {name}", {"greeting": "Hi"}, default="Friend")
+        self.assertEqual(result, "Hi Friend")
+
+    def test_no_context(self) -> None:
+        result = render_from_dict("Hello {name}", default="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_none_context(self) -> None:
+        result = render_from_dict("Hello {name}", context=None, default="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            render_from_dict(123, {})  # type: ignore
+
+    def test_non_mapping_context(self) -> None:
+        with self.assertRaises(TypeError):
+            render_from_dict("Hi", "not a dict")  # type: ignore
+
+
+class TestHasPlaceholders(unittest.TestCase):
+    def test_has_format_placeholder(self) -> None:
+        self.assertTrue(has_placeholders("Hello {name}"))
+
+    def test_has_multiple_format_placeholders(self) -> None:
+        self.assertTrue(has_placeholders("{a} {b} {c}"))
+
+    def test_has_template_placeholder(self) -> None:
+        self.assertTrue(has_placeholders("Hello $name"))
+
+    def test_has_template_braces(self) -> None:
+        self.assertTrue(has_placeholders("Hello ${name}"))
+
+    def test_no_placeholders(self) -> None:
+        self.assertFalse(has_placeholders("Hello World"))
+
+    def test_empty_string(self) -> None:
+        self.assertFalse(has_placeholders(""))
+
+    def test_mixed_placeholders(self) -> None:
+        self.assertTrue(has_placeholders("Hello {name} and $age"))
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            has_placeholders(123)  # type: ignore
+
+
+class TestExtractPlaceholders(unittest.TestCase):
+    def test_extract_format_placeholders(self) -> None:
+        result = extract_placeholders("Hello {name}, you are {age}")
+        self.assertIn("name", result)
+        self.assertIn("age", result)
+
+    def test_extract_format_with_spec(self) -> None:
+        result = extract_placeholders("Value: {num:.2f}, Text: {name}")
+        self.assertIn("num", result)
+        self.assertIn("name", result)
+
+    def test_extract_template_placeholders(self) -> None:
+        result = extract_placeholders("Hello $name and $age")
+        self.assertIn("name", result)
+        self.assertIn("age", result)
+
+    def test_extract_template_braces(self) -> None:
+        result = extract_placeholders("Hello ${name}")
+        self.assertIn("name", result)
+
+    def test_extract_mixed(self) -> None:
+        result = extract_placeholders("{greeting} $name")
+        self.assertIn("greeting", result)
+        self.assertIn("name", result)
+
+    def test_extract_no_duplicates(self) -> None:
+        result = extract_placeholders("{name} $name")
+        self.assertEqual(result.count("name"), 1)
+
+    def test_no_placeholders(self) -> None:
+        result = extract_placeholders("Hello World")
+        self.assertEqual(result, [])
+
+    def test_skip_numeric_indices(self) -> None:
+        result = extract_placeholders("Hello {0} and {1}")
+        self.assertEqual(result, [])
+
+    def test_empty_string(self) -> None:
+        result = extract_placeholders("")
+        self.assertEqual(result, [])
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            extract_placeholders(123)  # type: ignore
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTEMPLATEUTILS
+
+# --- template_utils.py ---
+cat > "$OUTPUT_DIR/template_utils.py" <<'TEMPLATEUTILS'
+"""String template utilities.
+
+This module provides functions for simple string template rendering and
+variable substitution. It supports both ``str.format()``-style templates
+and ``string.Template``-style substitution.
+"""
+
+from __future__ import annotations
+
+import re
+from string import Template
+from typing import Any, Mapping
+
+
+def render_template(template: str, *args: Any, **kwargs: Any) -> str:
+    """Render a template string using ``str.format()``.
+
+    Args:
+        template: The template string containing ``{placeholder}`` style
+            placeholders.
+        *args: Positional arguments to substitute into the template.
+        **kwargs: Keyword arguments to substitute into the template.
+
+    Returns:
+        The rendered template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+        KeyError: If a required placeholder is missing.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    return template.format(*args, **kwargs)
+
+
+def substitute(
+    template: str,
+    mapping: Mapping[str, Any] | None = None,
+    **kwargs: Any,
+) -> str:
+    """Substitute variables into a template using ``string.Template``.
+
+    This is the standard substitution that raises an error if a placeholder
+    is missing from the mapping.
+
+    Args:
+        template: The template string containing ``$placeholder`` or
+            ``${placeholder}`` style placeholders.
+        mapping: Optional mapping of placeholder names to values.
+        **kwargs: Additional keyword arguments to substitute.
+
+    Returns:
+        The substituted template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+        KeyError: If a required placeholder is missing.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if mapping is None:
+        mapping = {}
+    full_mapping: dict[str, Any] = dict(mapping)
+    full_mapping.update(kwargs)
+    return Template(template).substitute(full_mapping)
+
+
+def safe_substitute(
+    template: str,
+    mapping: Mapping[str, Any] | None = None,
+    **kwargs: Any,
+) -> str:
+    """Safely substitute variables into a template using ``string.Template``.
+
+    This leaves missing placeholders unchanged instead of raising an error.
+
+    Args:
+        template: The template string containing ``$placeholder`` or
+            ``${placeholder}`` style placeholders.
+        mapping: Optional mapping of placeholder names to values.
+        **kwargs: Additional keyword arguments to substitute.
+
+    Returns:
+        The substituted template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if mapping is None:
+        mapping = {}
+    full_mapping: dict[str, Any] = dict(mapping)
+    full_mapping.update(kwargs)
+    return Template(template).safe_substitute(full_mapping)
+
+
+def render_from_dict(
+    template: str,
+    context: Mapping[str, Any] | None = None,
+    default: str = "",
+) -> str:
+    """Render a template by substituting values from a context dictionary.
+
+    Uses ``str.format()`` style placeholders. For missing keys, the provided
+    default value is used.
+
+    Args:
+        template: The template string containing ``{placeholder}`` style
+            placeholders.
+        context: Dictionary containing values to substitute.
+        default: Default value to use for missing placeholders.
+
+    Returns:
+        The rendered template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string or if ``context`` is
+            provided but not a mapping.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if context is None:
+        context = {}
+    if not isinstance(context, Mapping):
+        raise TypeError("context must be a mapping or None")
+    class DefaultFormatter(dict):
+        def __missing__(self, key: str) -> str:
+            return default
+
+    try:
+        return template.format_map(DefaultFormatter(context))
+    except Exception:
+        result = template
+        for key in extract_placeholders(template):
+            pattern = re.compile(r"\{" + re.escape(key) + r"(:[^}]*)?\}")
+            if key in context:
+                result = pattern.sub(str(context[key]), result)
+            else:
+                result = pattern.sub(default, result)
+        return result
+
+
+def has_placeholders(template: str) -> bool:
+    """Check if the template contains any placeholders.
+
+    Checks for both ``str.format()`` style (``{name}``) and
+    ``string.Template`` style (``$name``, ``${name}``) placeholders.
+
+    Args:
+        template: The template string to check.
+
+    Returns:
+        ``True`` if the template contains placeholders, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    format_pattern = re.compile(r"\{[^}]+\}")
+    if format_pattern.search(template):
+        return True
+    template_pattern = re.compile(r"\$[A-Za-z_][A-Za-z0-9_]*|\$\{[^}]+\}")
+    if template_pattern.search(template):
+        return True
+    return False
+
+
+def extract_placeholders(template: str) -> list[str]:
+    """Extract placeholder names from a template string.
+
+    Extracts names from both ``str.format()`` style (``{name}`` or
+    ``{name:format}``) and ``string.Template`` style (``$name`` or
+    ``${name}``) placeholders.
+
+    Args:
+        template: The template string to analyze.
+
+    Returns:
+        A list of placeholder names.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    placeholders: list[str] = []
+    format_pattern = re.compile(r"\{([^}:]+)(?::[^}]*)?\}")
+    for match in format_pattern.finditer(template):
+        name = match.group(1)
+        if name.isdigit():
+            continue
+        if name not in placeholders:
+            placeholders.append(name)
+    template_pattern = re.compile(r"\$\{([^}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)")
+    for match in template_pattern.finditer(template):
+        name = match.group(1) if match.group(1) else match.group(2)
+        if name and name not in placeholders:
+            placeholders.append(name)
+    return placeholders
+
+TEMPLATEUTILS
+"""String template utilities.
+
+This module provides functions for simple string template rendering and
+variable substitution. It supports both ``str.format()``-style templates
+and ``string.Template``-style substitution.
+"""
+
+from __future__ import annotations
+
+import re
+from string import Template
+from typing import Any, Mapping
+
+
+def render_template(template: str, *args: Any, **kwargs: Any) -> str:
+    """Render a template string using ``str.format()``.
+
+    Args:
+        template: The template string containing ``{placeholder}`` style
+            placeholders.
+        *args: Positional arguments to substitute into the template.
+        **kwargs: Keyword arguments to substitute into the template.
+
+    Returns:
+        The rendered template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+        KeyError: If a required placeholder is missing.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    return template.format(*args, **kwargs)
+
+
+def substitute(
+    template: str,
+    mapping: Mapping[str, Any] | None = None,
+    **kwargs: Any,
+) -> str:
+    """Substitute variables into a template using ``string.Template``.
+
+    This is the standard substitution that raises an error if a placeholder
+    is missing from the mapping.
+
+    Args:
+        template: The template string containing ``$placeholder`` or
+            ``${placeholder}`` style placeholders.
+        mapping: Optional mapping of placeholder names to values.
+        **kwargs: Additional keyword arguments to substitute.
+
+    Returns:
+        The substituted template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+        KeyError: If a required placeholder is missing.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if mapping is None:
+        mapping = {}
+    full_mapping: dict[str, Any] = dict(mapping)
+    full_mapping.update(kwargs)
+    return Template(template).substitute(full_mapping)
+
+
+def safe_substitute(
+    template: str,
+    mapping: Mapping[str, Any] | None = None,
+    **kwargs: Any,
+) -> str:
+    """Safely substitute variables into a template using ``string.Template``.
+
+    This leaves missing placeholders unchanged instead of raising an error.
+
+    Args:
+        template: The template string containing ``$placeholder`` or
+            ``${placeholder}`` style placeholders.
+        mapping: Optional mapping of placeholder names to values.
+        **kwargs: Additional keyword arguments to substitute.
+
+    Returns:
+        The substituted template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if mapping is None:
+        mapping = {}
+    full_mapping: dict[str, Any] = dict(mapping)
+    full_mapping.update(kwargs)
+    return Template(template).safe_substitute(full_mapping)
+
+
+def render_from_dict(
+    template: str,
+    context: Mapping[str, Any] | None = None,
+    default: str = "",
+) -> str:
+    """Render a template by substituting values from a context dictionary."""
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if context is None:
+        context = {}
+    if not isinstance(context, Mapping):
+        raise TypeError("context must be a mapping or None")
+
+    class DefaultFormatter(dict):
+        def __missing__(self, key: str) -> str:
+            return default
+
+    try:
+        return template.format_map(DefaultFormatter(context))
+    except Exception:
+        result = template
+        for key in extract_placeholders(template):
+            pattern = re.compile(r"\\{" + re.escape(key) + r"(:[^}]*)?\\}")
+            if key in context:
+                result = pattern.sub(str(context[key]), result)
+            else:
+                result = pattern.sub(default, result)
+        return result
+
+
+def has_placeholders(template: str) -> bool:
+    """Check if the template contains any placeholders."""
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    format_pattern = re.compile(r"\\{[^}]+\\}")
+    if format_pattern.search(template):
+        return True
+    template_pattern = re.compile(r"\\$[A-Za-z_][A-Za-z0-9_]*|\\$\\{[^}]+\\}")
+    if template_pattern.search(template):
+        return True
+    return False
+
+
+def extract_placeholders(template: str) -> list[str]:
+    """Extract placeholder names from a template string."""
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    placeholders: list[str] = []
+    format_pattern = re.compile(r"\\{([^}:]+)(?::[^}]*)?\\}")
+    for match in format_pattern.finditer(template):
+        name = match.group(1)
+        if name.isdigit():
+            continue
+        if name not in placeholders:
+            placeholders.append(name)
+    template_pattern = re.compile(r"\\$\\{([^}]+)\\}|\\$([A-Za-z_][A-Za-z0-9_]*)")
+    for match in template_pattern.finditer(template):
+        name = match.group(1) if match.group(1) else match.group(2)
+        if name and name not in placeholders:
+            placeholders.append(name)
+    return placeholders
+TEMPLATEUTILS
+'
 """Tests for time_utils module."""
 
 from datetime import datetime
