@@ -118,6 +118,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
 - `hash_utils.py` — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 - `tests/test_hash_utils.py` — unit tests for `hash_utils.py`
+- `html_utils.py` — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
+- `tests/test_html_utils.py` — unit tests for `html_utils.py`
 
 ## Usage
 
