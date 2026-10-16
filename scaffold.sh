@@ -59,6 +59,8 @@
 #   - tests/test_logging_utils.py unit tests for the logging_utils module
 #   - cache_utils.py caching utilities for memoizing function results
 #   - tests/test_cache_utils.py unit tests for the cache_utils module
+#   - context_utils.py — context manager utilities (chdir, temp_environ, redirect_stdout, redirect_stderr, suppress) for temporarily altering the runtime environment
+#   - tests/test_context_utils.py — unit tests for context_utils.py
 #   - timing_utils.py performance measurement helpers
 #   - tests/test_timing_utils.py unit tests for the timing_utils module
 #   - async_utils.py async utility functions
@@ -518,6 +520,7 @@ py_modules = [
     "env_utils",
     "logging_utils",
     "cache_utils",
+    "context_utils",
     "timing_utils",
     "async_utils",
     "bit_utils",
@@ -7002,6 +7005,179 @@ def cache_info(func: F) -> Dict[str, Any]:
         )
     return cast(Dict[str, Any], info())
 CACHEUTILS
+# --- context_utils.py ---
+cat > "$OUTPUT_DIR/context_utils.py" <<'CONTEXTUTILS'
+"""Context manager utilities.
+
+This module provides reusable context managers for temporarily altering
+the runtime environment (working directory, environment variables, and
+standard streams) and restoring it on exit, using only the standard
+library. It complements :mod:`temp_utils`, which covers temporary
+files and directories.
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+from contextlib import AbstractContextManager, contextmanager
+from typing import Any, Iterator, Mapping, TextIO
+
+__all__: list[str] = [
+    "chdir",
+    "temp_environ",
+    "redirect_stdout",
+    "redirect_stderr",
+    "suppress",
+]
+
+
+def chdir(path: Any) -> AbstractContextManager[None]:
+    """Temporarily change the current working directory.
+
+    Args:
+        path: The directory to change into for the duration of the
+            context. Accepts a string or any :class:`os.PathLike`
+            object.
+
+    Yields:
+        None. The previous working directory is restored on exit,
+        even if an exception is raised within the context.
+
+    Raises:
+        TypeError: If ``path`` is not a string or :class:`os.PathLike`.
+        FileNotFoundError: If ``path`` does not exist.
+        NotADirectoryError: If ``path`` is not a directory.
+    """
+    if not isinstance(path, (str, os.PathLike)):
+        raise TypeError("path must be a string or os.PathLike")
+    return _chdir(path)
+
+
+@contextmanager
+def _chdir(path: Any) -> Iterator[None]:
+    previous = os.getcwd()
+    os.chdir(os.fspath(path))
+    try:
+        yield
+    finally:
+        os.chdir(previous)
+
+
+def temp_environ(
+    updates: Mapping[str, str],
+    *,
+    clear: bool = False,
+) -> AbstractContextManager[None]:
+    """Temporarily update environment variables.
+
+    Args:
+        updates: Environment variables to set for the duration of the
+            context.
+        clear: When true, remove all existing environment variables
+            before applying ``updates`` for the duration of the
+            context.
+
+    Yields:
+        None. The previous environment is restored on exit, even if an
+        exception is raised within the context.
+
+    Raises:
+        TypeError: If ``updates`` is not a mapping of strings to
+            strings.
+    """
+    if not isinstance(updates, Mapping):
+        raise TypeError("updates must be a mapping of strings to strings")
+    for key, value in updates.items():
+        if not isinstance(key, str) or not isinstance(value, str):
+            raise TypeError("updates must be a mapping of strings to strings")
+    return _temp_environ(updates, clear=clear)
+
+
+@contextmanager
+def _temp_environ(updates: Mapping[str, str], clear: bool = False) -> Iterator[None]:
+    snapshot = dict(os.environ)
+    if clear:
+        os.environ.clear()
+    os.environ.update(updates)
+    try:
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(snapshot)
+
+
+def redirect_stdout(target: TextIO) -> AbstractContextManager[None]:
+    """Temporarily redirect :data:`sys.stdout`.
+
+    Args:
+        target: The file-like object to write standard output to for
+            the duration of the context.
+
+    Yields:
+        None. The previous ``sys.stdout`` is restored on exit, even if
+        an exception is raised within the context.
+
+    Raises:
+        TypeError: If ``target`` is not a file-like object with a
+            ``write`` method.
+    """
+    if not hasattr(target, "write"):
+        raise TypeError("target must be a file-like object with a write method")
+    return _redirect_stream(sys, "stdout", target)
+
+
+def redirect_stderr(target: TextIO) -> AbstractContextManager[None]:
+    """Temporarily redirect :data:`sys.stderr`.
+
+    Args:
+        target: The file-like object to write standard error to for
+            the duration of the context.
+
+    Yields:
+        None. The previous ``sys.stderr`` is restored on exit, even if
+        an exception is raised within the context.
+
+    Raises:
+        TypeError: If ``target`` is not a file-like object with a
+            ``write`` method.
+    """
+    if not hasattr(target, "write"):
+        raise TypeError("target must be a file-like object with a write method")
+    return _redirect_stream(sys, "stderr", target)
+
+
+@contextmanager
+def _redirect_stream(module: Any, name: str, target: TextIO) -> Iterator[None]:
+    previous = getattr(module, name)
+    setattr(module, name, target)
+    try:
+        yield
+    finally:
+        setattr(module, name, previous)
+
+
+def suppress(*exceptions: type[BaseException]) -> AbstractContextManager[None]:
+    """Suppress the listed exceptions if raised within the context.
+
+    Args:
+        *exceptions: Exception types to silence. Any exception not in
+            this list propagates normally.
+
+    Yields:
+        None. When a listed exception is raised, it is swallowed and
+        execution continues after the context block.
+    """
+    return _suppress(exceptions)
+
+
+@contextmanager
+def _suppress(exceptions: tuple[type[BaseException], ...]) -> Iterator[None]:
+    try:
+        yield
+    except exceptions:  # noqa: BLE001 - intentionally suppress listed exceptions
+        return
+CONTEXTUTILS
 # --- timing_utils.py ---
 cat > "$OUTPUT_DIR/timing_utils.py" <<'TIMINGUTILS'
 """Performance measurement utilities for timing code execution.
@@ -11661,6 +11837,169 @@ class TestMemoizeExceptions(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTCACHEUTILS
+# --- tests/test_context_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_context_utils.py" <<'TESTCONTEXTUTILS'
+"""Unit tests for context_utils module."""
+
+import os
+import sys
+import unittest
+from io import StringIO
+
+from context_utils import chdir, redirect_stderr, redirect_stdout, suppress, temp_environ
+
+
+class TestChdir(unittest.TestCase):
+    def test_chdir_changes_and_restores(self):
+        original = os.getcwd()
+        try:
+            with chdir("/tmp"):
+                self.assertEqual(os.getcwd(), "/tmp")
+            self.assertEqual(os.getcwd(), original)
+        finally:
+            os.chdir(original)
+
+    def test_chdir_restores_on_exception(self):
+        original = os.getcwd()
+        try:
+            with self.assertRaises(RuntimeError):
+                with chdir("/tmp"):
+                    raise RuntimeError("boom")
+            self.assertEqual(os.getcwd(), original)
+        finally:
+            os.chdir(original)
+
+    def test_chdir_invalid_type(self):
+        with self.assertRaises(TypeError):
+            chdir(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            chdir(None)  # type: ignore[arg-type]
+
+    def test_chdir_nonexistent_path(self):
+        with self.assertRaises(FileNotFoundError):
+            with chdir("/__nonexistent_context_utils_path__"):
+                pass
+
+
+class TestTempEnviron(unittest.TestCase):
+    def test_temp_environ_sets_and_restores(self):
+        key = "__CONTEXT_UTILS_TEST_VAR__"
+        try:
+            if key in os.environ:
+                del os.environ[key]
+            with temp_environ({key: "hello"}):
+                self.assertEqual(os.environ[key], "hello")
+            self.assertNotIn(key, os.environ)
+        finally:
+            os.environ.pop(key, None)
+
+    def test_temp_environ_updates_existing(self):
+        key = "__CONTEXT_UTILS_EXISTING__"
+        previous = os.environ.get(key)
+        try:
+            os.environ[key] = "before"
+            with temp_environ({key: "after"}):
+                self.assertEqual(os.environ[key], "after")
+            self.assertEqual(os.environ[key], "before")
+        finally:
+            if previous is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = previous
+
+    def test_temp_environ_clear(self):
+        key = "__CONTEXT_UTILS_CLEAR_TEST__"
+        os.environ[key] = "present"
+        try:
+            with temp_environ({"NEW_VAR": "value"}, clear=True):
+                self.assertEqual(os.environ["NEW_VAR"], "value")
+                self.assertNotIn(key, os.environ)
+            self.assertEqual(os.environ[key], "present")
+        finally:
+            os.environ.pop(key, None)
+            os.environ.pop("NEW_VAR", None)
+
+    def test_temp_environ_invalid_type(self):
+        with self.assertRaises(TypeError):
+            temp_environ("not a mapping")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            temp_environ({"a": 1})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            temp_environ({1: 2})  # type: ignore[arg-type]
+
+
+class TestRedirectStdout(unittest.TestCase):
+    def test_redirect_stdout_captures_output(self):
+        buffer = StringIO()
+        try:
+            with redirect_stdout(buffer):
+                print("captured", end="")
+            self.assertEqual(buffer.getvalue(), "captured")
+        finally:
+            self.assertIs(sys.stdout, sys.__stdout__)
+
+    def test_redirect_stdout_restores_on_exception(self):
+        buffer = StringIO()
+        try:
+            with self.assertRaises(RuntimeError):
+                with redirect_stdout(buffer):
+                    raise RuntimeError("boom")
+            self.assertIs(sys.stdout, sys.__stdout__)
+        finally:
+            self.assertIs(sys.stdout, sys.__stdout__)
+
+    def test_redirect_stdout_invalid_target(self):
+        with self.assertRaises(TypeError):
+            redirect_stdout(123)  # type: ignore[arg-type]
+
+
+class TestRedirectStderr(unittest.TestCase):
+    def test_redirect_stderr_captures_output(self):
+        buffer = StringIO()
+        try:
+            with redirect_stderr(buffer):
+                print("captured-err", file=sys.stderr, end="")
+            self.assertEqual(buffer.getvalue(), "captured-err")
+        finally:
+            self.assertIs(sys.stderr, sys.__stderr__)
+
+    def test_redirect_stderr_restores_on_exception(self):
+        buffer = StringIO()
+        try:
+            with self.assertRaises(RuntimeError):
+                with redirect_stderr(buffer):
+                    raise RuntimeError("boom")
+            self.assertIs(sys.stderr, sys.__stderr__)
+        finally:
+            self.assertIs(sys.stderr, sys.__stderr__)
+
+
+class TestSuppress(unittest.TestCase):
+    def test_suppress_listed_exception(self):
+        raised = False
+        try:
+            with suppress(ValueError):
+                raised = True
+                raise ValueError("ignore me")
+        finally:
+            pass
+        self.assertTrue(raised)
+
+    def test_suppress_propagates_unlisted_exception(self):
+        with self.assertRaises(RuntimeError):
+            with suppress(ValueError):
+                raise RuntimeError("not suppressed")
+
+    def test_suppress_no_exception(self):
+        result = None
+        with suppress(ValueError):
+            result = "ok"
+        self.assertEqual(result, "ok")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCONTEXTUTILS
 # --- tests/test_timing_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_timing_utils.py" <<'TESTTIMINGUTILS'
 """Tests for timing_utils module."""
@@ -14368,6 +14707,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `env_utils.py` — environment variable handling utilities
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
+- `context_utils.py` — context manager utilities (chdir, temp_environ, redirect_stdout, redirect_stderr, suppress) for temporarily altering the runtime environment
 - `timing_utils.py` — performance measurement helpers
 - `async_utils.py` — asynchronous utility functions
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
@@ -14410,6 +14750,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_env_utils.py` — unit tests for `env_utils.py`
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
+- `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
@@ -14707,6 +15048,7 @@ list_utils.py              # Advanced list manipulation utilities
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
+context_utils.py          # Context manager utilities (chdir, temp_environ, redirect_stdout, redirect_stderr, suppress) for temporarily altering the runtime environment
 timing_utils.py           # Performance measurement helpers
 async_utils.py            # Asynchronous utility functions
 bit_utils.py              # Bitwise utility functions for working with binary representations
@@ -14762,6 +15104,7 @@ tests/                     # Python unit tests
   test_env_utils.py          # Tests for env_utils.py
   test_logging_utils.py       # Tests for logging_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
+  test_context_utils.py       # Tests for context_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
   test_concurrent_utils.py    # Tests for concurrent_utils.py
@@ -14865,6 +15208,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `env_utils.py` — environment variable handling utilities
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
+- `context_utils.py` — context manager utilities (chdir, temp_environ, redirect_stdout, redirect_stderr, suppress) for temporarily altering the runtime environment
 - `timing_utils.py` — performance measurement helpers
 - `async_utils.py` — asynchronous utility functions
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
@@ -14955,6 +15299,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_env_utils.py` — unit tests for `env_utils.py`
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
+- `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`

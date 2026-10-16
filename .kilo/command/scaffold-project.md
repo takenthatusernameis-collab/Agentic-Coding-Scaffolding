@@ -43,6 +43,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `env_utils.py` — environment variable handling utilities
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
+- `context_utils.py` — context manager utilities (`chdir`, `temp_environ`, `redirect_stdout`, `redirect_stderr`, `suppress`) for temporarily altering the runtime environment
 - `timing_utils.py` — performance measurement helpers
 - `async_utils.py` — asynchronous utility functions
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
@@ -98,6 +99,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_env_utils.py` — unit tests for `env_utils.py`
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
+- `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`

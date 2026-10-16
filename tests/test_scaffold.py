@@ -130,6 +130,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_logging_utils.py",
             "cache_utils.py",
             "tests/test_cache_utils.py",
+            "context_utils.py",
+            "tests/test_context_utils.py",
             "timing_utils.py",
             "tests/test_timing_utils.py",
             "async_utils.py",
