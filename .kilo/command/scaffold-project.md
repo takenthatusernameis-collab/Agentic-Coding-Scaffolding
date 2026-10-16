@@ -138,6 +138,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
 - `number_utils.py` — number utility functions (`clamp`, `round_to`, `is_integer`, `format_number`, `percentage`)
 - `tests/test_number_utils.py` — unit tests for `number_utils.py`
+- `os_utils.py` — operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
+- `tests/test_os_utils.py` — unit tests for `os_utils.py`
 - `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
 

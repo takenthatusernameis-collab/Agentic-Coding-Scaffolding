@@ -312,3 +312,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_ip_utils.py` — unit tests for `ip_utils.py`
 - Updated `scaffold.sh`, `README.md`, `.kilo/command/scaffold-project.md`, and `pyproject.toml` to include IP utilities
 
+- `os_utils.py` — operating system utilities (`get_platform_info`, `get_cpu_count`, `get_disk_usage`, `get_user_home`, `get_username`, `find_executable`, `expand_path`, `is_executable`) for inspecting the platform and environment using the standard library
+- `tests/test_os_utils.py` — unit tests for `os_utils.py`
+- Added `os_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+

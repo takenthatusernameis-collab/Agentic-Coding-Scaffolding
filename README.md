@@ -77,6 +77,7 @@ temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
 number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage)
+os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
@@ -423,6 +424,10 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 ## Number Utilities Module
 
 The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, and `percentage` returns a part as a percentage of a total formatted as a string. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+
+## Operating System Utilities Module
+
+The project includes operating system utilities in `os_utils.py` for inspecting the platform and environment: `get_platform_info` returns system/release/version/machine/processor/Python details, `get_cpu_count` reports the available CPU count, `get_disk_usage` reports total/used/free/percent disk usage, `get_user_home` and `get_username` return the current user's home and login name, `find_executable` locates an executable on ``PATH``, `expand_path` expands ``~`` and environment variables to an absolute path, and `is_executable` checks whether a path exists and is executable. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_os_utils.py`.
 
 ## Sorting Utilities Module
 

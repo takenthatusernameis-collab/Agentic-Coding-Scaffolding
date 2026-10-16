@@ -200,6 +200,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_seq_utils.py",
             "number_utils.py",
             "tests/test_number_utils.py",
+            "os_utils.py",
+            "tests/test_os_utils.py",
             "sort_utils.py",
             "tests/test_sort_utils.py",
         ]
