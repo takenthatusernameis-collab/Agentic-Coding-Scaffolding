@@ -126,6 +126,8 @@
 #   - tests/test_temp_utils.py — unit tests for temp_utils.py
 #   - xml_utils.py — XML parsing and generation utilities
 #   - tests/test_xml_utils.py — unit tests for xml_utils.py
+#   - seq_utils.py — sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
+#   - tests/test_seq_utils.py — unit tests for seq_utils.py
 set -euo pipefail
 
 usage() {
@@ -528,6 +530,7 @@ py_modules = [
     "duration_utils",
     "temp_utils",
     "xml_utils",
+    "seq_utils",
 ]
 
 [tool.ruff]
@@ -14305,6 +14308,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_temp_utils.py — unit tests for `temp_utils.py`
 - xml_utils.py — XML parsing and generation utilities (`parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, `validate_well_formed`)
 - tests/test_xml_utils.py — unit tests for `xml_utils.py`
+- seq_utils.py — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `interleave`, `adjacent_pairs`, `is_sorted`)
+- tests/test_seq_utils.py — unit tests for `seq_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -14570,6 +14575,7 @@ struct_utils.py            # Binary struct packing and unpacking utilities
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
+seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -14617,6 +14623,7 @@ tests/                     # Python unit tests
   test_duration_utils.py        # Tests for duration_utils.py
   test_temp_utils.py            # Tests for temp_utils.py
   test_xml_utils.py             # Tests for xml_utils.py
+  test_seq_utils.py             # Tests for seq_utils.py
     ```
 
 ## Getting Started
@@ -14744,6 +14751,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_temp_utils.py — unit tests for `temp_utils.py`
 - xml_utils.py — XML parsing and generation utilities (`parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, `validate_well_formed`)
 - tests/test_xml_utils.py — unit tests for `xml_utils.py`
+- seq_utils.py — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `interleave`, `adjacent_pairs`, `is_sorted`)
+- tests/test_seq_utils.py — unit tests for `seq_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
@@ -19970,3 +19979,555 @@ class TestValidateWellFormed(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTXMLUTILS
+
+# --- seq_utils.py ---
+cat > "$OUTPUT_DIR/seq_utils.py" <<'SEQ_UTILS'
+"""Sequence utility functions for common sequence operations.
+
+This module provides helpers for working with sequences, including
+retrieving elements by position, slicing into head/tail portions,
+splitting at an index, taking or dropping elements while a predicate
+holds, interleaving multiple sequences, and forming adjacent pairs.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable, Sequence
+from typing import Any, Iterator, List, Optional, Tuple, TypeVar
+
+T = TypeVar("T")
+
+__all__: list[str] = [
+    "first",
+    "last",
+    "nth",
+    "head",
+    "tail",
+    "split_at",
+    "take_while",
+    "drop_while",
+    "interleave",
+    "adjacent_pairs",
+    "is_sorted",
+]
+
+
+def _require_sequence(sequence: Any) -> None:
+    """Validate that ``sequence`` is a sequence, raising ``TypeError`` otherwise."""
+    if not isinstance(sequence, Sequence):
+        raise TypeError("sequence must be a sequence (e.g. list, tuple, str)")
+
+
+def first(sequence: Sequence[T]) -> Optional[T]:
+    """Return the first element of ``sequence``, or ``None`` if it is empty.
+
+    Args:
+        sequence: The sequence to inspect.
+
+    Returns:
+        The first element, or ``None`` when the sequence has no elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> first([1, 2, 3])
+        1
+        >>> first([])
+    """
+    _require_sequence(sequence)
+    return sequence[0] if sequence else None
+
+
+def last(sequence: Sequence[T]) -> Optional[T]:
+    """Return the last element of ``sequence``, or ``None`` if it is empty.
+
+    Args:
+        sequence: The sequence to inspect.
+
+    Returns:
+        The last element, or ``None`` when the sequence has no elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> last([1, 2, 3])
+        3
+        >>> last("")
+    """
+    _require_sequence(sequence)
+    return sequence[-1] if sequence else None
+
+
+def nth(sequence: Sequence[T], n: int) -> Optional[T]:
+    """Return the element at index ``n``, or ``None`` if out of range.
+
+    Negative indices are supported, mirroring normal sequence indexing.
+
+    Args:
+        sequence: The sequence to inspect.
+        n: The index of the element to retrieve.
+
+    Returns:
+        The element at index ``n``, or ``None`` when the index is invalid.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``n`` is not an int.
+
+    Examples:
+        >>> nth([1, 2, 3], 1)
+        2
+        >>> nth([1, 2, 3], 5)
+    """
+    _require_sequence(sequence)
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    try:
+        return sequence[n]
+    except IndexError:
+        return None
+
+
+def head(sequence: Sequence[T], n: int = 1) -> List[T]:
+    """Return the first ``n`` elements of ``sequence``.
+
+    Args:
+        sequence: The sequence to slice.
+        n: The number of leading elements to return (default: 1).
+
+    Returns:
+        A list of the first ``n`` elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``n`` is not an int.
+        ValueError: If ``n`` is negative.
+
+    Examples:
+        >>> head([1, 2, 3, 4], 2)
+        [1, 2]
+    """
+    _require_sequence(sequence)
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return list(sequence[:n])
+
+
+def tail(sequence: Sequence[T], n: int = 1) -> List[T]:
+    """Return the last ``n`` elements of ``sequence``.
+
+    Args:
+        sequence: The sequence to slice.
+        n: The number of trailing elements to return (default: 1).
+
+    Returns:
+        A list of the last ``n`` elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``n`` is not an int.
+        ValueError: If ``n`` is negative.
+
+    Examples:
+        >>> tail([1, 2, 3, 4], 2)
+        [3, 4]
+    """
+    _require_sequence(sequence)
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
+        return []
+    return list(sequence[-n:])
+
+
+def split_at(sequence: Sequence[T], index: int) -> Tuple[List[T], List[T]]:
+    """Split ``sequence`` into ``(first_part, rest)`` at ``index``.
+
+    The index is clamped to the valid range, so splitting beyond the length
+    returns the whole sequence as the first part and an empty second part.
+
+    Args:
+        sequence: The sequence to split.
+        index: The position at which to split.
+
+    Returns:
+        A tuple of ``(first_part, rest)`` lists.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``index`` is not an int.
+
+    Examples:
+        >>> split_at([1, 2, 3, 4], 2)
+        ([1, 2], [3, 4])
+    """
+    _require_sequence(sequence)
+    if not isinstance(index, int) or isinstance(index, bool):
+        raise TypeError("index must be an integer")
+    index = max(0, min(index, len(sequence)))
+    return list(sequence[:index]), list(sequence[index:])
+
+
+def take_while(sequence: Sequence[T], predicate: Callable[[T], bool]) -> List[T]:
+    """Return elements from ``sequence`` while ``predicate`` returns true.
+
+    Stops at the first element for which ``predicate`` is false.
+
+    Args:
+        sequence: The sequence to consume.
+        predicate: A function returning ``True`` to keep taking elements.
+
+    Returns:
+        A list of leading elements satisfying the predicate.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> take_while([1, 2, 3, 4], lambda x: x < 3)
+        [1, 2]
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    result: List[T] = []
+    for item in sequence:
+        if predicate(item):
+            result.append(item)
+        else:
+            break
+    return result
+
+
+def drop_while(sequence: Sequence[T], predicate: Callable[[T], bool]) -> List[T]:
+    """Drop elements from ``sequence`` while ``predicate`` returns true.
+
+    Once ``predicate`` returns false, all remaining elements are kept.
+
+    Args:
+        sequence: The sequence to consume.
+        predicate: A function returning ``True`` to keep dropping elements.
+
+    Returns:
+        A list of elements after the first one failing the predicate.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> drop_while([1, 2, 3, 4], lambda x: x < 3)
+        [3, 4]
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    result: List[T] = []
+    dropping = True
+    for item in sequence:
+        if dropping and predicate(item):
+            continue
+        dropping = False
+        result.append(item)
+    return result
+
+
+def interleave(*sequences: Sequence[T]) -> List[T]:
+    """Round-robin interleave elements from multiple sequences.
+
+    Elements are taken in turn from each sequence until all are exhausted.
+
+    Args:
+        *sequences: Sequences to interleave.
+
+    Returns:
+        A list with elements taken round-robin from each input.
+
+    Raises:
+        TypeError: If any argument is not a sequence.
+
+    Examples:
+        >>> interleave([1, 2], [3, 4])
+        [1, 3, 2, 4]
+    """
+    for seq in sequences:
+        _require_sequence(seq)
+    iterators = [iter(seq) for seq in sequences]
+    result: List[T] = []
+    active = len(iterators)
+    while active:
+        next_iterators: List[Iterator[T]] = []
+        active = 0
+        for it in iterators:
+            try:
+                result.append(next(it))
+                next_iterators.append(it)
+                active += 1
+            except StopIteration:
+                pass
+        iterators = next_iterators
+    return result
+
+
+def adjacent_pairs(sequence: Sequence[T]) -> List[Tuple[T, T]]:
+    """Return consecutive ``(element, next_element)`` pairs from ``sequence``.
+
+    Args:
+        sequence: The sequence to pair up.
+
+    Returns:
+        A list of adjacent pairs. Empty for sequences with fewer than two
+        elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> adjacent_pairs([1, 2, 3])
+        [(1, 2), (2, 3)]
+    """
+    _require_sequence(sequence)
+    return [(sequence[i], sequence[i + 1]) for i in range(len(sequence) - 1)]
+
+
+def is_sorted(
+    sequence: Sequence[T],
+    *,
+    key: Optional[Callable[[T], Any]] = None,
+    reverse: bool = False,
+) -> bool:
+    """Return ``True`` if ``sequence`` is sorted.
+
+    Args:
+        sequence: The sequence to inspect.
+        key: An optional key function applied before comparison.
+        reverse: When true, checks for descending order instead.
+
+    Returns:
+        ``True`` if the sequence is sorted in the requested direction.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``key`` is not callable.
+
+    Examples:
+        >>> is_sorted([1, 2, 3])
+        True
+        >>> is_sorted([3, 2, 1], reverse=True)
+        True
+    """
+    _require_sequence(sequence)
+    if key is not None and not callable(key):
+        raise TypeError("key must be callable")
+    if len(sequence) < 2:
+        return True
+    mapped = [key(item) if key is not None else item for item in sequence]
+    should_precede = (lambda a, b: a > b) if reverse else (lambda a, b: a < b)
+    for i in range(len(mapped) - 1):
+        if should_precede(mapped[i + 1], mapped[i]):
+            return False
+    return True
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
+SEQ_UTILS
+
+# --- tests/test_seq_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_seq_utils.py" <<'TESTSEQUTILS'
+"""Unit tests for seq_utils module."""
+
+import unittest
+
+from seq_utils import (
+    adjacent_pairs,
+    drop_while,
+    first,
+    head,
+    interleave,
+    is_sorted,
+    last,
+    nth,
+    split_at,
+    take_while,
+    tail,
+)
+
+
+class TestFirst(unittest.TestCase):
+    def test_first_non_empty(self):
+        self.assertEqual(first([1, 2, 3]), 1)
+        self.assertEqual(first(("a", "b")), "a")
+        self.assertEqual(first("xyz"), "x")
+
+    def test_first_empty(self):
+        self.assertIsNone(first([]))
+        self.assertIsNone(first(()))
+
+    def test_first_type_error(self):
+        with self.assertRaises(TypeError):
+            first(123)  # type: ignore[arg-type]
+
+
+class TestLast(unittest.TestCase):
+    def test_last_non_empty(self):
+        self.assertEqual(last([1, 2, 3]), 3)
+        self.assertEqual(last(("a", "b")), "b")
+
+    def test_last_empty(self):
+        self.assertIsNone(last([]))
+
+    def test_last_type_error(self):
+        with self.assertRaises(TypeError):
+            last(None)  # type: ignore[arg-type]
+
+
+class TestNth(unittest.TestCase):
+    def test_nth_valid(self):
+        self.assertEqual(nth([1, 2, 3], 0), 1)
+        self.assertEqual(nth([1, 2, 3], 2), 3)
+        self.assertEqual(nth([1, 2, 3], -1), 3)
+        self.assertEqual(nth([1, 2, 3], -3), 1)
+
+    def test_nth_out_of_range(self):
+        self.assertIsNone(nth([1, 2, 3], 5))
+        self.assertIsNone(nth([1, 2, 3], -4))
+        self.assertIsNone(nth([], 0))
+
+    def test_nth_type_error(self):
+        with self.assertRaises(TypeError):
+            nth([1, 2, 3], "1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            nth(123, 0)  # type: ignore[arg-type]
+
+
+class TestHead(unittest.TestCase):
+    def test_head(self):
+        self.assertEqual(head([1, 2, 3, 4], 2), [1, 2])
+        self.assertEqual(head([1, 2, 3]), [1])
+        self.assertEqual(head([], 3), [])
+
+    def test_head_zero(self):
+        self.assertEqual(head([1, 2, 3], 0), [])
+
+    def test_head_errors(self):
+        with self.assertRaises(TypeError):
+            head([1, 2, 3], "2")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            head([1, 2, 3], -1)
+        with self.assertRaises(TypeError):
+            head(123, 1)  # type: ignore[arg-type]
+
+
+class TestTail(unittest.TestCase):
+    def test_tail(self):
+        self.assertEqual(tail([1, 2, 3, 4], 2), [3, 4])
+        self.assertEqual(tail([1, 2, 3]), [3])
+        self.assertEqual(tail([], 3), [])
+
+    def test_tail_zero(self):
+        self.assertEqual(tail([1, 2, 3], 0), [])
+
+    def test_tail_errors(self):
+        with self.assertRaises(TypeError):
+            tail([1, 2, 3], "2")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            tail([1, 2, 3], -1)
+        with self.assertRaises(TypeError):
+            tail(123, 1)  # type: ignore[arg-type]
+
+
+class TestSplitAt(unittest.TestCase):
+    def test_split_at(self):
+        self.assertEqual(split_at([1, 2, 3, 4], 2), ([1, 2], [3, 4]))
+        self.assertEqual(split_at([1, 2, 3], 0), ([], [1, 2, 3]))
+        self.assertEqual(split_at([1, 2, 3], 3), ([1, 2, 3], []))
+        self.assertEqual(split_at([1, 2, 3], 10), ([1, 2, 3], []))
+
+    def test_split_at_clamped_negative(self):
+        self.assertEqual(split_at([1, 2, 3], -5), ([], [1, 2, 3]))
+
+    def test_split_at_type_error(self):
+        with self.assertRaises(TypeError):
+            split_at([1, 2, 3], "2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            split_at(123, 1)  # type: ignore[arg-type]
+
+
+class TestTakeWhile(unittest.TestCase):
+    def test_take_while(self):
+        self.assertEqual(take_while([1, 2, 3, 4], lambda x: x < 3), [1, 2])
+        self.assertEqual(take_while([], lambda x: True), [])
+        self.assertEqual(take_while([5, 6, 7], lambda x: x < 3), [])
+
+    def test_take_while_type_error(self):
+        with self.assertRaises(TypeError):
+            take_while([1, 2, 3], None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            take_while(123, lambda x: True)  # type: ignore[arg-type]
+
+
+class TestDropWhile(unittest.TestCase):
+    def test_drop_while(self):
+        self.assertEqual(drop_while([1, 2, 3, 4], lambda x: x < 3), [3, 4])
+        self.assertEqual(drop_while([], lambda x: True), [])
+        self.assertEqual(drop_while([5, 6, 7], lambda x: x < 3), [5, 6, 7])
+        self.assertEqual(drop_while([1, 2, 3], lambda x: x < 10), [])
+
+    def test_drop_while_type_error(self):
+        with self.assertRaises(TypeError):
+            drop_while([1, 2, 3], None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            drop_while(123, lambda x: True)  # type: ignore[arg-type]
+
+
+class TestInterleave(unittest.TestCase):
+    def test_interleave(self):
+        self.assertEqual(interleave([1, 2], [3, 4]), [1, 3, 2, 4])
+        self.assertEqual(interleave([1], [2, 3], [4]), [1, 2, 4, 3])
+        self.assertEqual(interleave([], []), [])
+        self.assertEqual(interleave([1, 2, 3]), [1, 2, 3])
+
+    def test_interleave_type_error(self):
+        with self.assertRaises(TypeError):
+            interleave([1], 123)  # type: ignore[arg-type]
+
+
+class TestAdjacentPairs(unittest.TestCase):
+    def test_adjacent_pairs(self):
+        self.assertEqual(adjacent_pairs([1, 2, 3]), [(1, 2), (2, 3)])
+        self.assertEqual(adjacent_pairs([1]), [])
+        self.assertEqual(adjacent_pairs([]), [])
+
+    def test_adjacent_pairs_type_error(self):
+        with self.assertRaises(TypeError):
+            adjacent_pairs(123)  # type: ignore[arg-type]
+
+
+class TestIsSorted(unittest.TestCase):
+    def test_is_sorted(self):
+        self.assertTrue(is_sorted([1, 2, 3]))
+        self.assertFalse(is_sorted([3, 1, 2]))
+        self.assertTrue(is_sorted([3, 2, 1], reverse=True))
+        self.assertFalse(is_sorted([1, 3, 2], reverse=True))
+        self.assertTrue(is_sorted([]))
+        self.assertTrue(is_sorted([5]))
+
+    def test_is_sorted_with_key(self):
+        self.assertTrue(is_sorted(["a", "bb", "ccc"], key=len))
+        self.assertFalse(is_sorted(["ccc", "bb", "a"], key=len))
+
+    def test_is_sorted_type_error(self):
+        with self.assertRaises(TypeError):
+            is_sorted(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_sorted([1, 2], key=123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSEQUTILS
