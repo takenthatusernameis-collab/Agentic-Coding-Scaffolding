@@ -71,6 +71,7 @@ tree_utils.py              # Tree and nested structure utilities (get/set/delete
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
     path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
+cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
@@ -354,4 +355,8 @@ The project includes UUID utility functions in `uuid_utils.py` for generating an
 ## Utils Module
 
 The project includes general utility helper functions in `utils.py`: `flatten`, `chunk`, `unique`, and `is_empty`. The module is tested in `tests/test_utils.py`.
+
+## CLI Utilities Module
+
+The project includes command-line interface utilities in `cli_utils.py` for building simple CLI applications: `create_parser` builds an :mod:`argparse` parser with standard ``--verbose`` and ``--version`` options, `parse_arguments` parses command-line arguments, and `main_wrapper` wraps a main function to return consistent process exit codes (``0`` on success, ``1`` on error, ``130`` on keyboard interrupt). The module is tested in `tests/test_cli_utils.py`.
 

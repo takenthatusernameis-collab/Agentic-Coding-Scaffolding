@@ -105,6 +105,8 @@
 #   - tests/test_regex_utils.py — unit tests for regex_utils.py
 #   - terminal_utils.py — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 #   - tests/test_terminal_utils.py — unit tests for terminal_utils.py
+#   - cli_utils.py — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
+#   - tests/test_cli_utils.py — unit tests for cli_utils.py
 set -euo pipefail
 
 usage() {
@@ -496,6 +498,7 @@ py_modules = [
    "config_schema",
    "exceptions_utils",
    "io_utils",
+   "cli_utils",
    "terminal_utils",
 ]
 
@@ -12070,6 +12073,184 @@ def _term_width(stream: TextIO) -> int:
         return 80
 TERMINAL_UTILS
 
+# --- cli_utils.py ---
+cat > "$OUTPUT_DIR/cli_utils.py" <<'CLI_UTILS'
+"""Command-line interface utility functions.
+
+This module provides helpers for building simple command-line applications:
+creating an :mod:`argparse` parser with standard options, parsing arguments,
+and wrapping a main function so it returns consistent process exit codes.
+"""
+
+from __future__ import annotations
+
+import argparse
+from functools import wraps
+from typing import Callable, List, Optional
+
+__all__: List[str] = [
+    "create_parser",
+    "parse_arguments",
+    "main_wrapper",
+]
+
+
+def create_parser(
+    prog: str,
+    description: str,
+    epilog: Optional[str] = None,
+) -> argparse.ArgumentParser:
+    """Create an ArgumentParser with standard options.
+
+    Args:
+        prog: The name of the program.
+        description: A brief description of the program.
+        epilog: Optional text displayed after the argument help.
+
+    Returns:
+        An ArgumentParser configured with ``--verbose`` and ``--version``.
+
+    Examples:
+        >>> parser = create_parser("my-tool", "A sample CLI tool.")
+        >>> parser.prog
+        'my-tool'
+    """
+    parser = argparse.ArgumentParser(prog=prog, description=description, epilog=epilog)
+    parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose output")
+    parser.add_argument("--version", action="version", version=f"{prog} 0.1.0")
+    return parser
+
+
+def parse_arguments(
+    parser: argparse.ArgumentParser,
+    args: Optional[List[str]] = None,
+) -> argparse.Namespace:
+    """Parse command-line arguments.
+
+    Args:
+        parser: The ArgumentParser to use.
+        args: Optional list of argument strings (defaults to sys.argv[1:]).
+
+    Returns:
+        The parsed arguments namespace.
+    """
+    return parser.parse_args(args)
+
+
+def main_wrapper(func: Callable[[List[str]], int]) -> Callable[[List[str]], int]:
+    """Wrap a main function to handle errors and return exit codes.
+
+    Args:
+        func: A function taking ``argv`` and returning an exit code.
+
+    Returns:
+        A wrapped function that returns ``0`` on success, ``1`` on error,
+        and ``130`` on keyboard interrupt.
+
+    Examples:
+        >>> def main(argv):
+        ...     print("running")
+        ...     return 0
+        >>> wrapped = main_wrapper(main)
+        >>> wrapped([])
+        running
+        0
+    """
+
+    @wraps(func)
+    def wrapper(argv: List[str]) -> int:
+        try:
+            return func(argv)
+        except KeyboardInterrupt:
+            return 130
+        except Exception:
+            return 1
+
+    return wrapper
+CLI_UTILS
+
+# --- tests/test_cli_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_cli_utils.py" <<'TESTCLIUTILS'
+"""Unit tests for cli_utils module."""
+
+import argparse
+import unittest
+from unittest.mock import patch
+
+from cli_utils import create_parser, main_wrapper, parse_arguments
+
+
+class TestCreateParser(unittest.TestCase):
+    def test_creates_parser_with_prog(self):
+        parser = create_parser("my-tool", "A tool.")
+        self.assertEqual(parser.prog, "my-tool")
+        self.assertEqual(parser.description, "A tool.")
+
+    def test_has_verbose_flag(self):
+        parser = create_parser("my-tool", "A tool.")
+        args = parser.parse_args(["-v"])
+        self.assertTrue(args.verbose)
+
+    def test_has_long_verbose_flag(self):
+        parser = create_parser("my-tool", "A tool.")
+        args = parser.parse_args(["--verbose"])
+        self.assertTrue(args.verbose)
+
+    def test_version_flag_exits(self):
+        parser = create_parser("my-tool", "A tool.")
+        with self.assertRaises(SystemExit):
+            parser.parse_args(["--version"])
+
+
+class TestParseArguments(unittest.TestCase):
+    def test_parses_arguments(self):
+        parser = create_parser("my-tool", "A tool.")
+        args = parse_arguments(parser, ["-v"])
+        self.assertTrue(args.verbose)
+
+    def test_defaults_to_sys_argv(self):
+        parser = create_parser("my-tool", "A tool.")
+        with patch("sys.argv", ["my-tool", "-v"]):
+            args = parse_arguments(parser)
+            self.assertTrue(args.verbose)
+
+
+class TestMainWrapper(unittest.TestCase):
+    def test_returns_func_exit_code(self):
+        def main(argv):
+            return 0
+
+        wrapped = main_wrapper(main)
+        self.assertEqual(wrapped([]), 0)
+
+    def test_returns_one_on_exception(self):
+        def main(argv):
+            raise ValueError("boom")
+
+        wrapped = main_wrapper(main)
+        self.assertEqual(wrapped([]), 1)
+
+    def test_returns_130_on_keyboard_interrupt(self):
+        def main(argv):
+            raise KeyboardInterrupt
+
+        wrapped = main_wrapper(main)
+        self.assertEqual(wrapped([]), 130)
+
+    def test_preserves_function_metadata(self):
+        def main(argv):
+            """The main function."""
+            return 0
+
+        wrapped = main_wrapper(main)
+        self.assertEqual(wrapped.__name__, "main")
+        self.assertEqual(wrapped.__doc__, "The main function.")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCLIUTILS
+
 # --- tests/test_terminal_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_terminal_utils.py" <<'TESTTERMINALUTILS'
 """Tests for terminal_utils module."""
@@ -12407,6 +12588,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+- `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
+- `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -12662,6 +12845,7 @@ tree_utils.py              # Tree and nested structure utilities (get/set/delete
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -12802,6 +12986,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+- `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
+- `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory

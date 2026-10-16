@@ -110,6 +110,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_color_utils.py` — unit tests for `color_utils.py`
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
+- `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
+- `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
 
 ## Usage
 

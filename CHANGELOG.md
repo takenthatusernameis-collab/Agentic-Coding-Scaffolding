@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+### Added
+
+- `cli_utils.py` — command-line interface utilities with `create_parser` (an `argparse` parser with `--verbose` and `--version`), `parse_arguments`, and `main_wrapper` (wraps a main function returning exit codes `0`, `1`, or `130`)
+- `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
+- Added `cli_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
+
 ### Fixed
 
 - Fixed inconsistent indentation in the `README.md` project structure tree: `path_utils.py`, `color_utils.py`, `pattern_utils.py`, `functools_utils.py`, `config_schema.py`, `exceptions_utils.py`, `io_utils.py`, `compression_utils.py`, `ip_utils.py`, `regex_utils.py`, `terminal_utils.py`, and the `tests/` sub-section were indented with 4 extra leading spaces instead of aligning with their siblings; also fixed `test_type_utils.py`, `test_path_utils.py`, `test_color_utils.py`, `test_pattern_utils.py`, `test_functools_utils.py`, `test_exceptions_utils.py`, `test_io_utils.py`, `test_compression_utils.py`, `test_ip_utils.py`, `test_regex_utils.py`, and `test_config_schema.py` entries in the tests sub-section. Synchronized the same fix into `scaffold.sh`'s generated `README.md` template so scaffolded projects inherit consistent indentation.
