@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `ini_utils.py` — INI configuration file utilities (`load_config`, `save_config`, `get_config_value`, `set_config_value`, `merge_configs`, `list_sections`, `has_section`, `get_section`) for working with INI-style config files using `configparser`
+- `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
+- Added `ini_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
+
 - `cli_utils.py` — command-line interface utilities with `create_parser` (an `argparse` parser with `--verbose` and `--version`), `parse_arguments`, and `main_wrapper` (wraps a main function returning exit codes `0`, `1`, or `130`)
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
 - Added `cli_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests

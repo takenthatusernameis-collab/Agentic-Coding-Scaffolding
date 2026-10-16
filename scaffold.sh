@@ -101,6 +101,8 @@
 #   - tests/test_exceptions_utils.py — unit tests for exceptions_utils.py
 #   - io_utils.py — line-oriented and atomic input/output utilities (read_lines, write_lines, append_text, atomic_write_text, stream_copy, count_lines, iter_lines)
 #   - tests/test_io_utils.py — unit tests for io_utils.py
+#   - ini_utils.py — INI configuration file utilities (load_config, save_config, get_config_value, set_config_value, merge_configs, list_sections, has_section, get_section)
+#   - tests/test_ini_utils.py — unit tests for ini_utils.py
 #   - regex_utils.py — regular expression utilities (compile, match, search, replace, split, escape, extract groups, named groups)
 #   - tests/test_regex_utils.py — unit tests for regex_utils.py
 #   - terminal_utils.py — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
@@ -12584,7 +12586,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `exceptions_utils.py` — custom exception classes and error handling utilities
 - `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
 - `io_utils.py` — line-oriented and atomic input/output utilities (read_lines, write_lines, append_text, atomic_write_text, stream_copy, count_lines, iter_lines)
+- `ini_utils.py` — INI configuration file utilities (load_config, save_config, get_config_value, set_config_value, merge_configs, list_sections, has_section, get_section)
 - `tests/test_io_utils.py` — unit tests for `io_utils.py`
+- `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
@@ -12982,7 +12986,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `exceptions_utils.py` — custom exception classes and error handling utilities
 - `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
 - `io_utils.py` — line-oriented and atomic input/output utilities (read_lines, write_lines, append_text, atomic_write_text, stream_copy, count_lines, iter_lines)
+- `ini_utils.py` — INI configuration file utilities (load_config, save_config, get_config_value, set_config_value, merge_configs, list_sections, has_section, get_section)
 - `tests/test_io_utils.py` — unit tests for `io_utils.py`
+- `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
@@ -15324,4 +15330,513 @@ class TestIterLines(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTIOUTILS
+
+# --- ini_utils.py ---
+cat > "$OUTPUT_DIR/ini_utils.py" <<'INI_UTILS'
+"""Configuration utility functions for loading and managing INI configuration files.
+
+This module provides utilities for working with INI-style configuration files
+using Python's :mod:`configparser`, with section-aware get/set/merge operations.
+"""
+
+import configparser
+from pathlib import Path
+from typing import Any, Dict, Union
+
+
+def _parser() -> configparser.ConfigParser:
+    parser = configparser.ConfigParser()
+    parser.optionxform = str  # preserve case of keys
+    return parser
+
+
+def load_config(file_path: Union[str, Path]) -> Dict[str, Dict[str, str]]:
+    """Load configuration from an INI file.
+
+    Args:
+        file_path: Path to the INI configuration file.
+
+    Returns:
+        Dictionary mapping section names to dictionaries of key/value pairs.
+        The ``DEFAULT`` section is excluded.
+
+    Raises:
+        FileNotFoundError: If the configuration file does not exist.
+        configparser.Error: If the file contains invalid INI syntax.
+        TypeError: If file_path is not a string or Path object.
+    """
+    path = Path(file_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Configuration file not found: {file_path}")
+
+    parser = _parser()
+    parser.read(path, encoding="utf-8")
+
+    config: Dict[str, Dict[str, str]] = {}
+    for section in parser.sections():
+        config[section] = dict(parser.items(section))
+
+    return config
+
+
+def save_config(config: Dict[str, Dict[str, str]], file_path: Union[str, Path]) -> None:
+    """Save configuration to an INI file.
+
+    Args:
+        config: Dictionary mapping section names to key/value dictionaries.
+        file_path: Path where the INI configuration file should be saved.
+
+    Raises:
+        TypeError: If config is not a dictionary of dictionaries.
+        OSError: If there is an issue writing to the file.
+    """
+    if not isinstance(config, dict):
+        raise TypeError("config must be a dictionary")
+
+    parser = _parser()
+    for section, values in config.items():
+        if not isinstance(values, dict):
+            raise TypeError(f"Section '{section}' must be a dictionary")
+        if not parser.has_section(section):
+            parser.add_section(section)
+        for key, value in values.items():
+            parser.set(section, key, str(value))
+
+    path = Path(file_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(path, "w", encoding="utf-8") as f:
+        parser.write(f)
+
+
+def get_config_value(
+    config: Dict[str, Dict[str, Any]],
+    key_path: str,
+    default: Any = None,
+    separator: str = ".",
+) -> Any:
+    """Get a value from a nested INI configuration using dot notation.
+
+    The first path component names the section; the second names the key.
+    Only one level of nesting (``section.key``) is supported.
+
+    Args:
+        config: Configuration dictionary mapping sections to key/value maps.
+        key_path: Dot-separated path (e.g. ``"database.host"``).
+        default: Value to return if the path is not found.
+        separator: Separator character for the key path (default: ".").
+
+    Returns:
+        The value at the specified path, or default if not found.
+    """
+    if not isinstance(config, dict):
+        return default
+
+    keys = key_path.split(separator)
+    if len(keys) != 2:
+        return default
+
+    section, key = keys
+    values = config.get(section)
+    if not isinstance(values, dict):
+        return default
+
+    return values.get(key, default)
+
+
+def set_config_value(
+    config: Dict[str, Dict[str, Any]],
+    key_path: str,
+    value: Any,
+    separator: str = ".",
+) -> None:
+    """Set a value in a nested INI configuration using dot notation.
+
+    Args:
+        config: Configuration dictionary to modify.
+        key_path: Dot-separated path (e.g. ``"database.host"``).
+        value: Value to set at the specified location.
+        separator: Separator character for the key path (default: ".").
+
+    Raises:
+        TypeError: If config is not a dictionary.
+        ValueError: If key_path does not contain exactly one separator.
+    """
+    if not isinstance(config, dict):
+        raise TypeError("config must be a dictionary")
+
+    keys = key_path.split(separator)
+    if len(keys) != 2:
+        raise ValueError("key_path must be in 'section.key' format")
+
+    section, key = keys
+    if section not in config or not isinstance(config[section], dict):
+        config[section] = {}
+
+    config[section][key] = value
+
+
+def merge_configs(
+    base: Dict[str, Dict[str, Any]],
+    override: Dict[str, Dict[str, Any]],
+) -> Dict[str, Dict[str, Any]]:
+    """Merge two INI configuration dictionaries, with override taking precedence.
+
+    Args:
+        base: Base configuration dictionary.
+        override: Override configuration dictionary.
+
+    Returns:
+        New dictionary with merged configuration.
+
+    Raises:
+        TypeError: If either argument is not a dictionary of dictionaries.
+    """
+    if not isinstance(base, dict) or not isinstance(override, dict):
+        raise TypeError("Both base and override must be dictionaries")
+
+    result: Dict[str, Dict[str, Any]] = {}
+
+    for section, values in base.items():
+        if not isinstance(values, dict):
+            raise TypeError(f"Section '{section}' in base must be a dictionary")
+        result[section] = dict(values)
+
+    for section, values in override.items():
+        if not isinstance(values, dict):
+            raise TypeError(f"Section '{section}' in override must be a dictionary")
+        if section in result:
+            result[section].update(values)
+        else:
+            result[section] = dict(values)
+
+    return result
+
+
+def list_sections(config: Dict[str, Dict[str, Any]]) -> list[str]:
+    """Return the list of section names in a configuration dictionary."""
+    return [section for section in config if isinstance(config[section], dict)]
+
+
+def has_section(config: Dict[str, Dict[str, Any]], section: str) -> bool:
+    """Return True if the configuration contains the given section."""
+    return isinstance(config.get(section), dict)
+
+
+def get_section(config: Dict[str, Dict[str, Any]], section: str) -> Dict[str, Any]:
+    """Return the key/value dictionary for a section, or an empty dict if absent."""
+    values = config.get(section)
+    return dict(values) if isinstance(values, dict) else {}
+INI_UTILS
+
+# --- tests/test_ini_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_ini_utils.py" <<'TESTINIUTILS'
+import tempfile
+import unittest
+from pathlib import Path
+
+from ini_utils import (
+    get_config_value,
+    get_section,
+    has_section,
+    list_sections,
+    load_config,
+    merge_configs,
+    save_config,
+    set_config_value,
+)
+
+
+class TestLoadConfig(unittest.TestCase):
+    """Test the load_config function."""
+
+    def test_load_valid_ini(self):
+        """Test loading a valid INI configuration file."""
+        content = """[database]
+host = localhost
+port = 5432
+
+[debug]
+enabled = true
+"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".ini", delete=False) as f:
+            f.write(content)
+            temp_path = f.name
+
+        try:
+            loaded = load_config(temp_path)
+            self.assertEqual(
+                loaded,
+                {
+                    "database": {"host": "localhost", "port": "5432"},
+                    "debug": {"enabled": "true"},
+                },
+            )
+        finally:
+            Path(temp_path).unlink()
+
+    def test_load_file_not_found(self):
+        """Test loading a non-existent file raises FileNotFoundError."""
+        with self.assertRaises(FileNotFoundError):
+            load_config("/non/existent/file.ini")
+
+    def test_load_with_path_object(self):
+        """Test loading works with Path objects."""
+        content = "[section]\nkey = value\n"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".ini", delete=False) as f:
+            f.write(content)
+            temp_path = Path(f.name)
+
+        try:
+            loaded = load_config(temp_path)
+            self.assertEqual(loaded, {"section": {"key": "value"}})
+        finally:
+            temp_path.unlink()
+
+    def test_load_ignores_default_section(self):
+        """Test that the DEFAULT section is not included in results."""
+        content = """[DEFAULT]
+host = localhost
+
+[database]
+host = 127.0.0.1
+port = 5432
+"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".ini", delete=False) as f:
+            f.write(content)
+            temp_path = f.name
+
+        try:
+            loaded = load_config(temp_path)
+            self.assertNotIn("DEFAULT", loaded)
+            self.assertEqual(loaded["database"]["host"], "127.0.0.1")
+        finally:
+            Path(temp_path).unlink()
+
+
+class TestSaveConfig(unittest.TestCase):
+    """Test the save_config function."""
+
+    def test_save_and_load_roundtrip(self):
+        """Test saving and loading preserves data."""
+        original_config = {
+            "database": {"host": "localhost", "port": "5432"},
+            "debug": {"enabled": "true"},
+        }
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".ini", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            save_config(original_config, temp_path)
+            loaded_config = load_config(temp_path)
+            self.assertEqual(loaded_config, original_config)
+        finally:
+            Path(temp_path).unlink()
+
+    def test_save_creates_directories(self):
+        """Test that save_config creates parent directories if needed."""
+        config = {"section": {"key": "value"}}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            nested_path = Path(tmp_dir) / "nested" / "deep" / "config.ini"
+
+            self.assertFalse(nested_path.parent.exists())
+
+            save_config(config, nested_path)
+
+            self.assertTrue(nested_path.exists())
+            loaded = load_config(nested_path)
+            self.assertEqual(loaded, config)
+
+    def test_save_invalid_config_type(self):
+        """Test that saving non-dict config raises TypeError."""
+        with tempfile.NamedTemporaryFile(suffix=".ini", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            with self.assertRaises(TypeError):
+                save_config(["not", "a", "dict"], temp_path)
+        finally:
+            Path(temp_path).unlink()
+
+    def test_save_invalid_section_type(self):
+        """Test that saving a section with non-dict values raises TypeError."""
+        with tempfile.NamedTemporaryFile(suffix=".ini", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            with self.assertRaises(TypeError):
+                save_config({"section": ["not", "a", "dict"]}, temp_path)
+        finally:
+            Path(temp_path).unlink()
+
+
+class TestGetConfigValue(unittest.TestCase):
+    """Test the get_config_value function."""
+
+    def setUp(self):
+        """Set up test configuration."""
+        self.config = {
+            "database": {"host": "localhost", "port": "5432"},
+            "debug": {"enabled": "true"},
+        }
+
+    def test_get_existing_value(self):
+        """Test getting an existing configuration value."""
+        self.assertEqual(get_config_value(self.config, "database.host"), "localhost")
+        self.assertEqual(get_config_value(self.config, "database.port"), "5432")
+        self.assertEqual(get_config_value(self.config, "debug.enabled"), "true")
+
+    def test_get_missing_key_returns_default(self):
+        """Test that missing keys return the default value."""
+        self.assertIsNone(get_config_value(self.config, "database.hostname"))
+        self.assertEqual(
+            get_config_value(self.config, "database.hostname", "default"), "default"
+        )
+
+    def test_get_missing_section_returns_default(self):
+        """Test that missing sections return the default value."""
+        self.assertIsNone(get_config_value(self.config, "missing.host"))
+        self.assertEqual(
+            get_config_value(self.config, "missing.host", "default"), "default"
+        )
+
+    def test_get_with_non_dict_config(self):
+        """Test getting value from non-dict config returns default."""
+        self.assertEqual(get_config_value("not a dict", "section.key", "default"), "default")
+        self.assertIsNone(get_config_value([], "section.key"))
+
+    def test_get_with_invalid_key_path(self):
+        """Test that malformed key paths return the default value."""
+        self.assertIsNone(get_config_value(self.config, "noseparator"))
+        self.assertIsNone(get_config_value(self.config, "a.b.c"))
+
+
+class TestSetConfigValue(unittest.TestCase):
+    """Test the set_config_value function."""
+
+    def test_set_new_section_and_key(self):
+        """Test setting a value in a new section."""
+        config = {}
+        set_config_value(config, "database.host", "localhost")
+        self.assertEqual(config, {"database": {"host": "localhost"}})
+
+    def test_set_overwrites_existing(self):
+        """Test that setting overwrites existing values."""
+        config = {"database": {"host": "localhost"}}
+        set_config_value(config, "database.host", "127.0.0.1")
+        self.assertEqual(config["database"]["host"], "127.0.0.1")
+
+    def test_set_adds_key_to_existing_section(self):
+        """Test adding a key to an existing section."""
+        config = {"database": {"host": "localhost"}}
+        set_config_value(config, "database.port", "5432")
+        self.assertEqual(config, {"database": {"host": "localhost", "port": "5432"}})
+
+    def test_set_invalid_config_type(self):
+        """Test that setting value in non-dict config raises TypeError."""
+        with self.assertRaises(TypeError):
+            set_config_value(["not", "a", "dict"], "section.key", "value")
+
+    def test_set_invalid_key_path(self):
+        """Test that malformed key paths raise ValueError."""
+        with self.assertRaises(ValueError):
+            set_config_value({}, "noseparator", "value")
+        with self.assertRaises(ValueError):
+            set_config_value({}, "a.b.c", "value")
+
+
+class TestMergeConfigs(unittest.TestCase):
+    """Test the merge_configs function."""
+
+    def test_merge_simple_dicts(self):
+        """Test merging simple configurations."""
+        base = {"database": {"host": "localhost", "port": "5432"}}
+        override = {"database": {"port": "5433"}, "debug": {"enabled": "true"}}
+        expected = {
+            "database": {"host": "localhost", "port": "5433"},
+            "debug": {"enabled": "true"},
+        }
+        self.assertEqual(merge_configs(base, override), expected)
+
+    def test_merge_preserves_base_when_no_override(self):
+        """Test that base values are preserved when not overridden."""
+        base = {"database": {"host": "localhost", "port": "5432"}}
+        override = {"database": {"user": "admin"}}
+        expected = {"database": {"host": "localhost", "port": "5432", "user": "admin"}}
+        self.assertEqual(merge_configs(base, override), expected)
+
+    def test_merge_with_empty_dicts(self):
+        """Test merging with empty dictionaries."""
+        base = {"database": {"host": "localhost"}}
+        override = {}
+        self.assertEqual(merge_configs(base, override), base)
+
+        base = {}
+        override = {"debug": {"enabled": "true"}}
+        self.assertEqual(merge_configs(base, override), override)
+
+        base = {}
+        override = {}
+        self.assertEqual(merge_configs(base, override), {})
+
+    def test_merge_invalid_types(self):
+        """Test that merging invalid types raises TypeError."""
+        with self.assertRaises(TypeError):
+            merge_configs("not a dict", {"a": {}})
+        with self.assertRaises(TypeError):
+            merge_configs({"a": {}}, "not a dict")
+        with self.assertRaises(TypeError):
+            merge_configs({"a": ["not", "dict"]}, {"b": {}})
+        with self.assertRaises(TypeError):
+            merge_configs({"a": {}}, {"b": ["not", "dict"]})
+
+
+class TestListSections(unittest.TestCase):
+    """Test the list_sections function."""
+
+    def test_list_sections(self):
+        """Test listing section names."""
+        config = {"database": {}, "debug": {}, "logging": {}}
+        self.assertEqual(sorted(list_sections(config)), ["database", "debug", "logging"])
+
+    def test_list_sections_empty(self):
+        """Test listing sections of an empty config."""
+        self.assertEqual(list_sections({}), [])
+
+
+class TestHasSection(unittest.TestCase):
+    """Test the has_section function."""
+
+    def test_has_section(self):
+        """Test checking for section existence."""
+        config = {"database": {"host": "localhost"}}
+        self.assertTrue(has_section(config, "database"))
+        self.assertFalse(has_section(config, "missing"))
+
+
+class TestGetSection(unittest.TestCase):
+    """Test the get_section function."""
+
+    def test_get_section(self):
+        """Test getting a section's key/value map."""
+        config = {"database": {"host": "localhost", "port": "5432"}}
+        self.assertEqual(get_section(config, "database"), {"host": "localhost", "port": "5432"})
+
+    def test_get_missing_section(self):
+        """Test getting a missing section returns an empty dict."""
+        self.assertEqual(get_section({}, "missing"), {})
+
+    def test_get_section_returns_copy(self):
+        """Test that the returned dict is a copy."""
+        config = {"database": {"host": "localhost"}}
+        section = get_section(config, "database")
+        section["host"] = "changed"
+        self.assertEqual(config["database"]["host"], "localhost")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTINIUTILS
 

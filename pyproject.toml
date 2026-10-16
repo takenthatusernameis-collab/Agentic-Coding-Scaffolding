@@ -83,6 +83,7 @@ py_modules = [
     "config_schema",
     "exceptions_utils",
     "io_utils",
+    "ini_utils",
     "compression_utils",
     "ip_utils",
     "regex_utils",

@@ -77,6 +77,7 @@ functools_utils.py         # Functional programming utilities (compose, pipe, cu
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 exceptions_utils.py        # Custom exception classes and error handling utilities
 io_utils.py                # Line-oriented and atomic input/output utilities
+ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
 ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
@@ -359,4 +360,8 @@ The project includes general utility helper functions in `utils.py`: `flatten`, 
 ## CLI Utilities Module
 
 The project includes command-line interface utilities in `cli_utils.py` for building simple CLI applications: `create_parser` builds an :mod:`argparse` parser with standard ``--verbose`` and ``--version`` options, `parse_arguments` parses command-line arguments, and `main_wrapper` wraps a main function to return consistent process exit codes (``0`` on success, ``1`` on error, ``130`` on keyboard interrupt). The module is tested in `tests/test_cli_utils.py`.
+
+## INI Configuration Utilities Module
+
+The project includes an INI configuration utilities module in `ini_utils.py` for working with INI-style configuration files: `load_config`, `save_config`, `get_config_value`, `set_config_value`, `merge_configs`, `list_sections`, `has_section`, and `get_section`. Section-based access uses dot notation (``section.key``), keys preserve their case, and parent directories are created automatically on save. The module is tested in `tests/test_ini_utils.py`.
 
