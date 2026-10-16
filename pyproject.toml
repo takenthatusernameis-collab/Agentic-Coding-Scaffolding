@@ -66,6 +66,7 @@ py_modules = [
     "logging_utils",
     "cache_utils",
     "context_utils",
+    "itertools_utils",
     "cli_utils",
     "color_utils",
     "timing_utils",
