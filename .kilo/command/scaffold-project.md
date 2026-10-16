@@ -152,6 +152,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
 - `version_utils.py` — version parsing, comparison, and normalization utilities
 - `tests/test_version_utils.py` — unit tests for `version_utils.py`
+- `sys_utils.py` — Python runtime and system information utilities (`get_python_version`, `get_executable`, `get_platform`, `get_path`, `get_argv`, `get_recursion_limit`, `set_recursion_limit`, stream encodings, frame info, refcount)
+- `tests/test_sys_utils.py` — unit tests for `sys_utils.py`
 - `textwrap_utils.py` — text wrapping utilities (`wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, `fill_text`)
 - `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
 

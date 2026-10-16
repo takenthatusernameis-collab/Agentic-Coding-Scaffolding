@@ -142,6 +142,8 @@
 #   - tests/test_graphlib_utils.py — unit tests for graphlib_utils.py
 #   - queue_utils.py — FIFO queue helpers (Queue class, enqueue, dequeue, peek, size, is_empty, clear)
 #   - tests/test_queue_utils.py — unit tests for queue_utils.py
+#   - sys_utils.py — Python runtime and system information utilities (interpreter version, platform, argv, path, recursion limit, stream encodings)
+#   - tests/test_sys_utils.py — unit tests for sys_utils.py
 #   - version_utils.py — version parsing, comparison, and normalization utilities
 #   - tests/test_version_utils.py — unit tests for version_utils.py
 #   - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -558,6 +560,7 @@ py_modules = [
     "graphlib_utils",
     "queue_utils",
     "version_utils",
+    "sys_utils",
     "textwrap_utils",
 ]
 
@@ -14809,6 +14812,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_queue_utils.py — unit tests for `queue_utils.py`
 - version_utils.py — version parsing, comparison, and normalization utilities
 - tests/test_version_utils.py — unit tests for `version_utils.py`
+- sys_utils.py — Python runtime and system information utilities (`get_python_version`, `get_executable`, `get_platform`, `get_path`, `get_argv`, `get_recursion_limit`, `set_recursion_limit`, stream encodings, frame info, refcount)
+- tests/test_sys_utils.py — unit tests for `sys_utils.py`
 - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
 - tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
@@ -15083,6 +15088,7 @@ seq_utils.py               # Sequence utilities (first, last, nth, head, tail, s
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 queue_utils.py             # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
 version_utils.py           # Version parsing, comparison, and normalization utilities
+sys_utils.py               # Python runtime and system information utilities
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -15136,6 +15142,7 @@ tests/                     # Python unit tests
   test_graphlib_utils.py        # Tests for graphlib_utils.py
   test_queue_utils.py           # Tests for queue_utils.py
   test_version_utils.py         # Tests for version_utils.py
+  test_sys_utils.py             # Tests for sys_utils.py
     ```
 
 ## Getting Started
@@ -15272,6 +15279,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_queue_utils.py — unit tests for `queue_utils.py`
 - version_utils.py — version parsing, comparison, and normalization utilities
 - tests/test_version_utils.py — unit tests for `version_utils.py`
+- sys_utils.py — Python runtime and system information utilities (`get_python_version`, `get_executable`, `get_platform`, `get_path`, `get_argv`, `get_recursion_limit`, `set_recursion_limit`, stream encodings, frame info, refcount)
+- tests/test_sys_utils.py — unit tests for `sys_utils.py`
 - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
 - tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
@@ -22138,3 +22147,392 @@ def test_validation():
         else:
             raise AssertionError("TypeError expected")
 TESTTEXTWRAPUTILS
+
+# --- sys_utils.py ---
+cat > "$OUTPUT_DIR/sys_utils.py" <<'SYS_UTILS'
+"""Python runtime and system information utilities.
+
+This module provides helpers for inspecting the Python interpreter and
+runtime environment using only the standard library ``sys`` module.
+It complements :mod:`os_utils`, which covers operating-system-level
+information.
+"""
+
+from __future__ import annotations
+
+import sys
+from typing import Any, Dict, List, Optional
+
+__all__: list[str] = [
+    "get_argv",
+    "get_executable",
+    "get_frame_info",
+    "get_platform",
+    "get_path",
+    "get_python_version",
+    "get_python_version_string",
+    "get_recursion_limit",
+    "get_refcount",
+    "get_stderr_encoding",
+    "get_stdin_encoding",
+    "get_stdout_encoding",
+    "is_interactive",
+    "set_recursion_limit",
+]
+
+
+def get_python_version() -> Dict[str, Any]:
+    """Return the Python interpreter version as a dictionary.
+
+    Returns:
+        Dictionary with keys ``major``, ``minor``, ``micro``,
+        ``releaselevel``, and ``serial``.
+    """
+    version_info = sys.version_info
+    return {
+        "major": version_info.major,
+        "minor": version_info.minor,
+        "micro": version_info.micro,
+        "releaselevel": version_info.releaselevel,
+        "serial": version_info.serial,
+    }
+
+
+def get_python_version_string() -> str:
+    """Return the full Python version string.
+
+    Returns:
+        The version string (e.g. ``"3.11.0 (main, ...)"``).
+    """
+    return sys.version
+
+
+def get_executable() -> str:
+    """Return the absolute path of the Python executable.
+
+    Returns:
+        The path to the running Python interpreter executable.
+    """
+    return sys.executable
+
+
+def get_argv() -> List[str]:
+    """Return the command-line arguments passed to the script.
+
+    Returns:
+        A list of command-line arguments. The first element is the
+        script name (or empty when run interactively).
+    """
+    return list(sys.argv)
+
+
+def get_platform() -> str:
+    """Return the platform identifier.
+
+    Returns:
+        The platform string (e.g. ``"linux"``, ``"darwin"``,
+        ``"win32"``).
+    """
+    return sys.platform
+
+
+def get_path() -> List[str]:
+    """Return a copy of the module search path.
+
+    Returns:
+        A list of directory strings searched when importing modules.
+    """
+    return list(sys.path)
+
+
+def get_recursion_limit() -> int:
+    """Return the current maximum recursion depth.
+
+    Returns:
+        The current recursion limit as an integer.
+    """
+    return sys.getrecursionlimit()
+
+
+def set_recursion_limit(limit: int) -> None:
+    """Set the maximum recursion depth.
+
+    Args:
+        limit: The new recursion limit. Must be a positive integer.
+
+    Raises:
+        TypeError: If ``limit`` is not an integer.
+        ValueError: If ``limit`` is less than or equal to 0.
+    """
+    if not isinstance(limit, int) or isinstance(limit, bool):
+        raise TypeError("limit must be an integer")
+    if limit <= 0:
+        raise ValueError("limit must be greater than 0")
+    sys.setrecursionlimit(limit)
+
+
+def get_stdout_encoding() -> Optional[str]:
+    """Return the encoding of the standard output stream.
+
+    Returns:
+        The encoding name (e.g. ``"utf-8"``), or ``None`` if unavailable.
+    """
+    stdout = getattr(sys, "stdout", None)
+    if stdout is None:
+        return None
+    return getattr(stdout, "encoding", None)
+
+
+def get_stderr_encoding() -> Optional[str]:
+    """Return the encoding of the standard error stream.
+
+    Returns:
+        The encoding name (e.g. ``"utf-8"``), or ``None`` if unavailable.
+    """
+    stderr = getattr(sys, "stderr", None)
+    if stderr is None:
+        return None
+    return getattr(stderr, "encoding", None)
+
+
+def get_stdin_encoding() -> Optional[str]:
+    """Return the encoding of the standard input stream.
+
+    Returns:
+        The encoding name (e.g. ``"utf-8"``), or ``None`` if unavailable.
+    """
+    stdin = getattr(sys, "stdin", None)
+    if stdin is None:
+        return None
+    return getattr(stdin, "encoding", None)
+
+
+def is_interactive() -> bool:
+    """Return whether the interpreter is running in interactive mode.
+
+    Returns:
+        ``True`` when running in an interactive session, ``False``
+        otherwise.
+    """
+    return hasattr(sys, "ps1") or hasattr(sys, "ps2")
+
+
+def get_frame_info(depth: int = 0) -> Dict[str, Any]:
+    """Return information about a stack frame.
+
+    Args:
+        depth: The number of frames to go back from the caller of this
+            function. ``0`` refers to the caller of ``get_frame_info``.
+
+    Returns:
+        Dictionary with keys ``filename``, ``lineno``, ``function``,
+        ``code_context``, and ``index``.
+
+    Raises:
+        TypeError: If ``depth`` is not an integer.
+        ValueError: If ``depth`` is negative.
+        IndexError: If ``depth`` is beyond the available call stack.
+    """
+    if not isinstance(depth, int) or isinstance(depth, bool):
+        raise TypeError("depth must be an integer")
+    if depth < 0:
+        raise ValueError("depth must be non-negative")
+
+    frame = sys._getframe(depth + 1)
+    try:
+        return {
+            "filename": frame.f_code.co_filename,
+            "lineno": frame.f_lineno,
+            "function": frame.f_code.co_name,
+            "code_context": None,
+            "index": None,
+        }
+    finally:
+        del frame
+
+
+def get_refcount(obj: Any) -> int:
+    """Return the reference count of an object.
+
+    Args:
+        obj: The object whose reference count should be retrieved.
+
+    Returns:
+        The reference count as an integer. Note that the count returned
+        includes the temporary reference created by the call itself.
+    """
+    return sys.getrefcount(obj)
+SYS_UTILS
+
+# --- tests/test_sys_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_sys_utils.py" <<'TESTSYSUTILS'
+"""Unit tests for sys_utils module."""
+
+import sys
+import unittest
+
+from sys_utils import (
+    get_argv,
+    get_executable,
+    get_frame_info,
+    get_path,
+    get_platform,
+    get_python_version,
+    get_python_version_string,
+    get_recursion_limit,
+    get_refcount,
+    get_stderr_encoding,
+    get_stdin_encoding,
+    get_stdout_encoding,
+    is_interactive,
+    set_recursion_limit,
+)
+
+
+class TestGetPythonVersion(unittest.TestCase):
+    def test_get_python_version(self):
+        version = get_python_version()
+        self.assertIsInstance(version, dict)
+        for key in ("major", "minor", "micro", "releaselevel", "serial"):
+            self.assertIn(key, version)
+        self.assertEqual(version["major"], sys.version_info.major)
+        self.assertEqual(version["minor"], sys.version_info.minor)
+        self.assertEqual(version["micro"], sys.version_info.micro)
+        self.assertIsInstance(version["releaselevel"], str)
+        self.assertIsInstance(version["serial"], int)
+
+
+class TestGetPythonVersionString(unittest.TestCase):
+    def test_get_python_version_string(self):
+        version_string = get_python_version_string()
+        self.assertIsInstance(version_string, str)
+        self.assertTrue(version_string.startswith(sys.version.split(" ")[0]))
+
+
+class TestGetExecutable(unittest.TestCase):
+    def test_get_executable(self):
+        executable = get_executable()
+        self.assertIsInstance(executable, str)
+        self.assertEqual(executable, sys.executable)
+
+
+class TestGetArgv(unittest.TestCase):
+    def test_get_argv(self):
+        argv = get_argv()
+        self.assertIsInstance(argv, list)
+        for arg in argv:
+            self.assertIsInstance(arg, str)
+        self.assertEqual(argv, sys.argv)
+        # Return a copy, not the live list
+        self.assertIsNot(argv, sys.argv)
+
+
+class TestGetPlatform(unittest.TestCase):
+    def test_get_platform(self):
+        platform = get_platform()
+        self.assertIsInstance(platform, str)
+        self.assertEqual(platform, sys.platform)
+
+
+class TestGetPath(unittest.TestCase):
+    def test_get_path(self):
+        path = get_path()
+        self.assertIsInstance(path, list)
+        for entry in path:
+            self.assertIsInstance(entry, str)
+        self.assertEqual(path, sys.path)
+        self.assertIsNot(path, sys.path)
+
+
+class TestGetRecursionLimit(unittest.TestCase):
+    def test_get_recursion_limit(self):
+        limit = get_recursion_limit()
+        self.assertIsInstance(limit, int)
+        self.assertGreaterEqual(limit, 1)
+        self.assertEqual(limit, sys.getrecursionlimit())
+
+
+class TestSetRecursionLimit(unittest.TestCase):
+    def test_set_recursion_limit(self):
+        original = sys.getrecursionlimit()
+        try:
+            set_recursion_limit(100)
+            self.assertEqual(sys.getrecursionlimit(), 100)
+            self.assertEqual(get_recursion_limit(), 100)
+        finally:
+            sys.setrecursionlimit(original)
+
+    def test_set_recursion_limit_invalid_type(self):
+        with self.assertRaises(TypeError):
+            set_recursion_limit("100")
+        with self.assertRaises(TypeError):
+            set_recursion_limit(100.0)
+        with self.assertRaises(TypeError):
+            set_recursion_limit(True)
+
+    def test_set_recursion_limit_invalid_value(self):
+        with self.assertRaises(ValueError):
+            set_recursion_limit(0)
+        with self.assertRaises(ValueError):
+            set_recursion_limit(-1)
+
+
+class TestGetStdoutEncoding(unittest.TestCase):
+    def test_get_stdout_encoding(self):
+        encoding = get_stdout_encoding()
+        self.assertTrue(encoding is None or isinstance(encoding, str))
+
+
+class TestGetStderrEncoding(unittest.TestCase):
+    def test_get_stderr_encoding(self):
+        encoding = get_stderr_encoding()
+        self.assertTrue(encoding is None or isinstance(encoding, str))
+
+
+class TestGetStdinEncoding(unittest.TestCase):
+    def test_get_stdin_encoding(self):
+        encoding = get_stdin_encoding()
+        self.assertTrue(encoding is None or isinstance(encoding, str))
+
+
+class TestIsInteractive(unittest.TestCase):
+    def test_is_interactive(self):
+        result = is_interactive()
+        self.assertIsInstance(result, bool)
+
+
+class TestGetFrameInfo(unittest.TestCase):
+    def test_get_frame_info(self):
+        def inner():
+            return get_frame_info(0)
+
+        info = inner()
+        self.assertIsInstance(info, dict)
+        for key in ("filename", "lineno", "function", "code_context", "index"):
+            self.assertIn(key, info)
+        self.assertEqual(info["function"], "inner")
+        self.assertIsInstance(info["filename"], str)
+        self.assertIsInstance(info["lineno"], int)
+
+    def test_get_frame_info_invalid_type(self):
+        with self.assertRaises(TypeError):
+            get_frame_info("0")
+        with self.assertRaises(TypeError):
+            get_frame_info(True)
+
+    def test_get_frame_info_negative_depth(self):
+        with self.assertRaises(ValueError):
+            get_frame_info(-1)
+
+
+class TestGetRefcount(unittest.TestCase):
+    def test_get_refcount(self):
+        obj = object()
+        count = get_refcount(obj)
+        self.assertIsInstance(count, int)
+        self.assertGreaterEqual(count, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSYSUTILS
