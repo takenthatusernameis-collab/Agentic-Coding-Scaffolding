@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators such as `range_validator`, `choices_validator`, `email_validator`)
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
+- `exceptions_utils.py` — custom exception classes and error handling utilities (`ValidationError`, `ConfigurationError`, `NotFoundError`, `PermissionError_`, `TimeoutError_`) with error details support; helper functions `catch_and_wrap()`, `get_error_details()`, and `is_instance_of_any()` for flexible exception handling
+- `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
 
 
 ### Added

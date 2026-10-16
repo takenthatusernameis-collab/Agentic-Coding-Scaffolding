@@ -78,4 +78,5 @@ py_modules = [
     "pattern_utils",
     "functools_utils",
     "config_schema",
+    "exceptions_utils",
 ]

@@ -1,6 +1,5 @@
 """Functional programming utilities for composing and transforming functions."""
 
-from functools import reduce
 from typing import Any, Callable, List, TypeVar
 
 T = TypeVar("T")

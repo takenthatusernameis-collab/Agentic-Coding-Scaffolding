@@ -72,6 +72,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators)
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
+- `exceptions_utils.py` — custom exception classes and error handling utilities
+- `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`

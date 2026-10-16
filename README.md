@@ -73,6 +73,7 @@ type_utils.py              # Type introspection utilities (is_optional, is_union
     pattern_utils.py              # Design pattern utilities (Singleton, Factory, Observer, Strategy)
     functools_utils.py            # Functional programming utilities (compose, pipe, curry, apply)
     config_schema.py             # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
+    exceptions_utils.py        # Custom exception classes and error handling utilities
     tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -112,6 +113,7 @@ test_type_utils.py         # Tests for type_utils.py
     test_color_utils.py      # Tests for color_utils.py
 test_pattern_utils.py         # Tests for pattern_utils.py
     test_functools_utils.py       # Tests for functools_utils.py
+    test_exceptions_utils.py    # Tests for exceptions_utils.py
 test_config_schema.py         # Tests for config_schema.py
     ```
 
@@ -290,4 +292,7 @@ The project includes a configuration schema module in `config_schema.py` with de
 
 Completed task: Added a new `config_schema.py` module with typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators such as `range_validator`, `choices_validator`, `email_validator`) and its tests. Synchronized the scaffold template: added `config_schema.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions. Verified all tests pass, ruff and mypy are clean.
 
-Next task: Add example usage scripts under `examples/` demonstrating `config_schema.py` (loading and validating configuration dictionaries), with tests, and keep the scaffold template consistent.
+## Exception Utilities Module
+
+The project includes custom exception types and utilities in `exceptions_utils.py`: custom exceptions (`ValidationError`, `ConfigurationError`, `NotFoundError`, `PermissionError_`, `TimeoutError_`) with support for error details and field metadata; helper functions `catch_and_wrap()` to catch and wrap exceptions while preserving the cause, `get_error_details()` to extract exception type/message/traceback as a dict, and `is_instance_of_any()` to test for membership in an exception tuple. The module is tested in `tests/test_exceptions_utils.py`.
+

@@ -95,6 +95,8 @@
 #   - tests/test_tree_utils.py unit tests for the tree_utils module
 #   - config_schema.py — typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 #   - tests/test_config_schema.py — unit tests for config_schema.py
+#   - exceptions_utils.py — custom exception classes and error handling utilities
+#   - tests/test_exceptions_utils.py — unit tests for exceptions_utils.py
 set -euo pipefail
 
 usage() {
@@ -481,6 +483,7 @@ py_modules = [
    "pattern_utils",
    "functools_utils",
    "config_schema",
+  "exceptions_utils",
 ]
 
 [tool.ruff]
@@ -11175,6 +11178,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
 - `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
+- `exceptions_utils.py` — custom exception classes and error handling utilities
+- `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 
@@ -11561,6 +11566,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
 - `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
+- `exceptions_utils.py` — custom exception classes and error handling utilities
+- `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
@@ -13286,3 +13293,278 @@ if __name__ == "__main__":
     unittest.main()
 
 TESTCONFIGSCHEMA
+# --- exceptions_utils.py ---
+cat > "$OUTPUT_DIR/exceptions_utils.py" <<'EXCEPTIONSUTILS'
+"""Exception utilities for custom error handling."""
+
+from __future__ import annotations
+
+import traceback
+from typing import Any, Callable, Dict, Optional, Type, TypeVar
+
+T = TypeVar("T")
+
+
+class ValidationError(ValueError):
+    """Raised when data validation fails.
+
+    Attributes:
+        field: Optional field name that failed validation.
+        value: The value that failed validation.
+        message: Human-readable error message.
+    """
+
+    def __init__(
+        self,
+        message: str = "Validation failed",
+        field: Optional[str] = None,
+        value: Any = None,
+    ) -> None:
+        self.field = field
+        self.value = value
+        self.message = message
+        super().__init__(message)
+
+
+class ConfigurationError(Exception):
+    """Raised when configuration is invalid or missing."""
+
+    pass
+
+
+class NotFoundError(Exception):
+    """Raised when a requested resource is not found."""
+
+    pass
+
+
+class PermissionError_(Exception):
+    """Raised when an operation is not permitted.
+
+    Note: Avoids shadowing built-in PermissionError by using underscore suffix.
+    """
+
+    pass
+
+
+class TimeoutError_(Exception):
+    """Raised when an operation times out.
+
+    Note: Avoids shadowing built-in TimeoutError in Python 3.11+ contexts.
+    """
+
+    pass
+
+
+def catch_and_wrap(
+    func: Callable[[], T],
+    exceptions: tuple[Type[BaseException], ...] = (Exception,),
+    wrap_with: Type[BaseException] = Exception,
+    message: Optional[str] = None,
+) -> T:
+    """Execute func and wrap specified exceptions.
+
+    Args:
+        func: Callable to execute.
+        exceptions: Tuple of exception types to catch and wrap.
+        wrap_with: Exception type to wrap caught exceptions with.
+        message: Optional message for wrapped exception.
+
+    Returns:
+        Result of func if successful.
+
+    Raises:
+        wrap_with: If any of the specified exceptions are caught.
+    """
+    try:
+        return func()
+    except exceptions as e:
+        if message:
+            raise wrap_with(message) from e
+        raise wrap_with(str(e)) from e
+
+
+def get_error_details(exc: BaseException) -> Dict[str, Any]:
+    """Get detailed information about an exception.
+
+    Args:
+        exc: Exception to analyze.
+
+    Returns:
+        Dictionary containing exception type, message, and traceback.
+    """
+    return {
+        "type": type(exc).__name__,
+        "message": str(exc),
+        "traceback": traceback.format_exc(),
+    }
+
+
+def is_instance_of_any(obj: Any, exception_types: tuple[Type[BaseException], ...]) -> bool:
+    """Check if obj is an instance of any exception type in the tuple.
+
+    Args:
+        obj: Object to check.
+        exception_types: Tuple of exception types.
+
+    Returns:
+        True if obj is instance of any type, False otherwise.
+    """
+    return isinstance(obj, exception_types)
+
+
+__all__ = [
+    "ValidationError",
+    "ConfigurationError",
+    "NotFoundError",
+    "PermissionError_",
+    "TimeoutError_",
+    "catch_and_wrap",
+    "get_error_details",
+    "is_instance_of_any",
+]
+EXCEPTIONSUTILS
+
+# --- tests/test_exceptions_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_exceptions_utils.py" <<'TESTEXCEPTIONSUTILS'
+"""Tests for exceptions_utils module."""
+
+import unittest
+
+from exceptions_utils import (
+    ConfigurationError,
+    NotFoundError,
+    PermissionError_,
+    TimeoutError_,
+    ValidationError,
+    catch_and_wrap,
+    get_error_details,
+    is_instance_of_any,
+)
+
+
+class TestCustomExceptions(unittest.TestCase):
+    def test_validation_error_default(self):
+        err = ValidationError()
+        self.assertIsInstance(err, ValueError)
+        self.assertIsInstance(err, ValidationError)
+        self.assertEqual(err.message, "Validation failed")
+        self.assertIsNone(err.field)
+        self.assertIsNone(err.value)
+
+    def test_validation_error_with_details(self):
+        err = ValidationError("Invalid email", field="email", value="not-an-email")
+        self.assertEqual(err.message, "Invalid email")
+        self.assertEqual(err.field, "email")
+        self.assertEqual(err.value, "not-an-email")
+        self.assertEqual(str(err), "Invalid email")
+
+    def test_configuration_error(self):
+        err = ConfigurationError("Missing config")
+        self.assertIsInstance(err, Exception)
+        self.assertEqual(str(err), "Missing config")
+
+    def test_not_found_error(self):
+        err = NotFoundError("User not found")
+        self.assertIsInstance(err, Exception)
+        self.assertEqual(str(err), "User not found")
+
+    def test_permission_error_(self):
+        err = PermissionError_("Access denied")
+        self.assertIsInstance(err, Exception)
+        self.assertEqual(str(err), "Access denied")
+
+    def test_timeout_error_(self):
+        err = TimeoutError_("Request timed out")
+        self.assertIsInstance(err, Exception)
+        self.assertEqual(str(err), "Request timed out")
+
+
+class TestCatchAndWrap(unittest.TestCase):
+    def test_successful_execution(self):
+        result = catch_and_wrap(lambda: 42)
+        self.assertEqual(result, 42)
+
+    def test_wraps_exception_with_default(self):
+        def fail():
+            raise ValueError("oops")
+
+        with self.assertRaises(Exception) as ctx:
+            catch_and_wrap(fail)
+        self.assertTrue(not isinstance(ctx.exception, ValueError))
+
+    def test_wraps_specific_exceptions_only(self):
+        def fail():
+            raise ValueError("oops")
+
+        with self.assertRaises(Exception):
+            catch_and_wrap(fail, exceptions=(ValueError,))
+
+    def test_does_not_wrap_other_exceptions(self):
+        def fail():
+            raise TypeError("oops")
+
+        with self.assertRaises(TypeError):
+            catch_and_wrap(fail, exceptions=(ValueError,))
+
+    def test_wraps_with_custom_exception(self):
+        def fail():
+            raise RuntimeError("bad")
+
+        with self.assertRaises(ConfigurationError):
+            catch_and_wrap(fail, exceptions=(RuntimeError,), wrap_with=ConfigurationError)
+
+    def test_wraps_with_custom_message(self):
+        def fail():
+            raise RuntimeError("bad")
+
+        with self.assertRaises(ConfigurationError) as ctx:
+            catch_and_wrap(
+                fail,
+                exceptions=(RuntimeError,),
+                wrap_with=ConfigurationError,
+                message="Config failed",
+            )
+        self.assertEqual(str(ctx.exception), "Config failed")
+
+    def test_preserves_cause(self):
+        def fail():
+            raise RuntimeError("original")
+
+        try:
+            catch_and_wrap(fail, exceptions=(RuntimeError,), wrap_with=ValidationError)
+        except ValidationError as e:
+            self.assertIsNotNone(e.__cause__)
+            self.assertIsInstance(e.__cause__, RuntimeError)
+
+
+class TestGetErrorDetails(unittest.TestCase):
+    def test_get_error_details(self):
+        try:
+            raise ValueError("test error")
+        except ValueError as e:
+            details = get_error_details(e)
+            self.assertEqual(details["type"], "ValueError")
+            self.assertEqual(details["message"], "test error")
+            self.assertIn("traceback", details)
+            self.assertIsInstance(details["traceback"], str)
+
+
+class TestIsInstanceOfAny(unittest.TestCase):
+    def test_matches_single_type(self):
+        self.assertTrue(is_instance_of_any(ValueError("x"), (ValueError,)))
+        self.assertFalse(is_instance_of_any(TypeError("x"), (ValueError,)))
+
+    def test_matches_multiple_types(self):
+        self.assertTrue(is_instance_of_any(ValueError("x"), (ValueError, TypeError)))
+        self.assertTrue(is_instance_of_any(TypeError("x"), (ValueError, TypeError)))
+        self.assertFalse(is_instance_of_any(RuntimeError("x"), (ValueError, TypeError)))
+
+    def test_handles_non_exceptions(self):
+        self.assertFalse(is_instance_of_any("not an exception", (ValueError,)))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTEXCEPTIONSUTILS
+
