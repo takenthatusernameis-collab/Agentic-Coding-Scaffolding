@@ -70,8 +70,9 @@ statistics_utils.py        # Statistical utility functions (harmonic mean, geome
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
-    path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
+path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
+duration_utils.py          # Time duration utilities (parse, format, convert between units)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
@@ -397,5 +398,9 @@ The project includes binary struct packing and unpacking utilities in `struct_ut
 ## HTTP Status Codes and Response Handling Module
 
 The project includes HTTP utility functions in `http_utils.py` for working with HTTP status codes and response handling: `STATUS_CODES` is a mapping of standard HTTP status codes to their reason phrases, `status_code_category` returns the leading digit (1-5) of a status code, `status_message` returns the standard reason phrase or `None` for unknown codes, and the `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, and `is_error` predicates classify a status code into its response category. The module is tested in `tests/test_http_utils.py`.
+
+## Time Duration Utilities Module
+
+The project includes time duration utilities in `duration_utils.py` for parsing, formatting, and converting time durations: `parse_duration` parses human-readable duration strings (e.g. `"1h30m"`, `"90s"`, `"2.5 days"`) into total seconds, `format_duration` renders seconds as a compact human-readable string, `seconds_to_hms` and `hms_to_seconds` convert between seconds and `(hours, minutes, seconds)`, `to_seconds` combines time components into seconds, `duration_between` computes the `timedelta` between two datetimes, and `add_duration` adds a parsed duration to a datetime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_duration_utils.py`.
 
 

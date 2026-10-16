@@ -126,6 +126,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
 - `struct_utils.py` — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
 - `tests/test_struct_utils.py` — unit tests for `struct_utils.py`
+- `duration_utils.py` — time duration utilities (`parse_duration`, `format_duration`, `seconds_to_hms`, `hms_to_seconds`, `to_seconds`, `duration_between`, `add_duration`, `is_valid_duration`)
+- `tests/test_duration_utils.py` — unit tests for `duration_utils.py`
 
 ## Usage
 
