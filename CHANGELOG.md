@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Completed the `struct_utils` sync that was partially done: added `struct_utils.py` and `tests/test_struct_utils.py` entries to `.kilo/command/scaffold-project.md`, added `struct_utils.py` / `tests/test_struct_utils.py` assertions to `tests/test_scaffold.py`, and added the `tests/test_struct_utils.py` entry to the scaffolded README tree in `scaffold.sh`.
 
+- Synchronized `pyproject.toml` `py_modules` with the repository: added missing `duration_utils` and `xml_utils` modules (both exist as source files with tests and are already listed in `README.md`, `scaffold.sh`, and `.kilo/command/scaffold-project.md`) so package metadata matches the actual modules.
+
 - `html_utils.py` — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`) using the standard library `html` module with input validation
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
 - Added `html_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions

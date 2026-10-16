@@ -95,5 +95,7 @@ py_modules = [
     "html_utils",
     "base64_utils",
     "struct_utils",
+    "duration_utils",
     "temp_utils",
+    "xml_utils",
 ]
