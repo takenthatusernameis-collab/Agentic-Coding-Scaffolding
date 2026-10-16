@@ -79,6 +79,7 @@ seq_utils.py               # Sequence utilities (first, last, nth, head, tail, s
 number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
+version_utils.py           # Version utility functions (parse, compare, normalize)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities

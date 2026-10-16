@@ -103,4 +103,5 @@ py_modules = [
     "seq_utils",
     "queue_utils",
     "sort_utils",
+    "version_utils",
 ]
