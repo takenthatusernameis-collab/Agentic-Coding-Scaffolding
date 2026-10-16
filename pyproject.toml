@@ -91,6 +91,7 @@ py_modules = [
     "terminal_utils",
     "uuid_utils",
     "hash_utils",
+    "http_utils",
     "html_utils",
     "base64_utils",
     "struct_utils",
