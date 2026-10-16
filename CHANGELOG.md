@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `io_utils.py` — line-oriented and atomic input/output utilities (`read_lines`, `write_lines`, `append_text`, `atomic_write_text`, `stream_copy`, `count_lines`, `iter_lines`)
+- `regex_utils.py` — regular expression utilities (`compile_pattern`, `is_valid_pattern`, `match_pattern`, `search_pattern`, `find_all`, `replace_pattern`, `split_pattern`, `escape_pattern`, `extract_groups`, `named_groups`) for safe regex compilation, matching, extraction, and manipulation
+- `tests/test_regex_utils.py` — unit tests for `regex_utils.py`
 - `tests/test_io_utils.py` — unit tests for `io_utils.py`
 - `pattern_utils.py` — design pattern utilities (`Singleton` metaclass/base class, `Factory`, `Observer`/`Observable`, `Strategy`/`StrategyContext`) for common object-oriented patterns
 - `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`

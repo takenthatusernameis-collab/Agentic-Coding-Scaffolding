@@ -99,6 +99,8 @@
 #   - tests/test_exceptions_utils.py — unit tests for exceptions_utils.py
 #   - io_utils.py — line-oriented and atomic input/output utilities (read_lines, write_lines, append_text, atomic_write_text, stream_copy, count_lines, iter_lines)
 #   - tests/test_io_utils.py — unit tests for io_utils.py
+#   - regex_utils.py — regular expression utilities (compile, match, search, replace, split, escape, extract groups, named groups)
+#   - tests/test_regex_utils.py — unit tests for regex_utils.py
 set -euo pipefail
 
 usage() {
@@ -462,6 +464,7 @@ py_modules = [
     "prompt_utils",
     "compression_utils",
     "ip_utils",
+    "regex_utils",
     "random_utils",
     "validation_utils",
     "crypto_utils",

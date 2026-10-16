@@ -77,6 +77,7 @@ type_utils.py              # Type introspection utilities (is_optional, is_union
     io_utils.py                # Line-oriented and atomic input/output utilities
     compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
     ip_utils.py                 # IP address validation and manipulation utilities
+    regex_utils.py              # Regular expression utilities (compile, match, search, replace, split, escape)
     tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -120,6 +121,7 @@ test_pattern_utils.py         # Tests for pattern_utils.py
     test_io_utils.py            # Tests for io_utils.py
     test_compression_utils.py   # Tests for compression_utils.py
     test_ip_utils.py             # Tests for ip_utils.py
+    test_regex_utils.py         # Tests for regex_utils.py
 test_config_schema.py         # Tests for config_schema.py
     ```
 
