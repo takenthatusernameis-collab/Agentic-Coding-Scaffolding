@@ -142,6 +142,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_os_utils.py` — unit tests for `os_utils.py`
 - `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
+- `graphlib_utils.py` — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
+- `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
 
 ## Usage
 

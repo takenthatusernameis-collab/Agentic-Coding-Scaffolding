@@ -134,6 +134,8 @@
 #   - tests/test_os_utils.py — unit tests for os_utils.py
 #   - sort_utils.py — sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 #   - tests/test_sort_utils.py — unit tests for sort_utils.py
+#   - graphlib_utils.py — graph and dependency resolution utilities (topological sort, cycle detection)
+#   - tests/test_graphlib_utils.py — unit tests for graphlib_utils.py
 set -euo pipefail
 
 usage() {
@@ -538,6 +540,7 @@ py_modules = [
     "xml_utils",
     "seq_utils",
     "os_utils",
+    "graphlib_utils",
 ]
 
 [tool.ruff]
@@ -14317,6 +14320,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_xml_utils.py — unit tests for `xml_utils.py`
 - seq_utils.py — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `interleave`, `adjacent_pairs`, `is_sorted`)
 - tests/test_seq_utils.py — unit tests for `seq_utils.py`
+- graphlib_utils.py — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
+- tests/test_graphlib_utils.py — unit tests for `graphlib_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -14583,6 +14588,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
+graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -14631,6 +14637,7 @@ tests/                     # Python unit tests
   test_temp_utils.py            # Tests for temp_utils.py
   test_xml_utils.py             # Tests for xml_utils.py
   test_seq_utils.py             # Tests for seq_utils.py
+  test_graphlib_utils.py        # Tests for graphlib_utils.py
     ```
 
 ## Getting Started
@@ -14760,6 +14767,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_xml_utils.py — unit tests for `xml_utils.py`
 - seq_utils.py — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `interleave`, `adjacent_pairs`, `is_sorted`)
 - tests/test_seq_utils.py — unit tests for `seq_utils.py`
+- graphlib_utils.py — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
+- tests/test_graphlib_utils.py — unit tests for `graphlib_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
@@ -21051,3 +21060,278 @@ class TestSortUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTSORTUTILS
+
+# --- graphlib_utils.py ---
+cat > "$OUTPUT_DIR/graphlib_utils.py" <<'GRAPHLIB_UTILS'
+"""Graph and dependency resolution utilities.
+
+This module provides topological sorting and cycle detection for
+directed graphs using only the Python standard library (``graphlib``).
+"""
+
+from __future__ import annotations
+
+from graphlib import CycleError, TopologicalSorter
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Sequence
+
+__all__: list[str] = [
+    "dependency_order",
+    "has_cycle",
+    "is_valid_ordering",
+    "topological_sort",
+]
+
+
+def topological_sort(nodes: Mapping[Any, Iterable[Any]]) -> List[Any]:
+    """Return the nodes of a directed graph in topological order.
+
+    Args:
+        nodes: Mapping of each node to an iterable of its predecessor
+            nodes (dependencies). A node with no predecessors maps to
+            an empty iterable.
+
+    Returns:
+        A list of nodes ordered so that every dependency appears before
+        the nodes that depend on it.
+
+    Raises:
+        TypeError: If ``nodes`` is not a mapping.
+        ValueError: If the graph contains a cycle.
+
+    Examples:
+        >>> topological_sort({"a": [], "b": ["a"], "c": ["a", "b"]})
+        ['a', 'b', 'c']
+    """
+    if not isinstance(nodes, Mapping):
+        raise TypeError("nodes must be a mapping of node to predecessors")
+    sorter = TopologicalSorter(dict(nodes))
+    try:
+        return list(sorter.static_order())
+    except CycleError as exc:
+        raise ValueError("graph contains a cycle") from exc
+
+
+def has_cycle(nodes: Mapping[Any, Iterable[Any]]) -> bool:
+    """Return ``True`` if the directed graph contains a cycle.
+
+    Args:
+        nodes: Mapping of each node to an iterable of its predecessor
+            nodes (dependencies).
+
+    Returns:
+        ``True`` if the graph contains a cycle, ``False`` otherwise.
+
+    Examples:
+        >>> has_cycle({"a": [], "b": ["a"]})
+        False
+        >>> has_cycle({"a": ["b"], "b": ["a"]})
+        True
+    """
+    try:
+        topological_sort(nodes)
+    except ValueError:
+        return True
+    return False
+
+
+def dependency_order(
+    items: Sequence[Any], get_dependencies: Callable[[Any], Iterable[Any]]
+) -> List[Any]:
+    """Return ``items`` ordered so dependencies come before dependents.
+
+    Args:
+        items: The items to order.
+        get_dependencies: Callable that, given an item, returns an
+            iterable of its dependencies (which must be in ``items``).
+
+    Returns:
+        A list of all items in dependency order.
+
+    Raises:
+        TypeError: If ``items`` is not a sequence.
+        ValueError: If the dependency graph contains a cycle or a
+            dependency is missing from ``items``.
+
+    Examples:
+        >>> dependency_order(["deploy", "build", "deps"], lambda task: {
+        ...     "deploy": ["build"],
+        ...     "build": ["deps"],
+        ...     "deps": [],
+        ... }.get(task, []))
+        ['deps', 'build', 'deploy']
+    """
+    if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
+        raise TypeError("items must be a sequence")
+    item_set = set(items)
+    nodes: Dict[Any, List[Any]] = {}
+    for item in items:
+        dependencies = list(get_dependencies(item))
+        missing = set(dependencies) - item_set
+        if missing:
+            raise ValueError(
+                f"dependencies not in items for {item!r}: {sorted(missing)}"
+            )
+        nodes[item] = dependencies
+    return topological_sort(nodes)
+
+
+def is_valid_ordering(
+    order: Sequence[Any], nodes: Mapping[Any, Iterable[Any]]
+) -> bool:
+    """Return ``True`` if ``order`` is a valid topological order of ``nodes``.
+
+    Args:
+        order: Candidate ordering of the graph nodes.
+        nodes: Mapping of each node to an iterable of its predecessor
+            nodes (dependencies).
+
+    Returns:
+        ``True`` if every dependency appears before its dependent in
+        ``order`` and the node sets match, ``False`` otherwise.
+    """
+    try:
+        position = {node: index for index, node in enumerate(order)}
+    except TypeError:
+        return False
+    if set(order) != set(nodes):
+        return False
+    for node, predecessors in nodes.items():
+        for predecessor in predecessors:
+            if position.get(predecessor, -1) >= position.get(node, -1):
+                return False
+    return True
+
+
+if __name__ == "__main__":
+    import json
+
+    example = {
+        "install_deps": [],
+        "build": ["install_deps"],
+        "test": ["build"],
+        "deploy": ["test"],
+    }
+    print(
+        json.dumps(
+            {
+                "order": topological_sort(example),
+                "has_cycle": has_cycle(example),
+            },
+            indent=2,
+        )
+    )
+GRAPHLIB_UTILS
+
+# --- tests/test_graphlib_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_graphlib_utils.py" <<'TESTGRAPHLIBUTILS'
+"""Unit tests for graphlib_utils module."""
+
+import unittest
+
+from graphlib_utils import (
+    dependency_order,
+    has_cycle,
+    is_valid_ordering,
+    topological_sort,
+)
+
+
+class TestTopologicalSort(unittest.TestCase):
+    def test_empty_graph(self):
+        self.assertEqual(topological_sort({}), [])
+
+    def test_single_node(self):
+        self.assertEqual(topological_sort({"a": []}), ["a"])
+
+    def test_linear_chain(self):
+        self.assertEqual(
+            topological_sort({"c": ["b"], "b": ["a"], "a": []}),
+            ["a", "b", "c"],
+        )
+
+    def test_independent_nodes(self):
+        result = topological_sort({"a": [], "b": [], "c": []})
+        self.assertEqual(sorted(result), ["a", "b", "c"])
+
+    def test_diamond_dependencies(self):
+        result = topological_sort(
+            {"d": ["b", "c"], "b": ["a"], "c": ["a"], "a": []}
+        )
+        self.assertEqual(result[0], "a")
+        self.assertEqual(result[-1], "d")
+        self.assertLess(result.index("b"), result.index("d"))
+        self.assertLess(result.index("c"), result.index("d"))
+
+    def test_detects_cycle(self):
+        with self.assertRaises(ValueError):
+            topological_sort({"a": ["b"], "b": ["a"]})
+
+    def test_self_loop_is_cycle(self):
+        with self.assertRaises(ValueError):
+            topological_sort({"a": ["a"]})
+
+    def test_type_error_on_non_mapping(self):
+        with self.assertRaises(TypeError):
+            topological_sort(["a", "b"])  # type: ignore[arg-type]
+
+
+class TestHasCycle(unittest.TestCase):
+    def test_acyclic(self):
+        self.assertFalse(has_cycle({"a": [], "b": ["a"]}))
+
+    def test_cyclic(self):
+        self.assertTrue(has_cycle({"a": ["b"], "b": ["a"]}))
+
+    def test_self_loop(self):
+        self.assertTrue(has_cycle({"a": ["a"]}))
+
+    def test_empty(self):
+        self.assertFalse(has_cycle({}))
+
+
+class TestDependencyOrder(unittest.TestCase):
+    def test_orders_by_dependency(self):
+        def deps(task: str) -> list[str]:
+            return {
+                "deploy": ["test"],
+                "test": ["build"],
+                "build": ["install_deps"],
+                "install_deps": [],
+            }[task]
+
+        result = dependency_order(
+            ["deploy", "test", "install_deps", "build"], deps
+        )
+        self.assertEqual(result, ["install_deps", "build", "test", "deploy"])
+
+    def test_missing_dependency_raises(self):
+        def deps(task: str) -> list[str]:
+            return {"build": ["missing"]}.get(task, [])
+
+        with self.assertRaises(ValueError):
+            dependency_order(["build"], deps)
+
+    def test_type_error_on_non_sequence(self):
+        with self.assertRaises(TypeError):
+            dependency_order({"a": []}, lambda x: [])  # type: ignore[arg-type]
+
+
+class TestIsValidOrdering(unittest.TestCase):
+    def test_valid_order(self):
+        nodes = {"c": ["b"], "b": ["a"], "a": []}
+        self.assertTrue(is_valid_ordering(["a", "b", "c"], nodes))
+
+    def test_invalid_order(self):
+        nodes = {"c": ["b"], "b": ["a"], "a": []}
+        self.assertFalse(is_valid_ordering(["c", "b", "a"], nodes))
+
+    def test_mismatched_node_sets(self):
+        self.assertFalse(is_valid_ordering(["a", "b"], {"a": [], "b": [], "c": []}))
+
+    def test_empty(self):
+        self.assertTrue(is_valid_ordering([], {}))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTGRAPHLIBUTILS

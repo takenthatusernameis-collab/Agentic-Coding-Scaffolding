@@ -79,6 +79,7 @@ seq_utils.py               # Sequence utilities (first, last, nth, head, tail, s
 number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
+graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 version_utils.py           # Version utility functions (parse, compare, normalize)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
@@ -136,6 +137,7 @@ tests/                     # Python unit tests
   test_path_utils.py        # Tests for path_utils.py
   test_color_utils.py      # Tests for color_utils.py
   test_pattern_utils.py         # Tests for pattern_utils.py
+  test_graphlib_utils.py        # Tests for graphlib_utils.py
   test_functools_utils.py       # Tests for functools_utils.py
   test_exceptions_utils.py    # Tests for exceptions_utils.py
   test_io_utils.py            # Tests for io_utils.py
@@ -433,5 +435,9 @@ The project includes operating system utilities in `os_utils.py` for inspecting 
 ## Sorting Utilities Module
 
 The project includes sorting utility functions in `sort_utils.py` for sorting and ordering operations: `is_sorted` checks whether a sequence is sorted, `bubble_sort` and `merge_sort` return new sorted lists, `nth_largest` returns the n-th largest element (1-based), and `top_n` returns the top n items sorted by key. All functions accept an optional `key` and `reverse` argument. The module is tested in `tests/test_sort_utils.py`.
+
+## Graph and Dependency Resolution Utilities Module
+
+The project includes graph and dependency resolution utilities in `graphlib_utils.py` for topological sorting and cycle detection of directed graphs using the standard library `graphlib` module: `topological_sort` returns nodes in dependency order, `has_cycle` detects cycles, `dependency_order` orders items by their dependencies, and `is_valid_ordering` validates a candidate ordering. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_graphlib_utils.py`.
 
 
