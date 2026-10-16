@@ -156,6 +156,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_sys_utils.py` — unit tests for `sys_utils.py`
 - `networking_utils.py` — networking utilities for TCP ports, hostname resolution, and local IP detection
 - `tests/test_networking_utils.py` — unit tests for `networking_utils.py`
+- `operator_utils.py` — operator utilities (`identity`, `negate`, `add`, `subtract`, `multiply`, `divide`, `power`, `modulo`, `clamp`, `between`) for common functional operations
+- `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
 - `textwrap_utils.py` — text wrapping utilities (`wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, `fill_text`)
 - `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
 
