@@ -101,5 +101,6 @@ py_modules = [
     "temp_utils",
     "xml_utils",
     "seq_utils",
+    "queue_utils",
     "sort_utils",
 ]
