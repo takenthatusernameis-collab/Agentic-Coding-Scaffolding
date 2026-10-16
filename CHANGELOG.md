@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+### Changed
+
+- Synchronized `pyproject.toml` `py_modules` with the repository: added missing `prompt_utils` and `uuid_utils` modules (both exist as source files with tests and are already listed in `README.md`, `scaffold.sh`, and `.kilo/command/scaffold-project.md`) so package metadata matches the actual modules.
+
 ### Added
 
 - `ini_utils.py` — INI configuration file utilities (`load_config`, `save_config`, `get_config_value`, `set_config_value`, `merge_configs`, `list_sections`, `has_section`, `get_section`) for working with INI-style config files using `configparser`

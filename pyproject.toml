@@ -86,7 +86,9 @@ py_modules = [
     "ini_utils",
     "compression_utils",
     "ip_utils",
+    "prompt_utils",
     "regex_utils",
     "terminal_utils",
+    "uuid_utils",
     "hash_utils",
 ]
