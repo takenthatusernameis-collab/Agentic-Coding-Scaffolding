@@ -90,6 +90,7 @@ base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
+operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 exceptions_utils.py        # Custom exception classes and error handling utilities
 io_utils.py                # Line-oriented and atomic input/output utilities
@@ -453,3 +454,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 The project includes version utility functions in `version_utils.py` for parsing, comparing, and normalizing dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_greater` returns whether one version is greater than another, and `normalize_version` pads or truncates a version to a fixed component count. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 
+
+## Operator Utilities Module
+
+The project includes operator utilities in `operator_utils.py` for common functional operations: `identity`, `negate`, arithmetic operators `add`, `subtract`, `multiply`, `divide`, `power`, and `modulo`, plus `clamp` to bound a value to a range and `between` to test membership in an interval (inclusive by default). All functions are generic over their arguments. The module is tested in `tests/test_operator_utils.py`.
