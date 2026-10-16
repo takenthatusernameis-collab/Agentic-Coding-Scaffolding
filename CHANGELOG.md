@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
 - Added `graphlib_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
 
+- `queue_utils.py` — FIFO queue utilities (`Queue` class backed by `collections.deque` with `enqueue`, `dequeue`, `peek`, `is_empty`, `size`, `clear`, `to_list`, `from_list`, plus module-level `create`, `enqueue`, `dequeue`, `peek`, `is_empty`, `size` helpers) with input validation
+- `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
+- Added `queue_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+
+- `version_utils.py` — version parsing, comparison, and normalization utilities (`parse_version`, `compare_versions`, `is_greater`, `normalize_version`) for dotted version strings with input validation
+- `tests/test_version_utils.py` — unit tests for `version_utils.py`
+- Added `version_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+
 - `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `interleave`, `adjacent_pairs`, `is_sorted`) for common sequence operations with input validation
 - `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
 - Added `seq_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions

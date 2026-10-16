@@ -59,6 +59,7 @@ async_utils.py            # Asynchronous utility functions
 bit_utils.py              # Bitwise utility functions for working with binary representations
 concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 priority_queue_utils.py   # Heap-based priority queue implementation
+queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
 dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
@@ -123,7 +124,8 @@ tests/                     # Python unit tests
   test_bit_utils.py           # Tests for bit_utils.py
   test_concurrent_utils.py    # Tests for concurrent_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
-  test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
+  test_queue_utils.py          # Tests for queue_utils.py
+  test_rate_limiter_utils.py   # Tests for rate_limiter_utils.py
   test_retry_utils.py         # Tests for retry_utils.py
   test_dict_utils.py         # Tests for dict_utils.py
   test_json_utils.py          # Tests for json_utils.py
@@ -138,6 +140,8 @@ tests/                     # Python unit tests
   test_color_utils.py      # Tests for color_utils.py
   test_pattern_utils.py         # Tests for pattern_utils.py
   test_graphlib_utils.py        # Tests for graphlib_utils.py
+  test_queue_utils.py           # Tests for queue_utils.py
+  test_version_utils.py         # Tests for version_utils.py
   test_functools_utils.py       # Tests for functools_utils.py
   test_exceptions_utils.py    # Tests for exceptions_utils.py
   test_io_utils.py            # Tests for io_utils.py
@@ -269,6 +273,10 @@ The project includes a concurrent execution utilities module in `concurrent_util
 ## Priority Queue Utilities Module
 
 The project includes a priority queue utilities module in `priority_queue_utils.py` with a heap-based `PriorityQueue` implementation and helper functions. The queue uses a min-heap with an incrementing counter to preserve insertion order for equal priorities. It provides `push`, `pop`, `peek`, `is_empty`, `size`, `clear`, and convenience functions like `create_priority_queue` and `merge_queues`. The module is tested in `tests/test_priority_queue_utils.py`.
+
+## Queue Utilities Module
+
+The project includes a queue utilities module in `queue_utils.py` providing a simple FIFO `Queue` class backed by `collections.deque` along with module-level helper functions. The `Queue` class supports `enqueue`, `dequeue`, `peek`, `is_empty`, `size`, `clear`, `to_list`, and `from_list`, with `IndexError` raised on dequeue or peek from an empty queue. Module-level functions `create`, `enqueue`, `dequeue`, `peek`, `is_empty`, and `size` provide functional-style wrappers. The module is tested in `tests/test_queue_utils.py`.
 
 ## Rate Limiter Utilities Module
 
@@ -439,5 +447,9 @@ The project includes sorting utility functions in `sort_utils.py` for sorting an
 ## Graph and Dependency Resolution Utilities Module
 
 The project includes graph and dependency resolution utilities in `graphlib_utils.py` for topological sorting and cycle detection of directed graphs using the standard library `graphlib` module: `topological_sort` returns nodes in dependency order, `has_cycle` detects cycles, `dependency_order` orders items by their dependencies, and `is_valid_ordering` validates a candidate ordering. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_graphlib_utils.py`.
+
+## Version Utilities Module
+
+The project includes version utility functions in `version_utils.py` for parsing, comparing, and normalizing dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_greater` returns whether one version is greater than another, and `normalize_version` pads or truncates a version to a fixed component count. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 

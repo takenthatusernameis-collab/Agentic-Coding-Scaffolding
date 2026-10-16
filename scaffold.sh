@@ -136,6 +136,10 @@
 #   - tests/test_sort_utils.py — unit tests for sort_utils.py
 #   - graphlib_utils.py — graph and dependency resolution utilities (topological sort, cycle detection)
 #   - tests/test_graphlib_utils.py — unit tests for graphlib_utils.py
+#   - queue_utils.py — FIFO queue helpers (Queue class, enqueue, dequeue, peek, size, is_empty, clear)
+#   - tests/test_queue_utils.py — unit tests for queue_utils.py
+#   - version_utils.py — version parsing, comparison, and normalization utilities
+#   - tests/test_version_utils.py — unit tests for version_utils.py
 set -euo pipefail
 
 usage() {
@@ -541,6 +545,8 @@ py_modules = [
     "seq_utils",
     "os_utils",
     "graphlib_utils",
+    "queue_utils",
+    "version_utils",
 ]
 
 [tool.ruff]
@@ -14322,6 +14328,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_seq_utils.py — unit tests for `seq_utils.py`
 - graphlib_utils.py — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
 - tests/test_graphlib_utils.py — unit tests for `graphlib_utils.py`
+- queue_utils.py — FIFO queue helpers (Queue class, enqueue, dequeue, peek, size, is_empty, clear)
+- tests/test_queue_utils.py — unit tests for `queue_utils.py`
+- version_utils.py — version parsing, comparison, and normalization utilities
+- tests/test_version_utils.py — unit tests for `version_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
 ## Usage
@@ -14589,6 +14599,8 @@ temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
+queue_utils.py             # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
+version_utils.py           # Version parsing, comparison, and normalization utilities
 tests/                     # Python unit tests
   test_hello.py              # Tests for hello.py
   test_calculator.py         # Tests for calculator.py
@@ -14638,6 +14650,8 @@ tests/                     # Python unit tests
   test_xml_utils.py             # Tests for xml_utils.py
   test_seq_utils.py             # Tests for seq_utils.py
   test_graphlib_utils.py        # Tests for graphlib_utils.py
+  test_queue_utils.py           # Tests for queue_utils.py
+  test_version_utils.py         # Tests for version_utils.py
     ```
 
 ## Getting Started
@@ -14769,6 +14783,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_seq_utils.py — unit tests for `seq_utils.py`
 - graphlib_utils.py — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
 - tests/test_graphlib_utils.py — unit tests for `graphlib_utils.py`
+- queue_utils.py — FIFO queue helpers (Queue class, enqueue, dequeue, peek, size, is_empty, clear)
+- tests/test_queue_utils.py — unit tests for `queue_utils.py`
+- version_utils.py — version parsing, comparison, and normalization utilities
+- tests/test_version_utils.py — unit tests for `version_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
 - `.kilo/.gitignore` — ignore patterns for the .kilo directory
@@ -21335,3 +21353,201 @@ class TestIsValidOrdering(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTGRAPHLIBUTILS
+
+# --- queue_utils.py ---
+cat > "$OUTPUT_DIR/queue_utils.py" <<'QUEUE_UTILS'
+"""Utility helpers for queue operations."""
+
+from collections import deque
+
+
+class Queue:
+    """A simple FIFO queue."""
+
+    def __init__(self, items=None):
+        self._data = deque(items or [])
+
+    def enqueue(self, value):
+        self._data.append(value)
+
+    def dequeue(self):
+        if not self._data:
+            raise IndexError("dequeue from empty queue")
+        return self._data.popleft()
+
+    def peek(self):
+        if not self._data:
+            raise IndexError("peek from empty queue")
+        return self._data[0]
+
+    def is_empty(self):
+        return not self._data
+
+    def size(self):
+        return len(self._data)
+
+    def clear(self):
+        self._data.clear()
+
+    def to_list(self):
+        return list(self._data)
+
+    @classmethod
+    def from_list(cls, items):
+        return cls(items)
+
+
+def create(items=None):
+    return Queue(items)
+
+
+def enqueue(queue, value):
+    queue.enqueue(value)
+    return queue
+
+
+def dequeue(queue):
+    return queue.dequeue()
+
+
+def peek(queue):
+    return queue.peek()
+
+
+def is_empty(queue):
+    return queue.is_empty()
+
+
+def size(queue):
+    return queue.size()
+QUEUE_UTILS
+
+# --- tests/test_queue_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_queue_utils.py" <<'TESTQUEUEUTILS'
+import unittest
+
+from queue_utils import Queue, create, dequeue, enqueue, is_empty, peek, size
+
+
+class TestQueueUtils(unittest.TestCase):
+    def test_basic(self):
+        q = create([1, 2])
+        self.assertFalse(is_empty(q))
+        self.assertEqual(size(q), 2)
+        self.assertEqual(peek(q), 1)
+        self.assertEqual(dequeue(q), 1)
+        self.assertEqual(dequeue(q), 2)
+        self.assertTrue(is_empty(q))
+
+    def test_enqueue(self):
+        q = Queue()
+        enqueue(q, 5)
+        self.assertEqual(q.to_list(), [5])
+
+    def test_errors(self):
+        q = Queue()
+        with self.assertRaises(IndexError):
+            q.dequeue()
+        with self.assertRaises(IndexError):
+            q.peek()
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTQUEUEUTILS
+
+# --- version_utils.py ---
+cat > "$OUTPUT_DIR/version_utils.py" <<'VERSION_UTILS'
+"""Version utility functions."""
+
+from typing import Tuple
+
+
+def parse_version(version: str) -> Tuple[int, ...]:
+    """Parse a dotted version string into a tuple of integers."""
+    if not isinstance(version, str) or not version:
+        raise TypeError("version must be a non-empty string")
+    parts = version.split(".")
+    result = []
+    for part in parts:
+        if not part.isdigit():
+            raise ValueError(f"invalid version component: {part!r}")
+        result.append(int(part))
+    return tuple(result)
+
+
+def compare_versions(a: str, b: str) -> int:
+    """Compare two version strings. Return -1/0/1 like strcmp."""
+    va = parse_version(a)
+    vb = parse_version(b)
+    if va < vb:
+        return -1
+    if va > vb:
+        return 1
+    return 0
+
+
+def is_greater(a: str, b: str) -> bool:
+    """Return True if version a is greater than version b."""
+    return compare_versions(a, b) > 0
+
+
+def normalize_version(version: str, length: int = 3) -> str:
+    """Pad a version string with zero components to the given length."""
+    parts = list(parse_version(version))
+    while len(parts) < length:
+        parts.append(0)
+    return ".".join(str(p) for p in parts[:length])
+VERSION_UTILS
+
+# --- tests/test_version_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_version_utils.py" <<'TESTVERSIONUTILS'
+"""Tests for version_utils module."""
+
+import unittest
+
+from version_utils import compare_versions, is_greater, normalize_version, parse_version
+
+
+class TestParseVersion(unittest.TestCase):
+    def test_simple(self) -> None:
+        self.assertEqual(parse_version("1.2.3"), (1, 2, 3))
+
+    def test_two_components(self) -> None:
+        self.assertEqual(parse_version("1.0"), (1, 0))
+
+    def test_invalid(self) -> None:
+        with self.assertRaises(ValueError):
+            parse_version("1.2.x")
+        with self.assertRaises(TypeError):
+            parse_version("")  # type: ignore[arg-type]
+
+
+class TestCompareVersions(unittest.TestCase):
+    def test_equal(self) -> None:
+        self.assertEqual(compare_versions("1.2.3", "1.2.3"), 0)
+
+    def test_less(self) -> None:
+        self.assertEqual(compare_versions("1.2.3", "1.2.4"), -1)
+
+    def test_greater(self) -> None:
+        self.assertEqual(compare_versions("2.0.0", "1.9.9"), 1)
+
+
+class TestIsGreater(unittest.TestCase):
+    def test_greater(self) -> None:
+        self.assertTrue(is_greater("2.0.0", "1.0.0"))
+        self.assertFalse(is_greater("1.0.0", "2.0.0"))
+
+
+class TestNormalizeVersion(unittest.TestCase):
+    def test_pad(self) -> None:
+        self.assertEqual(normalize_version("1.2", 3), "1.2.0")
+
+    def test_truncate(self) -> None:
+        self.assertEqual(normalize_version("1.2.3.4", 3), "1.2.3")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTVERSIONUTILS
