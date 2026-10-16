@@ -161,6 +161,8 @@
 #   - tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
 #   - prime_utils.py — prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
 #   - tests/test_prime_utils.py — unit tests for prime_utils.py
+#   - decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
+#   - tests/test_decimal_utils.py — unit tests for decimal_utils.py
 set -euo pipefail
 
 usage() {
@@ -577,6 +579,7 @@ py_modules = [
     "networking_utils",
     "textwrap_utils",
     "calendar_utils",
+    "decimal_utils",
 ]
 
 [tool.ruff]
@@ -15061,6 +15064,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_calendar_utils.py — unit tests for `calendar_utils.py`
 - prime_utils.py — prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
 - tests/test_prime_utils.py — unit tests for prime_utils.py
+- decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
+- tests/test_decimal_utils.py — unit tests for `decimal_utils.py`
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
 - tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
 - tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
@@ -15546,6 +15551,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 - prime_utils.py — prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
 - tests/test_prime_utils.py — unit tests for prime_utils.py
+- decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
+- tests/test_decimal_utils.py — unit tests for `decimal_utils.py`
 - calendar_utils.py — calendar utilities (is_leap_year, days_in_month, first_day_of_month, month_name, day_name, month_calendar, weekdays_in_month, weekend_days_in_month, is_weekend, add_months)
 - tests/test_calendar_utils.py — unit tests for `calendar_utils.py`
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
@@ -23694,3 +23701,358 @@ class TestAddMonths(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTCALENDARUTILS
+
+# --- decimal_utils.py ---
+cat > "$OUTPUT_DIR/decimal_utils.py" <<'DECIMALUTILS'
+"""Decimal arithmetic utilities for precise decimal number operations.
+
+This module provides helpers for performing arithmetic on ``decimal.Decimal``
+values with explicit precision and rounding control, avoiding the binary
+floating-point pitfalls of ``float`` arithmetic.
+All functions validate their inputs and raise ``TypeError`` or ``ValueError``
+on invalid arguments.
+"""
+
+from __future__ import annotations
+
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from typing import Any, Union
+
+__all__: list[str] = [
+    "to_decimal",
+    "add",
+    "subtract",
+    "multiply",
+    "divide",
+    "power",
+    "quantize",
+    "compare",
+    "abs_value",
+    "negate",
+    "is_positive",
+    "is_negative",
+    "is_zero",
+]
+
+Numeric = Union[int, float, str, Decimal]
+
+
+def _to_decimal(value: Any) -> Decimal:
+    """Coerce *value* to a ``Decimal`` or raise ``TypeError``/``ValueError``."""
+    if isinstance(value, Decimal):
+        return value
+    if isinstance(value, bool):
+        raise TypeError(f"value must be a number, got {type(value).__name__}")
+    if isinstance(value, (int, float, str)):
+        try:
+            return Decimal(value)
+        except (InvalidOperation, ValueError, TypeError) as exc:
+            raise ValueError(f"could not convert {value!r} to Decimal: {exc}") from exc
+    raise TypeError(f"value must be a number or numeric string, got {type(value).__name__}")
+
+
+def to_decimal(value: Any) -> Decimal:
+    """Convert *value* to a ``Decimal``.
+
+    Args:
+        value: An int, float, str, or Decimal to convert.
+
+    Returns:
+        The Decimal representation of *value*.
+
+    Raises:
+        TypeError: If *value`` is not a numeric type or numeric string.
+        ValueError: If *value`` cannot be converted to a Decimal.
+
+    Examples:
+        >>> to_decimal("10.5")
+        Decimal('10.5')
+        >>> to_decimal(3)
+        Decimal('3')
+    """
+    return _to_decimal(value)
+
+
+def add(a: Any, b: Any) -> Decimal:
+    """Return the sum of *a* and *b* as a Decimal.
+
+    Args:
+        a: The first operand.
+        b: The second operand.
+
+    Returns:
+        The sum ``a + b`` as a Decimal.
+
+    Raises:
+        TypeError: If either operand is not numeric.
+        ValueError: If either operand cannot be converted to a Decimal.
+
+    Examples:
+        >>> add("0.1", "0.2")
+        Decimal('0.3')
+    """
+    return _to_decimal(a) + _to_decimal(b)
+
+
+def subtract(a: Any, b: Any) -> Decimal:
+    """Return the difference of *a* and *b* as a Decimal.
+
+    Args:
+        a: The first operand.
+        b: The second operand.
+
+    Returns:
+        The difference ``a - b`` as a Decimal.
+    """
+    return _to_decimal(a) - _to_decimal(b)
+
+
+def multiply(a: Any, b: Any) -> Decimal:
+    """Return the product of *a* and *b* as a Decimal.
+
+    Args:
+        a: The first operand.
+        b: The second operand.
+
+    Returns:
+        The product ``a * b`` as a Decimal.
+    """
+    return _to_decimal(a) * _to_decimal(b)
+
+
+def divide(a: Any, b: Any) -> Decimal:
+    """Return the quotient of *a* and *b* as a Decimal.
+
+    Args:
+        a: The dividend.
+        b: The divisor.
+
+    Returns:
+        The quotient ``a / b`` as a Decimal.
+
+    Raises:
+        ZeroDivisionError: If *b`` is zero.
+    """
+    dividend = _to_decimal(a)
+    divisor = _to_decimal(b)
+    if divisor == 0:
+        raise ZeroDivisionError("division by zero")
+    return dividend / divisor
+
+
+def power(base: Any, exponent: Any) -> Decimal:
+    """Return ``base ** exponent`` as a Decimal.
+
+    Args:
+        base: The base value.
+        exponent: The exponent value.
+
+    Returns:
+        ``base ** exponent`` as a Decimal.
+    """
+    return _to_decimal(base) ** _to_decimal(exponent)
+
+
+def quantize(value: Any, places: int = 2) -> Decimal:
+    """Round *value* to *places* decimal places using ROUND_HALF_UP.
+
+    Args:
+        value: The number to round.
+        places: The number of decimal places (non-negative).
+
+    Returns:
+        *value* rounded to *places* decimal places.
+
+    Raises:
+        TypeError: If *places`` is not an integer.
+        ValueError: If *places`` is negative.
+
+    Examples:
+        >>> quantize("3.14159", 2)
+        Decimal('3.14')
+    """
+    if isinstance(places, bool) or not isinstance(places, int):
+        raise TypeError(f"places must be an integer, got {type(places).__name__}")
+    if places < 0:
+        raise ValueError("places must not be negative")
+    return _to_decimal(value).quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)
+
+
+def compare(a: Any, b: Any) -> int:
+    """Compare *a* and *b*, returning -1, 0, or 1.
+
+    Args:
+        a: The first operand.
+        b: The second operand.
+
+    Returns:
+        -1 if *a* < *b*, 0 if equal, 1 if *a* > *b*.
+    """
+    left = _to_decimal(a)
+    right = _to_decimal(b)
+    if left < right:
+        return -1
+    if left > right:
+        return 1
+    return 0
+
+
+def abs_value(value: Any) -> Decimal:
+    """Return the absolute value of *value* as a Decimal."""
+    return abs(_to_decimal(value))
+
+
+def negate(value: Any) -> Decimal:
+    """Return the negation of *value* as a Decimal."""
+    return -_to_decimal(value)
+
+
+def is_positive(value: Any) -> bool:
+    """Return ``True`` if *value`` is greater than zero."""
+    return _to_decimal(value) > 0
+
+
+def is_negative(value: Any) -> bool:
+    """Return ``True`` if *value`` is less than zero."""
+    return _to_decimal(value) < 0
+
+
+def is_zero(value: Any) -> bool:
+    """Return ``True`` if *value`` equals zero."""
+    return _to_decimal(value) == 0
+DECIMALUTILS
+
+# --- tests/test_decimal_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_decimal_utils.py" <<'TESTDECIMALUTILS'
+"""Tests for decimal_utils."""
+
+import unittest
+
+from decimal_utils import (
+    abs_value,
+    add,
+    compare,
+    divide,
+    is_negative,
+    is_positive,
+    is_zero,
+    multiply,
+    negate,
+    power,
+    quantize,
+    subtract,
+    to_decimal,
+)
+
+
+class TestToDecimal(unittest.TestCase):
+    def test_from_string(self):
+        self.assertEqual(to_decimal("10.5"), to_decimal("10.5"))
+        self.assertEqual(str(to_decimal("10.5")), "10.5")
+
+    def test_from_int(self):
+        self.assertEqual(to_decimal(3), to_decimal("3"))
+
+    def test_from_float(self):
+        self.assertEqual(to_decimal(1.5), to_decimal("1.5"))
+
+    def test_from_decimal_passthrough(self):
+        from decimal import Decimal
+
+        value = Decimal("2.75")
+        self.assertIs(to_decimal(value), value)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            to_decimal(None)
+        with self.assertRaises(TypeError):
+            to_decimal([1, 2])
+        with self.assertRaises(TypeError):
+            to_decimal(True)
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            to_decimal("not-a-number")
+        with self.assertRaises(ValueError):
+            to_decimal("")
+
+
+class TestAddSubtractMultiply(unittest.TestCase):
+    def test_add_avoids_float_error(self):
+        self.assertEqual(add("0.1", "0.2"), to_decimal("0.3"))
+
+    def test_subtract(self):
+        self.assertEqual(subtract("5", "2"), to_decimal("3"))
+
+    def test_multiply(self):
+        self.assertEqual(multiply("2", "3"), to_decimal("6"))
+
+
+class TestDivide(unittest.TestCase):
+    def test_divide(self):
+        self.assertEqual(divide("10", "2"), to_decimal("5"))
+
+    def test_divide_by_zero(self):
+        with self.assertRaises(ZeroDivisionError):
+            divide("5", "0")
+
+
+class TestPower(unittest.TestCase):
+    def test_power(self):
+        self.assertEqual(power("2", "3"), to_decimal("8"))
+
+
+class TestQuantize(unittest.TestCase):
+    def test_quantize(self):
+        self.assertEqual(quantize("3.14159", 2), to_decimal("3.14"))
+        self.assertEqual(quantize("3.145", 2), to_decimal("3.15"))
+
+    def test_default_places(self):
+        self.assertEqual(quantize("3.14159"), to_decimal("3.14"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            quantize("1.5", "2")
+        with self.assertRaises(TypeError):
+            quantize("1.5", True)
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            quantize("1.5", -1)
+
+
+class TestCompare(unittest.TestCase):
+    def test_compare(self):
+        self.assertEqual(compare("1", "2"), -1)
+        self.assertEqual(compare("2", "2"), 0)
+        self.assertEqual(compare("3", "2"), 1)
+
+
+class TestAbsNegate(unittest.TestCase):
+    def test_abs_value(self):
+        self.assertEqual(abs_value("-5"), to_decimal("5"))
+        self.assertEqual(abs_value("5"), to_decimal("5"))
+
+    def test_negate(self):
+        self.assertEqual(negate("5"), to_decimal("-5"))
+
+
+class TestPredicates(unittest.TestCase):
+    def test_is_positive(self):
+        self.assertTrue(is_positive("1"))
+        self.assertFalse(is_positive("0"))
+        self.assertFalse(is_positive("-1"))
+
+    def test_is_negative(self):
+        self.assertTrue(is_negative("-1"))
+        self.assertFalse(is_negative("0"))
+        self.assertFalse(is_negative("1"))
+
+    def test_is_zero(self):
+        self.assertTrue(is_zero("0"))
+        self.assertFalse(is_zero("1"))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTDECIMALUTILS

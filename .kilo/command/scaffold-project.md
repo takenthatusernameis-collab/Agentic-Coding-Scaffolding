@@ -166,6 +166,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
 - `prime_utils.py` — prime number utilities (`prime_factors`, `nth_prime`, `primes_up_to`, `next_prime`, `previous_prime`)
 - `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
+- `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`)
+- `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`
 
 ## Usage
 

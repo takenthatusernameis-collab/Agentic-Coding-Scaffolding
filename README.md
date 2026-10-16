@@ -88,6 +88,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 version_utils.py           # Version utility functions (parse, compare, normalize)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
+decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
@@ -481,6 +482,10 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 The project includes prime number utilities in `prime_utils.py` for prime-related operations: `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `next_prime` finds the next prime after a given number, and `previous_prime` finds the previous prime before a given number. The module builds on `math_utils.is_prime` and validates its inputs. The module is tested in `tests/test_prime_utils.py`.
 
+
+## Decimal Utilities Module
+
+The project includes decimal arithmetic utilities in `decimal_utils.py` for precise decimal number operations using the standard library `decimal` module: `to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, and `is_zero`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_decimal_utils.py`.
 
 ## Operator Utilities Module
 
