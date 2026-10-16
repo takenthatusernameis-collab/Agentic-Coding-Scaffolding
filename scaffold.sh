@@ -163,6 +163,8 @@
 #   - tests/test_prime_utils.py — unit tests for prime_utils.py
 #   - decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 #   - tests/test_decimal_utils.py — unit tests for decimal_utils.py
+#   - fractions_utils.py — fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
+#   - tests/test_fractions_utils.py — unit tests for fractions_utils.py
 #   - heapq_utils.py — heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
 #   - tests/test_heapq_utils.py — unit tests for heapq_utils.py
 #   - markdown_utils.py — Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
@@ -15881,6 +15883,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_prime_utils.py — unit tests for prime_utils.py
 - decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 - tests/test_decimal_utils.py — unit tests for `decimal_utils.py`
+- fractions_utils.py — fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
+- tests/test_fractions_utils.py — unit tests for `fractions_utils.py`
 - heapq_utils.py — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)
 - tests/test_heapq_utils.py — unit tests for `heapq_utils.py`
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
@@ -16804,6 +16808,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_prime_utils.py — unit tests for prime_utils.py
 - decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 - tests/test_decimal_utils.py — unit tests for `decimal_utils.py`
+- fractions_utils.py — fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
+- tests/test_fractions_utils.py — unit tests for `fractions_utils.py`
 - heapq_utils.py — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`) with input validation
 - tests/test_heapq_utils.py — unit tests for `heapq_utils.py`
 - calendar_utils.py — calendar utilities (is_leap_year, days_in_month, first_day_of_month, month_name, day_name, month_calendar, weekdays_in_month, weekend_days_in_month, is_weekend, add_months)
@@ -26670,3 +26676,389 @@ def test_epoch_roundtrip():
 def test_iso_to_epoch_invalid():
     assert time_utils.iso_to_epoch("not-a-date") is None
 TESTTIMEUTILS
+
+# --- fractions_utils.py ---
+cat > "$OUTPUT_DIR/fractions_utils.py" <<'FRACTIONS_UTILS'
+"""Fraction arithmetic utilities for exact rational number operations.
+
+This module provides helpers for performing arithmetic on
+``fractions.Fraction`` values with exact precision, avoiding the binary
+floating-point pitfalls of ``float`` arithmetic.
+All functions validate their inputs and raise ``TypeError`` or ``ValueError``
+on invalid arguments.
+"""
+
+from __future__ import annotations
+
+from fractions import Fraction
+from typing import Any, Union
+
+__all__: list[str] = [
+    "to_fraction",
+    "add",
+    "subtract",
+    "multiply",
+    "divide",
+    "power",
+    "compare",
+    "abs_value",
+    "negate",
+    "is_positive",
+    "is_negative",
+    "is_zero",
+    "is_integer",
+    "numerator",
+    "denominator",
+    "to_float",
+    "from_float",
+]
+
+Numeric = Union[int, float, str, Fraction]
+
+
+def _to_fraction(value: Any) -> Fraction:
+    """Coerce *value* to a ``Fraction`` or raise ``TypeError``/``ValueError``."""
+    if isinstance(value, Fraction):
+        return value
+    if isinstance(value, bool):
+        raise TypeError(f"value must be a number, got {type(value).__name__}")
+    if isinstance(value, (int, float, str)):
+        try:
+            return Fraction(value)
+        except (ZeroDivisionError, ValueError, TypeError) as exc:
+            raise ValueError(f"could not convert {value!r} to Fraction: {exc}") from exc
+    raise TypeError(
+        f"value must be a number or numeric string, got {type(value).__name__}"
+    )
+
+
+def to_fraction(value: Any) -> Fraction:
+    """Convert *value* to a ``Fraction``.
+
+    Args:
+        value: An int, float, str, or Fraction to convert.
+
+    Returns:
+        The Fraction representation of *value*.
+
+    Raises:
+        TypeError: If *value`` is not a numeric type or numeric string.
+        ValueError: If *value`` cannot be converted to a Fraction.
+
+    Examples:
+        >>> to_fraction("1/3")
+        Fraction(1, 3)
+        >>> to_fraction(0.5)
+        Fraction(1, 2)
+    """
+    return _to_fraction(value)
+
+
+def add(a: Any, b: Any) -> Fraction:
+    """Return the sum of *a* and *b* as a Fraction.
+
+    Args:
+        a: The first operand.
+        b: The second operand.
+
+    Returns:
+        The sum ``a + b`` as a Fraction.
+
+    Raises:
+        TypeError: If either operand is not numeric.
+        ValueError: If either operand cannot be converted to a Fraction.
+
+    Examples:
+        >>> add("1/10", "2/10")
+        Fraction(3, 10)
+    """
+    return _to_fraction(a) + _to_fraction(b)
+
+
+def subtract(a: Any, b: Any) -> Fraction:
+    """Return the difference of *a* and *b* as a Fraction.
+
+    Args:
+        a: The first operand.
+        b: The second operand.
+
+    Returns:
+        The difference ``a - b`` as a Fraction.
+    """
+    return _to_fraction(a) - _to_fraction(b)
+
+
+def multiply(a: Any, b: Any) -> Fraction:
+    """Return the product of *a* and *b* as a Fraction.
+
+    Args:
+        a: The first operand.
+        b: The second operand.
+
+    Returns:
+        The product ``a * b`` as a Fraction.
+    """
+    return _to_fraction(a) * _to_fraction(b)
+
+
+def divide(a: Any, b: Any) -> Fraction:
+    """Return the quotient of *a* and *b* as a Fraction.
+
+    Args:
+        a: The dividend.
+        b: The divisor.
+
+    Returns:
+        The quotient ``a / b`` as a Fraction.
+
+    Raises:
+        ZeroDivisionError: If *b`` is zero.
+    """
+    dividend = _to_fraction(a)
+    divisor = _to_fraction(b)
+    if divisor == 0:
+        raise ZeroDivisionError("division by zero")
+    return dividend / divisor
+
+
+def power(base: Any, exponent: Any) -> Fraction:
+    """Return ``base ** exponent`` as a Fraction.
+
+    Args:
+        base: The base value.
+        exponent: The exponent value.
+
+    Returns:
+        ``base ** exponent`` as a Fraction.
+    """
+    result = _to_fraction(base) ** _to_fraction(exponent)
+    if isinstance(result, float):
+        return Fraction(result)
+    return result
+
+
+def compare(a: Any, b: Any) -> int:
+    """Compare *a* and *b*, returning -1, 0, or 1.
+
+    Args:
+        a: The first operand.
+        b: The second operand.
+
+    Returns:
+        -1 if *a* < *b*, 0 if equal, 1 if *a* > *b*.
+    """
+    left = _to_fraction(a)
+    right = _to_fraction(b)
+    if left < right:
+        return -1
+    if left > right:
+        return 1
+    return 0
+
+
+def abs_value(value: Any) -> Fraction:
+    """Return the absolute value of *value* as a Fraction."""
+    return abs(_to_fraction(value))
+
+
+def negate(value: Any) -> Fraction:
+    """Return the negation of *value* as a Fraction."""
+    return -_to_fraction(value)
+
+
+def is_positive(value: Any) -> bool:
+    """Return ``True`` if *value`` is greater than zero."""
+    return _to_fraction(value) > 0
+
+
+def is_negative(value: Any) -> bool:
+    """Return ``True`` if *value`` is less than zero."""
+    return _to_fraction(value) < 0
+
+
+def is_zero(value: Any) -> bool:
+    """Return ``True`` if *value`` equals zero."""
+    return _to_fraction(value) == 0
+
+
+def is_integer(value: Any) -> bool:
+    """Return ``True`` if *value`` is a whole number (denominator is 1)."""
+    return _to_fraction(value).denominator == 1
+
+
+def numerator(value: Any) -> int:
+    """Return the numerator of *value* in lowest terms."""
+    return _to_fraction(value).numerator
+
+
+def denominator(value: Any) -> int:
+    """Return the denominator of *value* in lowest terms."""
+    return _to_fraction(value).denominator
+
+
+def to_float(value: Any) -> float:
+    """Convert *value* to a ``float``."""
+    return float(_to_fraction(value))
+
+
+def from_float(value: Any) -> Fraction:
+    """Convert *value* to an exact ``Fraction``.
+
+    Args:
+        value: A float or other numeric value to convert exactly.
+
+    Returns:
+        The exact Fraction representation of *value*.
+    """
+    return _to_fraction(value)
+FRACTIONS_UTILS
+
+# --- tests/test_fractions_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_fractions_utils.py" <<'FRACTIONSTESTS'
+"""Tests for fractions_utils."""
+
+import unittest
+
+from fractions_utils import (
+    abs_value,
+    add,
+    compare,
+    denominator,
+    divide,
+    from_float,
+    is_integer,
+    is_negative,
+    is_positive,
+    is_zero,
+    multiply,
+    negate,
+    numerator,
+    power,
+    subtract,
+    to_float,
+    to_fraction,
+)
+
+
+class TestToFraction(unittest.TestCase):
+    def test_from_string(self):
+        self.assertEqual(to_fraction("1/3"), to_fraction("1/3"))
+        self.assertEqual(str(to_fraction("1/3")), "1/3")
+
+    def test_from_int(self):
+        self.assertEqual(to_fraction(3), to_fraction("3"))
+
+    def test_from_float(self):
+        self.assertEqual(to_fraction(0.5), to_fraction("1/2"))
+
+    def test_from_fraction_passthrough(self):
+        from fractions import Fraction
+
+        value = Fraction(2, 3)
+        self.assertIs(to_fraction(value), value)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            to_fraction(None)
+        with self.assertRaises(TypeError):
+            to_fraction([1, 2])
+        with self.assertRaises(TypeError):
+            to_fraction(True)
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            to_fraction("not-a-number")
+        with self.assertRaises(ValueError):
+            to_fraction("")
+
+
+class TestAddSubtractMultiply(unittest.TestCase):
+    def test_add_exact(self):
+        self.assertEqual(add("1/10", "2/10"), to_fraction("3/10"))
+        self.assertEqual(add("1/3", "1/3"), to_fraction("2/3"))
+
+    def test_subtract(self):
+        self.assertEqual(subtract("5", "2"), to_fraction("3"))
+        self.assertEqual(subtract("1/2", "1/4"), to_fraction("1/4"))
+
+    def test_multiply(self):
+        self.assertEqual(multiply("1/2", "2/3"), to_fraction("1/3"))
+        self.assertEqual(multiply(-2, "3/4"), to_fraction("-3/2"))
+
+
+class TestDivide(unittest.TestCase):
+    def test_divide(self):
+        self.assertEqual(divide("1/2", "1/4"), to_fraction("2"))
+        self.assertEqual(divide(6, "1/3"), to_fraction("18"))
+
+    def test_divide_by_zero(self):
+        with self.assertRaises(ZeroDivisionError):
+            divide(5, 0)
+
+
+class TestPower(unittest.TestCase):
+    def test_power(self):
+        self.assertEqual(power("1/2", 2), to_fraction("1/4"))
+        self.assertEqual(power(2, 3), to_fraction("8"))
+        self.assertEqual(power("2/3", -1), to_fraction("3/2"))
+
+
+class TestCompare(unittest.TestCase):
+    def test_compare(self):
+        self.assertEqual(compare("1/2", "1/3"), 1)
+        self.assertEqual(compare("1/3", "1/2"), -1)
+        self.assertEqual(compare("1/2", "1/2"), 0)
+
+
+class TestAbsNegate(unittest.TestCase):
+    def test_abs_value(self):
+        self.assertEqual(abs_value("-3/4"), to_fraction("3/4"))
+        self.assertEqual(abs_value("3/4"), to_fraction("3/4"))
+
+    def test_negate(self):
+        self.assertEqual(negate("3/4"), to_fraction("-3/4"))
+        self.assertEqual(negate("-3/4"), to_fraction("3/4"))
+
+
+class TestPredicates(unittest.TestCase):
+    def test_is_positive(self):
+        self.assertTrue(is_positive("1/2"))
+        self.assertFalse(is_positive("-1/2"))
+        self.assertFalse(is_positive(0))
+
+    def test_is_negative(self):
+        self.assertTrue(is_negative("-1/2"))
+        self.assertFalse(is_negative("1/2"))
+        self.assertFalse(is_negative(0))
+
+    def test_is_zero(self):
+        self.assertTrue(is_zero(0))
+        self.assertTrue(is_zero("0/5"))
+        self.assertFalse(is_zero("1/2"))
+
+    def test_is_integer(self):
+        self.assertTrue(is_integer(3))
+        self.assertTrue(is_integer("6/2"))
+        self.assertFalse(is_integer("1/2"))
+
+
+class TestNumeratorDenominator(unittest.TestCase):
+    def test_numerator_denominator(self):
+        self.assertEqual(numerator("6/8"), 3)
+        self.assertEqual(denominator("6/8"), 4)
+        self.assertEqual(numerator("-3/4"), -3)
+        self.assertEqual(denominator("-3/4"), 4)
+
+
+class TestFloatConversion(unittest.TestCase):
+    def test_to_float(self):
+        self.assertEqual(to_float("1/2"), 0.5)
+        self.assertEqual(to_float("1/3"), 1 / 3)
+
+    def test_from_float(self):
+        self.assertEqual(from_float(0.5), to_fraction("1/2"))
+
+
+if __name__ == "__main__":
+    unittest.main()
+FRACTIONSTESTS

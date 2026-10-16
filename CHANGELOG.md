@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- `fractions_utils.py` — fraction arithmetic utilities (`to_fraction`, `add`, `subtract`, `multiply`, `divide`, `power`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`, `is_integer`, `numerator`, `denominator`, `to_float`, `from_float`) using the standard library `fractions` module with input validation
+- `tests/test_fractions_utils.py` — unit tests for `fractions_utils.py`
+- Added `fractions_utils.py` to `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `CHANGELOG.md` Unreleased entry, and `tests/test_scaffold.py` assertions
+
 - Fixed `scaffold.sh` so it actually generates `functools_utils.py`, `itertools_utils.py`, and `regex_utils.py` (and their tests) in scaffolded projects: the modules were registered in `pyproject.toml` `py_modules` and listed in the scaffold header comment but had no heredoc blocks, so scaffolded projects were missing them. Added the 6 missing heredoc blocks and verified the scaffold smoke test generates all modules with passing tests, ruff, and mypy.
 
 - Registered `template_utils` in `pyproject.toml` `py_modules`, where it was missing and causing an inconsistency with `scaffold.sh`, the README tree, and the CHANGELOG.

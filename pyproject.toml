@@ -119,5 +119,6 @@ py_modules = [
     "networking_utils",
     "version_utils",
     "decimal_utils",
+    "fractions_utils",
     "heapq_utils",
 ]
