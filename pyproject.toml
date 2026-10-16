@@ -80,4 +80,5 @@ py_modules = [
     "functools_utils",
     "config_schema",
     "exceptions_utils",
+    "io_utils",
 ]

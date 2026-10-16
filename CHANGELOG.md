@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `io_utils.py` — line-oriented and atomic input/output utilities (`read_lines`, `write_lines`, `append_text`, `atomic_write_text`, `stream_copy`, `count_lines`, `iter_lines`)
+- `tests/test_io_utils.py` — unit tests for `io_utils.py`
 - `pattern_utils.py` — design pattern utilities (`Singleton` metaclass/base class, `Factory`, `Observer`/`Observable`, `Strategy`/`StrategyContext`) for common object-oriented patterns
 - `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
 - `functools_utils.py` — functional programming utilities (`compose`, `pipe`, `curry`, `apply`) for composing, piping, and currying functions
