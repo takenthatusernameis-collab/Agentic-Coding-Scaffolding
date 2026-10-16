@@ -89,6 +89,8 @@
 #   - pattern_utils.py — design pattern utilities (Singleton, Factory, Observer, Strategy)
 #   - tests/test_color_utils.py — unit tests for the color_utils module
 #   - tests/test_pattern_utils.py — unit tests for the pattern_utils module
+#   - functools_utils.py — functional programming utilities (compose, pipe, curry, apply)
+#   - tests/test_functools_utils.py — unit tests for the functools_utils module
 #   - tree_utils.py tree and nested structure utilities
 #   - tests/test_tree_utils.py unit tests for the tree_utils module
 #   - config_schema.py — typed configuration schema utilities (SchemaField, ConfigSchema, validators)
@@ -477,6 +479,7 @@ py_modules = [
    "tree_utils",
    "path_utils",
    "pattern_utils",
+   "functools_utils",
    "config_schema",
 ]
 
@@ -11169,6 +11172,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_type_utils.py` — unit tests for `type_utils.py`
 - `tests/test_path_utils.py` — unit tests for `path_utils.py`
 - `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
+- `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
+- `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
@@ -11460,6 +11465,7 @@ tests/                       # Python unit tests
 test_type_utils.py         # Tests for type_utils.py
     test_path_utils.py        # Tests for path_utils.py
 test_pattern_utils.py         # Tests for pattern_utils.py
+    test_functools_utils.py       # Tests for functools_utils.py
 test_config_schema.py         # Tests for config_schema.py
     ```
 
@@ -11552,6 +11558,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `config_schema.py` — typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 - `tests/test_path_utils.py` — unit tests for `path_utils.py`
 - `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
+- `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
+- `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`

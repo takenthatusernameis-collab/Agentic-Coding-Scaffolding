@@ -71,6 +71,7 @@ type_utils.py              # Type introspection utilities (is_optional, is_union
     path_utils.py             # Path manipulation utilities (join, normalize, components, extensions)
     color_utils.py            # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
     pattern_utils.py              # Design pattern utilities (Singleton, Factory, Observer, Strategy)
+    functools_utils.py            # Functional programming utilities (compose, pipe, curry, apply)
     config_schema.py             # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
     tests/                       # Python unit tests
   test_hello.py              # Tests for hello.py
@@ -110,6 +111,7 @@ test_type_utils.py         # Tests for type_utils.py
     test_path_utils.py        # Tests for path_utils.py
     test_color_utils.py      # Tests for color_utils.py
 test_pattern_utils.py         # Tests for pattern_utils.py
+    test_functools_utils.py       # Tests for functools_utils.py
 test_config_schema.py         # Tests for config_schema.py
     ```
 
