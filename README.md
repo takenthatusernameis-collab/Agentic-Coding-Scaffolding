@@ -89,6 +89,7 @@ version_utils.py           # Version utility functions (parse, compare, normaliz
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
+heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
@@ -155,6 +156,7 @@ tests/                     # Python unit tests
   test_version_utils.py         # Tests for version_utils.py
   test_textwrap_utils.py        # Tests for textwrap_utils.py
   test_prime_utils.py           # Tests for prime_utils.py
+  test_heapq_utils.py           # Tests for heapq_utils.py
   test_functools_utils.py       # Tests for functools_utils.py
   test_exceptions_utils.py    # Tests for exceptions_utils.py
   test_io_utils.py            # Tests for io_utils.py
@@ -486,6 +488,10 @@ The project includes prime number utilities in `prime_utils.py` for prime-relate
 ## Decimal Utilities Module
 
 The project includes decimal arithmetic utilities in `decimal_utils.py` for precise decimal number operations using the standard library `decimal` module: `to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, and `is_zero`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_decimal_utils.py`.
+
+## Heap Queue Utilities Module
+
+The project includes heap queue utilities in `heapq_utils.py` wrapping the standard library `heapq` module: `heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, and `nsmallest`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_heapq_utils.py`.
 
 ## Operator Utilities Module
 

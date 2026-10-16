@@ -168,6 +168,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
 - `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`)
 - `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`
+- `heapq_utils.py` — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)
+- `tests/test_heapq_utils.py` — unit tests for `heapq_utils.py`
 
 ## Usage
 

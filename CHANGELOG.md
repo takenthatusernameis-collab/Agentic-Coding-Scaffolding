@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`
 - Added `decimal_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
 
+- `heapq_utils.py` — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`) with input validation
+- `tests/test_heapq_utils.py` — unit tests for `heapq_utils.py`
+- Added `heapq_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+
 - `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`) for date and month calculations using stdlib `calendar` with input validation
 - `tests/test_calendar_utils.py` — unit tests for `calendar_utils.py`
 - Synchronized `calendar_utils.py` across `scaffold.sh`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, and `tests/test_scaffold.py` assertions

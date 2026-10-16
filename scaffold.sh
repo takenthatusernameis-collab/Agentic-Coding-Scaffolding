@@ -163,6 +163,8 @@
 #   - tests/test_prime_utils.py — unit tests for prime_utils.py
 #   - decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 #   - tests/test_decimal_utils.py — unit tests for decimal_utils.py
+#   - heapq_utils.py — heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
+#   - tests/test_heapq_utils.py — unit tests for heapq_utils.py
 set -euo pipefail
 
 usage() {
@@ -580,6 +582,7 @@ py_modules = [
     "textwrap_utils",
     "calendar_utils",
     "decimal_utils",
+    "heapq_utils",
 ]
 
 [tool.ruff]
@@ -15066,6 +15069,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_prime_utils.py — unit tests for prime_utils.py
 - decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 - tests/test_decimal_utils.py — unit tests for `decimal_utils.py`
+- heapq_utils.py — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)
+- tests/test_heapq_utils.py — unit tests for `heapq_utils.py`
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
 - tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
 - tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
@@ -15553,6 +15558,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_prime_utils.py — unit tests for prime_utils.py
 - decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 - tests/test_decimal_utils.py — unit tests for `decimal_utils.py`
+- heapq_utils.py — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`) with input validation
+- tests/test_heapq_utils.py — unit tests for `heapq_utils.py`
 - calendar_utils.py — calendar utilities (is_leap_year, days_in_month, first_day_of_month, month_name, day_name, month_calendar, weekdays_in_month, weekend_days_in_month, is_weekend, add_months)
 - tests/test_calendar_utils.py — unit tests for `calendar_utils.py`
 - bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
@@ -24056,3 +24063,333 @@ class TestPredicates(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTDECIMALUTILS
+
+# --- heapq_utils.py ---
+cat > "$OUTPUT_DIR/heapq_utils.py" <<'HEAPQ_UTILS'
+"""Heap queue utility functions.
+
+This module provides helpers for heap queue operations using the standard library ``heapq`` module.
+"""
+
+from __future__ import annotations
+
+import heapq
+from typing import Any, Callable, Iterable, Iterator, List, Optional, TypeVar, cast
+
+T = TypeVar("T")
+
+__all__: list[str] = [
+    "heapify",
+    "heappush",
+    "heappop",
+    "heapreplace",
+    "heappushpop",
+    "merge",
+    "nlargest",
+    "nsmallest",
+]
+
+
+def heapify(items: list[Any]) -> None:
+    """Transform list *items* into a heap, in-place, in linear time.
+
+    Args:
+        items: The list to turn into a heap.
+
+    Raises:
+        TypeError: If *items* is not a list.
+    """
+    if not isinstance(items, list):
+        raise TypeError("items must be a list")
+    heapq.heapify(items)
+
+
+def heappush(items: list[Any], item: Any) -> None:
+    """Push the value *item* onto the heap *items*.
+
+    Args:
+        items: The heap list.
+        item: The value to push.
+
+    Raises:
+        TypeError: If *items* is not a list.
+    """
+    if not isinstance(items, list):
+        raise TypeError("items must be a list")
+    heapq.heappush(items, item)
+
+
+def heappop(items: list[Any]) -> Any:
+    """Pop and return the smallest item from the heap *items*.
+
+    Args:
+        items: The heap list.
+
+    Returns:
+        The smallest item.
+
+    Raises:
+        TypeError: If *items* is not a list.
+        IndexError: If the heap is empty.
+    """
+    if not isinstance(items, list):
+        raise TypeError("items must be a list")
+    return heapq.heappop(items)
+
+
+def heapreplace(items: list[Any], item: Any) -> Any:
+    """Pop and return the smallest item, then push *item*.
+
+    The heap size stays the same.
+
+    Args:
+        items: The heap list.
+        item: The value to push.
+
+    Returns:
+        The smallest item that was popped.
+
+    Raises:
+        TypeError: If *items* is not a list.
+        IndexError: If the heap is empty.
+    """
+    if not isinstance(items, list):
+        raise TypeError("items must be a list")
+    return heapq.heapreplace(items, item)
+
+
+def heappushpop(items: list[Any], item: Any) -> Any:
+    """Push *item* on the heap, then pop and return the smallest item.
+
+    More efficient than ``heappush`` followed by ``heappop``.
+
+    Args:
+        items: The heap list.
+        item: The value to push.
+
+    Returns:
+        The smallest item that was popped.
+
+    Raises:
+        TypeError: If *items* is not a list.
+    """
+    if not isinstance(items, list):
+        raise TypeError("items must be a list")
+    return heapq.heappushpop(items, item)
+
+
+def merge(*iterables: Iterable[T], key: Optional[Callable[[T], Any]] = None, reverse: bool = False) -> Iterator[T]:
+    """Merge multiple sorted inputs into a single sorted iterator.
+
+    Args:
+        *iterables: Sorted iterables to merge.
+        key: Optional key function applied to each element.
+        reverse: If True, inputs are merged in descending order.
+
+    Returns:
+        An iterator over the merged values.
+
+    Raises:
+        TypeError: If any argument is not iterable.
+    """
+    for it in iterables:
+        if not isinstance(it, Iterable):
+            raise TypeError("all arguments must be iterable")
+    return heapq.merge(*iterables, key=cast(Any, key), reverse=reverse)
+
+
+def nlargest(n: int, iterable: Iterable[T], key: Optional[Callable[[T], Any]] = None) -> List[T]:
+    """Return the *n* largest elements from *iterable*.
+
+    Args:
+        n: Number of largest elements to return.
+        iterable: The iterable to search.
+        key: Optional key function applied to each element.
+
+    Returns:
+        A list of the *n* largest elements, in descending order.
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *n* is not an int.
+        ValueError: If *n* is negative.
+    """
+    if not isinstance(iterable, Iterable):
+        raise TypeError("iterable must be iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return heapq.nlargest(n, iterable, key=cast(Any, key))
+
+
+def nsmallest(n: int, iterable: Iterable[T], key: Optional[Callable[[T], Any]] = None) -> List[T]:
+    """Return the *n* smallest elements from *iterable*.
+
+    Args:
+        n: Number of smallest elements to return.
+        iterable: The iterable to search.
+        key: Optional key function applied to each element.
+
+    Returns:
+        A list of the *n* smallest elements, in ascending order.
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *n* is not an int.
+        ValueError: If *n* is negative.
+    """
+    if not isinstance(iterable, Iterable):
+        raise TypeError("iterable must be iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return heapq.nsmallest(n, iterable, key=cast(Any, key))
+HEAPQ_UTILS
+
+# --- tests/test_heapq_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_heapq_utils.py" <<'TESTHEAPQUTILS'
+"""Tests for heapq_utils module."""
+
+from __future__ import annotations
+
+import unittest
+
+from heapq_utils import (
+    heapify,
+    heappop,
+    heappush,
+    heappushpop,
+    heapreplace,
+    merge,
+    nlargest,
+    nsmallest,
+)
+
+
+class TestHeapify(unittest.TestCase):
+    def test_heapify_in_place(self) -> None:
+        items = [3, 1, 4, 1, 5, 9, 2, 6]
+        heapify(items)
+        self.assertEqual(items[0], min(items))
+
+    def test_heapify_empty(self) -> None:
+        items: list[int] = []
+        heapify(items)
+        self.assertEqual(items, [])
+
+    def test_heapify_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            heapify("not a list")  # type: ignore[arg-type]
+
+
+class TestHeappush(unittest.TestCase):
+    def test_push_pop_order(self) -> None:
+        items: list[int] = []
+        for value in [5, 1, 3, 2, 4]:
+            heappush(items, value)
+        self.assertEqual([heappop(items) for _ in range(len(items))], [1, 2, 3, 4, 5])
+
+    def test_push_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            heappush("not a list", 1)  # type: ignore[arg-type]
+
+
+class TestHeappop(unittest.TestCase):
+    def test_heappop(self) -> None:
+        items = [5, 1, 3]
+        heapify(items)
+        self.assertEqual(heappop(items), 1)
+
+    def test_heappop_empty(self) -> None:
+        items: list[int] = []
+        with self.assertRaises(IndexError):
+            heappop(items)
+
+    def test_heappop_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            heappop("not a list")  # type: ignore[arg-type]
+
+
+class TestHeapreplace(unittest.TestCase):
+    def test_heapreplace(self) -> None:
+        items = [1, 3, 5]
+        heapify(items)
+        self.assertEqual(heapreplace(items, 2), 1)
+        self.assertEqual(items[0], 2)
+
+    def test_heapreplace_empty(self) -> None:
+        items: list[int] = []
+        with self.assertRaises(IndexError):
+            heapreplace(items, 1)
+
+
+class TestHeappushpop(unittest.TestCase):
+    def test_heappushpop(self) -> None:
+        items = [1, 3, 5]
+        heapify(items)
+        self.assertEqual(heappushpop(items, 2), 1)
+
+    def test_heappushpop_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            heappushpop("not a list", 1)  # type: ignore[arg-type]
+
+
+class TestMerge(unittest.TestCase):
+    def test_merge_sorted(self) -> None:
+        result = list(merge([1, 3, 5], [2, 4, 6]))
+        self.assertEqual(result, [1, 2, 3, 4, 5, 6])
+
+    def test_merge_reverse(self) -> None:
+        result = list(merge([5, 3, 1], [6, 4, 2], reverse=True))
+        self.assertEqual(result, [6, 5, 4, 3, 2, 1])
+
+    def test_merge_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            merge("not iterable")  # type: ignore[arg-type]
+
+
+class TestNlargest(unittest.TestCase):
+    def test_nlargest(self) -> None:
+        self.assertEqual(nlargest(2, [1, 5, 3, 4, 2]), [5, 4])
+
+    def test_nlargest_zero(self) -> None:
+        self.assertEqual(nlargest(0, [1, 2, 3]), [])
+
+    def test_nlargest_key(self) -> None:
+        self.assertEqual(nlargest(1, ["a", "bb", "ccc"], key=len), ["ccc"])
+
+    def test_nlargest_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            nlargest(1, "not iterable")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            nlargest("one", [1, 2, 3])  # type: ignore[arg-type]
+
+    def test_nlargest_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            nlargest(-1, [1, 2, 3])
+
+
+class TestNsmallest(unittest.TestCase):
+    def test_nsmallest(self) -> None:
+        self.assertEqual(nsmallest(2, [1, 5, 3, 4, 2]), [1, 2])
+
+    def test_nsmallest_zero(self) -> None:
+        self.assertEqual(nsmallest(0, [1, 2, 3]), [])
+
+    def test_nsmallest_key(self) -> None:
+        self.assertEqual(nsmallest(1, ["ccc", "bb", "a"], key=len), ["a"])
+
+    def test_nsmallest_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            nsmallest(1, "not iterable")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            nsmallest("one", [1, 2, 3])  # type: ignore[arg-type]
+
+    def test_nsmallest_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            nsmallest(-1, [1, 2, 3])
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTHEAPQUTILS
