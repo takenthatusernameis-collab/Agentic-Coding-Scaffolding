@@ -71,6 +71,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pattern_utils.py` — design pattern utilities (Singleton, Factory, Observer, Strategy)
 - `tests/test_color_utils.py` — unit tests for `color_utils.py`
 - `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
+- `regex_utils.py` — regular expression utilities (`compile_pattern`, `is_valid_pattern`, `match_pattern`, `search_pattern`, `find_all`, `replace_pattern`, `split_pattern`, `escape_pattern`, `extract_groups`, `named_groups`)
+- `tests/test_regex_utils.py` — unit tests for `regex_utils.py`
 - `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
 - `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators)
