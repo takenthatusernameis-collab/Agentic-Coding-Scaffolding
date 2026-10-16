@@ -315,3 +315,43 @@ The project includes line-oriented and atomic input/output utilities in `io_util
 
 The project includes terminal output utilities in `terminal_utils.py` for formatting terminal output with ANSI escape sequences: `supports_color` detects color support, `colorize` and `print_colored` render text in ANSI colors (black, red, green, yellow, blue, magenta, cyan, white) with optional bold, `clear_screen` clears the terminal, `get_terminal_size` returns the `(columns, lines)`, `ProgressBar` renders a terminal progress bar (usable as a context manager), `progress_bar` wraps an iterable with a progress bar, and `prompt` reads user input with an optional default. Color output is automatically disabled when the stream is not a TTY or the `NO_COLOR` environment variable is set. The module is tested in `tests/test_terminal_utils.py`.
 
+## Async Utilities Module
+
+The project includes asynchronous utility functions in `async_utils.py` for running blocking code in threads, gathering coroutines with timeouts, sleeping asynchronously, and retrying async operations: `run_in_thread`, `gather_with_timeout`, `async_sleep`, and `retry_async`. The module is tested in `tests/test_async_utils.py`.
+
+## Collections Utilities Module
+
+The project includes collection utilities in `collections_utils.py` for working with iterables and data structures: `chunk`, `flatten`, `deep_flatten`, `windowed`, `uniq`, `uniq_by`, `frequency`, `most_common`, `least_common`, `merge_dicts`, `to_deque`, `pluck`, `compact`, and `partition_by`. The module is tested in `tests/test_collections_utils.py`.
+
+## Compression Utilities Module
+
+The project includes compression and decompression utilities in `compression_utils.py` supporting gzip, bz2, zip, and tar formats for bytes/strings and archive operations. The module is tested in `tests/test_compression_utils.py`.
+
+## Functools Utilities Module
+
+The project includes functional programming utilities in `functools_utils.py` for composing, piping, and currying functions: `compose`, `pipe`, `curry`, and `apply`. The module is tested in `tests/test_functools_utils.py`.
+
+## IP Utilities Module
+
+The project includes IP address validation and manipulation utilities in `ip_utils.py` for IPv4/IPv6 validation, version detection, conversion between strings and integers, and property checks: `is_valid_ip`, `is_valid_ipv4`, `is_valid_ipv6`, `get_ip_version`, `ip_to_int`, and `int_to_ip`. The module is tested in `tests/test_ip_utils.py`.
+
+## Prompt Utilities Module
+
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `wrap_prompt`, and `estimate_token_count`. The module is tested in `tests/test_prompt_utils.py`.
+
+## Regex Utilities Module
+
+The project includes regular expression utilities in `regex_utils.py` for safe regex compilation, matching, extraction, and manipulation: `compile_pattern`, `is_valid_pattern`, `match_pattern`, `search_pattern`, `find_all`, `replace_pattern`, `split_pattern`, `escape_pattern`, `extract_groups`, and `named_groups`. The module is tested in `tests/test_regex_utils.py`.
+
+## Tree Utilities Module
+
+The project includes tree and nested structure utilities in `tree_utils.py` for getting, setting, deleting, flattening, unflattening, mapping, and filtering nested structures: `get_nested`, `set_nested`, `delete_nested`, `flatten_tree`, `unflatten_tree`, `map_tree`, and `filter_tree`. The module is tested in `tests/test_tree_utils.py`.
+
+## UUID Utilities Module
+
+The project includes UUID utility functions in `uuid_utils.py` for generating and validating UUIDs: `generate_uuid`, `generate_uuid4`, `generate_uuid1`, `is_valid_uuid`, and `parse_uuid`. The module is tested in `tests/test_uuid_utils.py`.
+
+## Utils Module
+
+The project includes general utility helper functions in `utils.py`: `flatten`, `chunk`, `unique`, and `is_empty`. The module is tested in `tests/test_utils.py`.
+
