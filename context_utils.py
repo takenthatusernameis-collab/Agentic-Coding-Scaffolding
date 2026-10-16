@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import os
 import sys
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from typing import Any, Iterator, Mapping, TextIO
 
 __all__: list[str] = [
@@ -23,7 +23,7 @@ __all__: list[str] = [
 ]
 
 
-def chdir(path: Any) -> Iterator[None]:
+def chdir(path: Any) -> AbstractContextManager[None]:
     """Temporarily change the current working directory.
 
     Args:
@@ -55,7 +55,11 @@ def _chdir(path: Any) -> Iterator[None]:
         os.chdir(previous)
 
 
-def temp_environ(updates: Mapping[str, str], *, clear: bool = False) -> Iterator[None]:
+def temp_environ(
+    updates: Mapping[str, str],
+    *,
+    clear: bool = False,
+) -> AbstractContextManager[None]:
     """Temporarily update environment variables.
 
     Args:
@@ -94,7 +98,7 @@ def _temp_environ(updates: Mapping[str, str], clear: bool = False) -> Iterator[N
         os.environ.update(snapshot)
 
 
-def redirect_stdout(target: TextIO) -> Iterator[None]:
+def redirect_stdout(target: TextIO) -> AbstractContextManager[None]:
     """Temporarily redirect :data:`sys.stdout`.
 
     Args:
@@ -114,7 +118,7 @@ def redirect_stdout(target: TextIO) -> Iterator[None]:
     return _redirect_stream(sys, "stdout", target)
 
 
-def redirect_stderr(target: TextIO) -> Iterator[None]:
+def redirect_stderr(target: TextIO) -> AbstractContextManager[None]:
     """Temporarily redirect :data:`sys.stderr`.
 
     Args:
@@ -144,7 +148,7 @@ def _redirect_stream(module: Any, name: str, target: TextIO) -> Iterator[None]:
         setattr(module, name, previous)
 
 
-def suppress(*exceptions: type[BaseException]) -> Iterator[None]:
+def suppress(*exceptions: type[BaseException]) -> AbstractContextManager[None]:
     """Suppress the listed exceptions if raised within the context.
 
     Args:
