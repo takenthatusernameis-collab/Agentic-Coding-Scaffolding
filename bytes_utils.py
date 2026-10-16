@@ -13,3 +13,23 @@ def from_hex(text: str) -> bytes:
     if not isinstance(text, str):
         raise TypeError("text must be a str")
     return bytes.fromhex(text)
+
+
+def xor(data: bytes, key: bytes) -> bytes:
+    """XOR *data* with a repeating *key*."""
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(key, (bytes, bytearray)) or not key:
+        raise ValueError("key must be non-empty bytes or bytearray")
+    key_bytes = bytes(key)
+    return bytes(b ^ key_bytes[i % len(key_bytes)] for i, b in enumerate(data))
+
+
+def chunk(data: bytes, size: int) -> list[bytes]:
+    """Split *data* into chunks of *size* bytes."""
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(size, int) or size <= 0:
+        raise ValueError("size must be a positive integer")
+    data = bytes(data)
+    return [data[i:i + size] for i in range(0, len(data), size)]
