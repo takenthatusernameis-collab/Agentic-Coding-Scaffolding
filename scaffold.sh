@@ -114,6 +114,8 @@
 #   - tests/test_hash_utils.py — unit tests for hash_utils.py
 #   - html_utils.py — HTML escaping, unescaping, and tag-stripping utilities
 #   - tests/test_html_utils.py — unit tests for html_utils.py
+#   - bytes_utils.py — Bytes and binary utilities (to_hex, from_hex, xor, chunk)
+#   - tests/test_bytes_utils.py — unit tests for bytes_utils.py
 #   - base64_utils.py — Base64 and hexadecimal encoding/decoding utilities
 #   - tests/test_base64_utils.py — unit tests for base64_utils.py
 #   - struct_utils.py — Binary struct packing and unpacking utilities
@@ -141,6 +143,8 @@
 #   - version_utils.py — version parsing, comparison, and normalization utilities
 #   - tests/test_version_utils.py — unit tests for version_utils.py
 #   - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+- bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
+- tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
 #   - tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
 set -euo pipefail
 
@@ -539,6 +543,7 @@ py_modules = [
     "hash_utils",
     "http_utils",
     "html_utils",
+    "bytes_utils",
     "base64_utils",
     "struct_utils",
     "duration_utils",
@@ -14336,6 +14341,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - version_utils.py — version parsing, comparison, and normalization utilities
 - tests/test_version_utils.py — unit tests for `version_utils.py`
 - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+- bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
+- tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
 - tests/test_textwrap_utils.py — unit tests for `textwrap_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 
@@ -14794,6 +14801,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - version_utils.py — version parsing, comparison, and normalization utilities
 - tests/test_version_utils.py — unit tests for `version_utils.py`
 - textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+- bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
+- tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
 - tests/test_textwrap_utils.py — unit tests for `textwrap_utils.py`
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, unittest, and scaffold smoke testing
