@@ -61,6 +61,7 @@ py_modules = [
     "file_utils",
     "url_utils",
     "random_utils",
+    "secrets_utils",
     "validation_utils",
     "crypto_utils",
     "list_utils",
