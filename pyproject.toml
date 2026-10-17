@@ -63,6 +63,7 @@ py_modules = [
     "datetime_utils",
     "deprecation_utils",
     "file_utils",
+    "fnmatch_utils",
     "url_utils",
     "random_utils",
     "secrets_utils",
