@@ -109,6 +109,8 @@
 
 #   - color_utils.py — # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
 
+#   - deprecation_utils.py — # Deprecation utilities (deprecated decorator) for marking APIs as deprecated with optional version, replacement, and message
+
 #   - circuit_breaker_utils.py — # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 
 #   - duration_utils.py — # Time duration utilities (parse, format, convert between units)
@@ -165,6 +167,8 @@
 #   - inspect_utils.py — # Callable and object introspection utilities (get_callable_name, is_callable, is_async_callable, get_signature, get_parameter_names, get_parameter_kinds, count_parameters, has_parameter, bind_arguments, is_builtin, get_source_file, get_source_lines)
 
 #   - html_utils.py — # HTML escaping, unescaping, and tag-stripping utilities
+
+#   - deprecation_utils.py — # Deprecation utilities (deprecated decorator) with version/replacement/message support and warnings emission
 
 #   - bytes_utils.py — # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
 
@@ -16876,6 +16880,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
 - `timing_utils.py` — performance measurement helpers
 - `async_utils.py` — asynchronous utility functions
+- `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 - `priority_queue_utils.py` — heap-based priority queue implementation
@@ -16942,6 +16947,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
+- `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
@@ -16970,7 +16976,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_inspect_utils.py` — unit tests for `inspect_utils.py`
 - `tests/test_http_utils.py` — unit tests for `http_utils.py`
 - `html_utils.py` — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
-- `tests/test_html_utils.py` — unit tests for `html_utils.py`
+- `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) that emit a `DeprecationWarning` on each invocation, with optional `version`, `replacement`, and custom `message`
+- `tests/test_html_utils.py`
+- `tests/test_deprecation_utils.py` — unit tests for `html_utils.py`
 - `bytes_utils.py` — bytes and binary utilities (`to_hex`, `from_hex`, `xor`, `chunk`)
 - `tests/test_bytes_utils.py` — unit tests for `bytes_utils.py`
 - `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
@@ -18552,6 +18560,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Bootstrap session
 
 - Verified test suite passes (75 test modules).
+- Added `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) that emit a `DeprecationWarning` on each invocation of a deprecated callable, with optional `version`, `replacement`, and custom `message` fields, plus `tests/test_deprecation_utils.py`.
+- Synchronized `deprecation_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 __CHANGELOG__
 
@@ -20240,6 +20250,188 @@ class TestExtractPlaceholders(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTTEMPLATEUTILS
+
+# --- deprecation_utils.py ---
+cat > "$OUTPUT_DIR/deprecation_utils.py" <<'DEPRECATIONUTILS'
+"""Deprecation utilities for marking APIs as deprecated.
+
+This module provides a ``deprecated`` decorator that wraps a callable and emits
+a ``DeprecationWarning`` each time the wrapped callable is invoked, along with
+optional guidance about the deprecation version and a suggested replacement.
+"""
+
+from __future__ import annotations
+
+import functools
+import warnings
+from typing import Any, Callable, Optional, TypeVar, Union, overload
+
+T = TypeVar("T")
+
+
+@overload
+def deprecated(
+    func: Callable[..., T],
+    *,
+    version: Optional[str] = None,
+    replacement: Optional[str] = None,
+    message: Optional[str] = None,
+) -> Callable[..., T]: ...
+
+
+@overload
+def deprecated(
+    func: None = None,
+    *,
+    version: Optional[str] = None,
+    replacement: Optional[str] = None,
+    message: Optional[str] = None,
+) -> Callable[[Callable[..., T]], Callable[..., T]]: ...
+
+
+def deprecated(
+    func: Optional[Callable[..., T]] = None,
+    *,
+    version: Optional[str] = None,
+    replacement: Optional[str] = None,
+    message: Optional[str] = None,
+) -> Union[Callable[..., T], Callable[[Callable[..., T]], Callable[..., T]]]:
+    """Mark a callable as deprecated.
+
+    Wraps ``func`` so that every call emits a ``DeprecationWarning`` describing
+    the deprecation. The warning includes an optional version (when the
+    deprecation was introduced), an optional replacement (what to use instead),
+    and an optional custom message.
+
+    Args:
+        func: The callable to mark as deprecated. When provided positionally,
+            the decorator is applied with default options.
+        version: Version in which the deprecation was introduced (optional).
+        replacement: Dotted name or description of the suggested replacement
+            (optional).
+        message: Custom deprecation message. When omitted, a default message is
+            constructed from the function name and the optional version and
+            replacement fields.
+
+    Returns:
+        A wrapped callable that emits a ``DeprecationWarning`` on every
+        invocation and otherwise forwards all arguments and return values to
+        ``func``.
+
+    Raises:
+        TypeError: If ``func`` is provided and is not callable.
+
+    Example:
+        >>> @deprecated(version="2.0", replacement="use greet() instead")
+        ... def say_hello() -> str:
+        ...     return "hello"
+        >>> say_hello()  # doctest: +SKIP
+        'hello'
+    """
+
+    def decorator(target: Callable[..., T]) -> Callable[..., T]:
+        if not callable(target):
+            raise TypeError("func must be callable")
+
+        parts = [message or f"{target.__name__} is deprecated"]
+        if version is not None:
+            parts.append(f"(since version {version})")
+        if replacement is not None:
+            parts.append(f"use {replacement} instead")
+        warning_message = " ".join(parts)
+
+        @functools.wraps(target)
+        def wrapper(*args: Any, **kwargs: Any) -> T:
+            warnings.warn(
+                warning_message,
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return target(*args, **kwargs)
+
+        return wrapper
+
+    # Support both @deprecated and @deprecated(version=..., ...).
+    if func is not None:
+        return decorator(func)
+    return decorator
+
+DEPRECATIONUTILS
+
+# --- tests/test_deprecation_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_deprecation_utils.py" <<'TESTDEPRECATION'
+import unittest
+import warnings
+
+from deprecation_utils import deprecated
+
+
+class TestDeprecated(unittest.TestCase):
+    def test_emits_deprecation_warning(self):
+        @deprecated
+        def old_func() -> int:
+            return 42
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            result = old_func()
+
+        self.assertEqual(result, 42)
+        self.assertEqual(len(caught), 1)
+        self.assertTrue(issubclass(caught[0].category, DeprecationWarning))
+        self.assertIn("old_func is deprecated", str(caught[0].message))
+
+    def test_preserves_return_value_and_args(self):
+        @deprecated(version="1.0", replacement="new_func")
+        def add(a: int, b: int) -> int:
+            return a + b
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.assertEqual(add(2, 3), 5)
+
+    def test_includes_version_and_replacement(self):
+        @deprecated(version="2.0", replacement="use calculate()")
+        def compute() -> str:
+            return "result"
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            compute()
+
+        message = str(caught[0].message)
+        self.assertIn("since version 2.0", message)
+        self.assertIn("use calculate() instead", message)
+
+    def test_custom_message(self):
+        @deprecated(message="please stop using legacy_mode")
+        def legacy_mode() -> None:
+            return None
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            legacy_mode()
+
+        self.assertIn("please stop using legacy_mode", str(caught[0].message))
+
+    def test_wraps_metadata(self):
+        @deprecated
+        def documented() -> int:
+            """Docstring for documented."""
+            return 1
+
+        self.assertEqual(documented.__name__, "documented")
+        self.assertEqual(documented.__doc__, "Docstring for documented.")
+
+    def test_non_callable_raises(self):
+        with self.assertRaises(TypeError):
+            deprecated(42)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+TESTDEPRECATION
 
 # --- inspect_utils.py ---
 cat > "$OUTPUT_DIR/inspect_utils.py" <<'INSPECT_UTILS'
@@ -30450,4 +30642,3 @@ class TestCreateFinalizer(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 WEAKREFTESTS
-

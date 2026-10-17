@@ -49,6 +49,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
 - `timing_utils.py` — performance measurement helpers
 - `async_utils.py` — asynchronous utility functions
+ - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
 - `call_once_utils.py` — call-once execution utilities ensuring a function runs only a single time
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
@@ -117,6 +118,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
+ - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
 - `tests/test_call_once_utils.py` — unit tests for `call_once_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
@@ -145,7 +147,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_inspect_utils.py` — unit tests for `inspect_utils.py`
 - `tests/test_http_utils.py` — unit tests for `http_utils.py`
 - `html_utils.py` — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
+- `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) that emit a `DeprecationWarning` on each invocation, with optional `version`, `replacement`, and custom `message`
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
+- `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
 - `bytes_utils.py` — bytes and binary utilities (`to_hex`, `from_hex`, `xor`, `chunk`)
 - `tests/test_bytes_utils.py` — unit tests for `bytes_utils.py`
 - `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
