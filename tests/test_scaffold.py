@@ -286,6 +286,10 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_threading_utils.py",
             "selectors_utils.py",
             "tests/test_selectors_utils.py",
+            "gzip_utils.py",
+            "tests/test_gzip_utils.py",
+            "plistlib_utils.py",
+            "tests/test_plistlib_utils.py",
             "socketserver_utils.py",
             "tests/test_socketserver_utils.py",
         ]
@@ -464,6 +468,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "heapq_utils.py",
             "time_utils.py",
             "selectors_utils.py",
+            "gzip_utils.py",
+            "plistlib_utils.py",
             "socketserver_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
@@ -516,6 +522,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "interval_utils.py",
             "tests/test_interval_utils.py",
             "tests/test_selectors_utils.py",
+            "tests/test_gzip_utils.py",
+            "tests/test_plistlib_utils.py",
             "tests/test_socketserver_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
