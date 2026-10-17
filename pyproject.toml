@@ -59,6 +59,7 @@ py_modules = [
     "bit_utils",
     "data_utils",
     "datetime_utils",
+    "deprecation_utils",
     "file_utils",
     "url_utils",
     "random_utils",
