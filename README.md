@@ -89,6 +89,7 @@ number_utils.py            # Number utility functions (clamp, round_to, is_integ
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
+threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 greeting_utils.py          # Greeting utilities (greet, format_names, random_greeting)
@@ -220,6 +221,7 @@ test_scaffold.py            # Tests for scaffold.sh
   test_struct_utils.py        # Tests for struct_utils.py
   test_subprocess_utils.py    # Tests for subprocess_utils.py
   test_sys_utils.py           # Tests for sys_utils.py
+  test_threading_utils.py     # Tests for threading_utils.py
   test_template_utils.py      # Tests for template_utils.py
   test_terminal_utils.py      # Tests for terminal_utils.py
   test_temp_utils.py          # Tests for temp_utils.py
@@ -659,3 +661,7 @@ The project includes copy utilities in `copy_utils.py` for duplicating Python ob
 The project includes argument parsing utilities in `argparse_utils.py` wrapping the standard library `argparse` module: `make_parser` creates an `ArgumentParser` with common defaults, `add_flag` adds a boolean store_true flag, `add_option` adds a single-value option, `add_positional` adds a positional argument, `add_subparsers` adds subcommands support, `parse_args` parses arguments, `int_positive` validates positive integers, and `float_range` creates a float range validator. The module is tested in `tests/test_argparse_utils.py`.
 
 The project includes warnings utilities in `warnings_utils.py` wrapping the standard library `warnings` module: `warn` emits a warning message with an optional category and stacklevel, `simplefilter` sets the global warning filter action, `catch_warnings` is a context manager that captures warnings emitted within its scope, `filterwarnings` adds a warning filter entry, and `resetwarnings` clears all warning filters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_warnings_utils.py`.
+
+## Threading Utilities Module
+
+The project includes threading utilities in `threading_utils.py` wrapping the standard library `threading` module: `create_lock` and `create_rlock` return new lock and reentrant lock objects, `create_semaphore` and `create_bounded_semaphore` return semaphores with a validated initial counter, `create_event` returns an event, `create_condition` returns a condition variable, `create_timer` and `create_thread` build configured timer and thread objects, `current_thread` returns the caller's thread, `active_count` reports the number of alive threads, `enumerate_threads` lists alive threads, and `synchronized` is a decorator that serializes calls using a lock. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_threading_utils.py`.

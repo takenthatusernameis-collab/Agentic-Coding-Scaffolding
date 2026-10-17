@@ -168,6 +168,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - \`tests/test_calendar_utils.py\` — unit tests for \`calendar_utils.py\`
 - \`cmath_utils.py\` — complex mathematics utilities wrapping the standard library \`cmath\` module (\`phase\`, \`polar\`, \`rect\`, \`exp\`, \`log\`, \`log10\`, \`sqrt\`, \`sin\`, \`cos\`, \`tan\`, \`asin\`, \`acos\`, \`atan\`, \`sinh\`, \`cosh\`, \`tanh\`, \`asinh\`, \`acosh\`, \`atanh\`, \`isfinite\`, \`isinf\`, \`isnan\`, \`isclose\`)
 - \`tests/test_cmath_utils.py\` — unit tests for \`cmath_utils.py\`
+- \`threading_utils.py\` — threading utilities wrapping the standard library \`threading\` module (\`create_lock\`, \`create_rlock\`, \`create_semaphore\`, \`create_bounded_semaphore\`, \`create_event\`, \`create_condition\`, \`create_timer\`, \`create_thread\`, \`current_thread\`, \`active_count\`, \`enumerate_threads\`, \`synchronized\`) with input validation
+- \`tests/test_threading_utils.py\` — unit tests for \`threading_utils.py\`
 - `struct_utils.py` — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
 - `tests/test_struct_utils.py` — unit tests for `struct_utils.py`
 - `duration_utils.py` — time duration utilities (`parse_duration`, `format_duration`, `seconds_to_hms`, `hms_to_seconds`, `to_seconds`, `duration_between`, `add_duration`, `is_valid_duration`)

@@ -282,6 +282,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_semver_utils.py",
             "interval_utils.py",
             "tests/test_interval_utils.py",
+            "threading_utils.py",
+            "tests/test_threading_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -426,6 +428,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "cmath_utils.py",
             "tests/test_calendar_utils.py",
             "tests/test_cmath_utils.py",
+            "threading_utils.py",
+            "tests/test_threading_utils.py",
             "http_utils.py",
             "tests/test_http_utils.py",
             "inspect_utils.py",
@@ -602,6 +606,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "cmath_utils.py",
             "tests/test_calendar_utils.py",
             "tests/test_cmath_utils.py",
+            "threading_utils.py",
+            "tests/test_threading_utils.py",
             "http_utils.py",
             "tests/test_http_utils.py",
             "inspect_utils.py",
@@ -1220,6 +1226,83 @@ class TestScaffoldKiloJson(unittest.TestCase):
             isclose(1, 1, rel_tol=-1)
         with self.assertRaises(ValueError):
             isclose(1, 1, abs_tol=-1)
+
+    def test_threading_utils_functions_work(self):
+        """Generated threading_utils.py should have working functions."""
+        import threading
+
+        from threading_utils import (
+            active_count,
+            create_bounded_semaphore,
+            create_condition,
+            create_event,
+            create_lock,
+            create_rlock,
+            create_semaphore,
+            create_thread,
+            create_timer,
+            current_thread,
+            enumerate_threads,
+            synchronized,
+        )
+
+        lock = create_lock()
+        self.assertIsInstance(lock, type(threading.Lock()))
+
+        rlock = create_rlock()
+        self.assertIsInstance(rlock, type(threading.RLock()))
+
+        sem = create_semaphore(2)
+        self.assertTrue(sem.acquire())
+        self.assertTrue(sem.acquire())
+        self.assertFalse(sem.acquire(blocking=False))
+        sem.release()
+        sem.release()
+
+        bsem = create_bounded_semaphore(1)
+        self.assertIsInstance(bsem, threading.BoundedSemaphore)
+
+        event = create_event()
+        self.assertFalse(event.is_set())
+        event.set()
+        self.assertTrue(event.is_set())
+        event.clear()
+        self.assertFalse(event.is_set())
+
+        cond = create_condition(lock)
+        self.assertIsInstance(cond, threading.Condition)
+
+        called = []
+
+        def callback() -> None:
+            called.append(True)
+
+        timer = create_timer(0.01, callback)
+        self.assertIsInstance(timer, threading.Timer)
+        timer.cancel()
+
+        results = []
+
+        def worker(value: int) -> int:
+            results.append(value)
+            return value
+
+        thread = create_thread(worker, args=(7,))
+        thread.start()
+        thread.join()
+        self.assertEqual(results, [7])
+
+        self.assertIsInstance(current_thread(), threading.Thread)
+        self.assertGreaterEqual(active_count(), 1)
+        threads = enumerate_threads()
+        self.assertIsInstance(threads, list)
+        self.assertIn(current_thread(), threads)
+
+        @synchronized(lock)
+        def guarded(value: int) -> int:
+            return value
+
+        self.assertEqual(guarded(42), 42)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

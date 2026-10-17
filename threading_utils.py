@@ -1,238 +1,274 @@
-"""Threading utility functions wrapping the standard library 'threading' module."""
+"""Threading utilities wrapping the standard library threading module.
+
+This module provides a validated wrapper around the standard library ``threading``
+module for lock, semaphore, event, condition, timer, and thread operations. All
+functions validate their inputs and raise ``TypeError`` for invalid arguments.
+"""
 
 from __future__ import annotations
 
 import threading
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, TypeVar
 
-__all__: list[str] = [
-    "ThreadCreate",
-    "thread_start",
-    "thread_join",
-    "thread_is_alive",
-    "thread_name",
-    "thread_ident",
-    "thread_daemon",
-    "thread_set_daemon",
-    "LockCreate",
-    "lock_acquire",
-    "lock_release",
-    "lock_locked",
-    "RLockCreate",
-    "rlock_acquire",
-    "rlock_release",
-    "SemaphoreCreate",
-    "semaphore_acquire",
-    "semaphore_release",
-    "EventCreate",
-    "event_set",
-    "event_clear",
-    "event_is_set",
-    "event_wait",
-    "ConditionCreate",
-    "condition_acquire",
-    "condition_release",
-    "condition_wait",
-    "condition_notify",
-    "condition_notify_all",
-    "TimerCreate",
-    "timer_start",
-    "timer_cancel",
-    "BarrierCreate",
-    "barrier_wait",
-    "barrier_reset",
-    "barrier_abort",
-    "barrier_parties",
-    "barrier_broken",
-    "current_thread",
-    "active_count",
-    "enumerate_threads",
-    "main_thread",
-]
+T = TypeVar("T")
+
+# threading.Lock is a factory function, not a class, so capture the actual lock type.
+_LockType = type(threading.Lock())
 
 
-def ThreadCreate(
-    target: Optional[Callable[..., Any]] = None,
-    args: tuple = (),
-    kwargs: Optional[dict[str, Any]] = None,
-    name: Optional[str] = None,
-    daemon: Optional[bool] = None,
-) -> threading.Thread:
-    return threading.Thread(
-        target=target, args=args, kwargs=kwargs or {}, name=name, daemon=daemon
-    )
+def _validate_callable(value: Any, name: str) -> None:
+    """Validate that *value* is callable, raising ``TypeError`` otherwise.
+
+    Args:
+        value: The value to validate.
+        name: The name of the argument (used in error messages).
+
+    Raises:
+        TypeError: If value is not callable.
+    """
+    if not callable(value):
+        raise TypeError(f"{name} must be callable")
 
 
-def thread_start(t: threading.Thread) -> None:
-    t.start()
+def _validate_positive_int(value: Any, name: str) -> None:
+    """Validate that *value* is a positive integer, raising ``TypeError`` otherwise.
+
+    Args:
+        value: The value to validate.
+        name: The name of the argument (used in error messages).
+
+    Raises:
+        TypeError: If value is not a positive integer.
+    """
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise TypeError(f"{name} must be a positive integer")
 
 
-def thread_join(t: threading.Thread, timeout: Optional[float] = None) -> None:
-    t.join(timeout)
+def _validate_non_negative_int(value: Any, name: str) -> None:
+    """Validate that *value* is a non-negative integer, raising ``TypeError`` otherwise.
+
+    Args:
+        value: The value to validate.
+        name: The name of the argument (used in error messages).
+
+    Raises:
+        TypeError: If value is not a non-negative integer.
+    """
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise TypeError(f"{name} must be a non-negative integer")
 
 
-def thread_is_alive(t: threading.Thread) -> bool:
-    return t.is_alive()
+def _validate_non_negative_float(value: Any, name: str) -> None:
+    """Validate that *value* is a non-negative real number, raising ``TypeError`` otherwise.
+
+    Args:
+        value: The value to validate.
+        name: The name of the argument (used in error messages).
+
+    Raises:
+        TypeError: If value is not a non-negative int or float.
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+        raise TypeError(f"{name} must be a non-negative number")
 
 
-def thread_name(t: threading.Thread) -> str:
-    return t.name
+def create_lock() -> threading.Lock:
+    """Return a new :class:`threading.Lock`.
 
-
-def thread_ident(t: threading.Thread) -> Optional[int]:
-    return t.ident
-
-
-def thread_daemon(t: threading.Thread) -> bool:
-    return bool(t.daemon)
-
-
-def thread_set_daemon(t: threading.Thread, daemon: bool) -> None:
-    t.daemon = daemon
-
-
-def LockCreate() -> threading.Lock:
+    Returns:
+        An unlocked lock object.
+    """
     return threading.Lock()
 
 
-def lock_acquire(lock: threading.Lock, blocking: bool = True, timeout: float = -1) -> bool:
-    return lock.acquire(blocking=blocking, timeout=timeout)
+def create_rlock() -> threading.RLock:
+    """Return a new :class:`threading.RLock` (reentrant lock).
 
-
-def lock_release(lock: threading.Lock) -> None:
-    lock.release()
-
-
-def lock_locked(lock: threading.Lock) -> bool:
-    return lock.locked()
-
-
-def RLockCreate() -> threading.RLock:
+    Returns:
+        An unlocked reentrant lock object.
+    """
     return threading.RLock()
 
 
-def rlock_acquire(rlock: threading.RLock, blocking: bool = True, timeout: float = -1) -> bool:
-    return rlock.acquire(blocking=blocking, timeout=timeout)
+def create_semaphore(value: int = 1) -> threading.Semaphore:
+    """Return a new :class:`threading.Semaphore` with the given initial value.
 
+    Args:
+        value: The initial internal counter (default: 1).
 
-def rlock_release(rlock: threading.RLock) -> None:
-    rlock.release()
+    Returns:
+        A semaphore object.
 
+    Raises:
+        TypeError: If value is not a non-negative integer.
 
-def SemaphoreCreate(value: int = 1) -> threading.Semaphore:
+    Examples:
+        >>> sem = create_semaphore(2)
+        >>> sem.acquire()
+        True
+        >>> sem.acquire()
+        True
+        >>> sem.acquire(blocking=False)
+        False
+    """
+    _validate_non_negative_int(value, "value")
     return threading.Semaphore(value)
 
 
-def semaphore_acquire(
-    sem: threading.Semaphore, blocking: bool = True, timeout: Optional[float] = None
-) -> bool:
-    return sem.acquire(blocking=blocking, timeout=timeout if timeout is not None else -1)
+def create_bounded_semaphore(value: int = 1) -> threading.BoundedSemaphore:
+    """Return a new :class:`threading.BoundedSemaphore` with the given initial value.
+
+    Args:
+        value: The initial internal counter (default: 1).
+
+    Returns:
+        A bounded semaphore object.
+
+    Raises:
+        TypeError: If value is not a non-negative integer.
+    """
+    _validate_non_negative_int(value, "value")
+    return threading.BoundedSemaphore(value)
 
 
-def semaphore_release(sem: threading.Semaphore) -> None:
-    sem.release()
+def create_event() -> threading.Event:
+    """Return a new :class:`threading.Event` with its internal flag set to false.
 
-
-def EventCreate() -> threading.Event:
+    Returns:
+        An event object.
+    """
     return threading.Event()
 
 
-def event_set(e: threading.Event) -> None:
-    e.set()
+def create_condition(lock: Optional[threading.Lock] = None) -> threading.Condition:
+    """Return a new :class:`threading.Condition` using the given lock.
+
+    Args:
+        lock: An optional lock to use. If omitted, a new lock is created.
+
+    Returns:
+        A condition variable object.
+
+    Raises:
+        TypeError: If lock is not a :class:`threading.Lock` or ``None``.
+    """
+    if lock is not None and not isinstance(lock, _LockType):
+        raise TypeError("lock must be a threading.Lock or None")
+    return threading.Condition(lock=lock)
 
 
-def event_clear(e: threading.Event) -> None:
-    e.clear()
-
-
-def event_is_set(e: threading.Event) -> bool:
-    return e.is_set()
-
-
-def event_wait(e: threading.Event, timeout: Optional[float] = None) -> bool:
-    return e.wait(timeout)
-
-
-def ConditionCreate(lock: Any = None) -> threading.Condition:
-    return threading.Condition(lock) if lock is not None else threading.Condition()
-
-
-def condition_acquire(c: threading.Condition, blocking: bool = True, timeout: float = -1) -> bool:
-    return c.acquire(blocking=blocking, timeout=timeout)
-
-
-def condition_release(c: threading.Condition) -> None:
-    c.release()
-
-
-def condition_wait(c: threading.Condition, timeout: Optional[float] = None) -> bool:
-    return c.wait(timeout)
-
-
-def condition_notify(c: threading.Condition, n: int = 1) -> None:
-    c.notify(n)
-
-
-def condition_notify_all(c: threading.Condition) -> None:
-    c.notify_all()
-
-
-def TimerCreate(
+def create_timer(
     interval: float,
-    function: Callable[..., Any],
-    args: tuple = (),
-    kwargs: Optional[dict[str, Any]] = None,
+    function: Callable[..., None],
+    args: Optional[tuple] = None,
+    kwargs: Optional[dict] = None,
 ) -> threading.Timer:
-    return threading.Timer(interval, function, args=args, kwargs=kwargs or {})
+    """Return a new :class:`threading.Timer` that runs *function* after *interval* seconds.
+
+    Args:
+        interval: The number of seconds to wait before calling *function*.
+        function: The callable to invoke after the interval.
+        args: Optional positional arguments to pass to *function*.
+        kwargs: Optional keyword arguments to pass to *function*.
+
+    Returns:
+        A timer object (not yet started).
+
+    Raises:
+        TypeError: If interval is not a non-negative number or function is not callable.
+
+    Examples:
+        >>> timer = create_timer(0.01, lambda: None)
+        >>> timer.cancel()
+    """
+    _validate_non_negative_float(interval, "interval")
+    _validate_callable(function, "function")
+    return threading.Timer(interval, function, args=args or (), kwargs=kwargs or {})
 
 
-def timer_start(t: threading.Timer) -> None:
-    t.start()
+def create_thread(
+    target: Callable[..., T],
+    args: Optional[tuple] = None,
+    kwargs: Optional[dict] = None,
+    name: Optional[str] = None,
+    daemon: bool = False,
+) -> threading.Thread:
+    """Return a new :class:`threading.Thread` configured with the given settings.
 
+    Args:
+        target: The callable to invoke in the new thread.
+        args: Optional positional arguments to pass to *target*.
+        kwargs: Optional keyword arguments to pass to *target*.
+        name: Optional thread name.
+        daemon: Whether the thread is a daemon thread (default: False).
 
-def timer_cancel(t: threading.Timer) -> None:
-    t.cancel()
+    Returns:
+        A thread object (not yet started).
 
-
-def BarrierCreate(
-    parties: int,
-    action: Optional[Callable[[], Any]] = None,
-    timeout: Optional[float] = None,
-) -> threading.Barrier:
-    return threading.Barrier(parties, action=action, timeout=timeout)
-
-
-def barrier_wait(b: threading.Barrier, timeout: Optional[float] = None) -> int:
-    return b.wait(timeout)
-
-
-def barrier_reset(b: threading.Barrier) -> None:
-    b.reset()
-
-
-def barrier_abort(b: threading.Barrier) -> None:
-    b.abort()
-
-
-def barrier_parties(b: threading.Barrier) -> int:
-    return b.parties
-
-
-def barrier_broken(b: threading.Barrier) -> bool:
-    return b.broken
+    Raises:
+        TypeError: If target is not callable, name is not a string or None, or daemon is not a bool.
+    """
+    _validate_callable(target, "target")
+    if name is not None and not isinstance(name, str):
+        raise TypeError("name must be a string or None")
+    if not isinstance(daemon, bool):
+        raise TypeError("daemon must be a bool")
+    return threading.Thread(
+        target=target, args=args or (), kwargs=kwargs or {}, name=name, daemon=daemon
+    )
 
 
 def current_thread() -> threading.Thread:
+    """Return the :class:`threading.Thread` object corresponding to the caller's thread.
+
+    Returns:
+        The current thread object.
+    """
     return threading.current_thread()
 
 
 def active_count() -> int:
+    """Return the number of :class:`threading.Thread` objects currently alive.
+
+    Returns:
+        The count of alive threads (including the caller).
+    """
     return threading.active_count()
 
 
 def enumerate_threads() -> list[threading.Thread]:
-    return threading.enumerate()
+    """Return a list of all :class:`threading.Thread` objects currently alive.
+
+    Returns:
+        A list of alive thread objects.
+    """
+    return list(threading.enumerate())
 
 
-def main_thread() -> threading.Thread:
-    return threading.main_thread()
+def synchronized(
+    lock: Optional[threading.Lock] = None,
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    """Return a decorator that serializes calls to a function using a lock.
+
+    Args:
+        lock: An optional lock to use. If omitted, a new lock is created per decorated function.
+
+    Returns:
+        A decorator that wraps *func* so concurrent calls are serialized.
+
+    Raises:
+        TypeError: If lock is not a :class:`threading.Lock` or ``None``.
+    """
+    if lock is None:
+        lock = threading.Lock()
+    elif not isinstance(lock, _LockType):
+        raise TypeError("lock must be a threading.Lock or None")
+
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        def wrapper(*args: Any, **kwargs: Any) -> T:
+            with lock:
+                return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
