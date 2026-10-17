@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `circuit_breaker_utils.py` — circuit breaker resilience utilities (`CircuitBreaker`, `CircuitOpenError`) implementing the circuit breaker pattern with thread-safe `CLOSED`/`OPEN`/`HALF_OPEN` state transitions, failure threshold, recovery timeout, and expected-exception filtering, plus `tests/test_circuit_breaker_utils.py`.
+- Synchronized `circuit_breaker_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
 - Added `call_once_utils.py` — call-once execution utilities (`call_once` decorator) ensuring a wrapped function runs only a single time, with thread-safe caching and a `reset` method, plus `tests/test_call_once_utils.py`.
 - Synchronized `call_once_utils.py` across `scaffold.sh` header comment, `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 

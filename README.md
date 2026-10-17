@@ -108,6 +108,7 @@ http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
+circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 struct_utils.py            # Binary struct packing and unpacking utilities
@@ -131,6 +132,7 @@ tests/                     # Python unit tests
   test_bit_utils.py           # Tests for bit_utils.py
   test_call_once_utils.py     # Tests for call_once_utils.py
   test_bytes_utils.py         # Tests for bytes_utils.py
+  test_circuit_breaker_utils.py   # Tests for circuit_breaker_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
@@ -594,3 +596,7 @@ The project includes callable and object introspection utilities in `inspect_uti
 ## Call Once Utilities Module
 
 The project includes call-once execution utilities in `call_once_utils.py` for ensuring a function runs only a single time: `call_once` decorates a function so its first invocation is cached and all subsequent calls return the cached result without re-invoking the wrapped function. Execution is thread-safe and the returned wrapper exposes a `reset` method to clear the cached state. The module is tested in `tests/test_call_once_utils.py`.
+
+## Circuit Breaker Utilities Module
+
+The project includes circuit breaker utilities in `circuit_breaker_utils.py` implementing the circuit breaker resilience pattern: `CircuitBreaker` wraps an operation and short-circuits calls once a configurable failure threshold is reached, cycling through `CLOSED`, `OPEN`, and `HALF_OPEN` states with thread-safe transitions. `CircuitBreaker.call` executes a callable through the breaker, `can_execute` reports whether a call would be allowed, and `reset` returns the circuit to the closed state. A `CircuitOpenError` is raised when the circuit rejects a call. The module is tested in `tests/test_circuit_breaker_utils.py`.

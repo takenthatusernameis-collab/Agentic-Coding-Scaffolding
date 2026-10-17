@@ -75,8 +75,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `path_utils.py` — path manipulation utilities (join, normalize, components, extensions)
 - `tests/test_path_utils.py` — unit tests for `path_utils.py`
 - `color_utils.py` — color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
+- `circuit_breaker_utils.py` — circuit breaker resilience utilities (`CircuitBreaker`, `CircuitOpenError`) implementing the circuit breaker pattern with thread-safe `CLOSED`/`OPEN`/`HALF_OPEN` state transitions, failure threshold, recovery timeout, and expected-exception filtering
 - `pattern_utils.py` — design pattern utilities (Singleton, Factory, Observer, Strategy)
 - `tests/test_color_utils.py` — unit tests for `color_utils.py`
+- `tests/test_circuit_breaker_utils.py` — unit tests for `circuit_breaker_utils.py`
 - `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
 - `regex_utils.py` — regular expression utilities (`compile_pattern`, `is_valid_pattern`, `match_pattern`, `search_pattern`, `find_all`, `replace_pattern`, `split_pattern`, `escape_pattern`, `extract_groups`, `named_groups`)
 - `tests/test_regex_utils.py` — unit tests for `regex_utils.py`

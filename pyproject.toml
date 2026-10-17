@@ -75,6 +75,7 @@ py_modules = [
     "itertools_utils",
     "cli_utils",
     "color_utils",
+    "circuit_breaker_utils",
     "timing_utils",
     "async_utils",
     "concurrent_utils",
