@@ -17201,6 +17201,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators)
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
+- `copy_utils.py` — copy utilities (`shallow_copy`, `deep_copy`, `copy_dict`, `deep_copy_dict`, `merge_copy`, `is_same_object`) wrapping stdlib copy module
+- `tests/test_copy_utils.py` — unit tests for `copy_utils.py`
 - `exceptions_utils.py` — custom exception classes and error handling utilities
 - `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
 - `enum_utils.py` — enum utilities for working with Python `enum.Enum` classes (`enum_to_dict`, `get_enum_member`, `is_enum_member`, `list_enum_members`, `enum_value_from_name`, `enum_name_from_value`) with input validation
@@ -18421,6 +18423,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Synchronized `copy_utils.py` across the `scaffold.sh` heredoc for `.kilo/command/scaffold-project.md` so the scaffolded project documentation lists the module and its tests; previously the doc entry was missing, causing `tests/test_scaffold.py::test_scaffold_project_doc_lists_all_modules` to fail.
 
 - Added `circuit_breaker_utils.py` — circuit breaker resilience utilities (`CircuitBreaker`, `CircuitOpenError`) implementing the circuit breaker pattern with thread-safe `CLOSED`/`OPEN`/`HALF_OPEN` state transitions, failure threshold, recovery timeout, and expected-exception filtering, plus `tests/test_circuit_breaker_utils.py`.
 - Synchronized `circuit_breaker_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.

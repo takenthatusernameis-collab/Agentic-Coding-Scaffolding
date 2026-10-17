@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Synchronized `copy_utils.py` across the `scaffold.sh` heredoc for `.kilo/command/scaffold-project.md` so the scaffolded project documentation lists the module and its tests; previously the doc entry was missing, causing `tests/test_scaffold.py::test_scaffold_project_doc_lists_all_modules` to fail.
+
 - Added `copy_utils.py` — copy utilities (`shallow_copy`, `deep_copy`, `copy_dict`, `deep_copy_dict`, `merge_copy`, `is_same_object`) wrapping the standard library `copy` module with input validation, plus `tests/test_copy_utils.py`.
 - Synchronized `copy_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
