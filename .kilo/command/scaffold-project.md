@@ -44,6 +44,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `env_utils.py` — environment variable handling utilities
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
+- `memoize_utils.py` — memoization utilities (`memoize` decorator) that caches function return values keyed by call arguments with a `cache_clear` method
 - `context_utils.py` — context manager utilities (`chdir`, `temp_environ`, `redirect_stdout`, `redirect_stderr`, `suppress`) for temporarily altering the runtime environment
 - `itertools_utils.py` — iteration helpers (`chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`) wrapping the standard library `itertools` module with input validation
 - `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
@@ -117,6 +118,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_env_utils.py` — unit tests for `env_utils.py`
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
+- `tests/test_memoize_utils.py` — unit tests for `memoize_utils.py`
 - `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
@@ -160,6 +162,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_bytes_utils.py` — unit tests for `bytes_utils.py`
 - `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
 - `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
+- `bisect_utils.py` — bisect utility functions for binary search on sorted sequences (`bisect_left`, `bisect_right`, `insort_left`, `insort_right`, `find_leftmost`, `find_rightmost`)
+- `tests/test_bisect_utils.py` — unit tests for `bisect_utils.py`
 - `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
 - `tests/test_calendar_utils.py` — unit tests for `calendar_utils.py`
 - `struct_utils.py` — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
