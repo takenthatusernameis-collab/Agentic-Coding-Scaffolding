@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `timezone_utils.py` — time zone utilities using the standard library `zoneinfo` module (`get_timezone`, `is_valid_timezone`, `get_utc_now`, `get_local_timezone`, `convert_datetime`, `format_datetime`, `utc_offset`, `is_dst`, `get_common_timezones`, `get_all_timezones`) with input validation, plus `tests/test_timezone_utils.py`.
+- Synchronized `timezone_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
 - Added `ring_buffer_utils.py` — fixed-size circular (ring) buffer utilities (`RingBuffer`, `create`, `append`, `get`, `peek`, `pop`, `clear`, `to_list`, `from_list`, plus `capacity`, `is_full`, `is_empty`) with input validation, plus `tests/test_ring_buffer_utils.py`.
 - Synchronized `ring_buffer_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, and `tests/test_scaffold.py` assertions.
 

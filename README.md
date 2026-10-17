@@ -103,6 +103,7 @@ fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, su
 heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
 markdown_utils.py          # Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
 time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
+timezone_utils.py          # Time zone utilities (IANA lookups, conversion, formatting, DST) wrapping stdlib zoneinfo
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
@@ -209,6 +210,7 @@ test_scaffold.py            # Tests for scaffold.sh
   test_temp_utils.py          # Tests for temp_utils.py
   test_textwrap_utils.py      # Tests for textwrap_utils.py
   test_time_utils.py          # Tests for time_utils.py
+  test_timezone_utils.py      # Tests for timezone_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
@@ -578,6 +580,10 @@ The project includes Markdown utility functions in `markdown_utils.py` for worki
 ## Time Utilities Module
 
 The project includes time utility functions in `time_utils.py` for working with timestamps and durations: `now_epoch` returns the current Unix timestamp in seconds, `now_iso` returns the current UTC time as an ISO 8601 string, `epoch_to_iso` converts a Unix timestamp to an ISO 8601 UTC string, and `iso_to_epoch` parses an ISO 8601 string into a Unix timestamp (returning `None` for invalid input). The module is tested in `tests/test_time_utils.py`.
+
+## Timezone Utilities Module
+
+The project includes time zone utilities in `timezone_utils.py` for working with IANA time zones using the standard library `zoneinfo` module: `get_timezone` looks up a `ZoneInfo` by name, `is_valid_timezone` validates an identifier, `get_utc_now` returns the current UTC time, `get_local_timezone` returns the system local zone, `convert_datetime` converts datetimes between zones, `format_datetime` renders a datetime for a zone, `utc_offset` reports the UTC offset, `is_dst` reports daylight saving time status, and `get_common_timezones` / `get_all_timezones` list zone identifiers. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_timezone_utils.py`.
 
 ## Template Utilities Module
 

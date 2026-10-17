@@ -206,6 +206,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_markdown_utils.py` — unit tests for `markdown_utils.py`
 - `time_utils.py` — time utility functions for working with timestamps and durations (`now_epoch`, `now_iso`, `epoch_to_iso`, `iso_to_epoch`)
 - `tests/test_time_utils.py` — unit tests for `time_utils.py`
+- `timezone_utils.py` — time zone utilities using the standard library `zoneinfo` module (`get_timezone`, `is_valid_timezone`, `get_utc_now`, `get_local_timezone`, `convert_datetime`, `format_datetime`, `utc_offset`, `is_dst`, `get_common_timezones`, `get_all_timezones`) with input validation
+- `tests/test_timezone_utils.py` — unit tests for `timezone_utils.py`
 - `semver_utils.py` — Semantic versioning utilities (`parse_semver`, `compare_semver`, `bump_major`, `bump_minor`, `bump_patch`, `is_valid_semver`, `SemanticVersion`)
 - `tests/test_semver_utils.py` — unit tests for `semver_utils.py`
 - `interval_utils.py` — Interval utilities (normalization, containment, overlap, intersection, union, merge)

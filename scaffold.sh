@@ -159,6 +159,8 @@
 
 #   - time_utils.py — # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
 
+#   - timezone_utils.py — # Time zone utilities (IANA lookups, conversion, formatting, DST) wrapping stdlib zoneinfo
+
 #   - cli_utils.py — # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 
 #   - hash_utils.py — # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
@@ -372,6 +374,8 @@
 #   - test_textwrap_utils.py — # Tests for textwrap_utils.py
 
 #   - test_time_utils.py — # Tests for time_utils.py
+
+#   - test_timezone_utils.py — # Tests for timezone_utils.py
 
 #   - test_timing_utils.py — # Tests for timing_utils.py
 
@@ -819,9 +823,10 @@ py_modules = [
     "terminal_utils",
     "subprocess_utils",
     "textwrap_utils",
-    "template_utils",
-    "time_utils",
-    "uuid_utils",
+   "template_utils",
+   "time_utils",
+   "timezone_utils",
+   "uuid_utils",
     "hash_utils",
     "http_utils",
     "html_utils",
@@ -17308,6 +17313,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_markdown_utils.py` — unit tests for `markdown_utils.py`
 - `time_utils.py` — time utility functions for working with timestamps and durations (`now_epoch`, `now_iso`, `epoch_to_iso`, `iso_to_epoch`)
 - `tests/test_time_utils.py` — unit tests for `time_utils.py`
+- `timezone_utils.py` — time zone utilities using the standard library `zoneinfo` module (`get_timezone`, `is_valid_timezone`, `get_utc_now`, `get_local_timezone`, `convert_datetime`, `format_datetime`, `utc_offset`, `is_dst`, `get_common_timezones`, `get_all_timezones`) with input validation
+- `tests/test_timezone_utils.py` — unit tests for `timezone_utils.py`
 - `semver_utils.py` — Semantic versioning utilities (`parse_semver`, `compare_semver`, `bump_major`, `bump_minor`, `bump_patch`, `is_valid_semver`, `SemanticVersion`)
 - `tests/test_semver_utils.py` — unit tests for `semver_utils.py`
 - `interval_utils.py` — Interval utilities (normalization, containment, overlap, intersection, union, merge)
@@ -18248,6 +18255,7 @@ fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, su
 heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
 markdown_utils.py          # Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
 time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
+timezone_utils.py          # Time zone utilities (IANA lookups, conversion, formatting, DST) wrapping stdlib zoneinfo
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
@@ -18353,6 +18361,7 @@ tests/                     # Python unit tests
   test_temp_utils.py          # Tests for temp_utils.py
   test_textwrap_utils.py      # Tests for textwrap_utils.py
   test_time_utils.py          # Tests for time_utils.py
+  test_timezone_utils.py      # Tests for timezone_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
@@ -18440,6 +18449,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `weakref_utils.py` with weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`).
 - `time_utils.py` — time utility functions for working with timestamps and durations (`now_epoch`, `now_iso`, `epoch_to_iso`, `iso_to_epoch`)
 - `tests/test_time_utils.py` — unit tests for `time_utils.py`
+- `timezone_utils.py` — time zone utilities using the standard library `zoneinfo` module (`get_timezone`, `is_valid_timezone`, `get_utc_now`, `get_local_timezone`, `convert_datetime`, `format_datetime`, `utc_offset`, `is_dst`, `get_common_timezones`, `get_all_timezones`) with input validation
+- `tests/test_timezone_utils.py` — unit tests for `timezone_utils.py`
 - `semver_utils.py` — Semantic versioning utilities (`parse_semver`, `compare_semver`, `bump_major`, `bump_minor`, `bump_patch`, `is_valid_semver`, `SemanticVersion`)
 - `tests/test_semver_utils.py` — unit tests for `semver_utils.py`
 - `interval_utils.py` — Interval utilities (normalization, containment, overlap, intersection, union, merge)
@@ -29635,6 +29646,220 @@ def iso_to_epoch(value: str) -> Optional[int]:
         dt = dt.replace(tzinfo=timezone.utc)
     return int(dt.timestamp())
 TIMEUTILS
+# --- timezone_utils.py ---
+cat > "$OUTPUT_DIR/timezone_utils.py" <<'TZUTILS'
+"""Timezone utilities.
+
+This module provides utilities for working with time zones using the
+standard library :mod:`zoneinfo` module. It supports looking up time zones
+by IANA name, validating time zone identifiers, converting datetimes between
+time zones, formatting datetimes for a time zone, and inspecting UTC offsets
+and daylight saving time status.
+"""
+
+from __future__ import annotations
+
+import datetime as _dt
+from typing import Optional
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError, available_timezones
+
+# A curated list of commonly used IANA time zone identifiers.
+_COMMON_TIMEZONES: tuple[str, ...] = (
+    "UTC",
+    "Europe/London",
+    "Europe/Paris",
+    "Europe/Berlin",
+    "US/Eastern",
+    "US/Central",
+    "US/Mountain",
+    "US/Pacific",
+    "Asia/Tokyo",
+    "Asia/Shanghai",
+    "Asia/Kolkata",
+    "Australia/Sydney",
+    "America/Sao_Paulo",
+    "America/Los_Angeles",
+    "America/New_York",
+)
+
+
+def get_timezone(name: str) -> Optional[ZoneInfo]:
+    """Return the :class:`zoneinfo.ZoneInfo` for *name*, or ``None`` if unknown.
+
+    Args:
+        name: An IANA time zone identifier (e.g. ``"UTC"``, ``"US/Eastern"``).
+
+    Returns:
+        A :class:`zoneinfo.ZoneInfo` instance, or ``None`` if *name* is not a
+        known time zone.
+
+    Raises:
+        TypeError: If *name* is not a string.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a string, got {type(name).__name__}")
+    try:
+        return ZoneInfo(name)
+    except (ZoneInfoNotFoundError, ValueError):
+        return None
+
+
+def is_valid_timezone(name: object) -> bool:
+    """Return True if *name* is a known IANA time zone identifier.
+
+    Args:
+        name: The value to validate.
+
+    Returns:
+        True if *name* is a string identifying a known time zone.
+    """
+    if not isinstance(name, str):
+        return False
+    return get_timezone(name) is not None
+
+
+def get_utc_now() -> _dt.datetime:
+    """Return the current UTC date and time as a timezone-aware datetime."""
+    return _dt.datetime.now(_dt.timezone.utc)
+
+
+def get_local_timezone() -> Optional[ZoneInfo]:
+    """Return the system's local time zone, or ``None`` if it cannot be determined."""
+    local = _dt.datetime.now().astimezone()
+    tz = local.tzinfo
+    return tz if isinstance(tz, ZoneInfo) else None
+
+
+def convert_datetime(dt: _dt.datetime, target: str) -> Optional[_dt.datetime]:
+    """Convert *dt* to the *target* time zone.
+
+    Naive datetimes are interpreted as UTC. Returns ``None`` if *target* is
+    not a known time zone.
+
+    Args:
+        dt: A :class:`datetime.datetime` (naive or aware).
+        target: An IANA time zone identifier to convert to.
+
+    Returns:
+        The converted, timezone-aware datetime, or ``None`` if *target* is
+        unknown.
+
+    Raises:
+        TypeError: If *dt* is not a :class:`datetime.datetime` or *target* is
+            not a string.
+    """
+    if not isinstance(dt, _dt.datetime):
+        raise TypeError(f"dt must be a datetime, got {type(dt).__name__}")
+    if not isinstance(target, str):
+        raise TypeError(f"target must be a string, got {type(target).__name__}")
+    tz = get_timezone(target)
+    if tz is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=_dt.timezone.utc)
+    return dt.astimezone(tz)
+
+
+def format_datetime(
+    dt: _dt.datetime,
+    tz_name: str,
+    fmt: str = "%Y-%m-%d %H:%M:%S %Z",
+) -> Optional[str]:
+    """Format *dt* for the *tz_name* time zone using *fmt*.
+
+    Returns ``None`` if *tz_name* is not a known time zone.
+
+    Args:
+        dt: A :class:`datetime.datetime` (naive or aware).
+        tz_name: An IANA time zone identifier.
+        fmt: A :meth:`datetime.datetime.strftime` format string.
+
+    Returns:
+        The formatted datetime string, or ``None`` if *tz_name* is unknown.
+
+    Raises:
+        TypeError: If *dt* is not a :class:`datetime.datetime` or *tz_name*
+            / *fmt* is not a string.
+    """
+    if not isinstance(tz_name, str):
+        raise TypeError(f"tz_name must be a string, got {type(tz_name).__name__}")
+    if not isinstance(fmt, str):
+        raise TypeError(f"fmt must be a string, got {type(fmt).__name__}")
+    converted = convert_datetime(dt, tz_name)
+    if converted is None:
+        return None
+    return converted.strftime(fmt)
+
+
+def utc_offset(dt: _dt.datetime, tz_name: str) -> Optional[str]:
+    """Return the UTC offset of *dt* in *tz_name* as a string (e.g. ``"+01:00"``).
+
+    Returns ``None`` if *tz_name* is not a known time zone.
+
+    Args:
+        dt: A :class:`datetime.datetime` (naive or aware).
+        tz_name: An IANA time zone identifier.
+
+    Returns:
+        The UTC offset string, or ``None`` if *tz_name* is unknown.
+
+    Raises:
+        TypeError: If *dt* is not a :class:`datetime.datetime` or *tz_name* is
+            not a string.
+    """
+    if not isinstance(tz_name, str):
+        raise TypeError(f"tz_name must be a string, got {type(tz_name).__name__}")
+    converted = convert_datetime(dt, tz_name)
+    if converted is None:
+        return None
+    offset = converted.utcoffset()
+    return _format_offset(offset) if offset is not None else None
+
+
+def is_dst(dt: _dt.datetime, tz_name: str) -> Optional[bool]:
+    """Return True if daylight saving time is in effect for *dt* in *tz_name_.
+
+    Returns ``None`` if *tz_name* is not a known time zone.
+
+    Args:
+        dt: A :class:`datetime.datetime` (naive or aware).
+        tz_name: An IANA time zone identifier.
+
+    Returns:
+        True if DST is in effect, False otherwise, or ``None`` if *tz_name*
+        is unknown.
+
+    Raises:
+        TypeError: If *dt* is not a :class:`datetime.datetime` or *tz_name* is
+            not a string.
+    """
+    if not isinstance(tz_name, str):
+        raise TypeError(f"tz_name must be a string, got {type(tz_name).__name__}")
+    converted = convert_datetime(dt, tz_name)
+    if converted is None:
+        return None
+    return bool(converted.dst() != _dt.timedelta(0))
+
+
+def _format_offset(offset: _dt.timedelta) -> str:
+    """Format a :class:`datetime.timedelta` as an ISO-style ``[±]HH:MM`` string."""
+    total_seconds = int(offset.total_seconds())
+    sign = "-" if total_seconds < 0 else "+"
+    total_seconds = abs(total_seconds)
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, _ = divmod(remainder, 60)
+    return f"{sign}{hours:02d}:{minutes:02d}"
+
+
+def get_common_timezones() -> list[str]:
+    """Return a curated list of commonly used IANA time zone identifiers."""
+    return list(_COMMON_TIMEZONES)
+
+
+def get_all_timezones() -> list[str]:
+    """Return all known IANA time zone identifiers, sorted alphabetically."""
+    return sorted(available_timezones())
+TZUTILS
 # --- tests/test_markdown_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_markdown_utils.py" <<'TESTMARKDOWNUTILS'
 """Tests for markdown_utils module."""
@@ -30202,6 +30427,185 @@ def test_epoch_roundtrip():
 def test_iso_to_epoch_invalid():
     assert time_utils.iso_to_epoch("not-a-date") is None
 TESTTIMEUTILS
+
+# --- tests/test_timezone_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_timezone_utils.py" <<'TESTTZUTILS'
+"""Tests for timezone_utils module."""
+
+import datetime
+import unittest
+
+from timezone_utils import (
+    convert_datetime,
+    format_datetime,
+    get_all_timezones,
+    get_common_timezones,
+    get_local_timezone,
+    get_timezone,
+    get_utc_now,
+    is_dst,
+    is_valid_timezone,
+    utc_offset,
+)
+
+
+class TestGetTimezone(unittest.TestCase):
+    def test_known_timezone(self):
+        self.assertIsNotNone(get_timezone("UTC"))
+        self.assertIsNotNone(get_timezone("US/Eastern"))
+        self.assertIsNotNone(get_timezone("Europe/London"))
+
+    def test_utc_is_utc(self):
+        self.assertEqual(get_timezone("UTC").key, "UTC")
+
+    def test_unknown_timezone_returns_none(self):
+        self.assertIsNone(get_timezone("Not/AZone"))
+        self.assertIsNone(get_timezone(""))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            get_timezone(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_timezone(None)  # type: ignore[arg-type]
+
+
+class TestIsValidTimezone(unittest.TestCase):
+    def test_valid(self):
+        self.assertTrue(is_valid_timezone("UTC"))
+        self.assertTrue(is_valid_timezone("Asia/Tokyo"))
+
+    def test_invalid(self):
+        self.assertFalse(is_valid_timezone("Not/AZone"))
+        self.assertFalse(is_valid_timezone(""))
+
+    def test_non_string(self):
+        self.assertFalse(is_valid_timezone(123))
+        self.assertFalse(is_valid_timezone(None))
+        self.assertFalse(is_valid_timezone(True))
+
+
+class TestGetUtcNow(unittest.TestCase):
+    def test_returns_aware_utc(self):
+        now = get_utc_now()
+        self.assertIsNotNone(now.tzinfo)
+        self.assertEqual(now.utcoffset(), datetime.timedelta(0))
+
+
+class TestGetLocalTimezone(unittest.TestCase):
+    def test_returns_zoneinfo_or_none(self):
+        tz = get_local_timezone()
+        self.assertTrue(tz is None or isinstance(tz, type(get_timezone("UTC"))))
+
+
+class TestConvertDatetime(unittest.TestCase):
+    def test_utc_to_eastern(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0, tzinfo=datetime.timezone.utc)
+        result = convert_datetime(dt, "US/Eastern")
+        self.assertIsNotNone(result)
+        self.assertEqual(result.hour, 7)
+
+    def test_naive_treated_as_utc(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0)
+        result = convert_datetime(dt, "Europe/London")
+        self.assertIsNotNone(result)
+        self.assertEqual(result.hour, 12)
+
+    def test_unknown_target_returns_none(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0)
+        self.assertIsNone(convert_datetime(dt, "Not/AZone"))
+
+    def test_non_datetime_raises(self):
+        with self.assertRaises(TypeError):
+            convert_datetime("2024-01-15", "UTC")  # type: ignore[arg-type]
+
+    def test_non_string_target_raises(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0)
+        with self.assertRaises(TypeError):
+            convert_datetime(dt, 123)  # type: ignore[arg-type]
+
+
+class TestFormatDatetime(unittest.TestCase):
+    def test_formats_in_target_zone(self):
+        dt = datetime.datetime(2024, 7, 15, 12, 0, 0, tzinfo=datetime.timezone.utc)
+        result = format_datetime(dt, "US/Eastern")
+        self.assertIsNotNone(result)
+        self.assertIn("2024-07-15", result)
+        self.assertIn("08:00:00", result)
+
+    def test_unknown_zone_returns_none(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0)
+        self.assertIsNone(format_datetime(dt, "Not/AZone"))
+
+    def test_custom_format(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0, tzinfo=datetime.timezone.utc)
+        result = format_datetime(dt, "UTC", fmt="%Y/%m/%d")
+        self.assertEqual(result, "2024/01/15")
+
+    def test_non_string_zone_raises(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0)
+        with self.assertRaises(TypeError):
+            format_datetime(dt, 123)  # type: ignore[arg-type]
+
+    def test_non_string_fmt_raises(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0)
+        with self.assertRaises(TypeError):
+            format_datetime(dt, "UTC", fmt=123)  # type: ignore[arg-type]
+
+
+class TestUtcOffset(unittest.TestCase):
+    def test_utc_offset_zero(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0)
+        self.assertEqual(utc_offset(dt, "UTC"), "+00:00")
+
+    def test_known_offset(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0)
+        result = utc_offset(dt, "US/Eastern")
+        self.assertIsNotNone(result)
+        self.assertTrue(result.startswith("-05"))
+
+    def test_unknown_zone_returns_none(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0)
+        self.assertIsNone(utc_offset(dt, "Not/AZone"))
+
+
+class TestIsDst(unittest.TestCase):
+    def test_summer_dst(self):
+        dt = datetime.datetime(2024, 7, 15, 12, 0, 0)
+        self.assertTrue(is_dst(dt, "US/Eastern"))
+
+    def test_winter_no_dst(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0)
+        self.assertFalse(is_dst(dt, "US/Eastern"))
+
+    def test_utc_no_dst(self):
+        dt = datetime.datetime(2024, 7, 15, 12, 0, 0)
+        self.assertFalse(is_dst(dt, "UTC"))
+
+    def test_unknown_zone_returns_none(self):
+        dt = datetime.datetime(2024, 1, 15, 12, 0, 0)
+        self.assertIsNone(is_dst(dt, "Not/AZone"))
+
+
+class TestCommonAndAllTimezones(unittest.TestCase):
+    def test_common_timezones_non_empty(self):
+        zones = get_common_timezones()
+        self.assertIsInstance(zones, list)
+        self.assertGreater(len(zones), 0)
+        self.assertIn("UTC", zones)
+
+    def test_all_timezones_includes_common(self):
+        all_zones = get_all_timezones()
+        self.assertIsInstance(all_zones, list)
+        self.assertGreater(len(all_zones), 0)
+        self.assertIn("UTC", all_zones)
+        self.assertIn("US/Eastern", all_zones)
+        for zone in get_common_timezones():
+            self.assertIn(zone, all_zones)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTZUTILS
 
 # --- fractions_utils.py ---
 cat > "$OUTPUT_DIR/fractions_utils.py" <<'FRACTIONS_UTILS'

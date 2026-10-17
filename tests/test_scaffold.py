@@ -256,6 +256,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_heapq_utils.py",
             "time_utils.py",
             "tests/test_time_utils.py",
+            "timezone_utils.py",
+            "tests/test_timezone_utils.py",
             "weakref_utils.py",
             "tests/test_weakref_utils.py",
             "template_utils.py",
@@ -696,6 +698,36 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertTrue(is_leap_year(2024))
         self.assertFalse(is_leap_year(2023))
         self.assertEqual(add_days("2024-01-01", 10), datetime(2024, 1, 11))
+
+    def test_timezone_utils_functions_work(self) -> None:
+        """Generated timezone_utils.py should have working functions."""
+        import datetime
+
+        from timezone_utils import (
+            convert_datetime,
+            format_datetime,
+            get_timezone,
+            get_utc_now,
+            is_dst,
+            is_valid_timezone,
+            utc_offset,
+        )
+
+        self.assertTrue(is_valid_timezone("UTC"))
+        self.assertFalse(is_valid_timezone("Not/AZone"))
+        self.assertIsNone(get_timezone("Not/AZone"))
+        self.assertIsNotNone(get_timezone("US/Eastern"))
+        now = get_utc_now()
+        self.assertIsNotNone(now.tzinfo)
+        converted = convert_datetime(
+            datetime.datetime(2024, 7, 15, 12, 0, 0, tzinfo=datetime.timezone.utc),
+            "US/Eastern",
+        )
+        self.assertIsNotNone(converted)
+        self.assertIsNotNone(format_datetime(now, "UTC"))
+        self.assertIsNone(format_datetime(now, "Not/AZone"))
+        self.assertEqual(utc_offset(now, "UTC"), "+00:00")
+        self.assertFalse(is_dst(now, "UTC"))
 
     def test_url_utils_functions_work(self) -> None:
         """Generated url_utils.py should have working functions."""

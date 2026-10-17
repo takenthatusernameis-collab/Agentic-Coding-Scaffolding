@@ -110,6 +110,7 @@ py_modules = [
     "textwrap_utils",
     "template_utils",
     "time_utils",
+    "timezone_utils",
     "uuid_utils",
     "hash_utils",
     "http_utils",
