@@ -615,7 +615,19 @@ py_modules = [
     "semver_utils",
     "template_utils",
     "time_utils",
-]
+
+    "fractions_utils",
+    "greeting_utils",
+    "id_utils",
+    "ini_utils",
+    "markdown_utils",
+    "number_utils",
+    "prime_utils",
+    "retry_utils",
+    "secrets_utils",
+    "shutil_utils",
+    "sort_utils",
+
 
 [tool.ruff]
 line-length = 100
@@ -16742,6 +16754,82 @@ def _compare_prerelease(a: str, b: str) -> int:
         return 1
     return 0
 
+
+
+# --- shutil_utils.py ---
+cat > "$OUTPUT_DIR/shutil_utils.py" <<'SHUTIL_UTILS'
+"""High-level file and directory operation utilities.
+
+This module wraps the :mod:`shutil` standard library module to provide
+convenient helpers for copying, moving, removing, and archiving files and
+directory trees.
+"""
+
+from __future__ import annotations
+
+import shutil
+from pathlib import Path
+from typing import Any, Optional, Union
+
+__all__: list[str] = [
+    "copy_file",
+    "copy_tree",
+    "move",
+    "remove_tree",
+    "disk_usage",
+    "make_archive",
+    "unpack_archive",
+    "which",
+]
+
+
+def copy_file(src: Union[str, Path], dst: Union[str, Path]) -> str:
+    """Copy a file from ``src`` to ``dst`` and return the destination path."""
+    src = Path(src)
+    dst = Path(dst)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    return str(shutil.copy2(src, dst))
+
+
+def copy_tree(src: Union[str, Path], dst: Union[str, Path]) -> str:
+    """Recursively copy an entire directory tree from ``src`` to ``dst``."""
+    return str(shutil.copytree(src, dst, dirs_exist_ok=True))
+
+
+def move(src: Union[str, Path], dst: Union[str, Path]) -> str:
+    """Move a file or directory from ``src`` to ``dst``."""
+    dst = Path(dst)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    return str(shutil.move(src, dst))
+
+
+def remove_tree(path: Union[str, Path]) -> None:
+    """Recursively delete a directory tree at ``path``."""
+    shutil.rmtree(path)
+
+
+def disk_usage(path: Union[str, Path]) -> Any:
+    """Return disk usage statistics for the filesystem containing ``path``."""
+    return shutil.disk_usage(path)
+
+
+def make_archive(base_name: Union[str, Path], format: str, root_dir: Union[str, Path]) -> str:
+    """Create an archive of ``root_dir`` and return its path."""
+    return shutil.make_archive(str(base_name), format, root_dir=str(root_dir))
+
+
+def unpack_archive(
+    filename: Union[str, Path], extract_dir: Optional[Union[str, Path]] = None
+) -> None:
+    """Unpack an archive at ``filename`` into ``extract_dir``."""
+    shutil.unpack_archive(filename, extract_dir=extract_dir)
+
+
+def which(cmd: str) -> Optional[str]:
+    """Return the path to an executable, or ``None`` if not found."""
+    return shutil.which(cmd)
+
+SHUTIL_UTILS
 SEMVERUTILS
 
 # --- interval_utils.py ---
@@ -26915,6 +27003,84 @@ class TestSemanticVersionOrdering(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
+
+
+# --- tests/test_shutil_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_shutil_utils.py" <<'TESTSHUTILUTILS'
+"""Tests for shutil_utils module."""
+
+import tempfile
+import unittest
+from pathlib import Path
+
+from shutil_utils import (
+    copy_file,
+    copy_tree,
+    disk_usage,
+    make_archive,
+    move,
+    remove_tree,
+    unpack_archive,
+    which,
+)
+
+
+class TestShutilUtils(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.mkdtemp()
+        self.src = Path(self.temp_dir) / "src"
+        self.dst = Path(self.temp_dir) / "dst"
+        self.src.mkdir()
+
+    def tearDown(self) -> None:
+        import shutil
+
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_copy_file(self) -> None:
+        (self.src / "a.txt").write_text("hello")
+        result = copy_file(self.src / "a.txt", self.dst / "a.txt")
+        self.assertTrue(Path(result).exists())
+        self.assertEqual(Path(result).read_text(), "hello")
+
+    def test_copy_tree(self) -> None:
+        (self.src / "a.txt").write_text("hello")
+        result = copy_tree(self.src, self.dst)
+        self.assertTrue(Path(result).exists())
+        self.assertTrue((self.dst / "a.txt").exists())
+
+    def test_move(self) -> None:
+        (self.src / "a.txt").write_text("hello")
+        result = move(self.src / "a.txt", self.dst / "a.txt")
+        self.assertTrue(Path(result).exists())
+        self.assertFalse((self.src / "a.txt").exists())
+
+    def test_remove_tree(self) -> None:
+        d = Path(self.temp_dir) / "removeme"
+        d.mkdir()
+        (d / "f.txt").write_text("x")
+        remove_tree(d)
+        self.assertFalse(d.exists())
+
+    def test_disk_usage(self) -> None:
+        usage = disk_usage(self.temp_dir)
+        self.assertTrue(hasattr(usage, "total"))
+
+    def test_make_unpack_archive(self) -> None:
+        (self.src / "a.txt").write_text("hello")
+        base = Path(self.temp_dir) / "archive"
+        path = make_archive(base, "zip", self.src)
+        self.assertTrue(Path(path).exists())
+        extract = Path(self.temp_dir) / "extracted"
+        extract.mkdir()
+        unpack_archive(path, extract)
+        self.assertTrue((extract / "a.txt").exists())
+
+    def test_which(self) -> None:
+        self.assertIsNotNone(which("python3"))
+        self.assertIsNone(which("definitely-not-a-command-xyz"))
+
+TESTSHUTILUTILS
 TESTSEMVERUTILS
 
 # --- tests/test_interval_utils.py ---
