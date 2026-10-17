@@ -151,6 +151,8 @@
 
 #   - decimal_utils.py — # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 
+#   - difflib_utils.py — # Difflib utility functions for sequence comparison and diffing
+
 #   - fractions_utils.py — # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
 
 #   - heapq_utils.py — # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
@@ -29309,6 +29311,108 @@ class TestPredicates(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTDECIMALUTILS
+
+# --- difflib_utils.py ---
+cat > "$OUTPUT_DIR/difflib_utils.py" <<'DIFFLIB_UTILS'
+"""Difflib utility functions for sequence comparison and diffing."""
+
+from __future__ import annotations
+
+import difflib
+from typing import Any, Sequence
+
+__all__: list[str] = [
+    "get_close_matches",
+    "ratio",
+    "unified_diff",
+    "context_diff",
+    "ndiff",
+]
+
+
+def get_close_matches(
+    word: str,
+    possibilities: Any,
+    n: int = 3,
+    cutoff: float = 0.6,
+) -> list[str]:
+    return difflib.get_close_matches(word, possibilities, n=n, cutoff=cutoff)
+
+
+def ratio(a: str, b: str) -> float:
+    return difflib.SequenceMatcher(None, a, b).ratio()
+
+
+def unified_diff(
+    a: Sequence[str],
+    b: Sequence[str],
+    fromfile: str = "",
+    tofile: str = "",
+    lineterm: str = "\n",
+) -> list[str]:
+    return list(difflib.unified_diff(a, b, fromfile=fromfile, tofile=tofile, lineterm=lineterm))
+
+
+def context_diff(
+    a: Sequence[str],
+    b: Sequence[str],
+    fromfile: str = "",
+    tofile: str = "",
+    lineterm: str = "\n",
+) -> list[str]:
+    return list(difflib.context_diff(a, b, fromfile=fromfile, tofile=tofile, lineterm=lineterm))
+
+
+def ndiff(a: Sequence[str], b: Sequence[str], lineterm: str = "\n") -> list[str]:
+    return list(difflib.ndiff(a, b))
+DIFFLIB_UTILS
+
+# --- tests/test_difflib_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_difflib_utils.py" <<'TESTDIFFLIB_UTILS'
+"""Tests for difflib_utils."""
+
+from __future__ import annotations
+
+from difflib_utils import (
+    context_diff,
+    get_close_matches,
+    ndiff,
+    ratio,
+    unified_diff,
+)
+
+
+def test_get_close_matches() -> None:
+    assert get_close_matches("appel", ["apple", "ape", "peach"]) == ["apple", "ape"]
+
+
+def test_ratio_identical() -> None:
+    assert ratio("abc", "abc") == 1.0
+
+
+def test_ratio_different() -> None:
+    assert 0.0 <= ratio("abc", "xyz") < 1.0
+
+
+def test_unified_diff() -> None:
+    a = ["line1\n", "line2\n"]
+    b = ["line1\n", "line3\n"]
+    out = unified_diff(a, b, fromfile="a", tofile="b")
+    assert any("line2" in line for line in out)
+    assert any("line3" in line for line in out)
+
+
+def test_context_diff() -> None:
+    a = ["line1\n", "line2\n"]
+    b = ["line1\n", "line3\n"]
+    out = context_diff(a, b)
+    assert len(out) > 0
+
+
+def test_ndiff() -> None:
+    out = ndiff(["a\n"], ["b\n"])
+    assert len(out) > 0
+TESTDIFFLIB_UTILS
 
 # --- heapq_utils.py ---
 cat > "$OUTPUT_DIR/heapq_utils.py" <<'HEAPQ_UTILS'

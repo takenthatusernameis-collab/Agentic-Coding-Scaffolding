@@ -138,6 +138,7 @@ py_modules = [
     "networking_utils",
     "version_utils",
     "decimal_utils",
+    "difflib_utils",
     "fractions_utils",
     "heapq_utils",
     "interval_utils",

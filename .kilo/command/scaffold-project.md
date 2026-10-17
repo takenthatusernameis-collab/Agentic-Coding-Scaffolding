@@ -204,6 +204,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
 - `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`)
 - `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`
+- `difflib_utils.py` — difflib utility functions for sequence comparison and diffing (`get_close_matches`, `ratio`, `unified_diff`, `context_diff`, `ndiff`) wrapping the standard library `difflib` module
+- `tests/test_difflib_utils.py` — unit tests for `difflib_utils.py`
 - `fractions_utils.py` — fraction arithmetic utilities (`to_fraction`, `add`, `subtract`, `multiply`, `divide`, `power`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`, `is_integer`, `numerator`, `denominator`, `to_float`, `from_float`)
 - `tests/test_fractions_utils.py` — unit tests for `fractions_utils.py`
 - `weakref_utils.py` — weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`)

@@ -258,6 +258,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_networking_utils.py",
             "decimal_utils.py",
             "tests/test_decimal_utils.py",
+            "difflib_utils.py",
+            "tests/test_difflib_utils.py",
             "fractions_utils.py",
             "tests/test_fractions_utils.py",
             "markdown_utils.py",
