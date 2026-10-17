@@ -135,6 +135,7 @@ py_modules = [
     "weakref_utils",
     "warnings_utils",
     "selectors_utils",
+    "socketserver_utils",
     "seq_utils",
     "queue_utils",
     "sort_utils",
