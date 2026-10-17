@@ -56,6 +56,7 @@ locale_utils.py           # Locale utility functions for working with locale ide
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
+memoize_utils.py          # Memoization utilities (memoize decorator) with cache_clear
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
 timing_utils.py           # Performance measurement helpers
@@ -113,6 +114,7 @@ html_utils.py              # HTML escaping, unescaping, and tag-stripping utilit
 bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
+bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
@@ -133,11 +135,13 @@ subprocess_utils.py         # Subprocess utilities (run_command, check_output, c
 tests/                     # Python unit tests
   test_async_utils.py         # Tests for async_utils.py
   test_base64_utils.py        # Tests for base64_utils.py
+  test_bisect_utils.py       # Tests for bisect_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
   test_call_once_utils.py     # Tests for call_once_utils.py
   test_bytes_utils.py         # Tests for bytes_utils.py
   test_circuit_breaker_utils.py   # Tests for circuit_breaker_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
+  test_memoize_utils.py      # Tests for memoize_utils.py
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
@@ -342,6 +346,10 @@ The project includes a logging utilities module in `logging_utils.py` with helpe
 
 The project includes a caching utilities module in `cache_utils.py` with helpers for memoizing function results: `memoize` is a decorator factory that caches return values keyed by call arguments (with optional `maxsize` LRU eviction and `typed` argument distinction), `clear_cache` invalidates the cache of a memoized function, and `cache_info` returns a dictionary with `hits`, `misses`, `maxsize`, and `currsize` statistics. Decorated functions also expose `clear_cache` and `cache_info` attributes for direct introspection. The module is tested in `tests/test_cache_utils.py`.
 
+## Memoization Utilities Module
+
+The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. The module is tested in `tests/test_memoize_utils.py`.
+
 ## Timing Utilities Module
 
 The project includes a performance measurement utilities module in `timing_utils.py` with helpers for measuring and benchmarking code execution: `timer` is a context manager for timing code blocks, `elapsed_time` calculates elapsed time since a start time, and `benchmark` is a decorator that runs a function multiple times and reports average execution time. The module is tested in `tests/test_timing_utils.py`.
@@ -503,6 +511,10 @@ The project includes iteration helpers in `itertools_utils.py` wrapping the stan
 ## Base64 Utilities Module
 
 The project includes Base64 and hexadecimal encoding/decoding utilities in `base64_utils.py`: `base64_encode` and `base64_decode` for standard and URL-safe Base64, `base64_encode_bytes` and `base64_decode_bytes` for raw bytes, `hex_encode` and `hex_decode` for hexadecimal, and `is_valid_base64` / `is_valid_hex` for validation. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_base64_utils.py`.
+
+## Bisect Utilities Module
+
+The project includes bisect utility functions in `bisect_utils.py` for binary search on sorted sequences, wrapping the standard library `bisect` module: `bisect_left` and `bisect_right` return the insertion point to the left or right of existing entries, `insort_left` and `insort_right` insert elements while maintaining sort order, and `find_leftmost` / `find_rightmost` return the index of the first or last occurrence of a value (or `None` when absent). All functions accept an optional `lo`/`hi` range and validate their inputs. The module is tested in `tests/test_bisect_utils.py`.
 
 ## Binary Struct Utilities Module
 
