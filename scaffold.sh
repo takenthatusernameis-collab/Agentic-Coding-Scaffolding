@@ -190,6 +190,10 @@
 #   - tests/test_terminal_utils.py — unit tests for terminal_utils.py
 #   - subprocess_utils.py — Subprocess utilities (run_command, check_output, check_call)
 #   - tests/test_subprocess_utils.py — unit tests for subprocess_utils.py
+#   - greeting_utils.py — Greeting utilities (format_greeting, format_names)
+#   - tests/test_greeting_utils.py — unit tests for greeting_utils.py
+#   - secrets_utils.py — Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
+#   - tests/test_secrets_utils.py — unit tests for secrets_utils.py
 set -euo pipefail
 
 usage() {
@@ -13461,6 +13465,71 @@ def check_call(
         raise TypeError("cmd must be a string or list of strings")
     return subprocess.check_call(cmd, timeout=timeout, **kwargs)
 SUBPROCESSUTILS
+
+# --- greeting_utils.py ---
+cat > "$OUTPUT_DIR/greeting_utils.py" <<'GREETING_UTILS'
+def format_greeting(name: str, greeting: str = "Hello") -> str:
+    """Return a formatted greeting string for the given name.
+
+    Args:
+        name: The name to greet.
+        greeting: The greeting word to use. Defaults to "Hello".
+
+    Returns:
+        A string of the form "{greeting}, {name}!".
+    """
+    return f"{greeting}, {name}!"
+
+
+def format_names(names: list[str], greeting: str = "Hello") -> str:
+    """Return a comma-separated list of formatted greetings.
+
+    Args:
+        names: The names to greet.
+        greeting: The greeting word to use. Defaults to "Hello".
+
+    Returns:
+        A string of the form "{greeting}, {name1}! {greeting}, {name2}!".
+    """
+    return " ".join(format_greeting(name, greeting) for name in names)
+GREETING_UTILS
+
+# --- tests/test_greeting_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_greeting_utils.py" <<'TESTGREETINGUTILS'
+import unittest
+
+from greeting_utils import format_greeting, format_names
+
+
+class TestGreetingUtils(unittest.TestCase):
+    def test_format_greeting_default(self):
+        self.assertEqual(format_greeting("World"), "Hello, World!")
+
+    def test_format_greeting_custom(self):
+        self.assertEqual(format_greeting("Alice", "Hi"), "Hi, Alice!")
+
+    def test_format_greeting_empty_name(self):
+        self.assertEqual(format_greeting(""), "Hello, !")
+
+    def test_format_names(self):
+        self.assertEqual(
+            format_names(["Alice", "Bob"]),
+            "Hello, Alice! Hello, Bob!",
+        )
+
+    def test_format_names_custom_greeting(self):
+        self.assertEqual(
+            format_names(["Carol"], "Hey"),
+            "Hey, Carol!",
+        )
+
+    def test_format_names_empty(self):
+        self.assertEqual(format_names([]), "")
+
+
+if __name__ == '__main__':
+    unittest.main()
+TESTGREETINGUTILS
 # --- cli_utils.py ---
 cat > "$OUTPUT_DIR/cli_utils.py" <<'CLI_UTILS'
 """Command-line interface utility functions.
