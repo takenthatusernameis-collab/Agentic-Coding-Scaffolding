@@ -191,6 +191,9 @@
 #   - cmath_utils.py — # Complex mathematics utilities wrapping the standard library cmath module
 #   - threading_utils.py — # Threading utilities wrapping the standard library threading module
 
+#   - selectors_utils.py — # Selectors utilities wrapping the standard library selectors module
+#   - tests/test_selectors_utils.py — # Tests for selectors_utils.py
+
 #   - struct_utils.py — # Binary struct packing and unpacking utilities
 
 #   - pattern_utils.py — # Design pattern utilities (Singleton, Factory, Observer, Strategy)
@@ -869,6 +872,7 @@ py_modules = [
     "weakref_utils",
     "argparse_utils",
     "warnings_utils",
+    "selectors_utils",
     "seq_utils",
     "queue_utils",
     "sort_utils",
@@ -17841,6 +17845,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_argparse_utils.py` — unit tests for `argparse_utils.py`
 - `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation
 - `tests/test_warnings_utils.py` — unit tests for `warnings_utils.py`
+- `selectors_utils.py` — selectors utilities wrapping the standard library `selectors` module (`create_default_selector`, `register`, `unregister`, `select`, `get_key`, `get_map`, `close_selector`, `EVENT_READ`, `EVENT_WRITE`) for I/O multiplexing with input validation
+- `tests/test_selectors_utils.py` — unit tests for `selectors_utils.py`
 - `heapq_utils.py` — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)
 - `tests/test_heapq_utils.py` — unit tests for `heapq_utils.py`
 - `markdown_utils.py` — Markdown utility functions (`extract_code_blocks`, `strip_markdown`, `count_words`, `is_heading`, `heading_level`)
@@ -18815,6 +18821,7 @@ ini_utils.py                 # INI configuration file utilities (load, save, get
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
 argparse_utils.py           # Argument parsing utilities
 warnings_utils.py           # Utilities wrapping the standard library warnings module
+selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
 compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
 ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
@@ -18832,6 +18839,7 @@ tests/                     # Python unit tests
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_cmath_utils.py        # Tests for cmath_utils.py
   test_threading_utils.py    # Tests for threading_utils.py
+  test_selectors_utils.py     # Tests for selectors_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
   test_color_utils.py         # Tests for color_utils.py
   test_collections_utils.py   # Tests for collections_utils.py
@@ -18974,6 +18982,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation, plus `tests/test_warnings_utils.py`.
 - Synchronized `warnings_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `selectors_utils.py` — selectors utilities wrapping the standard library `selectors` module (`create_default_selector`, `register`, `unregister`, `select`, `get_key`, `get_map`, `close_selector`, `EVENT_READ`, `EVENT_WRITE`) for I/O multiplexing with input validation, plus `tests/test_selectors_utils.py`.
+- Synchronized `selectors_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `argparse_utils.py` — argument parsing utilities (`make_parser`, `add_flag`, `add_option`, `add_positional`, `add_subparsers`, `parse_args`, `int_positive`, `float_range`) wrapping the standard library `argparse` module, plus `tests/test_argparse_utils.py`.
 - Synchronized `argparse_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -33908,3 +33919,435 @@ class TestSynchronized(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTTHREADINGUTILS
+
+# --- selectors_utils.py ---
+cat > "$OUTPUT_DIR/selectors_utils.py" <<'SELECTORS_UTILS'
+"""Selectors utilities wrapping the standard library selectors module.
+
+This module provides a validated wrapper around the standard library ``selecters``
+module for I/O multiplexing: creating default selectors, registering and
+unregistering file objects, selecting ready I/O, and inspecting selector state.
+All functions validate their inputs and raise ``TypeError`` for invalid arguments.
+"""
+
+from __future__ import annotations
+
+import selectors
+from typing import Any, Optional
+
+# Re-export the standard event masks for convenience.
+EVENT_READ = selectors.EVENT_READ
+EVENT_WRITE = selectors.EVENT_WRITE
+
+# Bitmask of every event flag the standard library selectors module defines.
+_ALL_EVENTS = selectors.EVENT_READ | selectors.EVENT_WRITE
+
+
+def _validate_fileobj(value: Any, name: str) -> None:
+    """Validate that *value* is a file object or integer file descriptor.
+
+    Args:
+        value: The value to validate.
+        name: The name of the argument (used in error messages).
+
+    Raises:
+        TypeError: If value is neither an int nor an object with ``fileno``.
+    """
+    if isinstance(value, int):
+        return
+    if not hasattr(value, "fileno"):
+        raise TypeError(f"{name} must be a file object or integer file descriptor")
+
+
+def _validate_events(events: Any, name: str) -> None:
+    """Validate that *events* is a non-negative combination of selector event flags.
+
+    Args:
+        events: The event mask to validate.
+        name: The name of the argument (used in error messages).
+
+    Raises:
+        TypeError: If events is not an integer.
+        ValueError: If events contains flags other than EVENT_READ/EVENT_WRITE.
+    """
+    if isinstance(events, bool) or not isinstance(events, int):
+        raise TypeError(f"{name} must be an integer")
+    if events < 0:
+        raise ValueError(f"{name} must be non-negative")
+    if events & ~_ALL_EVENTS:
+        raise ValueError(f"{name} must only contain EVENT_READ and EVENT_WRITE")
+
+
+def _validate_timeout(timeout: Any, name: str) -> None:
+    """Validate that *timeout* is None or a non-negative real number.
+
+    Args:
+        timeout: The timeout value to validate.
+        name: The name of the argument (used in error messages).
+
+    Raises:
+        TypeError: If timeout is not None or a real number.
+        ValueError: If timeout is negative.
+    """
+    if timeout is None:
+        return
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+        raise TypeError(f"{name} must be a number or None")
+    if timeout < 0:
+        raise ValueError(f"{name} must be non-negative")
+
+
+def create_default_selector() -> selectors.DefaultSelector:
+    """Return a new :class:`selectors.DefaultSelector` for the current platform.
+
+    Returns:
+        A default selector object ready for registrations.
+    """
+    return selectors.DefaultSelector()
+
+
+def register(
+    selector: selectors.BaseSelector,
+    fileobj: Any,
+    events: int,
+    data: Optional[Any] = None,
+) -> selectors.SelectorKey:
+    """Register a file object with *selector* to be monitored for *events*.
+
+    Args:
+        selector: The selector to register with.
+        fileobj: The file object (or integer file descriptor) to monitor.
+        events: Event mask combining :data:`EVENT_READ` and/or :data:`EVENT_WRITE`.
+        data: Optional opaque data to associate with the registration.
+
+    Returns:
+        A :class:`selectors.SelectorKey` describing the registration.
+
+    Raises:
+        TypeError: If selector is not a :class:`selectors.BaseSelector`, fileobj is
+            invalid, or events is not an integer.
+        ValueError: If events contains flags other than EVENT_READ/EVENT_WRITE.
+    """
+    if not isinstance(selector, selectors.BaseSelector):
+        raise TypeError("selector must be a selectors.BaseSelector")
+    _validate_fileobj(fileobj, "fileobj")
+    _validate_events(events, "events")
+    return selector.register(fileobj, events, data=data)
+
+
+def unregister(
+    selector: selectors.BaseSelector, fileobj: Any
+) -> selectors.SelectorKey:
+    """Unregister a file object from *selector*.
+
+    Args:
+        selector: The selector to unregister from.
+        fileobj: The file object (or integer file descriptor) to stop monitoring.
+
+    Returns:
+        The :class:`selectors.SelectorKey` that was removed.
+
+    Raises:
+        TypeError: If selector is not a :class:`selectors.BaseSelector` or fileobj
+            is invalid.
+        KeyError: If fileobj is not currently registered.
+    """
+    if not isinstance(selector, selectors.BaseSelector):
+        raise TypeError("selector must be a selectors.BaseSelector")
+    _validate_fileobj(fileobj, "fileobj")
+    return selector.unregister(fileobj)
+
+
+def select(
+    selector: selectors.BaseSelector, timeout: Optional[float] = None
+) -> list[tuple[selectors.SelectorKey, int]]:
+    """Wait until some registered file objects are ready for I/O.
+
+    Args:
+        selector: The selector to wait on.
+        timeout: Maximum time to wait in seconds (None blocks indefinitely).
+
+    Returns:
+        A list of ``(key, events)`` tuples for the file objects that are ready.
+
+    Raises:
+        TypeError: If selector is not a :class:`selectors.BaseSelector` or timeout
+            is not a number or None.
+        ValueError: If timeout is negative.
+    """
+    if not isinstance(selector, selectors.BaseSelector):
+        raise TypeError("selector must be a selectors.BaseSelector")
+    _validate_timeout(timeout, "timeout")
+    return selector.select(timeout)
+
+
+def get_key(selector: selectors.BaseSelector, fileobj: Any) -> selectors.SelectorKey:
+    """Return the :class:`selectors.SelectorKey` for a registered file object.
+
+    Args:
+        selector: The selector to query.
+        fileobj: The file object (or integer file descriptor) to look up.
+
+    Returns:
+        The selector key associated with *fileobj*.
+
+    Raises:
+        TypeError: If selector is not a :class:`selectors.BaseSelector` or fileobj
+            is invalid.
+        KeyError: If fileobj is not currently registered.
+    """
+    if not isinstance(selector, selectors.BaseSelector):
+        raise TypeError("selector must be a selectors.BaseSelector")
+    _validate_fileobj(fileobj, "fileobj")
+    return selector.get_key(fileobj)
+
+
+def get_map(selector: selectors.BaseSelector) -> dict[Any, selectors.SelectorKey]:
+    """Return the mapping of registered file objects to their selector keys.
+
+    Args:
+        selector: The selector to query.
+
+    Returns:
+        A dictionary mapping file objects to :class:`selectors.SelectorKey` values.
+
+    Raises:
+        TypeError: If selector is not a :class:`selectors.BaseSelector`.
+    """
+    if not isinstance(selector, selectors.BaseSelector):
+        raise TypeError("selector must be a selectors.BaseSelector")
+    return dict(selector.get_map())
+
+
+def close_selector(selector: selectors.BaseSelector) -> None:
+    """Close *selector* and release any underlying resources.
+
+    After calling this, the selector must not be used again.
+
+    Args:
+        selector: The selector to close.
+
+    Raises:
+        TypeError: If selector is not a :class:`selectors.BaseSelector`.
+    """
+    if not isinstance(selector, selectors.BaseSelector):
+        raise TypeError("selector must be a selectors.BaseSelector")
+    selector.close()
+SELECTORS_UTILS
+
+# --- tests/test_selectors_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_selectors_utils.py" <<'TESTSELECTORS'
+import selectors
+import socket
+import unittest
+
+from selectors_utils import (
+    EVENT_READ,
+    EVENT_WRITE,
+    close_selector,
+    create_default_selector,
+    get_key,
+    get_map,
+    register,
+    select,
+    unregister,
+)
+
+
+class TestCreateDefaultSelector(unittest.TestCase):
+    def test_create_default_selector(self):
+        selector = create_default_selector()
+        self.assertIsInstance(selector, selectors.DefaultSelector)
+        selector.close()
+
+    def test_events_constants_match_stdlib(self):
+        self.assertEqual(EVENT_READ, selectors.EVENT_READ)
+        self.assertEqual(EVENT_WRITE, selectors.EVENT_WRITE)
+
+
+class TestRegister(unittest.TestCase):
+    def test_register_socket(self):
+        selector = create_default_selector()
+        try:
+            reader, _ = socket.socketpair()
+            key = register(selector, reader, EVENT_READ, data="reader")
+            self.assertIsInstance(key, selectors.SelectorKey)
+            self.assertEqual(key.fd, reader.fileno())
+            self.assertEqual(key.data, "reader")
+            self.assertEqual(key.events, EVENT_READ)
+        finally:
+            selector.close()
+
+    def test_register_read_and_write(self):
+        selector = create_default_selector()
+        try:
+            reader, _ = socket.socketpair()
+            key = register(selector, reader, EVENT_READ | EVENT_WRITE)
+            self.assertEqual(key.events, EVENT_READ | EVENT_WRITE)
+        finally:
+            selector.close()
+
+    def test_register_invalid_selector(self):
+        with self.assertRaises(TypeError):
+            register("not a selector", object(), EVENT_READ)  # type: ignore[arg-type]
+
+    def test_register_invalid_fileobj(self):
+        selector = create_default_selector()
+        try:
+            with self.assertRaises(TypeError):
+                register(selector, object(), EVENT_READ)  # type: ignore[arg-type]
+        finally:
+            selector.close()
+
+    def test_register_invalid_events_type(self):
+        selector = create_default_selector()
+        try:
+            reader, _ = socket.socketpair()
+            with self.assertRaises(TypeError):
+                register(selector, reader, "read")  # type: ignore[arg-type]
+        finally:
+            selector.close()
+
+    def test_register_invalid_events_value(self):
+        selector = create_default_selector()
+        try:
+            reader, _ = socket.socketpair()
+            with self.assertRaises(ValueError):
+                register(selector, reader, 999)  # type: ignore[arg-type]
+        finally:
+            selector.close()
+
+
+class TestUnregister(unittest.TestCase):
+    def test_unregister_socket(self):
+        selector = create_default_selector()
+        try:
+            reader, _ = socket.socketpair()
+            key = register(selector, reader, EVENT_READ)
+            removed = unregister(selector, reader)
+            self.assertEqual(removed.fd, key.fd)
+        finally:
+            selector.close()
+
+    def test_unregister_invalid_selector(self):
+        with self.assertRaises(TypeError):
+            unregister("not a selector", object())  # type: ignore[arg-type]
+
+    def test_unregister_invalid_fileobj(self):
+        selector = create_default_selector()
+        try:
+            with self.assertRaises(TypeError):
+                unregister(selector, object())  # type: ignore[arg-type]
+        finally:
+            selector.close()
+
+    def test_unregister_not_registered(self):
+        selector = create_default_selector()
+        try:
+            reader, _ = socket.socketpair()
+            with self.assertRaises(KeyError):
+                unregister(selector, reader)
+        finally:
+            selector.close()
+
+
+class TestSelect(unittest.TestCase):
+    def test_select_returns_list(self):
+        selector = create_default_selector()
+        try:
+            reader, _ = socket.socketpair()
+            register(selector, reader, EVENT_READ)
+            ready = select(selector, timeout=0)
+            self.assertIsInstance(ready, list)
+            for key, events in ready:
+                self.assertIsInstance(key, selectors.SelectorKey)
+                self.assertIsInstance(events, int)
+        finally:
+            selector.close()
+
+    def test_select_invalid_selector(self):
+        with self.assertRaises(TypeError):
+            select("not a selector")  # type: ignore[arg-type]
+
+    def test_select_invalid_timeout_type(self):
+        selector = create_default_selector()
+        try:
+            with self.assertRaises(TypeError):
+                select(selector, timeout="1")  # type: ignore[arg-type]
+        finally:
+            selector.close()
+
+    def test_select_negative_timeout(self):
+        selector = create_default_selector()
+        try:
+            with self.assertRaises(ValueError):
+                select(selector, timeout=-1)  # type: ignore[arg-type]
+        finally:
+            selector.close()
+
+
+class TestGetKey(unittest.TestCase):
+    def test_get_key(self):
+        selector = create_default_selector()
+        try:
+            reader, _ = socket.socketpair()
+            key = register(selector, reader, EVENT_READ, data="data")
+            looked_up = get_key(selector, reader)
+            self.assertEqual(looked_up.fd, key.fd)
+            self.assertEqual(looked_up.data, key.data)
+        finally:
+            selector.close()
+
+    def test_get_key_invalid_selector(self):
+        with self.assertRaises(TypeError):
+            get_key("not a selector", object())  # type: ignore[arg-type]
+
+    def test_get_key_invalid_fileobj(self):
+        selector = create_default_selector()
+        try:
+            with self.assertRaises(TypeError):
+                get_key(selector, object())  # type: ignore[arg-type]
+        finally:
+            selector.close()
+
+    def test_get_key_not_registered(self):
+        selector = create_default_selector()
+        try:
+            reader, _ = socket.socketpair()
+            with self.assertRaises(KeyError):
+                get_key(selector, reader)
+        finally:
+            selector.close()
+
+
+class TestGetMap(unittest.TestCase):
+    def test_get_map(self):
+        selector = create_default_selector()
+        try:
+            reader, _ = socket.socketpair()
+            register(selector, reader, EVENT_READ)
+            mapping = get_map(selector)
+            self.assertIsInstance(mapping, dict)
+            self.assertIn(reader.fileno(), mapping)
+            self.assertEqual(mapping[reader.fileno()].fd, reader.fileno())
+        finally:
+            selector.close()
+
+    def test_get_map_invalid_selector(self):
+        with self.assertRaises(TypeError):
+            get_map("not a selector")  # type: ignore[arg-type]
+
+
+class TestCloseSelector(unittest.TestCase):
+    def test_close_selector(self):
+        selector = create_default_selector()
+        close_selector(selector)
+
+    def test_close_selector_invalid(self):
+        with self.assertRaises(TypeError):
+            close_selector("not a selector")  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSELECTORS
