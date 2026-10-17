@@ -128,4 +128,5 @@ py_modules = [
     "heapq_utils",
     "interval_utils",
     "semver_utils",
+    "shutil_utils",
 ]
