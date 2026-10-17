@@ -97,6 +97,7 @@ greeting_utils.py          # Greeting utilities (greet, format_names, random_gre
 version_utils.py           # Version utility functions (parse, compare, normalize)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
+socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -214,6 +215,7 @@ test_scaffold.py            # Tests for scaffold.sh
   test_set_utils.py           # Tests for set_utils.py
   test_shapes.py              # Tests for shapes.py
   test_shutil_utils.py        # Tests for shutil_utils.py
+  test_socketserver_utils.py     # Tests for socketserver_utils.py
   test_sort_utils.py          # Tests for sort_utils.py
   test_statistics_utils.py    # Tests for statistics_utils.py
   test_stats.py               # Tests for stats.py
@@ -670,3 +672,7 @@ The project includes threading utilities in `threading_utils.py` wrapping the st
 ## Selectors Utilities Module
 
 The project includes selectors utilities in `selectors_utils.py` wrapping the standard library `selectors` module for I/O multiplexing: `create_default_selector` returns a platform-default selector, `register` and `unregister` monitor or stop monitoring file objects for read/write events, `select` waits until registered file objects are ready, `get_key` and `get_map` inspect registrations, and `close_selector` releases resources. Event masks `EVENT_READ` and `EVENT_WRITE` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` for invalid arguments. The module is tested in `tests/test_selectors_utils.py`.
+
+## Socketserver Utilities Module
+
+The project includes socketserver utilities in `socketserver_utils.py` wrapping the standard library `socketserver` module for building TCP/UDP servers: `create_tcp_server` and `create_udp_server` create validated server instances, `handle_one_request` processes a single request, `serve_forever` blocks serving requests, `shutdown_server` and `close_server` stop and release a server, and `get_server_address` / `is_serving` inspect bound address and serving state. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_socketserver_utils.py`.

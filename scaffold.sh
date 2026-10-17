@@ -143,6 +143,8 @@
 
 #   - shutil_utils.py — # High-level file operations (copy, move, remove, archive, disk usage)
 
+#   - socketserver_utils.py — # Socketserver utilities wrapping the standard library socketserver module
+
 #   - interval_utils.py — # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 
 #   - textwrap_utils.py — # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -374,6 +376,8 @@
 #   - test_shapes.py — # Tests for shapes.py
 
 #   - test_shutil_utils.py — # Tests for shutil_utils.py
+
+#   - test_socketserver_utils.py — # Tests for socketserver_utils.py
 
 #   - test_sort_utils.py — # Tests for sort_utils.py
 
@@ -888,6 +892,7 @@ py_modules = [
     "interval_utils",
     "semver_utils",
     "shutil_utils",
+    "socketserver_utils",
 ]
 
 PYPROJECT
@@ -18136,6 +18141,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
 - `shutil_utils.py` — High-level file and directory operation utilities (`copy_file`, `copy_tree`, `move`, `remove_tree`, `disk_usage`, `make_archive`, `unpack_archive`) wrapping the standard library `shutil` module
 - `tests/test_shutil_utils.py` — unit tests for `shutil_utils.py`
+- `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.
+- `tests/test_socketserver_utils.py` — unit tests for `socketserver_utils.py`
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
 - `graphlib_utils.py` — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
 - `greeting_utils.py` — Greeting utilities (`greet`, `format_names`, `random_greeting`) for formatted greeting strings
@@ -19107,6 +19114,7 @@ greeting_utils.py          # Greeting utilities (greet, format_names, random_gre
 version_utils.py           # Version utility functions (parse, compare, normalize)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
+socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
@@ -19221,6 +19229,7 @@ tests/                     # Python unit tests
   test_set_utils.py           # Tests for set_utils.py
   test_shapes.py              # Tests for shapes.py
   test_shutil_utils.py        # Tests for shutil_utils.py
+  test_socketserver_utils.py     # Tests for socketserver_utils.py
   test_sort_utils.py          # Tests for sort_utils.py
   test_statistics_utils.py    # Tests for statistics_utils.py
   test_stats.py               # Tests for stats.py
@@ -19293,6 +19302,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation, plus `tests/test_socketserver_utils.py`.
+- Synchronized `socketserver_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `threading_utils.py` — threading utilities wrapping the standard library `threading` module (`create_lock`, `create_rlock`, `create_semaphore`, `create_bounded_semaphore`, `create_event`, `create_condition`, `create_timer`, `create_thread`, `current_thread`, `active_count`, `enumerate_threads`, `synchronized`) with input validation, plus `tests/test_threading_utils.py`.
 - Synchronized `threading_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -34671,3 +34683,242 @@ class TestCloseSelector(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTSELECTORS
+
+# --- socketserver_utils.py ---
+cat > "$OUTPUT_DIR/socketserver_utils.py" <<'SOCKETSERVER_UTILS'
+"""Socketserver utilities wrapping the standard library socketserver module.
+
+This module provides validated wrappers around the standard library
+``socketserver`` module for building network servers: creating TCP/UDP
+servers, serving requests forever or handling a single request, shutting
+down servers, and inspecting server state. All functions validate their
+inputs and raise ``TypeError`` for invalid arguments.
+"""
+
+from __future__ import annotations
+
+import socketserver
+from typing import Any, Optional, Type
+
+
+def create_tcp_server(
+    address: Any,
+    handler_class: Type[socketserver.BaseRequestHandler],
+    allow_reuse_address: bool = True,
+) -> socketserver.TCPServer:
+    """Create a TCP server bound to *address*.
+
+    Args:
+        address: A (host, port) tuple.
+        handler_class: A request handler class.
+        allow_reuse_address: Whether to set SO_REUSEADDR.
+
+    Returns:
+        A TCPServer instance.
+    """
+    if not isinstance(address, tuple) or len(address) != 2:
+        raise TypeError("address must be a (host, port) tuple")
+    host, port = address
+    if not isinstance(port, int) or isinstance(port, bool):
+        raise TypeError("port must be an integer")
+    if not (isinstance(handler_class, type)
+            and issubclass(handler_class, socketserver.BaseRequestHandler)):
+        raise TypeError("handler_class must be a BaseRequestHandler subclass")
+    server = socketserver.TCPServer(address, handler_class)
+    server.allow_reuse_address = allow_reuse_address
+    return server
+
+
+def create_udp_server(
+    address: Any,
+    handler_class: Type[socketserver.BaseRequestHandler],
+    allow_reuse_address: bool = True,
+) -> socketserver.UDPServer:
+    """Create a UDP server bound to *address*."""
+    if not isinstance(address, tuple) or len(address) != 2:
+        raise TypeError("address must be a (host, port) tuple")
+    host, port = address
+    if not isinstance(port, int) or isinstance(port, bool):
+        raise TypeError("port must be an integer")
+    if not (isinstance(handler_class, type)
+            and issubclass(handler_class, socketserver.BaseRequestHandler)):
+        raise TypeError("handler_class must be a BaseRequestHandler subclass")
+    server = socketserver.UDPServer(address, handler_class)
+    server.allow_reuse_address = allow_reuse_address
+    return server
+
+
+def handle_one_request(server: socketserver.BaseServer) -> None:
+    """Handle a single request on *server*."""
+    if not isinstance(server, socketserver.BaseServer):
+        raise TypeError("server must be a BaseServer instance")
+    server.handle_request()
+
+
+def serve_forever(server: socketserver.BaseServer, poll_interval: float = 0.5) -> None:
+    """Serve requests forever on *server* (blocks)."""
+    if not isinstance(server, socketserver.BaseServer):
+        raise TypeError("server must be a BaseServer instance")
+    if isinstance(poll_interval, bool) or not isinstance(poll_interval, (int, float)):
+        raise TypeError("poll_interval must be a number")
+    if poll_interval < 0:
+        raise ValueError("poll_interval must be non-negative")
+    server.serve_forever(poll_interval=poll_interval)
+
+
+def shutdown_server(server: socketserver.BaseServer) -> None:
+    """Shut down *server*."""
+    if not isinstance(server, socketserver.BaseServer):
+        raise TypeError("server must be a BaseServer instance")
+    server.shutdown()
+
+
+def close_server(server: socketserver.BaseServer) -> None:
+    """Close *server* and release its socket."""
+    if not isinstance(server, socketserver.BaseServer):
+        raise TypeError("server must be a BaseServer instance")
+    server.server_close()
+
+
+def get_server_address(server: socketserver.BaseServer) -> Any:
+    """Return the server's bound address."""
+    if not isinstance(server, socketserver.BaseServer):
+        raise TypeError("server must be a BaseServer instance")
+    return server.server_address
+
+
+def is_serving(server: socketserver.BaseServer) -> bool:
+    """Return True if *server* is currently serving (not shut down)."""
+    if not isinstance(server, socketserver.BaseServer):
+        raise TypeError("server must be a BaseServer instance")
+    flag = getattr(server, "_BaseServer__is_shut_down", None)
+    if flag is None:
+        return True
+    return not flag.is_set()
+SOCKETSERVER_UTILS
+
+# --- tests/test_socketserver_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_socketserver_utils.py" <<'TESTSOCKETSERVER'
+import socket
+import socketserver
+import threading
+import unittest
+
+from socketserver_utils import (
+    close_server,
+    create_tcp_server,
+    create_udp_server,
+    get_server_address,
+    handle_one_request,
+    is_serving,
+    serve_forever,
+    shutdown_server,
+)
+
+
+class _Handler(socketserver.BaseRequestHandler):
+    def handle(self):
+        pass
+
+
+class TestCreateTcpServer(unittest.TestCase):
+    def test_create_tcp_server_valid(self):
+        server = create_tcp_server(("127.0.0.1", 0), _Handler)
+        try:
+            self.assertIsInstance(server, socketserver.TCPServer)
+            self.assertTrue(server.allow_reuse_address)
+        finally:
+            close_server(server)
+
+    def test_create_tcp_server_no_reuse_address(self):
+        server = create_tcp_server(("127.0.0.1", 0), _Handler, allow_reuse_address=False)
+        try:
+            self.assertFalse(server.allow_reuse_address)
+        finally:
+            close_server(server)
+
+    def test_create_tcp_server_invalid_address_type(self):
+        with self.assertRaises(TypeError):
+            create_tcp_server("not a tuple", _Handler)  # type: ignore[arg-type]
+
+    def test_create_tcp_server_invalid_address_length(self):
+        with self.assertRaises(TypeError):
+            create_tcp_server(("127.0.0.1",), _Handler)  # type: ignore[arg-type]
+
+    def test_create_tcp_server_invalid_port_type(self):
+        with self.assertRaises(TypeError):
+            create_tcp_server(("127.0.0.1", "8080"), _Handler)  # type: ignore[arg-type]
+
+    def test_create_tcp_server_port_bool(self):
+        with self.assertRaises(TypeError):
+            create_tcp_server(("127.0.0.1", True), _Handler)  # type: ignore[arg-type]
+
+    def test_create_tcp_server_invalid_handler(self):
+        with self.assertRaises(TypeError):
+            create_tcp_server(("127.0.0.1", 0), object())  # type: ignore[arg-type]
+
+
+class TestCreateUdpServer(unittest.TestCase):
+    def test_create_udp_server_valid(self):
+        server = create_udp_server(("127.0.0.1", 0), _Handler)
+        try:
+            self.assertIsInstance(server, socketserver.UDPServer)
+        finally:
+            close_server(server)
+
+    def test_create_udp_server_invalid_inputs(self):
+        with self.assertRaises(TypeError):
+            create_udp_server("not a tuple", _Handler)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_udp_server(("127.0.0.1", "8080"), _Handler)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_udp_server(("127.0.0.1", 0), object())  # type: ignore[arg-type]
+
+
+class TestServerInspection(unittest.TestCase):
+    def test_get_server_address_and_is_serving(self):
+        server = create_tcp_server(("127.0.0.1", 0), _Handler)
+        try:
+            self.assertEqual(get_server_address(server), server.server_address)
+            self.assertTrue(is_serving(server))
+        finally:
+            close_server(server)
+
+    def test_operations_require_server(self):
+        with self.assertRaises(TypeError):
+            handle_one_request("not a server")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            shutdown_server("not a server")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            close_server("not a server")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_server_address("not a server")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_serving("not a server")  # type: ignore[arg-type]
+
+    def test_serve_forever_validates_poll_interval(self):
+        server = create_tcp_server(("127.0.0.1", 0), _Handler)
+        try:
+            with self.assertRaises(TypeError):
+                serve_forever(server, poll_interval="0.5")  # type: ignore[arg-type]
+            with self.assertRaises(ValueError):
+                serve_forever(server, poll_interval=-1)
+        finally:
+            close_server(server)
+
+    def test_serve_forever_and_shutdown(self):
+        server = create_tcp_server(("127.0.0.1", 0), _Handler)
+        try:
+            thread = threading.Thread(target=serve_forever, args=(server,), daemon=True)
+            thread.start()
+            self.assertTrue(is_serving(server))
+            shutdown_server(server)
+            thread.join(timeout=5)
+            self.assertFalse(is_serving(server))
+        finally:
+            close_server(server)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSOCKETSERVER
