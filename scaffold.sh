@@ -160,6 +160,7 @@
 #   - http_utils.py — # HTTP status codes and response handling utilities
 
 #   - id_utils.py — # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
+#   - inspect_utils.py — # Callable and object introspection utilities (get_callable_name, is_callable, is_async_callable, get_signature, get_parameter_names, get_parameter_kinds, count_parameters, has_parameter, bind_arguments, is_builtin, get_source_file, get_source_lines)
 
 #   - html_utils.py — # HTML escaping, unescaping, and tag-stripping utilities
 
@@ -266,6 +267,7 @@
 #   - test_http_utils.py — # Tests for http_utils.py
 
 #   - test_id_utils.py — # Tests for id_utils.py
+#   - test_inspect_utils.py — # Tests for inspect_utils.py
 
 #   - test_ini_utils.py — # Tests for ini_utils.py
 
@@ -748,6 +750,7 @@ py_modules = [
     "graphlib_utils",
     "greeting_utils",
     "id_utils",
+    "inspect_utils",
     "bit_utils",
     "data_utils",
     "datetime_utils",
@@ -16530,6 +16533,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_id_utils.py` — unit tests for `id_utils.py`
 - `http_utils.py` — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`)
 - `id_utils.py` — Identifier generation and validation utilities (`generate_id`, `new_id`, `is_valid_id`) for short URL-safe random identifiers with input validation
+- `inspect_utils.py` — callable and object introspection utilities (`get_callable_name`, `is_callable`, `is_async_callable`, `get_signature`, `get_parameter_names`, `get_parameter_kinds`, `count_parameters`, `has_parameter`, `bind_arguments`, `is_builtin`, `get_source_file`, `get_source_lines`) using the standard library `inspect` module
+- `tests/test_inspect_utils.py` — unit tests for `inspect_utils.py`
 - `tests/test_http_utils.py` — unit tests for `http_utils.py`
 - `html_utils.py` — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
@@ -17530,6 +17535,7 @@ cli_utils.py               # Command-line interface utilities (argparse parser, 
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
+inspect_utils.py           # Callable and object introspection utilities (get_callable_name, is_callable, is_async_callable, get_signature, get_parameter_names, get_parameter_kinds, count_parameters, has_parameter, bind_arguments, is_builtin, get_source_file, get_source_lines)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -17683,6 +17689,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `inspect_utils.py` — callable and object introspection utilities (`get_callable_name`, `is_callable`, `is_async_callable`, `get_signature`, `get_parameter_names`, `get_parameter_kinds`, `count_parameters`, `has_parameter`, `bind_arguments`, `is_builtin`, `get_source_file`, `get_source_lines`) using the standard library `inspect` module with input validation.
+- `tests/test_inspect_utils.py` — unit tests for `inspect_utils.py`
 
 - Synchronized the `scaffold.sh` README tree with the repository `README.md` project structure tree: the scaffold template was missing 23 modules (`template_utils.py`, `uuid_utils.py`, `prompt_utils.py`, `itertools_utils.py`, `color_utils.py`, `number_utils.py`, `os_utils.py`, `sort_utils.py`, `prime_utils.py`, `decimal_utils.py`, `fractions_utils.py`, `heapq_utils.py`, `markdown_utils.py`, `bytes_utils.py`, `functools_utils.py`, `operator_utils.py`, `exceptions_utils.py`, `io_utils.py`, `ini_utils.py`, `weakref_utils.py`, `compression_utils.py`, `ip_utils.py`, `regex_utils.py`, `subprocess_utils.py`) and 26 test files (`test_async_utils.py`, `test_base64_utils.py`, `test_bytes_utils.py`, `test_calendar_utils.py`, `test_cli_utils.py`, `test_context_utils.py`, `test_decimal_utils.py`, `test_duration_utils.py`, `test_fractions_utils.py`, `test_hash_utils.py`, `test_html_utils.py`, `test_ini_utils.py`, `test_itertools_utils.py`, `test_networking_utils.py`, `test_number_utils.py`, `test_operator_utils.py`, `test_os_utils.py`, `test_prompt_utils.py`, `test_seq_utils.py`, `test_sort_utils.py`, `test_subprocess_utils.py`, `test_sys_utils.py`, `test_temp_utils.py`, `test_template_utils.py`, `test_terminal_utils.py`, `test_uuid_utils.py`, `test_weakref_utils.py`, `test_xml_utils.py`) from the repo tree, and had a stray `tests/test_calendar_utils.py` entry outside the `tests/` sub-section. Replaced both the module and tests sections of the scaffold template tree with the canonical alphabetized repo tree so scaffolded projects inherit a complete, consistent structure.
 
@@ -19241,6 +19250,951 @@ if __name__ == "__main__":
     unittest.main()
 
 TESTPATTERNUTILS
+# --- template_utils.py ---
+cat > "$OUTPUT_DIR/template_utils.py" <<'TEMPLATE_UTILS'
+"""String template utilities.
+
+This module provides functions for simple string template rendering and
+variable substitution. It supports both ``str.format()``-style templates
+and ``string.Template``-style substitution.
+"""
+
+from __future__ import annotations
+
+import re
+from string import Template
+from typing import Any, Mapping
+
+
+def render_template(template: str, *args: Any, **kwargs: Any) -> str:
+    """Render a template string using ``str.format()``.
+
+    Args:
+        template: The template string containing ``{placeholder}`` style
+            placeholders.
+        *args: Positional arguments to substitute into the template.
+        **kwargs: Keyword arguments to substitute into the template.
+
+    Returns:
+        The rendered template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+        KeyError: If a required placeholder is missing.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    return template.format(*args, **kwargs)
+
+
+def substitute(
+    template: str,
+    mapping: Mapping[str, Any] | None = None,
+    **kwargs: Any,
+) -> str:
+    """Substitute variables into a template using ``string.Template``.
+
+    This is the standard substitution that raises an error if a placeholder
+    is missing from the mapping.
+
+    Args:
+        template: The template string containing ``$placeholder`` or
+            ``${placeholder}`` style placeholders.
+        mapping: Optional mapping of placeholder names to values.
+        **kwargs: Additional keyword arguments to substitute.
+
+    Returns:
+        The substituted template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+        KeyError: If a required placeholder is missing.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if mapping is None:
+        mapping = {}
+    full_mapping: dict[str, Any] = dict(mapping)
+    full_mapping.update(kwargs)
+    return Template(template).substitute(full_mapping)
+
+
+def safe_substitute(
+    template: str,
+    mapping: Mapping[str, Any] | None = None,
+    **kwargs: Any,
+) -> str:
+    """Safely substitute variables into a template using ``string.Template``.
+
+    This leaves missing placeholders unchanged instead of raising an error.
+
+    Args:
+        template: The template string containing ``$placeholder`` or
+            ``${placeholder}`` style placeholders.
+        mapping: Optional mapping of placeholder names to values.
+        **kwargs: Additional keyword arguments to substitute.
+
+    Returns:
+        The substituted template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if mapping is None:
+        mapping = {}
+    full_mapping: dict[str, Any] = dict(mapping)
+    full_mapping.update(kwargs)
+    return Template(template).safe_substitute(full_mapping)
+
+
+def render_from_dict(
+    template: str,
+    context: Mapping[str, Any] | None = None,
+    default: str = "",
+) -> str:
+    """Render a template by substituting values from a context dictionary.
+
+    Uses ``str.format()`` style placeholders. For missing keys, the provided
+    default value is used.
+
+    Args:
+        template: The template string containing ``{placeholder}`` style
+            placeholders.
+        context: Dictionary containing values to substitute.
+        default: Default value to use for missing placeholders.
+
+    Returns:
+        The rendered template string.
+
+    Raises:
+        TypeError: If ``template`` is not a string or if ``context`` is
+            provided but not a mapping.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    if context is None:
+        context = {}
+    if not isinstance(context, Mapping):
+        raise TypeError("context must be a mapping or None")
+    class DefaultFormatter(dict):
+        def __missing__(self, key: str) -> str:
+            return default
+
+    try:
+        return template.format_map(DefaultFormatter(context))
+    except Exception:
+        result = template
+        for key in extract_placeholders(template):
+            pattern = re.compile(r"\{" + re.escape(key) + r"(:[^}]*)?\}")
+            if key in context:
+                result = pattern.sub(str(context[key]), result)
+            else:
+                result = pattern.sub(default, result)
+        return result
+
+
+def has_placeholders(template: str) -> bool:
+    """Check if the template contains any placeholders.
+
+    Checks for both ``str.format()`` style (``{name}``) and
+    ``string.Template`` style (``$name``, ``${name}``) placeholders.
+
+    Args:
+        template: The template string to check.
+
+    Returns:
+        ``True`` if the template contains placeholders, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    format_pattern = re.compile(r"\{[^}]+\}")
+    if format_pattern.search(template):
+        return True
+    template_pattern = re.compile(r"\$[A-Za-z_][A-Za-z0-9_]*|\$\{[^}]+\}")
+    if template_pattern.search(template):
+        return True
+    return False
+
+
+def extract_placeholders(template: str) -> list[str]:
+    """Extract placeholder names from a template string.
+
+    Extracts names from both ``str.format()`` style (``{name}`` or
+    ``{name:format}``) and ``string.Template`` style (``$name`` or
+    ``${name}``) placeholders.
+
+    Args:
+        template: The template string to analyze.
+
+    Returns:
+        A list of placeholder names.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    placeholders: list[str] = []
+    format_pattern = re.compile(r"\{([^}:]+)(?::[^}]*)?\}")
+    for match in format_pattern.finditer(template):
+        name = match.group(1)
+        if name.isdigit():
+            continue
+        if name not in placeholders:
+            placeholders.append(name)
+    template_pattern = re.compile(r"\$\{([^}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)")
+    for match in template_pattern.finditer(template):
+        name = match.group(1) if match.group(1) else match.group(2)
+        if name and name not in placeholders:
+            placeholders.append(name)
+    return placeholders
+TEMPLATE_UTILS
+
+# --- tests/test_template_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_template_utils.py" <<'TESTTEMPLATEUTILS'
+"""Unit tests for the template_utils module."""
+
+import unittest
+
+from template_utils import (
+    extract_placeholders,
+    has_placeholders,
+    render_from_dict,
+    render_template,
+    safe_substitute,
+    substitute,
+)
+
+
+class TestRenderTemplate(unittest.TestCase):
+    """Test cases for render_template function."""
+
+    def test_basic_substitution(self) -> None:
+        result = render_template("Hello {name}!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_placeholders(self) -> None:
+        result = render_template(
+            "{greeting} {name}, you are {age} years old",
+            greeting="Hi",
+            name="Alice",
+            age=30,
+        )
+        self.assertEqual(result, "Hi Alice, you are 30 years old")
+
+    def test_no_placeholders(self) -> None:
+        result = render_template("Hello World")
+        self.assertEqual(result, "Hello World")
+
+    def test_numeric_formatting(self) -> None:
+        result = render_template("Pi is {0:.2f}", 3.14159)
+        self.assertEqual(result, "Pi is 3.14")
+
+    def test_missing_key_raises(self) -> None:
+        with self.assertRaises(KeyError):
+            render_template("Hello {name}!")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            render_template(123)  # type: ignore
+
+
+class TestSubstitute(unittest.TestCase):
+    """Test cases for substitute function."""
+
+    def test_basic_substitution(self) -> None:
+        result = substitute("Hello $name!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_braces_substitution(self) -> None:
+        result = substitute("Hello ${name}!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_placeholders(self) -> None:
+        result = substitute("$greeting $name", greeting="Hi", name="Alice")
+        self.assertEqual(result, "Hi Alice")
+
+    def test_with_mapping(self) -> None:
+        result = substitute("Hello $name", mapping={"name": "World"})
+        self.assertEqual(result, "Hello World")
+
+    def test_mapping_and_kwargs(self) -> None:
+        result = substitute("$a $b", mapping={"a": "Hello"}, b="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_missing_key_raises(self) -> None:
+        with self.assertRaises(KeyError):
+            substitute("Hello $name!")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            substitute(123)  # type: ignore
+
+
+class TestSafeSubstitute(unittest.TestCase):
+    """Test cases for safe_substitute function."""
+
+    def test_basic_substitution(self) -> None:
+        result = safe_substitute("Hello $name!", name="World")
+        self.assertEqual(result, "Hello World!")
+
+    def test_missing_key_preserved(self) -> None:
+        result = safe_substitute("Hello $name!")
+        self.assertEqual(result, "Hello $name!")
+
+    def test_partial_substitution(self) -> None:
+        result = safe_substitute("Hello $name, you are $age", name="Alice")
+        self.assertEqual(result, "Hello Alice, you are $age")
+
+    def test_with_braces(self) -> None:
+        result = safe_substitute("Hello ${name}", name="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            safe_substitute(123)  # type: ignore
+
+
+class TestRenderFromDict(unittest.TestCase):
+    """Test cases for render_from_dict function."""
+
+    def test_basic_render(self) -> None:
+        result = render_from_dict("Hello {name}!", {"name": "World"})
+        self.assertEqual(result, "Hello World!")
+
+    def test_multiple_keys(self) -> None:
+        result = render_from_dict("{a} {b}", {"a": "Hi", "b": "there"})
+        self.assertEqual(result, "Hi there")
+
+    def test_missing_key_with_default(self) -> None:
+        result = render_from_dict("Hello {name}!", {}, default="Guest")
+        self.assertEqual(result, "Hello Guest!")
+
+    def test_partial_keys(self) -> None:
+        result = render_from_dict("{greeting} {name}", {"greeting": "Hi"}, default="Friend")
+        self.assertEqual(result, "Hi Friend")
+
+    def test_no_context(self) -> None:
+        result = render_from_dict("Hello {name}", default="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_none_context(self) -> None:
+        result = render_from_dict("Hello {name}", context=None, default="World")
+        self.assertEqual(result, "Hello World")
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            render_from_dict(123, {})  # type: ignore
+
+    def test_non_mapping_context(self) -> None:
+        with self.assertRaises(TypeError):
+            render_from_dict("Hi", "not a dict")  # type: ignore
+
+
+class TestHasPlaceholders(unittest.TestCase):
+    """Test cases for has_placeholders function."""
+
+    def test_has_format_placeholder(self) -> None:
+        self.assertTrue(has_placeholders("Hello {name}"))
+
+    def test_has_multiple_format_placeholders(self) -> None:
+        self.assertTrue(has_placeholders("{a} {b} {c}"))
+
+    def test_has_template_placeholder(self) -> None:
+        self.assertTrue(has_placeholders("Hello $name"))
+
+    def test_has_template_braces(self) -> None:
+        self.assertTrue(has_placeholders("Hello ${name}"))
+
+    def test_no_placeholders(self) -> None:
+        self.assertFalse(has_placeholders("Hello World"))
+
+    def test_empty_string(self) -> None:
+        self.assertFalse(has_placeholders(""))
+
+    def test_mixed_placeholders(self) -> None:
+        self.assertTrue(has_placeholders("Hello {name} and $age"))
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            has_placeholders(123)  # type: ignore
+
+
+class TestExtractPlaceholders(unittest.TestCase):
+    """Test cases for extract_placeholders function."""
+
+    def test_extract_format_placeholders(self) -> None:
+        result = extract_placeholders("Hello {name}, you are {age}")
+        self.assertIn("name", result)
+        self.assertIn("age", result)
+
+    def test_extract_format_with_spec(self) -> None:
+        result = extract_placeholders("Value: {num:.2f}, Text: {name}")
+        self.assertIn("num", result)
+        self.assertIn("name", result)
+
+    def test_extract_template_placeholders(self) -> None:
+        result = extract_placeholders("Hello $name and $age")
+        self.assertIn("name", result)
+        self.assertIn("age", result)
+
+    def test_extract_template_braces(self) -> None:
+        result = extract_placeholders("Hello ${name}")
+        self.assertIn("name", result)
+
+    def test_extract_mixed(self) -> None:
+        result = extract_placeholders("{greeting} $name")
+        self.assertIn("greeting", result)
+        self.assertIn("name", result)
+
+    def test_extract_no_duplicates(self) -> None:
+        result = extract_placeholders("{name} $name")
+        self.assertEqual(result.count("name"), 1)
+
+    def test_no_placeholders(self) -> None:
+        result = extract_placeholders("Hello World")
+        self.assertEqual(result, [])
+
+    def test_skip_numeric_indices(self) -> None:
+        result = extract_placeholders("Hello {0} and {1}")
+        # Numeric indices should be skipped
+        self.assertEqual(result, [])
+
+    def test_empty_string(self) -> None:
+        result = extract_placeholders("")
+        self.assertEqual(result, [])
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            extract_placeholders(123)  # type: ignore
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTEMPLATEUTILS
+
+# --- inspect_utils.py ---
+cat > "$OUTPUT_DIR/inspect_utils.py" <<'INSPECT_UTILS'
+"""Callable and object introspection utilities.
+
+This module provides helpers for inspecting Python callables using the
+standard library :mod:`inspect` module: retrieving names, signatures,
+parameters, source locations, and whether an object is callable or a
+coroutine function. All functions validate their inputs and raise
+``TypeError`` or ``ValueError`` on invalid arguments.
+"""
+
+from __future__ import annotations
+
+import inspect
+from typing import Any, Dict, List, Optional, Tuple
+
+
+def get_callable_name(func: Any) -> str:
+    """Return the name of *func* or the class name of a callable instance.
+
+    Args:
+        func: A callable object.
+
+    Returns:
+        The ``__name__`` of functions and methods, or the class name for
+        callable instances without a ``__name__``.
+
+    Raises:
+        TypeError: If *func* is not callable.
+
+    Examples:
+        >>> def example(): ...
+        >>> get_callable_name(example)
+        'example'
+    """
+    if not callable(func):
+        raise TypeError(f"expected a callable, got {type(func).__name__}")
+    name: Optional[str] = getattr(func, "__name__", None)
+    if name:
+        return name
+    return str(type(func).__name__)
+
+
+def is_callable(obj: Any) -> bool:
+    """Return ``True`` if *obj* can be called.
+
+    Args:
+        obj: Any object.
+
+    Returns:
+        Whether *obj* is callable.
+
+    Examples:
+        >>> is_callable(len)
+        True
+        >>> is_callable(42)
+        False
+    """
+    return callable(obj)
+
+
+def is_async_callable(func: Any) -> bool:
+    """Return ``True`` if *func* is a coroutine function.
+
+    Args:
+        func: A callable object.
+
+    Returns:
+        Whether *func`` is an async callable.
+
+    Raises:
+        TypeError: If *func* is not callable.
+
+    Examples:
+        >>> async def coro(): ...
+        >>> is_async_callable(coro)
+        True
+    """
+    if not callable(func):
+        raise TypeError(f"expected a callable, got {type(func).__name__}")
+    return inspect.iscoroutinefunction(func)
+
+
+def get_signature(func: Any) -> inspect.Signature:
+    """Return the :class:`inspect.Signature` of *func*.
+
+    Args:
+        func: A callable object.
+
+    Returns:
+        The signature describing *func*'s parameters.
+
+    Raises:
+        TypeError: If *func* is not callable.
+        ValueError: If the signature cannot be introspected.
+
+    Examples:
+        >>> def example(a: int, b: str = "x") -> None: ...
+        >>> str(get_signature(example))
+        "(a: int, b: str = 'x')"
+    """
+    if not callable(func):
+        raise TypeError(f"expected a callable, got {type(func).__name__}")
+    try:
+        return inspect.signature(func)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"cannot introspect signature of {func!r}") from exc
+
+
+def get_parameter_names(func: Any) -> List[str]:
+    """Return the ordered list of parameter names of *func*.
+
+    Args:
+        func: A callable object.
+
+    Returns:
+        Parameter names in declaration order.
+
+    Raises:
+        TypeError: If *func* is not callable.
+        ValueError: If the signature cannot be introspected.
+    """
+    return list(get_signature(func).parameters)
+
+
+def get_parameter_kinds(func: Any) -> Dict[str, str]:
+    """Return a mapping of parameter name to its kind for *func*.
+
+    Args:
+        func: A callable object.
+
+    Returns:
+        Dictionary mapping parameter names to kind strings
+        (``POSITIONAL_ONLY``, ``POSITIONAL_OR_KEYWORD``, ``VAR_POSITIONAL``,
+        ``KEYWORD_ONLY``, ``VAR_KEYWORD``).
+
+    Raises:
+        TypeError: If *func* is not callable.
+        ValueError: If the signature cannot be introspected.
+    """
+    sig = get_signature(func)
+    return {name: param.kind.name for name, param in sig.parameters.items()}
+
+
+def count_parameters(func: Any) -> int:
+    """Return the number of parameters of *func*.
+
+    Args:
+        func: A callable object.
+
+    Returns:
+        The total number of declared parameters.
+
+    Raises:
+        TypeError: If *func* is not callable.
+        ValueError: If the signature cannot be introspected.
+    """
+    return len(get_signature(func).parameters)
+
+
+def has_parameter(func: Any, name: str) -> bool:
+    """Return ``True`` if *func* declares a parameter named *name*.
+
+    Args:
+        func: A callable object.
+        name: The parameter name to check.
+
+    Returns:
+        Whether *name* is a declared parameter of *func*.
+
+    Raises:
+        TypeError: If *func* is not callable or *name* is not a string.
+        ValueError: If the signature cannot be introspected.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"parameter name must be a string, got {type(name).__name__}")
+    return name in get_signature(func).parameters
+
+
+def bind_arguments(func: Any, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+    """Bind *args* and *kwargs* to *func*'s parameters, applying defaults.
+
+    Args:
+        func: A callable object.
+        *args: Positional arguments to bind.
+        **kwargs: Keyword arguments to bind.
+
+    Returns:
+        A dictionary mapping parameter names to their bound values, with
+        defaults filled in for unbound parameters.
+
+    Raises:
+        TypeError: If *func* is not callable or the arguments do not match.
+        ValueError: If the signature cannot be introspected.
+
+    Examples:
+        >>> def example(a, b=2, c=3): ...
+        >>> bind_arguments(example, 1, c=10)
+        {'a': 1, 'b': 2, 'c': 10}
+    """
+    if not callable(func):
+        raise TypeError(f"expected a callable, got {type(func).__name__}")
+    sig = get_signature(func)
+    try:
+        bound = sig.bind(*args, **kwargs)
+    except TypeError as exc:
+        raise TypeError(f"arguments do not match signature of {func!r}: {exc}") from exc
+    bound.apply_defaults()
+    return dict(bound.arguments)
+
+
+def is_builtin(func: Any) -> bool:
+    """Return ``True`` if *func* is a built-in function or method.
+
+    Args:
+        func: A callable object.
+
+    Returns:
+        Whether *func* is a built-in.
+
+    Raises:
+        TypeError: If *func* is not callable.
+
+    Examples:
+        >>> is_builtin(len)
+        True
+        >>> def example(): ...
+        >>> is_builtin(example)
+        False
+    """
+    if not callable(func):
+        raise TypeError(f"expected a callable, got {type(func).__name__}")
+    return inspect.isbuiltin(func)
+
+
+def get_source_file(func: Any) -> Optional[str]:
+    """Return the source file path defining *func*, if available.
+
+    Args:
+        func: A callable object.
+
+    Returns:
+        The source file path, or ``None`` if it cannot be determined.
+
+    Raises:
+        TypeError: If *func* is not callable.
+    """
+    if not callable(func):
+        raise TypeError(f"expected a callable, got {type(func).__name__}")
+    try:
+        return inspect.getfile(func)
+    except TypeError:
+        return None
+
+
+def get_source_lines(func: Any) -> Optional[Tuple[List[str], int]]:
+    """Return the source lines and starting line number of *func*, if available.
+
+    Args:
+        func: A callable object.
+
+    Returns:
+        A tuple of ``(lines, line_number)``, or ``None`` if unavailable.
+
+    Raises:
+        TypeError: If *func* is not callable.
+    """
+    if not callable(func):
+        raise TypeError(f"expected a callable, got {type(func).__name__}")
+    try:
+        lines, start = inspect.getsourcelines(func)
+    except (OSError, TypeError):
+        return None
+    return lines, start
+INSPECT_UTILS
+
+# --- tests/test_inspect_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_inspect_utils.py" <<'TESTINSPECTUTILS'
+"""Tests for inspect_utils module."""
+
+import unittest
+
+from inspect_utils import (
+    bind_arguments,
+    count_parameters,
+    get_callable_name,
+    get_parameter_kinds,
+    get_parameter_names,
+    get_signature,
+    get_source_file,
+    get_source_lines,
+    has_parameter,
+    is_async_callable,
+    is_builtin,
+    is_callable,
+)
+
+
+class TestIsCallable(unittest.TestCase):
+    def test_callable_builtin(self):
+        self.assertTrue(is_callable(len))
+        self.assertTrue(is_callable(print))
+
+    def test_callable_function(self):
+        def example():
+            pass
+
+        self.assertTrue(is_callable(example))
+
+    def test_callable_class(self):
+        class Example:
+            pass
+
+        self.assertTrue(is_callable(Example))
+
+    def test_callable_instance(self):
+        class Callable:
+            def __call__(self):
+                pass
+
+        self.assertTrue(is_callable(Callable()))
+
+    def test_not_callable(self):
+        self.assertFalse(is_callable(42))
+        self.assertFalse(is_callable("hello"))
+        self.assertFalse(is_callable(None))
+        self.assertFalse(is_callable([1, 2]))
+
+
+class TestGetCallableName(unittest.TestCase):
+    def test_function_name(self):
+        def example():
+            pass
+
+        self.assertEqual(get_callable_name(example), "example")
+
+    def test_builtin_name(self):
+        self.assertEqual(get_callable_name(len), "len")
+
+    def test_class_name(self):
+        class Example:
+            pass
+
+        self.assertEqual(get_callable_name(Example), "Example")
+
+    def test_callable_instance(self):
+        class Callable:
+            def __call__(self):
+                pass
+
+        self.assertEqual(get_callable_name(Callable()), "Callable")
+
+    def test_not_callable(self):
+        with self.assertRaises(TypeError):
+            get_callable_name(42)
+
+
+class TestIsAsyncCallable(unittest.TestCase):
+    def test_async_function(self):
+        async def coro():
+            pass
+
+        self.assertTrue(is_async_callable(coro))
+
+    def test_sync_function(self):
+        def example():
+            pass
+
+        self.assertFalse(is_async_callable(example))
+
+    def test_not_callable(self):
+        with self.assertRaises(TypeError):
+            is_async_callable(42)
+
+
+class TestGetSignature(unittest.TestCase):
+    def test_signature(self):
+        def example(a: int, b: str = "x") -> None:
+            pass
+
+        self.assertEqual(str(get_signature(example)), "(a: int, b: str = 'x')")
+
+    def test_builtin_raises(self):
+        with self.assertRaises(ValueError):
+            get_signature(len)
+
+    def test_not_callable(self):
+        with self.assertRaises(TypeError):
+            get_signature(42)
+
+
+class TestGetParameterNames(unittest.TestCase):
+    def test_names(self):
+        def example(a, b, c=3):
+            pass
+
+        self.assertEqual(get_parameter_names(example), ["a", "b", "c"])
+
+    def test_not_callable(self):
+        with self.assertRaises(TypeError):
+            get_parameter_names(42)
+
+
+class TestGetParameterKinds(unittest.TestCase):
+    def test_kinds(self):
+        def example(a, *args, b=1, **kwargs):
+            pass
+
+        kinds = get_parameter_kinds(example)
+        self.assertEqual(kinds["a"], "POSITIONAL_OR_KEYWORD")
+        self.assertEqual(kinds["args"], "VAR_POSITIONAL")
+        self.assertEqual(kinds["b"], "KEYWORD_ONLY")
+        self.assertEqual(kinds["kwargs"], "VAR_KEYWORD")
+
+
+class TestCountParameters(unittest.TestCase):
+    def test_count(self):
+        def example(a, b, c=3):
+            pass
+
+        self.assertEqual(count_parameters(example), 3)
+
+    def test_no_params(self):
+        def example():
+            pass
+
+        self.assertEqual(count_parameters(example), 0)
+
+
+class TestHasParameter(unittest.TestCase):
+    def test_has(self):
+        def example(a, b=1):
+            pass
+
+        self.assertTrue(has_parameter(example, "a"))
+        self.assertTrue(has_parameter(example, "b"))
+        self.assertFalse(has_parameter(example, "c"))
+
+    def test_invalid_name(self):
+        def example(a):
+            pass
+
+        with self.assertRaises(TypeError):
+            has_parameter(example, 1)
+
+    def test_not_callable(self):
+        with self.assertRaises(TypeError):
+            has_parameter(42, "a")
+
+
+class TestBindArguments(unittest.TestCase):
+    def test_bind(self):
+        def example(a, b=2, c=3):
+            pass
+
+        result = bind_arguments(example, 1, c=10)
+        self.assertEqual(result, {"a": 1, "b": 2, "c": 10})
+
+    def test_not_callable(self):
+        with self.assertRaises(TypeError):
+            bind_arguments(42)
+
+    def test_mismatch(self):
+        def example(a):
+            pass
+
+        with self.assertRaises(TypeError):
+            bind_arguments(example, 1, 2)
+
+
+class TestIsBuiltin(unittest.TestCase):
+    def test_builtin(self):
+        self.assertTrue(is_builtin(len))
+
+    def test_not_builtin(self):
+        def example():
+            pass
+
+        self.assertFalse(is_builtin(example))
+
+    def test_not_callable(self):
+        with self.assertRaises(TypeError):
+            is_builtin(42)
+
+
+class TestGetSourceFile(unittest.TestCase):
+    def test_builtin_no_source(self):
+        self.assertIsNone(get_source_file(len))
+
+    def test_not_callable(self):
+        with self.assertRaises(TypeError):
+            get_source_file(42)
+
+
+class TestGetSourceLines(unittest.TestCase):
+    def test_source_lines(self):
+        def example():
+            return 1
+
+        result = get_source_lines(example)
+        self.assertIsNotNone(result)
+        lines, start = result
+        self.assertIsInstance(lines, list)
+        self.assertIsInstance(start, int)
+
+    def test_builtin_no_source(self):
+        self.assertIsNone(get_source_lines(len))
+
+    def test_not_callable(self):
+        with self.assertRaises(TypeError):
+            get_source_lines(42)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTINSPECTUTILS
+
 # --- config_schema.py ---
 cat > "$OUTPUT_DIR/config_schema.py" <<'CONFIG_SCHEMA'
 """Typed configuration schema utilities.

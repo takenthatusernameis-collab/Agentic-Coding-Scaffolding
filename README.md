@@ -92,6 +92,7 @@ greeting_utils.py          # Greeting utilities (greet, format_names, random_gre
 version_utils.py           # Version utility functions (parse, compare, normalize)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
+inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
@@ -578,3 +579,7 @@ The project includes fraction arithmetic utilities in `fractions_utils.py` for e
 ## Identifier Utilities Module
 
 The project includes identifier generation and validation utilities in `id_utils.py` for creating short, URL-safe random identifiers: `generate_id` returns a random alphanumeric string of a given length, `new_id` returns a default 8-character identifier, and `is_valid_id` checks whether a string is a valid identifier of a given length. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_id_utils.py`.
+
+## Inspect Utilities Module
+
+The project includes callable and object introspection utilities in `inspect_utils.py` for working with Python callables using the standard library `inspect` module: `get_callable_name` returns the name of a callable or the class name of a callable instance, `is_callable` tests whether an object can be called, `is_async_callable` detects coroutine functions, `get_signature` returns an `inspect.Signature`, `get_parameter_names` and `get_parameter_kinds` describe a callable's parameters, `count_parameters` returns the parameter count, `has_parameter` checks for a named parameter, `bind_arguments` binds positional and keyword arguments with defaults applied, `is_builtin` detects built-in functions, and `get_source_file`/`get_source_lines` locate a callable's source. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_inspect_utils.py`.

@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `inspect_utils.py` — callable and object introspection utilities (`get_callable_name`, `is_callable`, `is_async_callable`, `get_signature`, `get_parameter_names`, `get_parameter_kinds`, `count_parameters`, `has_parameter`, `bind_arguments`, `is_builtin`, `get_source_file`, `get_source_lines`) using the standard library `inspect` module with input validation.
+- `tests/test_inspect_utils.py` — unit tests for `inspect_utils.py`
+
 - Added `id_utils.py` — identifier generation and validation utilities (`generate_id`, `new_id`, `is_valid_id`) for short URL-safe random identifiers with input validation.
 - `tests/test_id_utils.py` — unit tests for `id_utils.py`
 

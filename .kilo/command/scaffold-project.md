@@ -135,6 +135,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_id_utils.py` — unit tests for `id_utils.py`
 - `http_utils.py` — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`)
 - `id_utils.py` — Identifier generation and validation utilities (`generate_id`, `new_id`, `is_valid_id`) for short URL-safe random identifiers with input validation
+- `inspect_utils.py` — callable and object introspection utilities (`get_callable_name`, `is_callable`, `is_async_callable`, `get_signature`, `get_parameter_names`, `get_parameter_kinds`, `count_parameters`, `has_parameter`, `bind_arguments`, `is_builtin`, `get_source_file`, `get_source_lines`) using the standard library `inspect` module
+- `tests/test_inspect_utils.py` — unit tests for `inspect_utils.py`
 - `tests/test_http_utils.py` — unit tests for `http_utils.py`
 - `html_utils.py` — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
