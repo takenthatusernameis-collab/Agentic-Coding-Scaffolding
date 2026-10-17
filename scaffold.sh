@@ -192,6 +192,8 @@
 
 #   - config_schema.py — # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 
+#   - copy_utils.py — # Copy utilities (shallow/deep copy, dict copy, merge) wrapping stdlib copy module
+
 #   - exceptions_utils.py — # Custom exception classes and error handling utilities
 
 #   - enum_utils.py — # Enum utilities for working with Python enum.Enum classes
@@ -811,6 +813,7 @@ py_modules = [
     "pattern_utils",
     "functools_utils",
     "config_schema",
+    "copy_utils",
     "exceptions_utils",
     "enum_utils",
     "io_utils",
@@ -31325,3 +31328,267 @@ class TestCreateFinalizer(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 WEAKREFTESTS
+
+# --- copy_utils.py ---
+cat > "$OUTPUT_DIR/copy_utils.py" <<'COPYUTILS'
+"""Copy utilities for duplicating Python objects and mappings.
+
+This module wraps the standard library :mod:`copy` module with input
+validation and convenience helpers for shallow and deep copying of objects
+and dictionaries. All functions raise ``TypeError`` or ``ValueError`` on
+invalid arguments.
+"""
+
+from __future__ import annotations
+
+import copy as _copy
+from typing import Any, Dict, TypeVar
+
+T = TypeVar("T")
+K = TypeVar("K")
+V = TypeVar("V")
+
+__all__: list[str] = [
+    "shallow_copy",
+    "deep_copy",
+    "copy_dict",
+    "deep_copy_dict",
+    "merge_copy",
+    "is_same_object",
+]
+
+
+def shallow_copy(obj: T) -> T:
+    """Return a shallow copy of *obj*.
+
+    Args:
+        obj: The object to copy.
+
+    Returns:
+        A new object that is a shallow copy of *obj*.
+
+    Raises:
+        TypeError: If *obj* cannot be copied.
+    """
+    try:
+        return _copy.copy(obj)  # type: ignore[return-value]
+    except TypeError as exc:
+        raise TypeError(f"object of type {type(obj).__name__} cannot be shallow copied") from exc
+
+
+def deep_copy(obj: T) -> T:
+    """Return a deep copy of *obj*.
+
+    Args:
+        obj: The object to copy.
+
+    Returns:
+        A new object that is a deep copy of *obj*.
+
+    Raises:
+        TypeError: If *obj* cannot be deep copied.
+    """
+    try:
+        return _copy.deepcopy(obj)  # type: ignore[return-value]
+    except TypeError as exc:
+        raise TypeError(f"object of type {type(obj).__name__} cannot be deep copied") from exc
+
+
+def copy_dict(mapping: Dict[K, V]) -> Dict[K, V]:
+    """Return a shallow copy of *mapping*.
+
+    Args:
+        mapping: The dictionary to copy.
+
+    Returns:
+        A new dictionary with the same keys and values as *mapping*.
+
+    Raises:
+        TypeError: If *mapping* is not a dictionary.
+    """
+    if not isinstance(mapping, dict):
+        raise TypeError(f"mapping must be a dict, got {type(mapping).__name__}")
+    return dict(mapping)
+
+
+def deep_copy_dict(mapping: Dict[K, V]) -> Dict[K, V]:
+    """Return a deep copy of *mapping*.
+
+    Args:
+        mapping: The dictionary to copy.
+
+    Returns:
+        A new dictionary with deeply copied keys and values.
+
+    Raises:
+        TypeError: If *mapping* is not a dictionary.
+    """
+    if not isinstance(mapping, dict):
+        raise TypeError(f"mapping must be a dict, got {type(mapping).__name__}")
+    return _copy.deepcopy(mapping)
+
+
+def merge_copy(*mappings: Dict[K, V]) -> Dict[K, V]:
+    """Return a new dictionary merging *mappings*, later ones taking precedence.
+
+    The input mappings are not mutated.
+
+    Args:
+        *mappings: Dictionaries to merge.
+
+    Returns:
+        A new merged dictionary.
+
+    Raises:
+        TypeError: If any argument is not a dictionary.
+    """
+    for mapping in mappings:
+        if not isinstance(mapping, dict):
+            raise TypeError(
+                f"all arguments must be dicts, got {type(mapping).__name__}"
+            )
+    result: Dict[K, V] = {}
+    for mapping in mappings:
+        result.update(mapping)
+    return result
+
+
+def is_same_object(a: Any, b: Any) -> bool:
+    """Return True if *a* and *b* are the same object (identity check).
+
+    Args:
+        a: The first object.
+        b: The second object.
+
+    Returns:
+        True if *a* is *b*, False otherwise.
+    """
+    return a is b
+COPYUTILS
+# --- tests/test_copy_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_copy_utils.py" <<'TESTCOPYUTILS'
+import unittest
+
+from copy_utils import (
+    copy_dict,
+    deep_copy,
+    deep_copy_dict,
+    is_same_object,
+    merge_copy,
+    shallow_copy,
+)
+
+
+class TestShallowCopy(unittest.TestCase):
+    def test_returns_equal_copy(self):
+        original = [1, 2, 3]
+        copied = shallow_copy(original)
+        self.assertEqual(copied, original)
+        self.assertIsNot(copied, original)
+
+    def test_immutable_returns_equal(self):
+        self.assertEqual(shallow_copy(42), 42)
+        self.assertEqual(shallow_copy("hello"), "hello")
+
+    def test_nested_list_shares_inner(self):
+        original = [[1, 2], [3, 4]]
+        copied = shallow_copy(original)
+        self.assertEqual(copied, original)
+        self.assertIsNot(copied, original)
+        self.assertIs(copied[0], original[0])
+
+
+class TestDeepCopy(unittest.TestCase):
+    def test_returns_equal_copy(self):
+        original = [1, 2, 3]
+        copied = deep_copy(original)
+        self.assertEqual(copied, original)
+        self.assertIsNot(copied, original)
+
+    def test_nested_list_is_independent(self):
+        original = [[1, 2], [3, 4]]
+        copied = deep_copy(original)
+        self.assertEqual(copied, original)
+        self.assertIsNot(copied, original)
+        self.assertIsNot(copied[0], original[0])
+        copied[0].append(99)
+        self.assertNotIn(99, original[0])
+
+    def test_dict_is_independent(self):
+        original = {"a": [1, 2], "b": {"c": 3}}
+        copied = deep_copy(original)
+        copied["a"].append(99)
+        copied["b"]["c"] = 0
+        self.assertNotIn(99, original["a"])
+        self.assertEqual(original["b"]["c"], 3)
+
+
+class TestCopyDict(unittest.TestCase):
+    def test_shallow_dict_copy(self):
+        original = {"a": 1, "b": 2}
+        copied = copy_dict(original)
+        self.assertEqual(copied, original)
+        self.assertIsNot(copied, original)
+
+    def test_nested_dict_shares_values(self):
+        inner = {"x": 1}
+        original = {"key": inner}
+        copied = copy_dict(original)
+        self.assertIs(copied["key"], inner)
+
+    def test_non_dict_raises(self):
+        with self.assertRaises(TypeError):
+            copy_dict([1, 2, 3])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            copy_dict("not a dict")  # type: ignore[arg-type]
+
+
+class TestDeepCopyDict(unittest.TestCase):
+    def test_deep_dict_copy(self):
+        inner = {"x": 1}
+        original = {"key": inner}
+        copied = deep_copy_dict(original)
+        self.assertEqual(copied, original)
+        self.assertIsNot(copied, original)
+        self.assertIsNot(copied["key"], inner)
+        copied["key"]["x"] = 99
+        self.assertEqual(original["key"]["x"], 1)
+
+    def test_non_dict_raises(self):
+        with self.assertRaises(TypeError):
+            deep_copy_dict(None)  # type: ignore[arg-type]
+
+
+class TestMergeCopy(unittest.TestCase):
+    def test_merges_multiple(self):
+        result = merge_copy({"a": 1}, {"b": 2}, {"a": 3})
+        self.assertEqual(result, {"a": 3, "b": 2})
+
+    def test_inputs_not_mutated(self):
+        base = {"a": 1}
+        override = {"b": 2}
+        merge_copy(base, override)
+        self.assertEqual(base, {"a": 1})
+        self.assertEqual(override, {"b": 2})
+
+    def test_empty(self):
+        self.assertEqual(merge_copy(), {})
+
+    def test_non_dict_raises(self):
+        with self.assertRaises(TypeError):
+            merge_copy({"a": 1}, [1, 2])  # type: ignore[arg-type]
+
+
+class TestIsSameObject(unittest.TestCase):
+    def test_same_object(self):
+        obj = [1, 2, 3]
+        self.assertTrue(is_same_object(obj, obj))
+
+    def test_different_objects(self):
+        self.assertFalse(is_same_object([1, 2], [1, 2]))
+        self.assertFalse(is_same_object(1, 2))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCOPYUTILS

@@ -96,6 +96,7 @@ py_modules = [
     "pattern_utils",
     "functools_utils",
     "config_schema",
+    "copy_utils",
     "exceptions_utils",
     "enum_utils",
     "io_utils",

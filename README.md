@@ -118,6 +118,7 @@ pattern_utils.py           # Design pattern utilities (Singleton, Factory, Obser
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
+copy_utils.py              # Copy utilities (shallow/deep copy, dict copy, merge) wrapping stdlib copy module
 exceptions_utils.py        # Custom exception classes and error handling utilities
 enum_utils.py              # Enum utilities for working with Python enum.Enum classes
 io_utils.py                # Line-oriented and atomic input/output utilities
@@ -143,6 +144,7 @@ tests/                     # Python unit tests
   test_collections_utils.py   # Tests for collections_utils.py
   test_compression_utils.py   # Tests for compression_utils.py
   test_config_schema.py       # Tests for config_schema.py
+  test_copy_utils.py          # Tests for copy_utils.py
   test_config_utils.py        # Tests for config_utils.py
   test_concurrent_utils.py    # Tests for concurrent_utils.py
   test_context_utils.py       # Tests for context_utils.py
@@ -616,3 +618,7 @@ The project includes deprecation utilities in `deprecation_utils.py` for marking
 ## Ring Buffer Utilities Module
 
 The project includes fixed-size circular (ring) buffer utilities in `ring_buffer_utils.py`: `RingBuffer` is a bounded buffer that overwrites the oldest element when full, with `append`, `get`, `peek`, `pop`, `clear`, `to_list`, `from_list`, plus `capacity`, `is_full`, and `is_empty` properties. Module-level helpers `create`, `append`, `get`, `pop`, `peek`, `is_empty`, `is_full`, `size`, `clear`, and `to_list` are also provided. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_ring_buffer_utils.py`.
+
+## Copy Utilities Module
+
+The project includes copy utilities in `copy_utils.py` for duplicating Python objects and mappings using the standard library `copy` module: `shallow_copy` returns a shallow copy, `deep_copy` returns a deep copy, `copy_dict` and `deep_copy_dict` return shallow and deep copies of a dictionary, `merge_copy` merges multiple dictionaries into a new one without mutating the inputs, and `is_same_object` performs an identity check. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_copy_utils.py`.
