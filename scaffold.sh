@@ -182,6 +182,7 @@
 
 #   - base64_utils.py — # Base64 and hexadecimal encoding/decoding utilities
 
+#   - array_utils.py — # Array utility functions wrapping the standard library array module
 #   - bisect_utils.py — # Bisect utility functions for binary search on sorted sequences
 
 #   - call_once_utils.py — # Call-once execution utilities (call_once decorator)
@@ -226,6 +227,7 @@
 
 #   - test_async_utils.py — # Tests for async_utils.py
 
+#   - test_array_utils.py — # Tests for array_utils.py
 #   - test_base64_utils.py — # Tests for base64_utils.py
 
 #   - test_bisect_utils.py — # Tests for bisect_utils.py
@@ -852,6 +854,7 @@ py_modules = [
      "hmac_utils",
      "http_utils",
      "html_utils",
+    "array_utils",
     "base64_utils",
     "bisect_utils",
     "calendar_utils",
@@ -16741,6 +16744,87 @@ if __name__ == "__main__":
     unittest.main()
 TESTBASE64UTILS
 
+# --- array_utils.py ---
+cat > "$OUTPUT_DIR/array_utils.py" <<'ARRAY_UTILS'
+"""Array utility functions wrapping the standard library 'array' module."""
+
+from __future__ import annotations
+
+from array import array
+from typing import Any, Iterable
+
+__all__: list[str] = [
+    "array_create",
+    "array_fromlist",
+    "array_tolist",
+    "array_append",
+    "array_extend",
+    "array_insert",
+    "array_pop",
+    "array_remove",
+    "array_reverse",
+    "array_buffer_info",
+    "array_byteswap",
+    "array_count",
+    "array_index",
+]
+
+
+def array_create(typecode: str, initial: Iterable[Any] | None = None) -> array:
+    if initial is None:
+        return array(typecode)
+    return array(typecode, initial)
+
+
+def array_fromlist(typecode: str, lst: list[Any]) -> array:
+    return array(typecode, lst)
+
+
+def array_tolist(arr: array) -> list[Any]:
+    return list(arr)
+
+
+def array_append(arr: array, item: Any) -> None:
+    arr.append(item)
+
+
+def array_extend(arr: array, iterable: Iterable[Any]) -> None:
+    arr.extend(iterable)
+
+
+def array_insert(arr: array, index: int, item: Any) -> None:
+    arr.insert(index, item)
+
+
+def array_pop(arr: array, index: int = -1) -> Any:
+    return arr.pop(index)
+
+
+def array_remove(arr: array, item: Any) -> None:
+    arr.remove(item)
+
+
+def array_reverse(arr: array) -> None:
+    arr.reverse()
+
+
+def array_buffer_info(arr: array) -> tuple[int, int]:
+    return arr.buffer_info()
+
+
+def array_byteswap(arr: array) -> None:
+    arr.byteswap()
+
+
+def array_count(arr: array, item: Any) -> int:
+    return arr.count(item)
+
+
+def array_index(arr: array, item: Any, start: int = 0, stop: int | None = None) -> int:
+    if stop is None:
+        return arr.index(item, start)
+    return arr.index(item, start, stop)
+ARRAY_UTILS
 # --- bisect_utils.py ---
 cat > "$OUTPUT_DIR/bisect_utils.py" <<'BISECT_UTILS'
 """Bisect utility functions for binary search on sorted sequences."""
@@ -17696,6 +17780,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_deprecation_utils.py` — unit tests for `html_utils.py`
 - `bytes_utils.py` — bytes and binary utilities (`to_hex`, `from_hex`, `xor`, `chunk`)
 - `tests/test_bytes_utils.py` — unit tests for `bytes_utils.py`
+- `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
+- `array_utils.py` — array utility functions wrapping the standard library `array` module (`array_create`, `array_fromlist`, `array_tolist`, `array_append`, `array_extend`, `array_insert`, `array_pop`, `array_remove`, `array_reverse`, `array_buffer_info`, `array_byteswap`, `array_count`, `array_index`)
+- `tests/test_array_utils.py` — unit tests for `array_utils.py`
 - `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
 - `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
 - `bisect_utils.py` — bisect utility functions for binary search on sorted sequences (`bisect_left`, `bisect_right`, `insort_left`, `insort_right`, `find_leftmost`, `find_rightmost`)
@@ -18727,6 +18814,7 @@ terminal_utils.py          # Terminal output utilities (ANSI color, progress bar
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
 tests/                     # Python unit tests
   test_async_utils.py         # Tests for async_utils.py
+  test_array_utils.py        # Tests for array_utils.py
   test_base64_utils.py        # Tests for base64_utils.py
   test_bisect_utils.py        # Tests for bisect_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
@@ -19020,6 +19108,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `scaffold.sh` syntax error introduced by a previous checkpoint commit: two bare module-list lines (missing `#   ` comment prefix) inside the script header broke bash parsing for project names containing parentheses. Replaced them with properly commented header lines and added the missing `bytes_utils.py` / `tests/test_bytes_utils.py` heredoc blocks so scaffolded projects generate the module and its tests. Added `bytes_utils` to `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `tests/test_scaffold.py` assertions.
 
 - `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`) using the standard library `base64` module with input validation
+- `array_utils.py` — array utility functions wrapping the standard library `array` module (`array_create`, `array_fromlist`, `array_tolist`, `array_append`, `array_extend`, `array_insert`, `array_pop`, `array_remove`, `array_reverse`, `array_buffer_info`, `array_byteswap`, `array_count`, `array_index`)
+- `tests/test_array_utils.py` — unit tests for `array_utils.py`
+- `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
 - `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
 - Added `base64_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions.
 
@@ -28871,6 +28962,109 @@ def add_months(year: int, month: int, months: int) -> tuple[int, int]:
     return total // 12, total % 12 + 1
 CALENDARUTILS
 
+# --- tests/test_array_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_array_utils.py" <<'ARRAYTESTS'
+"""Tests for array_utils."""
+
+from array import array
+from array_utils import (
+    array_append,
+    array_buffer_info,
+    array_byteswap,
+    array_count,
+    array_create,
+    array_extend,
+    array_fromlist,
+    array_index,
+    array_insert,
+    array_pop,
+    array_remove,
+    array_reverse,
+    array_tolist,
+)
+
+
+def test_array_create():
+    a = array_create("i", [1, 2, 3])
+    assert isinstance(a, array)
+    assert list(a) == [1, 2, 3]
+
+
+def test_array_create_empty():
+    a = array_create("i")
+    assert isinstance(a, array)
+    assert len(a) == 0
+
+
+def test_array_fromlist():
+    a = array_fromlist("i", [1, 2, 3])
+    assert list(a) == [1, 2, 3]
+
+
+def test_array_tolist():
+    a = array("i", [1, 2, 3])
+    assert array_tolist(a) == [1, 2, 3]
+
+
+def test_array_append():
+    a = array("i", [1, 2])
+    array_append(a, 3)
+    assert list(a) == [1, 2, 3]
+
+
+def test_array_extend():
+    a = array("i", [1, 2])
+    array_extend(a, [3, 4])
+    assert list(a) == [1, 2, 3, 4]
+
+
+def test_array_insert():
+    a = array("i", [1, 3])
+    array_insert(a, 1, 2)
+    assert list(a) == [1, 2, 3]
+
+
+def test_array_pop():
+    a = array("i", [1, 2, 3])
+    assert array_pop(a) == 3
+    assert array_pop(a, 0) == 1
+
+
+def test_array_remove():
+    a = array("i", [1, 2, 3])
+    array_remove(a, 2)
+    assert list(a) == [1, 3]
+
+
+def test_array_reverse():
+    a = array("i", [1, 2, 3])
+    array_reverse(a)
+    assert list(a) == [3, 2, 1]
+
+
+def test_array_buffer_info():
+    a = array("i", [1, 2, 3])
+    info = array_buffer_info(a)
+    assert isinstance(info, tuple)
+    assert len(info) == 2
+
+
+def test_array_byteswap():
+    a = array("H", [1, 2])
+    array_byteswap(a)
+
+
+def test_array_count():
+    a = array("i", [1, 2, 2, 3])
+    assert array_count(a, 2) == 2
+
+
+def test_array_index():
+    a = array("i", [1, 2, 2, 3])
+    assert array_index(a, 2) == 1
+    assert array_index(a, 2, 2) == 2
+    assert array_index(a, 2, 0, 3) == 1
+ARRAYTESTS
 # --- tests/test_bisect_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_bisect_utils.py" <<'BISECTTESTS'
 """Tests for bisect_utils."""

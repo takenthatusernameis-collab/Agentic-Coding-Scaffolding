@@ -114,6 +114,7 @@ id_utils.py                # Identifier generation and validation utilities (gen
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
+array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
@@ -137,6 +138,7 @@ terminal_utils.py          # Terminal output utilities (ANSI color, progress bar
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
 tests/                     # Python unit tests
   test_async_utils.py         # Tests for async_utils.py
+  test_array_utils.py        # Tests for array_utils.py
   test_base64_utils.py        # Tests for base64_utils.py
   test_bisect_utils.py       # Tests for bisect_utils.py
   test_bit_utils.py           # Tests for bit_utils.py

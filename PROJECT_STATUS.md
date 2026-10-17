@@ -2,5 +2,5 @@
 
 - All tests pass (1982 tests).
 - Lint and typecheck pass.
-- Last completed work: difflib_utils synchronized across scaffold pipeline.
-- Next suggested work: add a new stdlib utility module (e.g., array_utils wrapping stdlib `array`) following existing patterns and synchronize across scaffold pipeline.
+- Last completed work: array_utils wrapping stdlib array synchronized across scaffold pipeline.
+- Next suggested work: add a new stdlib utility module (e.g., weakref_utils improvements or another simple stdlib wrapper) following existing patterns and synchronize across scaffold pipeline.

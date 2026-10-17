@@ -120,6 +120,7 @@ py_modules = [
     "hash_utils",
     "http_utils",
     "html_utils",
+    "array_utils",
     "base64_utils",
     "bisect_utils",
     "calendar_utils",
