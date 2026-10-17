@@ -140,12 +140,12 @@ def redirect_stderr(target: TextIO) -> AbstractContextManager[None]:
 
 @contextmanager
 def _redirect_stream(module: Any, name: str, target: TextIO) -> Iterator[None]:
-    previous = getattr(module, name)
+    getattr(module, name)
     setattr(module, name, target)
     try:
         yield
     finally:
-        setattr(module, name, previous)
+        setattr(module, name, getattr(module, f"__{name}__"))
 
 
 def suppress(*exceptions: type[BaseException]) -> AbstractContextManager[None]:
