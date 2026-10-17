@@ -226,6 +226,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "weakref_utils.py",
             "tests/test_xml_utils.py",
             "tests/test_weakref_utils.py",
+            "warnings_utils.py",
+            "tests/test_warnings_utils.py",
             "seq_utils.py",
             "tests/test_seq_utils.py",
             "number_utils.py",
@@ -418,6 +420,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "temp_utils.py",
             "xml_utils.py",
             "weakref_utils.py",
+            "warnings_utils.py",
+            "tests/test_warnings_utils.py",
             "seq_utils.py",
             "graphlib_utils.py",
             "queue_utils.py",
@@ -473,6 +477,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_time_utils.py",
             "weakref_utils.py",
             "tests/test_weakref_utils.py",
+            "warnings_utils.py",
+            "tests/test_warnings_utils.py",
             "template_utils.py",
             "tests/test_template_utils.py",
             "semver_utils.py",
@@ -580,6 +586,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "temp_utils.py",
             "xml_utils.py",
             "weakref_utils.py",
+            "warnings_utils.py",
+            "tests/test_warnings_utils.py",
             "seq_utils.py",
             "graphlib_utils.py",
             "queue_utils.py",
@@ -1045,6 +1053,28 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertEqual(from_hex("616263"), b"abc")
         self.assertEqual(xor(b"abc", b"\x01"), b"`cb")
         self.assertEqual(chunk(b"abcdef", 2), [b"ab", b"cd", b"ef"])
+
+    def test_warnings_utils_functions_work(self) -> None:
+        """Generated warnings_utils.py should have working functions."""
+        import warnings
+
+        from warnings_utils import catch_warnings, filterwarnings, resetwarnings, simplefilter, warn
+
+        with catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            warn("hello")
+            self.assertIsNotNone(caught)
+            self.assertEqual(len(caught), 1)  # type: ignore[arg-type]
+            self.assertEqual(str(caught[0].message), "hello")  # type: ignore[index]
+
+        with self.assertRaises(TypeError):
+            warn(123)  # type: ignore[arg-type]
+
+        with self.assertRaises(ValueError):
+            simplefilter("bogus")
+
+        filterwarnings("ignore")
+        resetwarnings()
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

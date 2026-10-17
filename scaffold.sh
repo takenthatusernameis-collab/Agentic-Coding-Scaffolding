@@ -206,6 +206,8 @@
 
 #   - weakref_utils.py — # Weak reference utilities for managing weak references to objects
 
+#   - warnings_utils.py — # Utilities wrapping the standard library warnings module
+
 #   - compression_utils.py — # Compression and decompression utilities (gzip, bz2, zip, tar)
 
 #   - ip_utils.py — # IP address validation and manipulation utilities
@@ -404,6 +406,8 @@
 #   - test_interval_utils.py — # Tests for interval_utils.py
 
 #   - test_weakref_utils.py — # Tests for weakref_utils.py
+
+#   - test_warnings_utils.py — # Tests for warnings_utils.py
 
 #   - test_xml_utils.py — # Tests for xml_utils.py
 set -euo pipefail
@@ -847,6 +851,7 @@ py_modules = [
     "temp_utils",
     "xml_utils",
     "weakref_utils",
+    "warnings_utils",
     "seq_utils",
     "queue_utils",
     "sort_utils",
@@ -17676,6 +17681,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_fractions_utils.py` — unit tests for `fractions_utils.py`
 - `weakref_utils.py` — weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`)
 - `tests/test_weakref_utils.py` — unit tests for `weakref_utils.py`
+- `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation
+- `tests/test_warnings_utils.py` — unit tests for `warnings_utils.py`
 - `heapq_utils.py` — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)
 - `tests/test_heapq_utils.py` — unit tests for `heapq_utils.py`
 - `markdown_utils.py` — Markdown utility functions (`extract_code_blocks`, `strip_markdown`, `count_words`, `is_heading`, `heading_level`)
@@ -18645,6 +18652,7 @@ enum_utils.py              # Enum utilities for working with Python enum.Enum cl
 io_utils.py                # Line-oriented and atomic input/output utilities
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
+warnings_utils.py           # Utilities wrapping the standard library warnings module
 compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
 ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
@@ -18744,6 +18752,7 @@ tests/                     # Python unit tests
   test_semver_utils.py        # Tests for semver_utils.py
   test_interval_utils.py      # Tests for interval_utils.py
   test_weakref_utils.py       # Tests for weakref_utils.py
+  test_warnings_utils.py      # Tests for warnings_utils.py
   test_xml_utils.py           # Tests for xml_utils.py
   ```
 ## Getting Started
@@ -18789,6 +18798,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation, plus `tests/test_warnings_utils.py`.
+- Synchronized `warnings_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Synchronized `copy_utils.py` across the `scaffold.sh` heredoc for `.kilo/command/scaffold-project.md` so the scaffolded project documentation lists the module and its tests; previously the doc entry was missing, causing `tests/test_scaffold.py::test_scaffold_project_doc_lists_all_modules` to fail.
 
@@ -31392,6 +31404,43 @@ def create_finalizer(obj: Any, callback: Callable[..., Any]) -> weakref.finalize
     return weakref.finalize(obj, callback)
 WEAKREF_UTILS
 
+# --- warnings_utils.py ---
+cat > "$OUTPUT_DIR/warnings_utils.py" <<'WARNINGS_UTILS'
+"""Utilities wrapping the standard library ``warnings`` module."""
+
+import warnings
+from contextlib import contextmanager
+from typing import Iterator, Optional, Type
+
+
+def warn(message: str, category: Type[Warning] = UserWarning, stacklevel: int = 1) -> None:
+    if not isinstance(message, str):
+        raise TypeError("message must be str")
+    warnings.warn(message, category=category, stacklevel=stacklevel)
+
+
+def simplefilter(action: str, category: Type[Warning] = Warning) -> None:
+    if action not in {"error", "ignore", "always", "default", "module", "once"}:
+        raise ValueError("invalid action")
+    warnings.simplefilter(action, category=category)  # type: ignore[arg-type]
+
+
+@contextmanager
+def catch_warnings(record: bool = False) -> Iterator[Optional[list]]:
+    with warnings.catch_warnings(record=record) as w:
+        yield w
+
+
+def filterwarnings(action: str, message: str = "", category: Type[Warning] = Warning,
+                  module: str = "", lineno: int = 0, append: bool = False) -> None:
+    warnings.filterwarnings(action, message=message, category=category, module=module,  # type: ignore[arg-type]
+                           lineno=lineno, append=append)
+
+
+def resetwarnings() -> None:
+    warnings.resetwarnings()
+WARNINGS_UTILS
+
 # --- tests/test_fractions_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_fractions_utils.py" <<'FRACTIONSTESTS'
 """Tests for fractions_utils."""
@@ -31702,6 +31751,52 @@ class TestCreateFinalizer(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 WEAKREFTESTS
+
+# --- tests/test_warnings_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_warnings_utils.py" <<'WARNINGSTESTS'
+"""Tests for warnings_utils."""
+
+import warnings
+
+import warnings_utils
+
+
+def test_warn_emits():
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        warnings_utils.warn("hello")
+        assert len(w) == 1
+        assert str(w[0].message) == "hello"
+
+
+def test_warn_type_error():
+    try:
+        warnings_utils.warn(123)
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")
+
+
+def test_simplefilter_invalid():
+    try:
+        warnings_utils.simplefilter("bogus")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_catch_warnings_context():
+    with warnings_utils.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        warnings.warn("x")
+        assert len(w) == 1
+
+
+def test_resetwarnings():
+    warnings_utils.resetwarnings()
+WARNINGSTESTS
 
 # --- copy_utils.py ---
 cat > "$OUTPUT_DIR/copy_utils.py" <<'COPYUTILS'

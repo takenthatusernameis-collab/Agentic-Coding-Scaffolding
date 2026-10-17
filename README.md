@@ -127,6 +127,7 @@ enum_utils.py              # Enum utilities for working with Python enum.Enum cl
 io_utils.py                # Line-oriented and atomic input/output utilities
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
+warnings_utils.py           # Utilities wrapping the standard library warnings module
 compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
 ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
@@ -230,6 +231,7 @@ test_scaffold.py            # Tests for scaffold.sh
   test_semver_utils.py        # Tests for semver_utils.py
   test_interval_utils.py      # Tests for interval_utils.py
   test_weakref_utils.py       # Tests for weakref_utils.py
+  test_warnings_utils.py      # Tests for warnings_utils.py
   test_xml_utils.py           # Tests for xml_utils.py
   ```
 
@@ -640,3 +642,7 @@ The project includes fixed-size circular (ring) buffer utilities in `ring_buffer
 ## Copy Utilities Module
 
 The project includes copy utilities in `copy_utils.py` for duplicating Python objects and mappings using the standard library `copy` module: `shallow_copy` returns a shallow copy, `deep_copy` returns a deep copy, `copy_dict` and `deep_copy_dict` return shallow and deep copies of a dictionary, `merge_copy` merges multiple dictionaries into a new one without mutating the inputs, and `is_same_object` performs an identity check. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_copy_utils.py`.
+
+## Warnings Utilities Module
+
+The project includes warnings utilities in `warnings_utils.py` wrapping the standard library `warnings` module: `warn` emits a warning message with an optional category and stacklevel, `simplefilter` sets the global warning filter action, `catch_warnings` is a context manager that captures warnings emitted within its scope, `filterwarnings` adds a warning filter entry, and `resetwarnings` clears all warning filters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_warnings_utils.py`.
