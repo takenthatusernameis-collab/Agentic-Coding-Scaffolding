@@ -182,6 +182,8 @@
 
 #   - exceptions_utils.py — # Custom exception classes and error handling utilities
 
+#   - enum_utils.py — # Enum utilities for working with Python enum.Enum classes
+
 #   - io_utils.py — # Line-oriented and atomic input/output utilities
 
 #   - ini_utils.py — # INI configuration file utilities (load, save, get, set, merge sections)
@@ -245,6 +247,8 @@
 #   - test_env_utils.py — # Tests for env_utils.py
 
 #   - test_exceptions_utils.py — # Tests for exceptions_utils.py
+
+#   - test_enum_utils.py — # Tests for enum_utils.py
 
 #   - test_file_utils.py — # Tests for file_utils.py
 
@@ -789,6 +793,7 @@ py_modules = [
     "functools_utils",
     "config_schema",
     "exceptions_utils",
+    "enum_utils",
     "io_utils",
     "ini_utils",
     "compression_utils",
@@ -16485,6 +16490,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
 - `exceptions_utils.py` — custom exception classes and error handling utilities
 - `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
+- `enum_utils.py` — enum utilities for working with Python `enum.Enum` classes (`enum_to_dict`, `get_enum_member`, `is_enum_member`, `list_enum_members`, `enum_value_from_name`, `enum_name_from_value`) with input validation
+- `tests/test_enum_utils.py` — unit tests for `enum_utils.py`
 - `io_utils.py` — line-oriented and atomic input/output utilities (`read_lines`, `write_lines`, `append_text`, `atomic_write_text`, `stream_copy`, `count_lines`, `iter_lines`)
 - `ini_utils.py` — INI configuration file utilities (`load_config`, `save_config`, `get_config_value`, `set_config_value`, `merge_configs`, `list_sections`, `has_section`, `get_section`)
 - `compression_utils.py` — compression and decompression utilities (gzip, bz2, zip, tar)
@@ -17546,6 +17553,7 @@ functools_utils.py         # Functional programming utilities (compose, pipe, cu
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 exceptions_utils.py        # Custom exception classes and error handling utilities
+enum_utils.py              # Enum utilities for working with Python enum.Enum classes
 io_utils.py                # Line-oriented and atomic input/output utilities
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
@@ -17579,6 +17587,7 @@ tests/                     # Python unit tests
   test_duration_utils.py      # Tests for duration_utils.py
   test_env_utils.py           # Tests for env_utils.py
   test_exceptions_utils.py    # Tests for exceptions_utils.py
+  test_enum_utils.py          # Tests for enum_utils.py
   test_file_utils.py          # Tests for file_utils.py
   test_fractions_utils.py     # Tests for fractions_utils.py
   test_functools_utils.py     # Tests for functools_utils.py
@@ -21308,6 +21317,165 @@ if __name__ == "__main__":
     unittest.main()
 TESTEXCEPTIONSUTILS
 
+# --- enum_utils.py ---
+cat > "$OUTPUT_DIR/enum_utils.py" <<'ENUMUTILS'
+"""Enum utilities for working with Python ``enum.Enum`` classes."""
+
+from __future__ import annotations
+
+from enum import Enum
+from typing import Any, Dict, List, Type, TypeVar
+
+E = TypeVar("E", bound=Enum)
+
+__all__ = [
+    "enum_to_dict",
+    "get_enum_member",
+    "is_enum_member",
+    "list_enum_members",
+    "enum_value_from_name",
+    "enum_name_from_value",
+]
+
+
+def enum_to_dict(enum_class: Type[E]) -> Dict[str, Any]:
+    """Convert an enum class to a dictionary mapping member names to values.
+
+    Args:
+        enum_class: The Enum subclass to convert.
+
+    Returns:
+        A dictionary mapping each member name to its value.
+
+    Raises:
+        TypeError: If ``enum_class`` is not an Enum subclass.
+
+    Examples:
+        >>> class Color(enum.Enum):
+        ...     RED = 1
+        ...     GREEN = 2
+        >>> enum_to_dict(Color)
+        {'RED': 1, 'GREEN': 2}
+    """
+    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
+        raise TypeError("enum_class must be an Enum subclass")
+    return {member.name: member.value for member in enum_class}
+
+
+def get_enum_member(enum_class: Type[E], key: Any) -> E:
+    """Return the enum member matching ``key`` by name or value.
+
+    Args:
+        enum_class: The Enum subclass to search.
+        key: The member name (str) or value to look up.
+
+    Returns:
+        The matching enum member.
+
+    Raises:
+        TypeError: If ``enum_class`` is not an Enum subclass.
+        ValueError: If no member matches ``key``.
+    """
+    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
+        raise TypeError("enum_class must be an Enum subclass")
+    try:
+        return enum_class[key]  # type: ignore[call-overload]
+    except (KeyError, TypeError):
+        pass
+    try:
+        return enum_class(key)  # type: ignore[call-overload]
+    except ValueError:
+        raise ValueError(
+            f"No enum member in {enum_class.__name__} matches {key!r}"
+        )
+
+
+def is_enum_member(enum_class: Type[E], value: Any) -> bool:
+    """Return True if ``value`` matches any member value of ``enum_class``.
+
+    Args:
+        enum_class: The Enum subclass to search.
+        value: The value to check.
+
+    Returns:
+        True if a member with ``value`` exists, False otherwise.
+
+    Raises:
+        TypeError: If ``enum_class`` is not an Enum subclass.
+    """
+    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
+        raise TypeError("enum_class must be an Enum subclass")
+    return any(member.value == value for member in enum_class)
+
+
+def list_enum_members(enum_class: Type[E]) -> List[E]:
+    """Return all members of ``enum_class`` in declaration order.
+
+    Args:
+        enum_class: The Enum subclass to list.
+
+    Returns:
+        A list of all enum members.
+
+    Raises:
+        TypeError: If ``enum_class`` is not an Enum subclass.
+    """
+    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
+        raise TypeError("enum_class must be an Enum subclass")
+    return list(enum_class)
+
+
+def enum_value_from_name(enum_class: Type[E], name: str) -> Any:
+    """Return the value of the enum member with the given ``name``.
+
+    Args:
+        enum_class: The Enum subclass to search.
+        name: The name of the member.
+
+    Returns:
+        The value of the matching member.
+
+    Raises:
+        TypeError: If ``enum_class`` is not an Enum subclass or ``name`` is
+            not a string.
+        ValueError: If no member with ``name`` exists.
+    """
+    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
+        raise TypeError("enum_class must be an Enum subclass")
+    if not isinstance(name, str):
+        raise TypeError("name must be a string")
+    try:
+        return enum_class[name].value  # type: ignore[call-overload]
+    except KeyError:
+        raise ValueError(
+            f"{enum_class.__name__} has no member named {name!r}"
+        )
+
+
+def enum_name_from_value(enum_class: Type[E], value: Any) -> str:
+    """Return the name of the enum member with the given ``value``.
+
+    Args:
+        enum_class: The Enum subclass to search.
+        value: The value of the member.
+
+    Returns:
+        The name of the matching member.
+
+    Raises:
+        TypeError: If ``enum_class`` is not an Enum subclass.
+        ValueError: If no member with ``value`` exists.
+    """
+    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
+        raise TypeError("enum_class must be an Enum subclass")
+    for member in enum_class:
+        if member.value == value:
+            return member.name
+    raise ValueError(
+        f"{enum_class.__name__} has no member with value {value!r}"
+    )
+ENUMUTILS
+
 # --- io_utils.py ---
 cat > "$OUTPUT_DIR/io_utils.py" <<'IOUTILS'
 """Line-oriented and atomic input/output utility functions."""
@@ -21483,6 +21651,91 @@ __all__ = [
     "iter_lines",
 ]
 IOUTILS
+
+# --- tests/test_enum_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_enum_utils.py" <<'TESTENUMUTILS'
+"""Tests for enum_utils module."""
+
+import enum
+
+import enum_utils
+
+
+class Color(enum.Enum):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
+
+
+class Status(enum.Enum):
+    PENDING = "pending"
+    ACTIVE = "active"
+    CLOSED = "closed"
+
+
+def test_enum_to_dict():
+    assert enum_utils.enum_to_dict(Color) == {"RED": 1, "GREEN": 2, "BLUE": 3}
+
+
+def test_get_enum_member_by_name():
+    assert enum_utils.get_enum_member(Color, "RED") is Color.RED
+
+
+def test_get_enum_member_by_value():
+    assert enum_utils.get_enum_member(Color, 2) is Color.GREEN
+
+
+def test_get_enum_member_not_found():
+    try:
+        enum_utils.get_enum_member(Color, 99)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_is_enum_member():
+    assert enum_utils.is_enum_member(Color, 2) is True
+    assert enum_utils.is_enum_member(Color, 99) is False
+
+
+def test_list_enum_members():
+    assert enum_utils.list_enum_members(Color) == [Color.RED, Color.GREEN, Color.BLUE]
+
+
+def test_enum_value_from_name():
+    assert enum_utils.enum_value_from_name(Status, "ACTIVE") == "active"
+
+
+def test_enum_name_from_value():
+    assert enum_utils.enum_name_from_value(Color, 3) == "BLUE"
+
+
+def test_enum_name_from_value_not_found():
+    try:
+        enum_utils.enum_name_from_value(Color, 99)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_invalid_enum_class_raises():
+    for fn in (
+        enum_utils.enum_to_dict,
+        enum_utils.get_enum_member,
+        enum_utils.is_enum_member,
+        enum_utils.list_enum_members,
+        enum_utils.enum_value_from_name,
+        enum_utils.enum_name_from_value,
+    ):
+        try:
+            fn(int, "x")  # type: ignore[arg-type]
+        except TypeError:
+            pass
+        else:
+            raise AssertionError(f"expected TypeError from {fn.__name__}")
+TESTENUMUTILS
 
 # --- tests/test_io_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_io_utils.py" <<'TESTIOUTILS'

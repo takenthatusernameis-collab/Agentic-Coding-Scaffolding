@@ -87,6 +87,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
 - `exceptions_utils.py` — custom exception classes and error handling utilities
 - `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
+- `enum_utils.py` — enum utilities for working with Python `enum.Enum` classes (`enum_to_dict`, `get_enum_member`, `is_enum_member`, `list_enum_members`, `enum_value_from_name`, `enum_name_from_value`) with input validation
+- `tests/test_enum_utils.py` — unit tests for `enum_utils.py`
 - `io_utils.py` — line-oriented and atomic input/output utilities (`read_lines`, `write_lines`, `append_text`, `atomic_write_text`, `stream_copy`, `count_lines`, `iter_lines`)
 - `ini_utils.py` — INI configuration file utilities (`load_config`, `save_config`, `get_config_value`, `set_config_value`, `merge_configs`, `list_sections`, `has_section`, `get_section`)
 - `compression_utils.py` — compression and decompression utilities (gzip, bz2, zip, tar)

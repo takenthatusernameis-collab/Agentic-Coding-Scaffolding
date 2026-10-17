@@ -180,6 +180,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_exceptions_utils.py",
             "exceptions_utils.py",
             "tests/test_exceptions_utils.py",
+            "enum_utils.py",
+            "tests/test_enum_utils.py",
             "io_utils.py",
             "tests/test_io_utils.py",
             "ini_utils.py",

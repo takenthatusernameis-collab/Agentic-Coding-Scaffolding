@@ -115,6 +115,7 @@ functools_utils.py         # Functional programming utilities (compose, pipe, cu
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 exceptions_utils.py        # Custom exception classes and error handling utilities
+enum_utils.py              # Enum utilities for working with Python enum.Enum classes
 io_utils.py                # Line-oriented and atomic input/output utilities
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
@@ -402,6 +403,10 @@ Completed task: Added a new `config_schema.py` module with typed configuration s
 ## Exception Utilities Module
 
 The project includes custom exception types and utilities in `exceptions_utils.py`: custom exceptions (`ValidationError`, `ConfigurationError`, `NotFoundError`, `PermissionError_`, `TimeoutError_`) with support for error details and field metadata; helper functions `catch_and_wrap()` to catch and wrap exceptions while preserving the cause, `get_error_details()` to extract exception type/message/traceback as a dict, and `is_instance_of_any()` to test for membership in an exception tuple. The module is tested in `tests/test_exceptions_utils.py`.
+
+## Enum Utilities Module
+
+The project includes enum utilities in `enum_utils.py` for working with Python `enum.Enum` classes: `enum_to_dict` converts an enum class to a name-to-value dictionary, `get_enum_member` looks up a member by name or value, `is_enum_member` checks whether a value matches a member, `list_enum_members` returns all members in declaration order, `enum_value_from_name` returns a member's value by name, and `enum_name_from_value` returns a member's name by value. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_enum_utils.py`.
 
 ## IO Utilities Module
 
