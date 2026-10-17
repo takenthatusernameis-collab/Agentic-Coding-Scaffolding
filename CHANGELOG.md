@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation, plus `tests/test_warnings_utils.py`.
 - Synchronized `warnings_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
+- Added `argparse_utils.py` — argument parsing utilities (`make_parser`, `add_flag`, `add_option`, `add_positional`, `add_subparsers`, `parse_args`, `int_positive`, `float_range`) wrapping the standard library `argparse` module, plus `tests/test_argparse_utils.py`.
+- Synchronized `argparse_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
 - Added `hmac_utils.py` — HMAC-based message authentication utilities (`hmac_md5`, `hmac_sha1`, `hmac_sha256`, `hmac_sha512`, `hmac_new`, `sign`, `verify`, `compare_digest`) wrapping the standard library `hmac` and `hashlib` modules with constant-time verification, plus `tests/test_hmac_utils.py`.
 - Synchronized `hmac_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 

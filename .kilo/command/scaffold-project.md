@@ -208,6 +208,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_fractions_utils.py` — unit tests for `fractions_utils.py`
 - `weakref_utils.py` — weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`)
 - `tests/test_weakref_utils.py` — unit tests for `weakref_utils.py`
+- `argparse_utils.py` — argument parsing utilities (`make_parser`, `add_flag`, `add_option`, `add_positional`, `add_subparsers`, `parse_args`, `int_positive`, `float_range`)
+- `tests/test_argparse_utils.py` — unit tests for `argparse_utils.py`
 - `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation
 - `tests/test_warnings_utils.py` — unit tests for `warnings_utils.py`
 - `heapq_utils.py` — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)

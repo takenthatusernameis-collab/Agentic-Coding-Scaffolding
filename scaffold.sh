@@ -206,6 +206,8 @@
 
 #   - weakref_utils.py — # Weak reference utilities for managing weak references to objects
 
+#   - argparse_utils.py — # Argument parsing utilities
+
 #   - warnings_utils.py — # Utilities wrapping the standard library warnings module
 
 #   - compression_utils.py — # Compression and decompression utilities (gzip, bz2, zip, tar)
@@ -406,6 +408,8 @@
 #   - test_interval_utils.py — # Tests for interval_utils.py
 
 #   - test_weakref_utils.py — # Tests for weakref_utils.py
+
+#   - test_argparse_utils.py — # Tests for argparse_utils.py
 
 #   - test_warnings_utils.py — # Tests for warnings_utils.py
 
@@ -851,6 +855,7 @@ py_modules = [
     "temp_utils",
     "xml_utils",
     "weakref_utils",
+    "argparse_utils",
     "warnings_utils",
     "seq_utils",
     "queue_utils",
@@ -17681,6 +17686,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_fractions_utils.py` — unit tests for `fractions_utils.py`
 - `weakref_utils.py` — weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`)
 - `tests/test_weakref_utils.py` — unit tests for `weakref_utils.py`
+- `argparse_utils.py` — argument parsing utilities (`make_parser`, `add_flag`, `add_option`, `add_positional`, `add_subparsers`, `parse_args`, `int_positive`, `float_range`)
+- `tests/test_argparse_utils.py` — unit tests for `argparse_utils.py`
 - `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation
 - `tests/test_warnings_utils.py` — unit tests for `warnings_utils.py`
 - `heapq_utils.py` — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)
@@ -18652,6 +18659,7 @@ enum_utils.py              # Enum utilities for working with Python enum.Enum cl
 io_utils.py                # Line-oriented and atomic input/output utilities
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
+argparse_utils.py           # Argument parsing utilities
 warnings_utils.py           # Utilities wrapping the standard library warnings module
 compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
 ip_utils.py                # IP address validation and manipulation utilities
@@ -18752,6 +18760,7 @@ tests/                     # Python unit tests
   test_semver_utils.py        # Tests for semver_utils.py
   test_interval_utils.py      # Tests for interval_utils.py
   test_weakref_utils.py       # Tests for weakref_utils.py
+  test_argparse_utils.py      # Tests for argparse_utils.py
   test_warnings_utils.py      # Tests for warnings_utils.py
   test_xml_utils.py           # Tests for xml_utils.py
   ```
@@ -18801,6 +18810,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation, plus `tests/test_warnings_utils.py`.
 - Synchronized `warnings_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `argparse_utils.py` — argument parsing utilities (`make_parser`, `add_flag`, `add_option`, `add_positional`, `add_subparsers`, `parse_args`, `int_positive`, `float_range`) wrapping the standard library `argparse` module, plus `tests/test_argparse_utils.py`.
+- Synchronized `argparse_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Synchronized `copy_utils.py` across the `scaffold.sh` heredoc for `.kilo/command/scaffold-project.md` so the scaffolded project documentation lists the module and its tests; previously the doc entry was missing, causing `tests/test_scaffold.py::test_scaffold_project_doc_lists_all_modules` to fail.
 
@@ -31404,6 +31416,103 @@ def create_finalizer(obj: Any, callback: Callable[..., Any]) -> weakref.finalize
     return weakref.finalize(obj, callback)
 WEAKREF_UTILS
 
+# --- argparse_utils.py ---
+cat > "$OUTPUT_DIR/argparse_utils.py" <<'ARGPARSE_UTILS'
+"""Argument parsing utility functions."""
+
+import argparse
+from typing import Any, Callable, List, Optional
+
+
+def make_parser(
+    prog: Optional[str] = None,
+    description: Optional[str] = None,
+    epilog: Optional[str] = None,
+) -> argparse.ArgumentParser:
+    """Create an ArgumentParser with common defaults."""
+    return argparse.ArgumentParser(
+        prog=prog,
+        description=description,
+        epilog=epilog,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+
+def add_flag(
+    parser: argparse.ArgumentParser,
+    name: str,
+    help_text: str = "",
+    default: bool = False,
+) -> None:
+    """Add a boolean store_true flag to a parser."""
+    parser.add_argument(name, action="store_true", default=default, help=help_text)
+
+
+def add_option(
+    parser: argparse.ArgumentParser,
+    name: str,
+    type_: Callable[[str], Any] = str,
+    default: Any = None,
+    help_text: str = "",
+    required: bool = False,
+) -> None:
+    """Add a single-value option to a parser."""
+    parser.add_argument(name, type=type_, default=default, help=help_text, required=required)
+
+
+def add_positional(
+    parser: argparse.ArgumentParser,
+    name: str,
+    type_: Callable[[str], Any] = str,
+    nargs: Optional[str] = None,
+    help_text: str = "",
+) -> None:
+    """Add a positional argument to a parser."""
+    if nargs is None:
+        parser.add_argument(name, type=type_, help=help_text)
+    else:
+        parser.add_argument(name, type=type_, nargs=nargs, help=help_text)
+
+
+def add_subparsers(
+    parser: argparse.ArgumentParser,
+    title: str = "subcommands",
+    dest: str = "command",
+    required: bool = True,
+) -> argparse._SubParsersAction:
+    """Add a subparsers action to a parser."""
+    return parser.add_subparsers(title=title, dest=dest, required=required)
+
+
+def parse_args(
+    parser: argparse.ArgumentParser, args: Optional[List[str]] = None
+) -> argparse.Namespace:
+    """Parse arguments, returning a namespace."""
+    return parser.parse_args(args)
+
+
+def int_positive(value: str) -> int:
+    """argparse type: positive integer."""
+    iv = int(value)
+    if iv <= 0:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return iv
+
+
+def float_range(minimum: float, maximum: float) -> Callable[[str], float]:
+    """argparse type factory: float within [minimum, maximum]."""
+
+    def _convert(value: str) -> float:
+        fv = float(value)
+        if fv < minimum or fv > maximum:
+            raise argparse.ArgumentTypeError(
+                f"must be between {minimum} and {maximum}"
+            )
+        return fv
+
+    return _convert
+ARGPARSE_UTILS
+
 # --- warnings_utils.py ---
 cat > "$OUTPUT_DIR/warnings_utils.py" <<'WARNINGS_UTILS'
 """Utilities wrapping the standard library ``warnings`` module."""
@@ -31751,6 +31860,73 @@ class TestCreateFinalizer(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 WEAKREFTESTS
+
+# --- tests/test_argparse_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_argparse_utils.py" <<'ARGPARSETESTS'
+"""Tests for argparse_utils."""
+
+import argparse
+
+import argparse_utils as au
+
+
+def test_make_parser():
+    p = au.make_parser(prog="x", description="d")
+    assert p.prog == "x"
+    assert p.description == "d"
+
+
+def test_add_flag():
+    p = au.make_parser()
+    au.add_flag(p, "--verbose", "v")
+    ns = p.parse_args(["--verbose"])
+    assert ns.verbose is True
+
+
+def test_add_option():
+    p = au.make_parser()
+    au.add_option(p, "--count", type_=int, default=1)
+    ns = p.parse_args(["--count", "5"])
+    assert ns.count == 5
+
+
+def test_add_positional():
+    p = au.make_parser()
+    au.add_positional(p, "name")
+    ns = p.parse_args(["alice"])
+    assert ns.name == "alice"
+
+
+def test_int_positive():
+    assert au.int_positive("3") == 3
+    try:
+        au.int_positive("0")
+    except argparse.ArgumentTypeError:
+        pass
+    else:
+        raise AssertionError("expected error")
+
+
+def test_float_range():
+    conv = au.float_range(0.0, 1.0)
+    assert conv("0.5") == 0.5
+    try:
+        conv("2.0")
+    except argparse.ArgumentTypeError:
+        pass
+    else:
+        raise AssertionError("expected error")
+
+
+def test_subparsers():
+    p = au.make_parser()
+    sp = au.add_subparsers(p)
+    sub = sp.add_parser("run")
+    au.add_flag(sub, "--fast")
+    ns = p.parse_args(["run", "--fast"])
+    assert ns.command == "run"
+    assert ns.fast is True
+ARGPARSETESTS
 
 # --- tests/test_warnings_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_warnings_utils.py" <<'WARNINGSTESTS'
