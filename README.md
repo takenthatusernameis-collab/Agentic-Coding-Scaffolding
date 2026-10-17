@@ -67,6 +67,7 @@ priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
+ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
@@ -187,8 +188,9 @@ tests/                     # Python unit tests
   test_random_utils.py        # Tests for random_utils.py
   test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
   test_regex_utils.py         # Tests for regex_utils.py
-  test_retry_utils.py         # Tests for retry_utils.py
-  test_scaffold.py            # Tests for scaffold.sh
+test_retry_utils.py         # Tests for retry_utils.py
+test_ring_buffer_utils.py   # Tests for ring_buffer_utils.py
+test_scaffold.py            # Tests for scaffold.sh
   test_secrets_utils.py       # Tests for secrets_utils.py
   test_seq_utils.py           # Tests for seq_utils.py
   test_set_utils.py           # Tests for set_utils.py
@@ -604,3 +606,7 @@ The project includes circuit breaker utilities in `circuit_breaker_utils.py` imp
 ## Deprecation Utilities Module
 
 The project includes deprecation utilities in `deprecation_utils.py` for marking APIs as deprecated: `deprecated` decorates a callable so every invocation emits a `DeprecationWarning` describing the deprecation. An optional `version` records when the deprecation was introduced, an optional `replacement` names the suggested alternative, and an optional `message` overrides the default warning text. The wrapped callable forwards all arguments and return values and preserves its metadata via `functools.wraps`. The module is tested in `tests/test_deprecation_utils.py`.
+
+## Ring Buffer Utilities Module
+
+The project includes fixed-size circular (ring) buffer utilities in `ring_buffer_utils.py`: `RingBuffer` is a bounded buffer that overwrites the oldest element when full, with `append`, `get`, `peek`, `pop`, `clear`, `to_list`, `from_list`, plus `capacity`, `is_full`, and `is_empty` properties. Module-level helpers `create`, `append`, `get`, `pop`, `peek`, `is_empty`, `is_full`, `size`, `clear`, and `to_list` are also provided. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_ring_buffer_utils.py`.

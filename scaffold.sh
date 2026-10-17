@@ -85,6 +85,8 @@
 
 #   - retry_utils.py — # Retry utilities with exponential backoff and jitter
 
+#   - ring_buffer_utils.py — # Fixed-size circular (ring) buffer utilities
+
 #   - secrets_utils.py — # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 
 #   - dict_utils.py — # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
@@ -330,6 +332,8 @@
 #   - test_regex_utils.py — # Tests for regex_utils.py
 
 #   - test_retry_utils.py — # Tests for retry_utils.py
+
+#   - test_ring_buffer_utils.py — # Tests for ring_buffer_utils.py
 
 #   - test_scaffold.py — # Tests for scaffold.sh
 
@@ -797,6 +801,7 @@ py_modules = [
     "string_utils",
     "type_utils",
     "retry_utils",
+    "ring_buffer_utils",
     "tree_utils",
     "path_utils",
     "pattern_utils",
@@ -8024,6 +8029,169 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Operation failed after retries: {e}")
 RETRYUTILS
+# --- ring_buffer_utils.py ---
+cat > "$OUTPUT_DIR/ring_buffer_utils.py" <<'RINGUTILS'
+"""Fixed-size circular buffer (ring buffer) utilities."""
+
+from __future__ import annotations
+
+from collections.abc import Iterable, Iterator
+from typing import Any, Generic, Optional, TypeVar
+
+T = TypeVar("T")
+
+
+class RingBuffer(Generic[T]):
+    """A fixed-capacity circular buffer.
+
+    Appending to a full buffer overwrites the oldest element, keeping only
+    the most recent ``capacity`` items.
+    """
+
+    def __init__(self, capacity: int) -> None:
+        if not isinstance(capacity, int) or isinstance(capacity, bool):
+            raise TypeError("capacity must be an integer")
+        if capacity <= 0:
+            raise ValueError("capacity must be greater than 0")
+        self._capacity = capacity
+        self._data: list[Optional[T]] = [None] * capacity
+        self._head = 0
+        self._size = 0
+
+    def __len__(self) -> int:
+        return self._size
+
+    def __iter__(self) -> Iterator[T]:
+        for i in range(self._size):
+            yield self._data[(self._head + i) % self._capacity]  # type: ignore[misc]
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({list(self)}, capacity={self._capacity})"
+
+    @property
+    def capacity(self) -> int:
+        """Return the maximum number of elements the buffer can hold."""
+        return self._capacity
+
+    @property
+    def is_full(self) -> bool:
+        """Return True when the buffer holds ``capacity`` elements."""
+        return self._size == self._capacity
+
+    @property
+    def is_empty(self) -> bool:
+        """Return True when the buffer holds no elements."""
+        return self._size == 0
+
+    def append(self, value: T) -> None:
+        """Append ``value``, overwriting the oldest element when full."""
+        idx = (self._head + self._size) % self._capacity
+        self._data[idx] = value
+        if self.is_full:
+            self._head = (self._head + 1) % self._capacity
+        else:
+            self._size += 1
+
+    def get(self, index: int) -> T:
+        """Return the element at logical ``index`` (0 is the oldest)."""
+        if not isinstance(index, int) or isinstance(index, bool):
+            raise TypeError("index must be an integer")
+        if index < 0 or index >= self._size:
+            raise IndexError("ring buffer index out of range")
+        return self._data[(self._head + index) % self._capacity]  # type: ignore[return-value]
+
+    def peek(self) -> T:
+        """Return the oldest element without removing it."""
+        if self.is_empty:
+            raise IndexError("peek from empty ring buffer")
+        return self._data[self._head]  # type: ignore[return-value]
+
+    def pop(self) -> T:
+        """Remove and return the oldest element."""
+        if self.is_empty:
+            raise IndexError("pop from empty ring buffer")
+        value = self._data[self._head]
+        self._data[self._head] = None
+        self._head = (self._head + 1) % self._capacity
+        self._size -= 1
+        return value  # type: ignore[return-value]
+
+    def clear(self) -> None:
+        """Remove all elements from the buffer."""
+        self._data = [None] * self._capacity
+        self._head = 0
+        self._size = 0
+
+    def to_list(self) -> list[T]:
+        """Return the elements from oldest to newest as a list."""
+        return list(self)
+
+    @classmethod
+    def from_list(cls, items: Iterable[T], capacity: Optional[int] = None) -> "RingBuffer[T]":
+        """Build a ring buffer from ``items``.
+
+        Args:
+            items: Elements to load, oldest first.
+            capacity: Buffer capacity (defaults to the number of items).
+        """
+        item_list = list(items)
+        cap = len(item_list) if capacity is None else capacity
+        buffer = cls(cap)
+        for value in item_list:
+            buffer.append(value)
+        return buffer
+
+
+def create(capacity: int) -> RingBuffer[Any]:
+    """Create an empty ring buffer with the given capacity."""
+    return RingBuffer(capacity)
+
+
+def append(buffer: RingBuffer[T], value: T) -> RingBuffer[T]:
+    """Append ``value`` to ``buffer`` and return it."""
+    buffer.append(value)
+    return buffer
+
+
+def get(buffer: RingBuffer[T], index: int) -> T:
+    """Return the element at logical ``index`` in ``buffer``."""
+    return buffer.get(index)
+
+
+def pop(buffer: RingBuffer[T]) -> T:
+    """Remove and return the oldest element of ``buffer``."""
+    return buffer.pop()
+
+
+def peek(buffer: RingBuffer[T]) -> T:
+    """Return the oldest element of ``buffer`` without removing it."""
+    return buffer.peek()
+
+
+def is_empty(buffer: RingBuffer[T]) -> bool:
+    """Return True when ``buffer`` holds no elements."""
+    return buffer.is_empty
+
+
+def is_full(buffer: RingBuffer[T]) -> bool:
+    """Return True when ``buffer`` holds ``capacity`` elements."""
+    return buffer.is_full
+
+
+def size(buffer: RingBuffer[T]) -> int:
+    """Return the number of elements in ``buffer``."""
+    return len(buffer)
+
+
+def clear(buffer: RingBuffer[T]) -> None:
+    """Remove all elements from ``buffer``."""
+    buffer.clear()
+
+
+def to_list(buffer: RingBuffer[T]) -> list[T]:
+    """Return the elements of ``buffer`` from oldest to newest."""
+    return buffer.to_list()
+RINGUTILS
 # --- priority_queue_utils.py ---
 cat > "$OUTPUT_DIR/priority_queue_utils.py" <<'PQUTILS'
 """Priority queue utilities for heap-based priority queue implementation.
@@ -13614,6 +13782,111 @@ class TestRetryCountDecorator(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTRETRYUTILS
+# --- tests/test_ring_buffer_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_ring_buffer_utils.py" <<'TESTRINGUTILS'
+import unittest
+
+from ring_buffer_utils import (
+    RingBuffer,
+    append,
+    clear,
+    create,
+    get,
+    is_empty,
+    is_full,
+    peek,
+    pop,
+    size,
+    to_list,
+)
+
+
+class TestRingBuffer(unittest.TestCase):
+    def test_append_and_get(self):
+        rb = create(3)
+        append(rb, 1)
+        append(rb, 2)
+        append(rb, 3)
+        self.assertEqual(to_list(rb), [1, 2, 3])
+        self.assertEqual(get(rb, 0), 1)
+        self.assertEqual(get(rb, 1), 2)
+        self.assertEqual(get(rb, 2), 3)
+
+    def test_overwrites_oldest_when_full(self):
+        rb = create(3)
+        for value in (1, 2, 3, 4):
+            append(rb, value)
+        self.assertTrue(is_full(rb))
+        self.assertEqual(len(rb), 3)
+        self.assertEqual(to_list(rb), [2, 3, 4])
+
+    def test_peek_pop(self):
+        rb = create(3)
+        append(rb, 10)
+        append(rb, 20)
+        self.assertEqual(peek(rb), 10)
+        self.assertEqual(pop(rb), 10)
+        self.assertEqual(pop(rb), 20)
+        self.assertTrue(is_empty(rb))
+
+    def test_pop_and_peek_empty_raise(self):
+        rb = create(3)
+        with self.assertRaises(IndexError):
+            pop(rb)
+        with self.assertRaises(IndexError):
+            peek(rb)
+
+    def test_get_out_of_range_raises(self):
+        rb = create(3)
+        append(rb, 1)
+        with self.assertRaises(IndexError):
+            get(rb, 1)
+        with self.assertRaises(IndexError):
+            get(rb, -1)
+
+    def test_invalid_capacity(self):
+        with self.assertRaises(TypeError):
+            create("3")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            create(0)
+        with self.assertRaises(ValueError):
+            create(-1)
+
+    def test_clear(self):
+        rb = create(3)
+        append(rb, 1)
+        append(rb, 2)
+        clear(rb)
+        self.assertTrue(is_empty(rb))
+        self.assertEqual(size(rb), 0)
+        self.assertEqual(to_list(rb), [])
+
+    def test_from_list(self):
+        rb = RingBuffer.from_list([1, 2, 3, 4], capacity=3)
+        self.assertEqual(to_list(rb), [2, 3, 4])
+        self.assertEqual(rb.capacity, 3)
+
+    def test_from_list_default_capacity(self):
+        rb = RingBuffer.from_list([1, 2, 3])
+        self.assertEqual(to_list(rb), [1, 2, 3])
+        self.assertEqual(rb.capacity, 3)
+
+    def test_iteration_order(self):
+        rb = create(3)
+        append(rb, 1)
+        append(rb, 2)
+        self.assertEqual(list(rb), [1, 2])
+
+    def test_repr(self):
+        rb = create(3)
+        append(rb, 1)
+        append(rb, 2)
+        self.assertIn("capacity=3", repr(rb))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTRINGUTILS
 # --- tests/test_dict_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_dict_utils.py" <<'TESTDICTUTILS'
 """Tests for dict_utils module."""
@@ -16886,6 +17159,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `priority_queue_utils.py` — heap-based priority queue implementation
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
 - `retry_utils.py` — retry utilities with exponential backoff and jitter
+- `ring_buffer_utils.py` — fixed-size circular (ring) buffer utilities
 - `secrets_utils.py` — Cryptographically secure secrets and token utilities (`token_bytes`, `token_hex`, `token_urlsafe`, `compare_digest`, `randbelow`, `randbits`, `choice`)
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
@@ -16953,6 +17227,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
 - `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
+- `tests/test_ring_buffer_utils.py` — unit tests for `ring_buffer_utils.py`
 - `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
 - `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
 - `json_utils.py` — JSON utility functions (read/write/parse/dump/validate)
@@ -17938,6 +18213,7 @@ priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
+ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
@@ -18057,6 +18333,7 @@ tests/                     # Python unit tests
   test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
   test_regex_utils.py         # Tests for regex_utils.py
   test_retry_utils.py         # Tests for retry_utils.py
+  test_ring_buffer_utils.py   # Tests for ring_buffer_utils.py
   test_scaffold.py            # Tests for scaffold.sh
   test_secrets_utils.py       # Tests for secrets_utils.py
   test_seq_utils.py           # Tests for seq_utils.py
@@ -18362,6 +18639,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
 - `retry_utils.py` — retry utilities with `retry`, `retry_with_backoff`, and `retry_count` decorators for exponential backoff and jitter
 - `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
+- `ring_buffer_utils.py` — fixed-size circular (ring) buffer utilities (`RingBuffer`, `create`, `append`, `get`, `peek`, `pop`, `clear`, `to_list`, `from_list`, plus `capacity`, `is_full`, `is_empty`) with input validation
+- `tests/test_ring_buffer_utils.py` — unit tests for `ring_buffer_utils.py`
 - `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
 - `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
 - `json_utils.py` — JSON utility functions (read/write/parse/dump/validate/pretty print)

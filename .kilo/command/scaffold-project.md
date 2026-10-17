@@ -56,6 +56,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `priority_queue_utils.py` — heap-based priority queue implementation
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
 - `retry_utils.py` — retry utilities with exponential backoff and jitter
+- `ring_buffer_utils.py` — fixed-size circular (ring) buffer utilities
 - `secrets_utils.py` — Cryptographically secure secrets and token utilities (`token_bytes`, `token_hex`, `token_urlsafe`, `compare_digest`, `randbelow`, `randbits`, `choice`)
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
@@ -124,6 +125,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
 - `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
+- `tests/test_ring_buffer_utils.py` — unit tests for `ring_buffer_utils.py`
 - `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
 - `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
 - `json_utils.py` — JSON utility functions (read/write/parse/dump/validate)
