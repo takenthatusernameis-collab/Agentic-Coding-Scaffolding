@@ -194,6 +194,9 @@
 #   - selectors_utils.py — # Selectors utilities wrapping the standard library selectors module
 #   - tests/test_selectors_utils.py — # Tests for selectors_utils.py
 
+#   - dataclasses_utils.py — # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
+#   - tests/test_dataclasses_utils.py — # Tests for dataclasses_utils.py
+
 #   - struct_utils.py — # Binary struct packing and unpacking utilities
 
 #   - pattern_utils.py — # Design pattern utilities (Singleton, Factory, Observer, Strategy)
@@ -16749,6 +16752,323 @@ class TestIsValidHex(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTBASE64UTILS
+
+# --- tests/test_dataclasses_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_dataclasses_utils.py" <<TESTDATACLASSESUTILS
+"""Unit tests for dataclasses_utils module."""
+
+import unittest
+from dataclasses import dataclass
+
+from dataclasses_utils import (
+    MISSING,
+    asdict,
+    astuple,
+    dataclass_fields,
+    field,
+    fields,
+    get_field_default,
+    get_field_names,
+    has_field,
+    is_dataclass,
+    is_dataclass_instance,
+    make_dataclass,
+    replace,
+    to_dict,
+    to_tuple,
+)
+
+
+@dataclass
+class Simple:
+    x: int
+    y: int = 10
+
+
+class TestDataclassesUtils(unittest.TestCase):
+    def test_is_dataclass(self):
+        self.assertTrue(is_dataclass(Simple))
+        self.assertTrue(is_dataclass(Simple(1, 2)))
+        self.assertFalse(is_dataclass("not a dataclass"))
+        self.assertFalse(is_dataclass(42))
+        self.assertFalse(is_dataclass(None))
+
+    def test_is_dataclass_instance(self):
+        self.assertTrue(is_dataclass_instance(Simple(1, 2)))
+        self.assertFalse(is_dataclass_instance(Simple))
+        self.assertFalse(is_dataclass_instance("not a dataclass"))
+        self.assertFalse(is_dataclass_instance(42))
+
+    def test_fields(self):
+        f = fields(Simple)
+        self.assertEqual(len(f), 2)
+
+    def test_fields_on_instance(self):
+        f = fields(Simple(1, 2))
+        self.assertEqual(len(f), 2)
+
+    def test_fields_raises_on_non_dataclass(self):
+        with self.assertRaises(TypeError):
+            fields("not a dataclass")  # type: ignore[arg-type]
+
+    def test_dataclass_fields(self):
+        self.assertEqual(len(dataclass_fields(Simple)), 2)
+
+    def test_asdict(self):
+        self.assertEqual(asdict(Simple(5, 20)), {"x": 5, "y": 20})
+
+    def test_asdict_raises_on_class(self):
+        with self.assertRaises(TypeError):
+            asdict(Simple)  # type: ignore[arg-type]
+
+    def test_asdict_raises_on_non_dataclass(self):
+        with self.assertRaises(TypeError):
+            asdict("not a dataclass")  # type: ignore[arg-type]
+
+    def test_to_dict(self):
+        self.assertEqual(to_dict(Simple(3, 4)), {"x": 3, "y": 4})
+
+    def test_astuple(self):
+        self.assertEqual(astuple(Simple(5, 6)), (5, 6))
+
+    def test_astuple_raises_on_class(self):
+        with self.assertRaises(TypeError):
+            astuple(Simple)  # type: ignore[arg-type]
+
+    def test_astuple_raises_on_non_dataclass(self):
+        with self.assertRaises(TypeError):
+            astuple("not a dataclass")  # type: ignore[arg-type]
+
+    def test_to_tuple(self):
+        self.assertEqual(to_tuple(Simple(7, 8)), (7, 8))
+
+    def test_replace(self):
+        s = Simple(1, 2)
+        s2 = replace(s, x=10)
+        self.assertEqual(s2.x, 10)
+        self.assertEqual(s2.y, 2)
+
+    def test_replace_raises_on_class(self):
+        with self.assertRaises(TypeError):
+            replace(Simple, x=5)  # type: ignore[arg-type]
+
+    def test_replace_raises_on_non_dataclass(self):
+        with self.assertRaises(TypeError):
+            replace("not a dataclass", x=5)  # type: ignore[arg-type]
+
+    def test_make_dataclass(self):
+        Point = make_dataclass("Point", [("x", int), ("y", int)])
+        p = Point(x=1, y=2)
+        self.assertTrue(is_dataclass(Point))
+        self.assertEqual(p.x, 1)
+
+    def test_make_dataclass_validation(self):
+        with self.assertRaises(TypeError):
+            make_dataclass(123, [("x", int)])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            make_dataclass("P", "not iterable")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            make_dataclass("P", [("x", int)], bases="not tuple")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            make_dataclass("P", [("x", int)], namespace="not dict")  # type: ignore[arg-type]
+
+    def test_get_field_names(self):
+        self.assertEqual(get_field_names(Simple), ["x", "y"])
+
+    def test_get_field_names_raises_on_non_dataclass(self):
+        with self.assertRaises(TypeError):
+            get_field_names("not a dataclass")  # type: ignore[arg-type]
+
+    def test_get_field_default(self):
+        self.assertEqual(get_field_default(Simple, "y"), 10)
+        self.assertIs(get_field_default(Simple, "x"), MISSING)
+
+    def test_get_field_default_raises_on_non_dataclass(self):
+        with self.assertRaises(TypeError):
+            get_field_default("not a dataclass", "x")  # type: ignore[arg-type]
+
+    def test_get_field_default_raises_on_bad_field_name(self):
+        with self.assertRaises(TypeError):
+            get_field_default(Simple, 123)  # type: ignore[arg-type]
+
+    def test_get_field_default_raises_on_missing_field(self):
+        with self.assertRaises(KeyError):
+            get_field_default(Simple, "nonexistent")
+
+    def test_has_field(self):
+        self.assertTrue(has_field(Simple, "x"))
+        self.assertTrue(has_field(Simple, "y"))
+        self.assertFalse(has_field(Simple, "z"))
+
+    def test_has_field_raises_on_non_dataclass(self):
+        with self.assertRaises(TypeError):
+            has_field("not a dataclass", "x")  # type: ignore[arg-type]
+
+    def test_has_field_raises_on_bad_field_name(self):
+        with self.assertRaises(TypeError):
+            has_field(Simple, 123)  # type: ignore[arg-type]
+
+    def test_field_and_missing_exist(self):
+        from dataclasses_utils import field as du_field
+        from dataclasses_utils import MISSING as du_missing
+        from dataclasses import field as dc_field
+        from dataclasses import MISSING as dc_missing
+        self.assertIs(du_field, dc_field)
+        self.assertIs(du_missing, dc_missing)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTDATACLASSESUTILS
+
+# --- dataclasses_utils.py ---
+cat > "$OUTPUT_DIR/dataclasses_utils.py" <<DATACLASSES_UTILS
+"""Dataclass utilities."""
+
+from __future__ import annotations
+
+import dataclasses
+from typing import Any, Callable, Dict, Iterable, List, Tuple, TypeVar, Union
+
+__all__: list[str] = [
+    "is_dataclass",
+    "fields",
+    "asdict",
+    "astuple",
+    "replace",
+    "make_dataclass",
+    "field",
+    "MISSING",
+    "dataclass_fields",
+    "is_dataclass_instance",
+    "to_dict",
+    "to_tuple",
+    "get_field_names",
+    "get_field_default",
+    "has_field",
+]
+
+T = TypeVar("T")
+
+
+def _require_type(obj: Any, name: str, cls: Union[type, Tuple[type, ...]]) -> Any:
+    if not isinstance(obj, cls):
+        raise TypeError(f"{name} must be of type {cls.__name__ if isinstance(cls, type) else ' or '.join(c.__name__ for c in cls)}")
+    return obj
+
+
+def is_dataclass(obj: Any) -> bool:
+    return dataclasses.is_dataclass(obj)
+
+
+def is_dataclass_instance(obj: Any) -> bool:
+    return dataclasses.is_dataclass(obj) and not isinstance(obj, type)
+
+
+def fields(class_or_instance: Any) -> Tuple[dataclasses.Field[Any], ...]:
+    if not dataclasses.is_dataclass(class_or_instance):
+        raise TypeError("class_or_instance must be a dataclass or dataclass instance")
+    return dataclasses.fields(class_or_instance)
+
+
+def dataclass_fields(class_or_instance: Any) -> Tuple[dataclasses.Field[Any], ...]:
+    return fields(class_or_instance)
+
+
+def asdict(obj: Any, *, dict_factory: Callable[[Iterable[Tuple[Any, Any]]], Dict[Any, Any]] = dict) -> Dict[Any, Any]:
+    if not dataclasses.is_dataclass(obj) or isinstance(obj, type):
+        raise TypeError("obj must be a dataclass instance")
+    return dataclasses.asdict(obj, dict_factory=dict_factory)
+
+
+def to_dict(obj: Any, *, dict_factory: Callable[[Iterable[Tuple[Any, Any]]], Dict[Any, Any]] = dict) -> Dict[Any, Any]:
+    return asdict(obj, dict_factory=dict_factory)
+
+
+def astuple(obj: Any, *, tuple_factory: Callable[[Iterable[Any]], Tuple[Any, ...]] = tuple) -> Tuple[Any, ...]:
+    if not dataclasses.is_dataclass(obj) or isinstance(obj, type):
+        raise TypeError("obj must be a dataclass instance")
+    return dataclasses.astuple(obj, tuple_factory=tuple_factory)
+
+
+def to_tuple(obj: Any, *, tuple_factory: Callable[[Iterable[Any]], Tuple[Any, ...]] = tuple) -> Tuple[Any, ...]:
+    return astuple(obj, tuple_factory=tuple_factory)
+
+
+def replace(obj: Any, **changes: Any) -> Any:
+    if not dataclasses.is_dataclass(obj) or isinstance(obj, type):
+        raise TypeError("obj must be a dataclass instance")
+    return dataclasses.replace(obj, **changes)
+
+
+def make_dataclass(
+    cls_name: str,
+    fields: Iterable[Union[str, Tuple[str, type], Tuple[str, type, Any]]],
+    *,
+    bases: Tuple[type, ...] = (),
+    namespace: Dict[str, Any] | None = None,
+    init: bool = True,
+    repr: bool = True,
+    eq: bool = True,
+    order: bool = False,
+    unsafe_hash: bool = False,
+    frozen: bool = False,
+    match_args: bool = True,
+    kw_only: bool = False,
+    slots: bool = False,
+    weakref_slot: bool = False,
+) -> type:
+    _require_type(cls_name, "cls_name", str)
+    if not isinstance(fields, Iterable):
+        raise TypeError("fields must be iterable")
+    if not isinstance(bases, tuple):
+        raise TypeError("bases must be a tuple")
+    if namespace is not None and not isinstance(namespace, dict):
+        raise TypeError("namespace must be a dict or None")
+    return dataclasses.make_dataclass(
+        cls_name,
+        list(fields),
+        bases=bases,
+        namespace=namespace,
+        init=init,
+        repr=repr,
+        eq=eq,
+        order=order,
+        unsafe_hash=unsafe_hash,
+        frozen=frozen,
+        match_args=match_args,
+        kw_only=kw_only,
+        slots=slots,
+        weakref_slot=weakref_slot,
+    )
+
+
+field = dataclasses.field
+MISSING = dataclasses.MISSING
+
+
+def get_field_names(class_or_instance: Any) -> List[str]:
+    if not dataclasses.is_dataclass(class_or_instance):
+        raise TypeError("class_or_instance must be a dataclass or dataclass instance")
+    return [f.name for f in dataclasses.fields(class_or_instance)]
+
+
+def get_field_default(class_or_instance: Any, field_name: str) -> Any:
+    _require_type(field_name, "field_name", str)
+    if not dataclasses.is_dataclass(class_or_instance):
+        raise TypeError("class_or_instance must be a dataclass or dataclass instance")
+    for f in dataclasses.fields(class_or_instance):
+        if f.name == field_name:
+            return f.default if f.default is not dataclasses.MISSING else dataclasses.MISSING
+    raise KeyError(f"field '{field_name}' not found")
+
+
+def has_field(class_or_instance: Any, field_name: str) -> bool:
+    _require_type(field_name, "field_name", str)
+    if not dataclasses.is_dataclass(class_or_instance):
+        raise TypeError("class_or_instance must be a dataclass or dataclass instance")
+    return any(f.name == field_name for f in dataclasses.fields(class_or_instance))
+DATACLASSES_UTILS
 
 # --- array_utils.py ---
 cat > "$OUTPUT_DIR/array_utils.py" <<'ARRAY_UTILS'
