@@ -53,6 +53,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `sys_utils.py` — Python runtime and system information utilities (`get_python_version`, `get_python_version_string`, `get_executable`, `get_argv`, `get_platform`, `get_path`, `get_recursion_limit`, `set_recursion_limit`, `get_stdout_encoding`, `get_stderr_encoding`, `get_stdin_encoding`, `is_interactive`, `get_frame_info`, `get_refcount`) wrapping the standard library `sys` module with input validation
 - `tests/test_sys_utils.py` — unit tests for `sys_utils.py`
 - Added `sys_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+- `semver_utils.py` — Semantic versioning utilities (`parse_semver`, `compare_semver`, `bump_major`, `bump_minor`, `bump_patch`, `is_valid_semver`, `SemanticVersion`) following Semantic Versioning 2.0.0
+- `tests/test_semver_utils.py` — unit tests for `semver_utils.py`
+- Added `semver_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+
+- Added `semver_utils.py` with Semantic Versioning utilities and corresponding tests. Synchronized scaffold and docs.
 - Bootstrap verification: all 1500 tests, ruff checks, and mypy checks pass on 2026-10-16
 
 - `networking_utils.py` — networking utilities for TCP port and host operations (`is_valid_port`, `is_port_open`, `find_free_port`, `resolve_hostname`, `get_local_ip`, `tcp_ping`) wrapping the standard library `socket` module with input validation
