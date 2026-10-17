@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `id_utils.py` — identifier generation and validation utilities (`generate_id`, `new_id`, `is_valid_id`) for short URL-safe random identifiers with input validation.
+- `tests/test_id_utils.py` — unit tests for `id_utils.py`
+
 - Added `interval_utils.py` — interval utilities (`normalize_interval`, `is_valid_interval`, `interval_contains`, `interval_overlaps`, `interval_intersection`, `interval_union`, `merge_intervals`, `interval_length`) for closed numeric intervals with input validation.
 - `tests/test_interval_utils.py` — unit tests for `interval_utils.py`
 - Added `interval_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and test tree, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
