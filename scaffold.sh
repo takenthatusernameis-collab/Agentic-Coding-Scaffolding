@@ -188,6 +188,7 @@
 #   - call_once_utils.py — # Call-once execution utilities (call_once decorator)
 
 #   - calendar_utils.py — # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
+#   - cmath_utils.py — # Complex mathematics utilities wrapping the standard library cmath module
 
 #   - struct_utils.py — # Binary struct packing and unpacking utilities
 
@@ -17789,6 +17790,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_bisect_utils.py` — unit tests for `bisect_utils.py`
 - `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
 - `tests/test_calendar_utils.py` — unit tests for `calendar_utils.py`
+- `cmath_utils.py` — complex mathematics utilities wrapping the standard library `cmath` module (`phase`, `polar`, `rect`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `isfinite`, `isinf`, `isnan`, `isclose`)
+- `tests/test_cmath_utils.py` — unit tests for `cmath_utils.py`
 - `struct_utils.py` — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
 - `tests/test_struct_utils.py` — unit tests for `struct_utils.py`
 - `duration_utils.py` — time duration utilities (`parse_duration`, `format_duration`, `seconds_to_hms`, `hms_to_seconds`, `to_seconds`, `duration_between`, `add_duration`, `is_valid_duration`)
@@ -18795,6 +18798,7 @@ bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, 
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
+cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
@@ -18822,6 +18826,7 @@ tests/                     # Python unit tests
   test_cache_utils.py         # Tests for cache_utils.py
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
+  test_cmath_utils.py        # Tests for cmath_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
   test_color_utils.py         # Tests for color_utils.py
   test_collections_utils.py   # Tests for collections_utils.py
@@ -18955,6 +18960,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `cmath_utils.py` — complex mathematics utilities wrapping the standard library `cmath` module (`phase`, `polar`, `rect`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `isfinite`, `isinf`, `isnan`, `isclose`) with input validation, plus `tests/test_cmath_utils.py`.
+- Synchronized `cmath_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation, plus `tests/test_warnings_utils.py`.
 - Synchronized `warnings_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -32639,3 +32647,795 @@ class TestIsSameObject(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTCOPYUTILS
+
+# --- cmath_utils.py ---
+cat > "$OUTPUT_DIR/cmath_utils.py" <<'CMATHUTILS'
+"""Complex mathematics utilities wrapping the standard library cmath module.
+
+This module provides a validated wrapper around the standard library ``cmath``
+module for complex number trigonometric, transcendental, and classification
+operations. All functions validate their inputs and raise ``TypeError`` for
+non-numeric arguments.
+"""
+
+from __future__ import annotations
+
+import cmath
+import math
+from numbers import Complex, Real
+from typing import Any, Optional, Tuple, Union
+
+Number = Union[int, float, complex]
+
+
+def _validate_number(value: Any, name: str) -> None:
+    """Validate that *value* is a numeric type, raising ``TypeError`` otherwise.
+
+    Args:
+        value: The value to validate.
+        name: The name of the argument (used in error messages).
+
+    Raises:
+        TypeError: If value is not a real or complex number.
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float, complex)):
+        raise TypeError(f"{name} must be a real or complex number")
+
+
+def phase(z: Number) -> float:
+    """Return the phase of a complex number.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The phase (argument) of z, in radians.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> phase(1 + 1j)
+        0.7853981633974483
+        >>> phase(-1)
+        3.141592653589793
+    """
+    _validate_number(z, "z")
+    return cmath.phase(z)
+
+
+def polar(z: Number) -> Tuple[float, float]:
+    """Return the polar coordinates of a complex number.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        A ``(modulus, phase)`` tuple.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> polar(1 + 1j)
+        (1.4142135623730951, 0.7853981633974483)
+    """
+    _validate_number(z, "z")
+    return cmath.polar(z)
+
+
+def rect(r: Real, phi: Real) -> complex:
+    """Convert polar coordinates to a complex number.
+
+    Args:
+        r: The modulus (magnitude).
+        phi: The phase in radians.
+
+    Returns:
+        The complex number ``r * (cos(phi) + sin(phi)*1j)``.
+
+    Raises:
+        TypeError: If r or phi is not a real number.
+
+    Examples:
+        >>> rect(1, 0)
+        (1+0j)
+    """
+    if isinstance(r, bool) or not isinstance(r, (int, float)):
+        raise TypeError("r must be a real number")
+    if isinstance(phi, bool) or not isinstance(phi, (int, float)):
+        raise TypeError("phi must be a real number")
+    return cmath.rect(r, phi)
+
+
+def exp(z: Number) -> complex:
+    """Return the complex exponential e**z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        e raised to the power of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> exp(0)
+        (1+0j)
+        >>> exp(1)
+        (2.718281828459045+0j)
+    """
+    _validate_number(z, "z")
+    return cmath.exp(z)
+
+
+def log(z: Number, base: Optional[Number] = None) -> complex:
+    """Return the logarithm of z to the given base.
+
+    Args:
+        z: A real or complex number.
+        base: The logarithm base (defaults to e).
+
+    Returns:
+        The logarithm of z.
+
+    Raises:
+        TypeError: If z or base is not a real or complex number.
+        ValueError: If z is zero.
+
+    Examples:
+        >>> log(1)
+        0j
+        >>> log(math.e)
+        (1+0j)
+        >>> log(8, 2)
+        (3+0j)
+    """
+    _validate_number(z, "z")
+    if base is not None:
+        _validate_number(base, "base")
+        return cmath.log(z, base)
+    return cmath.log(z)
+
+
+def log10(z: Number) -> complex:
+    """Return the base-10 logarithm of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The base-10 logarithm of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+        ValueError: If z is zero.
+
+    Examples:
+        >>> log10(100)
+        (2+0j)
+        >>> log10(1)
+        0j
+    """
+    _validate_number(z, "z")
+    return cmath.log10(z)
+
+
+def sqrt(z: Number) -> complex:
+    """Return the square root of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The square root of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> sqrt(-1)
+        1j
+        >>> sqrt(4)
+        (2+0j)
+    """
+    _validate_number(z, "z")
+    return cmath.sqrt(z)
+
+
+def sin(z: Number) -> complex:
+    """Return the complex sine of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The sine of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> sin(0)
+        0j
+        >>> sin(math.pi / 2)
+        (1+0j)
+    """
+    _validate_number(z, "z")
+    return cmath.sin(z)
+
+
+def cos(z: Number) -> complex:
+    """Return the complex cosine of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The cosine of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> cos(0)
+        (1+0j)
+        >>> cos(math.pi)
+        (-1+0j)
+    """
+    _validate_number(z, "z")
+    return cmath.cos(z)
+
+
+def tan(z: Number) -> complex:
+    """Return the complex tangent of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The tangent of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> tan(0)
+        0j
+    """
+    _validate_number(z, "z")
+    return cmath.tan(z)
+
+
+def asin(z: Number) -> complex:
+    """Return the complex arc sine of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The arc sine of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> asin(0)
+        0j
+        >>> asin(1)
+        (1.5707963267948966+0j)
+    """
+    _validate_number(z, "z")
+    return cmath.asin(z)
+
+
+def acos(z: Number) -> complex:
+    """Return the complex arc cosine of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The arc cosine of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> acos(1)
+        0j
+        >>> acos(0)
+        (1.5707963267948966+0j)
+    """
+    _validate_number(z, "z")
+    return cmath.acos(z)
+
+
+def atan(z: Number) -> complex:
+    """Return the complex arc tangent of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The arc tangent of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> atan(0)
+        0j
+        >>> atan(1)
+        (0.7853981633974483+0j)
+    """
+    _validate_number(z, "z")
+    return cmath.atan(z)
+
+
+def sinh(z: Number) -> complex:
+    """Return the complex hyperbolic sine of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The hyperbolic sine of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> sinh(0)
+        0j
+    """
+    _validate_number(z, "z")
+    return cmath.sinh(z)
+
+
+def cosh(z: Number) -> complex:
+    """Return the complex hyperbolic cosine of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The hyperbolic cosine of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> cosh(0)
+        (1+0j)
+    """
+    _validate_number(z, "z")
+    return cmath.cosh(z)
+
+
+def tanh(z: Number) -> complex:
+    """Return the complex hyperbolic tangent of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The hyperbolic tangent of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> tanh(0)
+        0j
+    """
+    _validate_number(z, "z")
+    return cmath.tanh(z)
+
+
+def asinh(z: Number) -> complex:
+    """Return the complex inverse hyperbolic sine of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The inverse hyperbolic sine of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> asinh(0)
+        0j
+    """
+    _validate_number(z, "z")
+    return cmath.asinh(z)
+
+
+def acosh(z: Number) -> complex:
+    """Return the complex inverse hyperbolic cosine of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The inverse hyperbolic cosine of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> acosh(1)
+        0j
+    """
+    _validate_number(z, "z")
+    return cmath.acosh(z)
+
+
+def atanh(z: Number) -> complex:
+    """Return the complex inverse hyperbolic tangent of z.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        The inverse hyperbolic tangent of z.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> atanh(0)
+        0j
+    """
+    _validate_number(z, "z")
+    return cmath.atanh(z)
+
+
+def isfinite(z: Number) -> bool:
+    """Return True if z is finite (not infinite or NaN).
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        True if both the real and imaginary parts are finite.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> isfinite(1 + 2j)
+        True
+        >>> isfinite(complex(float("inf"), 0))
+        False
+    """
+    _validate_number(z, "z")
+    return cmath.isfinite(z)
+
+
+def isinf(z: Number) -> bool:
+    """Return True if the real or imaginary part of z is infinite.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        True if z is infinite.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> isinf(complex(float("inf"), 0))
+        True
+        >>> isinf(1 + 2j)
+        False
+    """
+    _validate_number(z, "z")
+    return cmath.isinf(z)
+
+
+def isnan(z: Number) -> bool:
+    """Return True if the real or imaginary part of z is NaN.
+
+    Args:
+        z: A real or complex number.
+
+    Returns:
+        True if z is NaN.
+
+    Raises:
+        TypeError: If z is not a real or complex number.
+
+    Examples:
+        >>> isnan(complex(float("nan"), 0))
+        True
+        >>> isnan(1 + 2j)
+        False
+    """
+    _validate_number(z, "z")
+    return cmath.isnan(z)
+
+
+def isclose(a: Number, b: Number, *, rel_tol: float = 1e-09, abs_tol: float = 0.0) -> bool:
+    """Return True if complex values a and b are close to each other.
+
+    Args:
+        a: A real or complex number.
+        b: A real or complex number.
+        rel_tol: Relative tolerance (default: 1e-09).
+        abs_tol: Absolute tolerance (default: 0.0).
+
+    Returns:
+        True if a and b are within the tolerances.
+
+    Raises:
+        TypeError: If a or b is not a real or complex number.
+        ValueError: If rel_tol or abs_tol is negative.
+
+    Examples:
+        >>> isclose(1 + 1j, 1 + 1j)
+        True
+        >>> isclose(1 + 1j, 1 + 2j)
+        False
+    """
+    _validate_number(a, "a")
+    _validate_number(b, "b")
+    if rel_tol < 0 or abs_tol < 0:
+        raise ValueError("tolerances must be non-negative")
+    return cmath.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
+CMATHUTILS
+
+# --- tests/test_cmath_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_cmath_utils.py" <<'TESTCMATHUTILS'
+import math
+import unittest
+
+from cmath_utils import (
+    acos,
+    acosh,
+    asin,
+    asinh,
+    atan,
+    atanh,
+    cos,
+    cosh,
+    exp,
+    isclose,
+    isfinite,
+    isinf,
+    isnan,
+    log,
+    log10,
+    phase,
+    polar,
+    rect,
+    sin,
+    sinh,
+    sqrt,
+    tan,
+    tanh,
+)
+
+
+class TestPhase(unittest.TestCase):
+    def test_phase_positive_real(self):
+        self.assertEqual(phase(1), 0.0)
+
+    def test_phase_negative_real(self):
+        self.assertEqual(phase(-1), math.pi)
+
+    def test_phase_complex(self):
+        self.assertAlmostEqual(phase(1 + 1j), math.pi / 4)
+
+    def test_phase_invalid(self):
+        with self.assertRaises(TypeError):
+            phase("1+1j")  # type: ignore[arg-type]
+
+
+class TestPolar(unittest.TestCase):
+    def test_polar_one(self):
+        self.assertEqual(polar(1), (1.0, 0.0))
+
+    def test_polar_complex(self):
+        modulus, ph = polar(1 + 1j)
+        self.assertAlmostEqual(modulus, math.sqrt(2))
+        self.assertAlmostEqual(ph, math.pi / 4)
+
+    def test_polar_invalid(self):
+        with self.assertRaises(TypeError):
+            polar([1, 2])  # type: ignore[arg-type]
+
+
+class TestRect(unittest.TestCase):
+    def test_rect_roundtrip(self):
+        r, phi = 2.0, math.pi / 3
+        z = rect(r, phi)
+        modulus, phase = polar(z)
+        self.assertAlmostEqual(modulus, r)
+        self.assertAlmostEqual(phase % (2 * math.pi), phi % (2 * math.pi))
+
+    def test_rect_zero(self):
+        self.assertEqual(rect(0, 5), 0j)
+
+    def test_rect_invalid_r(self):
+        with self.assertRaises(TypeError):
+            rect("2", 1)  # type: ignore[arg-type]
+
+    def test_rect_invalid_phi(self):
+        with self.assertRaises(TypeError):
+            rect(2, "1")  # type: ignore[arg-type]
+
+
+class TestExp(unittest.TestCase):
+    def test_exp_zero(self):
+        self.assertEqual(exp(0), 1 + 0j)
+
+    def test_exp_one(self):
+        self.assertAlmostEqual(exp(1).real, math.e)
+        self.assertAlmostEqual(exp(1).imag, 0.0)
+
+    def test_exp_invalid(self):
+        with self.assertRaises(TypeError):
+            exp(None)  # type: ignore[arg-type]
+
+
+class TestLog(unittest.TestCase):
+    def test_log_one(self):
+        self.assertEqual(log(1), 0j)
+
+    def test_log_e(self):
+        self.assertAlmostEqual(log(math.e).real, 1.0)
+        self.assertAlmostEqual(log(math.e).imag, 0.0)
+
+    def test_log_base(self):
+        self.assertAlmostEqual(log(8, 2).real, 3.0)
+        self.assertAlmostEqual(log(8, 2).imag, 0.0)
+
+    def test_log_invalid(self):
+        with self.assertRaises(TypeError):
+            log("1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            log(1, "2")  # type: ignore[arg-type]
+
+
+class TestLog10(unittest.TestCase):
+    def test_log10_one(self):
+        self.assertEqual(log10(1), 0j)
+
+    def test_log10_hundred(self):
+        self.assertAlmostEqual(log10(100).real, 2.0)
+        self.assertAlmostEqual(log10(100).imag, 0.0)
+
+    def test_log10_invalid(self):
+        with self.assertRaises(TypeError):
+            log10([100])  # type: ignore[arg-type]
+
+
+class TestSqrt(unittest.TestCase):
+    def test_sqrt_negative(self):
+        self.assertEqual(sqrt(-1), 1j)
+
+    def test_sqrt_positive(self):
+        self.assertEqual(sqrt(4), 2 + 0j)
+
+    def test_sqrt_invalid(self):
+        with self.assertRaises(TypeError):
+            sqrt("4")  # type: ignore[arg-type]
+
+
+class TestTrig(unittest.TestCase):
+    def test_sin_cos(self):
+        self.assertEqual(sin(0), 0j)
+        self.assertAlmostEqual(sin(math.pi / 2).real, 1.0)
+        self.assertAlmostEqual(cos(0).real, 1.0)
+        self.assertAlmostEqual(cos(math.pi).real, -1.0)
+
+    def test_tan(self):
+        self.assertEqual(tan(0), 0j)
+
+    def test_invalid(self):
+        with self.assertRaises(TypeError):
+            sin("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cos("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tan("x")  # type: ignore[arg-type]
+
+
+class TestInverseTrig(unittest.TestCase):
+    def test_asin_acos_atan(self):
+        self.assertEqual(asin(0), 0j)
+        self.assertAlmostEqual(asin(1).real, math.pi / 2)
+        self.assertEqual(acos(1), 0j)
+        self.assertAlmostEqual(acos(0).real, math.pi / 2)
+        self.assertEqual(atan(0), 0j)
+        self.assertAlmostEqual(atan(1).real, math.pi / 4)
+
+    def test_invalid(self):
+        with self.assertRaises(TypeError):
+            asin("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            acos("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            atan("x")  # type: ignore[arg-type]
+
+
+class TestHyperbolic(unittest.TestCase):
+    def test_sinh_cosh_tanh(self):
+        self.assertEqual(sinh(0), 0j)
+        self.assertEqual(cosh(0), 1 + 0j)
+        self.assertEqual(tanh(0), 0j)
+
+    def test_inverse(self):
+        self.assertEqual(asinh(0), 0j)
+        self.assertEqual(acosh(1), 0j)
+        self.assertEqual(atanh(0), 0j)
+
+    def test_invalid(self):
+        with self.assertRaises(TypeError):
+            sinh("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cosh("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tanh("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            asinh("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            acosh("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            atanh("x")  # type: ignore[arg-type]
+
+
+class TestClassification(unittest.TestCase):
+    def test_isfinite(self):
+        self.assertTrue(isfinite(1 + 2j))
+        self.assertFalse(isfinite(complex(math.inf, 0)))
+        self.assertFalse(isfinite(complex(0, math.inf)))
+        self.assertFalse(isfinite(complex(math.nan, 0)))
+
+    def test_isinf(self):
+        self.assertTrue(isinf(complex(math.inf, 0)))
+        self.assertFalse(isinf(1 + 2j))
+
+    def test_isnan(self):
+        self.assertTrue(isnan(complex(math.nan, 0)))
+        self.assertFalse(isnan(1 + 2j))
+
+    def test_invalid(self):
+        with self.assertRaises(TypeError):
+            isfinite("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            isinf("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            isnan("x")  # type: ignore[arg-type]
+
+
+class TestIsClose(unittest.TestCase):
+    def test_isclose_same(self):
+        self.assertTrue(isclose(1 + 1j, 1 + 1j))
+
+    def test_isclose_different(self):
+        self.assertFalse(isclose(1 + 1j, 1 + 2j))
+
+    def test_isclose_tolerance(self):
+        self.assertTrue(isclose(1 + 1j, 1 + 1.0000000001j))
+        self.assertFalse(isclose(1 + 1j, 1 + 2j, abs_tol=0.5))
+
+    def test_invalid(self):
+        with self.assertRaises(TypeError):
+            isclose("x", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            isclose(1, "x")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            isclose(1, 1, rel_tol=-1)
+        with self.assertRaises(ValueError):
+            isclose(1, 1, abs_tol=-1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCMATHUTILS

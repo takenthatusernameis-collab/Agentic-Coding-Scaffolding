@@ -423,7 +423,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "bisect_utils.py",
             "tests/test_bisect_utils.py",
             "calendar_utils.py",
+            "cmath_utils.py",
             "tests/test_calendar_utils.py",
+            "tests/test_cmath_utils.py",
             "http_utils.py",
             "tests/test_http_utils.py",
             "inspect_utils.py",
@@ -597,7 +599,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "bisect_utils.py",
             "tests/test_bisect_utils.py",
             "calendar_utils.py",
+            "cmath_utils.py",
             "tests/test_calendar_utils.py",
+            "tests/test_cmath_utils.py",
             "http_utils.py",
             "tests/test_http_utils.py",
             "inspect_utils.py",
@@ -1101,6 +1105,121 @@ class TestScaffoldKiloJson(unittest.TestCase):
 
         filterwarnings("ignore")
         resetwarnings()
+
+    def test_cmath_utils_functions_work(self):
+        """Generated cmath_utils.py should have working functions."""
+        import math
+
+        from cmath_utils import (
+            acos,
+            acosh,
+            asin,
+            asinh,
+            atan,
+            atanh,
+            cos,
+            cosh,
+            exp,
+            isclose,
+            isfinite,
+            isinf,
+            isnan,
+            log,
+            log10,
+            phase,
+            polar,
+            rect,
+            sin,
+            sinh,
+            sqrt,
+            tan,
+            tanh,
+        )
+
+        self.assertEqual(phase(1), 0.0)
+        self.assertEqual(phase(-1), math.pi)
+        self.assertAlmostEqual(phase(1 + 1j), math.pi / 4)
+        modulus, ph = polar(1 + 1j)
+        self.assertAlmostEqual(modulus, math.sqrt(2))
+        self.assertAlmostEqual(ph, math.pi / 4)
+        self.assertEqual(exp(0), 1 + 0j)
+        self.assertAlmostEqual(exp(1).real, math.e)
+        self.assertEqual(log(1), 0j)
+        self.assertAlmostEqual(log(math.e).real, 1.0)
+        self.assertAlmostEqual(log(8, 2).real, 3.0)
+        self.assertEqual(log10(1), 0j)
+        self.assertAlmostEqual(log10(100).real, 2.0)
+        self.assertEqual(sqrt(-1), 1j)
+        self.assertEqual(sqrt(4), 2 + 0j)
+        self.assertEqual(sin(0), 0j)
+        self.assertAlmostEqual(sin(math.pi / 2).real, 1.0)
+        self.assertEqual(cos(0), 1 + 0j)
+        self.assertAlmostEqual(cos(math.pi).real, -1.0)
+        self.assertEqual(tan(0), 0j)
+        self.assertEqual(asin(0), 0j)
+        self.assertAlmostEqual(asin(1).real, math.pi / 2)
+        self.assertEqual(acos(1), 0j)
+        self.assertEqual(atan(0), 0j)
+        self.assertEqual(sinh(0), 0j)
+        self.assertEqual(cosh(0), 1 + 0j)
+        self.assertEqual(tanh(0), 0j)
+        self.assertEqual(asinh(0), 0j)
+        self.assertEqual(acosh(1), 0j)
+        self.assertEqual(atanh(0), 0j)
+        self.assertTrue(isfinite(1 + 2j))
+        self.assertFalse(isfinite(complex(math.inf, 0)))
+        self.assertTrue(isinf(complex(math.inf, 0)))
+        self.assertFalse(isinf(1 + 2j))
+        self.assertTrue(isnan(complex(math.nan, 0)))
+        self.assertFalse(isnan(1 + 2j))
+        self.assertTrue(isclose(1 + 1j, 1 + 1j))
+        self.assertFalse(isclose(1 + 1j, 1 + 2j))
+
+        # round-trip rect <-> polar
+        r, phi = 2.0, math.pi / 3
+        z = rect(r, phi)
+        m2, p2 = polar(z)
+        self.assertAlmostEqual(m2, r)
+        self.assertAlmostEqual(p2 % (2 * math.pi), phi % (2 * math.pi))
+
+        # input validation
+        for fn in (
+            phase,
+            polar,
+            exp,
+            log,
+            log10,
+            sqrt,
+            sin,
+            cos,
+            tan,
+            asin,
+            acos,
+            atan,
+            sinh,
+            cosh,
+            tanh,
+            asinh,
+            acosh,
+            atanh,
+            isfinite,
+            isinf,
+            isnan,
+        ):
+            with self.assertRaises(TypeError):
+                fn("not-a-number")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rect("2", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rect(2, "1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            log("1", 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            log(1, "2")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            isclose(1, 1, rel_tol=-1)
+        with self.assertRaises(ValueError):
+            isclose(1, 1, abs_tol=-1)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

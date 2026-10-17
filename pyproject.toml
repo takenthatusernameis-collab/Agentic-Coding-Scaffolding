@@ -124,6 +124,7 @@ py_modules = [
     "base64_utils",
     "bisect_utils",
     "calendar_utils",
+    "cmath_utils",
     "call_once_utils",
     "bytes_utils",
     "struct_utils",
