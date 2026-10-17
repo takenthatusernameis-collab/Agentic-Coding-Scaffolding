@@ -123,5 +123,6 @@ py_modules = [
     "decimal_utils",
     "fractions_utils",
     "heapq_utils",
+    "interval_utils",
     "semver_utils",
 ]

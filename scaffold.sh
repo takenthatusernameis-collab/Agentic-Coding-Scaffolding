@@ -43,6 +43,8 @@
 #   - tests/test_template_utils.py — unit tests for template_utils.py
 #   - semver_utils.py — Semantic versioning utilities (parse_semver, compare_semver, bump_major, bump_minor, bump_patch, is_valid_semver, SemanticVersion)
 #   - tests/test_semver_utils.py — unit tests for semver_utils.py
+#   - interval_utils.py — Interval utilities (normalization, containment, overlap, intersection, union, merge)
+#   - tests/test_interval_utils.py — unit tests for interval_utils.py
 
 #   - file_utils.py — File and path utility functions
 #   - tests/test_file_utils.py — unit tests for file_utils.py
@@ -609,6 +611,7 @@ py_modules = [
     "calendar_utils",
     "decimal_utils",
     "heapq_utils",
+    "interval_utils",
     "semver_utils",
     "template_utils",
     "time_utils",
@@ -16303,6 +16306,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_time_utils.py — unit tests for time_utils.py
 - `semver_utils.py` — Semantic versioning utilities (`parse_semver`, `compare_semver`, `bump_major`, `bump_minor`, `bump_patch`, `is_valid_semver`, `SemanticVersion`)
 - `tests/test_semver_utils.py` — unit tests for `semver_utils.py`
+- `interval_utils.py` — Interval utilities (normalization, containment, overlap, intersection, union, merge)
+- `tests/test_interval_utils.py` — unit tests for `interval_utils.py`
 - `template_utils.py` — string template rendering utilities (`render_template`, `substitute`, `safe_substitute`, `render_from_dict`, `has_placeholders`, `extract_placeholders`) supporting `str.format()` and `string.Template` styles with placeholder extraction
 - `tests/test_template_utils.py` — unit tests for `template_utils.py`
 
@@ -16738,6 +16743,197 @@ def _compare_prerelease(a: str, b: str) -> int:
     return 0
 
 SEMVERUTILS
+
+# --- interval_utils.py ---
+cat > "$OUTPUT_DIR/interval_utils.py" <<'INTERVALUTILS'
+"""Interval utilities.
+
+This module provides utilities for working with closed numeric intervals
+of the form ``(low, high)`` where ``low <= high``. It supports
+normalization, containment, overlap, intersection, union/merge, length,
+and validation operations.
+"""
+
+from __future__ import annotations
+
+from typing import Optional, Tuple
+
+Interval = Tuple[float, float]
+
+
+def _is_number(value: object) -> bool:
+    """Return True if *value* is a real int or float (excluding booleans)."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def normalize_interval(low: float, high: float) -> Interval:
+    """Return ``(low, high)`` with ``low <= high``.
+
+    The two endpoints are swapped when necessary so the result is always a
+    valid, ordered interval.
+
+    Args:
+        low: One endpoint of the interval.
+        high: The other endpoint of the interval.
+
+    Returns:
+        A tuple ``(min, max)`` representing the normalized interval.
+
+    Raises:
+        TypeError: If either endpoint is not a real number.
+    """
+    if not _is_number(low):
+        raise TypeError(f"low must be a real number, got {type(low).__name__}")
+    if not _is_number(high):
+        raise TypeError(f"high must be a real number, got {type(high).__name__}")
+    return (min(low, high), max(low, high))
+
+
+def is_valid_interval(interval: object) -> bool:
+    """Return True if *interval* is a well-formed ``(low, high)`` interval.
+
+    A valid interval is a two-element tuple/list of real numbers with
+    ``low <= high``.
+    """
+    if not isinstance(interval, (tuple, list)) or len(interval) != 2:
+        return False
+    low, high = interval
+    if not _is_number(low) or not _is_number(high):
+        return False
+    return low <= high
+
+
+def interval_contains(interval: Interval, value: float) -> bool:
+    """Return True if *value* lies within the closed interval *interval*.
+
+    Args:
+        interval: A ``(low, high)`` interval.
+        value: The value to test.
+
+    Returns:
+        True if ``low <= value <= high``.
+
+    Raises:
+        TypeError: If *interval* is malformed or *value* is not a real number.
+        ValueError: If *interval* is not valid (``low > high``).
+    """
+    if not is_valid_interval(interval):
+        raise ValueError(f"invalid interval: {interval!r}")
+    if not _is_number(value):
+        raise TypeError(f"value must be a real number, got {type(value).__name__}")
+    low, high = interval
+    return low <= value <= high
+
+
+def interval_overlaps(a: Interval, b: Interval) -> bool:
+    """Return True if intervals *a* and *b* share at least one point.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        True if the intervals overlap (including touching at an endpoint).
+
+    Raises:
+        ValueError: If either interval is not valid.
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    return max(a[0], b[0]) <= min(a[1], b[1])
+
+
+def interval_intersection(a: Interval, b: Interval) -> Optional[Interval]:
+    """Return the overlapping portion of intervals *a* and *b*.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        The intersection interval, or ``None`` if the intervals are disjoint.
+
+    Raises:
+        ValueError: If either interval is not valid.
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    low = max(a[0], b[0])
+    high = min(a[1], b[1])
+    if low > high:
+        return None
+    return (low, high)
+
+
+def interval_union(a: Interval, b: Interval) -> Optional[Interval]:
+    """Return the smallest interval covering both *a* and *b*.
+
+    The union is only defined when the intervals overlap or touch; disjoint
+    intervals return ``None``.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        The merged interval, or ``None`` if the intervals are disjoint.
+
+    Raises:
+        ValueError: If either interval is not valid.
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    if not interval_overlaps(a, b):
+        return None
+    return (min(a[0], b[0]), max(a[1], b[1]))
+
+
+def merge_intervals(intervals: list[Interval]) -> list[Interval]:
+    """Merge overlapping intervals into a sorted list of disjoint intervals.
+
+    Args:
+        intervals: An iterable of ``(low, high)`` intervals.
+
+    Returns:
+        A list of disjoint, sorted intervals covering the same points.
+
+    Raises:
+        TypeError: If *intervals* is not a list.
+        ValueError: If any interval is not valid.
+    """
+    if not isinstance(intervals, list):
+        raise TypeError(f"intervals must be a list, got {type(intervals).__name__}")
+    for interval in intervals:
+        if not is_valid_interval(interval):
+            raise ValueError(f"invalid interval: {interval!r}")
+    sorted_intervals = sorted(intervals, key=lambda item: (item[0], item[1]))
+    merged: list[Interval] = []
+    for interval in sorted_intervals:
+        if merged and interval_overlaps(merged[-1], interval):
+            low = merged[-1][0]
+            high = max(merged[-1][1], interval[1])
+            merged[-1] = (low, high)
+        else:
+            merged.append(interval)
+    return merged
+
+
+def interval_length(interval: Interval) -> float:
+    """Return the length ``high - low`` of *interval*.
+
+    Args:
+        interval: A ``(low, high)`` interval.
+
+    Returns:
+        The length of the interval as a float.
+
+    Raises:
+        ValueError: If *interval* is not valid.
+    """
+    if not is_valid_interval(interval):
+        raise ValueError(f"invalid interval: {interval!r}")
+    return float(interval[1] - interval[0])
+INTERVALUTILS
 
 # --- tests/test_template_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_template_utils.py" <<'TESTTEMPLATEUTILS'
@@ -17191,6 +17387,7 @@ heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify
 markdown_utils.py          # Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
 time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
 semver_utils.py            # Semantic versioning utilities (parse_semver, compare_semver, bump_major, bump_minor, bump_patch, is_valid_semver, SemanticVersion)
+interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
@@ -17284,6 +17481,7 @@ tests/                     # Python unit tests
   test_textwrap_utils.py      # Tests for textwrap_utils.py
   test_time_utils.py          # Tests for time_utils.py
   test_semver_utils.py        # Tests for semver_utils.py
+  test_interval_utils.py      # Tests for interval_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
@@ -17365,6 +17563,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_time_utils.py` — unit tests for `time_utils.py`
 - `semver_utils.py` — Semantic versioning utilities (`parse_semver`, `compare_semver`, `bump_major`, `bump_minor`, `bump_patch`, `is_valid_semver`, `SemanticVersion`)
 - `tests/test_semver_utils.py` — unit tests for `semver_utils.py`
+- `interval_utils.py` — Interval utilities (normalization, containment, overlap, intersection, union, merge)
+- `tests/test_interval_utils.py` — unit tests for `interval_utils.py`
 - Added `time_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
 
 - `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`) using the standard library `decimal` module with input validation
@@ -26716,6 +26916,224 @@ if __name__ == "__main__":
     unittest.main()
 
 TESTSEMVERUTILS
+
+# --- tests/test_interval_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_interval_utils.py" <<'TESTINTERVALUTILS'
+import unittest
+
+from interval_utils import (
+    Interval,
+    interval_contains,
+    interval_intersection,
+    interval_length,
+    interval_overlaps,
+    interval_union,
+    is_valid_interval,
+    merge_intervals,
+    normalize_interval,
+)
+
+
+class TestNormalizeInterval(unittest.TestCase):
+    def test_already_ordered(self):
+        self.assertEqual(normalize_interval(1, 5), (1, 5))
+
+    def test_swaps_endpoints(self):
+        self.assertEqual(normalize_interval(5, 1), (1, 5))
+
+    def test_equal_endpoints(self):
+        self.assertEqual(normalize_interval(3, 3), (3, 3))
+
+    def test_negative_values(self):
+        self.assertEqual(normalize_interval(-5, -1), (-5, -1))
+        self.assertEqual(normalize_interval(-1, -5), (-5, -1))
+
+    def test_float_values(self):
+        self.assertEqual(normalize_interval(2.5, 1.5), (1.5, 2.5))
+
+    def test_mixed_int_float(self):
+        self.assertEqual(normalize_interval(3, 1.5), (1.5, 3))
+
+    def test_non_number_raises(self):
+        with self.assertRaises(TypeError):
+            normalize_interval("1", 5)
+        with self.assertRaises(TypeError):
+            normalize_interval(1, None)
+        with self.assertRaises(TypeError):
+            normalize_interval(True, 5)
+
+
+class TestIsValidInterval(unittest.TestCase):
+    def test_valid_tuple(self):
+        self.assertTrue(is_valid_interval((1, 5)))
+
+    def test_valid_list(self):
+        self.assertTrue(is_valid_interval([1, 5]))
+
+    def test_equal_endpoints_valid(self):
+        self.assertTrue(is_valid_interval((3, 3)))
+
+    def test_invalid_low_greater_than_high(self):
+        self.assertFalse(is_valid_interval((5, 1)))
+
+    def test_not_a_pair(self):
+        self.assertFalse(is_valid_interval((1,)))
+        self.assertFalse(is_valid_interval((1, 2, 3)))
+        self.assertFalse(is_valid_interval("ab"))
+        self.assertFalse(is_valid_interval(42))
+
+    def test_non_number_elements(self):
+        self.assertFalse(is_valid_interval(("a", "b")))
+        self.assertFalse(is_valid_interval((1, "b")))
+        self.assertFalse(is_valid_interval((True, 5)))
+
+    def test_none(self):
+        self.assertFalse(is_valid_interval(None))
+
+
+class TestIntervalContains(unittest.TestCase):
+    def test_inside(self):
+        self.assertTrue(interval_contains((1, 5), 3))
+
+    def test_at_endpoints(self):
+        self.assertTrue(interval_contains((1, 5), 1))
+        self.assertTrue(interval_contains((1, 5), 5))
+
+    def test_outside(self):
+        self.assertFalse(interval_contains((1, 5), 0))
+        self.assertFalse(interval_contains((1, 5), 6))
+
+    def test_degenerate_interval(self):
+        self.assertTrue(interval_contains((3, 3), 3))
+        self.assertFalse(interval_contains((3, 3), 4))
+
+    def test_float_value(self):
+        self.assertTrue(interval_contains((1.5, 2.5), 2.0))
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_contains((5, 1), 3)
+
+    def test_non_number_value_raises(self):
+        with self.assertRaises(TypeError):
+            interval_contains((1, 5), "x")
+
+
+class TestIntervalOverlaps(unittest.TestCase):
+    def test_overlapping(self):
+        self.assertTrue(interval_overlaps((1, 5), (4, 8)))
+
+    def test_touching_endpoints(self):
+        self.assertTrue(interval_overlaps((1, 5), (5, 8)))
+
+    def test_disjoint(self):
+        self.assertFalse(interval_overlaps((1, 3), (4, 8)))
+
+    def test_one_inside_other(self):
+        self.assertTrue(interval_overlaps((1, 10), (4, 6)))
+
+    def test_identical(self):
+        self.assertTrue(interval_overlaps((2, 4), (2, 4)))
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_overlaps((5, 1), (2, 4))
+
+
+class TestIntervalIntersection(unittest.TestCase):
+    def test_partial_overlap(self):
+        self.assertEqual(interval_intersection((1, 5), (4, 8)), (4, 5))
+
+    def test_touching(self):
+        self.assertEqual(interval_intersection((1, 5), (5, 8)), (5, 5))
+
+    def test_disjoint(self):
+        self.assertIsNone(interval_intersection((1, 3), (4, 8)))
+
+    def test_one_inside_other(self):
+        self.assertEqual(interval_intersection((1, 10), (4, 6)), (4, 6))
+
+    def test_identical(self):
+        self.assertEqual(interval_intersection((2, 4), (2, 4)), (2, 4))
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_intersection((5, 1), (2, 4))
+
+
+class TestIntervalUnion(unittest.TestCase):
+    def test_overlapping_merges(self):
+        self.assertEqual(interval_union((1, 5), (4, 8)), (1, 8))
+
+    def test_touching_merges(self):
+        self.assertEqual(interval_union((1, 5), (5, 8)), (1, 8))
+
+    def test_disjoint_returns_none(self):
+        self.assertIsNone(interval_union((1, 3), (4, 8)))
+
+    def test_one_inside_other(self):
+        self.assertEqual(interval_union((1, 10), (4, 6)), (1, 10))
+
+    def test_identical(self):
+        self.assertEqual(interval_union((2, 4), (2, 4)), (2, 4))
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_union((5, 1), (2, 4))
+
+
+class TestMergeIntervals(unittest.TestCase):
+    def test_disjoint_stays_disjoint(self):
+        self.assertEqual(merge_intervals([(1, 3), (5, 8)]), [(1, 3), (5, 8)])
+
+    def test_overlapping_merges(self):
+        self.assertEqual(merge_intervals([(1, 5), (4, 8)]), [(1, 8)])
+
+    def test_touching_merges(self):
+        self.assertEqual(merge_intervals([(1, 5), (5, 8)]), [(1, 8)])
+
+    def test_unsorted_input(self):
+        self.assertEqual(merge_intervals([(5, 8), (1, 3)]), [(1, 3), (5, 8)])
+
+    def test_chain_merge(self):
+        self.assertEqual(merge_intervals([(1, 3), (2, 6), (5, 8)]), [(1, 8)])
+
+    def test_empty_list(self):
+        self.assertEqual(merge_intervals([]), [])
+
+    def test_single_interval(self):
+        self.assertEqual(merge_intervals([(2, 4)]), [(2, 4)])
+
+    def test_non_list_raises(self):
+        with self.assertRaises(TypeError):
+            merge_intervals((1, 3))  # type: ignore[arg-type]
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            merge_intervals([(5, 1)])
+
+
+class TestIntervalLength(unittest.TestCase):
+    def test_positive_length(self):
+        self.assertEqual(interval_length((1, 5)), 4.0)
+
+    def test_zero_length(self):
+        self.assertEqual(interval_length((3, 3)), 0.0)
+
+    def test_float_length(self):
+        self.assertEqual(interval_length((1.5, 3.5)), 2.0)
+
+    def test_negative_interval(self):
+        self.assertEqual(interval_length((-5, -1)), 4.0)
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_length((5, 1))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTINTERVALUTILS
 
 # --- time_utils.py ---
 cat > "$OUTPUT_DIR/time_utils.py" <<'TIMEUTILS'

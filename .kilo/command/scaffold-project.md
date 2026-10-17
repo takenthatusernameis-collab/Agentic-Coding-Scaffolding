@@ -182,6 +182,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_time_utils.py` — unit tests for `time_utils.py`
 - `semver_utils.py` — Semantic versioning utilities (`parse_semver`, `compare_semver`, `bump_major`, `bump_minor`, `bump_patch`, `is_valid_semver`, `SemanticVersion`)
 - `tests/test_semver_utils.py` — unit tests for `semver_utils.py`
+- `interval_utils.py` — Interval utilities (normalization, containment, overlap, intersection, union, merge)
+- `tests/test_interval_utils.py` — unit tests for `interval_utils.py`
 - `template_utils.py` — string template rendering utilities (`render_template`, `substitute`, `safe_substitute`, `render_from_dict`, `has_placeholders`, `extract_placeholders`) supporting `str.format()` and `string.Template` styles with placeholder extraction
 - `tests/test_template_utils.py` — unit tests for `template_utils.py`
 
