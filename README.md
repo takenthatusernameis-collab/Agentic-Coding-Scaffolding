@@ -110,70 +110,90 @@ exceptions_utils.py        # Custom exception classes and error handling utiliti
 io_utils.py                # Line-oriented and atomic input/output utilities
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
-113: compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
+compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
 ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
 tests/                     # Python unit tests
-  test_hello.py              # Tests for hello.py
-  test_calculator.py         # Tests for calculator.py
-  test_scaffold.py           # Tests for scaffold.sh
-  test_config_utils.py       # Tests for config_utils.py
-  test_shapes.py             # Tests for shapes.py
-  test_strings.py            # Tests for strings.py
-  test_utils.py              # Tests for utils.py
-  test_stats.py              # Tests for stats.py
-  test_math_utils.py         # Tests for math_utils.py
-  test_data_utils.py         # Tests for data_utils.py
-  test_datetime_utils.py     # Tests for datetime_utils.py
-  test_file_utils.py         # Tests for file_utils.py
-  test_url_utils.py          # Tests for url_utils.py
-  test_random_utils.py       # Tests for random_utils.py
-  test_validation_utils.py   # Tests for validation_utils.py
-  test_crypto_utils.py       # Tests for crypto_utils.py
-  test_list_utils.py         # Tests for list_utils.py
-  test_env_utils.py          # Tests for env_utils.py
-  test_logging_utils.py       # Tests for logging_utils.py
-  test_cache_utils.py         # Tests for cache_utils.py
-  test_timing_utils.py        # Tests for timing_utils.py
   test_async_utils.py         # Tests for async_utils.py
+  test_base64_utils.py        # Tests for base64_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
-  test_concurrent_utils.py    # Tests for concurrent_utils.py
-  test_priority_queue_utils.py # Tests for priority_queue_utils.py
-  test_queue_utils.py          # Tests for queue_utils.py
-  test_rate_limiter_utils.py   # Tests for rate_limiter_utils.py
-  test_retry_utils.py         # Tests for retry_utils.py
-  test_dict_utils.py         # Tests for dict_utils.py
-  test_json_utils.py          # Tests for json_utils.py
+  test_bytes_utils.py         # Tests for bytes_utils.py
+  test_calculator.py          # Tests for calculator.py
+  test_calendar_utils.py      # Tests for calendar_utils.py
+  test_cli_utils.py           # Tests for cli_utils.py
+  test_color_utils.py         # Tests for color_utils.py
   test_collections_utils.py   # Tests for collections_utils.py
-  test_csv_utils.py           # Tests for csv_utils.py
-  test_set_utils.py           # Tests for set_utils.py
-  test_statistics_utils.py    # Tests for statistics_utils.py
-  test_string_utils.py        # Tests for string_utils.py
-  test_tree_utils.py         # Tests for tree_utils.py
-  test_type_utils.py         # Tests for type_utils.py
-  test_path_utils.py        # Tests for path_utils.py
-  test_color_utils.py      # Tests for color_utils.py
-  test_pattern_utils.py         # Tests for pattern_utils.py
-  test_graphlib_utils.py        # Tests for graphlib_utils.py
-  test_queue_utils.py           # Tests for queue_utils.py
-  test_version_utils.py         # Tests for version_utils.py
-  test_textwrap_utils.py        # Tests for textwrap_utils.py
-  test_prime_utils.py           # Tests for prime_utils.py
-  test_heapq_utils.py           # Tests for heapq_utils.py
-  test_markdown_utils.py        # Tests for markdown_utils.py
-  test_time_utils.py            # Tests for time_utils.py
-  test_functools_utils.py       # Tests for functools_utils.py
-  test_exceptions_utils.py    # Tests for exceptions_utils.py
-  test_io_utils.py            # Tests for io_utils.py
   test_compression_utils.py   # Tests for compression_utils.py
-  test_ip_utils.py             # Tests for ip_utils.py
+  test_config_schema.py       # Tests for config_schema.py
+  test_config_utils.py        # Tests for config_utils.py
+  test_concurrent_utils.py    # Tests for concurrent_utils.py
+  test_context_utils.py       # Tests for context_utils.py
+  test_crypto_utils.py        # Tests for crypto_utils.py
+  test_csv_utils.py           # Tests for csv_utils.py
+  test_data_utils.py          # Tests for data_utils.py
+  test_datetime_utils.py      # Tests for datetime_utils.py
+  test_decimal_utils.py       # Tests for decimal_utils.py
+  test_dict_utils.py          # Tests for dict_utils.py
+  test_duration_utils.py      # Tests for duration_utils.py
+  test_env_utils.py           # Tests for env_utils.py
+  test_exceptions_utils.py    # Tests for exceptions_utils.py
+  test_file_utils.py          # Tests for file_utils.py
+  test_fractions_utils.py     # Tests for fractions_utils.py
+  test_functools_utils.py     # Tests for functools_utils.py
+  test_graphlib_utils.py      # Tests for graphlib_utils.py
+  test_hash_utils.py          # Tests for hash_utils.py
+  test_html_utils.py          # Tests for html_utils.py
+  test_http_utils.py          # Tests for http_utils.py
+  test_ini_utils.py           # Tests for ini_utils.py
+  test_io_utils.py            # Tests for io_utils.py
+  test_ip_utils.py            # Tests for ip_utils.py
+  test_itertools_utils.py     # Tests for itertools_utils.py
+  test_json_utils.py          # Tests for json_utils.py
+  test_list_utils.py          # Tests for list_utils.py
+  test_logging_utils.py       # Tests for logging_utils.py
+  test_markdown_utils.py      # Tests for markdown_utils.py
+  test_math_utils.py          # Tests for math_utils.py
+  test_networking_utils.py    # Tests for networking_utils.py
+  test_number_utils.py        # Tests for number_utils.py
+  test_operator_utils.py      # Tests for operator_utils.py
+  test_os_utils.py            # Tests for os_utils.py
+  test_path_utils.py          # Tests for path_utils.py
+  test_pattern_utils.py       # Tests for pattern_utils.py
+  test_prime_utils.py         # Tests for prime_utils.py
+  test_priority_queue_utils.py # Tests for priority_queue_utils.py
+  test_prompt_utils.py        # Tests for prompt_utils.py
+  test_queue_utils.py         # Tests for queue_utils.py
+  test_random_utils.py        # Tests for random_utils.py
+  test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
   test_regex_utils.py         # Tests for regex_utils.py
-  test_config_schema.py         # Tests for config_schema.py
-test_http_utils.py            # Tests for http_utils.py
-  test_struct_utils.py          # Tests for struct_utils.py
-  test_bytes_utils.py           # Tests for bytes_utils.py
+  test_retry_utils.py         # Tests for retry_utils.py
+  test_scaffold.py            # Tests for scaffold.sh
+  test_seq_utils.py           # Tests for seq_utils.py
+  test_set_utils.py           # Tests for set_utils.py
+  test_shapes.py              # Tests for shapes.py
+  test_sort_utils.py          # Tests for sort_utils.py
+  test_statistics_utils.py    # Tests for statistics_utils.py
+  test_stats.py               # Tests for stats.py
+  test_string_utils.py        # Tests for string_utils.py
+  test_strings.py             # Tests for strings.py
+  test_struct_utils.py        # Tests for struct_utils.py
+  test_subprocess_utils.py    # Tests for subprocess_utils.py
+  test_sys_utils.py           # Tests for sys_utils.py
+  test_template_utils.py      # Tests for template_utils.py
+  test_temp_utils.py          # Tests for temp_utils.py
+  test_textwrap_utils.py      # Tests for textwrap_utils.py
+  test_time_utils.py          # Tests for time_utils.py
+  test_timing_utils.py        # Tests for timing_utils.py
+  test_tree_utils.py          # Tests for tree_utils.py
+  test_type_utils.py          # Tests for type_utils.py
+  test_url_utils.py           # Tests for url_utils.py
+  test_uuid_utils.py          # Tests for uuid_utils.py
+  test_validation_utils.py    # Tests for validation_utils.py
+  test_version_utils.py       # Tests for version_utils.py
+  test_weakref_utils.py       # Tests for weakref_utils.py
+  test_xml_utils.py           # Tests for xml_utils.py
   ```
 
 ## How It Works
