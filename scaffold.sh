@@ -26689,85 +26689,6 @@ TESTTIMEUTILS
 
 # --- fractions_utils.py ---
 cat > "$OUTPUT_DIR/fractions_utils.py" <<'FRACTIONS_UTILS'
-cat > "$OUTPUT_DIR/weakref_utils.py" <<'WEAKREF_UTILS'
-"""Weak reference utilities for managing weak references to objects."""
-
-from __future__ import annotations
-
-import weakref
-from typing import Any, Callable, Generic, Optional, Protocol, TypeVar
-
-
-T = TypeVar("T", bound=Any)
-
-
-class BoundMethodProtocol(Protocol):
-    __func__: Callable[..., Any]
-    __self__: Any
-
-
-class WeakRef(Generic[T]):
-    """A simple wrapper for creating and accessing a weak reference."""
-
-    def __init__(self, obj: T) -> None:
-        self._ref = weakref.ref(obj)
-
-    def get(self) -> Optional[T]:
-        return self._ref()
-
-    def is_alive(self) -> bool:
-        return self.get() is not None
-
-
-class WeakMethod(Generic[T]):
-    """A weak reference to a bound method."""
-
-    def __init__(self, method: Any) -> None:
-        self._func = weakref.ref(getattr(method, "__func__"))
-        self._obj = weakref.ref(getattr(method, "__self__"))
-
-    def get(self) -> Optional[Callable[..., Any]]:
-        func = self._func()
-        obj = self._obj()
-        if func is None or obj is None:
-            return None
-        return func.__get__(obj, type(obj))  # type: ignore[no-any-return]
-
-    def is_alive(self) -> bool:
-        return self.get() is not None
-
-
-def create_weakref(obj: T) -> weakref.ref[T]:
-    return weakref.ref(obj)
-
-
-def create_proxy(obj: T) -> Any:
-    return weakref.proxy(obj)
-
-
-def get_object(ref: weakref.ReferenceType[T]) -> Optional[T]:
-    if isinstance(ref, weakref.ProxyType):
-        try:
-            _ = ref.__class__.__name__
-            return ref  # type: ignore[return-value]
-        except ReferenceError:
-            return None
-    try:
-        result = ref() if callable(ref) else None
-        return result
-    except Exception:
-        return None
-
-
-def is_alive(ref: weakref.ReferenceType[T]) -> bool:
-    obj = get_object(ref)
-    return obj is not None
-
-
-def create_finalizer(obj: Any, callback: Callable[..., Any]) -> weakref.finalize:
-    return weakref.finalize(obj, callback)
-WEAKREF_UTILS
-
 """Fraction arithmetic utilities for exact rational number operations.
 
 This module provides helpers for performing arithmetic on
@@ -27002,166 +26923,180 @@ def from_float(value: Any) -> Fraction:
     return _to_fraction(value)
 FRACTIONS_UTILS
 
+# --- weakref_utils.py ---
+cat > "$OUTPUT_DIR/weakref_utils.py" <<'WEAKREF_UTILS'
+"""Weak reference utilities for managing weak references to objects."""
+
+from __future__ import annotations
+
+import weakref
+from typing import Any, Callable, Generic, Optional, Protocol, TypeVar
+
+T = TypeVar("T", bound=Any)
+
+
+class BoundMethodProtocol(Protocol):
+    __func__: Callable[..., Any]
+    __self__: Any
+
+
+class WeakRef(Generic[T]):
+    """A simple wrapper for creating and accessing a weak reference.
+
+    Args:
+        obj: The object to weakly reference.
+
+    Attributes:
+        _ref: The underlying weakref.ref instance.
+    """
+
+    def __init__(self, obj: T) -> None:
+        """Initialize a WeakRef for the given object.
+
+        Args:
+            obj: The object to weakly reference.
+        """
+        self._ref = weakref.ref(obj)
+
+    def get(self) -> Optional[T]:
+        """Return the referenced object if it still exists, otherwise None.
+
+        Returns:
+            The referenced object, or None if it has been garbage collected.
+        """
+        return self._ref()
+
+    def is_alive(self) -> bool:
+        """Check if the referenced object is still alive.
+
+        Returns:
+            True if the referenced object exists, False otherwise.
+        """
+        return self.get() is not None
+
+
+class WeakMethod(Generic[T]):
+    """A weak reference to a bound method.
+
+    This prevents the object holding the bound method from keeping the target
+    object alive indefinitely.
+
+    Args:
+        method: The bound method to weakly reference.
+    """
+
+    def __init__(self, method: Any) -> None:
+        """Initialize a WeakMethod for the given bound method.
+
+        Args:
+            method: A bound method (e.g., instance.method).
+        """
+        self._func = weakref.ref(getattr(method, "__func__"))
+        self._obj = weakref.ref(getattr(method, "__self__"))
+
+    def get(self) -> Optional[Callable[..., Any]]:
+        """Return the bound method if the target object is still alive.
+
+        Returns:
+            The bound method, or None if the target object has been garbage
+            collected.
+        """
+        func = self._func()
+        obj = self._obj()
+        if func is None or obj is None:
+            return None
+        return func.__get__(obj, type(obj))  # type: ignore[no-any-return]
+
+    def is_alive(self) -> bool:
+        """Check if the target object is still alive.
+
+        Returns:
+            True if the target object exists, False otherwise.
+        """
+        return self.get() is not None
+
+
+def create_weakref(obj: T) -> weakref.ref[T]:
+    """Create a weak reference to an object.
+
+    Args:
+        obj: The object to weakly reference.
+
+    Returns:
+        A weakref.ref to the object.
+    """
+    return weakref.ref(obj)
+
+
+def create_proxy(obj: T) -> Any:
+    """Create a weak proxy to an object.
+
+    A weak proxy behaves like the original object but does not prevent
+    garbage collection. Accessing the proxy after the object is collected
+    raises ReferenceError.
+
+    Args:
+        obj: The object to create a proxy for.
+
+    Returns:
+        A weakref.proxy to the object.
+    """
+    return weakref.proxy(obj)
+
+
+def get_object(ref: weakref.ReferenceType[T]) -> Optional[T]:
+    """Get the object from a weak reference if it still exists.
+
+    Args:
+        ref: A weak reference (weakref.ref, proxy, or custom).
+
+    Returns:
+        The referenced object, or None if it has been garbage collected.
+    """
+    # Check if it's a proxy
+    if isinstance(ref, weakref.ProxyType):
+        try:
+            # Accessing the proxy to see if it's alive
+            _ = ref.__class__.__name__  # trivial access
+            return ref  # type: ignore[return-value]
+        except ReferenceError:
+            return None
+    # Check if it's a ref
+    try:
+        result = ref() if callable(ref) else None
+        return result
+    except Exception:
+        return None
+
+
+def is_alive(ref: weakref.ReferenceType[T]) -> bool:
+    """Check if a weak reference is still alive.
+
+    Args:
+        ref: A weak reference to check.
+
+    Returns:
+        True if the referenced object still exists, False otherwise.
+    """
+    obj = get_object(ref)
+    return obj is not None
+
+
+def create_finalizer(obj: Any, callback: Callable[..., Any]) -> weakref.finalize:
+    """Create a finalizer that will call the callback when obj is garbage collected.
+
+    Args:
+        obj: The object to monitor for garbage collection.
+        callback: The function to call when the object is collected.
+
+    Returns:
+        A weakref.finalize instance.
+    """
+    return weakref.finalize(obj, callback)
+WEAKREF_UTILS
+
 # --- tests/test_fractions_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_fractions_utils.py" <<'FRACTIONSTESTS'
-cat > "$OUTPUT_DIR/tests/test_weakref_utils.py" <<'WEAKREFTESTS'
-import unittest
-import weakref
-import gc
-
-from weakref_utils import (
-    WeakRef,
-    WeakMethod,
-    create_weakref,
-    create_proxy,
-    get_object,
-    is_alive,
-    create_finalizer,
-)
-
-
-class TestWeakRef(unittest.TestCase):
-    def test_weakref_get(self):
-        class Dummy:
-            pass
-
-        d = Dummy()
-        wr = WeakRef(d)
-        self.assertIs(wr.get(), d)
-        del d
-        gc.collect()
-        self.assertIsNone(wr.get())
-
-    def test_weakref_is_alive(self):
-        class Dummy:
-            pass
-
-        d = Dummy()
-        wr = WeakRef(d)
-        self.assertTrue(wr.is_alive())
-        del d
-        gc.collect()
-        self.assertFalse(wr.is_alive())
-
-
-class TestWeakMethod(unittest.TestCase):
-    def test_weakmethod_get(self):
-        class Dummy:
-            def method(self):
-                return "hi"
-
-        d = Dummy()
-        wm = WeakMethod(d.method)
-        self.assertIsNotNone(wm.get())
-        self.assertEqual(wm.get()(), "hi")  # type: ignore[union-attr]
-        del d
-        gc.collect()
-        self.assertIsNone(wm.get())
-
-    def test_weakmethod_is_alive(self):
-        class Dummy:
-            def method(self):
-                return "hi"
-
-        d = Dummy()
-        wm = WeakMethod(d.method)
-        self.assertTrue(wm.is_alive())
-        del d
-        gc.collect()
-        self.assertFalse(wm.is_alive())
-
-
-class TestCreateWeakref(unittest.TestCase):
-    def test_create_weakref(self):
-        class Dummy:
-            pass
-
-        d = Dummy()
-        wr = create_weakref(d)
-        self.assertIsInstance(wr, weakref.ref)
-        self.assertIs(wr(), d)
-        del d
-        gc.collect()
-        self.assertIsNone(wr())
-
-
-class TestCreateProxy(unittest.TestCase):
-    def test_create_proxy(self):
-        class Dummy:
-            def value(self):
-                return 42
-
-        d = Dummy()
-        proxy = create_proxy(d)
-        self.assertEqual(proxy.value(), 42)
-        del d
-        gc.collect()
-        with self.assertRaises(ReferenceError):
-            _ = proxy.value()
-
-
-class TestGetObject(unittest.TestCase):
-    def test_get_object_ref(self):
-        class Dummy:
-            pass
-
-        d = Dummy()
-        wr = weakref.ref(d)
-        self.assertIs(get_object(wr), d)
-        del d
-        gc.collect()
-        self.assertIsNone(get_object(wr))
-
-    def test_get_object_proxy(self):
-        class Dummy:
-            pass
-
-        d = Dummy()
-        proxy = weakref.proxy(d)
-        self.assertIs(get_object(proxy), proxy)
-        del d
-        gc.collect()
-        self.assertIsNone(get_object(proxy))
-
-
-class TestIsAlive(unittest.TestCase):
-    def test_is_alive_ref(self):
-        class Dummy:
-            pass
-
-        d = Dummy()
-        wr = weakref.ref(d)
-        self.assertTrue(is_alive(wr))
-        del d
-        gc.collect()
-        self.assertFalse(is_alive(wr))
-
-
-class TestCreateFinalizer(unittest.TestCase):
-    def test_create_finalizer(self):
-        results = []
-
-        class Dummy:
-            pass
-
-        d = Dummy()
-
-        def callback():
-            results.append(True)
-
-        fin = create_finalizer(d, callback)
-        self.assertIsInstance(fin, weakref.finalize)
-        self.assertTrue(fin.alive)
-        del d
-        gc.collect()
-        gc.collect()
-        self.assertFalse(fin.alive)
-
-
-if __name__ == "__main__":
-    unittest.main()
-WEAKREFTESTS
-
 """Tests for fractions_utils."""
 
 import unittest
@@ -27309,3 +27244,165 @@ class TestFloatConversion(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 FRACTIONSTESTS
+
+# --- tests/test_weakref_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_weakref_utils.py" <<'WEAKREFTESTS'
+import gc
+import unittest
+import weakref
+
+from weakref_utils import (
+    WeakMethod,
+    WeakRef,
+    create_finalizer,
+    create_proxy,
+    create_weakref,
+    get_object,
+    is_alive,
+)
+
+
+class TestWeakRef(unittest.TestCase):
+    def test_weakref_get(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        wr = WeakRef(d)
+        self.assertIs(wr.get(), d)
+        del d
+        gc.collect()
+        self.assertIsNone(wr.get())
+
+    def test_weakref_is_alive(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        wr = WeakRef(d)
+        self.assertTrue(wr.is_alive())
+        del d
+        gc.collect()
+        self.assertFalse(wr.is_alive())
+
+
+class TestWeakMethod(unittest.TestCase):
+    def test_weakmethod_get(self):
+        class Dummy:
+            def method(self):
+                return "hi"
+
+        d = Dummy()
+        wm = WeakMethod(d.method)
+        self.assertIsNotNone(wm.get())
+        self.assertEqual(wm.get()(), "hi")  # type: ignore[union-attr]
+        del d
+        gc.collect()
+        self.assertIsNone(wm.get())
+
+    def test_weakmethod_is_alive(self):
+        class Dummy:
+            def method(self):
+                return "hi"
+
+        d = Dummy()
+        wm = WeakMethod(d.method)
+        self.assertTrue(wm.is_alive())
+        del d
+        gc.collect()
+        self.assertFalse(wm.is_alive())
+
+
+class TestCreateWeakref(unittest.TestCase):
+    def test_create_weakref(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        wr = create_weakref(d)
+        self.assertIsInstance(wr, weakref.ref)
+        self.assertIs(wr(), d)
+        del d
+        gc.collect()
+        self.assertIsNone(wr())
+
+
+class TestCreateProxy(unittest.TestCase):
+    def test_create_proxy(self):
+        class Dummy:
+            def value(self):
+                return 42
+
+        d = Dummy()
+        proxy = create_proxy(d)
+        self.assertEqual(proxy.value(), 42)
+        del d
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            _ = proxy.value()
+
+
+class TestGetObject(unittest.TestCase):
+    def test_get_object_ref(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        wr = weakref.ref(d)
+        self.assertIs(get_object(wr), d)
+        del d
+        gc.collect()
+        self.assertIsNone(get_object(wr))
+
+    def test_get_object_proxy(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        proxy = weakref.proxy(d)
+        self.assertIs(get_object(proxy), proxy)  # get_object returns proxy if alive
+        del d
+        gc.collect()
+        self.assertIsNone(get_object(proxy))
+
+
+class TestIsAlive(unittest.TestCase):
+    def test_is_alive_ref(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        wr = weakref.ref(d)
+        self.assertTrue(is_alive(wr))
+        del d
+        gc.collect()
+        self.assertFalse(is_alive(wr))
+
+
+class TestCreateFinalizer(unittest.TestCase):
+    def test_create_finalizer(self):
+        results = []
+
+        class Dummy:
+            pass
+
+        d = Dummy()
+
+        def callback():
+            results.append(True)
+
+        fin = create_finalizer(d, callback)
+        self.assertIsInstance(fin, weakref.finalize)
+        # Finalizer is alive if the object is alive; after deletion and GC, it may be dead
+        self.assertTrue(fin.alive)
+        del d
+        gc.collect()
+        gc.collect()
+        # Callback may have fired
+        self.assertFalse(fin.alive)
+
+
+if __name__ == "__main__":
+    unittest.main()
+WEAKREFTESTS
+
