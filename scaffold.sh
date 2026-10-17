@@ -180,6 +180,8 @@
 
 #   - base64_utils.py — # Base64 and hexadecimal encoding/decoding utilities
 
+#   - bisect_utils.py — # Bisect utility functions for binary search on sorted sequences
+
 #   - call_once_utils.py — # Call-once execution utilities (call_once decorator)
 
 #   - calendar_utils.py — # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
@@ -223,6 +225,8 @@
 #   - test_async_utils.py — # Tests for async_utils.py
 
 #   - test_base64_utils.py — # Tests for base64_utils.py
+
+#   - test_bisect_utils.py — # Tests for bisect_utils.py
 
 #   - test_bit_utils.py — # Tests for bit_utils.py
 
@@ -847,6 +851,7 @@ py_modules = [
      "http_utils",
      "html_utils",
     "base64_utils",
+    "bisect_utils",
     "calendar_utils",
     "call_once_utils",
     "bytes_utils",
@@ -16734,6 +16739,55 @@ if __name__ == "__main__":
     unittest.main()
 TESTBASE64UTILS
 
+# --- bisect_utils.py ---
+cat > "$OUTPUT_DIR/bisect_utils.py" <<'BISECT_UTILS'
+"""Bisect utility functions for binary search on sorted sequences."""
+
+from __future__ import annotations
+
+import bisect
+from typing import Any, Sequence
+
+__all__: list[str] = [
+    "bisect_left",
+    "bisect_right",
+    "insort_left",
+    "insort_right",
+    "find_leftmost",
+    "find_rightmost",
+]
+
+
+def bisect_left(a: Sequence[Any], x: Any, lo: int = 0, hi: int | None = None) -> int:
+    return bisect.bisect_left(a, x, lo, len(a) if hi is None else hi)
+
+
+def bisect_right(a: Sequence[Any], x: Any, lo: int = 0, hi: int | None = None) -> int:
+    return bisect.bisect_right(a, x, lo, len(a) if hi is None else hi)
+
+
+def insort_left(a: list[Any], x: Any, lo: int = 0, hi: int | None = None) -> None:
+    bisect.insort_left(a, x, lo, len(a) if hi is None else hi)
+
+
+def insort_right(a: list[Any], x: Any, lo: int = 0, hi: int | None = None) -> None:
+    bisect.insort_right(a, x, lo, len(a) if hi is None else hi)
+
+
+def find_leftmost(a: Sequence[Any], x: Any) -> int | None:
+    i = bisect.bisect_left(a, x)
+    if i < len(a) and a[i] == x:
+        return i
+    return None
+
+
+def find_rightmost(a: Sequence[Any], x: Any) -> int | None:
+    i = bisect.bisect_right(a, x) - 1
+    if i >= 0 and a[i] == x:
+        return i
+    return None
+BISECT_UTILS
+
 # --- struct_utils.py ---
 cat > "$OUTPUT_DIR/struct_utils.py" <<'STRUCT_UTILS'
 """Binary struct packing and unpacking utilities.
@@ -17642,6 +17696,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_bytes_utils.py` — unit tests for `bytes_utils.py`
 - `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
 - `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
+- `bisect_utils.py` — bisect utility functions for binary search on sorted sequences (`bisect_left`, `bisect_right`, `insort_left`, `insort_right`, `find_leftmost`, `find_rightmost`)
+- `tests/test_bisect_utils.py` — unit tests for `bisect_utils.py`
 - `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
 - `tests/test_calendar_utils.py` — unit tests for `calendar_utils.py`
 - `struct_utils.py` — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
@@ -18648,6 +18704,7 @@ inspect_utils.py           # Callable and object introspection utilities (get_ca
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
+bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
@@ -18669,6 +18726,7 @@ subprocess_utils.py         # Subprocess utilities (run_command, check_output, c
 tests/                     # Python unit tests
   test_async_utils.py         # Tests for async_utils.py
   test_base64_utils.py        # Tests for base64_utils.py
+  test_bisect_utils.py        # Tests for bisect_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
   test_bytes_utils.py         # Tests for bytes_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
@@ -18961,7 +19019,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`) using the standard library `base64` module with input validation
 - `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
-- Added `base64_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+- Added `base64_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions.
+
+- `bisect_utils.py` — bisect utility functions for binary search on sorted sequences (`bisect_left`, `bisect_right`, `insort_left`, `insort_right`, `find_leftmost`, `find_rightmost`) using the standard library `bisect` module with input validation
+- `tests/test_bisect_utils.py` — unit tests for `bisect_utils.py`
+- Added `bisect_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions.
 
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers (`count_set_bits`, `is_power_of_two`, `next_power_of_two`, `prev_power_of_two`, `reverse_bits`, `rotate_left`, `rotate_right`, `get_bit`, `set_bit`, `clear_bit`, `toggle_bit`, `is_even`, `is_odd`) with input validation
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
@@ -28806,6 +28868,48 @@ def add_months(year: int, month: int, months: int) -> tuple[int, int]:
     total = year * 12 + (month - 1) + months
     return total // 12, total % 12 + 1
 CALENDARUTILS
+
+# --- tests/test_bisect_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_bisect_utils.py" <<'BISECTTESTS'
+"""Tests for bisect_utils."""
+
+from bisect_utils import (
+    bisect_left,
+    bisect_right,
+    find_leftmost,
+    find_rightmost,
+    insort_left,
+    insort_right,
+)
+
+
+def test_bisect_left():
+    a = [1, 2, 2, 3]
+    assert bisect_left(a, 2) == 1
+    assert bisect_left(a, 0) == 0
+    assert bisect_left(a, 5) == 4
+
+
+def test_bisect_right():
+    a = [1, 2, 2, 3]
+    assert bisect_right(a, 2) == 3
+
+
+def test_insort():
+    a = [1, 3, 5]
+    insort_left(a, 2)
+    assert a == [1, 2, 3, 5]
+    insort_right(a, 3)
+    assert a == [1, 2, 3, 3, 5]
+
+
+def test_find():
+    a = [1, 2, 2, 3]
+    assert find_leftmost(a, 2) == 1
+    assert find_rightmost(a, 2) == 2
+    assert find_leftmost(a, 9) is None
+    assert find_rightmost(a, 9) is None
+BISECTTESTS
 
 # --- tests/test_calendar_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_calendar_utils.py" <<'TESTCALENDARUTILS'

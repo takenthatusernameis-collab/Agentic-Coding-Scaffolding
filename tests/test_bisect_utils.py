@@ -1,3 +1,5 @@
+"""Tests for bisect_utils."""
+
 from bisect_utils import (
     bisect_left,
     bisect_right,
