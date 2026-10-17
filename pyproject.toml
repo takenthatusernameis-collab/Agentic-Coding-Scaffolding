@@ -54,6 +54,7 @@ py_modules = [
     "os_utils",
     "graphlib_utils",
     "greeting_utils",
+    "hmac_utils",
     "id_utils",
     "inspect_utils",
     "bit_utils",

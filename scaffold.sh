@@ -165,6 +165,8 @@
 
 #   - hash_utils.py — # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 
+#   - hmac_utils.py — # HMAC-based message authentication utilities (MD5, SHA1, SHA256, SHA512) with constant-time verification
+
 #   - http_utils.py — # HTTP status codes and response handling utilities
 
 #   - id_utils.py — # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
@@ -277,6 +279,8 @@
 #   - test_greeting_utils.py — # Tests for greeting_utils.py
 
 #   - test_hash_utils.py — # Tests for hash_utils.py
+
+#   - test_hmac_utils.py — # Tests for hmac_utils.py
 
 #   - test_heapq_utils.py — # Tests for heapq_utils.py
 
@@ -830,9 +834,10 @@ py_modules = [
    "time_utils",
    "timezone_utils",
    "uuid_utils",
-    "hash_utils",
-    "http_utils",
-    "html_utils",
+     "hash_utils",
+     "hmac_utils",
+     "http_utils",
+     "html_utils",
     "base64_utils",
     "calendar_utils",
     "call_once_utils",
@@ -15642,6 +15647,363 @@ class TestHashFile(unittest.TestCase):
             hash_file(123)  # type: ignore[arg-type]
 TESTHASHUTILS
 
+# --- hmac_utils.py ---
+cat > "$OUTPUT_DIR/hmac_utils.py" <<'HMAC_UTILS'
+"""HMAC-based message authentication utilities.
+
+This module provides utilities for computing HMAC signatures using the
+standard library :mod:`hmac` and :mod:`hashlib` modules. It supports multiple
+hash algorithms (MD5, SHA1, SHA256, SHA512), constant-time signature
+verification, and a generic ``hmac_new`` entry point that accepts any of the
+supported algorithms.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import hmac
+from typing import Union
+
+__all__: list[str] = [
+    "hmac_md5",
+    "hmac_sha1",
+    "hmac_sha256",
+    "hmac_sha512",
+    "hmac_new",
+    "sign",
+    "verify",
+    "compare_digest",
+]
+
+_ALGORITHMS: tuple[str, ...] = ("md5", "sha1", "sha256", "sha512")
+
+
+def _normalize_input(data: Union[str, bytes]) -> bytes:
+    """Normalize input to bytes."""
+    if isinstance(data, str):
+        return data.encode("utf-8")
+    if isinstance(data, bytes):
+        return data
+    raise TypeError("data must be str or bytes")
+
+
+def _normalize_key(key: Union[str, bytes]) -> bytes:
+    """Normalize key to bytes."""
+    if isinstance(key, str):
+        return key.encode("utf-8")
+    if isinstance(key, bytes):
+        return key
+    raise TypeError("key must be str or bytes")
+
+
+def _hmac(data: Union[str, bytes], key: Union[str, bytes], algorithm: str) -> str:
+    """Compute the HMAC digest of *data* using *key* and *algorithm*."""
+    if algorithm not in _ALGORITHMS:
+        raise ValueError(f"Unsupported algorithm: {algorithm}")
+    message = _normalize_input(data)
+    secret = _normalize_key(key)
+    return hmac.new(secret, message, getattr(hashlib, algorithm)).hexdigest()
+
+
+def hmac_md5(data: Union[str, bytes], key: Union[str, bytes]) -> str:
+    """Compute the HMAC-MD5 digest of *data* using *key.
+
+    Args:
+        data: Input string or bytes.
+        key: Secret key as a string or bytes.
+
+    Returns:
+        Hexadecimal HMAC-MD5 digest.
+
+    Raises:
+        TypeError: If *data* or *key* is not str or bytes.
+    """
+    return _hmac(data, key, "md5")
+
+
+def hmac_sha1(data: Union[str, bytes], key: Union[str, bytes]) -> str:
+    """Compute the HMAC-SHA1 digest of *data* using *key.
+
+    Args:
+        data: Input string or bytes.
+        key: Secret key as a string or bytes.
+
+    Returns:
+        Hexadecimal HMAC-SHA1 digest.
+
+    Raises:
+        TypeError: If *data* or *key* is not str or bytes.
+    """
+    return _hmac(data, key, "sha1")
+
+
+def hmac_sha256(data: Union[str, bytes], key: Union[str, bytes]) -> str:
+    """Compute the HMAC-SHA256 digest of *data* using *key.
+
+    Args:
+        data: Input string or bytes.
+        key: Secret key as a string or bytes.
+
+    Returns:
+        Hexadecimal HMAC-SHA256 digest.
+
+    Raises:
+        TypeError: If *data* or *key* is not str or bytes.
+    """
+    return _hmac(data, key, "sha256")
+
+
+def hmac_sha512(data: Union[str, bytes], key: Union[str, bytes]) -> str:
+    """Compute the HMAC-SHA512 digest of *data* using *key.
+
+    Args:
+        data: Input string or bytes.
+        key: Secret key as a string or bytes.
+
+    Returns:
+        Hexadecimal HMAC-SHA512 digest.
+
+    Raises:
+        TypeError: If *data* or *key* is not str or bytes.
+    """
+    return _hmac(data, key, "sha512")
+
+
+def hmac_new(
+    data: Union[str, bytes],
+    key: Union[str, bytes],
+    algorithm: str = "sha256",
+) -> str:
+    """Compute the HMAC digest of *data* using *key* and *algorithm*.
+
+    Args:
+        data: Input string or bytes.
+        key: Secret key as a string or bytes.
+        algorithm: Hash algorithm name (md5, sha1, sha256, sha512).
+            Defaults to "sha256".
+
+    Returns:
+        Hexadecimal HMAC digest.
+
+    Raises:
+        TypeError: If *data* or *key* is not str or bytes.
+        ValueError: If *algorithm* is not supported.
+    """
+    return _hmac(data, key, algorithm)
+
+
+def sign(
+    data: Union[str, bytes],
+    key: Union[str, bytes],
+    algorithm: str = "sha256",
+) -> str:
+    """Sign *data* with *key* using *algorithm*, returning the HMAC digest.
+
+    Args:
+        data: Input string or bytes.
+        key: Secret key as a string or bytes.
+        algorithm: Hash algorithm name (md5, sha1, sha256, sha512).
+            Defaults to "sha256".
+
+    Returns:
+        Hexadecimal HMAC signature.
+
+    Raises:
+        TypeError: If *data* or *key* is not str or bytes.
+        ValueError: If *algorithm* is not supported.
+    """
+    return _hmac(data, key, algorithm)
+
+
+def verify(
+    data: Union[str, bytes],
+    key: Union[str, bytes],
+    signature: str,
+    algorithm: str = "sha256",
+) -> bool:
+    """Verify *signature* against the HMAC of *data* using *key* and *algorithm.
+
+    Uses a constant-time comparison to avoid timing attacks.
+
+    Args:
+        data: Input string or bytes.
+        key: Secret key as a string or bytes.
+        signature: Hexadecimal HMAC signature to verify.
+        algorithm: Hash algorithm name (md5, sha1, sha256, sha512).
+            Defaults to "sha256".
+
+    Returns:
+        True if the signature matches, False otherwise.
+
+    Raises:
+        TypeError: If *data*, *key*, or *signature* is not a string/bytes.
+        ValueError: If *algorithm* is not supported.
+    """
+    expected = _hmac(data, key, algorithm)
+    return compare_digest(signature, expected)
+
+
+def compare_digest(a: str, b: str) -> bool:
+    """Return True if *a* and *b* are equal using a constant-time comparison.
+
+    Args:
+        a: First string to compare.
+        b: Second string to compare.
+
+    Returns:
+        True if the strings are equal, False otherwise.
+
+    Raises:
+        TypeError: If either argument is not a string.
+    """
+    if not isinstance(a, str) or not isinstance(b, str):
+        raise TypeError("a and b must be strings")
+    return hmac.compare_digest(a, b)
+HMAC_UTILS
+
+# --- tests/test_hmac_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_hmac_utils.py" <<'TESTHMACUTILS'
+"""Unit tests for hmac_utils module."""
+
+import unittest
+
+from hmac_utils import (
+    compare_digest,
+    hmac_md5,
+    hmac_new,
+    hmac_sha1,
+    hmac_sha256,
+    hmac_sha512,
+    sign,
+    verify,
+)
+
+
+class TestHmacMD5(unittest.TestCase):
+    def test_hmac_md5_string(self):
+        self.assertEqual(
+            hmac_md5("hello", "key"), "04130747afca4d79e32e87cf2104f087"
+        )
+
+    def test_hmac_md5_bytes(self):
+        self.assertEqual(
+            hmac_md5(b"hello", b"key"), "04130747afca4d79e32e87cf2104f087"
+        )
+
+    def test_hmac_md5_empty(self):
+        self.assertEqual(
+            hmac_md5("", "key"), "63530468a04e386459855da0063b6596"
+        )
+
+    def test_hmac_md5_type_error(self):
+        with self.assertRaises(TypeError):
+            hmac_md5(123, "key")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            hmac_md5("hello", 123)  # type: ignore[arg-type]
+
+
+class TestHmacSHA1(unittest.TestCase):
+    def test_hmac_sha1_string(self):
+        self.assertEqual(
+            hmac_sha1("hello", "key"), "b34ceac4516ff23a143e61d79d0fa7a4fbe5f266"
+        )
+
+    def test_hmac_sha1_bytes(self):
+        self.assertEqual(
+            hmac_sha1(b"hello", b"key"), "b34ceac4516ff23a143e61d79d0fa7a4fbe5f266"
+        )
+
+    def test_hmac_sha1_type_error(self):
+        with self.assertRaises(TypeError):
+            hmac_sha1(123, "key")  # type: ignore[arg-type]
+
+
+class TestHmacSHA256(unittest.TestCase):
+    def test_hmac_sha256_string(self):
+        self.assertEqual(
+            hmac_sha256("hello", "key"),
+            "9307b3b915efb5171ff14d8cb55fbcc798c6c0ef1456d66ded1a6aa723a58b7b",
+        )
+
+    def test_hmac_sha256_bytes(self):
+        self.assertEqual(
+            hmac_sha256(b"hello", b"key"),
+            "9307b3b915efb5171ff14d8cb55fbcc798c6c0ef1456d66ded1a6aa723a58b7b",
+        )
+
+    def test_hmac_sha256_type_error(self):
+        with self.assertRaises(TypeError):
+            hmac_sha256(123, "key")  # type: ignore[arg-type]
+
+
+class TestHmacSHA512(unittest.TestCase):
+    def test_hmac_sha512_string(self):
+        self.assertEqual(
+            hmac_sha512("hello", "key"),
+            "ff06ab36757777815c008d32c8e14a705b4e7bf310351a06a23b612dc4c7433e"
+            "7757d20525a5593b71020ea2ee162d2311b247e9855862b270122419652c0c92",
+        )
+
+    def test_hmac_sha512_bytes(self):
+        self.assertEqual(
+            hmac_sha512(b"hello", b"key"),
+            "ff06ab36757777815c008d32c8e14a705b4e7bf310351a06a23b612dc4c7433e"
+            "7757d20525a5593b71020ea2ee162d2311b247e9855862b270122419652c0c92",
+        )
+
+    def test_hmac_sha512_type_error(self):
+        with self.assertRaises(TypeError):
+            hmac_sha512(123, "key")  # type: ignore[arg-type]
+
+
+class TestHmacNew(unittest.TestCase):
+    def test_hmac_new_default_algorithm(self):
+        self.assertEqual(hmac_new("hello", "key"), hmac_sha256("hello", "key"))
+
+    def test_hmac_new_sha1(self):
+        self.assertEqual(hmac_new("hello", "key", "sha1"), hmac_sha1("hello", "key"))
+
+    def test_hmac_new_unsupported_algorithm(self):
+        with self.assertRaises(ValueError):
+            hmac_new("hello", "key", "sha3")  # type: ignore[arg-type]
+
+
+class TestSignVerify(unittest.TestCase):
+    def test_sign_roundtrip(self):
+        signature = sign("hello", "key")
+        self.assertTrue(verify("hello", "key", signature))
+
+    def test_sign_default_matches_sha256(self):
+        self.assertEqual(sign("hello", "key"), hmac_sha256("hello", "key"))
+
+    def test_verify_wrong_signature(self):
+        self.assertFalse(verify("hello", "key", "deadbeef"))
+
+    def test_verify_different_data(self):
+        self.assertFalse(verify("hello", "key", sign("world", "key")))
+
+    def test_verify_different_key(self):
+        self.assertFalse(verify("hello", "wrong", sign("hello", "key")))
+
+
+class TestCompareDigest(unittest.TestCase):
+    def test_compare_digest_equal(self):
+        self.assertTrue(compare_digest("abc", "abc"))
+
+    def test_compare_digest_not_equal(self):
+        self.assertFalse(compare_digest("abc", "abd"))
+
+    def test_compare_digest_type_error(self):
+        with self.assertRaises(TypeError):
+            compare_digest(123, "abc")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compare_digest("abc", 123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTHMACUTILS
+
 # --- html_utils.py ---
 cat > "$OUTPUT_DIR/html_utils.py" <<'HTML_UTILS'
 """HTML utility functions for escaping, unescaping, and sanitizing HTML.
@@ -17253,7 +17615,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
 - `hash_utils.py` — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+- `hmac_utils.py` — HMAC-based message authentication utilities (MD5, SHA1, SHA256, SHA512) with constant-time verification
 - `tests/test_hash_utils.py` — unit tests for `hash_utils.py`
+- `tests/test_hmac_utils.py` — unit tests for `hmac_utils.py`
 - `tests/test_id_utils.py` — unit tests for `id_utils.py`
 - `http_utils.py` — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`)
 - `id_utils.py` — Identifier generation and validation utilities (`generate_id`, `new_id`, `is_valid_id`) for short URL-safe random identifiers with input validation
@@ -18263,6 +18627,7 @@ time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_t
 timezone_utils.py          # Time zone utilities (IANA lookups, conversion, formatting, DST) wrapping stdlib zoneinfo
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+hmac_utils.py              # HMAC-based message authentication utilities (MD5, SHA1, SHA256, SHA512) with constant-time verification
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 inspect_utils.py           # Callable and object introspection utilities (get_callable_name, is_callable, is_async_callable, get_signature, get_parameter_names, get_parameter_kinds, count_parameters, has_parameter, bind_arguments, is_builtin, get_source_file, get_source_lines)
@@ -18317,6 +18682,7 @@ tests/                     # Python unit tests
   test_graphlib_utils.py      # Tests for graphlib_utils.py
   test_greeting_utils.py      # Tests for greeting_utils.py
   test_hash_utils.py          # Tests for hash_utils.py
+  test_hmac_utils.py          # Tests for hmac_utils.py
   test_heapq_utils.py         # Tests for heapq_utils.py
   test_hello.py               # Tests for hello.py
   test_html_utils.py          # Tests for html_utils.py
@@ -18542,6 +18908,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `duration_utils.py` — time duration utilities (`parse_duration`, `format_duration`, `seconds_to_hms`, `hms_to_seconds`, `to_seconds`, `duration_between`, `add_duration`, `is_valid_duration`) for parsing, formatting, and converting time durations with input validation
 - `tests/test_duration_utils.py` — unit tests for `duration_utils.py`
 - Added `duration_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+
+- `hmac_utils.py` — HMAC-based message authentication utilities (MD5, SHA1, SHA256, SHA512) with constant-time verification
+- `tests/test_hmac_utils.py` — unit tests for `hmac_utils.py`
+- Added `hmac_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
 
 - `http_utils.py` — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`) using the standard library `http` module with input validation
 - `tests/test_http_utils.py` — unit tests for `http_utils.py`
