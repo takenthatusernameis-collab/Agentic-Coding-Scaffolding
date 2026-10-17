@@ -218,6 +218,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_argparse_utils.py` — unit tests for `argparse_utils.py`
 - `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation
 - `tests/test_warnings_utils.py` — unit tests for `warnings_utils.py`
+- `selectors_utils.py` — selectors utilities wrapping the standard library `selectors` module (`create_default_selector`, `register`, `unregister`, `select`, `get_key`, `get_map`, `close_selector`, `EVENT_READ`, `EVENT_WRITE`) for I/O multiplexing with input validation
+- `tests/test_selectors_utils.py` — unit tests for `selectors_utils.py`
 - `heapq_utils.py` — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)
 - `tests/test_heapq_utils.py` — unit tests for `heapq_utils.py`
 - `markdown_utils.py` — Markdown utility functions (`extract_code_blocks`, `strip_markdown`, `count_words`, `is_heading`, `heading_level`)
