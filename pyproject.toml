@@ -53,6 +53,7 @@ py_modules = [
     "operator_utils",
     "os_utils",
     "graphlib_utils",
+    "greeting_utils",
     "bit_utils",
     "data_utils",
     "datetime_utils",
