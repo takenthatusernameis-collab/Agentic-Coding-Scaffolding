@@ -61,6 +61,7 @@ itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatte
 timing_utils.py           # Performance measurement helpers
 async_utils.py            # Asynchronous utility functions
 bit_utils.py              # Bitwise utility functions for working with binary representations
+call_once_utils.py        # Call-once execution utilities (call_once decorator)
 concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
@@ -128,6 +129,7 @@ tests/                     # Python unit tests
   test_async_utils.py         # Tests for async_utils.py
   test_base64_utils.py        # Tests for base64_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
+  test_call_once_utils.py     # Tests for call_once_utils.py
   test_bytes_utils.py         # Tests for bytes_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
   test_calculator.py          # Tests for calculator.py
@@ -588,3 +590,7 @@ The project includes identifier generation and validation utilities in `id_utils
 ## Inspect Utilities Module
 
 The project includes callable and object introspection utilities in `inspect_utils.py` for working with Python callables using the standard library `inspect` module: `get_callable_name` returns the name of a callable or the class name of a callable instance, `is_callable` tests whether an object can be called, `is_async_callable` detects coroutine functions, `get_signature` returns an `inspect.Signature`, `get_parameter_names` and `get_parameter_kinds` describe a callable's parameters, `count_parameters` returns the parameter count, `has_parameter` checks for a named parameter, `bind_arguments` binds positional and keyword arguments with defaults applied, `is_builtin` detects built-in functions, and `get_source_file`/`get_source_lines` locate a callable's source. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_inspect_utils.py`.
+
+## Call Once Utilities Module
+
+The project includes call-once execution utilities in `call_once_utils.py` for ensuring a function runs only a single time: `call_once` decorates a function so its first invocation is cached and all subsequent calls return the cached result without re-invoking the wrapped function. Execution is thread-safe and the returned wrapper exposes a `reset` method to clear the cached state. The module is tested in `tests/test_call_once_utils.py`.

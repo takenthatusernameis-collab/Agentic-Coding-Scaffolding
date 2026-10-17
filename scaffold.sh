@@ -168,6 +168,8 @@
 
 #   - base64_utils.py — # Base64 and hexadecimal encoding/decoding utilities
 
+#   - call_once_utils.py — # Call-once execution utilities (call_once decorator)
+
 #   - calendar_utils.py — # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 
 #   - struct_utils.py — # Binary struct packing and unpacking utilities
@@ -812,6 +814,7 @@ py_modules = [
     "html_utils",
     "base64_utils",
     "calendar_utils",
+    "call_once_utils",
     "bytes_utils",
     "struct_utils",
     "duration_utils",
@@ -18516,6 +18519,131 @@ class TestEvenOdd(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTBITUTILS
+# --- call_once_utils.py ---
+cat > "$OUTPUT_DIR/call_once_utils.py" <<'CALLONCEUTILS'
+"""Call-once execution utilities.
+
+This module provides a ``call_once`` decorator that ensures a wrapped function
+is executed only a single time, caching its return value for every subsequent
+call. Execution is thread-safe, so concurrent callers all observe the same
+single invocation and result.
+"""
+
+from __future__ import annotations
+
+import threading
+from typing import Any, Callable, Optional, TypeVar
+
+T = TypeVar("T")
+
+
+def call_once(func: Callable[..., T]) -> Callable[..., T]:
+    """Return a wrapper that invokes ``func`` only once.
+
+    The first call executes ``func`` with the supplied arguments and caches its
+    return value. Every subsequent call returns the cached result without
+    re-invoking ``func``. The wrapped function is safe to call from multiple
+    threads; exactly one invocation of ``func`` occurs even under concurrency.
+
+    Args:
+        func: The function to invoke at most once.
+
+    Returns:
+        A callable that executes ``func`` once and returns the cached result on
+        all later calls. The wrapper exposes a ``reset`` method that clears the
+        cached state so the next call re-invokes ``func``.
+
+    Raises:
+        TypeError: If ``func`` is not callable.
+    """
+    if not callable(func):
+        raise TypeError("func must be callable")
+
+    lock = threading.Lock()
+    called = False
+    result: Optional[T] = None
+
+    def wrapper(*args: Any, **kwargs: Any) -> T:
+        nonlocal called, result
+        with lock:
+            if not called:
+                result = func(*args, **kwargs)
+                called = True
+            return result  # type: ignore[return-value]
+
+    def reset() -> None:
+        """Clear the cached result so the next call re-invokes ``func``."""
+        nonlocal called, result
+        with lock:
+            called = False
+            result = None
+
+    wrapper.reset = reset  # type: ignore[attr-defined]
+    return wrapper
+CALLONCEUTILS
+# --- tests/test_call_once_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_call_once_utils.py" <<'TESTCALLONCE'
+import threading
+import unittest
+
+from call_once_utils import call_once
+
+
+class TestCallOnce(unittest.TestCase):
+    def test_func_called_once(self):
+        calls = []
+
+        @call_once
+        def get_value(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        self.assertEqual(get_value(5), 10)
+        # Later calls return the cached result and ignore new arguments.
+        self.assertEqual(get_value(99), 10)
+        self.assertEqual(len(calls), 1)
+
+    def test_reset_allows_recall(self):
+        calls = []
+
+        @call_once
+        def get_value() -> int:
+            calls.append(1)
+            return len(calls)
+
+        self.assertEqual(get_value(), 1)
+        self.assertEqual(get_value(), 1)
+        get_value.reset()
+        self.assertEqual(get_value(), 2)
+        self.assertEqual(len(calls), 2)
+
+    def test_thread_safe_single_invocation(self):
+        results = []
+
+        @call_once
+        def init() -> str:
+            results.append(threading.current_thread().name)
+            return "done"
+
+        def worker() -> None:
+            results.append(init())
+
+        threads = [threading.Thread(target=worker) for _ in range(10)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        # Every caller observes the same single result.
+        self.assertEqual([r for r in results if r == "done"], ["done"] * 10)
+
+    def test_non_callable_raises(self):
+        with self.assertRaises(TypeError):
+            call_once(42)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCALLONCE
 # --- tests/test_concurrent_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_concurrent_utils.py" <<'TESTCONCURRENT'
 """Tests for concurrent_utils module."""

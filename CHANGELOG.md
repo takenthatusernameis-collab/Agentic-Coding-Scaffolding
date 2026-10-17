@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `call_once_utils.py` — call-once execution utilities (`call_once` decorator) ensuring a wrapped function runs only a single time, with thread-safe caching and a `reset` method, plus `tests/test_call_once_utils.py`.
+- Synchronized `call_once_utils.py` across `scaffold.sh` header comment, `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
 - Added `enum_utils.py` — enum utilities for working with Python `enum.Enum` classes (`enum_to_dict`, `get_enum_member`, `is_enum_member`, `list_enum_members`, `enum_value_from_name`, `enum_name_from_value`) with input validation.
 - `tests/test_enum_utils.py` — unit tests for `enum_utils.py`
 - Added `enum_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions.

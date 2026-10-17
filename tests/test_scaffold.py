@@ -204,6 +204,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_base64_utils.py",
             "calendar_utils.py",
             "tests/test_calendar_utils.py",
+            "call_once_utils.py",
+            "tests/test_call_once_utils.py",
             "struct_utils.py",
             "tests/test_struct_utils.py",
             "duration_utils.py",

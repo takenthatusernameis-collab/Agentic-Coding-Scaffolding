@@ -113,6 +113,7 @@ py_modules = [
     "html_utils",
     "base64_utils",
     "calendar_utils",
+    "call_once_utils",
     "bytes_utils",
     "struct_utils",
     "duration_utils",
