@@ -2,7 +2,7 @@
 
 import unittest
 
-from utils import chunk, flatten, is_empty, unique
+from utils import chunk, flatten, is_empty, remove_none, unique
 
 
 class TestFlatten(unittest.TestCase):
@@ -59,3 +59,17 @@ class TestIsEmpty(unittest.TestCase):
         self.assertFalse(is_empty("hello"))
         self.assertFalse(is_empty([1]))
         self.assertFalse(is_empty(5))
+
+
+class TestRemoveNone(unittest.TestCase):
+    def test_remove_none_basic(self) -> None:
+        self.assertEqual(remove_none([1, None, 2, None, 3]), [1, 2, 3])
+
+    def test_remove_none_no_none(self) -> None:
+        self.assertEqual(remove_none([1, 2, 3]), [1, 2, 3])
+
+    def test_remove_none_all_none(self) -> None:
+        self.assertEqual(remove_none([None, None]), [])
+
+    def test_remove_none_empty(self) -> None:
+        self.assertEqual(remove_none([]), [])

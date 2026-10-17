@@ -38,3 +38,8 @@ def is_empty(value: Any) -> bool:
     if isinstance(value, (str, list, tuple, set, dict)):
         return len(value) == 0
     return False
+
+
+def remove_none(lst: List[Any]) -> List[Any]:
+    """Return a copy of lst with None values removed."""
+    return [item for item in lst if item is not None]
