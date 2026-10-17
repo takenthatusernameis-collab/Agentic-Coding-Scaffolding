@@ -112,6 +112,7 @@ py_modules = [
     "duration_utils",
     "temp_utils",
     "xml_utils",
+    "weakref_utils",
     "seq_utils",
     "queue_utils",
     "sort_utils",

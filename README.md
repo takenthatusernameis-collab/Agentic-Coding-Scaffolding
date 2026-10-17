@@ -109,7 +109,8 @@ config_schema.py           # Typed configuration schema utilities (SchemaField, 
 exceptions_utils.py        # Custom exception classes and error handling utilities
 io_utils.py                # Line-oriented and atomic input/output utilities
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
-compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
+weakref_utils.py            # Weak reference utilities for managing weak references to objects
+113: compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
 ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)

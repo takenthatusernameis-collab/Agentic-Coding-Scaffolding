@@ -165,6 +165,11 @@
 #   - tests/test_decimal_utils.py — unit tests for decimal_utils.py
 #   - fractions_utils.py — fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
 #   - tests/test_fractions_utils.py — unit tests for fractions_utils.py
+#   - weakref_utils.py — weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`)
+#   - tests/test_weakref_utils.py — unit tests for weakref_utils.py
+#   - tests/test_fractions_utils.py — unit tests for fractions_utils.py
+#   - weakref_utils.py — weak reference utilities (WeakRef, WeakMethod, create_weakref, create_proxy, get_object, is_alive, create_finalizer)
+#   - tests/test_weakref_utils.py — unit tests for weakref_utils.py
 #   - heapq_utils.py — heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
 #   - tests/test_heapq_utils.py — unit tests for heapq_utils.py
 #   - markdown_utils.py — Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
@@ -582,6 +587,7 @@ py_modules = [
     "duration_utils",
     "temp_utils",
     "xml_utils",
+    "weakref_utils",
     "seq_utils",
     "os_utils",
     "graphlib_utils",
@@ -15883,7 +15889,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - tests/test_prime_utils.py — unit tests for prime_utils.py
 - decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 - tests/test_decimal_utils.py — unit tests for `decimal_utils.py`
-- fractions_utils.py — fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
+- fractions_utils.py — fraction arithmetic utilities
+- weakref_utils.py — weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`)
+#   - tests/test_weakref_utils.py — unit tests for weakref_utils.py
 - tests/test_fractions_utils.py — unit tests for `fractions_utils.py`
 - heapq_utils.py — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)
 - tests/test_heapq_utils.py — unit tests for `heapq_utils.py`
@@ -16808,7 +16816,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tests/test_prime_utils.py — unit tests for prime_utils.py
 - decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 - tests/test_decimal_utils.py — unit tests for `decimal_utils.py`
-- fractions_utils.py — fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
+- fractions_utils.py — fraction arithmetic utilities
+- weakref_utils.py — weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`)
+#   - tests/test_weakref_utils.py — unit tests for weakref_utils.py
 - tests/test_fractions_utils.py — unit tests for `fractions_utils.py`
 - heapq_utils.py — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`) with input validation
 - tests/test_heapq_utils.py — unit tests for `heapq_utils.py`
@@ -26679,6 +26689,85 @@ TESTTIMEUTILS
 
 # --- fractions_utils.py ---
 cat > "$OUTPUT_DIR/fractions_utils.py" <<'FRACTIONS_UTILS'
+cat > "$OUTPUT_DIR/weakref_utils.py" <<'WEAKREF_UTILS'
+"""Weak reference utilities for managing weak references to objects."""
+
+from __future__ import annotations
+
+import weakref
+from typing import Any, Callable, Generic, Optional, Protocol, TypeVar
+
+
+T = TypeVar("T", bound=Any)
+
+
+class BoundMethodProtocol(Protocol):
+    __func__: Callable[..., Any]
+    __self__: Any
+
+
+class WeakRef(Generic[T]):
+    """A simple wrapper for creating and accessing a weak reference."""
+
+    def __init__(self, obj: T) -> None:
+        self._ref = weakref.ref(obj)
+
+    def get(self) -> Optional[T]:
+        return self._ref()
+
+    def is_alive(self) -> bool:
+        return self.get() is not None
+
+
+class WeakMethod(Generic[T]):
+    """A weak reference to a bound method."""
+
+    def __init__(self, method: Any) -> None:
+        self._func = weakref.ref(getattr(method, "__func__"))
+        self._obj = weakref.ref(getattr(method, "__self__"))
+
+    def get(self) -> Optional[Callable[..., Any]]:
+        func = self._func()
+        obj = self._obj()
+        if func is None or obj is None:
+            return None
+        return func.__get__(obj, type(obj))  # type: ignore[no-any-return]
+
+    def is_alive(self) -> bool:
+        return self.get() is not None
+
+
+def create_weakref(obj: T) -> weakref.ref[T]:
+    return weakref.ref(obj)
+
+
+def create_proxy(obj: T) -> Any:
+    return weakref.proxy(obj)
+
+
+def get_object(ref: weakref.ReferenceType[T]) -> Optional[T]:
+    if isinstance(ref, weakref.ProxyType):
+        try:
+            _ = ref.__class__.__name__
+            return ref  # type: ignore[return-value]
+        except ReferenceError:
+            return None
+    try:
+        result = ref() if callable(ref) else None
+        return result
+    except Exception:
+        return None
+
+
+def is_alive(ref: weakref.ReferenceType[T]) -> bool:
+    obj = get_object(ref)
+    return obj is not None
+
+
+def create_finalizer(obj: Any, callback: Callable[..., Any]) -> weakref.finalize:
+    return weakref.finalize(obj, callback)
+WEAKREF_UTILS
+
 """Fraction arithmetic utilities for exact rational number operations.
 
 This module provides helpers for performing arithmetic on
@@ -26915,6 +27004,164 @@ FRACTIONS_UTILS
 
 # --- tests/test_fractions_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_fractions_utils.py" <<'FRACTIONSTESTS'
+cat > "$OUTPUT_DIR/tests/test_weakref_utils.py" <<'WEAKREFTESTS'
+import unittest
+import weakref
+import gc
+
+from weakref_utils import (
+    WeakRef,
+    WeakMethod,
+    create_weakref,
+    create_proxy,
+    get_object,
+    is_alive,
+    create_finalizer,
+)
+
+
+class TestWeakRef(unittest.TestCase):
+    def test_weakref_get(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        wr = WeakRef(d)
+        self.assertIs(wr.get(), d)
+        del d
+        gc.collect()
+        self.assertIsNone(wr.get())
+
+    def test_weakref_is_alive(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        wr = WeakRef(d)
+        self.assertTrue(wr.is_alive())
+        del d
+        gc.collect()
+        self.assertFalse(wr.is_alive())
+
+
+class TestWeakMethod(unittest.TestCase):
+    def test_weakmethod_get(self):
+        class Dummy:
+            def method(self):
+                return "hi"
+
+        d = Dummy()
+        wm = WeakMethod(d.method)
+        self.assertIsNotNone(wm.get())
+        self.assertEqual(wm.get()(), "hi")  # type: ignore[union-attr]
+        del d
+        gc.collect()
+        self.assertIsNone(wm.get())
+
+    def test_weakmethod_is_alive(self):
+        class Dummy:
+            def method(self):
+                return "hi"
+
+        d = Dummy()
+        wm = WeakMethod(d.method)
+        self.assertTrue(wm.is_alive())
+        del d
+        gc.collect()
+        self.assertFalse(wm.is_alive())
+
+
+class TestCreateWeakref(unittest.TestCase):
+    def test_create_weakref(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        wr = create_weakref(d)
+        self.assertIsInstance(wr, weakref.ref)
+        self.assertIs(wr(), d)
+        del d
+        gc.collect()
+        self.assertIsNone(wr())
+
+
+class TestCreateProxy(unittest.TestCase):
+    def test_create_proxy(self):
+        class Dummy:
+            def value(self):
+                return 42
+
+        d = Dummy()
+        proxy = create_proxy(d)
+        self.assertEqual(proxy.value(), 42)
+        del d
+        gc.collect()
+        with self.assertRaises(ReferenceError):
+            _ = proxy.value()
+
+
+class TestGetObject(unittest.TestCase):
+    def test_get_object_ref(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        wr = weakref.ref(d)
+        self.assertIs(get_object(wr), d)
+        del d
+        gc.collect()
+        self.assertIsNone(get_object(wr))
+
+    def test_get_object_proxy(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        proxy = weakref.proxy(d)
+        self.assertIs(get_object(proxy), proxy)
+        del d
+        gc.collect()
+        self.assertIsNone(get_object(proxy))
+
+
+class TestIsAlive(unittest.TestCase):
+    def test_is_alive_ref(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        wr = weakref.ref(d)
+        self.assertTrue(is_alive(wr))
+        del d
+        gc.collect()
+        self.assertFalse(is_alive(wr))
+
+
+class TestCreateFinalizer(unittest.TestCase):
+    def test_create_finalizer(self):
+        results = []
+
+        class Dummy:
+            pass
+
+        d = Dummy()
+
+        def callback():
+            results.append(True)
+
+        fin = create_finalizer(d, callback)
+        self.assertIsInstance(fin, weakref.finalize)
+        self.assertTrue(fin.alive)
+        del d
+        gc.collect()
+        gc.collect()
+        self.assertFalse(fin.alive)
+
+
+if __name__ == "__main__":
+    unittest.main()
+WEAKREFTESTS
+
 """Tests for fractions_utils."""
 
 import unittest
