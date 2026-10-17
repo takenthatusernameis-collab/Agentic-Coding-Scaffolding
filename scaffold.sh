@@ -19,181 +19,363 @@
 #   - Makefile with common developer targets (test, lint, typecheck, run,
 #     scaffold, clean, help, pre-commit-install, pre-commit-run)
 #   - pyproject.toml for Python project configuration and dependencies
-#   - hello.py — Sample application entry point
-#   - tests/test_hello.py — unit tests for hello.py
-#   - calculator.py — Simple calculator module with arithmetic operations
-#   - tests/test_calculator.py — unit tests for calculator.py
-#   - config_utils.py — Configuration utilities for JSON file management
-#   - tests/test_config_utils.py — unit tests for config_utils.py
-#   - shapes.py — Geometry utilities for areas and perimeters
-#   - tests/test_shapes.py — unit tests for shapes.py
-#   - strings.py — String utilities for text operations
-#   - tests/test_strings.py — unit tests for strings.py
-#   - utils.py — General utility helper functions
-#   - tests/test_utils.py — unit tests for utils.py
-#   - stats.py — Statistical utility functions
-#   - tests/test_stats.py — unit tests for stats.py
-#   - math_utils.py — Mathematical utility functions
-#   - tests/test_math_utils.py — unit tests for math_utils.py
-#   - data_utils.py — Data utility functions
-#   - tests/test_data_utils.py — unit tests for data_utils.py
-#   - datetime_utils.py — Date and time utility functions
-#   - tests/test_datetime_utils.py — unit tests for datetime_utils.py
-#   - template_utils.py — String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
-#   - tests/test_template_utils.py — unit tests for template_utils.py
-#   - semver_utils.py — Semantic versioning utilities (parse_semver, compare_semver, bump_major, bump_minor, bump_patch, is_valid_semver, SemanticVersion)
-#   - tests/test_semver_utils.py — unit tests for semver_utils.py
-#   - interval_utils.py — Interval utilities (normalization, containment, overlap, intersection, union, merge)
-#   - tests/test_interval_utils.py — unit tests for interval_utils.py
+#   - hello.py — # Sample application entry point
 
-#   - file_utils.py — File and path utility functions
-#   - tests/test_file_utils.py — unit tests for file_utils.py
-#   - url_utils.py — URL and web utility functions
-#   - tests/test_url_utils.py — unit tests for url_utils.py
-#   - uuid_utils.py — UUID utility functions for generating and validating UUIDs
-#   - tests/test_uuid_utils.py — unit tests for uuid_utils.py
-#   - prompt_utils.py — Prompt utility functions for working with text prompts
-#   - tests/test_prompt_utils.py — unit tests for prompt_utils.py
-#   - random_utils.py — Random number generation and sampling utilities
-#   - tests/test_random_utils.py — unit tests for random_utils.py
-#   - validation_utils.py — Input validation utilities
-#   - tests/test_validation_utils.py — unit tests for validation_utils.py
-#   - crypto_utils.py — Cryptographic utilities
-#   - tests/test_crypto_utils.py — unit tests for crypto_utils.py
-#   - list_utils.py — Advanced list manipulation utilities
-#   - tests/test_list_utils.py — unit tests for list_utils.py
-#   - locale_utils.py — Locale utility functions for working with locale identifiers and language tags
-#   - tests/test_locale_utils.py — unit tests for locale_utils.py
-#   - env_utils.py — Environment variable handling utilities
-#   - tests/test_env_utils.py — unit tests for env_utils.py
-#   - logging_utils.py — Logging configuration and helper utilities
-#   - tests/test_logging_utils.py — unit tests for logging_utils.py
-#   - cache_utils.py — Caching utilities for memoizing function results
-#   - tests/test_cache_utils.py — unit tests for cache_utils.py
-#   - context_utils.py — Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
-#   - tests/test_context_utils.py — unit tests for context_utils.py
-#   - itertools_utils.py — Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
-#   - tests/test_itertools_utils.py — unit tests for itertools_utils.py
-#   - timing_utils.py — Performance measurement helpers
-#   - tests/test_timing_utils.py — unit tests for timing_utils.py
-#   - async_utils.py — Asynchronous utility functions
-#   - tests/test_async_utils.py — unit tests for async_utils.py
-#   - bit_utils.py — Bitwise utility functions for working with binary representations
-#   - tests/test_bit_utils.py — unit tests for bit_utils.py
-#   - concurrent_utils.py — Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
-#   - tests/test_concurrent_utils.py — unit tests for concurrent_utils.py
-#   - priority_queue_utils.py — Heap-based priority queue implementation
-#   - tests/test_priority_queue_utils.py — unit tests for priority_queue_utils.py
-#   - queue_utils.py — FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
-#   - tests/test_queue_utils.py — unit tests for queue_utils.py
-#   - rate_limiter_utils.py — Rate limiting utilities (token bucket algorithm)
-#   - tests/test_rate_limiter_utils.py — unit tests for rate_limiter_utils.py
-#   - retry_utils.py — Retry utilities with exponential backoff and jitter
-#   - tests/test_retry_utils.py — unit tests for retry_utils.py
-#   - dict_utils.py — Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
-#   - tests/test_dict_utils.py — unit tests for dict_utils.py
-#   - json_utils.py — JSON utility functions (read/write/parse/dump/validate)
-#   - tests/test_json_utils.py — unit tests for json_utils.py
-#   - collections_utils.py — Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
-#   - tests/test_collections_utils.py — unit tests for collections_utils.py
-#   - csv_utils.py — CSV utility functions (read/write/append as dicts or lists)
-#   - tests/test_csv_utils.py — unit tests for csv_utils.py
-#   - set_utils.py — Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
-#   - tests/test_set_utils.py — unit tests for set_utils.py
-#   - statistics_utils.py — Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-#   - tests/test_statistics_utils.py — unit tests for statistics_utils.py
-#   - string_utils.py — Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
-#   - tests/test_string_utils.py — unit tests for string_utils.py
-#   - tree_utils.py — Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
-#   - tests/test_tree_utils.py — unit tests for tree_utils.py
-#   - type_utils.py — Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
-#   - tests/test_type_utils.py — unit tests for type_utils.py
-#   - path_utils.py — Path manipulation utilities (join, normalize, components, extensions)
-#   - tests/test_path_utils.py — unit tests for path_utils.py
-#   - color_utils.py — Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
-#   - tests/test_color_utils.py — unit tests for color_utils.py
-#   - duration_utils.py — Time duration utilities (parse, format, convert between units)
-#   - tests/test_duration_utils.py — unit tests for duration_utils.py
-#   - temp_utils.py — Temporary file and directory management utilities
-#   - tests/test_temp_utils.py — unit tests for temp_utils.py
-#   - xml_utils.py — XML parsing and generation utilities
-#   - tests/test_xml_utils.py — unit tests for xml_utils.py
-#   - seq_utils.py — Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
-#   - tests/test_seq_utils.py — unit tests for seq_utils.py
-#   - number_utils.py — Number utility functions (clamp, round_to, is_integer, format_number, percentage)
-#   - tests/test_number_utils.py — unit tests for number_utils.py
-#   - os_utils.py — Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
-#   - tests/test_os_utils.py — unit tests for os_utils.py
-#   - sort_utils.py — Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
-#   - tests/test_sort_utils.py — unit tests for sort_utils.py
-#   - sys_utils.py — Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
-#   - tests/test_sys_utils.py — unit tests for sys_utils.py
-#   - networking_utils.py — Networking utilities for TCP ports, hostname resolution, and local IP detection
-#   - tests/test_networking_utils.py — unit tests for networking_utils.py
-#   - graphlib_utils.py — Graph and dependency resolution utilities (topological sort, cycle detection)
-#   - tests/test_graphlib_utils.py — unit tests for graphlib_utils.py
-#   - version_utils.py — Version utility functions (parse, compare, normalize)
-#   - tests/test_version_utils.py — unit tests for version_utils.py
-#   - textwrap_utils.py — Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-#   - tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
-#   - prime_utils.py — Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
-#   - tests/test_prime_utils.py — unit tests for prime_utils.py
-#   - decimal_utils.py — Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
-#   - tests/test_decimal_utils.py — unit tests for decimal_utils.py
-#   - fractions_utils.py — Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
-#   - tests/test_fractions_utils.py — unit tests for fractions_utils.py
-#   - heapq_utils.py — Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
-#   - tests/test_heapq_utils.py — unit tests for heapq_utils.py
-#   - markdown_utils.py — Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
-#   - tests/test_markdown_utils.py — unit tests for markdown_utils.py
-#   - time_utils.py — Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
-#   - tests/test_time_utils.py — unit tests for time_utils.py
-#   - cli_utils.py — Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
-#   - tests/test_cli_utils.py — unit tests for cli_utils.py
-#   - hash_utils.py — Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
-#   - tests/test_hash_utils.py — unit tests for hash_utils.py
-#   - http_utils.py — HTTP status codes and response handling utilities
-#   - tests/test_http_utils.py — unit tests for http_utils.py
-#   - html_utils.py — HTML escaping, unescaping, and tag-stripping utilities
-#   - tests/test_html_utils.py — unit tests for html_utils.py
-#   - bytes_utils.py — Bytes and binary utilities (to_hex, from_hex, xor, chunk)
-#   - tests/test_bytes_utils.py — unit tests for bytes_utils.py
-#   - base64_utils.py — Base64 and hexadecimal encoding/decoding utilities
-#   - tests/test_base64_utils.py — unit tests for base64_utils.py
-#   - calendar_utils.py — Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
-#   - tests/test_calendar_utils.py — unit tests for calendar_utils.py
-#   - struct_utils.py — Binary struct packing and unpacking utilities
-#   - tests/test_struct_utils.py — unit tests for struct_utils.py
-#   - pattern_utils.py — Design pattern utilities (Singleton, Factory, Observer, Strategy)
-#   - tests/test_pattern_utils.py — unit tests for pattern_utils.py
-#   - functools_utils.py — Functional programming utilities (compose, pipe, curry, apply)
-#   - tests/test_functools_utils.py — unit tests for functools_utils.py
-#   - operator_utils.py — Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
-#   - tests/test_operator_utils.py — unit tests for operator_utils.py
-#   - config_schema.py — Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
-#   - tests/test_config_schema.py — unit tests for config_schema.py
-#   - exceptions_utils.py — Custom exception classes and error handling utilities
-#   - tests/test_exceptions_utils.py — unit tests for exceptions_utils.py
-#   - io_utils.py — Line-oriented and atomic input/output utilities
-#   - tests/test_io_utils.py — unit tests for io_utils.py
-#   - ini_utils.py — INI configuration file utilities (load, save, get, set, merge sections)
-#   - tests/test_ini_utils.py — unit tests for ini_utils.py
-#   - weakref_utils.py — Weak reference utilities for managing weak references to objects
-#   - tests/test_weakref_utils.py — unit tests for weakref_utils.py
-#   - compression_utils.py — Compression and decompression utilities (gzip, bz2, zip, tar)
-#   - tests/test_compression_utils.py — unit tests for compression_utils.py
-#   - ip_utils.py — IP address validation and manipulation utilities
-#   - tests/test_ip_utils.py — unit tests for ip_utils.py
-#   - regex_utils.py — Regular expression utilities (compile, match, search, replace, split, escape)
-#   - tests/test_regex_utils.py — unit tests for regex_utils.py
-#   - terminal_utils.py — Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
-#   - tests/test_terminal_utils.py — unit tests for terminal_utils.py
-#   - subprocess_utils.py — Subprocess utilities (run_command, check_output, check_call)
-#   - tests/test_subprocess_utils.py — unit tests for subprocess_utils.py
-#   - greeting_utils.py — Greeting utilities (format_greeting, format_names)
-#   - tests/test_greeting_utils.py — unit tests for greeting_utils.py
-#   - secrets_utils.py — Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
-#   - tests/test_secrets_utils.py — unit tests for secrets_utils.py
+#   - calculator.py — # Simple calculator module with arithmetic operations
+
+#   - config_utils.py — # Configuration utilities for JSON file management
+
+#   - shapes.py — # Geometry utilities for areas and perimeters
+
+#   - strings.py — # String utilities for text operations
+
+#   - utils.py — # General utility helper functions
+
+#   - stats.py — # Statistical utility functions
+
+#   - math_utils.py — # Mathematical utility functions
+
+#   - data_utils.py — # Data utility functions
+
+#   - datetime_utils.py — # Date and time utility functions
+
+#   - template_utils.py — # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
+
+#   - file_utils.py — # File and path utility functions
+
+#   - url_utils.py — # URL and web utility functions
+
+#   - uuid_utils.py — # UUID utility functions for generating and validating UUIDs
+
+#   - prompt_utils.py — # Prompt utility functions for working with text prompts
+
+#   - random_utils.py — # Random number generation and sampling utilities
+
+#   - validation_utils.py — # Input validation utilities
+
+#   - crypto_utils.py — # Cryptographic utilities
+
+#   - list_utils.py — # Advanced list manipulation utilities
+
+#   - locale_utils.py — # Locale utility functions for working with locale identifiers and language tags
+
+#   - env_utils.py — # Environment variable handling utilities
+
+#   - logging_utils.py — # Logging configuration and helper utilities
+
+#   - cache_utils.py — # Caching utilities for memoizing function results
+
+#   - context_utils.py — # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
+
+#   - itertools_utils.py — # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
+
+#   - timing_utils.py — # Performance measurement helpers
+
+#   - async_utils.py — # Asynchronous utility functions
+
+#   - bit_utils.py — # Bitwise utility functions for working with binary representations
+
+#   - concurrent_utils.py — # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+
+#   - priority_queue_utils.py — # Heap-based priority queue implementation
+
+#   - queue_utils.py — # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
+
+#   - rate_limiter_utils.py — # Rate limiting utilities (token bucket algorithm)
+
+#   - retry_utils.py — # Retry utilities with exponential backoff and jitter
+
+#   - secrets_utils.py — # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
+
+#   - dict_utils.py — # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
+
+#   - json_utils.py — # JSON utility functions (read/write/parse/dump/validate)
+
+#   - collections_utils.py — # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
+
+#   - csv_utils.py — # CSV utility functions (read/write/append as dicts or lists)
+
+#   - set_utils.py — # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+
+#   - statistics_utils.py — # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+
+#   - string_utils.py — # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
+
+#   - tree_utils.py — # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
+
+#   - type_utils.py — # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
+
+#   - path_utils.py — # Path manipulation utilities (join, normalize, components, extensions)
+
+#   - color_utils.py — # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
+
+#   - duration_utils.py — # Time duration utilities (parse, format, convert between units)
+
+#   - temp_utils.py — # Temporary file and directory management utilities
+
+#   - xml_utils.py — # XML parsing and generation utilities
+
+#   - seq_utils.py — # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
+
+#   - number_utils.py — # Number utility functions (clamp, round_to, is_integer, format_number, percentage)
+
+#   - os_utils.py — # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
+
+#   - sort_utils.py — # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
+
+#   - sys_utils.py — # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
+
+#   - networking_utils.py — # Networking utilities for TCP ports, hostname resolution, and local IP detection
+
+#   - graphlib_utils.py — # Graph and dependency resolution utilities (topological sort, cycle detection)
+
+#   - greeting_utils.py — # Greeting utilities (greet, format_names, random_greeting)
+
+#   - version_utils.py — # Version utility functions (parse, compare, normalize)
+
+#   - semver_utils.py — # Semantic versioning utilities
+
+#   - shutil_utils.py — # High-level file operations (copy, move, remove, archive, disk usage)
+
+#   - interval_utils.py — # Interval utilities (normalization, containment, overlap, intersection, union, merge)
+
+#   - textwrap_utils.py — # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
+
+#   - prime_utils.py — # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
+
+#   - decimal_utils.py — # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
+
+#   - fractions_utils.py — # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
+
+#   - heapq_utils.py — # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
+
+#   - markdown_utils.py — # Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
+
+#   - time_utils.py — # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
+
+#   - cli_utils.py — # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
+
+#   - hash_utils.py — # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+
+#   - http_utils.py — # HTTP status codes and response handling utilities
+
+#   - id_utils.py — # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
+
+#   - html_utils.py — # HTML escaping, unescaping, and tag-stripping utilities
+
+#   - bytes_utils.py — # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
+
+#   - base64_utils.py — # Base64 and hexadecimal encoding/decoding utilities
+
+#   - calendar_utils.py — # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
+
+#   - struct_utils.py — # Binary struct packing and unpacking utilities
+
+#   - pattern_utils.py — # Design pattern utilities (Singleton, Factory, Observer, Strategy)
+
+#   - functools_utils.py — # Functional programming utilities (compose, pipe, curry, apply)
+
+#   - operator_utils.py — # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
+
+#   - config_schema.py — # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
+
+#   - exceptions_utils.py — # Custom exception classes and error handling utilities
+
+#   - io_utils.py — # Line-oriented and atomic input/output utilities
+
+#   - ini_utils.py — # INI configuration file utilities (load, save, get, set, merge sections)
+
+#   - weakref_utils.py — # Weak reference utilities for managing weak references to objects
+
+#   - compression_utils.py — # Compression and decompression utilities (gzip, bz2, zip, tar)
+
+#   - ip_utils.py — # IP address validation and manipulation utilities
+
+#   - regex_utils.py — # Regular expression utilities (compile, match, search, replace, split, escape)
+
+#   - terminal_utils.py — # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
+
+#   - subprocess_utils.py — # Subprocess utilities (run_command, check_output, check_call)
+
+#   - test_async_utils.py — # Tests for async_utils.py
+
+#   - test_base64_utils.py — # Tests for base64_utils.py
+
+#   - test_bit_utils.py — # Tests for bit_utils.py
+
+#   - test_bytes_utils.py — # Tests for bytes_utils.py
+
+#   - test_cache_utils.py — # Tests for cache_utils.py
+
+#   - test_calculator.py — # Tests for calculator.py
+
+#   - test_calendar_utils.py — # Tests for calendar_utils.py
+
+#   - test_cli_utils.py — # Tests for cli_utils.py
+
+#   - test_color_utils.py — # Tests for color_utils.py
+
+#   - test_collections_utils.py — # Tests for collections_utils.py
+
+#   - test_compression_utils.py — # Tests for compression_utils.py
+
+#   - test_config_schema.py — # Tests for config_schema.py
+
+#   - test_config_utils.py — # Tests for config_utils.py
+
+#   - test_concurrent_utils.py — # Tests for concurrent_utils.py
+
+#   - test_context_utils.py — # Tests for context_utils.py
+
+#   - test_crypto_utils.py — # Tests for crypto_utils.py
+
+#   - test_csv_utils.py — # Tests for csv_utils.py
+
+#   - test_data_utils.py — # Tests for data_utils.py
+
+#   - test_datetime_utils.py — # Tests for datetime_utils.py
+
+#   - test_decimal_utils.py — # Tests for decimal_utils.py
+
+#   - test_dict_utils.py — # Tests for dict_utils.py
+
+#   - test_duration_utils.py — # Tests for duration_utils.py
+
+#   - test_env_utils.py — # Tests for env_utils.py
+
+#   - test_exceptions_utils.py — # Tests for exceptions_utils.py
+
+#   - test_file_utils.py — # Tests for file_utils.py
+
+#   - test_fractions_utils.py — # Tests for fractions_utils.py
+
+#   - test_functools_utils.py — # Tests for functools_utils.py
+
+#   - test_graphlib_utils.py — # Tests for graphlib_utils.py
+
+#   - test_greeting_utils.py — # Tests for greeting_utils.py
+
+#   - test_hash_utils.py — # Tests for hash_utils.py
+
+#   - test_heapq_utils.py — # Tests for heapq_utils.py
+
+#   - test_hello.py — # Tests for hello.py
+
+#   - test_html_utils.py — # Tests for html_utils.py
+
+#   - test_http_utils.py — # Tests for http_utils.py
+
+#   - test_id_utils.py — # Tests for id_utils.py
+
+#   - test_ini_utils.py — # Tests for ini_utils.py
+
+#   - test_io_utils.py — # Tests for io_utils.py
+
+#   - test_ip_utils.py — # Tests for ip_utils.py
+
+#   - test_itertools_utils.py — # Tests for itertools_utils.py
+
+#   - test_json_utils.py — # Tests for json_utils.py
+
+#   - test_list_utils.py — # Tests for list_utils.py
+
+#   - test_locale_utils.py — # Tests for locale_utils.py
+
+#   - test_logging_utils.py — # Tests for logging_utils.py
+
+#   - test_markdown_utils.py — # Tests for markdown_utils.py
+
+#   - test_math_utils.py — # Tests for math_utils.py
+
+#   - test_networking_utils.py — # Tests for networking_utils.py
+
+#   - test_number_utils.py — # Tests for number_utils.py
+
+#   - test_operator_utils.py — # Tests for operator_utils.py
+
+#   - test_os_utils.py — # Tests for os_utils.py
+
+#   - test_path_utils.py — # Tests for path_utils.py
+
+#   - test_pattern_utils.py — # Tests for pattern_utils.py
+
+#   - test_prime_utils.py — # Tests for prime_utils.py
+
+#   - test_priority_queue_utils.py — # Tests for priority_queue_utils.py
+
+#   - test_prompt_utils.py — # Tests for prompt_utils.py
+
+#   - test_queue_utils.py — # Tests for queue_utils.py
+
+#   - test_random_utils.py — # Tests for random_utils.py
+
+#   - test_rate_limiter_utils.py — # Tests for rate_limiter_utils.py
+
+#   - test_regex_utils.py — # Tests for regex_utils.py
+
+#   - test_retry_utils.py — # Tests for retry_utils.py
+
+#   - test_scaffold.py — # Tests for scaffold.sh
+
+#   - test_secrets_utils.py — # Tests for secrets_utils.py
+
+#   - test_seq_utils.py — # Tests for seq_utils.py
+
+#   - test_set_utils.py — # Tests for set_utils.py
+
+#   - test_shapes.py — # Tests for shapes.py
+
+#   - test_shutil_utils.py — # Tests for shutil_utils.py
+
+#   - test_sort_utils.py — # Tests for sort_utils.py
+
+#   - test_statistics_utils.py — # Tests for statistics_utils.py
+
+#   - test_stats.py — # Tests for stats.py
+
+#   - test_string_utils.py — # Tests for string_utils.py
+
+#   - test_strings.py — # Tests for strings.py
+
+#   - test_struct_utils.py — # Tests for struct_utils.py
+
+#   - test_subprocess_utils.py — # Tests for subprocess_utils.py
+
+#   - test_sys_utils.py — # Tests for sys_utils.py
+
+#   - test_template_utils.py — # Tests for template_utils.py
+
+#   - test_terminal_utils.py — # Tests for terminal_utils.py
+
+#   - test_temp_utils.py — # Tests for temp_utils.py
+
+#   - test_textwrap_utils.py — # Tests for textwrap_utils.py
+
+#   - test_time_utils.py — # Tests for time_utils.py
+
+#   - test_timing_utils.py — # Tests for timing_utils.py
+
+#   - test_tree_utils.py — # Tests for tree_utils.py
+
+#   - test_type_utils.py — # Tests for type_utils.py
+
+#   - test_url_utils.py — # Tests for url_utils.py
+
+#   - test_utils.py — # Tests for utils.py
+
+#   - test_uuid_utils.py — # Tests for uuid_utils.py
+
+#   - test_validation_utils.py — # Tests for validation_utils.py
+
+#   - test_version_utils.py — # Tests for version_utils.py
+
+#   - test_semver_utils.py — # Tests for semver_utils.py
+
+#   - test_interval_utils.py — # Tests for interval_utils.py
+
+#   - test_weakref_utils.py — # Tests for weakref_utils.py
+
+#   - test_xml_utils.py — # Tests for xml_utils.py
 set -euo pipefail
 
 usage() {
@@ -512,7 +694,7 @@ cat > "$OUTPUT_DIR/pyproject.toml" <<PYPROJECT
 [project]
 name = "${PROJECT_ID}"
 version = "0.1.0"
-description = "A project scaffolded for autonomous agentic coding with Kilo."
+description = "A self-evolving scaffolding project for autonomous agentic coding loops powered by Kilo."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -529,6 +711,16 @@ dev = [
 testpaths = ["tests"]
 pythonpath = ["."]
 
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.mypy]
 python_version = "3.10"
 warn_return_any = true
@@ -543,35 +735,40 @@ exclude = [
 py_modules = [
     "hello",
     "calculator",
-    "config_utils",
     "collections_utils",
+    "config_utils",
     "shapes",
     "strings",
     "utils",
     "stats",
     "math_utils",
+    "number_utils",
+    "operator_utils",
+    "os_utils",
+    "graphlib_utils",
+    "greeting_utils",
+    "id_utils",
+    "bit_utils",
     "data_utils",
     "datetime_utils",
     "file_utils",
     "url_utils",
-    "uuid_utils",
-    "prompt_utils",
-    "compression_utils",
-    "ip_utils",
-    "regex_utils",
     "random_utils",
+    "secrets_utils",
     "validation_utils",
     "crypto_utils",
     "list_utils",
     "locale_utils",
     "env_utils",
     "logging_utils",
+    "markdown_utils",
     "cache_utils",
     "context_utils",
+    "itertools_utils",
+    "cli_utils",
+    "color_utils",
     "timing_utils",
     "async_utils",
-    "bit_utils",
-    "operator_utils",
     "concurrent_utils",
     "priority_queue_utils",
     "rate_limiter_utils",
@@ -581,67 +778,52 @@ py_modules = [
     "set_utils",
     "statistics_utils",
     "string_utils",
-   "type_utils",
-   "tree_utils",
-   "path_utils",
-   "color_utils",
-   "pattern_utils",
-   "functools_utils",
-   "config_schema",
-   "exceptions_utils",
-   "io_utils",
-   "cli_utils",
-   "terminal_utils",
-   "subprocess_utils",
-   "hash_utils",
+    "type_utils",
+    "retry_utils",
+    "tree_utils",
+    "path_utils",
+    "pattern_utils",
+    "functools_utils",
+    "config_schema",
+    "exceptions_utils",
+    "io_utils",
+    "ini_utils",
+    "compression_utils",
+    "ip_utils",
+    "prompt_utils",
+    "prime_utils",
+    "regex_utils",
+    "terminal_utils",
+    "subprocess_utils",
+    "textwrap_utils",
+    "template_utils",
+    "time_utils",
+    "uuid_utils",
+    "hash_utils",
     "http_utils",
     "html_utils",
-    "bytes_utils",
-    "itertools_utils",
     "base64_utils",
+    "calendar_utils",
+    "bytes_utils",
     "struct_utils",
     "duration_utils",
     "temp_utils",
     "xml_utils",
     "weakref_utils",
     "seq_utils",
-    "os_utils",
-    "graphlib_utils",
     "queue_utils",
-    "version_utils",
+    "sort_utils",
     "sys_utils",
     "networking_utils",
-    "textwrap_utils",
-    "calendar_utils",
+    "version_utils",
     "decimal_utils",
+    "fractions_utils",
     "heapq_utils",
     "interval_utils",
     "semver_utils",
-    "template_utils",
-    "time_utils",
-
-    "fractions_utils",
-    "greeting_utils",
-    "id_utils",
-    "ini_utils",
-    "markdown_utils",
-    "number_utils",
-    "prime_utils",
-    "retry_utils",
-    "secrets_utils",
     "shutil_utils",
-    "sort_utils",
+]
 
-
-[tool.ruff]
-line-length = 100
-target-version = "py310"
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "W"]
-
-[tool.ruff.format]
-docstring-code-format = true
 PYPROJECT
 
 # --- hello.py ---
@@ -16241,6 +16423,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
+- `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
+- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 - `data_utils.py` — data utility functions
 - `datetime_utils.py` — date and time utility functions
 - `file_utils.py` — file and path utility functions
@@ -16255,37 +16439,56 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `env_utils.py` — environment variable handling utilities
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
-- `context_utils.py` — context manager utilities (chdir, temp_environ, redirect_stdout, redirect_stderr, suppress) for temporarily altering the runtime environment
+- `context_utils.py` — context manager utilities (`chdir`, `temp_environ`, `redirect_stdout`, `redirect_stderr`, `suppress`) for temporarily altering the runtime environment
+- `itertools_utils.py` — iteration helpers (`chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`) wrapping the standard library `itertools` module with input validation
+- `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
 - `timing_utils.py` — performance measurement helpers
 - `async_utils.py` — asynchronous utility functions
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
-- `operator_utils.py` — operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 - `priority_queue_utils.py` — heap-based priority queue implementation
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
 - `retry_utils.py` — retry utilities with exponential backoff and jitter
-- `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
-- `json_utils.py` — JSON utility functions (read/write/parse/dump/validate)
-- `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
-- `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
-- `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
-- `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
-- `tree_utils.py` — tree and nested structure utilities (get_nested, set_nested, delete_nested, flatten_tree, unflatten_tree, map_tree, filter_tree)
-- `type_utils.py` — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
-- `path_utils.py` — path manipulation utilities (join, normalize, components, extensions)
-- `config_schema.py` — typed configuration schema utilities (SchemaField, ConfigSchema, validators)
-- `uuid_utils.py` — UUID utility functions for generating and validating UUIDs
-- `prompt_utils.py` — Prompt utility functions for working with text prompts
+- `secrets_utils.py` — Cryptographically secure secrets and token utilities (`token_bytes`, `token_hex`, `token_urlsafe`, `compare_digest`, `randbelow`, `randbits`, `choice`)
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
 - `tests/test_collections_utils.py` — unit tests for `collections_utils.py`
+- `tests/test_compression_utils.py` — unit tests for `compression_utils.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `tests/test_stats.py` — unit tests for `stats.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
+- `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
+- `tests/test_string_utils.py` — unit tests for `string_utils.py`
+- `tree_utils.py` — tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
+- `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
+- `type_utils.py` — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
+- `tests/test_type_utils.py` — unit tests for the type utilities module
+- `path_utils.py` — path manipulation utilities (join, normalize, components, extensions)
+- `tests/test_path_utils.py` — unit tests for `path_utils.py`
+- `color_utils.py` — color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
+- `pattern_utils.py` — design pattern utilities (Singleton, Factory, Observer, Strategy)
+- `tests/test_color_utils.py` — unit tests for `color_utils.py`
+- `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
+- `regex_utils.py` — regular expression utilities (`compile_pattern`, `is_valid_pattern`, `match_pattern`, `search_pattern`, `find_all`, `replace_pattern`, `split_pattern`, `escape_pattern`, `extract_groups`, `named_groups`)
+- `tests/test_regex_utils.py` — unit tests for `regex_utils.py`
+- `tests/test_scaffold.py` — unit tests for `scaffold.sh`
+- `tests/test_secrets_utils.py` — unit tests for `secrets_utils.py`
+- `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
+- `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
+- `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators)
+- `tests/test_config_schema.py` — unit tests for `config_schema.py`
+- `exceptions_utils.py` — custom exception classes and error handling utilities
+- `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
+- `io_utils.py` — line-oriented and atomic input/output utilities (`read_lines`, `write_lines`, `append_text`, `atomic_write_text`, `stream_copy`, `count_lines`, `iter_lines`)
+- `ini_utils.py` — INI configuration file utilities (`load_config`, `save_config`, `get_config_value`, `set_config_value`, `merge_configs`, `list_sections`, `has_section`, `get_section`)
+- `compression_utils.py` — compression and decompression utilities (gzip, bz2, zip, tar)
+- `ip_utils.py` — IP address validation and manipulation utilities (IPv4/IPv6, conversion, properties, subnet checks)
+- `tests/test_ip_utils.py` — unit tests for `ip_utils.py`
+- `tests/test_io_utils.py` — unit tests for `io_utils.py`
+- `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
@@ -16304,94 +16507,92 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
-- `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
 - `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
+- `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
 - `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
+- `json_utils.py` — JSON utility functions (read/write/parse/dump/validate)
 - `tests/test_json_utils.py` — unit tests for `json_utils.py`
-- `tests/test_collections_utils.py` — unit tests for `collections_utils.py`
+- `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
 - `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
+- `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 - `tests/test_set_utils.py` — unit tests for `set_utils.py`
-- `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
-- `tests/test_string_utils.py` — unit tests for `string_utils.py`
-- `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
-- `tests/test_type_utils.py` — unit tests for `type_utils.py`
-- `tests/test_path_utils.py` — unit tests for `path_utils.py`
-- `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
-- `tests/test_struct_utils.py` — unit tests for `struct_utils.py`
-- `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
-- `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
-- `tests/test_config_schema.py` — unit tests for `config_schema.py`
-- `exceptions_utils.py` — custom exception classes and error handling utilities
-- `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
-- `io_utils.py` — line-oriented and atomic input/output utilities (read_lines, write_lines, append_text, atomic_write_text, stream_copy, count_lines, iter_lines)
-- `ini_utils.py` — INI configuration file utilities (load_config, save_config, get_config_value, set_config_value, merge_configs, list_sections, has_section, get_section)
-- `tests/test_io_utils.py` — unit tests for `io_utils.py`
-- `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
-- `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
-- `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
-- `tests/test_terminal_utils.py` — unit tests for terminal_utils.py
+- `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `subprocess_utils.py` — subprocess utilities (`run_command`, `check_output`, `check_call`) using the standard library `subprocess` module with input validation
 - `tests/test_subprocess_utils.py` — unit tests for `subprocess_utils.py`
 - `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
-- hash_utils.py — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
-- tests/test_hash_utils.py — unit tests for `hash_utils.py`
-- html_utils.py — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
-- tests/test_html_utils.py — unit tests for `html_utils.py`
-- base64_utils.py — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
-- tests/test_base64_utils.py — unit tests for `base64_utils.py`
-- struct_utils.py — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
-- tests/test_struct_utils.py — unit tests for `struct_utils.py`
-- http_utils.py — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`)
-- tests/test_http_utils.py — unit tests for `http_utils.py`
-- duration_utils.py — time duration utilities (`parse_duration`, `format_duration`, `seconds_to_hms`, `hms_to_seconds`, `to_seconds`, `duration_between`, `add_duration`, `is_valid_duration`)
-- tests/test_duration_utils.py — unit tests for `duration_utils.py`
-- temp_utils.py — temporary file and directory management utilities (`create_temp_file`, `create_temp_dir`, `temp_file`, `temp_dir`, `write_temp_file`, `read_temp_file`, `cleanup_temp_path`, `is_temp_path`, `temp_path_exists`)
-- tests/test_temp_utils.py — unit tests for `temp_utils.py`
-- xml_utils.py — XML parsing and generation utilities (`parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, `validate_well_formed`)
-- tests/test_xml_utils.py — unit tests for `xml_utils.py`
-- seq_utils.py — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `interleave`, `adjacent_pairs`, `is_sorted`)
-- tests/test_seq_utils.py — unit tests for `seq_utils.py`
-- graphlib_utils.py — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
-- tests/test_graphlib_utils.py — unit tests for `graphlib_utils.py`
-- queue_utils.py — FIFO queue helpers (Queue class, enqueue, dequeue, peek, size, is_empty, clear)
-- tests/test_queue_utils.py — unit tests for `queue_utils.py`
-- version_utils.py — version parsing, comparison, and normalization utilities
-- tests/test_version_utils.py — unit tests for `version_utils.py`
-- sys_utils.py — Python runtime and system information utilities (`get_python_version`, `get_executable`, `get_platform`, `get_path`, `get_argv`, `get_recursion_limit`, `set_recursion_limit`, stream encodings, frame info, refcount)
-- tests/test_sys_utils.py — unit tests for `sys_utils.py`
-- networking_utils.py — networking utilities for TCP ports, hostname resolution, and local IP detection
-- tests/test_networking_utils.py — unit tests for `networking_utils.py`
-- textwrap_utils.py — text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-- calendar_utils.py — calendar utilities (is_leap_year, days_in_month, first_day_of_month, month_name, day_name, month_calendar, weekdays_in_month, weekend_days_in_month, is_weekend, add_months)
-- tests/test_calendar_utils.py — unit tests for `calendar_utils.py`
-- prime_utils.py — prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
-- tests/test_prime_utils.py — unit tests for prime_utils.py
-- decimal_utils.py — decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
-- tests/test_decimal_utils.py — unit tests for `decimal_utils.py`
-- fractions_utils.py — fraction arithmetic utilities
-- weakref_utils.py — weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`)
-#   - tests/test_weakref_utils.py — unit tests for weakref_utils.py
-- tests/test_fractions_utils.py — unit tests for `fractions_utils.py`
-- heapq_utils.py — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)
-- tests/test_heapq_utils.py — unit tests for `heapq_utils.py`
-- bytes_utils.py — bytes and binary utilities (to_hex, from_hex, xor, chunk)
-- tests/test_bytes_utils.py — unit tests for `bytes_utils.py`
-- tests/test_textwrap_utils.py — unit tests for textwrap_utils.py
-- `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
-- time_utils.py — time utility functions for working with timestamps and durations (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
-- tests/test_time_utils.py — unit tests for time_utils.py
+- `hash_utils.py` — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
+- `tests/test_hash_utils.py` — unit tests for `hash_utils.py`
+- `tests/test_id_utils.py` — unit tests for `id_utils.py`
+- `http_utils.py` — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`)
+- `id_utils.py` — Identifier generation and validation utilities (`generate_id`, `new_id`, `is_valid_id`) for short URL-safe random identifiers with input validation
+- `tests/test_http_utils.py` — unit tests for `http_utils.py`
+- `html_utils.py` — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
+- `tests/test_html_utils.py` — unit tests for `html_utils.py`
+- `bytes_utils.py` — bytes and binary utilities (`to_hex`, `from_hex`, `xor`, `chunk`)
+- `tests/test_bytes_utils.py` — unit tests for `bytes_utils.py`
+- `base64_utils.py` — Base64 and hexadecimal encoding/decoding utilities (`base64_encode`, `base64_decode`, `base64_encode_bytes`, `base64_decode_bytes`, `hex_encode`, `hex_decode`, `is_valid_base64`, `is_valid_hex`)
+- `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
+- `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
+- `tests/test_calendar_utils.py` — unit tests for `calendar_utils.py`
+- `struct_utils.py` — Binary struct packing and unpacking utilities (`pack`, `unpack`, `pack_into`, `unpack_from`, `calcsize`, `is_valid_format`)
+- `tests/test_struct_utils.py` — unit tests for `struct_utils.py`
+- `duration_utils.py` — time duration utilities (`parse_duration`, `format_duration`, `seconds_to_hms`, `hms_to_seconds`, `to_seconds`, `duration_between`, `add_duration`, `is_valid_duration`)
+- `tests/test_duration_utils.py` — unit tests for `duration_utils.py`
+- `temp_utils.py` — temporary file and directory management utilities (`create_temp_file`, `create_temp_dir`, `temp_file`, `temp_dir`, `write_temp_file`, `read_temp_file`, `cleanup_temp_path`, `is_temp_path`, `temp_path_exists`)
+- `tests/test_temp_utils.py` — unit tests for `temp_utils.py`
+- `xml_utils.py` — XML parsing and generation utilities (`parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, `validate_well_formed`)
+- `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
+- `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `interleave`, `adjacent_pairs`, `is_sorted`)
+- `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
+- `number_utils.py` — number utility functions (`clamp`, `round_to`, `is_integer`, `format_number`, `percentage`)
+- `tests/test_number_utils.py` — unit tests for `number_utils.py`
+- `os_utils.py` — operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
+- `tests/test_os_utils.py` — unit tests for `os_utils.py`
+- `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
+- `shutil_utils.py` — High-level file and directory operation utilities (`copy_file`, `copy_tree`, `move`, `remove_tree`, `disk_usage`, `make_archive`, `unpack_archive`) wrapping the standard library `shutil` module
+- `tests/test_shutil_utils.py` — unit tests for `shutil_utils.py`
+- `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
+- `graphlib_utils.py` — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
+- `greeting_utils.py` — Greeting utilities (`greet`, `format_names`, `random_greeting`) for formatted greeting strings
+- `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`
+- `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
+- `queue_utils.py` — FIFO queue helpers (`Queue` class, `enqueue`, `dequeue`, `peek`, `size`, `is_empty`, `clear`)
+- `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
+- `version_utils.py` — version parsing, comparison, and normalization utilities
+- `tests/test_version_utils.py` — unit tests for `version_utils.py`
+- `sys_utils.py` — Python runtime and system information utilities (`get_python_version`, `get_executable`, `get_platform`, `get_path`, `get_argv`, `get_recursion_limit`, `set_recursion_limit`, stream encodings, frame info, refcount)
+- `tests/test_sys_utils.py` — unit tests for `sys_utils.py`
+- `networking_utils.py` — networking utilities for TCP ports, hostname resolution, and local IP detection
+- `tests/test_networking_utils.py` — unit tests for `networking_utils.py`
+- `operator_utils.py` — operator utilities (`identity`, `negate`, `add`, `subtract`, `multiply`, `divide`, `power`, `modulo`, `clamp`, `between`) for common functional operations
+- `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
+- `textwrap_utils.py` — text wrapping utilities (`wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, `fill_text`)
+- `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
+- `prime_utils.py` — prime number utilities (`prime_factors`, `nth_prime`, `primes_up_to`, `next_prime`, `previous_prime`)
+- `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
+- `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`)
+- `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`
+- `fractions_utils.py` — fraction arithmetic utilities (`to_fraction`, `add`, `subtract`, `multiply`, `divide`, `power`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`, `is_integer`, `numerator`, `denominator`, `to_float`, `from_float`)
+- `tests/test_fractions_utils.py` — unit tests for `fractions_utils.py`
+- `weakref_utils.py` — weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`)
+- `tests/test_weakref_utils.py` — unit tests for `weakref_utils.py`
+- `heapq_utils.py` — heap queue utilities wrapping the standard library `heapq` module (`heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, `nsmallest`)
+- `tests/test_heapq_utils.py` — unit tests for `heapq_utils.py`
+- `markdown_utils.py` — Markdown utility functions (`extract_code_blocks`, `strip_markdown`, `count_words`, `is_heading`, `heading_level`)
+- `tests/test_markdown_utils.py` — unit tests for `markdown_utils.py`
+- `time_utils.py` — time utility functions for working with timestamps and durations (`now_epoch`, `now_iso`, `epoch_to_iso`, `iso_to_epoch`)
+- `tests/test_time_utils.py` — unit tests for `time_utils.py`
 - `semver_utils.py` — Semantic versioning utilities (`parse_semver`, `compare_semver`, `bump_major`, `bump_minor`, `bump_patch`, `is_valid_semver`, `SemanticVersion`)
 - `tests/test_semver_utils.py` — unit tests for `semver_utils.py`
 - `interval_utils.py` — Interval utilities (normalization, containment, overlap, intersection, union, merge)
 - `tests/test_interval_utils.py` — unit tests for `interval_utils.py`
 - `template_utils.py` — string template rendering utilities (`render_template`, `substitute`, `safe_substitute`, `render_from_dict`, `has_placeholders`, `extract_placeholders`) supporting `str.format()` and `string.Template` styles with placeholder extraction
 - `tests/test_template_utils.py` — unit tests for `template_utils.py`
-
 ## Usage
 
 ```bash
@@ -17092,229 +17293,6 @@ def interval_length(interval: Interval) -> float:
     return float(interval[1] - interval[0])
 INTERVALUTILS
 
-# --- tests/test_template_utils.py ---
-cat > "$OUTPUT_DIR/tests/test_template_utils.py" <<'TESTTEMPLATEUTILS'
-"""Unit tests for the template_utils module."""
-
-import unittest
-
-from template_utils import (
-    extract_placeholders,
-    has_placeholders,
-    render_from_dict,
-    render_template,
-    safe_substitute,
-    substitute,
-)
-
-
-class TestRenderTemplate(unittest.TestCase):
-    """Test cases for render_template function."""
-
-    def test_basic_substitution(self) -> None:
-        result = render_template("Hello {name}!", name="World")
-        self.assertEqual(result, "Hello World!")
-
-    def test_multiple_placeholders(self) -> None:
-        result = render_template(
-            "{greeting} {name}, you are {age} years old",
-            greeting="Hi",
-            name="Alice",
-            age=30,
-        )
-        self.assertEqual(result, "Hi Alice, you are 30 years old")
-
-    def test_no_placeholders(self) -> None:
-        result = render_template("Hello World")
-        self.assertEqual(result, "Hello World")
-
-    def test_numeric_formatting(self) -> None:
-        result = render_template("Pi is {0:.2f}", 3.14159)
-        self.assertEqual(result, "Pi is 3.14")
-
-    def test_missing_key_raises(self) -> None:
-        with self.assertRaises(KeyError):
-            render_template("Hello {name}!")
-
-    def test_non_string_template(self) -> None:
-        with self.assertRaises(TypeError):
-            render_template(123)  # type: ignore
-
-
-class TestSubstitute(unittest.TestCase):
-    """Test cases for substitute function."""
-
-    def test_basic_substitution(self) -> None:
-        result = substitute("Hello $name!", name="World")
-        self.assertEqual(result, "Hello World!")
-
-    def test_braces_substitution(self) -> None:
-        result = substitute("Hello ${name}!", name="World")
-        self.assertEqual(result, "Hello World!")
-
-    def test_multiple_placeholders(self) -> None:
-        result = substitute("$greeting $name", greeting="Hi", name="Alice")
-        self.assertEqual(result, "Hi Alice")
-
-    def test_with_mapping(self) -> None:
-        result = substitute("Hello $name", mapping={"name": "World"})
-        self.assertEqual(result, "Hello World")
-
-    def test_mapping_and_kwargs(self) -> None:
-        result = substitute("$a $b", mapping={"a": "Hello"}, b="World")
-        self.assertEqual(result, "Hello World")
-
-    def test_missing_key_raises(self) -> None:
-        with self.assertRaises(KeyError):
-            substitute("Hello $name!")
-
-    def test_non_string_template(self) -> None:
-        with self.assertRaises(TypeError):
-            substitute(123)  # type: ignore
-
-
-class TestSafeSubstitute(unittest.TestCase):
-    """Test cases for safe_substitute function."""
-
-    def test_basic_substitution(self) -> None:
-        result = safe_substitute("Hello $name!", name="World")
-        self.assertEqual(result, "Hello World!")
-
-    def test_missing_key_preserved(self) -> None:
-        result = safe_substitute("Hello $name!")
-        self.assertEqual(result, "Hello $name!")
-
-    def test_partial_substitution(self) -> None:
-        result = safe_substitute("Hello $name, you are $age", name="Alice")
-        self.assertEqual(result, "Hello Alice, you are $age")
-
-    def test_with_braces(self) -> None:
-        result = safe_substitute("Hello ${name}", name="World")
-        self.assertEqual(result, "Hello World")
-
-    def test_non_string_template(self) -> None:
-        with self.assertRaises(TypeError):
-            safe_substitute(123)  # type: ignore
-
-
-class TestRenderFromDict(unittest.TestCase):
-    """Test cases for render_from_dict function."""
-
-    def test_basic_render(self) -> None:
-        result = render_from_dict("Hello {name}!", {"name": "World"})
-        self.assertEqual(result, "Hello World!")
-
-    def test_multiple_keys(self) -> None:
-        result = render_from_dict("{a} {b}", {"a": "Hi", "b": "there"})
-        self.assertEqual(result, "Hi there")
-
-    def test_missing_key_with_default(self) -> None:
-        result = render_from_dict("Hello {name}!", {}, default="Guest")
-        self.assertEqual(result, "Hello Guest!")
-
-    def test_partial_keys(self) -> None:
-        result = render_from_dict("{greeting} {name}", {"greeting": "Hi"}, default="Friend")
-        self.assertEqual(result, "Hi Friend")
-
-    def test_no_context(self) -> None:
-        result = render_from_dict("Hello {name}", default="World")
-        self.assertEqual(result, "Hello World")
-
-    def test_none_context(self) -> None:
-        result = render_from_dict("Hello {name}", context=None, default="World")
-        self.assertEqual(result, "Hello World")
-
-    def test_non_string_template(self) -> None:
-        with self.assertRaises(TypeError):
-            render_from_dict(123, {})  # type: ignore
-
-    def test_non_mapping_context(self) -> None:
-        with self.assertRaises(TypeError):
-            render_from_dict("Hi", "not a dict")  # type: ignore
-
-
-class TestHasPlaceholders(unittest.TestCase):
-    """Test cases for has_placeholders function."""
-
-    def test_has_format_placeholder(self) -> None:
-        self.assertTrue(has_placeholders("Hello {name}"))
-
-    def test_has_multiple_format_placeholders(self) -> None:
-        self.assertTrue(has_placeholders("{a} {b} {c}"))
-
-    def test_has_template_placeholder(self) -> None:
-        self.assertTrue(has_placeholders("Hello $name"))
-
-    def test_has_template_braces(self) -> None:
-        self.assertTrue(has_placeholders("Hello ${name}"))
-
-    def test_no_placeholders(self) -> None:
-        self.assertFalse(has_placeholders("Hello World"))
-
-    def test_empty_string(self) -> None:
-        self.assertFalse(has_placeholders(""))
-
-    def test_mixed_placeholders(self) -> None:
-        self.assertTrue(has_placeholders("Hello {name} and $age"))
-
-    def test_non_string_template(self) -> None:
-        with self.assertRaises(TypeError):
-            has_placeholders(123)  # type: ignore
-
-
-class TestExtractPlaceholders(unittest.TestCase):
-    """Test cases for extract_placeholders function."""
-
-    def test_extract_format_placeholders(self) -> None:
-        result = extract_placeholders("Hello {name}, you are {age}")
-        self.assertIn("name", result)
-        self.assertIn("age", result)
-
-    def test_extract_format_with_spec(self) -> None:
-        result = extract_placeholders("Value: {num:.2f}, Text: {name}")
-        self.assertIn("num", result)
-        self.assertIn("name", result)
-
-    def test_extract_template_placeholders(self) -> None:
-        result = extract_placeholders("Hello $name and $age")
-        self.assertIn("name", result)
-        self.assertIn("age", result)
-
-    def test_extract_template_braces(self) -> None:
-        result = extract_placeholders("Hello ${name}")
-        self.assertIn("name", result)
-
-    def test_extract_mixed(self) -> None:
-        result = extract_placeholders("{greeting} $name")
-        self.assertIn("greeting", result)
-        self.assertIn("name", result)
-
-    def test_extract_no_duplicates(self) -> None:
-        result = extract_placeholders("{name} $name")
-        self.assertEqual(result.count("name"), 1)
-
-    def test_no_placeholders(self) -> None:
-        result = extract_placeholders("Hello World")
-        self.assertEqual(result, [])
-
-    def test_skip_numeric_indices(self) -> None:
-        result = extract_placeholders("Hello {0} and {1}")
-        # Numeric indices should be skipped
-        self.assertEqual(result, [])
-
-    def test_empty_string(self) -> None:
-        result = extract_placeholders("")
-        self.assertEqual(result, [])
-
-    def test_non_string_template(self) -> None:
-        with self.assertRaises(TypeError):
-            extract_placeholders(123)  # type: ignore
-
-
-if __name__ == "__main__":
-    unittest.main()
-
-TESTTEMPLATEUTILS
 if [[ "$SMOKE_TEST" == "1" ]] && command -v python >/dev/null 2>&1; then
   echo "Running smoke test in $OUTPUT_DIR ..."
   if (cd "$OUTPUT_DIR" && python -m unittest discover tests/ -v); then
@@ -17514,6 +17492,7 @@ priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
+secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
@@ -17535,7 +17514,11 @@ sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, 
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
+greeting_utils.py          # Greeting utilities (greet, format_names, random_greeting)
 version_utils.py           # Version utility functions (parse, compare, normalize)
+semver_utils.py            # Semantic versioning utilities
+shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
+interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
@@ -17543,11 +17526,10 @@ fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, su
 heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
 markdown_utils.py          # Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
 time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
-semver_utils.py            # Semantic versioning utilities (parse_semver, compare_semver, bump_major, bump_minor, bump_patch, is_valid_semver, SemanticVersion)
-interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
+id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -17571,6 +17553,7 @@ tests/                     # Python unit tests
   test_base64_utils.py        # Tests for base64_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
   test_bytes_utils.py         # Tests for bytes_utils.py
+  test_cache_utils.py         # Tests for cache_utils.py
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
@@ -17594,9 +17577,13 @@ tests/                     # Python unit tests
   test_fractions_utils.py     # Tests for fractions_utils.py
   test_functools_utils.py     # Tests for functools_utils.py
   test_graphlib_utils.py      # Tests for graphlib_utils.py
+  test_greeting_utils.py      # Tests for greeting_utils.py
   test_hash_utils.py          # Tests for hash_utils.py
+  test_heapq_utils.py         # Tests for heapq_utils.py
+  test_hello.py               # Tests for hello.py
   test_html_utils.py          # Tests for html_utils.py
   test_http_utils.py          # Tests for http_utils.py
+  test_id_utils.py            # Tests for id_utils.py
   test_ini_utils.py           # Tests for ini_utils.py
   test_io_utils.py            # Tests for io_utils.py
   test_ip_utils.py            # Tests for ip_utils.py
@@ -17622,9 +17609,11 @@ tests/                     # Python unit tests
   test_regex_utils.py         # Tests for regex_utils.py
   test_retry_utils.py         # Tests for retry_utils.py
   test_scaffold.py            # Tests for scaffold.sh
+  test_secrets_utils.py       # Tests for secrets_utils.py
   test_seq_utils.py           # Tests for seq_utils.py
   test_set_utils.py           # Tests for set_utils.py
   test_shapes.py              # Tests for shapes.py
+  test_shutil_utils.py        # Tests for shutil_utils.py
   test_sort_utils.py          # Tests for sort_utils.py
   test_statistics_utils.py    # Tests for statistics_utils.py
   test_stats.py               # Tests for stats.py
@@ -17634,21 +17623,23 @@ tests/                     # Python unit tests
   test_subprocess_utils.py    # Tests for subprocess_utils.py
   test_sys_utils.py           # Tests for sys_utils.py
   test_template_utils.py      # Tests for template_utils.py
+  test_terminal_utils.py      # Tests for terminal_utils.py
   test_temp_utils.py          # Tests for temp_utils.py
   test_textwrap_utils.py      # Tests for textwrap_utils.py
   test_time_utils.py          # Tests for time_utils.py
-  test_semver_utils.py        # Tests for semver_utils.py
-  test_interval_utils.py      # Tests for interval_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
   test_url_utils.py           # Tests for url_utils.py
+  test_utils.py               # Tests for utils.py
   test_uuid_utils.py          # Tests for uuid_utils.py
   test_validation_utils.py    # Tests for validation_utils.py
   test_version_utils.py       # Tests for version_utils.py
+  test_semver_utils.py        # Tests for semver_utils.py
+  test_interval_utils.py      # Tests for interval_utils.py
   test_weakref_utils.py       # Tests for weakref_utils.py
   test_xml_utils.py           # Tests for xml_utils.py
-
+  ```
 ## Getting Started
 
 1. Review `AGENTS.md` for agent instructions and the task handover protocol.
@@ -17681,7 +17672,6 @@ The workflow in `.github/workflows/main.yml` runs Kilo agent sessions in a conti
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 __README__
 
 # --- CHANGELOG.md ---

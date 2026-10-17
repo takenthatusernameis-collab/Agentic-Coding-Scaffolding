@@ -66,6 +66,7 @@ priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
+secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
@@ -87,6 +88,7 @@ sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, 
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
+greeting_utils.py          # Greeting utilities (greet, format_names, random_greeting)
 version_utils.py           # Version utility functions (parse, compare, normalize)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
@@ -101,6 +103,7 @@ time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_t
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 http_utils.py              # HTTP status codes and response handling utilities
+id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -124,6 +127,7 @@ tests/                     # Python unit tests
   test_base64_utils.py        # Tests for base64_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
   test_bytes_utils.py         # Tests for bytes_utils.py
+  test_cache_utils.py         # Tests for cache_utils.py
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
@@ -147,9 +151,13 @@ tests/                     # Python unit tests
   test_fractions_utils.py     # Tests for fractions_utils.py
   test_functools_utils.py     # Tests for functools_utils.py
   test_graphlib_utils.py      # Tests for graphlib_utils.py
+  test_greeting_utils.py      # Tests for greeting_utils.py
   test_hash_utils.py          # Tests for hash_utils.py
+  test_heapq_utils.py         # Tests for heapq_utils.py
+  test_hello.py               # Tests for hello.py
   test_html_utils.py          # Tests for html_utils.py
   test_http_utils.py          # Tests for http_utils.py
+  test_id_utils.py            # Tests for id_utils.py
   test_ini_utils.py           # Tests for ini_utils.py
   test_io_utils.py            # Tests for io_utils.py
   test_ip_utils.py            # Tests for ip_utils.py
@@ -175,9 +183,11 @@ tests/                     # Python unit tests
   test_regex_utils.py         # Tests for regex_utils.py
   test_retry_utils.py         # Tests for retry_utils.py
   test_scaffold.py            # Tests for scaffold.sh
+  test_secrets_utils.py       # Tests for secrets_utils.py
   test_seq_utils.py           # Tests for seq_utils.py
   test_set_utils.py           # Tests for set_utils.py
   test_shapes.py              # Tests for shapes.py
+  test_shutil_utils.py        # Tests for shutil_utils.py
   test_sort_utils.py          # Tests for sort_utils.py
   test_statistics_utils.py    # Tests for statistics_utils.py
   test_stats.py               # Tests for stats.py
@@ -187,6 +197,7 @@ tests/                     # Python unit tests
   test_subprocess_utils.py    # Tests for subprocess_utils.py
   test_sys_utils.py           # Tests for sys_utils.py
   test_template_utils.py      # Tests for template_utils.py
+  test_terminal_utils.py      # Tests for terminal_utils.py
   test_temp_utils.py          # Tests for temp_utils.py
   test_textwrap_utils.py      # Tests for textwrap_utils.py
   test_time_utils.py          # Tests for time_utils.py
@@ -194,6 +205,7 @@ tests/                     # Python unit tests
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
   test_url_utils.py           # Tests for url_utils.py
+  test_utils.py               # Tests for utils.py
   test_uuid_utils.py          # Tests for uuid_utils.py
   test_validation_utils.py    # Tests for validation_utils.py
   test_version_utils.py       # Tests for version_utils.py

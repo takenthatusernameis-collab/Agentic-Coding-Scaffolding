@@ -45,6 +45,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
 - `context_utils.py` — context manager utilities (`chdir`, `temp_environ`, `redirect_stdout`, `redirect_stderr`, `suppress`) for temporarily altering the runtime environment
+- `itertools_utils.py` — iteration helpers (`chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`) wrapping the standard library `itertools` module with input validation
+- `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
 - `timing_utils.py` — performance measurement helpers
 - `async_utils.py` — asynchronous utility functions
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
@@ -52,10 +54,12 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `priority_queue_utils.py` — heap-based priority queue implementation
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
 - `retry_utils.py` — retry utilities with exponential backoff and jitter
+- `secrets_utils.py` — Cryptographically secure secrets and token utilities (`token_bytes`, `token_hex`, `token_urlsafe`, `compare_digest`, `randbelow`, `randbits`, `choice`)
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
 - `tests/test_collections_utils.py` — unit tests for `collections_utils.py`
+- `tests/test_compression_utils.py` — unit tests for `compression_utils.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `tests/test_utils.py` — unit tests for `utils.py`
@@ -75,6 +79,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
 - `regex_utils.py` — regular expression utilities (`compile_pattern`, `is_valid_pattern`, `match_pattern`, `search_pattern`, `find_all`, `replace_pattern`, `split_pattern`, `escape_pattern`, `extract_groups`, `named_groups`)
 - `tests/test_regex_utils.py` — unit tests for `regex_utils.py`
+- `tests/test_scaffold.py` — unit tests for `scaffold.sh`
+- `tests/test_secrets_utils.py` — unit tests for `secrets_utils.py`
 - `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
 - `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators)
@@ -85,6 +91,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ini_utils.py` — INI configuration file utilities (`load_config`, `save_config`, `get_config_value`, `set_config_value`, `merge_configs`, `list_sections`, `has_section`, `get_section`)
 - `compression_utils.py` — compression and decompression utilities (gzip, bz2, zip, tar)
 - `ip_utils.py` — IP address validation and manipulation utilities (IPv4/IPv6, conversion, properties, subnet checks)
+- `tests/test_ip_utils.py` — unit tests for `ip_utils.py`
 - `tests/test_io_utils.py` — unit tests for `io_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
@@ -117,7 +124,6 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
 - `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 - `tests/test_set_utils.py` — unit tests for `set_utils.py`
-- `tests/test_color_utils.py` — unit tests for `color_utils.py`
 - `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 - `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
 - `subprocess_utils.py` — subprocess utilities (`run_command`, `check_output`, `check_call`) using the standard library `subprocess` module with input validation
@@ -126,7 +132,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
 - `hash_utils.py` — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 - `tests/test_hash_utils.py` — unit tests for `hash_utils.py`
+- `tests/test_id_utils.py` — unit tests for `id_utils.py`
 - `http_utils.py` — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`)
+- `id_utils.py` — Identifier generation and validation utilities (`generate_id`, `new_id`, `is_valid_id`) for short URL-safe random identifiers with input validation
 - `tests/test_http_utils.py` — unit tests for `http_utils.py`
 - `html_utils.py` — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
@@ -151,8 +159,12 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `os_utils.py` — operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 - `tests/test_os_utils.py` — unit tests for `os_utils.py`
 - `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
+- `shutil_utils.py` — High-level file and directory operation utilities (`copy_file`, `copy_tree`, `move`, `remove_tree`, `disk_usage`, `make_archive`, `unpack_archive`) wrapping the standard library `shutil` module
+- `tests/test_shutil_utils.py` — unit tests for `shutil_utils.py`
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
 - `graphlib_utils.py` — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
+- `greeting_utils.py` — Greeting utilities (`greet`, `format_names`, `random_greeting`) for formatted greeting strings
+- `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`
 - `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
 - `queue_utils.py` — FIFO queue helpers (`Queue` class, `enqueue`, `dequeue`, `peek`, `size`, `is_empty`, `clear`)
 - `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
