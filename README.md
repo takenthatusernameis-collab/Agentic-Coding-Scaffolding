@@ -87,6 +87,7 @@ sys_utils.py               # Python runtime and system information utilities (ve
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 version_utils.py           # Version utility functions (parse, compare, normalize)
+semver_utils.py            # Semantic versioning utilities
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
@@ -192,6 +193,7 @@ tests/                     # Python unit tests
   test_uuid_utils.py          # Tests for uuid_utils.py
   test_validation_utils.py    # Tests for validation_utils.py
   test_version_utils.py       # Tests for version_utils.py
+  test_semver_utils.py        # Tests for semver_utils.py
   test_weakref_utils.py       # Tests for weakref_utils.py
   test_xml_utils.py           # Tests for xml_utils.py
   ```
