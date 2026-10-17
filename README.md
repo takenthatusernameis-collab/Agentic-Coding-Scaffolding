@@ -52,6 +52,7 @@ random_utils.py             # Random number generation and sampling utilities
 validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 list_utils.py              # Advanced list manipulation utilities
+locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
@@ -153,6 +154,7 @@ tests/                     # Python unit tests
   test_itertools_utils.py     # Tests for itertools_utils.py
   test_json_utils.py          # Tests for json_utils.py
   test_list_utils.py          # Tests for list_utils.py
+  test_locale_utils.py        # Tests for locale_utils.py
   test_logging_utils.py       # Tests for logging_utils.py
   test_markdown_utils.py      # Tests for markdown_utils.py
   test_math_utils.py          # Tests for math_utils.py
@@ -294,6 +296,10 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 ## List Utilities Module
 
 The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `drop`, `take`, and `intersperse`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
+
+## Locale Utilities Module
+
+The project includes a locale utility functions module in `locale_utils.py` with helpers for working with locale identifiers and language tags: `normalize_locale` normalizes a locale string to `language_REGION` form, `language_code` extracts the language code, `region_code` extracts the region code, and `is_valid_locale` checks whether a string looks like a valid locale identifier. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_locale_utils.py`.
 
 ## Environment Utilities Module
 

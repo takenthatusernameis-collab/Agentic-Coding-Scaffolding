@@ -60,6 +60,8 @@
 #   - tests/test_crypto_utils.py — unit tests for crypto_utils.py
 #   - list_utils.py — Advanced list manipulation utilities
 #   - tests/test_list_utils.py — unit tests for list_utils.py
+#   - locale_utils.py — Locale utility functions for working with locale identifiers and language tags
+#   - tests/test_locale_utils.py — unit tests for locale_utils.py
 #   - env_utils.py — Environment variable handling utilities
 #   - tests/test_env_utils.py — unit tests for env_utils.py
 #   - logging_utils.py — Logging configuration and helper utilities
@@ -555,6 +557,7 @@ py_modules = [
     "validation_utils",
     "crypto_utils",
     "list_utils",
+    "locale_utils",
     "env_utils",
     "logging_utils",
     "cache_utils",
@@ -6452,6 +6455,97 @@ class TestIntersperse(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTLISTUTILS
+
+# --- locale_utils.py ---
+cat > "$OUTPUT_DIR/locale_utils.py" <<'LOCALE_UTILS'
+"""Locale utility functions for working with locale identifiers and language tags."""
+
+from __future__ import annotations
+
+__all__ = [
+    "normalize_locale",
+    "language_code",
+    "region_code",
+    "is_valid_locale",
+]
+
+
+def normalize_locale(value: str) -> str:
+    """Normalize a locale string to ``language_REGION`` form."""
+    if not isinstance(value, str):
+        raise TypeError("value must be a str")
+    parts = value.replace("-", "_").split("_")
+    language = parts[0].lower() if parts and parts[0] else ""
+    region = parts[1].upper() if len(parts) > 1 and parts[1] else ""
+    return f"{language}_{region}" if region else language
+
+
+def language_code(value: str) -> str:
+    """Extract the language code from a locale string."""
+    if not isinstance(value, str):
+        raise TypeError("value must be a str")
+    return value.replace("-", "_").split("_")[0].lower()
+
+
+def region_code(value: str) -> str:
+    """Extract the region code from a locale string."""
+    if not isinstance(value, str):
+        raise TypeError("value must be a str")
+    parts = value.replace("-", "_").split("_")
+    return parts[1].upper() if len(parts) > 1 else ""
+
+
+def is_valid_locale(value: str) -> bool:
+    """Return True if value looks like a valid locale identifier."""
+    if not isinstance(value, str):
+        return False
+    parts = value.replace("-", "_").split("_")
+    if not parts or not parts[0].isalpha() or len(parts[0]) not in (2, 3):
+        return False
+    if len(parts) > 1 and (not parts[1].isalpha() or len(parts[1]) not in (2, 3)):
+        return False
+    return True
+LOCALE_UTILS
+
+# --- tests/test_locale_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_locale_utils.py" <<'TESTLOCALEUTILS'
+"""Tests for locale_utils module."""
+
+import locale_utils
+
+
+def test_normalize_locale():
+    assert locale_utils.normalize_locale("en-us") == "en_US"
+    assert locale_utils.normalize_locale("EN_us") == "en_US"
+    assert locale_utils.normalize_locale("fr") == "fr"
+
+
+def test_language_code():
+    assert locale_utils.language_code("en-US") == "en"
+    assert locale_utils.language_code("zh_Hans") == "zh"
+
+
+def test_region_code():
+    assert locale_utils.region_code("en-US") == "US"
+    assert locale_utils.region_code("fr") == ""
+
+
+def test_is_valid_locale():
+    assert locale_utils.is_valid_locale("en-US") is True
+    assert locale_utils.is_valid_locale("fr") is True
+    assert locale_utils.is_valid_locale("123") is False
+
+
+def test_type_errors():
+    for fn in (locale_utils.normalize_locale, locale_utils.language_code, locale_utils.region_code):
+        try:
+            fn(123)
+        except TypeError:
+            pass
+        else:
+            raise AssertionError("expected TypeError")
+    assert locale_utils.is_valid_locale(123) is False
+TESTLOCALEUTILS
 
 # --- env_utils.py ---
 cat > "$OUTPUT_DIR/env_utils.py" <<'ENVLUTILS'
@@ -16073,6 +16167,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
 - `list_utils.py` — advanced list manipulation utilities
+- `locale_utils.py` — locale utility functions for working with locale identifiers and language tags
 - `env_utils.py` — environment variable handling utilities
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
@@ -16117,6 +16212,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
 - `tests/test_list_utils.py` — unit tests for `list_utils.py`
+- `tests/test_locale_utils.py` — unit tests for `locale_utils.py`
 - `tests/test_env_utils.py` — unit tests for `env_utils.py`
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
@@ -17051,6 +17147,7 @@ random_utils.py             # Random number generation and sampling utilities
 validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 list_utils.py              # Advanced list manipulation utilities
+locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
@@ -17152,6 +17249,7 @@ tests/                     # Python unit tests
   test_itertools_utils.py     # Tests for itertools_utils.py
   test_json_utils.py          # Tests for json_utils.py
   test_list_utils.py          # Tests for list_utils.py
+  test_locale_utils.py        # Tests for locale_utils.py
   test_logging_utils.py       # Tests for logging_utils.py
   test_markdown_utils.py      # Tests for markdown_utils.py
   test_math_utils.py          # Tests for math_utils.py
@@ -17492,6 +17590,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
 - `list_utils.py` — advanced list manipulation utilities with `partition`, `group_by`, `safe_get`, `find`, `drop`, `take`, and `intersperse` functions
 - `tests/test_list_utils.py` — unit tests for `list_utils.py`
+- `locale_utils.py` — locale utility functions for working with locale identifiers and language tags with `normalize_locale`, `language_code`, `region_code`, and `is_valid_locale` functions
+- `tests/test_locale_utils.py` — unit tests for `locale_utils.py`
 - `env_utils.py` — environment variable handling utilities with `get_env`, `get_env_required`, `get_env_int`, `get_env_float`, `get_env_bool`, `set_env`, `ensure_env`, `unset_env`, and `prefix_env` functions
 - `tests/test_env_utils.py` — unit tests for `env_utils.py`
 

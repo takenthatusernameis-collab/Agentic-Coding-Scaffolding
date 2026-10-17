@@ -40,6 +40,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
 - `list_utils.py` — advanced list manipulation utilities
+- `locale_utils.py` — locale utility functions for working with locale identifiers and language tags
 - `env_utils.py` — environment variable handling utilities
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
@@ -96,6 +97,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
 - `tests/test_list_utils.py` — unit tests for `list_utils.py`
+- `tests/test_locale_utils.py` — unit tests for `locale_utils.py`
 - `tests/test_env_utils.py` — unit tests for `env_utils.py`
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`

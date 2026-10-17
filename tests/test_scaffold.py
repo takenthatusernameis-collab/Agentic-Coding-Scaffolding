@@ -122,10 +122,14 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_random_utils.py",
             "validation_utils.py",
             "tests/test_validation_utils.py",
-            "crypto_utils.py",
-            "tests/test_crypto_utils.py",
-            "env_utils.py",
-            "tests/test_env_utils.py",
+"crypto_utils.py",
+             "tests/test_crypto_utils.py",
+             "list_utils.py",
+             "tests/test_list_utils.py",
+             "locale_utils.py",
+             "tests/test_locale_utils.py",
+             "env_utils.py",
+             "tests/test_env_utils.py",
             "logging_utils.py",
             "tests/test_logging_utils.py",
             "cache_utils.py",
@@ -320,6 +324,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "crypto_utils.py",
             "config_utils.py",
             "collections_utils.py",
+            "locale_utils.py",
             "env_utils.py",
             "logging_utils.py",
             "cache_utils.py",
@@ -466,8 +471,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "random_utils.py",
             "validation_utils.py",
             "crypto_utils.py",
-            "config_utils.py",
+"config_utils.py",
             "collections_utils.py",
+            "locale_utils.py",
             "env_utils.py",
             "logging_utils.py",
             "cache_utils.py",
@@ -525,22 +531,16 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_calendar_utils.py",
             "http_utils.py",
             "tests/test_http_utils.py",
+            "struct_utils.py",
+            "tests/test_struct_utils.py",
             "duration_utils.py",
-            "tests/test_duration_utils.py",
             "temp_utils.py",
-            "tests/test_temp_utils.py",
             "xml_utils.py",
             "weakref_utils.py",
-            "tests/test_xml_utils.py",
-            "tests/test_weakref_utils.py",
             "seq_utils.py",
-            "tests/test_seq_utils.py",
             "graphlib_utils.py",
-            "tests/test_graphlib_utils.py",
             "queue_utils.py",
-            "tests/test_queue_utils.py",
             "version_utils.py",
-            "tests/test_version_utils.py",
             "textwrap_utils.py",
             "tests/test_textwrap_utils.py",
             "bytes_utils.py",
@@ -710,6 +710,33 @@ class TestScaffoldKiloJson(unittest.TestCase):
             self.assertEqual(os.environ["NEW_VAR"], "default")
             self.assertTrue(unset_env("NEW_VAR"))
             self.assertFalse(unset_env("NEW_VAR"))
+
+    def test_locale_utils_functions_work(self) -> None:
+        """Generated locale_utils.py should have working functions."""
+        from locale_utils import (
+            is_valid_locale,
+            language_code,
+            normalize_locale,
+            region_code,
+        )
+
+        self.assertEqual(normalize_locale("en-us"), "en_US")
+        self.assertEqual(normalize_locale("EN_us"), "en_US")
+        self.assertEqual(normalize_locale("fr"), "fr")
+        self.assertEqual(language_code("en-US"), "en")
+        self.assertEqual(region_code("en-US"), "US")
+        self.assertEqual(region_code("fr"), "")
+        self.assertTrue(is_valid_locale("en-US"))
+        self.assertTrue(is_valid_locale("fr"))
+        self.assertFalse(is_valid_locale("123"))
+        for fn in (normalize_locale, language_code, region_code):
+            try:
+                fn(123)  # type: ignore[arg-type]
+            except TypeError:
+                pass
+            else:
+                self.fail(f"expected TypeError from {fn.__name__}(123)")
+        self.assertFalse(is_valid_locale(123))  # type: ignore[arg-type]
 
     def test_logging_utils_functions_work(self) -> None:
         """Generated logging_utils.py should have working functions."""
