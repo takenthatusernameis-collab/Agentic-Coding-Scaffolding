@@ -41,7 +41,10 @@ def email_parsedate_to_datetime(data: str) -> Any:
     Returns:
         A datetime instance, or None if the string could not be parsed.
     """
-    return email.utils.parsedate_to_datetime(data)
+    try:
+        return email.utils.parsedate_to_datetime(data)
+    except Exception:
+        return None
 
 
 def email_mktime_tz(data: tuple[int, int, int, int, int, int, int, int, int, int]) -> float:
@@ -53,7 +56,8 @@ def email_mktime_tz(data: tuple[int, int, int, int, int, int, int, int, int, int
     Returns:
         The UTC timestamp as a float.
     """
-    return email.utils.mktime_tz(data)
+    result = email.utils.mktime_tz(data)
+    return float(result)
 
 
 def email_parseaddr(addr: str, strict: bool = True) -> tuple[str, str]:
