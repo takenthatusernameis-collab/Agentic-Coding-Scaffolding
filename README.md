@@ -462,6 +462,10 @@ The project includes pretty-printing utilities in `pprint_utils.py` wrapping the
 
 The project includes reprlib utilities in `reprlib_utils.py` wrapping the standard library `reprlib` module: `repr` returns a string representation that truncates long objects, `get_ident` returns the identifier used to track recursive objects, `Repr` is a configurable subclass of `reprlib.Repr` with validated constructor arguments, `aRepr` is the default instance, and `recursive_repr` is a decorator that guards against infinite recursion. The module is tested in `tests/test_reprlib_utils.py`.
 
+## Codecs Utilities Module
+
+The project includes codecs utilities in `codecs_utils.py` wrapping the standard library `codecs` module: `encode` and `decode` encode/decode objects, `lookup` looks up a codec by name, `getencoder`/`getdecoder` return encoder/decoder functions, `getincrementalencoder`/`getincrementaldecoder` return incremental encoders/decoders, `getreader`/`getwriter` return stream readers/writers, `open` opens a file with a given encoding, and `register`/`register_error`/`lookup_error` manage codec registration and error handlers. The module is tested in `tests/test_codecs_utils.py`.
+
 ## Configuration Schema Module
 
 The project includes a configuration schema module in `config_schema.py` with declarative, typed configuration schemas. `SchemaField` describes a single typed field (`str`, `int`, `float`, `bool`) with optional defaults, required flags, and validators, and `ConfigSchema` composes fields to validate, coerce, and normalize configuration dictionaries. Built-in validators include `int_validator`, `float_validator`, `str_validator`, `bool_validator`, `email_validator`, `hostname_validator`, `url_validator`, `range_validator`, `choices_validator`, and `regex_validator`. The module is tested in `tests/test_config_schema.py`.
