@@ -153,4 +153,5 @@ py_modules = [
     "interval_utils",
     "semver_utils",
     "shutil_utils",
+    "shlex_utils",
 ]
