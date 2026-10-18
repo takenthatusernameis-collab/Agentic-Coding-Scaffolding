@@ -70,6 +70,7 @@ async_utils.py            # Asynchronous utility functions
 bit_utils.py              # Bitwise utility functions for working with binary representations
 call_once_utils.py        # Call-once execution utilities (call_once decorator)
 concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+concurrent_futures_utils.py # concurrent.futures wrappers with validation
 priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
@@ -189,6 +190,7 @@ tests/                     # Python unit tests
   test_copy_utils.py          # Tests for copy_utils.py
   test_config_utils.py        # Tests for config_utils.py
   test_concurrent_utils.py    # Tests for concurrent_utils.py
+test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
   test_context_utils.py       # Tests for context_utils.py
   test_crypto_utils.py        # Tests for crypto_utils.py
   test_csv_utils.py           # Tests for csv_utils.py

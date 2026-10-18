@@ -34,10 +34,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertEqual(
             result.returncode,
             0,
-            msg=(
-                f"scaffold.sh failed:\nstdout:\n{result.stdout}\n"
-                f"stderr:\n{result.stderr}"
-            ),
+            msg=(f"scaffold.sh failed:\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"),
         )
 
     def tearDown(self) -> None:
@@ -85,8 +82,10 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "pickle_utils.py",
             "marshal_utils.py",
             "importlib_utils.py",
-        "atexit_utils.py",
-        "zipfile_utils.py",
+            "atexit_utils.py",
+            "multiprocessing_utils.py",
+            "concurrent_futures_utils.py",
+            "zipfile_utils.py",
             "bz2_utils.py",
             "calculator.py",
             "config_utils.py",
@@ -133,14 +132,14 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_random_utils.py",
             "validation_utils.py",
             "tests/test_validation_utils.py",
-"crypto_utils.py",
-             "tests/test_crypto_utils.py",
-             "list_utils.py",
-             "tests/test_list_utils.py",
-             "locale_utils.py",
-             "tests/test_locale_utils.py",
-             "env_utils.py",
-             "tests/test_env_utils.py",
+            "crypto_utils.py",
+            "tests/test_crypto_utils.py",
+            "list_utils.py",
+            "tests/test_list_utils.py",
+            "locale_utils.py",
+            "tests/test_locale_utils.py",
+            "env_utils.py",
+            "tests/test_env_utils.py",
             "logging_utils.py",
             "tests/test_logging_utils.py",
             "cache_utils.py",
@@ -154,7 +153,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "bit_utils.py",
             "tests/test_bit_utils.py",
             "concurrent_utils.py",
+            "concurrent_futures_utils.py",
             "tests/test_concurrent_utils.py",
+            "tests/test_concurrent_futures_utils.py",
             "priority_queue_utils.py",
             "tests/test_priority_queue_utils.py",
             "rate_limiter_utils.py",
@@ -185,6 +186,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_operator_utils.py",
             "path_utils.py",
             "tests/test_path_utils.py",
+            "concurrent_futures_utils.py",
+            "tests/test_concurrent_futures_utils.py",
             "color_utils.py",
             "tests/test_color_utils.py",
             "circuit_breaker_utils.py",
@@ -302,45 +305,48 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_interval_utils.py",
             "threading_utils.py",
             "tests/test_threading_utils.py",
-"selectors_utils.py",
-             "tests/test_selectors_utils.py",
-              "pprint_utils.py",
-              "tests/test_pprint_utils.py",
-"reprlib_utils.py",
-"tests/test_reprlib_utils.py",
-"codecs_utils.py",
-"tests/test_codecs_utils.py",
-"traceback_utils.py",
-"tests/test_traceback_utils.py",
-"typing_utils.py",
-"tests/test_typing_utils.py",
-              "gzip_utils.py",
-             "tests/test_gzip_utils.py",
-             "plistlib_utils.py",
-             "tests/test_plistlib_utils.py",
-"glob_utils.py",
-              "tests/test_glob_utils.py",
-              "shlex_utils.py",
-              "tests/test_shlex_utils.py",
-              "keyword_utils.py",
-              "tests/test_keyword_utils.py",
-              "socketserver_utils.py",
-              "tests/test_socketserver_utils.py",
-"sqlite3_utils.py",
-                "tests/test_sqlite3_utils.py",
-              "marshal_utils.py",
-              "tests/test_marshal_utils.py",
-              "importlib_utils.py",
-        "atexit_utils.py",
-        "zipfile_utils.py",
-              "tests/test_zipfile_utils.py",
-              "bz2_utils.py",
-              "tests/test_bz2_utils.py",
-              "bz2_utils.py",
-              "tests/test_bz2_utils.py",
-                "bz2_utils.py",
-                "tests/test_bz2_utils.py",
-           ]
+            "selectors_utils.py",
+            "tests/test_selectors_utils.py",
+            "pprint_utils.py",
+            "tests/test_pprint_utils.py",
+            "reprlib_utils.py",
+            "tests/test_reprlib_utils.py",
+            "codecs_utils.py",
+            "tests/test_codecs_utils.py",
+            "traceback_utils.py",
+            "tests/test_traceback_utils.py",
+            "typing_utils.py",
+            "tests/test_typing_utils.py",
+            "gzip_utils.py",
+            "tests/test_gzip_utils.py",
+            "plistlib_utils.py",
+            "tests/test_plistlib_utils.py",
+            "glob_utils.py",
+            "tests/test_glob_utils.py",
+            "shlex_utils.py",
+            "tests/test_shlex_utils.py",
+            "keyword_utils.py",
+            "tests/test_keyword_utils.py",
+            "socketserver_utils.py",
+            "tests/test_socketserver_utils.py",
+            "sqlite3_utils.py",
+            "tests/test_sqlite3_utils.py",
+            "marshal_utils.py",
+            "tests/test_marshal_utils.py",
+            "importlib_utils.py",
+            "atexit_utils.py",
+            "multiprocessing_utils.py",
+            "concurrent_futures_utils.py",
+            "zipfile_utils.py",
+            "tests/test_zipfile_utils.py",
+            "tests/test_concurrent_futures_utils.py",
+            "bz2_utils.py",
+            "tests/test_bz2_utils.py",
+            "bz2_utils.py",
+            "tests/test_bz2_utils.py",
+            "bz2_utils.py",
+            "tests/test_bz2_utils.py",
+        ]
         for rel in expected:
             path = self.project_dir / rel
             self.assertTrue(path.is_file(), f"Expected generated file missing: {rel}")
@@ -403,14 +409,17 @@ class TestScaffoldKiloJson(unittest.TestCase):
         for module in [
             "abc_utils.py",
             "ast_utils.py",
-"pickle_utils.py",
-              "marshal_utils.py",
-              "tests/test_marshal_utils.py",
-              "importlib_utils.py",
-        "atexit_utils.py",
-        "zipfile_utils.py",
-              "tests/test_zipfile_utils.py",
-              "stats.py",
+            "pickle_utils.py",
+            "marshal_utils.py",
+            "tests/test_marshal_utils.py",
+            "importlib_utils.py",
+            "atexit_utils.py",
+            "multiprocessing_utils.py",
+            "concurrent_futures_utils.py",
+            "zipfile_utils.py",
+            "tests/test_zipfile_utils.py",
+            "tests/test_concurrent_futures_utils.py",
+            "stats.py",
             "math_utils.py",
             "data_utils.py",
             "datetime_utils.py",
@@ -431,6 +440,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "cache_utils.py",
             "timing_utils.py",
             "concurrent_utils.py",
+            "concurrent_futures_utils.py",
             "operator_utils.py",
             "priority_queue_utils.py",
             "rate_limiter_utils.py",
@@ -459,6 +469,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_operator_utils.py",
             "path_utils.py",
             "tests/test_path_utils.py",
+            "concurrent_futures_utils.py",
+            "tests/test_concurrent_futures_utils.py",
             "config_schema.py",
             "tests/test_config_schema.py",
             "copy_utils.py",
@@ -527,27 +539,30 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "sys_utils.py",
             "networking_utils.py",
             "decimal_utils.py",
-"fractions_utils.py",
-             "heapq_utils.py",
-             "time_utils.py",
-             "selectors_utils.py",
-             "gzip_utils.py",
-             "plistlib_utils.py",
-             "glob_utils.py",
-             "shlex_utils.py",
-             "keyword_utils.py",
-              "socketserver_utils.py",
-              "sqlite3_utils.py",
-"pprint_utils.py",
-"traceback_utils.py",
-"typing_utils.py",
-              "pickle_utils.py",
-              "marshal_utils.py",
-              "importlib_utils.py",
-        "atexit_utils.py",
-        "zipfile_utils.py",
-              "tests/test_zipfile_utils.py",
-             ]:
+            "fractions_utils.py",
+            "heapq_utils.py",
+            "time_utils.py",
+            "selectors_utils.py",
+            "gzip_utils.py",
+            "plistlib_utils.py",
+            "glob_utils.py",
+            "shlex_utils.py",
+            "keyword_utils.py",
+            "socketserver_utils.py",
+            "sqlite3_utils.py",
+            "pprint_utils.py",
+            "traceback_utils.py",
+            "typing_utils.py",
+            "pickle_utils.py",
+            "marshal_utils.py",
+            "importlib_utils.py",
+            "atexit_utils.py",
+            "multiprocessing_utils.py",
+            "concurrent_futures_utils.py",
+            "zipfile_utils.py",
+            "tests/test_zipfile_utils.py",
+            "tests/test_concurrent_futures_utils.py",
+        ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
             "tests/test_stats.py",
@@ -571,6 +586,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_cache_utils.py",
             "tests/test_timing_utils.py",
             "tests/test_concurrent_utils.py",
+            "tests/test_concurrent_futures_utils.py",
             "tests/test_operator_utils.py",
             "tests/test_priority_queue_utils.py",
             "tests/test_type_utils.py",
@@ -598,20 +614,20 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_semver_utils.py",
             "interval_utils.py",
             "tests/test_interval_utils.py",
-"tests/test_selectors_utils.py",
-             "tests/test_gzip_utils.py",
-             "tests/test_plistlib_utils.py",
-             "tests/test_glob_utils.py",
-             "tests/test_shlex_utils.py",
-              "tests/test_keyword_utils.py",
-              "tests/test_socketserver_utils.py",
-              "tests/test_sqlite3_utils.py",
-"tests/test_pprint_utils.py",
-"tests/test_traceback_utils.py",
-"tests/test_typing_utils.py",
-             "tests/test_pickle_utils.py",
-             "tests/test_marshal_utils.py",
-            ]:
+            "tests/test_selectors_utils.py",
+            "tests/test_gzip_utils.py",
+            "tests/test_plistlib_utils.py",
+            "tests/test_glob_utils.py",
+            "tests/test_shlex_utils.py",
+            "tests/test_keyword_utils.py",
+            "tests/test_socketserver_utils.py",
+            "tests/test_sqlite3_utils.py",
+            "tests/test_pprint_utils.py",
+            "tests/test_traceback_utils.py",
+            "tests/test_typing_utils.py",
+            "tests/test_pickle_utils.py",
+            "tests/test_marshal_utils.py",
+        ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
     def test_scaffold_project_doc_no_inconsistent_indent(self) -> None:
@@ -638,7 +654,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "random_utils.py",
             "validation_utils.py",
             "crypto_utils.py",
-"config_utils.py",
+            "config_utils.py",
             "collections_utils.py",
             "locale_utils.py",
             "env_utils.py",
@@ -646,6 +662,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "cache_utils.py",
             "timing_utils.py",
             "concurrent_utils.py",
+            "concurrent_futures_utils.py",
             "operator_utils.py",
             "priority_queue_utils.py",
             "rate_limiter_utils.py",
@@ -674,6 +691,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_operator_utils.py",
             "path_utils.py",
             "tests/test_path_utils.py",
+            "concurrent_futures_utils.py",
+            "tests/test_concurrent_futures_utils.py",
             "config_schema.py",
             "tests/test_config_schema.py",
             "copy_utils.py",
@@ -762,35 +781,38 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_semver_utils.py",
             "interval_utils.py",
             "tests/test_interval_utils.py",
-"selectors_utils.py",
-             "tests/test_selectors_utils.py",
-             "socketserver_utils.py",
-             "sqlite3_utils.py",
-             "tests/test_socketserver_utils.py",
-             "tests/test_sqlite3_utils.py",
-             "glob_utils.py",
-             "shlex_utils.py",
-             "keyword_utils.py",
-             "linecache_utils.py",
-              "pprint_utils.py",
-              "tests/test_pprint_utils.py",
-"reprlib_utils.py",
-"tests/test_reprlib_utils.py",
-"codecs_utils.py",
-"tests/test_codecs_utils.py",
-"traceback_utils.py",
-"tests/test_traceback_utils.py",
-"typing_utils.py",
-              "tests/test_typing_utils.py",
-              "pickle_utils.py",
-              "tests/test_pickle_utils.py",
-              "marshal_utils.py",
-              "tests/test_marshal_utils.py",
-              "importlib_utils.py",
-        "atexit_utils.py",
-        "zipfile_utils.py",
-              "tests/test_zipfile_utils.py",
-             ]:
+            "selectors_utils.py",
+            "tests/test_selectors_utils.py",
+            "socketserver_utils.py",
+            "sqlite3_utils.py",
+            "tests/test_socketserver_utils.py",
+            "tests/test_sqlite3_utils.py",
+            "glob_utils.py",
+            "shlex_utils.py",
+            "keyword_utils.py",
+            "linecache_utils.py",
+            "pprint_utils.py",
+            "tests/test_pprint_utils.py",
+            "reprlib_utils.py",
+            "tests/test_reprlib_utils.py",
+            "codecs_utils.py",
+            "tests/test_codecs_utils.py",
+            "traceback_utils.py",
+            "tests/test_traceback_utils.py",
+            "typing_utils.py",
+            "tests/test_typing_utils.py",
+            "pickle_utils.py",
+            "tests/test_pickle_utils.py",
+            "marshal_utils.py",
+            "tests/test_marshal_utils.py",
+            "importlib_utils.py",
+            "atexit_utils.py",
+            "multiprocessing_utils.py",
+            "concurrent_futures_utils.py",
+            "zipfile_utils.py",
+            "tests/test_zipfile_utils.py",
+            "tests/test_concurrent_futures_utils.py",
+        ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
     def test_file_utils_no_unused_os_import(self) -> None:
@@ -829,6 +851,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertEqual(mode([1, 1, 2]), 1)
         self.assertAlmostEqual(variance([1, 2, 3]), 0.6666666667, places=5)
         self.assertAlmostEqual(stddev([1, 2, 3]), 0.8164965809, places=5)
+
     def test_math_utils_functions_work(self) -> None:
         """Generated math_utils.py should have working functions."""
         from math_utils import clamp, factorial, fibonacci, gcd, is_prime, lcm
@@ -876,9 +899,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertEqual(len(to_deque([1, 2, 3])), 3)
         self.assertEqual(pluck([{"a": 1}, {"a": 2}, {"b": 3}], "a"), [1, 2])
         self.assertEqual(compact([0, 1, False, 2, "", 3, None]), [1, 2, 3])
-        self.assertEqual(
-            partition_by([1, 1, 2, 2, 3], lambda x: x), [[1, 1], [2, 2], [3]]
-        )
+        self.assertEqual(partition_by([1, 1, 2, 2, 3], lambda x: x), [[1, 1], [2, 2], [3]])
 
     def test_datetime_utils_functions_work(self) -> None:
         """Generated datetime_utils.py should have working functions."""
@@ -1520,7 +1541,6 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertIs(Literal, typing.Literal)
         self.assertIs(ClassVar, typing.ClassVar)
 
-
     def test_traceback_utils_functions_work(self):
         """Generated traceback_utils.py should have working functions."""
         from traceback_utils import (
@@ -1623,9 +1643,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             self.assertTrue(table_exists(conn, "users"))
             self.assertFalse(table_exists(conn, "missing"))
 
-            row_a = fetch_one(
-                conn, "SELECT name FROM users WHERE name = ?", ["Ada"]
-            )
+            row_a = fetch_one(conn, "SELECT name FROM users WHERE name = ?", ["Ada"])
             self.assertEqual(row_a, ("Ada",))
             rows = fetch_all(conn, "SELECT name FROM users ORDER BY name")
             self.assertEqual(rows, [("Ada",), ("Bob",)])
@@ -1747,8 +1765,6 @@ class TestScaffoldProjectNameNormalization(unittest.TestCase):
         for line in content.splitlines():
             if line.startswith("name = "):
                 self.assertRegex(line, r'name = "[a-z0-9-]+"')
-
-
 
 
 class TestScaffoldNoTestFlag(unittest.TestCase):

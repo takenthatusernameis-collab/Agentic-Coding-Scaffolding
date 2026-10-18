@@ -2,7 +2,7 @@
 
 import warnings
 from contextlib import contextmanager
-from typing import Iterator, Optional, Type
+from typing import Iterator, Literal, Optional, Type
 
 
 def warn(message: str, category: Type[Warning] = UserWarning, stacklevel: int = 1) -> None:
@@ -23,10 +23,22 @@ def catch_warnings(record: bool = False) -> Iterator[Optional[list]]:
         yield w
 
 
-def filterwarnings(action: str, message: str = "", category: Type[Warning] = Warning,
-                  module: str = "", lineno: int = 0, append: bool = False) -> None:
-    warnings.filterwarnings(action, message=message, category=category, module=module,  # type: ignore[arg-type]
-                           lineno=lineno, append=append)
+def filterwarnings(
+    action: Literal["default", "error", "ignore", "always", "all", "module", "once"],
+    message: str = "",
+    category: Type[Warning] = Warning,
+    module: str = "",
+    lineno: int = 0,
+    append: bool = False,
+) -> None:
+    warnings.filterwarnings(
+        action,
+        message=message,
+        category=category,
+        module=module,  # type: ignore[arg-type]
+        lineno=lineno,
+        append=append,
+    )
 
 
 def resetwarnings() -> None:

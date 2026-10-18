@@ -85,6 +85,7 @@ py_modules = [
     "async_utils",
     "argparse_utils",
     "concurrent_utils",
+    "concurrent_futures_utils",
     "threading_utils",
     "priority_queue_utils",
     "rate_limiter_utils",

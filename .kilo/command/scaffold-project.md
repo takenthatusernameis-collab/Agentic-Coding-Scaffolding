@@ -64,6 +64,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
 - `call_once_utils.py` — call-once execution utilities ensuring a function runs only a single time
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+- `concurrent_futures_utils.py` — `concurrent.futures` wrappers with validation
 - `priority_queue_utils.py` — heap-based priority queue implementation
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
 - `retry_utils.py` — retry utilities with exponential backoff and jitter
@@ -165,6 +166,7 @@ Generate scaffolding files for a new agentic coding project. This command create
  - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
 - `tests/test_call_once_utils.py` — unit tests for `call_once_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
+- `tests/test_concurrent_futures_utils.py` — unit tests for `concurrent_futures_utils.py`
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
 - `tests/test_retry_utils.py` — unit tests for `retry_utils.py`

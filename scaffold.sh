@@ -891,6 +891,7 @@ py_modules = [
     "timing_utils",
     "async_utils",
     "concurrent_utils",
+    "concurrent_futures_utils",
     "priority_queue_utils",
     "rate_limiter_utils",
     "dict_utils",
@@ -13932,6 +13933,80 @@ def between(value: Any, min_value: Any, max_value: Any, *, inclusive: bool = Tru
         return min_value <= value <= max_value
     return min_value < value < max_value
 OPUTILS
+# --- concurrent_futures_utils.py ---
+cat > "$OUTPUT_DIR/concurrent_futures_utils.py" <<'CONCURRENTFUTURES'
+"""Utilities for asynchronous execution (wrapping :mod:`concurrent.futures`)."""
+from concurrent.futures import (
+    FIRST_COMPLETED,
+    FIRST_EXCEPTION,
+    Future,
+    ThreadPoolExecutor,
+    ProcessPoolExecutor,
+    as_completed,
+    wait,
+)
+from typing import Any, Callable, Iterable, Sequence
+import concurrent.futures as _futures
+
+
+def thread_pool_executor(max_workers: int | None = None, **kwargs: Any) -> ThreadPoolExecutor:
+    if max_workers is not None and not isinstance(max_workers, int):
+        raise TypeError("max_workers must be an int or None")
+    if max_workers is not None and max_workers <= 0:
+        raise ValueError("max_workers must be positive")
+    return ThreadPoolExecutor(max_workers=max_workers, **kwargs)
+
+
+def process_pool_executor(max_workers: int | None = None, **kwargs: Any) -> ProcessPoolExecutor:
+    if max_workers is not None and not isinstance(max_workers, int):
+        raise TypeError("max_workers must be an int or None")
+    if max_workers is not None and max_workers <= 0:
+        raise ValueError("max_workers must be positive")
+    return ProcessPoolExecutor(max_workers=max_workers, **kwargs)
+
+
+def submit(executor: Any, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Future[Any]:
+    if not callable(fn):
+        raise TypeError("fn must be callable")
+    return executor.submit(fn, *args, **kwargs)
+
+
+def as_completed_iter(fs: Iterable[Future[Any]], timeout: float | None = None) -> Iterable[Future[Any]]:
+    if timeout is not None:
+        if not isinstance(timeout, (int, float)):
+            raise TypeError("timeout must be a float, int, or None")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
+    return as_completed(fs, timeout=timeout)
+
+
+def wait_futures(fs: Sequence[Future[Any]], timeout: float | None = None,
+                 return_when: str = "ALL_COMPLETED") -> tuple[set[Future[Any]], set[Future[Any]]]:
+    if timeout is not None:
+        if not isinstance(timeout, (int, float)):
+            raise TypeError("timeout must be a float, int, or None")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
+    if return_when not in {"ALL_COMPLETED", "FIRST_COMPLETED", "FIRST_EXCEPTION"}:
+        raise ValueError("return_when must be one of ALL_COMPLETED, FIRST_COMPLETED, FIRST_EXCEPTION")
+    return wait(fs, timeout=timeout, return_when=return_when)
+
+
+__all__ = [
+    "ThreadPoolExecutor",
+    "ProcessPoolExecutor",
+    "Future",
+    "as_completed",
+    "wait",
+    "FIRST_COMPLETED",
+    "FIRST_EXCEPTION",
+    "thread_pool_executor",
+    "process_pool_executor",
+    "submit",
+    "as_completed_iter",
+    "wait_futures",
+]
+CONCURRENTFUTURES
 # --- concurrent_utils.py ---
 cat > "$OUTPUT_DIR/concurrent_utils.py" <<'CONCURRENTUTILS'
 """Concurrent execution utilities for parallel and asynchronous processing.
@@ -19568,6 +19643,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
 - `importlib_utils.py` — importlib utilities (dynamic import, reload, spec inspection, metadata, resources)
 - `atexit_utils.py` — atexit utilities for registering and managing exit handlers (dynamic import, reload, spec inspection, metadata, resources)
+- `multiprocessing_utils.py` — multiprocessing utilities with validation
+- `concurrent_futures_utils.py` — `concurrent.futures` wrappers with validation
 - `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
@@ -19613,6 +19690,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
 - `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
 - `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
+- `tests/test_multiprocessing_utils.py` — unit tests for `multiprocessing_utils.py`
+- `tests/test_concurrent_futures_utils.py` — unit tests for `concurrent_futures_utils.py`
 - `tests/test_zipfile_utils.py` — unit tests for `zipfile_utils.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -20987,6 +21066,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation, plus `tests/test_zipfile_utils.py`.
 - Synchronized `zipfile_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
+- Added `multiprocessing_utils.py` — multiprocessing utilities with validation, plus `tests/test_multiprocessing_utils.py`.
+- Synchronized `multiprocessing_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `concurrent_futures_utils.py` — `concurrent.futures` wrappers with validation, plus `tests/test_concurrent_futures_utils.py`.
+- Synchronized `concurrent_futures_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
 - Added `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping the standard library `stat` and `os.stat` modules, plus `tests/test_stat_utils.py`.
 - Synchronized `stat_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
@@ -22017,6 +22102,73 @@ class TestCallOnce(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTCALLONCE
+# --- tests/test_concurrent_futures_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_concurrent_futures_utils.py" <<'TCONFFUT'
+import unittest
+from concurrent.futures import ThreadPoolExecutor, Future
+
+from concurrent_futures_utils import (
+    as_completed_iter,
+    FIRST_COMPLETED,
+    FIRST_EXCEPTION,
+    process_pool_executor,
+    submit,
+    thread_pool_executor,
+    wait_futures,
+)
+
+
+def square(x: int) -> int:
+    return x * x
+
+
+class TestConcurrentFuturesUtils(unittest.TestCase):
+    def test_thread_pool_executor(self):
+        with thread_pool_executor(max_workers=2) as ex:
+            f = submit(ex, square, 4)
+            self.assertIsInstance(f, Future)
+            self.assertEqual(f.result(), 16)
+
+    def test_process_pool_executor(self):
+        with process_pool_executor(max_workers=2) as ex:
+            f = submit(ex, square, 5)
+            self.assertEqual(f.result(), 25)
+
+    def test_as_completed_iter(self):
+        with thread_pool_executor(max_workers=2) as ex:
+            fs = [submit(ex, square, i) for i in range(3)]
+            results = []
+            for f in as_completed_iter(fs):
+                results.append(f.result())
+            self.assertEqual(sorted(results), [0, 1, 4])
+
+    def test_wait_futures(self):
+        with thread_pool_executor(max_workers=2) as ex:
+            fs = [submit(ex, square, i) for i in range(3)]
+            done, not_done = wait_futures(fs)
+            self.assertTrue(all(f.done() for f in done))
+            self.assertEqual(len(not_done), 0)
+
+    def test_constants_and_type_errors(self):
+        self.assertEqual(FIRST_COMPLETED, "FIRST_COMPLETED")
+        self.assertEqual(FIRST_EXCEPTION, "FIRST_EXCEPTION")
+        with self.assertRaises(TypeError):
+            thread_pool_executor(max_workers="2")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            thread_pool_executor(max_workers=0)
+        with self.assertRaises(TypeError):
+            submit(ThreadPoolExecutor(), 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            as_completed_iter([], timeout="bad")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            as_completed_iter([], timeout=-1)
+        with self.assertRaises(ValueError):
+            wait_futures([], return_when="BAD")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TCONFFUT
 # --- tests/test_concurrent_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_concurrent_utils.py" <<'TESTCONCURRENT'
 """Tests for concurrent_utils module."""

@@ -572,3 +572,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `importlib_utils.py` — importlib utilities (dynamic import, reload, spec inspection, module metadata, resources)
 - `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
+
+- `concurrent_futures_utils.py` — `concurrent.futures` wrappers with validation for executors, submission, and waiting
+- `tests/test_concurrent_futures_utils.py` — unit tests for `concurrent_futures_utils.py`
+- Synchronized `concurrent_futures_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
