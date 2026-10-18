@@ -1,6 +1,6 @@
 # Project Status
 
-- All tests pass (2176 tests).
+- Last completed work: `zipfile_utils.py` wrapping stdlib `zipfile` added with `tests/test_zipfile_utils.py` (partial sync; full scaffold sync pending).
 - Lint and typecheck: clean (ruff: All checks passed!; mypy: Success: no issues found in 259 source files).
 - Last completed work: `sqlite3_utils.py` wrapping stdlib `sqlite3` added with `tests/test_sqlite3_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs, `.kilo/command/scaffold-project.md` entries), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py` assertions, CHANGELOG, and `PROJECT_STATUS.md`.
 - Previous completed work: `pickle_utils.py` wrapping stdlib `pickle` added with `tests/test_pickle_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py` assertions, CHANGELOG, and `PROJECT_STATUS.md`.
