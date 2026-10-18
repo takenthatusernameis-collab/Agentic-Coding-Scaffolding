@@ -25,7 +25,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
 - `importlib_utils.py` — importlib utilities
-- `atexit_utils.py` — atexit utilities for registering and managing exit handlers (dynamic import, reload, spec inspection, metadata, resources)
+- `atexit_utils.py` — atexit utilities for registering and managing exit handlers
+- `multiprocessing_utils.py` — multiprocessing utilities for pools, processes, locks, queues, and shared memory (dynamic import, reload, spec inspection, metadata, resources)
 - `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation
 - `bz2_utils.py` — BZ2 compression utilities wrapping the standard library `bz2` module (`bz2_compress`, `bz2_decompress`, `bz2_open`, `bz2_write`, `bz2_read`)
 - `calculator.py` — simple calculator module with arithmetic operations
@@ -156,6 +157,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
 - `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
 - `tests/test_atexit_utils.py` — unit tests for `atexit_utils.py`
+- `tests/test_multiprocessing_utils.py` — unit tests for `multiprocessing_utils.py`
 - `tests/test_zipfile_utils.py` — unit tests for `zipfile_utils.py`
 - `tests/test_bz2_utils.py` — unit tests for `bz2_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`

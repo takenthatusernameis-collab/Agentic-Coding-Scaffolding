@@ -1974,6 +1974,39 @@ __all__ = [
 ATEXIT_UTILS
 
 # --- tests/test_atexit_utils.py ---
+# --- tests/test_multiprocessing_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_multiprocessing_utils.py" <<'TEST_MP'
+"""Tests for multiprocessing_utils module."""
+from __future__ import annotations
+import pytest
+import multiprocessing_utils
+
+def _mp_inc(x):
+    return x + 1
+
+def test_cpu_count() -> None:
+    assert isinstance(multiprocessing_utils.cpu_count(), int)
+
+def test_current_process() -> None:
+    assert multiprocessing_utils.current_process() is not None
+
+def test_create_queue() -> None:
+    q = multiprocessing_utils.create_queue()
+    q.put(1)
+    assert q.get() == 1
+    q.close()
+    q.join_thread()
+
+def test_create_lock() -> None:
+    lock = multiprocessing_utils.create_lock()
+    with lock:
+        pass
+
+def test_pool_map() -> None:
+    assert multiprocessing_utils.pool_map(_mp_inc, [1,2,3]) == [2,3,4]
+TEST_MP
+
+
 cat > "$OUTPUT_DIR/tests/test_atexit_utils.py" <<'TEST_ATEXIT_UTILS'
 """Tests for atexit_utils module."""
 
@@ -2033,6 +2066,101 @@ def test_clear_and_run_handlers() -> None:
     atexit_utils.clear()
     atexit_utils.run_exit_handlers()
 TEST_ATEXIT_UTILS
+
+# --- multiprocessing_utils.py ---
+cat > "$OUTPUT_DIR/multiprocessing_utils.py" <<'MP_UTILS'
+"""Utilities for working with Python's multiprocessing module."""
+from __future__ import annotations
+import multiprocessing as mp
+from typing import Any, Callable, Iterable, Sequence
+
+def get_context(method: str | None = None) -> mp.context.BaseContext:
+    if method is not None and not isinstance(method, str):
+        raise TypeError("method must be a string or None")
+    return mp.get_context(method)  # type: ignore[call-overload]
+
+def cpu_count() -> int:
+    return mp.cpu_count()
+
+def active_children() -> list[mp.Process]:
+    return mp.active_children()
+
+def current_process() -> mp.Process:
+    return mp.current_process()
+
+def freeze_support() -> None:
+    mp.freeze_support()
+
+def create_pool(processes: int | None = None, context: str | None = None) -> mp.pool.Pool:
+    if processes is not None and not isinstance(processes, int):
+        raise TypeError("processes must be an int or None")
+    if context is not None and not isinstance(context, str):
+        raise TypeError("context must be a string or None")
+    ctx = get_context(context) if context else mp.get_context()
+    return ctx.Pool(processes=processes)
+
+def pool_map(func: Callable[..., Any], iterable: Iterable[Any], chunksize: int | None = None, processes: int | None = None) -> list[Any]:
+    if not callable(func):
+        raise TypeError("func must be callable")
+    if chunksize is not None and not isinstance(chunksize, int):
+        raise TypeError("chunksize must be an int or None")
+    with create_pool(processes=processes) as pool:
+        return pool.map(func, iterable, chunksize=chunksize)
+
+def create_queue(maxsize: int = 0, context: str | None = None) -> mp.Queue:
+    if not isinstance(maxsize, int):
+        raise TypeError("maxsize must be an int")
+    ctx = get_context(context) if context else mp.get_context()
+    return ctx.Queue(maxsize)
+
+def create_simple_queue(context: str | None = None) -> mp.SimpleQueue:
+    ctx = get_context(context) if context else mp.get_context()
+    return ctx.SimpleQueue()
+
+def create_lock(context: str | None = None) -> mp.Lock:
+    ctx = get_context(context) if context else mp.get_context()
+    return ctx.Lock()
+
+def create_rlock(context: str | None = None) -> mp.RLock:
+    ctx = get_context(context) if context else mp.get_context()
+    return ctx.RLock()
+
+def create_semaphore(value: int = 1, context: str | None = None) -> mp.Semaphore:
+    if not isinstance(value, int):
+        raise TypeError("value must be an int")
+    ctx = get_context(context) if context else mp.get_context()
+    return ctx.Semaphore(value)
+
+def create_event(context: str | None = None) -> mp.Event:
+    ctx = get_context(context) if context else mp.get_context()
+    return ctx.Event()
+
+def create_condition(lock: mp.Lock | None = None, context: str | None = None) -> mp.Condition:
+    if lock is not None and not isinstance(lock, (mp.Lock, mp.RLock)):
+        raise TypeError("lock must be a Lock, RLock, or None")
+    ctx = get_context(context) if context else mp.get_context()
+    return ctx.Condition(lock)
+
+def create_value(typecode_or_type: Any, *args: Any, lock: bool | mp.Lock = True, context: str | None = None) -> Any:
+    if not isinstance(lock, (bool, mp.Lock, mp.RLock)):
+        raise TypeError("lock must be bool or Lock/RLock")
+    ctx = get_context(context) if context else mp.get_context()
+    return ctx.Value(typecode_or_type, *args, lock=lock)
+
+def create_array(typecode_or_type: Any, size_or_initializer: Any, *, lock: bool | mp.Lock = True, context: str | None = None) -> Any:
+    if not isinstance(lock, (bool, mp.Lock, mp.RLock)):
+        raise TypeError("lock must be bool or Lock/RLock")
+    ctx = get_context(context) if context else mp.get_context()
+    return ctx.Array(typecode_or_type, size_or_initializer, lock=lock)
+
+def create_process(target: Callable[..., Any] | None = None, args: Iterable[Any] = (), kwargs: dict[str, Any] | None = None, name: str | None = None, daemon: bool | None = None, context: str | None = None) -> mp.Process:
+    if target is not None and not callable(target):
+        raise TypeError("target must be callable or None")
+    ctx = get_context(context) if context else mp.get_context()
+    return ctx.Process(target=target, args=tuple(args), kwargs=kwargs or {}, name=name, daemon=daemon)
+
+__all__ = ["get_context","cpu_count","active_children","current_process","freeze_support","create_pool","pool_map","create_queue","create_simple_queue","create_lock","create_rlock","create_semaphore","create_event","create_condition","create_value","create_array","create_process"]
+MP_UTILS
 
 # --- tests/test_zipfile_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_zipfile_utils.py" <<'TEST_ZIPFILE_UTILS'
@@ -20853,7 +20981,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `importlib_utils.py` — importlib utilities (dynamic import, reload, spec inspection, module metadata, resources), plus `tests/test_importlib_utils.py`.
 - Added `atexit_utils.py` — atexit utilities for registering and managing exit handlers, plus `tests/test_atexit_utils.py`.
-- Synchronized `importlib_utils.py` and `atexit_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `multiprocessing_utils.py` — multiprocessing utilities for process pools, queues, locks, and shared memory, plus `tests/test_multiprocessing_utils.py`.
+- Synchronized `importlib_utils.py`, `atexit_utils.py`, and `multiprocessing_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation, plus `tests/test_zipfile_utils.py`.
 - Synchronized `zipfile_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
