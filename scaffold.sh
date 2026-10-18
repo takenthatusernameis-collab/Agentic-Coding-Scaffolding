@@ -28,6 +28,7 @@
 #   - importlib_utils.py — # importlib utilities (dynamic import, reload, spec, metadata, resources)
 #   - zipfile_utils.py — # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
 #   - bz2_utils.py — # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
+#   - lzma_utils.py — # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 
 #   - calculator.py — # Simple calculator module with arithmetic operations
 
@@ -966,6 +967,7 @@ py_modules = [
     "atexit_utils",
     "zipfile_utils",
     "bz2_utils",
+    "lzma_utils",
 ]
 
 PYPROJECT
@@ -2258,6 +2260,62 @@ def bz2_read(filename: str) -> bytes:
         return f.read()
 BZ2_UTILS
 
+# --- lzma_utils.py ---
+cat > "$OUTPUT_DIR/lzma_utils.py" <<'LZMA_UTILS'
+"""Lzma utility functions wrapping the standard library 'lzma' module."""
+
+from __future__ import annotations
+
+import lzma
+from typing import IO
+
+__all__: list[str] = [
+    "lzma_compress",
+    "lzma_decompress",
+    "lzma_open",
+    "lzma_write",
+    "lzma_read",
+]
+
+
+def lzma_compress(data: bytes, preset: int = 6) -> bytes:
+    """Compress bytes using lzma."""
+    return lzma.compress(data, preset=preset)
+
+
+def lzma_decompress(data: bytes) -> bytes:
+    """Decompress lzma-compressed bytes."""
+    return lzma.decompress(data)
+
+
+def lzma_open(filename: str, mode: str = "rb", preset: int | None = None) -> IO[bytes] | IO[str]:
+    """Open an lzma file.
+
+    Args:
+        filename: Path to the file.
+        mode: File mode ('rb', 'wb', etc.).
+        preset: Compression preset (0-9), only used when writing.
+
+    Returns:
+        An lzma file object.
+    """
+    if preset is not None and "r" not in mode:
+        return lzma.open(filename, mode, preset=preset)  # type: ignore[return-value]
+    return lzma.open(filename, mode)  # type: ignore[return-value]
+
+
+def lzma_write(filename: str, data: bytes, preset: int = 6) -> None:
+    """Write data to an lzma file."""
+    with lzma.open(filename, "wb", preset=preset) as f:
+        f.write(data)
+
+
+def lzma_read(filename: str) -> bytes:
+    """Read and decompress an lzma file."""
+    with lzma.open(filename, "rb") as f:
+        return f.read()
+LZMA_UTILS
+
 # --- tests/test_bz2_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_bz2_utils.py" <<'TEST_BZ2_UTILS'
 """Tests for bz2_utils."""
@@ -2297,6 +2355,46 @@ class TestBz2Utils(unittest.TestCase):
             with bz2_open(path, "rb") as f:
                 self.assertEqual(f.read(), data)
 TEST_BZ2_UTILS
+
+# --- tests/test_lzma_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_lzma_utils.py" <<'TEST_LZMA_UTILS'
+"""Tests for lzma_utils."""
+
+import os
+import tempfile
+import unittest
+
+from lzma_utils import (
+    lzma_compress,
+    lzma_decompress,
+    lzma_open,
+    lzma_read,
+    lzma_write,
+)
+
+
+class TestLzmaUtils(unittest.TestCase):
+    def test_lzma_compress_decompress_roundtrip(self):
+        data = b"hello world" * 10
+        compressed = lzma_compress(data)
+        self.assertEqual(lzma_decompress(compressed), data)
+
+    def test_lzma_write_read_roundtrip(self):
+        data = b"hello world" * 10
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.xz")
+            lzma_write(path, data)
+            self.assertEqual(lzma_read(path), data)
+
+    def test_lzma_open(self):
+        data = b"hello world"
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.xz")
+            with lzma_open(path, "wb") as f:
+                f.write(data)
+            with lzma_open(path, "rb") as f:
+                self.assertEqual(f.read(), data)
+TEST_LZMA_UTILS
 # --- calculator.py ---
 cat > "$OUTPUT_DIR/calculator.py" <<'CALCULATOR'
 def add(a: float, b: float) -> float:
@@ -19646,6 +19744,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `multiprocessing_utils.py` — multiprocessing utilities with validation
 - `concurrent_futures_utils.py` — `concurrent.futures` wrappers with validation
 - `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation
+- `bz2_utils.py` — BZ2 compression utilities wrapping the standard library `bz2` module (`bz2_compress`, `bz2_decompress`, `bz2_open`, `bz2_write`, `bz2_read`)
+- `lzma_utils.py` — LZMA compression utilities wrapping the standard library `lzma` module (`lzma_compress`, `lzma_decompress`, `lzma_open`, `lzma_write`, `lzma_read`)
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
@@ -19693,6 +19793,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_multiprocessing_utils.py` — unit tests for `multiprocessing_utils.py`
 - `tests/test_concurrent_futures_utils.py` — unit tests for `concurrent_futures_utils.py`
 - `tests/test_zipfile_utils.py` — unit tests for `zipfile_utils.py`
+- `tests/test_bz2_utils.py` — unit tests for `bz2_utils.py`
+- `tests/test_lzma_utils.py` — unit tests for `lzma_utils.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
 - `tests/test_collections_utils.py` — unit tests for `collections_utils.py`
@@ -20837,6 +20939,7 @@ sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
 importlib_utils.py         # importlib utilities (dynamic import, reload, spec, metadata, resources)
 atexit_utils.py            # atexit utilities for registering exit handlers
 zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
+lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
@@ -21071,6 +21174,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `concurrent_futures_utils.py` — `concurrent.futures` wrappers with validation, plus `tests/test_concurrent_futures_utils.py`.
 - Synchronized `concurrent_futures_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `lzma_utils.py` — LZMA compression utilities wrapping the standard library `lzma` module (`lzma_compress`, `lzma_decompress`, `lzma_open`, `lzma_write`, `lzma_read`) with input validation, plus `tests/test_lzma_utils.py`.
+- Synchronized `lzma_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping the standard library `stat` and `os.stat` modules, plus `tests/test_stat_utils.py`.
 - Synchronized `stat_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.

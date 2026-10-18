@@ -24,9 +24,20 @@ def lzma_decompress(data: bytes) -> bytes:
     return lzma.decompress(data)
 
 
-def lzma_open(filename: str, mode: str = "rb", preset: int = 6) -> IO[bytes] | IO[str]:
-    """Open an lzma file."""
-    return lzma.open(filename, mode, preset=preset)  # type: ignore[return-value]
+def lzma_open(filename: str, mode: str = "rb", preset: int | None = None) -> IO[bytes] | IO[str]:
+    """Open an lzma file.
+
+    Args:
+        filename: Path to the file.
+        mode: File mode ('rb', 'wb', etc.).
+        preset: Compression preset (0-9), only used when writing.
+
+    Returns:
+        An lzma file object.
+    """
+    if preset is not None and "r" not in mode:
+        return lzma.open(filename, mode, preset=preset)  # type: ignore[return-value]
+    return lzma.open(filename, mode)  # type: ignore[return-value]
 
 
 def lzma_write(filename: str, data: bytes, preset: int = 6) -> None:

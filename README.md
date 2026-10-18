@@ -116,6 +116,7 @@ atexit_utils.py            # atexit utilities for registering exit handlers
 multiprocessing_utils.py   # multiprocessing utilities for pools, processes, locks, shared memory (dynamic import, reload, spec, metadata, resources)
 zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
 bz2_utils.py               # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
+lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -288,7 +289,8 @@ test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
 test_zipfile_utils.py       # Tests for zipfile_utils.py
    test_bz2_utils.py           # Tests for bz2_utils.py
-   ```
+   test_lzma_utils.py          # Tests for lzma_utils.py
+    ```
 
 ## How It Works
 

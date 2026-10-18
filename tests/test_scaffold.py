@@ -87,6 +87,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "concurrent_futures_utils.py",
             "zipfile_utils.py",
             "bz2_utils.py",
+            "lzma_utils.py",
             "calculator.py",
             "config_utils.py",
             "collections_utils.py",
@@ -342,6 +343,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_concurrent_futures_utils.py",
             "bz2_utils.py",
             "tests/test_bz2_utils.py",
+            "lzma_utils.py",
+            "tests/test_lzma_utils.py",
             "bz2_utils.py",
             "tests/test_bz2_utils.py",
             "bz2_utils.py",
@@ -419,6 +422,10 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "zipfile_utils.py",
             "tests/test_zipfile_utils.py",
             "tests/test_concurrent_futures_utils.py",
+            "bz2_utils.py",
+            "tests/test_bz2_utils.py",
+            "lzma_utils.py",
+            "tests/test_lzma_utils.py",
             "stats.py",
             "math_utils.py",
             "data_utils.py",
@@ -562,6 +569,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "zipfile_utils.py",
             "tests/test_zipfile_utils.py",
             "tests/test_concurrent_futures_utils.py",
+            "lzma_utils.py",
+            "tests/test_lzma_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -627,6 +636,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_typing_utils.py",
             "tests/test_pickle_utils.py",
             "tests/test_marshal_utils.py",
+            "tests/test_lzma_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -812,6 +822,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "zipfile_utils.py",
             "tests/test_zipfile_utils.py",
             "tests/test_concurrent_futures_utils.py",
+            "lzma_utils.py",
+            "tests/test_lzma_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
@@ -1749,6 +1761,32 @@ class TestScaffoldProjectNameNormalization(unittest.TestCase):
             with bz2_open(p, "rb") as f:
                 self.assertEqual(f.read(), data)
             with bz2_open(p, "wb", compresslevel=1) as f:
+                f.write(data)
+
+    def test_lzma_utils_functions_work(self):
+        """Generated lzma_utils.py should have working functions."""
+        import os
+        import tempfile
+
+        from lzma_utils import (
+            lzma_compress,
+            lzma_decompress,
+            lzma_open,
+            lzma_read,
+            lzma_write,
+        )
+
+        data = b"hello world" * 10
+        compressed = lzma_compress(data)
+        self.assertEqual(lzma_decompress(compressed), data)
+
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "test.xz")
+            lzma_write(p, data)
+            self.assertEqual(lzma_read(p), data)
+            with lzma_open(p, "rb") as f:
+                self.assertEqual(f.read(), data)
+            with lzma_open(p, "wb") as f:
                 f.write(data)
 
     def test_spaces_and_mixed_case_normalized(self) -> None:
