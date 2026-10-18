@@ -292,11 +292,15 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "tests/test_gzip_utils.py",
              "plistlib_utils.py",
              "tests/test_plistlib_utils.py",
-             "glob_utils.py",
-             "tests/test_glob_utils.py",
-             "socketserver_utils.py",
-             "tests/test_socketserver_utils.py",
-        ]
+"glob_utils.py",
+              "tests/test_glob_utils.py",
+              "shlex_utils.py",
+              "tests/test_shlex_utils.py",
+              "keyword_utils.py",
+              "tests/test_keyword_utils.py",
+              "socketserver_utils.py",
+              "tests/test_socketserver_utils.py",
+         ]
         for rel in expected:
             path = self.project_dir / rel
             self.assertTrue(path.is_file(), f"Expected generated file missing: {rel}")
@@ -477,6 +481,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "gzip_utils.py",
              "plistlib_utils.py",
              "glob_utils.py",
+             "shlex_utils.py",
+             "keyword_utils.py",
              "socketserver_utils.py",
          ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
@@ -533,8 +539,10 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "tests/test_gzip_utils.py",
              "tests/test_plistlib_utils.py",
              "tests/test_glob_utils.py",
+             "tests/test_shlex_utils.py",
+             "tests/test_keyword_utils.py",
              "tests/test_socketserver_utils.py",
-        ]:
+         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
     def test_scaffold_project_doc_no_inconsistent_indent(self) -> None:
@@ -681,11 +689,14 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_semver_utils.py",
             "interval_utils.py",
             "tests/test_interval_utils.py",
-            "selectors_utils.py",
-            "tests/test_selectors_utils.py",
-            "socketserver_utils.py",
-            "tests/test_socketserver_utils.py",
-        ]:
+"selectors_utils.py",
+             "tests/test_selectors_utils.py",
+             "socketserver_utils.py",
+             "tests/test_socketserver_utils.py",
+             "glob_utils.py",
+             "shlex_utils.py",
+             "keyword_utils.py",
+         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
     def test_file_utils_no_unused_os_import(self) -> None:

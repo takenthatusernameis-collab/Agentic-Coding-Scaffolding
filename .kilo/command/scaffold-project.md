@@ -193,6 +193,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `sort_utils.py — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
 - `shutil_utils.py` — High-level file and directory operation utilities (`copy_file`, `copy_tree`, `move`, `remove_tree`, `disk_usage`, `make_archive`, `unpack_archive`) wrapping the standard library `shutil` module
 - `tests/test_shutil_utils.py` — unit tests for `shutil_utils.py`
+- `shlex_utils.py` — simple lexical analysis utilities wrapping the standard library `shlex` module (`split`, `quote`, `join`) with input validation
+- `tests/test_shlex_utils.py` — unit tests for `shlex_utils.py`
 - `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.
 - `tests/test_socketserver_utils.py` — unit tests for `socketserver_utils.py`
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
@@ -200,6 +202,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`
 - `glob_utils.py` — utilities for pathname pattern expansion wrapping the standard library `glob` module (`glob_pattern`, `iglob`, `escape`, `has_magic`) with input validation
 - `tests/test_glob_utils.py` — unit tests for `glob_utils.py`
+- `keyword_utils.py` — Python keyword classification utilities wrapping the standard library `keyword` module (`is_keyword`, `is_soft_keyword`, `kwlist`, `softkwlist`, `main`) with input validation
+- `tests/test_keyword_utils.py` — unit tests for `keyword_utils.py`
 - `graphlib_utils.py` — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
 - `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
 - `queue_utils.py` — FIFO queue helpers (`Queue` class, `enqueue`, `dequeue`, `peek`, `size`, `is_empty`, `clear`)

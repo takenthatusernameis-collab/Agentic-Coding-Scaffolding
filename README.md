@@ -95,6 +95,7 @@ networking_utils.py         # Networking utilities for TCP ports, hostname resol
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 greeting_utils.py          # Greeting utilities (greet, format_names, random_greeting)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
+keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
 version_utils.py           # Version utility functions (parse, compare, normalize)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
@@ -183,6 +184,7 @@ tests/                     # Python unit tests
   test_hash_utils.py          # Tests for hash_utils.py
   test_hmac_utils.py          # Tests for hmac_utils.py
   test_heapq_utils.py         # Tests for heapq_utils.py
+  test_keyword_utils.py       # Tests for keyword_utils.py
   test_hello.py               # Tests for hello.py
   test_html_utils.py          # Tests for html_utils.py
   test_http_utils.py          # Tests for http_utils.py
@@ -687,3 +689,11 @@ The project includes socketserver utilities in `socketserver_utils.py` wrapping 
 ## Glob Utilities Module
 
 The project includes glob utilities in `glob_utils.py` for pathname pattern expansion wrapping the standard library `glob` module: `glob_pattern` returns a list of paths matching a pattern, `iglob` returns an iterator over matching paths, `escape` escapes special characters in a pathname so it can be matched literally, and `has_magic` reports whether a pathname contains glob special characters. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_glob_utils.py`.
+
+## Keyword Utilities Module
+
+The project includes keyword classification utilities in `keyword_utils.py` wrapping the standard library `keyword` module: `is_keyword` reports whether a word is a Python keyword, `is_soft_keyword` reports whether a word is a Python soft keyword (such as `match` and `_`), `kwlist` returns a copy of the list of keywords, `softkwlist` returns a copy of the list of soft keywords, and `main` runs the keyword module's interactive entry point. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_keyword_utils.py`.
+
+## Shlex Utilities Module
+
+The project includes simple lexical analysis utilities in `shlex_utils.py` wrapping the standard library `shlex` module: `split` splits a shell-like string into a list of tokens, `quote` returns a shell-escaped version of a string, and `join` joins a sequence of tokens back into a single shell-escaped string. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_shlex_utils.py`.

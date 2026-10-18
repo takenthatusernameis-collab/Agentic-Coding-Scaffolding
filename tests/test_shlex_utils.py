@@ -1,22 +1,26 @@
-"""Utilities for simple lexical analysis (wrapping :mod:`shlex`)."""
+import unittest
 
-import shlex as _shlex
-
-
-def split(s, comments=False, posix=True):
-    if not isinstance(s, str):
-        raise TypeError("s must be a str")
-    return _shlex.split(s, comments=comments, posix=posix)
+from shlex_utils import join, quote, split
 
 
-def quote(s):
-    if not isinstance(s, str):
-        raise TypeError("s must be a str")
-    return _shlex.quote(s)
+class TestShlexUtils(unittest.TestCase):
+    def test_split(self):
+        self.assertEqual(split("foo bar 'baz qux'"), ["foo", "bar", "baz qux"])
+
+    def test_split_type_error(self):
+        with self.assertRaises(TypeError):
+            split(123)
+
+    def test_quote(self):
+        self.assertEqual(quote("foo bar"), "'foo bar'")
+
+    def test_quote_type_error(self):
+        with self.assertRaises(TypeError):
+            quote(1)
+
+    def test_join(self):
+        self.assertEqual(join(["foo", "bar baz"]), "foo 'bar baz'")
 
 
-def join(split_command):
-    return _shlex.join(split_command)
-""" filePath="/home/runner/work/Agentic-Coding-Scaffolding/Agentic-Coding-Scaffolding/shlex_utils.py">
-<|assistant to=bash<|channel|>analysis <|constrain|>xml<|message|><rfl:parameter name="command">
-cd /home/runner/work/Agentic-Coding-Scaffolding/Agentic-Coding-Scaffolding && PYTHONPATH=. python -c "import shlex_utils; print(shlex_utils.split('a b')); print(shlex_utils.quote('a b')); print(shlex_utils.join(['echo','hi there']))"
+if __name__ == "__main__":
+    unittest.main()

@@ -154,4 +154,5 @@ py_modules = [
     "semver_utils",
     "shutil_utils",
     "shlex_utils",
+    "keyword_utils",
 ]

@@ -143,6 +143,8 @@
 
 #   - shutil_utils.py — # High-level file operations (copy, move, remove, archive, disk usage)
 
+#   - shlex_utils.py — # Utilities for simple lexical analysis (wrapping the standard library shlex module)
+
 #   - socketserver_utils.py — # Socketserver utilities wrapping the standard library socketserver module
 
 #   - interval_utils.py — # Interval utilities (normalization, containment, overlap, intersection, union, merge)
@@ -193,6 +195,8 @@
 #   - cmath_utils.py — # Complex mathematics utilities wrapping the standard library cmath module
 #   - threading_utils.py — # Threading utilities wrapping the standard library threading module
 #   - glob_utils.py — # Utilities for pathname pattern expansion (wrapping the standard library glob module)
+#   - keyword_utils.py — # Python keyword classification utilities wrapping the standard library keyword module
+#   - tests/test_keyword_utils.py — # Tests for keyword_utils.py
 
 #   - selectors_utils.py — # Selectors utilities wrapping the standard library selectors module
 #   - tests/test_selectors_utils.py — # Tests for selectors_utils.py
@@ -379,6 +383,8 @@
 #   - test_shapes.py — # Tests for shapes.py
 
 #   - test_shutil_utils.py — # Tests for shutil_utils.py
+
+#   - test_shlex_utils.py — # Tests for shlex_utils.py
 
 #   - test_socketserver_utils.py — # Tests for socketserver_utils.py
 
@@ -900,6 +906,8 @@ py_modules = [
     "semver_utils",
     "shutil_utils",
     "socketserver_utils",
+    "shlex_utils",
+    "keyword_utils",
 ]
 
 PYPROJECT
@@ -18156,6 +18164,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `sort_utils.py — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
 - `shutil_utils.py` — High-level file and directory operation utilities (`copy_file`, `copy_tree`, `move`, `remove_tree`, `disk_usage`, `make_archive`, `unpack_archive`) wrapping the standard library `shutil` module
 - `tests/test_shutil_utils.py` — unit tests for `shutil_utils.py`
+- `shlex_utils.py` — simple lexical analysis utilities wrapping the standard library `shlex` module (`split`, `quote`, `join`) with input validation
+- `tests/test_shlex_utils.py` — unit tests for `shlex_utils.py`
 - `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.
 - `tests/test_socketserver_utils.py` — unit tests for `socketserver_utils.py`
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
@@ -18164,6 +18174,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`
 - `glob_utils.py` — utilities for pathname pattern expansion wrapping the standard library `glob` module (`glob_pattern`, `iglob`, `escape`, `has_magic`) with input validation
 - `tests/test_glob_utils.py` — unit tests for `glob_utils.py`
+- `keyword_utils.py` — Python keyword classification utilities wrapping the standard library `keyword` module (`is_keyword`, `is_soft_keyword`, `kwlist`, `softkwlist`, `main`) with input validation
+- `tests/test_keyword_utils.py` — unit tests for `keyword_utils.py`
 - `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
 - `queue_utils.py` — FIFO queue helpers (`Queue` class, `enqueue`, `dequeue`, `peek`, `size`, `is_empty`, `clear`)
 - `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
@@ -19155,6 +19167,8 @@ calendar_utils.py            # Calendar utilities for date and month calculation
 cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
 threading_utils.py           # Threading utilities wrapping the standard library threading module
 glob_utils.py               # Utilities for pathname pattern expansion wrapping the standard library glob module
+keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
+shlex_utils.py              # Utilities for simple lexical analysis wrapping the standard library shlex module
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
@@ -19222,6 +19236,7 @@ tests/                     # Python unit tests
   test_ip_utils.py            # Tests for ip_utils.py
   test_itertools_utils.py     # Tests for itertools_utils.py
   test_json_utils.py          # Tests for json_utils.py
+  test_keyword_utils.py       # Tests for keyword_utils.py
   test_list_utils.py          # Tests for list_utils.py
   test_locale_utils.py        # Tests for locale_utils.py
   test_logging_utils.py       # Tests for logging_utils.py
@@ -19247,6 +19262,7 @@ tests/                     # Python unit tests
   test_seq_utils.py           # Tests for seq_utils.py
   test_set_utils.py           # Tests for set_utils.py
   test_shapes.py              # Tests for shapes.py
+  test_shlex_utils.py         # Tests for shlex_utils.py
   test_shutil_utils.py        # Tests for shutil_utils.py
   test_socketserver_utils.py     # Tests for socketserver_utils.py
   test_sort_utils.py          # Tests for sort_utils.py
@@ -19321,6 +19337,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `keyword_utils.py` — Python keyword classification utilities wrapping the standard library `keyword` module (`is_keyword`, `is_soft_keyword`, `kwlist`, `softkwlist`, `main`) with input validation, plus `tests/test_keyword_utils.py`.
+- Synchronized `keyword_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `shlex_utils.py` — simple lexical analysis utilities wrapping the standard library `shlex` module (`split`, `quote`, `join`) with input validation, plus `tests/test_shlex_utils.py`.
+- Synchronized `shlex_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `glob_utils.py` — utilities for pathname pattern expansion wrapping the standard library `glob` module (`glob_pattern`, `iglob`, `escape`, `has_magic`) with input validation, plus `tests/test_glob_utils.py`.
 - Synchronized `glob_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -28416,6 +28438,124 @@ class TestGlobUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTGLOBUTILS
+# --- keyword_utils.py ---
+cat > "$OUTPUT_DIR/keyword_utils.py" <<'KEYWORD_UTILS'
+"""Utilities for Python keyword classification (wrapping :mod:`keyword`)."""
+
+import keyword as _keyword
+
+
+def is_keyword(word):
+    """Return ``True`` if ``word`` is a Python keyword."""
+    if not isinstance(word, str):
+        raise TypeError("word must be a str")
+    return _keyword.iskeyword(word)
+
+
+def is_soft_keyword(word):
+    """Return ``True`` if ``word`` is a Python soft keyword."""
+    if not isinstance(word, str):
+        raise TypeError("word must be a str")
+    return _keyword.issoftkeyword(word)
+
+
+def kwlist():
+    """Return a copy of the list of Python keywords."""
+    return list(_keyword.kwlist)
+
+
+def softkwlist():
+    """Return a copy of the list of Python soft keywords."""
+    return list(_keyword.softkwlist)
+
+
+def main():
+    """Run the keyword module's interactive ``main`` entry point."""
+    return _keyword.main
+KEYWORD_UTILS
+# --- tests/test_keyword_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_keyword_utils.py" <<'TESTKEYWORDUTILS'
+import unittest
+
+import keyword_utils
+
+
+class TestKeywordUtils(unittest.TestCase):
+    def test_is_keyword(self):
+        self.assertTrue(keyword_utils.is_keyword("if"))
+        self.assertFalse(keyword_utils.is_keyword("foo"))
+
+    def test_is_soft_keyword(self):
+        self.assertTrue(keyword_utils.is_soft_keyword("match"))
+        self.assertFalse(keyword_utils.is_soft_keyword("if"))
+
+    def test_kwlist(self):
+        self.assertIn("def", keyword_utils.kwlist())
+
+    def test_softkwlist(self):
+        self.assertIn("match", keyword_utils.softkwlist())
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            keyword_utils.is_keyword(123)
+        with self.assertRaises(TypeError):
+            keyword_utils.is_soft_keyword(123)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTKEYWORDUTILS
+# --- shlex_utils.py ---
+cat > "$OUTPUT_DIR/shlex_utils.py" <<'SHLEX_UTILS'
+"""Utilities for simple lexical analysis (wrapping :mod:`shlex`)."""
+
+import shlex as _shlex
+
+
+def split(s, comments=False, posix=True):
+    if not isinstance(s, str):
+        raise TypeError("s must be a str")
+    return _shlex.split(s, comments=comments, posix=posix)
+
+
+def quote(s):
+    if not isinstance(s, str):
+        raise TypeError("s must be a str")
+    return _shlex.quote(s)
+
+
+def join(split_command):
+    return _shlex.join(split_command)
+SHLEX_UTILS
+# --- tests/test_shlex_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_shlex_utils.py" <<'TESTSHLEXUTILS'
+import unittest
+
+from shlex_utils import join, quote, split
+
+
+class TestShlexUtils(unittest.TestCase):
+    def test_split(self):
+        self.assertEqual(split("foo bar 'baz qux'"), ["foo", "bar", "baz qux"])
+
+    def test_split_type_error(self):
+        with self.assertRaises(TypeError):
+            split(123)
+
+    def test_quote(self):
+        self.assertEqual(quote("foo bar"), "'foo bar'")
+
+    def test_quote_type_error(self):
+        with self.assertRaises(TypeError):
+            quote(1)
+
+    def test_join(self):
+        self.assertEqual(join(["foo", "bar baz"]), "foo 'bar baz'")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSHLEXUTILS
 # --- queue_utils.py ---
 cat > "$OUTPUT_DIR/queue_utils.py" <<'QUEUE_UTILS'
 """Utility helpers for queue operations."""
