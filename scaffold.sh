@@ -21,6 +21,9 @@
 #   - pyproject.toml for Python project configuration and dependencies
 #   - hello.py — # Sample application entry point
 
+#   - abc_utils.py — # Abstract base class utilities wrapping stdlib abc (ABC, ABCMeta, abstractmethod, abstractclassmethod, abstractstaticmethod, abstractproperty, get_cache_token, update_abstractmethods)
+#   - ast_utils.py — # Abstract syntax tree utilities wrapping stdlib ast (parse, unparse, dump, literal_eval, get_docstring, walk, iter_fields, iter_child_nodes, find_all, fix_missing_locations, increment_lineno, copy_location, node_to_string)
+
 #   - calculator.py — # Simple calculator module with arithmetic operations
 
 #   - config_utils.py — # Configuration utilities for JSON file management
@@ -260,6 +263,8 @@
 
 #   - subprocess_utils.py — # Subprocess utilities (run_command, check_output, check_call)
 
+#   - test_abc_utils.py — # Tests for abc_utils.py
+#   - test_ast_utils.py — # Tests for ast_utils.py
 #   - test_async_utils.py — # Tests for async_utils.py
 
 #   - test_array_utils.py — # Tests for array_utils.py
@@ -819,6 +824,8 @@ exclude = [
 [tool.setuptools]
 py_modules = [
     "hello",
+    "abc_utils",
+    "ast_utils",
     "calculator",
     "collections_utils",
     "config_utils",
@@ -987,6 +994,260 @@ class TestHello(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 TESTHELLO
+
+# --- abc_utils.py ---
+cat > "$OUTPUT_DIR/abc_utils.py" <<'ABC_UTILS'
+"""Utilities wrapping :mod:`abc` for abstract base classes."""
+
+import abc as _abc
+
+
+def ABC():
+    return _abc.ABC
+
+
+def ABCMeta():
+    return _abc.ABCMeta
+
+
+def abstractmethod(func):
+    return _abc.abstractmethod(func)
+
+
+def abstractclassmethod(func):
+    return _abc.abstractclassmethod(func)
+
+
+def abstractstaticmethod(func):
+    return _abc.abstractstaticmethod(func)
+
+
+def abstractproperty(func):
+    return _abc.abstractproperty(func)
+
+
+def get_cache_token():
+    return _abc.get_cache_token()
+
+
+def update_abstractmethods(cls):
+    return _abc.update_abstractmethods(cls)
+ABC_UTILS
+
+# --- tests/test_abc_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_abc_utils.py" <<'TEST_ABC_UTILS'
+import abc
+import unittest
+
+import abc_utils
+
+
+class TestAbcUtils(unittest.TestCase):
+    def test_abstractmethod(self):
+        class Base(abc.ABC):
+            @abc_utils.abstractmethod
+            def method(self):
+                ...
+
+        self.assertTrue(Base.__abstractmethods__)
+
+    def test_get_cache_token(self):
+        token = abc_utils.get_cache_token()
+        self.assertIsInstance(token, int)
+
+    def test_update_abstractmethods(self):
+        class Base(abc.ABC):
+            @abc_utils.abstractmethod
+            def method(self):
+                ...
+
+        class Sub(Base):
+            def method(self):
+                return 1
+
+        abc_utils.update_abstractmethods(Sub)
+        self.assertEqual(Sub.__abstractmethods__, frozenset())
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_ABC_UTILS
+
+# --- ast_utils.py ---
+cat > "$OUTPUT_DIR/ast_utils.py" <<'AST_UTILS'
+"""Utilities for working with Python abstract syntax trees (wrapping :mod:`ast`)."""
+
+import ast as _ast
+
+
+def parse(source, filename="<unknown>", mode="exec"):
+    if not isinstance(source, str):
+        raise TypeError("source must be a str")
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a str")
+    if mode not in ("exec", "eval", "single"):
+        raise ValueError("mode must be one of 'exec', 'eval', 'single'")
+    return _ast.parse(source, filename=filename, mode=mode)
+
+
+def unparse(node):
+    return _ast.unparse(node)
+
+
+def dump(node, annotate_fields=True, include_attributes=False, indent=None):
+    return _ast.dump(
+        node,
+        annotate_fields=annotate_fields,
+        include_attributes=include_attributes,
+        indent=indent,
+    )
+
+
+def literal_eval(node_or_string):
+    return _ast.literal_eval(node_or_string)
+
+
+def get_docstring(node, clean=True):
+    return _ast.get_docstring(node, clean=clean)
+
+
+def walk(node):
+    return list(_ast.walk(node))
+
+
+def iter_fields(node):
+    return list(_ast.iter_fields(node))
+
+
+def iter_child_nodes(node):
+    return list(_ast.iter_child_nodes(node))
+
+
+def find_all(node, node_type):
+    result = [n for n in _ast.walk(node) if isinstance(n, node_type)]
+    return result
+
+
+def fix_missing_locations(node):
+    return _ast.fix_missing_locations(node)
+
+
+def increment_lineno(node, n=1):
+    if not isinstance(n, int):
+        raise TypeError("n must be an int")
+    return _ast.increment_lineno(node, n=n)
+
+
+def copy_location(new_node, old_node):
+    return _ast.copy_location(new_node, old_node)
+
+
+def node_to_string(node):
+    return _ast.unparse(node)
+AST_UTILS
+
+# --- tests/test_ast_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_ast_utils.py" <<'TEST_AST_UTILS'
+import ast
+import unittest
+
+from ast_utils import (
+    copy_location,
+    dump,
+    find_all,
+    fix_missing_locations,
+    get_docstring,
+    increment_lineno,
+    iter_child_nodes,
+    iter_fields,
+    literal_eval,
+    node_to_string,
+    parse,
+    unparse,
+    walk,
+)
+
+
+class TestAstUtils(unittest.TestCase):
+    def test_parse_exec(self):
+        node = parse("x = 1")
+        self.assertIsInstance(node, ast.Module)
+
+    def test_parse_eval(self):
+        node = parse("1 + 2", mode="eval")
+        self.assertIsInstance(node, ast.Expression)
+
+    def test_parse_type_error(self):
+        with self.assertRaises(TypeError):
+            parse(123)
+
+    def test_parse_value_error(self):
+        with self.assertRaises(ValueError):
+            parse("x", mode="bad")
+
+    def test_unparse(self):
+        node = parse("x = 1")
+        self.assertEqual(unparse(node).strip(), "x = 1")
+
+    def test_dump(self):
+        node = parse("x = 1")
+        self.assertIn("Assign", dump(node))
+
+    def test_literal_eval(self):
+        self.assertEqual(literal_eval("[1, 2, 3]"), [1, 2, 3])
+
+    def test_get_docstring(self):
+        src = 'def f():\n    """doc"""\n    pass'
+        node = parse(src)
+        func = node.body[0]
+        self.assertEqual(get_docstring(func), "doc")
+
+    def test_walk(self):
+        node = parse("x = 1")
+        self.assertTrue(any(isinstance(n, ast.Assign) for n in walk(node)))
+
+    def test_iter_fields(self):
+        node = parse("x = 1")
+        fields = iter_fields(node.body[0])
+        self.assertTrue(any(k == "targets" for k, _ in fields))
+
+    def test_iter_child_nodes(self):
+        node = parse("x = 1")
+        children = iter_child_nodes(node)
+        self.assertTrue(len(children) >= 1)
+
+    def test_find_all(self):
+        node = parse("a = 1\nb = 2")
+        assigns = find_all(node, ast.Assign)
+        self.assertEqual(len(assigns), 2)
+
+    def test_fix_missing_locations(self):
+        node = parse("x = 1")
+        self.assertIs(fix_missing_locations(node), node)
+
+    def test_increment_lineno(self):
+        node = parse("x = 1")
+        new = increment_lineno(node, 2)
+        self.assertIsNotNone(new)
+
+    def test_increment_lineno_type_error(self):
+        node = parse("x = 1")
+        with self.assertRaises(TypeError):
+            increment_lineno(node, "a")
+
+    def test_copy_location(self):
+        n1 = ast.Assign(targets=[ast.Name(id="x", ctx=ast.Store())], value=ast.Constant(value=1))
+        n2 = ast.Assign(targets=[ast.Name(id="y", ctx=ast.Store())], value=ast.Constant(value=2))
+        self.assertIs(copy_location(n1, n2), n1)
+
+    def test_node_to_string(self):
+        node = parse("x = 1")
+        self.assertIn("x", node_to_string(node))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_AST_UTILS
 
 # --- calculator.py ---
 cat > "$OUTPUT_DIR/calculator.py" <<'CALCULATOR'
@@ -19364,6 +19625,8 @@ Makefile                     # Common developer targets
 pyproject.toml               # Python project configuration (pytest, ruff, mypy)
 scaffold.sh                  # Project scaffolding script
 hello.py                     # Sample application entry point
+abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
+ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
@@ -19470,6 +19733,8 @@ regex_utils.py             # Regular expression utilities (compile, match, searc
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
 tests/                     # Python unit tests
+  test_abc_utils.py          # Tests for abc_utils.py
+  test_ast_utils.py          # Tests for ast_utils.py
   test_async_utils.py         # Tests for async_utils.py
   test_array_utils.py        # Tests for array_utils.py
   test_base64_utils.py        # Tests for base64_utils.py
@@ -19606,6 +19871,14 @@ The workflow in `.github/workflows/main.yml` runs Kilo agent sessions in a conti
 - After each session, it commits non-workflow changes as a checkpoint
 - The workflow excludes `.github/workflows/**` from progress checks
 
+## ABC Utilities Module
+
+The project includes abstract base class utilities in `abc_utils.py` wrapping the standard library `abc` module: `ABC` and `ABCMeta` return the standard abstract base class and metaclass, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, and `abstractproperty` decorate methods and properties as abstract, `get_cache_token` returns the abstract methods cache token, and `update_abstractmethods` recomputes the abstract methods set on a class. The module is tested in `tests/test_abc_utils.py`.
+
+## AST Utilities Module
+
+The project includes abstract syntax tree utilities in `ast_utils.py` wrapping the standard library `ast` module: `parse` parses source code into a syntax tree with input validation, `unparse` converts a syntax tree back to source, `dump` returns a string representation of a node, `literal_eval` safely evaluates a literal expression, `get_docstring` extracts a docstring from a function node, `walk` iterates over all descendant nodes, `iter_fields` and `iter_child_nodes` iterate over fields and direct children, `find_all` returns all nodes matching a type, `fix_missing_locations` assigns line numbers to nodes, `increment_lineno` shifts line numbers, `copy_location` copies source location between nodes, and `node_to_string` unparses a node to a string. The module is tested in `tests/test_ast_utils.py`.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -19620,6 +19893,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Removed a duplicate `copy_utils` entry from `pyproject.toml` `py_modules` (it was listed twice, once near `config_schema` and once near `colorsys_utils`); the module itself, its tests, and all scaffold/doc entries were already present and correct.
+
+- Added `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`), plus `tests/test_abc_utils.py`.
+
+- Added `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`), plus `tests/test_ast_utils.py`.
+
+- Synchronized `abc_utils.py` and `ast_utils.py` across `pyproject.toml` `py_modules`, README tree and module sections, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` header comment and heredocs for the modules and their tests, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `linecache_utils.py` — line cache utilities wrapping the standard library `linecache` module (`getline`, `getlines`, `updatecache`, `clearcache`) with input validation, plus `tests/test_linecache_utils.py`.
 - Synchronized `linecache_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.

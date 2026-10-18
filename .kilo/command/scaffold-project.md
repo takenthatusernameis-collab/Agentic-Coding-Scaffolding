@@ -20,6 +20,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `Makefile` — common developer targets (test, lint, typecheck, run, scaffold, clean, help, pre-commit-install, pre-commit-run)
 - `pyproject.toml` — Python project configuration with pytest, ruff, and mypy settings
 - `hello.py` — sample application entry point
+- `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`) with input validation
+- `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
@@ -140,6 +142,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_memoize_utils.py` — unit tests for `memoize_utils.py`
 - `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
+- `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
  - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`

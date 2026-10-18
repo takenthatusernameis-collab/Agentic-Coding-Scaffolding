@@ -132,7 +132,6 @@ py_modules = [
     "calendar_utils",
     "cmath_utils",
     "colorsys_utils",
-    "copy_utils",
     "dataclasses_utils",
     "call_once_utils",
     "bytes_utils",
@@ -165,4 +164,6 @@ py_modules = [
     "codecs_utils",
     "traceback_utils",
     "typing_utils",
+    "abc_utils",
+    "ast_utils",
 ]

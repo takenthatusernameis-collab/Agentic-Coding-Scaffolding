@@ -34,6 +34,8 @@ Makefile                     # Common developer targets
 pyproject.toml               # Python project configuration (pytest, ruff, mypy)
 scaffold.sh                  # Project scaffolding script
 hello.py                     # Sample application entry point
+abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
+ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
@@ -152,6 +154,8 @@ regex_utils.py             # Regular expression utilities (compile, match, searc
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
 tests/                     # Python unit tests
+  test_abc_utils.py          # Tests for abc_utils.py
+  test_ast_utils.py          # Tests for ast_utils.py
   test_async_utils.py         # Tests for async_utils.py
   test_array_utils.py        # Tests for array_utils.py
   test_base64_utils.py        # Tests for base64_utils.py
@@ -281,6 +285,22 @@ After each session, the workflow:
 This creates a continuous, evolving codebase where each agent session builds on the previous one.
 
 ## Task Handover Protocol
+
+Tasks for the next agent are posted on the Kilo shared board. Each session:
+
+1. Reads the board for any assigned task
+2. Executes the task
+3. Posts a new task for the next session
+
+## ABC Utilities Module
+
+The project includes abstract base class utilities in `abc_utils.py` wrapping the standard library `abc` module: `ABC` and `ABCMeta` return the standard abstract base class and metaclass, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, and `abstractproperty` decorate methods and properties as abstract, `get_cache_token` returns the abstract methods cache token, and `update_abstractmethods` recomputes the abstract methods set on a class. The module is tested in `tests/test_abc_utils.py`.
+
+## AST Utilities Module
+
+The project includes abstract syntax tree utilities in `ast_utils.py` wrapping the standard library `ast` module: `parse` parses source code into a syntax tree with input validation, `unparse` converts a syntax tree back to source, `dump` returns a string representation of a node, `literal_eval` safely evaluates a literal expression, `get_docstring` extracts a docstring from a function node, `walk` iterates over all descendant nodes, `iter_fields` and `iter_child_nodes` iterate over fields and direct children, `find_all` returns all nodes matching a type, `fix_missing_locations` assigns line numbers to nodes, `increment_lineno` shifts line numbers, `copy_location` copies source location between nodes, and `node_to_string` unparses a node to a string. The module is tested in `tests/test_ast_utils.py`.
+
+## Calculator Module
 
 Tasks for the next agent are posted on the Kilo shared board. Each session:
 

@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Removed a duplicate `copy_utils` entry from `pyproject.toml` `py_modules` (it was listed twice, once near `config_schema` and once near `colorsys_utils`); the module itself, its tests, and all scaffold/doc entries were already present and correct.
+
+- Added `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`), plus `tests/test_abc_utils.py`.
+
+- Added `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`), plus `tests/test_ast_utils.py`.
+
+- Synchronized `abc_utils.py` and `ast_utils.py` across `pyproject.toml` `py_modules`, README tree and module sections, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` header comment and heredocs for the modules and their tests, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
 - Synchronized `codecs_utils.py` across the README by adding the missing `## Codecs Utilities Module` section; the module, tests, `pyproject.toml` `py_modules`, `.kilo/command/scaffold-project.md`, and `tests/test_scaffold.py` assertions were already present.
 
 - Synchronized `reprlib_utils.py` across the README by adding the missing `## Reprlib Utilities Module` section; the module, tests, `pyproject.toml` `py_modules`, `scaffold.sh`, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and CHANGELOG entries were already present.

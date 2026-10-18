@@ -80,6 +80,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "Makefile",
             "pyproject.toml",
             "hello.py",
+            "abc_utils.py",
+            "ast_utils.py",
             "calculator.py",
             "config_utils.py",
             "collections_utils.py",
@@ -98,6 +100,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             ".kilo/command/scaffold-project.md",
             ".kilo/skill/scaffolding-helper.md",
             ".github/workflows/main.yml",
+            "tests/test_abc_utils.py",
+            "tests/test_ast_utils.py",
             "tests/test_hello.py",
             "tests/test_calculator.py",
             "tests/test_config_utils.py",
@@ -374,6 +378,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
         """The scaffold-project command doc should list all modules and tests."""
         content = (self.project_dir / ".kilo/command/scaffold-project.md").read_text()
         for module in [
+            "abc_utils.py",
+            "ast_utils.py",
             "stats.py",
             "math_utils.py",
             "data_utils.py",
