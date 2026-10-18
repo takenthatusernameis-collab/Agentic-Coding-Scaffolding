@@ -36,6 +36,7 @@ scaffold.sh                  # Project scaffolding script
 hello.py                     # Sample application entry point
 abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
+pickle_utils.py              # Object serialization utilities wrapping stdlib pickle
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
@@ -224,6 +225,7 @@ test_path_utils.py          # Tests for path_utils.py
 test_reprlib_utils.py       # Tests for reprlib_utils.py
 test_traceback_utils.py     # Tests for traceback_utils.py
 test_typing_utils.py        # Tests for typing_utils.py
+test_pickle_utils.py        # Tests for pickle_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
@@ -301,6 +303,10 @@ The project includes abstract base class utilities in `abc_utils.py` wrapping th
 ## AST Utilities Module
 
 The project includes abstract syntax tree utilities in `ast_utils.py` wrapping the standard library `ast` module: `parse` parses source code into a syntax tree with input validation, `unparse` converts a syntax tree back to source, `dump` returns a string representation of a node, `literal_eval` safely evaluates a literal expression, `get_docstring` extracts a docstring from a function node, `walk` iterates over all descendant nodes, `iter_fields` and `iter_child_nodes` iterate over fields and direct children, `find_all` returns all nodes matching a type, `fix_missing_locations` assigns line numbers to nodes, `increment_lineno` shifts line numbers, `copy_location` copies source location between nodes, and `node_to_string` unparses a node to a string. The module is tested in `tests/test_ast_utils.py`.
+
+## Pickle Utilities Module
+
+The project includes object serialization utilities in `pickle_utils.py` wrapping the standard library `pickle` module: `dump` and `dumps` serialize objects to a binary file and bytes respectively, `load` and `loads` deserialize objects from a binary file and bytes, `pickler` and `unpickler` return streaming :class:`pickle.Pickler` and :class:`pickle.Unpickler` instances, `is_valid_protocol` reports whether a protocol number is supported, and `validate_protocol` normalizes a protocol argument (defaulting to the highest protocol) and raises `TypeError` for non-ints and `ValueError` for unsupported values. The module is tested in `tests/test_pickle_utils.py`.
 
 ## Calculator Module
 

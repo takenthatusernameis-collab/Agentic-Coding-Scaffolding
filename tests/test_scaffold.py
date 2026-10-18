@@ -82,6 +82,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "hello.py",
             "abc_utils.py",
             "ast_utils.py",
+            "pickle_utils.py",
             "calculator.py",
             "config_utils.py",
             "collections_utils.py",
@@ -102,6 +103,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             ".github/workflows/main.yml",
             "tests/test_abc_utils.py",
             "tests/test_ast_utils.py",
+            "tests/test_pickle_utils.py",
             "tests/test_hello.py",
             "tests/test_calculator.py",
             "tests/test_config_utils.py",
@@ -382,6 +384,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
         for module in [
             "abc_utils.py",
             "ast_utils.py",
+            "pickle_utils.py",
             "stats.py",
             "math_utils.py",
             "data_utils.py",
@@ -512,7 +515,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
 "pprint_utils.py",
 "traceback_utils.py",
 "typing_utils.py",
-          ]:
+"pickle_utils.py",
+           ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
             "tests/test_stats.py",
@@ -573,7 +577,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
 "tests/test_pprint_utils.py",
 "tests/test_traceback_utils.py",
 "tests/test_typing_utils.py",
-          ]:
+"tests/test_pickle_utils.py",
+           ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
     def test_scaffold_project_doc_no_inconsistent_indent(self) -> None:
@@ -741,8 +746,10 @@ class TestScaffoldKiloJson(unittest.TestCase):
 "traceback_utils.py",
 "tests/test_traceback_utils.py",
 "typing_utils.py",
-"tests/test_typing_utils.py",
-          ]:
+            "tests/test_typing_utils.py",
+            "pickle_utils.py",
+            "tests/test_pickle_utils.py",
+           ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
     def test_file_utils_no_unused_os_import(self) -> None:
@@ -1512,6 +1519,47 @@ class TestScaffoldKiloJson(unittest.TestCase):
             result = format_exc()
         self.assertIsInstance(result, str)
         self.assertIn("RuntimeError", result)
+
+    def test_pickle_utils_functions_work(self):
+        """Generated pickle_utils.py should have working functions."""
+        import io
+        import pickle
+
+        from pickle_utils import (
+            dump,
+            dumps,
+            is_valid_protocol,
+            load,
+            loads,
+            pickler,
+            unpickler,
+            validate_protocol,
+        )
+
+        self.assertEqual(loads(dumps({"a": [1, 2, 3]})), {"a": [1, 2, 3]})
+
+        for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+            self.assertEqual(loads(dumps("hello", protocol=protocol)), "hello")
+
+        buffer = io.BytesIO()
+        dump({"x": 1}, buffer)
+        buffer.seek(0)
+        self.assertEqual(load(buffer), {"x": 1})
+
+        buffer = io.BytesIO()
+        p = pickler(buffer)
+        p.dump([1, 2, 3])
+        buffer.seek(0)
+        self.assertEqual(unpickler(buffer).load(), [1, 2, 3])
+
+        self.assertEqual(validate_protocol(None), pickle.HIGHEST_PROTOCOL)
+        self.assertEqual(validate_protocol(2), 2)
+        with self.assertRaises(TypeError):
+            validate_protocol("2")
+        with self.assertRaises(ValueError):
+            validate_protocol(99)
+        self.assertTrue(is_valid_protocol(0))
+        self.assertFalse(is_valid_protocol("nope"))
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):
