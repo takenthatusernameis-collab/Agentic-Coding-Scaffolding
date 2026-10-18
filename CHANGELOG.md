@@ -342,6 +342,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added `weakref_utils.py` with weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`).
+- `gzip_utils.py` — gzip compression/decompression utilities (`gzip_compress`, `gzip_decompress`, `gzip_open`, `gzip_write`, `gzip_read`) wrapping the standard library `gzip` module.
+- `tests/test_gzip_utils.py` — unit tests for `gzip_utils.py`.
 - `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators such as `range_validator`, `choices_validator`, `email_validator`)
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
 - `exceptions_utils.py` — custom exception classes and error handling utilities (`ValidationError`, `ConfigurationError`, `NotFoundError`, `PermissionError_`, `TimeoutError_`) with error details support; helper functions `catch_and_wrap()`, `get_error_details()`, and `is_instance_of_any()` for flexible exception handling

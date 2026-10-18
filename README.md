@@ -36,6 +36,7 @@ scaffold.sh                  # Project scaffolding script
 hello.py                     # Sample application entry point
 abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
+gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
 pickle_utils.py              # Object serialization utilities wrapping stdlib pickle
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
@@ -155,6 +156,7 @@ weakref_utils.py            # Weak reference utilities for managing weak referen
 argparse_utils.py           # Argument parsing utilities
 warnings_utils.py           # Utilities wrapping the standard library warnings module
 compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
+gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
 ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
@@ -508,6 +510,10 @@ The project includes codecs utilities in `codecs_utils.py` wrapping the standard
 ## Bz2 Utilities Module
 
 The project includes BZ2 compression utilities in `bz2_utils.py` wrapping the standard library `bz2` module: `bz2_compress` compresses bytes, `bz2_decompress` decompresses bz2-compressed bytes, `bz2_open` opens a bz2 file with optional compression level, `bz2_write` writes bytes to a bz2 file, and `bz2_read` reads and decompresses a bz2 file. The module is tested in `tests/test_bz2_utils.py`.
+
+## Gzip Utilities Module
+
+The project includes gzip compression/decompression utilities in `gzip_utils.py` wrapping the standard library `gzip` module: `gzip_compress` compresses bytes with optional compression level, `gzip_decompress` decompresses gzip-compressed bytes, `gzip_open` opens a gzip file, `gzip_write` writes bytes to a gzip file, and `gzip_read` reads and decompresses a gzip file. The module is tested in `tests/test_gzip_utils.py`.
 
 ## Configuration Schema Module
 
