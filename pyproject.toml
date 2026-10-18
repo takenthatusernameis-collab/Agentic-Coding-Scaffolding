@@ -169,4 +169,5 @@ py_modules = [
     "ast_utils",
     "pickle_utils",
     "sqlite3_utils",
+    "marshal_utils",
 ]

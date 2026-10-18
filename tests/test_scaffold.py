@@ -321,9 +321,11 @@ class TestScaffoldKiloJson(unittest.TestCase):
               "tests/test_keyword_utils.py",
               "socketserver_utils.py",
               "tests/test_socketserver_utils.py",
-              "sqlite3_utils.py",
-              "tests/test_sqlite3_utils.py",
-         ]
+"sqlite3_utils.py",
+               "tests/test_sqlite3_utils.py",
+               "marshal_utils.py",
+               "tests/test_marshal_utils.py",
+          ]
         for rel in expected:
             path = self.project_dir / rel
             self.assertTrue(path.is_file(), f"Expected generated file missing: {rel}")
@@ -387,6 +389,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "abc_utils.py",
             "ast_utils.py",
             "pickle_utils.py",
+            "marshal_utils.py",
+            "tests/test_marshal_utils.py",
             "stats.py",
             "math_utils.py",
             "data_utils.py",
@@ -518,8 +522,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
 "pprint_utils.py",
 "traceback_utils.py",
 "typing_utils.py",
-"pickle_utils.py",
-           ]:
+             "pickle_utils.py",
+             "marshal_utils.py",
+            ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
             "tests/test_stats.py",
@@ -581,8 +586,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
 "tests/test_pprint_utils.py",
 "tests/test_traceback_utils.py",
 "tests/test_typing_utils.py",
-"tests/test_pickle_utils.py",
-           ]:
+             "tests/test_pickle_utils.py",
+             "tests/test_marshal_utils.py",
+            ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
     def test_scaffold_project_doc_no_inconsistent_indent(self) -> None:
@@ -752,10 +758,12 @@ class TestScaffoldKiloJson(unittest.TestCase):
 "traceback_utils.py",
 "tests/test_traceback_utils.py",
 "typing_utils.py",
-            "tests/test_typing_utils.py",
-            "pickle_utils.py",
-            "tests/test_pickle_utils.py",
-           ]:
+             "tests/test_typing_utils.py",
+             "pickle_utils.py",
+             "tests/test_pickle_utils.py",
+             "marshal_utils.py",
+             "tests/test_marshal_utils.py",
+            ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
     def test_file_utils_no_unused_os_import(self) -> None:

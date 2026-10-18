@@ -108,6 +108,7 @@ semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
 sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
+marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -214,8 +215,9 @@ tests/                     # Python unit tests
   test_list_utils.py          # Tests for list_utils.py
   test_locale_utils.py        # Tests for locale_utils.py
   test_logging_utils.py       # Tests for logging_utils.py
-  test_markdown_utils.py      # Tests for markdown_utils.py
-  test_math_utils.py          # Tests for math_utils.py
+test_markdown_utils.py      # Tests for markdown_utils.py
+   test_marshal_utils.py       # Tests for marshal_utils.py
+   test_math_utils.py          # Tests for math_utils.py
   test_networking_utils.py    # Tests for networking_utils.py
   test_number_utils.py        # Tests for number_utils.py
   test_operator_utils.py      # Tests for operator_utils.py

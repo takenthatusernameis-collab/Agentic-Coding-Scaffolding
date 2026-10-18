@@ -24,6 +24,7 @@
 #   - abc_utils.py — # Abstract base class utilities wrapping stdlib abc (ABC, ABCMeta, abstractmethod, abstractclassmethod, abstractstaticmethod, abstractproperty, get_cache_token, update_abstractmethods)
 #   - ast_utils.py — # Abstract syntax tree utilities wrapping stdlib ast (parse, unparse, dump, literal_eval, get_docstring, walk, iter_fields, iter_child_nodes, find_all, fix_missing_locations, increment_lineno, copy_location, node_to_string)
 #   - pickle_utils.py — # Object serialization utilities wrapping stdlib pickle (dump, dumps, load, loads, pickler, unpickler, is_valid_protocol, validate_protocol)
+#   - marshal_utils.py — # Object serialization utilities wrapping stdlib marshal (dumps, loads, dump, load, get_version)
 
 #   - calculator.py — # Simple calculator module with arithmetic operations
 
@@ -271,6 +272,7 @@
 #   - test_abc_utils.py — # Tests for abc_utils.py
 #   - test_ast_utils.py — # Tests for ast_utils.py
 #   - test_pickle_utils.py — # Tests for pickle_utils.py
+#   - test_marshal_utils.py — # Tests for marshal_utils.py
 #   - test_async_utils.py — # Tests for async_utils.py
 
 #   - test_array_utils.py — # Tests for array_utils.py
@@ -1480,6 +1482,135 @@ class TestPickleUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_PICKLE_UTILS
+
+# --- marshal_utils.py ---
+cat > "$OUTPUT_DIR/marshal_utils.py" <<'MARSHAL_UTILS'
+"""Utilities for object serialization (wrapping :mod:`marshal`)."""
+
+import marshal
+from typing import Any, Union
+
+
+def dumps(obj: Any, version: int = marshal.version) -> bytes:
+    """
+    Serialize an object to a bytes string using the marshal module.
+
+    Args:
+        obj: The object to serialize.
+        version: The marshal protocol version to use.
+
+    Returns:
+        Serialized bytes representation of obj.
+
+    Raises:
+        TypeError: If version is not an integer.
+        ValueError: If version is out of range [0, marshal.version].
+        ValueError: If the object cannot be marshaled by marshal.
+    """
+    if not isinstance(version, int):
+        raise TypeError(f"version must be an int, got {type(version).__name__}")
+    if version < 0 or version > marshal.version:
+        raise ValueError(
+            f"version must be between 0 and {marshal.version}, got {version}"
+        )
+    try:
+        return marshal.dumps(obj, version)
+    except Exception as e:
+        raise ValueError(f"Failed to marshal object: {e}") from e
+
+
+def loads(data: Union[bytes, bytearray, memoryview]) -> Any:
+    """
+    Deserialize bytes to an object using the marshal module.
+
+    Args:
+        data: Bytes data to deserialize.
+
+    Returns:
+        The deserialized object.
+
+    Raises:
+        TypeError: If data is not bytes-like.
+        ValueError: If the data cannot be unmarshaled by marshal.
+    """
+    if not isinstance(data, (bytes, bytearray, memoryview)):
+        raise TypeError(
+            f"data must be bytes-like (bytes, bytearray, memoryview), "
+            f"got {type(data).__name__}"
+        )
+    try:
+        return marshal.loads(data)
+    except Exception as e:
+        raise ValueError(f"Failed to unmarshal data: {e}") from e
+
+
+def dump(obj: Any, file: Any, version: int = marshal.version) -> None:
+    """
+    Serialize an object to a file-like object using the marshal module.
+
+    Args:
+        obj: The object to serialize.
+        file: A file-like object with a write method that accepts bytes.
+        version: The marshal protocol version to use.
+
+    Returns:
+        None.
+
+    Raises:
+        TypeError: If file is not writeable or version is not an integer.
+        ValueError: If version is out of range or marshaling fails.
+        AttributeError: If file lacks a write method.
+    """
+    if not hasattr(file, "write"):
+        raise AttributeError("file must have a 'write' method")
+    if not callable(file.write):
+        raise TypeError("file.write must be callable")
+    if not isinstance(version, int):
+        raise TypeError(f"version must be an int, got {type(version).__name__}")
+    if version < 0 or version > marshal.version:
+        raise ValueError(
+            f"version must be between 0 and {marshal.version}, got {version}"
+        )
+    try:
+        marshal.dump(obj, file, version)
+    except Exception as e:
+        raise ValueError(f"Failed to marshal object to file: {e}") from e
+
+
+def load(file: Any) -> Any:
+    """
+    Deserialize an object from a file-like object using the marshal module.
+
+    Args:
+        file: A file-like object with a read method that accepts bytes count.
+
+    Returns:
+        The deserialized object.
+
+    Raises:
+        TypeError: If file is not readable.
+        ValueError: If unmarshaling fails.
+        AttributeError: If file lacks a read method.
+    """
+    if not hasattr(file, "read"):
+        raise AttributeError("file must have a 'read' method")
+    if not callable(file.read):
+        raise TypeError("file.read must be callable")
+    try:
+        return marshal.load(file)
+    except Exception as e:
+        raise ValueError(f"Failed to unmarshal data from file: {e}") from e
+
+
+def get_version() -> int:
+    """
+    Get the current marshal version.
+
+    Returns:
+        The current marshal.version value.
+    """
+    return marshal.version
+MARSHAL_UTILS
 
 # --- calculator.py ---
 cat > "$OUTPUT_DIR/calculator.py" <<'CALCULATOR'
