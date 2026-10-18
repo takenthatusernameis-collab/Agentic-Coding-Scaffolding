@@ -1,3 +1,4 @@
+- Last completed work: `gc_utils.py` wrapping stdlib `gc` added with `tests/test_gc_utils.py`.
 # Project Status
 
 - Added `bz2_utils.py` wrapping stdlib `bz2` with `tests/test_bz2_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions (including `test_bz2_utils_functions_work`), CHANGELOG, and `PROJECT_STATUS.md`.
