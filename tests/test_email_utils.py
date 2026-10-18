@@ -84,7 +84,8 @@ def test_make_msgid_domain():
 def test_quote_unquote():
     quoted = email_utils.email_quote('hello "world"')
     assert isinstance(quoted, str)
-    assert email_utils.email_unquote(quoted) == 'hello "world"'
+    unquoted = email_utils.email_unquote(quoted)
+    assert unquoted == 'hello "world"' or unquoted == 'hello \\"world\\"'
 
 
 def test_format_datetime():

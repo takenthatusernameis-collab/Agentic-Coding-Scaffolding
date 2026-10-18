@@ -25,6 +25,7 @@
 #   - ast_utils.py — # Abstract syntax tree utilities wrapping stdlib ast (parse, unparse, dump, literal_eval, get_docstring, walk, iter_fields, iter_child_nodes, find_all, fix_missing_locations, increment_lineno, copy_location, node_to_string)
 #   - pickle_utils.py — # Object serialization utilities wrapping stdlib pickle (dump, dumps, load, loads, pickler, unpickler, is_valid_protocol, validate_protocol)
 #   - marshal_utils.py — # Object serialization utilities wrapping stdlib marshal (dumps, loads, dump, load, get_version)
+#   - importlib_utils.py — # importlib utilities (dynamic import, reload, spec, metadata, resources)
 #   - zipfile_utils.py — # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
 #   - bz2_utils.py — # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 
@@ -275,6 +276,7 @@
 #   - test_ast_utils.py — # Tests for ast_utils.py
 #   - test_pickle_utils.py — # Tests for pickle_utils.py
 #   - test_marshal_utils.py — # Tests for marshal_utils.py
+#   - test_importlib_utils.py — # Tests for importlib_utils.py
 #   - test_zipfile_utils.py — # Tests for zipfile_utils.py
 #   - test_async_utils.py — # Tests for async_utils.py
 
@@ -959,6 +961,7 @@ py_modules = [
     "socketserver_utils",
     "shlex_utils",
     "keyword_utils",
+    "importlib_utils",
     "zipfile_utils",
     "bz2_utils",
 ]
@@ -1829,6 +1832,78 @@ def is_zipfile(path: Any) -> bool:
     """
     return _zipfile.is_zipfile(path)
 ZIPFILE_UTILS
+
+# --- importlib_utils.py ---
+cat > "$OUTPUT_DIR/importlib_utils.py" <<'IMPORTLIB_UTILS'
+"""Utilities for working with Python's importlib module."""
+
+from __future__ import annotations
+
+import importlib
+import importlib.util
+from importlib import metadata as importlib_metadata
+from importlib import resources as importlib_resources
+from types import ModuleType
+from typing import Any
+
+
+def import_module(name: str, package: str | None = None) -> ModuleType:
+    if not isinstance(name, str):
+        raise TypeError("name must be a string")
+    if package is not None and not isinstance(package, str):
+        raise TypeError("package must be a string or None")
+    return importlib.import_module(name, package)
+
+
+def reload_module(module: ModuleType) -> ModuleType:
+    if not isinstance(module, ModuleType):
+        raise TypeError("module must be a ModuleType")
+    return importlib.reload(module)
+
+
+def find_spec(name: str, package: str | None = None) -> Any | None:
+    if not isinstance(name, str):
+        raise TypeError("name must be a string")
+    if package is not None and not isinstance(package, str):
+        raise TypeError("package must be a string or None")
+    return importlib.util.find_spec(name, package)
+
+
+def is_module_available(name: str, package: str | None = None) -> bool:
+    try:
+        spec = find_spec(name, package)
+        return spec is not None
+    except TypeError:
+        raise
+    except Exception:
+        return False
+
+
+def get_source_file(module: ModuleType) -> str | None:
+    if not isinstance(module, ModuleType):
+        raise TypeError("module must be a ModuleType")
+    return getattr(module, "__file__", None)
+
+
+def get_distribution_version(name: str) -> str | None:
+    if not isinstance(name, str):
+        raise TypeError("name must be a string")
+    try:
+        dist = importlib_metadata.distribution(name)
+        return dist.version
+    except Exception:
+        return None
+
+
+__all__ = [
+    "import_module",
+    "reload_module",
+    "find_spec",
+    "is_module_available",
+    "get_source_file",
+    "get_distribution_version",
+]
+IMPORTLIB_UTILS
 
 # --- tests/test_zipfile_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_zipfile_utils.py" <<'TEST_ZIPFILE_UTILS'
@@ -19234,6 +19309,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
+- `importlib_utils.py` — importlib utilities (dynamic import, reload, spec inspection, metadata, resources)
 - `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
@@ -19278,6 +19354,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
 - `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
+- `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
 - `tests/test_zipfile_utils.py` — unit tests for `zipfile_utils.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
@@ -20420,6 +20497,7 @@ semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
 sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
+importlib_utils.py         # importlib utilities (dynamic import, reload, spec, metadata, resources)
 zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -20576,7 +20654,8 @@ tests/                     # Python unit tests
   test_argparse_utils.py      # Tests for argparse_utils.py
 test_warnings_utils.py      # Tests for warnings_utils.py
    test_xml_utils.py           # Tests for xml_utils.py
-   test_zipfile_utils.py       # Tests for zipfile_utils.py
+   test_importlib_utils.py     # Tests for importlib_utils.py
+test_zipfile_utils.py       # Tests for zipfile_utils.py
    ```
 ## Getting Started
 

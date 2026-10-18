@@ -110,6 +110,7 @@ shutil_utils.py            # High-level file operations (copy, move, remove, arc
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
 sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
 marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
+importlib_utils.py         # importlib utilities (dynamic import, reload, spec, metadata, resources)
 zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
 bz2_utils.py               # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
@@ -278,7 +279,8 @@ test_scaffold.py            # Tests for scaffold.sh
 test_weakref_utils.py       # Tests for weakref_utils.py
    test_warnings_utils.py      # Tests for warnings_utils.py
    test_xml_utils.py           # Tests for xml_utils.py
-   test_zipfile_utils.py       # Tests for zipfile_utils.py
+   test_importlib_utils.py     # Tests for importlib_utils.py
+test_zipfile_utils.py       # Tests for zipfile_utils.py
    test_bz2_utils.py           # Tests for bz2_utils.py
    ```
 

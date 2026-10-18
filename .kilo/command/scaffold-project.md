@@ -24,6 +24,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
+- `importlib_utils.py` — importlib utilities (dynamic import, reload, spec inspection, metadata, resources)
 - `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation
 - `bz2_utils.py` — BZ2 compression utilities wrapping the standard library `bz2` module (`bz2_compress`, `bz2_decompress`, `bz2_open`, `bz2_write`, `bz2_read`)
 - `calculator.py` — simple calculator module with arithmetic operations
@@ -152,6 +153,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
 - `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
+- `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
 - `tests/test_zipfile_utils.py` — unit tests for `zipfile_utils.py`
 - `tests/test_bz2_utils.py` — unit tests for `bz2_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`

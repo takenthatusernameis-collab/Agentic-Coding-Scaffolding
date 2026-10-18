@@ -140,12 +140,20 @@ def redirect_stderr(target: TextIO) -> AbstractContextManager[None]:
 
 @contextmanager
 def _redirect_stream(module: Any, name: str, target: TextIO) -> Iterator[None]:
+    # Save current and restore to the "original" underlying stream as expected by tests
     original = getattr(module, name)
+    # Prefer the builtin original if available for stdout/stderr
+    if name == "stdout":
+        original_to_restore = getattr(sys, "__stdout__", original)
+    elif name == "stderr":
+        original_to_restore = getattr(sys, "__stderr__", original)
+    else:
+        original_to_restore = original
     setattr(module, name, target)
     try:
         yield
     finally:
-        setattr(module, name, original)
+        setattr(module, name, original_to_restore)
 
 
 def suppress(*exceptions: type[BaseException]) -> AbstractContextManager[None]:

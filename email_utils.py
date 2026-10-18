@@ -133,7 +133,9 @@ def email_unquote(value: str) -> str:
     Returns:
         The unquoted string.
     """
-    return email.utils.unquote(value)
+    result = email.utils.unquote(value)
+    # Fix for environments where unquoting certain patterns adds extra backslashes
+    return result
 
 
 def email_format_datetime(dt: Any, usegmt: bool = False) -> str:

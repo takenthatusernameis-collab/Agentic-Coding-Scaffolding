@@ -569,3 +569,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `plistlib_utils.py` across scaffolding (`scaffold.sh` py_modules and heredocs for module/tests/scaffold-project.md, `.kilo/command/scaffold-project.md`, `pyproject.toml`, `tests/test_scaffold.py`); added `plistlib_utils` entries where missing
 - Added `reprlib_utils.py` — reprlib utilities wrapping the standard library `reprlib` module (`repr`, `get_ident`, `recursive_repr`, `Repr`) with input validation, plus `tests/test_reprlib_utils.py`.
 - Synchronized `reprlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- `importlib_utils.py` — importlib utilities (dynamic import, reload, spec inspection, module metadata, resources)
+- `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
