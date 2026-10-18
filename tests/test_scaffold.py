@@ -186,6 +186,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_exceptions_utils.py",
             "exceptions_utils.py",
             "tests/test_exceptions_utils.py",
+            "email_utils.py",
+            "tests/test_email_utils.py",
             "enum_utils.py",
             "tests/test_enum_utils.py",
             "io_utils.py",
@@ -408,6 +410,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_exceptions_utils.py",
             "exceptions_utils.py",
             "tests/test_exceptions_utils.py",
+            "email_utils.py",
+            "tests/test_email_utils.py",
             "io_utils.py",
             "tests/test_io_utils.py",
             "ini_utils.py",
@@ -500,6 +504,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_type_utils.py",
             "tests/test_config_schema.py",
             "tests/test_copy_utils.py",
+            "tests/test_email_utils.py",
             "tests/test_io_utils.py",
             "tests/test_terminal_utils.py",
             "tests/test_seq_utils.py",
@@ -594,6 +599,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_exceptions_utils.py",
             "exceptions_utils.py",
             "tests/test_exceptions_utils.py",
+            "email_utils.py",
+            "tests/test_email_utils.py",
             "io_utils.py",
             "tests/test_io_utils.py",
             "ini_utils.py",
@@ -876,6 +883,44 @@ class TestScaffoldKiloJson(unittest.TestCase):
             else:
                 self.fail(f"expected TypeError from {fn.__name__}(123)")
         self.assertFalse(is_valid_locale(123))  # type: ignore[arg-type]
+
+    def test_email_utils_functions_work(self) -> None:
+        """Generated email_utils.py should have working functions."""
+        import datetime
+
+        from email_utils import (
+            email_format_datetime,
+            email_formataddr,
+            email_formatdate,
+            email_getaddresses,
+            email_make_msgid,
+            email_mktime_tz,
+            email_parseaddr,
+            email_parsedate,
+            email_parsedate_to_datetime,
+            email_quote,
+            email_unquote,
+        )
+
+        self.assertTrue(email_formatdate())
+        self.assertTrue(email_formatdate(usegmt=True))
+        self.assertTrue(email_formatdate(localtime=True))
+        self.assertEqual(email_parseaddr("User <user@example.com>"), ("User", "user@example.com"))
+        self.assertEqual(email_formataddr(("User", "user@example.com")).count("@"), 1)
+        addrs = email_getaddresses(["User <user@example.com>"])
+        self.assertEqual(addrs, [("User", "user@example.com")])
+        self.assertTrue(email_make_msgid().startswith("<") and email_make_msgid().endswith(">"))
+        self.assertIsInstance(email_mktime_tz((2015, 10, 21, 7, 28, 0, 0, 0, 0, 0)), (int, float))
+        parsed = email_parsedate("Wed, 21 Oct 2015 07:28:00 GMT")
+        self.assertIsNotNone(parsed)
+        assert parsed is not None
+        self.assertEqual(parsed[0], 2015)
+        self.assertEqual(email_parsedate_to_datetime("Wed, 21 Oct 2015 07:28:00 GMT").year, 2015)
+        self.assertIsNone(email_parsedate("not a date"))
+        self.assertIsInstance(email_quote('say "hi"'), str)
+        self.assertIsInstance(email_unquote('say "hi"'), str)
+        dt = datetime.datetime(2015, 10, 21, 7, 28, 0, tzinfo=datetime.timezone.utc)
+        self.assertIn("Oct", email_format_datetime(dt))
 
     def test_logging_utils_functions_work(self) -> None:
         """Generated logging_utils.py should have working functions."""

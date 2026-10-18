@@ -213,6 +213,8 @@
 
 #   - exceptions_utils.py — # Custom exception classes and error handling utilities
 
+#   - email_utils.py — # Email utilities wrapping the standard library email.utils module
+
 #   - enum_utils.py — # Enum utilities for working with Python enum.Enum classes
 
 #   - io_utils.py — # Line-oriented and atomic input/output utilities
@@ -849,6 +851,7 @@ py_modules = [
     "config_schema",
     "copy_utils",
     "exceptions_utils",
+    "email_utils",
     "enum_utils",
     "io_utils",
     "ini_utils",
@@ -18050,6 +18053,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_copy_utils.py` — unit tests for `copy_utils.py`
 - `exceptions_utils.py` — custom exception classes and error handling utilities
 - `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
+- `email_utils.py` — email utilities wrapping the standard library `email.utils` module (`email_formatdate`, `email_parsedate`, `email_parseaddr`, `email_formataddr`, `email_getaddresses`, `email_make_msgid`, `email_quote`, `email_unquote`, `email_format_datetime`)
+- `tests/test_email_utils.py` — unit tests for `email_utils.py`
 - `enum_utils.py` — enum utilities for working with Python `enum.Enum` classes (`enum_to_dict`, `get_enum_member`, `is_enum_member`, `list_enum_members`, `enum_value_from_name`, `enum_name_from_value`) with input validation
 - `tests/test_enum_utils.py` — unit tests for `enum_utils.py`
 - `io_utils.py` — line-oriented and atomic input/output utilities (`read_lines`, `write_lines`, `append_text`, `atomic_write_text`, `stream_copy`, `count_lines`, `iter_lines`)
@@ -18142,6 +18147,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `gzip_utils.py` — gzip compression/decompression utilities
 - `tests/test_os_utils.py` — unit tests for `os_utils.py`
 - `tests/test_gzip_utils.py` — unit tests for `gzip_utils.py`
+- `email_utils.py` — email utilities wrapping the standard library `email.utils` module (`email_formatdate`, `email_parsedate`, `email_parseaddr`, `email_formataddr`, `email_getaddresses`, `email_make_msgid`, `email_quote`, `email_unquote`, `email_format_datetime`)
+- `tests/test_email_utils.py` — unit tests for `email_utils.py`
 - `plistlib_utils.py` — plistlib utility functions wrapping standard library `plistlib` module
 - `tests/test_plistlib_utils.py` — unit tests for `plistlib_utils.py`
 - `sort_utils.py — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
@@ -19149,6 +19156,7 @@ functools_utils.py         # Functional programming utilities (compose, pipe, cu
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 exceptions_utils.py        # Custom exception classes and error handling utilities
+email_utils.py             # Email utilities wrapping the standard library email.utils module
 enum_utils.py              # Enum utilities for working with Python enum.Enum classes
 io_utils.py                # Line-oriented and atomic input/output utilities
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
@@ -19308,6 +19316,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `email_utils.py` — email utilities wrapping the standard library `email.utils` module (`email_formatdate`, `email_parsedate`, `email_parsedate_to_datetime`, `email_mktime_tz`, `email_parseaddr`, `email_formataddr`, `email_getaddresses`, `email_make_msgid`, `email_quote`, `email_unquote`, `email_format_datetime`) with input validation, plus `tests/test_email_utils.py`.
+- Synchronized `email_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation, plus `tests/test_socketserver_utils.py`.
 - Synchronized `socketserver_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -28063,6 +28074,266 @@ if __name__ == "__main__":
 
     unittest.main()
 TESTPLISTLIBUTILS
+# --- email_utils.py ---
+cat > "$OUTPUT_DIR/email_utils.py" <<'EMAIL_UTILS'
+"""Email utility functions wrapping the standard library 'email.utils' module."""
+
+from __future__ import annotations
+
+import email.utils
+from typing import Any
+
+
+def email_formatdate(timeval: Any = None, localtime: bool = False, usegmt: bool = False) -> str:
+    """Return a date string formatted per RFC 2822.
+
+    Args:
+        timeval: Seconds since the epoch (None uses the current time).
+        localtime: Use local time instead of UTC.
+        usegmt: Use "-0000" instead of "+0000" for UTC.
+
+    Returns:
+        An RFC 2822 formatted date string.
+    """
+    return email.utils.formatdate(timeval=timeval, localtime=localtime, usegmt=usegmt)
+
+
+def email_parsedate(data: str) -> tuple[int, ...] | None:
+    """Parse an RFC 2822 date string into a time tuple.
+
+    Args:
+        data: An RFC 2822 date string.
+
+    Returns:
+        A 9-element time tuple, or None if the string could not be parsed.
+    """
+    return email.utils.parsedate(data)
+
+
+def email_parsedate_to_datetime(data: str) -> Any:
+    """Parse an RFC 2822 date string into a datetime.
+
+    Args:
+        data: An RFC 2822 date string.
+
+    Returns:
+        A datetime instance, or None if the string could not be parsed.
+    """
+    return email.utils.parsedate_to_datetime(data)
+
+
+def email_mktime_tz(data: tuple[int, ...]) -> float:
+    """Convert a 10-element time tuple to a UTC timestamp.
+
+    Args:
+        data: A 10-element time tuple (as returned by parsedate).
+
+    Returns:
+        The UTC timestamp as a float.
+    """
+    return email.utils.mktime_tz(data)
+
+
+def email_parseaddr(addr: str, strict: bool = True) -> tuple[str, str]:
+    """Parse an email address into (realname, email_address).
+
+    Args:
+        addr: An address header value such as "User <user@example.com>".
+        strict: Whether to use strict parsing.
+
+    Returns:
+        A tuple of (realname, email_address).
+    """
+    return email.utils.parseaddr(addr, strict=strict)
+
+
+def email_formataddr(pair: tuple[str, str], charset: str = "utf-8") -> str:
+    """Format an (realname, email_address) pair into an address string.
+
+    Args:
+        pair: A (realname, email_address) tuple.
+        charset: Character set for encoding the realname.
+
+    Returns:
+        A formatted address string.
+    """
+    return email.utils.formataddr(pair, charset=charset)
+
+
+def email_getaddresses(fieldvalues: list[str], strict: bool = True) -> list[tuple[str, str]]:
+    """Parse a list of address header values into (realname, email_address) pairs.
+
+    Args:
+        fieldvalues: A list of address header values.
+        strict: Whether to use strict parsing.
+
+    Returns:
+        A list of (realname, email_address) tuples.
+    """
+    return email.utils.getaddresses(fieldvalues, strict=strict)
+
+
+def email_make_msgid(idstring: str | None = None, domain: str | None = None) -> str:
+    """Return a Message-ID string suitable for email headers.
+
+    Args:
+        idstring: Optional string to strengthen uniqueness.
+        domain: Optional domain portion of the message id.
+
+    Returns:
+        A Message-ID string enclosed in angle brackets.
+    """
+    return email.utils.make_msgid(idstring=idstring, domain=domain)
+
+
+def email_quote(value: str) -> str:
+    """Quote a string for use in an email header.
+
+    Args:
+        value: The string to quote.
+
+    Returns:
+        The quoted string.
+    """
+    return email.utils.quote(value)
+
+
+def email_unquote(value: str) -> str:
+    """Unquote a quoted string from an email header.
+
+    Args:
+        value: The quoted string to unquote.
+
+    Returns:
+        The unquoted string.
+    """
+    return email.utils.unquote(value)
+
+
+def email_format_datetime(dt: Any, usegmt: bool = False) -> str:
+    """Format a datetime into an RFC 2822 date string.
+
+    Args:
+        dt: A datetime instance.
+        usegmt: Use "-0000" instead of "+0000" for UTC.
+
+    Returns:
+        An RFC 2822 formatted date string.
+    """
+    return email.utils.format_datetime(dt, usegmt=usegmt)
+
+
+__all__ = [
+    "email_formatdate",
+    "email_parsedate",
+    "email_parsedate_to_datetime",
+    "email_mktime_tz",
+    "email_parseaddr",
+    "email_formataddr",
+    "email_getaddresses",
+    "email_make_msgid",
+    "email_quote",
+    "email_unquote",
+    "email_format_datetime",
+]
+EMAIL_UTILS
+# --- tests/test_email_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_email_utils.py" <<'TESTEMAILUTILS'
+import datetime
+
+import email_utils
+
+
+def test_formatdate_default():
+    result = email_utils.email_formatdate()
+    assert result.endswith("GMT")
+
+
+def test_formatdate_usegmt():
+    result = email_utils.email_formatdate(usegmt=True)
+    assert result.endswith("-0000") or result.endswith("+0000")
+
+
+def test_formatdate_localtime():
+    result = email_utils.email_formatdate(localtime=True)
+    assert "+" in result or "-" in result
+
+
+def test_parsedate():
+    result = email_utils.email_parsedate("Wed, 21 Oct 2015 07:28:00 GMT")
+    assert result is not None
+    assert result[0] == 2015
+
+
+def test_parsedate_invalid():
+    assert email_utils.email_parsedate("not a date") is None
+
+
+def test_parsedate_to_datetime():
+    result = email_utils.email_parsedate_to_datetime("Wed, 21 Oct 2015 07:28:00 GMT")
+    assert result is not None
+    assert result.year == 2015
+
+
+def test_parsedate_to_datetime_invalid():
+    assert email_utils.email_parsedate_to_datetime("not a date") is None
+
+
+def test_mktime_tz():
+    t = (2015, 10, 21, 7, 28, 0, 0, 0, 0, 0)
+    result = email_utils.email_mktime_tz(t)
+    assert isinstance(result, float)
+
+
+def test_parseaddr():
+    name, addr = email_utils.email_parseaddr("User <user@example.com>")
+    assert name == "User"
+    assert addr == "user@example.com"
+
+
+def test_parseaddr_strict_false():
+    name, addr = email_utils.email_parseaddr("user@example.com", strict=False)
+    assert addr == "user@example.com"
+
+
+def test_formataddr():
+    result = email_utils.email_formataddr(("User", "user@example.com"))
+    assert "user@example.com" in result
+
+
+def test_formataddr_charset():
+    result = email_utils.email_formataddr(("User", "user@example.com"), charset="ascii")
+    assert "user@example.com" in result
+
+
+def test_getaddresses():
+    result = email_utils.email_getaddresses(["User <user@example.com>"])
+    assert result == [("User", "user@example.com")]
+
+
+def test_make_msgid():
+    result = email_utils.email_make_msgid()
+    assert result.startswith("<")
+    assert result.endswith(">")
+
+
+def test_make_msgid_domain():
+    result = email_utils.email_make_msgid(domain="example.com")
+    assert "example.com" in result
+
+
+def test_quote_unquote():
+    quoted = email_utils.email_quote('hello "world"')
+    assert isinstance(quoted, str)
+    assert email_utils.email_unquote(quoted) == 'hello "world"'
+
+
+def test_format_datetime():
+    dt = datetime.datetime(2015, 10, 21, 7, 28, 0, tzinfo=datetime.timezone.utc)
+    result = email_utils.email_format_datetime(dt)
+    assert "2015" in result
+    assert "Oct" in result
+TESTEMAILUTILS
 # --- queue_utils.py ---
 cat > "$OUTPUT_DIR/queue_utils.py" <<'QUEUE_UTILS'
 """Utility helpers for queue operations."""

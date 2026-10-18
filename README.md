@@ -129,6 +129,7 @@ operator_utils.py          # Operator utilities (identity, negate, add, subtract
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 copy_utils.py              # Copy utilities (shallow/deep copy, dict copy, merge) wrapping stdlib copy module
 exceptions_utils.py        # Custom exception classes and error handling utilities
+email_utils.py             # Email utilities wrapping the standard library email.utils module
 enum_utils.py              # Enum utilities for working with Python enum.Enum classes
 io_utils.py                # Line-oriented and atomic input/output utilities
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
@@ -436,6 +437,10 @@ Completed task: Added a new `config_schema.py` module with typed configuration s
 ## Exception Utilities Module
 
 The project includes custom exception types and utilities in `exceptions_utils.py`: custom exceptions (`ValidationError`, `ConfigurationError`, `NotFoundError`, `PermissionError_`, `TimeoutError_`) with support for error details and field metadata; helper functions `catch_and_wrap()` to catch and wrap exceptions while preserving the cause, `get_error_details()` to extract exception type/message/traceback as a dict, and `is_instance_of_any()` to test for membership in an exception tuple. The module is tested in `tests/test_exceptions_utils.py`.
+
+## Email Utilities Module
+
+The project includes email utilities in `email_utils.py` wrapping the standard library `email.utils` module: `email_formatdate` returns an RFC 2822 formatted date string, `email_parsedate` parses an RFC 2822 date string into a time tuple, `email_parsedate_to_datetime` parses into a datetime, `email_mktime_tz` converts a time tuple to a UTC timestamp, `email_parseaddr` and `email_formataddr` parse and format address headers, `email_getaddresses` parses multiple address values, `email_make_msgid` generates a Message-ID, `email_quote` and `email_unquote` quote and unquote header strings, and `email_format_datetime` formats a datetime as an RFC 2822 date string. The module is tested in `tests/test_email_utils.py`.
 
 ## Enum Utilities Module
 

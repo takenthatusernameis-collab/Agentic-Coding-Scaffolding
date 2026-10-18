@@ -105,6 +105,7 @@ py_modules = [
     "config_schema",
     "copy_utils",
     "exceptions_utils",
+    "email_utils",
     "enum_utils",
     "io_utils",
     "ini_utils",
