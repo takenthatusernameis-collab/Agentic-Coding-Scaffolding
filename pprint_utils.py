@@ -11,7 +11,13 @@ def pformat(obj, indent=1, width=80, depth=None, compact=False, sort_dicts=True)
 
 def pprint(obj, stream=None, indent=1, width=80, depth=None, compact=False, sort_dicts=True):
     return _pprint.pprint(
-        obj, stream=stream, indent=indent, width=width, depth=depth, compact=compact, sort_dicts=sort_dicts
+        obj,
+        stream=stream,
+        indent=indent,
+        width=width,
+        depth=depth,
+        compact=compact,
+        sort_dicts=sort_dicts,
     )
 
 

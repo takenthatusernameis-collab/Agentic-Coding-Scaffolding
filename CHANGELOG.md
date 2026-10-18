@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `pprint_utils.py` — pretty-printing utilities wrapping the standard library `pprint` module (`pformat`, `pprint`, `isreadable`, `isrecursive`, `saferepr`) with input validation, plus `tests/test_pprint_utils.py`.
+- Synchronized `pprint_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
 - Added `colorsys_utils.py` — colorsys utilities wrapping the standard library `colorsys` module (`rgb_to_hls`, `hls_to_rgb`, `rgb_to_hsv`, `hsv_to_rgb`, `rgb_to_yiq`, `yiq_to_rgb`) with input validation, plus `tests/test_colorsys_utils.py`.
 - Synchronized `colorsys_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, and this CHANGELOG Unreleased entry.
 

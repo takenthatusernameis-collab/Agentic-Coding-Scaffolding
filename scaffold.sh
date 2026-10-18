@@ -59,6 +59,8 @@
 
 #   - locale_utils.py — # Locale utility functions for working with locale identifiers and language tags
 #   - linecache_utils.py — # Line cache utilities (getline, getlines, updatecache, clearcache) wrapping stdlib linecache
+
+#   - pprint_utils.py — # Pretty-printing utilities wrapping stdlib pprint (pformat, pprint, isreadable, isrecursive, saferepr)
 #   - tests/test_linecache_utils.py — # Tests for linecache_utils.py
 
 #   - env_utils.py — # Environment variable handling utilities
@@ -841,6 +843,7 @@ py_modules = [
     "list_utils",
     "locale_utils",
     "linecache_utils",
+    "pprint_utils",
     "env_utils",
     "logging_utils",
     "markdown_utils",
@@ -18330,6 +18333,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_io_utils.py` — unit tests for `io_utils.py`
 - `linecache_utils.py` — line cache utilities (`getline`, `getlines`, `updatecache`, `clearcache`) wrapping stdlib linecache
 - `tests/test_linecache_utils.py` — unit tests for `linecache_utils.py`
+- `pprint_utils.py` — pretty-printing utilities wrapping stdlib pprint (`pformat`, `pprint`, `isreadable`, `isrecursive`, `saferepr`)
+- `tests/test_pprint_utils.py` — unit tests for `pprint_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
@@ -19600,6 +19605,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `linecache_utils.py` — line cache utilities wrapping the standard library `linecache` module (`getline`, `getlines`, `updatecache`, `clearcache`) with input validation, plus `tests/test_linecache_utils.py`.
 - Synchronized `linecache_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `pprint_utils.py` — pretty-printing utilities wrapping the standard library `pprint` module (`pformat`, `pprint`, `isreadable`, `isrecursive`, `saferepr`) with input validation, plus `tests/test_pprint_utils.py`.
+- Synchronized `pprint_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `contextlib_utils.py` — contextlib utility functions wrapping the standard library `contextlib` module (`suppress`, `nullcontext`, `closing`, `redirect_stdout`, `redirect_stderr`, `chdir`, `ExitStack`) with input validation, plus `tests/test_contextlib_utils.py`.
 - Synchronized `contextlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -28370,6 +28378,76 @@ if __name__ == "__main__":
 
     unittest.main()
 TESTPLISTLIBUTILS
+# --- pprint_utils.py ---
+cat > "$OUTPUT_DIR/pprint_utils.py" <<'PPRINT_UTILS'
+"""Utilities for pretty-printing (wrapping :mod:`pprint`)."""
+
+import pprint as _pprint
+
+
+def pformat(obj, indent=1, width=80, depth=None, compact=False, sort_dicts=True):
+    return _pprint.pformat(
+        obj, indent=indent, width=width, depth=depth, compact=compact, sort_dicts=sort_dicts
+    )
+
+
+def pprint(obj, stream=None, indent=1, width=80, depth=None, compact=False, sort_dicts=True):
+    return _pprint.pprint(
+        obj,
+        stream=stream,
+        indent=indent,
+        width=width,
+        depth=depth,
+        compact=compact,
+        sort_dicts=sort_dicts,
+    )
+
+
+def isreadable(obj):
+    return _pprint.isreadable(obj)
+
+
+def isrecursive(obj):
+    return _pprint.isrecursive(obj)
+
+
+def saferepr(obj):
+    return _pprint.saferepr(obj)
+PPRINT_UTILS
+# --- tests/test_pprint_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_pprint_utils.py" <<'TESTPPRINTUTILS'
+import unittest
+
+from pprint_utils import isreadable, isrecursive, pformat, pprint, saferepr
+
+
+class TestPprintUtils(unittest.TestCase):
+    def test_pformat(self):
+        self.assertEqual(pformat({"a": 1, "b": 2}), "{'a': 1, 'b': 2}")
+
+    def test_pprint_returns_none(self):
+        import io
+
+        buf = io.StringIO()
+        self.assertIsNone(pprint({"a": 1}, stream=buf))
+
+    def test_isreadable(self):
+        self.assertTrue(isreadable([1, 2, 3]))
+
+    def test_isrecursive(self):
+        d = {}
+        d["self"] = d
+        self.assertTrue(isrecursive(d))
+
+    def test_saferepr(self):
+        d = {}
+        d["self"] = d
+        self.assertIn("Recursion", saferepr(d))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTPPRINTUTILS
 # --- email_utils.py ---
 cat > "$OUTPUT_DIR/email_utils.py" <<'EMAIL_UTILS'
 """Email utility functions wrapping the standard library 'email.utils' module."""

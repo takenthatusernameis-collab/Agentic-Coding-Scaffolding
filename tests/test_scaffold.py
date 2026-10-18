@@ -289,9 +289,11 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_interval_utils.py",
             "threading_utils.py",
             "tests/test_threading_utils.py",
-            "selectors_utils.py",
-            "tests/test_selectors_utils.py",
-"gzip_utils.py",
+"selectors_utils.py",
+             "tests/test_selectors_utils.py",
+             "pprint_utils.py",
+             "tests/test_pprint_utils.py",
+             "gzip_utils.py",
              "tests/test_gzip_utils.py",
              "plistlib_utils.py",
              "tests/test_plistlib_utils.py",
@@ -489,6 +491,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "shlex_utils.py",
              "keyword_utils.py",
              "socketserver_utils.py",
+             "pprint_utils.py",
          ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -547,6 +550,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "tests/test_shlex_utils.py",
              "tests/test_keyword_utils.py",
              "tests/test_socketserver_utils.py",
+             "tests/test_pprint_utils.py",
          ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -703,6 +707,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "glob_utils.py",
              "shlex_utils.py",
              "keyword_utils.py",
+             "linecache_utils.py",
+             "pprint_utils.py",
+             "tests/test_pprint_utils.py",
          ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 

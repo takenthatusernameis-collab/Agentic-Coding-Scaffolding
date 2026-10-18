@@ -24,7 +24,7 @@ class TestPprintUtils(unittest.TestCase):
     def test_saferepr(self):
         d = {}
         d["self"] = d
-        self.assertIn("...", saferepr(d))
+        self.assertIn("Recursion", saferepr(d))
 
 
 if __name__ == "__main__":

@@ -129,6 +129,7 @@ calendar_utils.py            # Calendar utilities for date and month calculation
 cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
+pprint_utils.py            # Pretty-printing utilities wrapping stdlib pprint (pformat, pprint, isreadable, isrecursive, saferepr)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
@@ -208,8 +209,9 @@ tests/                     # Python unit tests
   test_number_utils.py        # Tests for number_utils.py
   test_operator_utils.py      # Tests for operator_utils.py
   test_os_utils.py            # Tests for os_utils.py
-  test_path_utils.py          # Tests for path_utils.py
+test_path_utils.py          # Tests for path_utils.py
   test_pattern_utils.py       # Tests for pattern_utils.py
+  test_pprint_utils.py        # Tests for pprint_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
@@ -444,6 +446,10 @@ The project includes colorsys utilities in `colorsys_utils.py` wrapping the stan
 ## Design Pattern Utilities Module
 
 The project includes a design pattern utilities module in `pattern_utils.py` with reusable implementations of common object-oriented design patterns: `Singleton` (a thread-safe metaclass and `SingletonBase` base class that restrict a class to a single instance), `Factory` (a registry-based factory that creates objects by name), `Observer`/`Observable` (a publish-subscribe mechanism for change notifications), and `Strategy`/`StrategyContext` (plug-and-play algorithm selection). The module is tested in `tests/test_pattern_utils.py`.
+
+## Pretty-Printing Utilities Module
+
+The project includes pretty-printing utilities in `pprint_utils.py` wrapping the standard library `pprint` module: `pformat` returns a formatted string representation of an object, `pprint` prints a formatted representation to a stream, `isreadable` reports whether an object's representation is readable by `eval`, `isrecursive` reports whether an object contains a recursive reference, and `saferepr` returns a safe string representation that truncates recursive structures. All functions forward their keyword arguments to the standard library. The module is tested in `tests/test_pprint_utils.py`.
 
 ## Configuration Schema Module
 
