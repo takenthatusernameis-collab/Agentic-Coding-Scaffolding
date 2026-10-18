@@ -162,5 +162,6 @@ py_modules = [
     "linecache_utils",
     "pprint_utils",
     "reprlib_utils",
+    "traceback_utils",
     "typing_utils",
 ]

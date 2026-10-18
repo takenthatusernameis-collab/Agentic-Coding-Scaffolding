@@ -293,10 +293,12 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "tests/test_selectors_utils.py",
               "pprint_utils.py",
               "tests/test_pprint_utils.py",
-              "reprlib_utils.py",
-              "tests/test_reprlib_utils.py",
-              "typing_utils.py",
-              "tests/test_typing_utils.py",
+"reprlib_utils.py",
+"tests/test_reprlib_utils.py",
+"traceback_utils.py",
+"tests/test_traceback_utils.py",
+"typing_utils.py",
+"tests/test_typing_utils.py",
               "gzip_utils.py",
              "tests/test_gzip_utils.py",
              "plistlib_utils.py",
@@ -495,8 +497,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "shlex_utils.py",
              "keyword_utils.py",
               "socketserver_utils.py",
-              "pprint_utils.py",
-              "typing_utils.py",
+"pprint_utils.py",
+"traceback_utils.py",
+"typing_utils.py",
           ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -555,8 +558,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "tests/test_shlex_utils.py",
               "tests/test_keyword_utils.py",
               "tests/test_socketserver_utils.py",
-              "tests/test_pprint_utils.py",
-              "tests/test_typing_utils.py",
+"tests/test_pprint_utils.py",
+"tests/test_traceback_utils.py",
+"tests/test_typing_utils.py",
           ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -716,10 +720,12 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "linecache_utils.py",
               "pprint_utils.py",
               "tests/test_pprint_utils.py",
-              "reprlib_utils.py",
-              "tests/test_reprlib_utils.py",
-              "typing_utils.py",
-              "tests/test_typing_utils.py",
+"reprlib_utils.py",
+"tests/test_reprlib_utils.py",
+"traceback_utils.py",
+"tests/test_traceback_utils.py",
+"typing_utils.py",
+"tests/test_typing_utils.py",
           ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
@@ -1449,6 +1455,47 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertIs(Final, typing.Final)
         self.assertIs(Literal, typing.Literal)
         self.assertIs(ClassVar, typing.ClassVar)
+
+
+    def test_traceback_utils_functions_work(self):
+        """Generated traceback_utils.py should have working functions."""
+        from traceback_utils import (
+            extract_stack,
+            format_exc,
+            format_exception,
+            format_exception_only,
+            format_stack,
+        )
+
+        result = format_exception_only(ValueError, ValueError("boom"))
+        self.assertIsInstance(result, list)
+        self.assertTrue(any("boom" in line for line in result))
+
+        try:
+            raise RuntimeError("kaboom")
+        except RuntimeError as exc:
+            result = format_exception(exc)
+        self.assertIsInstance(result, list)
+        self.assertTrue(any("kaboom" in line for line in result))
+
+        result = extract_stack()
+        self.assertIsInstance(result, list)
+        self.assertGreaterEqual(len(result), 1)
+
+        result = format_stack()
+        self.assertIsInstance(result, list)
+        self.assertGreaterEqual(len(result), 1)
+
+        result = format_exc()
+        self.assertIsInstance(result, str)
+        self.assertEqual(result, "")
+
+        try:
+            raise RuntimeError("traceback test")
+        except RuntimeError:
+            result = format_exc()
+        self.assertIsInstance(result, str)
+        self.assertIn("RuntimeError", result)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):

@@ -62,8 +62,10 @@
 
 #   - pprint_utils.py — # Pretty-printing utilities wrapping stdlib pprint (pformat, pprint, isreadable, isrecursive, saferepr)
 #   - reprlib_utils.py — # Reprlib utilities wrapping stdlib reprlib (repr, get_ident, recursive_repr, Repr)
+#   - traceback_utils.py — # Traceback utilities wrapping stdlib traceback (format_exception, format_exception_only, extract_stack, format_stack, format_exc)
 #   - typing_utils.py — # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 #   - tests/test_linecache_utils.py — # Tests for linecache_utils.py
+#   - tests/test_traceback_utils.py — # Tests for traceback_utils.py
 #   - tests/test_typing_utils.py — # Tests for typing_utils.py
 
 #   - env_utils.py — # Environment variable handling utilities
@@ -848,6 +850,7 @@ py_modules = [
     "linecache_utils",
     "pprint_utils",
     "reprlib_utils",
+    "traceback_utils",
     "typing_utils",
     "env_utils",
     "logging_utils",
@@ -28680,6 +28683,89 @@ class TestTypingUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTTYPINGUTILS
+# --- traceback_utils.py ---
+cat > "$OUTPUT_DIR/traceback_utils.py" <<'TRACEBACK_UTILS'
+"""Utilities for traceback (wrapping :mod:`traceback`)."""
+
+import traceback as _traceback
+
+
+def format_exception(exc):
+    return _traceback.format_exception(exc)
+
+
+def format_exception_only(exc_type, exc_value=None):
+    return _traceback.format_exception_only(exc_type, exc_value)
+
+
+def extract_stack():
+    return _traceback.extract_stack()
+
+
+def format_stack():
+    return _traceback.format_stack()
+
+
+def format_exc():
+    return _traceback.format_exc()
+TRACEBACK_UTILS
+# --- tests/test_traceback_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_traceback_utils.py" <<'TESTTRACEBACKUTILS'
+import unittest
+
+from traceback_utils import (
+    extract_stack,
+    format_exc,
+    format_exception,
+    format_exception_only,
+    format_stack,
+)
+
+
+class TestTracebackUtils(unittest.TestCase):
+    def test_format_exception_only(self):
+        result = format_exception_only(ValueError, ValueError("something went wrong"))
+        self.assertIsInstance(result, list)
+        self.assertTrue(all(isinstance(line, str) for line in result))
+        self.assertTrue(any("something went wrong" in line for line in result))
+
+    def test_format_exception(self):
+        try:
+            raise ValueError("boom")
+        except ValueError as exc:
+            result = format_exception(exc)
+        self.assertIsInstance(result, list)
+        self.assertTrue(any("boom" in line for line in result))
+
+    def test_extract_stack(self):
+        result = extract_stack()
+        self.assertIsInstance(result, list)
+        self.assertGreaterEqual(len(result), 1)
+
+    def test_format_stack(self):
+        result = format_stack()
+        self.assertIsInstance(result, list)
+        self.assertGreaterEqual(len(result), 1)
+        self.assertTrue(all(isinstance(line, str) for line in result))
+
+    def test_format_exc_no_exception(self):
+        result = format_exc()
+        self.assertIsInstance(result, str)
+        self.assertEqual(result, "")
+
+    def test_format_exc_with_exception(self):
+        try:
+            raise RuntimeError("traceback test")
+        except RuntimeError:
+            result = format_exc()
+        self.assertIsInstance(result, str)
+        self.assertIn("RuntimeError", result)
+        self.assertIn("traceback test", result)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTRACEBACKUTILS
 # --- email_utils.py ---
 cat > "$OUTPUT_DIR/email_utils.py" <<'EMAIL_UTILS'
 """Email utility functions wrapping the standard library 'email.utils' module."""

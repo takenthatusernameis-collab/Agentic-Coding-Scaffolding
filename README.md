@@ -131,6 +131,7 @@ struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 pprint_utils.py            # Pretty-printing utilities wrapping stdlib pprint (pformat, pprint, isreadable, isrecursive, saferepr)
 reprlib_utils.py           # Reprlib utilities wrapping stdlib reprlib (repr, get_ident, recursive_repr, Repr)
+traceback_utils.py         # Traceback utilities wrapping stdlib traceback (format_exception, format_exception_only, extract_stack, format_stack, format_exc)
 typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
@@ -214,8 +215,9 @@ tests/                     # Python unit tests
 test_path_utils.py          # Tests for path_utils.py
   test_pattern_utils.py       # Tests for pattern_utils.py
   test_pprint_utils.py        # Tests for pprint_utils.py
-  test_reprlib_utils.py       # Tests for reprlib_utils.py
-  test_typing_utils.py        # Tests for typing_utils.py
+test_reprlib_utils.py       # Tests for reprlib_utils.py
+test_traceback_utils.py     # Tests for traceback_utils.py
+test_typing_utils.py        # Tests for typing_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
@@ -728,3 +730,7 @@ The project includes contextlib utility functions in `contextlib_utils.py` for w
 ## Typing Utilities Module
 
 The project includes typing utilities in `typing_utils.py` wrapping the standard library `typing` module: `get_type_hints` returns the type hints of a callable or object, `get_origin` returns the unsubscripted generic type, `get_args` returns the type arguments, and `is_typeddict` reports whether a type is a `TypedDict`. The module also re-exports `overload`, `Final`, `Literal`, and `ClassVar` for convenience. All functions forward their keyword arguments to the standard library. The module is tested in `tests/test_typing_utils.py`.
+
+## Traceback Utilities Module
+
+The project includes traceback utilities in `traceback_utils.py` wrapping the standard library `traceback` module: `format_exception` formats an exception as a list of strings, `format_exception_only` formats the exception portion, `extract_stack` returns the current stack as `FrameSummary` objects, `format_stack` renders the current stack trace, and `format_exc` returns the active exception as a string. All functions forward to the standard library. The module is tested in `tests/test_traceback_utils.py`.
