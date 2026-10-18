@@ -849,6 +849,7 @@ py_modules = [
     "itertools_utils",
     "cli_utils",
     "color_utils",
+    "colorsys_utils",
     "timing_utils",
     "async_utils",
     "concurrent_utils",
@@ -869,6 +870,7 @@ py_modules = [
     "functools_utils",
     "config_schema",
     "copy_utils",
+    "dataclasses_utils",
     "exceptions_utils",
     "email_utils",
     "enum_utils",
@@ -11594,6 +11596,75 @@ class TestBlendColors(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTCOLORUTILS
+# --- colorsys_utils.py ---
+cat > "$OUTPUT_DIR/colorsys_utils.py" <<'COLORSYSUTILS'
+"""Utilities for color system conversions (wrapping :mod:`colorsys`)."""
+
+from __future__ import annotations
+
+import colorsys
+from typing import Tuple
+
+RGB = Tuple[float, float, float]
+HLS = Tuple[float, float, float]
+HSV = Tuple[float, float, float]
+YIQ = Tuple[float, float, float]
+
+
+def rgb_to_hls(r: float, g: float, b: float) -> HLS:
+    return colorsys.rgb_to_hls(r, g, b)
+
+
+def hls_to_rgb(h: float, lightness: float, s: float) -> RGB:
+    return colorsys.hls_to_rgb(h, lightness, s)
+
+
+def rgb_to_hsv(r: float, g: float, b: float) -> HSV:
+    return colorsys.rgb_to_hsv(r, g, b)
+
+
+def hsv_to_rgb(h: float, s: float, v: float) -> RGB:
+    return colorsys.hsv_to_rgb(h, s, v)
+
+
+def rgb_to_yiq(r: float, g: float, b: float) -> YIQ:
+    return colorsys.rgb_to_yiq(r, g, b)
+
+
+def yiq_to_rgb(y: float, i: float, q: float) -> RGB:
+    return colorsys.yiq_to_rgb(y, i, q)
+COLORSYSUTILS
+# --- tests/test_colorsys_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_colorsys_utils.py" <<'TESTCOLORSYSUTILS'
+import colorsys
+
+import colorsys_utils
+
+
+def test_rgb_to_hls():
+    assert colorsys_utils.rgb_to_hls(1.0, 0.0, 0.0) == colorsys.rgb_to_hls(1.0, 0.0, 0.0)
+
+
+def test_hls_to_rgb():
+    assert colorsys_utils.hls_to_rgb(0.0, 0.5, 1.0) == colorsys.hls_to_rgb(0.0, 0.5, 1.0)
+
+
+def test_rgb_to_hsv():
+    assert colorsys_utils.rgb_to_hsv(1.0, 0.0, 0.0) == colorsys.rgb_to_hsv(1.0, 0.0, 0.0)
+
+
+def test_hsv_to_rgb():
+    assert colorsys_utils.hsv_to_rgb(0.0, 1.0, 1.0) == colorsys.hsv_to_rgb(0.0, 1.0, 1.0)
+
+
+def test_rgb_to_yiq():
+    assert colorsys_utils.rgb_to_yiq(1.0, 0.0, 0.0) == colorsys.rgb_to_yiq(1.0, 0.0, 0.0)
+
+
+def test_yiq_to_rgb():
+    a = (0.299, 0.596, 0.211)
+    assert colorsys_utils.yiq_to_rgb(*a) == colorsys.yiq_to_rgb(*a)
+TESTCOLORSYSUTILS
 # --- circuit_breaker_utils.py ---
 cat > "$OUTPUT_DIR/circuit_breaker_utils.py" <<'CIRCUITBREAKERUTILS'
 """Circuit breaker utilities.
@@ -18243,6 +18314,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
 - `copy_utils.py` — copy utilities (`shallow_copy`, `deep_copy`, `copy_dict`, `deep_copy_dict`, `merge_copy`, `is_same_object`) wrapping stdlib copy module
 - `tests/test_copy_utils.py` — unit tests for `copy_utils.py`
+- `dataclasses_utils.py` — dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
+- `tests/test_dataclasses_utils.py` — unit tests for `dataclasses_utils.py`
 - `exceptions_utils.py` — custom exception classes and error handling utilities
 - `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
 - `email_utils.py` — email utilities wrapping the standard library `email.utils` module (`email_formatdate`, `email_parsedate`, `email_parseaddr`, `email_formataddr`, `email_getaddresses`, `email_make_msgid`, `email_quote`, `email_unquote`, `email_format_datetime`)
@@ -19313,6 +19386,7 @@ tree_utils.py              # Tree and nested structure utilities (get/set/delete
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
+colorsys_utils.py          # Colorsys utilities wrapping the standard library colorsys module (RGB/HSL conversions, color math)
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
@@ -19387,6 +19461,7 @@ tests/                     # Python unit tests
   test_selectors_utils.py     # Tests for selectors_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
   test_color_utils.py         # Tests for color_utils.py
+  test_colorsys_utils.py        # Tests for colorsys_utils.py
   test_collections_utils.py   # Tests for collections_utils.py
   test_compression_utils.py   # Tests for compression_utils.py
   test_config_schema.py       # Tests for config_schema.py
@@ -19396,6 +19471,7 @@ tests/                     # Python unit tests
   test_crypto_utils.py        # Tests for crypto_utils.py
   test_csv_utils.py           # Tests for csv_utils.py
   test_data_utils.py          # Tests for data_utils.py
+  test_dataclasses_utils.py      # Tests for dataclasses_utils.py
   test_datetime_utils.py      # Tests for datetime_utils.py
   test_decimal_utils.py       # Tests for decimal_utils.py
   test_dict_utils.py          # Tests for dict_utils.py

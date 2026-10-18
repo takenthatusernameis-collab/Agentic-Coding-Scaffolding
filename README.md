@@ -162,6 +162,7 @@ tests/                     # Python unit tests
   test_cmath_utils.py        # Tests for cmath_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
   test_color_utils.py         # Tests for color_utils.py
+  test_colorsys_utils.py        # Tests for colorsys_utils.py
   test_collections_utils.py   # Tests for collections_utils.py
   test_compression_utils.py   # Tests for compression_utils.py
   test_config_schema.py       # Tests for config_schema.py
@@ -172,6 +173,7 @@ tests/                     # Python unit tests
   test_crypto_utils.py        # Tests for crypto_utils.py
   test_csv_utils.py           # Tests for csv_utils.py
   test_data_utils.py          # Tests for data_utils.py
+  test_dataclasses_utils.py      # Tests for dataclasses_utils.py
   test_datetime_utils.py      # Tests for datetime_utils.py
   test_decimal_utils.py       # Tests for decimal_utils.py
   test_dict_utils.py          # Tests for dict_utils.py
@@ -319,6 +321,10 @@ The project includes a mathematical utilities module in `math_utils.py` with fun
 
 The project includes a data utilities module in `data_utils.py` with functions for data manipulation: `deep_copy`, `merge_dicts`, `pick`, `omit`, and `flatten_dict`. The module is tested in `tests/test_data_utils.py`.
 
+## Dataclasses Utilities Module
+
+The project includes dataclass utilities in `dataclasses_utils.py` wrapping the standard library `dataclasses` module: `is_dataclass` checks whether an object is a dataclass class or instance, `is_dataclass_instance` checks for dataclass instances specifically, `fields` returns a tuple of `Field` objects, `asdict` converts a dataclass instance to a dictionary, `astuple` converts to a tuple, `replace` returns a new instance with specified fields replaced, `make_dataclass` creates a new dataclass dynamically, `get_field_names` returns field names, `get_field_default` returns a field's default value, and `has_field` checks for a field's presence. The module also re-exports `field` and `MISSING` for convenience. The module is tested in `tests/test_dataclasses_utils.py`.
+
 ## Datetime Utilities Module
 
 The project includes a date and time utilities module in `datetime_utils.py` with functions for date/time parsing, formatting, and arithmetic: `parse_datetime`, `format_datetime`, `days_between`, `is_leap_year`, `add_days`, and `get_weekday_name`. The module is tested in `tests/test_datetime_utils.py`.
@@ -430,6 +436,10 @@ The project includes a path manipulation utilities module in `path_utils.py` wit
 ## Color Utilities Module
 
 The project includes a color manipulation utilities module in `color_utils.py` with functions for converting between color representations (hexadecimal, RGB, HSL), computing WCAG 2.1 relative luminance and contrast ratios, checking accessibility, and adjusting/blending colors: `validate_hex`, `hex_to_rgb`, `rgb_to_hex`, `rgb_to_hsl`, `hsl_to_rgb`, `get_luminance`, `get_contrast_ratio`, `is_accessible`, `adjust_brightness`, and `blend_colors`. Colors are accepted as either a hex string (``#RRGGBB``) or an RGB tuple. The module is tested in `tests/test_color_utils.py`.
+
+## Colorsys Utilities Module
+
+The project includes colorsys utilities in `colorsys_utils.py` wrapping the standard library `colorsys` module: `rgb_to_hls` converts RGB to HLS, `hls_to_rgb` converts HLS to RGB, `rgb_to_hsv` converts RGB to HSV, `hsv_to_rgb` converts HSV to RGB, `rgb_to_yiq` converts RGB to YIQ, and `yiq_to_rgb` converts YIQ to RGB. The module is tested in `tests/test_colorsys_utils.py`.
 
 ## Design Pattern Utilities Module
 

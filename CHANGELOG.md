@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `colorsys_utils.py` — colorsys utilities wrapping the standard library `colorsys` module (`rgb_to_hls`, `hls_to_rgb`, `rgb_to_hsv`, `hsv_to_rgb`, `rgb_to_yiq`, `yiq_to_rgb`) with input validation, plus `tests/test_colorsys_utils.py`.
+- Synchronized `colorsys_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, and this CHANGELOG Unreleased entry.
+
+- Added `dataclasses_utils.py` — dataclass utilities wrapping the standard library `dataclasses` module (`is_dataclass`, `is_dataclass_instance`, `fields`, `asdict`, `astuple`, `replace`, `make_dataclass`, `get_field_names`, `get_field_default`, `has_field`) with input validation, plus `tests/test_dataclasses_utils.py`.
+- Synchronized `dataclasses_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, and this CHANGELOG Unreleased entry.
+
 - Added `linecache_utils.py` — line cache utilities wrapping the standard library `linecache` module (`getline`, `getlines`, `updatecache`, `clearcache`) with input validation, plus `tests/test_linecache_utils.py`.
 - Synchronized `linecache_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 

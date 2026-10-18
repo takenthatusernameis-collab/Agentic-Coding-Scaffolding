@@ -78,6 +78,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `path_utils.py` — path manipulation utilities (join, normalize, components, extensions)
 - `tests/test_path_utils.py` — unit tests for `path_utils.py`
 - `color_utils.py` — color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
+- `colorsys_utils.py` — colorsys utilities wrapping the standard library colorsys module (RGB/HSL conversions, color math)
+- `tests/test_colorsys_utils.py` — unit tests for `colorsys_utils.py`
 - `circuit_breaker_utils.py` — circuit breaker resilience utilities (`CircuitBreaker`, `CircuitOpenError`) implementing the circuit breaker pattern with thread-safe `CLOSED`/`OPEN`/`HALF_OPEN` state transitions, failure threshold, recovery timeout, and expected-exception filtering
 - `pattern_utils.py` — design pattern utilities (Singleton, Factory, Observer, Strategy)
 - `tests/test_color_utils.py` — unit tests for `color_utils.py`
@@ -95,6 +97,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
 - `copy_utils.py` — copy utilities (`shallow_copy`, `deep_copy`, `copy_dict`, `deep_copy_dict`, `merge_copy`, `is_same_object`) wrapping stdlib copy module
 - `tests/test_copy_utils.py` — unit tests for `copy_utils.py`
+- `dataclasses_utils.py` — dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
+- `tests/test_dataclasses_utils.py` — unit tests for `dataclasses_utils.py`
 - `exceptions_utils.py` — custom exception classes and error handling utilities
 - `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
 - `email_utils.py` — email utilities wrapping the standard library `email.utils` module (`email_formatdate`, `email_parsedate`, `email_parseaddr`, `email_formataddr`, `email_getaddresses`, `email_make_msgid`, `email_quote`, `email_unquote`, `email_format_datetime`)
