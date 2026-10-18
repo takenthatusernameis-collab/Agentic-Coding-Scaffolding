@@ -962,6 +962,7 @@ py_modules = [
     "shlex_utils",
     "keyword_utils",
     "importlib_utils",
+    "atexit_utils",
     "zipfile_utils",
     "bz2_utils",
 ]
@@ -1904,6 +1905,134 @@ __all__ = [
     "get_distribution_version",
 ]
 IMPORTLIB_UTILS
+
+# --- atexit_utils.py ---
+cat > "$OUTPUT_DIR/atexit_utils.py" <<'ATEXIT_UTILS'
+"""Utilities for working with Python's atexit module."""
+
+from __future__ import annotations
+
+import atexit
+from typing import Any, Callable
+
+
+def register(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Callable[..., Any]:
+    if not callable(func):
+        raise TypeError("func must be callable")
+    atexit.register(func, *args, **kwargs)
+    return func
+
+
+def unregister(func: Callable[..., Any]) -> bool:
+    if not callable(func):
+        raise TypeError("func must be callable")
+    try:
+        atexit.unregister(func)
+        return True
+    except Exception:
+        return False
+
+
+def clear() -> None:
+    try:
+        atexit._clear()  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
+
+def get_registered() -> list[Callable[..., Any]]:
+    try:
+        return list(getattr(atexit, "_exithandlers", []))  # type: ignore[attr-defined]
+    except Exception:
+        return []
+
+
+def run_exit_handlers() -> None:
+    try:
+        atexit._run_exitfuncs()  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
+
+def add(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Callable[..., Any]:
+    return register(func, *args, **kwargs)
+
+
+def remove(func: Callable[..., Any]) -> bool:
+    return unregister(func)
+
+
+__all__ = [
+    "register",
+    "unregister",
+    "clear",
+    "get_registered",
+    "run_exit_handlers",
+    "add",
+    "remove",
+]
+ATEXIT_UTILS
+
+# --- tests/test_atexit_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_atexit_utils.py" <<'TEST_ATEXIT_UTILS'
+"""Tests for atexit_utils module."""
+
+import pytest
+
+import atexit_utils
+
+
+def test_register_and_unregister() -> None:
+    calls = []
+
+    def handler() -> None:
+        calls.append("called")
+
+    result = atexit_utils.register(handler)
+    assert result is handler
+    assert atexit_utils.unregister(handler) is True
+    atexit_utils.unregister(handler)
+
+
+def test_register_with_args() -> None:
+    calls = []
+
+    def handler(x: int, y: int = 10) -> None:
+        calls.append((x, y))
+
+    atexit_utils.register(handler, 5, y=20)
+    atexit_utils.unregister(handler)
+
+
+def test_register_non_callable_raises() -> None:
+    with pytest.raises(TypeError):
+        atexit_utils.register(123)  # type: ignore[arg-type]
+
+
+def test_unregister_non_callable_raises() -> None:
+    with pytest.raises(TypeError):
+        atexit_utils.unregister(123)  # type: ignore[arg-type]
+
+
+def test_add_and_remove_aliases() -> None:
+    calls = []
+
+    def handler() -> None:
+        calls.append(1)
+
+    atexit_utils.add(handler)
+    assert atexit_utils.remove(handler) is True
+
+
+def test_get_registered() -> None:
+    handlers = atexit_utils.get_registered()
+    assert isinstance(handlers, list)
+
+
+def test_clear_and_run_handlers() -> None:
+    atexit_utils.clear()
+    atexit_utils.run_exit_handlers()
+TEST_ATEXIT_UTILS
 
 # --- tests/test_zipfile_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_zipfile_utils.py" <<'TEST_ZIPFILE_UTILS'
@@ -19310,6 +19439,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
 - `importlib_utils.py` — importlib utilities (dynamic import, reload, spec inspection, metadata, resources)
+- `atexit_utils.py` — atexit utilities for registering and managing exit handlers (dynamic import, reload, spec inspection, metadata, resources)
 - `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
@@ -20498,6 +20628,7 @@ shutil_utils.py            # High-level file operations (copy, move, remove, arc
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
 sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
 importlib_utils.py         # importlib utilities (dynamic import, reload, spec, metadata, resources)
+atexit_utils.py            # atexit utilities for registering exit handlers
 zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -20655,6 +20786,7 @@ tests/                     # Python unit tests
 test_warnings_utils.py      # Tests for warnings_utils.py
    test_xml_utils.py           # Tests for xml_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
+test_atexit_utils.py        # Tests for atexit_utils.py
 test_zipfile_utils.py       # Tests for zipfile_utils.py
    ```
 ## Getting Started
@@ -20718,6 +20850,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation, plus `tests/test_marshal_utils.py`.
 - Synchronized `marshal_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `importlib_utils.py` — importlib utilities (dynamic import, reload, spec inspection, module metadata, resources), plus `tests/test_importlib_utils.py`.
+- Added `atexit_utils.py` — atexit utilities for registering and managing exit handlers, plus `tests/test_atexit_utils.py`.
+- Synchronized `importlib_utils.py` and `atexit_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation, plus `tests/test_zipfile_utils.py`.
 - Synchronized `zipfile_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.

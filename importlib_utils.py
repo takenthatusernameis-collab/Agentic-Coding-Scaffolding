@@ -11,7 +11,7 @@ import importlib.util
 from importlib import metadata as importlib_metadata
 from importlib import resources as importlib_resources
 from types import ModuleType
-from typing import Any, Callable
+from typing import Any
 
 
 def import_module(name: str, package: str | None = None) -> ModuleType:
