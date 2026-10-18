@@ -62,6 +62,7 @@
 
 #   - pprint_utils.py — # Pretty-printing utilities wrapping stdlib pprint (pformat, pprint, isreadable, isrecursive, saferepr)
 #   - reprlib_utils.py — # Reprlib utilities wrapping stdlib reprlib (repr, get_ident, recursive_repr, Repr)
+#   - codecs_utils.py — # Codecs utilities wrapping stdlib codecs (encode, decode, lookup, getencoder, getdecoder, open, register)
 #   - traceback_utils.py — # Traceback utilities wrapping stdlib traceback (format_exception, format_exception_only, extract_stack, format_stack, format_exc)
 #   - typing_utils.py — # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 #   - tests/test_linecache_utils.py — # Tests for linecache_utils.py
@@ -850,6 +851,7 @@ py_modules = [
     "linecache_utils",
     "pprint_utils",
     "reprlib_utils",
+    "codecs_utils",
     "traceback_utils",
     "typing_utils",
     "env_utils",
@@ -18345,6 +18347,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_pprint_utils.py` — unit tests for `pprint_utils.py`
 - `reprlib_utils.py` — reprlib utilities wrapping stdlib reprlib (`repr`, `get_ident`, `recursive_repr`, `Repr`)
 - `tests/test_reprlib_utils.py` — unit tests for `reprlib_utils.py`
+- `codecs_utils.py` — codecs utilities wrapping stdlib codecs
+- `tests/test_codecs_utils.py` — unit tests for `codecs_utils.py`
+- `traceback_utils.py` — traceback utilities wrapping stdlib traceback (`format_exception`, `format_exception_only`, `extract_stack`, `format_stack`, `format_exc`)
+- `tests/test_traceback_utils.py` — unit tests for `traceback_utils.py`
 - `typing_utils.py` — typing utilities wrapping stdlib typing (`get_type_hints`, `get_origin`, `get_args`, `is_typeddict`)
 - `tests/test_typing_utils.py` — unit tests for `typing_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
@@ -19623,6 +19629,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `reprlib_utils.py` — reprlib utilities wrapping the standard library `reprlib` module (`repr`, `get_ident`, `recursive_repr`, `Repr`) with input validation, plus `tests/test_reprlib_utils.py`.
 - Synchronized `reprlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `codecs_utils.py` — codecs utilities wrapping the standard library `codecs` module (`encode`, `decode`, `lookup`, `getencoder`, `getdecoder`, `open`, `register`), plus `tests/test_codecs_utils.py`.
+- Synchronized `codecs_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `traceback_utils.py` — traceback utilities wrapping the standard library `traceback` module (`format_exception`, `format_exception_only`, `extract_stack`, `format_stack`, `format_exc`), plus `tests/test_traceback_utils.py`.
+- Synchronized `traceback_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `typing_utils.py` — typing utilities wrapping the standard library `typing` module (`get_type_hints`, `get_origin`, `get_args`, `is_typeddict`) with re-exports of `overload`, `Final`, `Literal`, and `ClassVar`, plus `tests/test_typing_utils.py`.
 - Synchronized `typing_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -28599,6 +28611,151 @@ class TestReprlibUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTREPRLIBUTILS
+# --- codecs_utils.py ---
+cat > "$OUTPUT_DIR/codecs_utils.py" <<'CODECS_UTILS'
+"""Utilities for codec registration and encoding/decoding (wrapping :mod:`codecs`)."""
+
+from __future__ import annotations
+
+import codecs as _codecs
+
+
+def encode(obj, encoding="utf-8", errors="strict"):
+    """Encode *obj* using *encoding*."""
+    return _codecs.encode(obj, encoding, errors)
+
+
+def decode(obj, encoding="utf-8", errors="strict"):
+    """Decode *obj* using *encoding*."""
+    return _codecs.decode(obj, encoding, errors)
+
+
+def lookup(encoding):
+    """Look up a codec by *encoding* name."""
+    return _codecs.lookup(encoding)
+
+
+def getencoder(encoding):
+    """Return the encoder function for *encoding*."""
+    return _codecs.getencoder(encoding)
+
+
+def getdecoder(encoding):
+    """Return the decoder function for *encoding*."""
+    return _codecs.getdecoder(encoding)
+
+
+def getincrementalencoder(encoding, errors="strict"):
+    """Return an incremental encoder for *encoding*."""
+    return _codecs.getincrementalencoder(encoding)(errors)
+
+
+def getincrementaldecoder(encoding, errors="strict"):
+    """Return an incremental decoder for *encoding*."""
+    return _codecs.getincrementaldecoder(encoding)(errors)
+
+
+def getreader(encoding):
+    """Return a StreamReader for *encoding*."""
+    return _codecs.getreader(encoding)
+
+
+def getwriter(encoding):
+    """Return a StreamWriter for *encoding*."""
+    return _codecs.getwriter(encoding)
+
+
+def open(filename, mode="r", encoding=None, errors="strict", buffering=-1):
+    """Open a file with the given encoding."""
+    return _codecs.open(filename, mode, encoding, errors, buffering)
+
+
+def register(search_function):
+    """Register a codec search function."""
+    return _codecs.register(search_function)
+
+
+def register_error(name, error_handler):
+    """Register an error handler under *name*."""
+    return _codecs.register_error(name, error_handler)
+
+
+def lookup_error(name):
+    """Look up an error handler by *name*."""
+    return _codecs.lookup_error(name)
+CODECS_UTILS
+# --- tests/test_codecs_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_codecs_utils.py" <<'TESTCODECSUTILS'
+"""Tests for codecs_utils."""
+
+import codecs
+
+from codecs_utils import (
+    decode,
+    encode,
+    getdecoder,
+    getencoder,
+    getincrementaldecoder,
+    getincrementalencoder,
+    getreader,
+    getwriter,
+    lookup,
+    lookup_error,
+    register,
+    register_error,
+)
+from codecs_utils import (
+    open as codecs_open,
+)
+
+
+def test_encode_decode():
+    assert decode(encode("hello", "utf-8"), "utf-8") == "hello"
+
+
+def test_lookup():
+    info = lookup("utf-8")
+    assert info.name == "utf-8"
+
+
+def test_getencoder_decoder():
+    enc = getencoder("utf-8")
+    dec = getdecoder("utf-8")
+    assert enc("hi")[0] == b"hi"
+    assert dec(b"hi")[0] == "hi"
+
+
+def test_incremental():
+    enc = getincrementalencoder("utf-8")
+    dec = getincrementaldecoder("utf-8")
+    assert enc.encode("hi") == b"hi"
+    assert dec.decode(b"hi") == "hi"
+
+
+def test_reader_writer():
+    assert getreader("utf-8") is not None
+    assert getwriter("utf-8") is not None
+
+
+def test_register_error():
+    register_error("test_err", codecs.lookup_error("strict"))
+    assert lookup_error("test_err") is not None
+
+
+def test_open(tmp_path):
+    p = tmp_path / "f.txt"
+    with codecs_open(str(p), "w", encoding="utf-8") as f:
+        f.write("hello")
+    with codecs_open(str(p), encoding="utf-8") as f:
+        assert f.read() == "hello"
+
+
+def test_register_callable():
+    def search(name):
+        return None
+
+    register(search)
+TESTCODECSUTILS
 # --- typing_utils.py ---
 cat > "$OUTPUT_DIR/typing_utils.py" <<'TYPING_UTILS'
 """Utilities for working with type hints (wrapping :mod:`typing`)."""
