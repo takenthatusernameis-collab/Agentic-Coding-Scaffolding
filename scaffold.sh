@@ -188,6 +188,8 @@
 
 #   - array_utils.py — # Array utility functions wrapping the standard library array module
 #   - bisect_utils.py — # Bisect utility functions for binary search on sorted sequences
+#   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
+#   - tests/test_contextlib_utils.py — # Tests for contextlib_utils.py
 
 #   - call_once_utils.py — # Call-once execution utilities (call_once decorator)
 
@@ -203,6 +205,12 @@
 
 #   - dataclasses_utils.py — # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
 #   - tests/test_dataclasses_utils.py — # Tests for dataclasses_utils.py
+
+#   - colorsys_utils.py — # Colorsys utilities wrapping the standard library colorsys module (RGB/HSL conversions, color math)
+#   - tests/test_colorsys_utils.py — # Tests for colorsys_utils.py
+
+#   - fnmatch_utils.py — # Fnmatch utilities for Unix shell-style wildcard pattern matching
+#   - tests/test_fnmatch_utils.py — # Tests for fnmatch_utils.py
 
 #   - struct_utils.py — # Binary struct packing and unpacking utilities
 
@@ -882,6 +890,7 @@ py_modules = [
     "array_utils",
     "base64_utils",
     "bisect_utils",
+    "contextlib_utils",
     "calendar_utils",
     "call_once_utils",
     "bytes_utils",
@@ -17220,6 +17229,78 @@ def find_rightmost(a: Sequence[Any], x: Any) -> int | None:
     return None
 BISECT_UTILS
 
+# --- contextlib_utils.py ---
+cat > "$OUTPUT_DIR/contextlib_utils.py" <<'CONTEXTLIB_UTILS'
+"""Contextlib utility functions wrapping stdlib contextlib."""
+
+from __future__ import annotations
+
+import contextlib
+import os
+from contextlib import contextmanager
+from typing import Any, Iterator
+
+__all__: list[str] = [
+    "suppress",
+    "nullcontext",
+    "closing",
+    "redirect_stdout",
+    "redirect_stderr",
+    "chdir",
+    "ExitStack",
+]
+
+
+def suppress(*exceptions: type[BaseException]) -> contextlib.suppress:
+    return contextlib.suppress(*exceptions)
+
+
+def nullcontext(enter_result: Any = None) -> contextlib.nullcontext:
+    return contextlib.nullcontext(enter_result)
+
+
+def closing(thing: Any) -> contextlib.closing:
+    return contextlib.closing(thing)
+
+
+def redirect_stdout(new_target: Any) -> contextlib.redirect_stdout:
+    return contextlib.redirect_stdout(new_target)
+
+
+def redirect_stderr(new_target: Any) -> contextlib.redirect_stderr:
+    return contextlib.redirect_stderr(new_target)
+
+
+@contextmanager
+def chdir(path: Any) -> Iterator[None]:
+    """Temporarily change the current working directory.
+
+    Args:
+        path: The directory to change into for the duration of the
+            context. Accepts a string or any :class:`os.PathLike`
+            object.
+
+    Yields:
+        None. The previous working directory is restored on exit,
+        even if an exception is raised within the context.
+
+    Raises:
+        TypeError: If ``path`` is not a string or :class:`os.PathLike`.
+    """
+    if not isinstance(path, (str, os.PathLike)):
+        raise TypeError("path must be a string or os.PathLike")
+    previous = os.getcwd()
+    os.chdir(os.fspath(path))
+    try:
+        yield
+    finally:
+        os.chdir(previous)
+
+
+class ExitStack(contextlib.ExitStack):
+    pass
+CONTEXTLIB_UTILS
+
 # --- struct_utils.py ---
 cat > "$OUTPUT_DIR/struct_utils.py" <<'STRUCT_UTILS'
 """Binary struct packing and unpacking utilities.
@@ -30126,6 +30207,76 @@ def test_find():
     assert find_leftmost(a, 9) is None
     assert find_rightmost(a, 9) is None
 BISECTTESTS
+
+# --- tests/test_contextlib_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_contextlib_utils.py" <<'TESTCONTEXTLIBUTILS'
+"""Tests for contextlib_utils."""
+
+import io
+import os
+import tempfile
+import unittest
+
+from contextlib_utils import (
+    ExitStack,
+    chdir,
+    closing,
+    nullcontext,
+    redirect_stderr,
+    redirect_stdout,
+    suppress,
+)
+
+
+class TestContextlibUtils(unittest.TestCase):
+    def test_suppress(self):
+        with suppress(ValueError):
+            raise ValueError("boom")
+
+    def test_nullcontext(self):
+        with nullcontext(42) as v:
+            self.assertEqual(v, 42)
+
+    def test_closing(self):
+        buf = io.StringIO()
+        with closing(buf):
+            buf.write("hi")
+        self.assertTrue(buf.closed)
+
+    def test_redirect_stdout(self):
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            print("hello")
+        self.assertEqual(buf.getvalue().strip(), "hello")
+
+    def test_redirect_stderr(self):
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            print("err", file=__import__("sys").stderr)
+        self.assertEqual(buf.getvalue().strip(), "err")
+
+    def test_chdir(self):
+        here = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmp:
+            with chdir(tmp):
+                self.assertEqual(os.getcwd(), tmp)
+        self.assertEqual(os.getcwd(), here)
+
+    def test_chdir_type_error(self):
+        with self.assertRaises(TypeError):
+            with chdir(123):
+                pass
+
+    def test_exitstack(self):
+        with ExitStack() as stack:
+            buf = io.StringIO()
+            stack.callback(buf.close)
+        self.assertTrue(buf.closed)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTCONTEXTLIBUTILS
 
 # --- tests/test_calendar_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_calendar_utils.py" <<'TESTCALENDARUTILS'

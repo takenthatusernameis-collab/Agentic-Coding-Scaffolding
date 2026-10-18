@@ -11,7 +11,7 @@ input.
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Callable, Dict, Iterable, List, Tuple, Type, TypeVar, Union, cast
+from typing import Any, Callable, Dict, Iterable, List, Tuple, TypeVar, Union
 
 __all__: list[str] = [
     "is_dataclass",
@@ -38,7 +38,12 @@ VT = TypeVar("VT")
 
 def _require_type(obj: Any, name: str, cls: Union[type, Tuple[type, ...]]) -> Any:
     if not isinstance(obj, cls):
-        raise TypeError(f"{name} must be of type {cls.__name__ if isinstance(cls, type) else ' or '.join(c.__name__ for c in cls)}")
+        type_names = (
+            cls.__name__
+            if isinstance(cls, type)
+            else " or ".join(c.__name__ for c in cls)
+        )
+        raise TypeError(f"{name} must be of type {type_names}")
     return obj
 
 
@@ -127,7 +132,10 @@ def dataclass_fields(class_or_instance: Any) -> Tuple[dataclasses.Field[Any], ..
     return fields(class_or_instance)
 
 
-def asdict(obj: Any, *, dict_factory: Callable[[Iterable[Tuple[Any, Any]]], Dict[Any, Any]] = dict) -> Dict[Any, Any]:
+_DictFactory = Callable[[Iterable[Tuple[Any, Any]]], Dict[Any, Any]]
+
+
+def asdict(obj: Any, *, dict_factory: _DictFactory = dict) -> Dict[Any, Any]:
     """Convert a dataclass instance to a dictionary.
 
     Args:
@@ -155,12 +163,15 @@ def asdict(obj: Any, *, dict_factory: Callable[[Iterable[Tuple[Any, Any]]], Dict
     return dataclasses.asdict(obj, dict_factory=dict_factory)
 
 
-def to_dict(obj: Any, *, dict_factory: Callable[[Iterable[Tuple[Any, Any]]], Dict[Any, Any]] = dict) -> Dict[Any, Any]:
+def to_dict(obj: Any, *, dict_factory: _DictFactory = dict) -> Dict[Any, Any]:
     """Convert a dataclass instance to a dictionary (alias for :func:`asdict`)."""
     return asdict(obj, dict_factory=dict_factory)
 
 
-def astuple(obj: Any, *, tuple_factory: Callable[[Iterable[Any]], Tuple[Any, ...]] = tuple) -> Tuple[Any, ...]:
+_TupleFactory = Callable[[Iterable[Any]], Tuple[Any, ...]]
+
+
+def astuple(obj: Any, *, tuple_factory: _TupleFactory = tuple) -> Tuple[Any, ...]:
     """Convert a dataclass instance to a tuple.
 
     Args:
@@ -188,7 +199,7 @@ def astuple(obj: Any, *, tuple_factory: Callable[[Iterable[Any]], Tuple[Any, ...
     return dataclasses.astuple(obj, tuple_factory=tuple_factory)
 
 
-def to_tuple(obj: Any, *, tuple_factory: Callable[[Iterable[Any]], Tuple[Any, ...]] = tuple) -> Tuple[Any, ...]:
+def to_tuple(obj: Any, *, tuple_factory: _TupleFactory = tuple) -> Tuple[Any, ...]:
     """Convert a dataclass instance to a tuple (alias for :func:`astuple`)."""
     return astuple(obj, tuple_factory=tuple_factory)
 
@@ -236,7 +247,6 @@ def make_dataclass(
     match_args: bool = True,
     kw_only: bool = False,
     slots: bool = False,
-    weakref_slot: bool = False,
 ) -> type:
     """Create a new dataclass dynamically.
 
@@ -257,7 +267,6 @@ def make_dataclass(
         match_args: Whether to generate ``__match_args__``.
         kw_only: Whether fields are keyword-only.
         slots: Whether to generate ``__slots__``.
-        weakref_slot: Whether to add a weakref slot.
 
     Returns:
         The newly created dataclass type.
@@ -293,9 +302,8 @@ def make_dataclass(
             match_args=match_args,
             kw_only=kw_only,
             slots=slots,
-            weakref_slot=weakref_slot,
         )
-    except (TypeError, ValueError) as exc:
+    except (TypeError, ValueError):
         raise
 
 

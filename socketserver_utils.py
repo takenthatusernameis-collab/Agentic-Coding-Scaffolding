@@ -10,7 +10,7 @@ inputs and raise ``TypeError`` for invalid arguments.
 from __future__ import annotations
 
 import socketserver
-from typing import Any, Optional, Type
+from typing import Any, Type
 
 
 def create_tcp_server(

@@ -1,6 +1,9 @@
 """Tests for contextlib_utils."""
 
 import io
+import os
+import tempfile
+import unittest
 
 from contextlib_utils import (
     ExitStack,
@@ -13,49 +16,51 @@ from contextlib_utils import (
 )
 
 
-def test_suppress():
-    with suppress(ValueError):
-        raise ValueError("boom")
-    # no exception
+class TestContextlibUtils(unittest.TestCase):
+    def test_suppress(self):
+        with suppress(ValueError):
+            raise ValueError("boom")
 
+    def test_nullcontext(self):
+        with nullcontext(42) as v:
+            self.assertEqual(v, 42)
 
-def test_nullcontext():
-    with nullcontext(42) as v:
-        assert v == 42
-
-
-def test_closing():
-    buf = io.StringIO()
-    with closing(buf):
-        buf.write("hi")
-    assert buf.closed
-
-
-def test_redirect_stdout():
-    buf = io.StringIO()
-    with redirect_stdout(buf):
-        print("hello")
-    assert buf.getvalue().strip() == "hello"
-
-
-def test_redirect_stderr():
-    buf = io.StringIO()
-    with redirect_stderr(buf):
-        import sys
-        print("err", file=sys.stderr)
-    assert buf.getvalue().strip() == "err"
-
-
-def test_chdir(tmp_path):
-    import os
-    here = os.getcwd()
-    with chdir(tmp_path):
-        assert os.getcwd() == str(tmp_path)
-    assert os.getcwd() == here
-
-
-def test_exitstack():
-    with ExitStack() as stack:
+    def test_closing(self):
         buf = io.StringIO()
-        stack.callback(buf.close)
-    assert buf.closed
+        with closing(buf):
+            buf.write("hi")
+        self.assertTrue(buf.closed)
+
+    def test_redirect_stdout(self):
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            print("hello")
+        self.assertEqual(buf.getvalue().strip(), "hello")
+
+    def test_redirect_stderr(self):
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            print("err", file=__import__("sys").stderr)
+        self.assertEqual(buf.getvalue().strip(), "err")
+
+    def test_chdir(self):
+        here = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmp:
+            with chdir(tmp):
+                self.assertEqual(os.getcwd(), tmp)
+        self.assertEqual(os.getcwd(), here)
+
+    def test_chdir_type_error(self):
+        with self.assertRaises(TypeError):
+            with chdir(123):
+                pass
+
+    def test_exitstack(self):
+        with ExitStack() as stack:
+            buf = io.StringIO()
+            stack.callback(buf.close)
+        self.assertTrue(buf.closed)
+
+
+if __name__ == "__main__":
+    unittest.main()

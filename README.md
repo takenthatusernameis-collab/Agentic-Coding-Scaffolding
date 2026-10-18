@@ -41,7 +41,8 @@ strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions
-data_utils.py               # Data utility functions
+data_utils.py                # Data utility functions
+dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
 datetime_utils.py           # Date and time utility functions
 template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
 file_utils.py               # File and path utility functions
@@ -58,6 +59,7 @@ logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
 memoize_utils.py          # Memoization utilities (memoize decorator) with cache_clear
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
+contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
 timing_utils.py           # Performance measurement helpers
 async_utils.py            # Asynchronous utility functions
@@ -82,6 +84,7 @@ tree_utils.py              # Tree and nested structure utilities (get/set/delete
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
+colorsys_utils.py          # Colorsys utilities wrapping the standard library colorsys module (RGB/HSL conversions, color math)
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
@@ -697,3 +700,7 @@ The project includes keyword classification utilities in `keyword_utils.py` wrap
 ## Shlex Utilities Module
 
 The project includes simple lexical analysis utilities in `shlex_utils.py` wrapping the standard library `shlex` module: `split` splits a shell-like string into a list of tokens, `quote` returns a shell-escaped version of a string, and `join` joins a sequence of tokens back into a single shell-escaped string. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_shlex_utils.py`.
+
+## Contextlib Utilities Module
+
+The project includes contextlib utility functions in `contextlib_utils.py` for wrapping the standard library `contextlib` module: `suppress` returns a context manager that silences listed exceptions, `nullcontext` returns a context manager that yields a given value, `closing` ensures an object's `close()` method is called on exit, `redirect_stdout` and `redirect_stderr` temporarily redirect the standard streams, `chdir` temporarily changes the current working directory, and `ExitStack` is a re-export of the standard library exit stack. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_contextlib_utils.py`.

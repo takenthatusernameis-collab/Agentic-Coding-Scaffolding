@@ -197,11 +197,11 @@ class TestDataclassesUtils(unittest.TestCase):
             has_field(Simple, 123)  # type: ignore[arg-type]
 
     def test_field_and_missing_exist(self):
-        from dataclasses_utils import field as du_field
-        from dataclasses_utils import MISSING as du_missing
-
-        from dataclasses import field as dc_field
         from dataclasses import MISSING as dc_missing
+        from dataclasses import field as dc_field
+
+        from dataclasses_utils import MISSING as du_missing
+        from dataclasses_utils import field as du_field
 
         self.assertIs(du_field, dc_field)
         self.assertIs(du_missing, dc_missing)
