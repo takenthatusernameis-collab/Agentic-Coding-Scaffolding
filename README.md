@@ -457,6 +457,10 @@ The project includes a design pattern utilities module in `pattern_utils.py` wit
 
 The project includes pretty-printing utilities in `pprint_utils.py` wrapping the standard library `pprint` module: `pformat` returns a formatted string representation of an object, `pprint` prints a formatted representation to a stream, `isreadable` reports whether an object's representation is readable by `eval`, `isrecursive` reports whether an object contains a recursive reference, and `saferepr` returns a safe string representation that truncates recursive structures. All functions forward their keyword arguments to the standard library. The module is tested in `tests/test_pprint_utils.py`.
 
+## Reprlib Utilities Module
+
+The project includes reprlib utilities in `reprlib_utils.py` wrapping the standard library `reprlib` module: `repr` returns a string representation that truncates long objects, `get_ident` returns the identifier used to track recursive objects, `Repr` is a configurable subclass of `reprlib.Repr` with validated constructor arguments, `aRepr` is the default instance, and `recursive_repr` is a decorator that guards against infinite recursion. The module is tested in `tests/test_reprlib_utils.py`.
+
 ## Configuration Schema Module
 
 The project includes a configuration schema module in `config_schema.py` with declarative, typed configuration schemas. `SchemaField` describes a single typed field (`str`, `int`, `float`, `bool`) with optional defaults, required flags, and validators, and `ConfigSchema` composes fields to validate, coerce, and normalize configuration dictionaries. Built-in validators include `int_validator`, `float_validator`, `str_validator`, `bool_validator`, `email_validator`, `hostname_validator`, `url_validator`, `range_validator`, `choices_validator`, and `regex_validator`. The module is tested in `tests/test_config_schema.py`.
