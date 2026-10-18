@@ -94,6 +94,7 @@ threading_utils.py         # Threading utilities wrapping the standard library t
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 greeting_utils.py          # Greeting utilities (greet, format_names, random_greeting)
+glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 version_utils.py           # Version utility functions (parse, compare, normalize)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
@@ -176,6 +177,7 @@ tests/                     # Python unit tests
   test_file_utils.py          # Tests for file_utils.py
   test_fractions_utils.py     # Tests for fractions_utils.py
   test_functools_utils.py     # Tests for functools_utils.py
+  test_glob_utils.py          # Tests for glob_utils.py
   test_graphlib_utils.py      # Tests for graphlib_utils.py
   test_greeting_utils.py      # Tests for greeting_utils.py
   test_hash_utils.py          # Tests for hash_utils.py
@@ -681,3 +683,7 @@ The project includes selectors utilities in `selectors_utils.py` wrapping the st
 ## Socketserver Utilities Module
 
 The project includes socketserver utilities in `socketserver_utils.py` wrapping the standard library `socketserver` module for building TCP/UDP servers: `create_tcp_server` and `create_udp_server` create validated server instances, `handle_one_request` processes a single request, `serve_forever` blocks serving requests, `shutdown_server` and `close_server` stop and release a server, and `get_server_address` / `is_serving` inspect bound address and serving state. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_socketserver_utils.py`.
+
+## Glob Utilities Module
+
+The project includes glob utilities in `glob_utils.py` for pathname pattern expansion wrapping the standard library `glob` module: `glob_pattern` returns a list of paths matching a pattern, `iglob` returns an iterator over matching paths, `escape` escapes special characters in a pathname so it can be matched literally, and `has_magic` reports whether a pathname contains glob special characters. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_glob_utils.py`.

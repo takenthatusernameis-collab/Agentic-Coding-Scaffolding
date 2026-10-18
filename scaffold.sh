@@ -192,6 +192,7 @@
 #   - calendar_utils.py — # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 #   - cmath_utils.py — # Complex mathematics utilities wrapping the standard library cmath module
 #   - threading_utils.py — # Threading utilities wrapping the standard library threading module
+#   - glob_utils.py — # Utilities for pathname pattern expansion (wrapping the standard library glob module)
 
 #   - selectors_utils.py — # Selectors utilities wrapping the standard library selectors module
 #   - tests/test_selectors_utils.py — # Tests for selectors_utils.py
@@ -808,6 +809,7 @@ py_modules = [
     "graphlib_utils",
     "gzip_utils",
     "plistlib_utils",
+    "glob_utils",
     "greeting_utils",
     "id_utils",
     "inspect_utils",
@@ -18160,6 +18162,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `graphlib_utils.py` — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
 - `greeting_utils.py` — Greeting utilities (`greet`, `format_names`, `random_greeting`) for formatted greeting strings
 - `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`
+- `glob_utils.py` — utilities for pathname pattern expansion wrapping the standard library `glob` module (`glob_pattern`, `iglob`, `escape`, `has_magic`) with input validation
+- `tests/test_glob_utils.py` — unit tests for `glob_utils.py`
 - `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
 - `queue_utils.py` — FIFO queue helpers (`Queue` class, `enqueue`, `dequeue`, `peek`, `size`, `is_empty`, `clear`)
 - `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
@@ -19150,6 +19154,7 @@ bisect_utils.py            # Bisect utility functions for binary search on sorte
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
 threading_utils.py           # Threading utilities wrapping the standard library threading module
+glob_utils.py               # Utilities for pathname pattern expansion wrapping the standard library glob module
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
@@ -19316,6 +19321,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `glob_utils.py` — utilities for pathname pattern expansion wrapping the standard library `glob` module (`glob_pattern`, `iglob`, `escape`, `has_magic`) with input validation, plus `tests/test_glob_utils.py`.
+- Synchronized `glob_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `email_utils.py` — email utilities wrapping the standard library `email.utils` module (`email_formatdate`, `email_parsedate`, `email_parsedate_to_datetime`, `email_mktime_tz`, `email_parseaddr`, `email_formataddr`, `email_getaddresses`, `email_make_msgid`, `email_quote`, `email_unquote`, `email_format_datetime`) with input validation, plus `tests/test_email_utils.py`.
 - Synchronized `email_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -28334,6 +28342,80 @@ def test_format_datetime():
     assert "2015" in result
     assert "Oct" in result
 TESTEMAILUTILS
+# --- glob_utils.py ---
+cat > "$OUTPUT_DIR/glob_utils.py" <<'GLOB_UTILS'
+"""Utilities for pathname pattern expansion (wrapping :mod:`glob`)."""
+
+import glob as _glob
+
+
+def glob_pattern(pattern, *, root_dir=None, dir_fd=None, recursive=False):
+    if not isinstance(pattern, str):
+        raise TypeError("pattern must be a str")
+    return _glob.glob(pattern, root_dir=root_dir, dir_fd=dir_fd, recursive=recursive)
+
+
+def iglob(pattern, *, root_dir=None, dir_fd=None, recursive=False):
+    if not isinstance(pattern, str):
+        raise TypeError("pattern must be a str")
+    return _glob.iglob(pattern, root_dir=root_dir, dir_fd=dir_fd, recursive=recursive)
+
+
+def escape(pathname):
+    if not isinstance(pathname, str):
+        raise TypeError("pathname must be a str")
+    return _glob.escape(pathname)
+
+
+def has_magic(pathname):
+    if not isinstance(pathname, str):
+        raise TypeError("pathname must be a str")
+    return _glob.has_magic(pathname)
+GLOB_UTILS
+# --- tests/test_glob_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_glob_utils.py" <<'TESTGLOBUTILS'
+import os
+import tempfile
+import unittest
+
+from glob_utils import escape, glob_pattern, has_magic, iglob
+
+
+class TestGlobUtils(unittest.TestCase):
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        for name in ("a.txt", "b.py", "c.txt"):
+            open(os.path.join(self.d, name), "w").close()
+
+    def test_glob_pattern(self):
+        res = sorted(glob_pattern(os.path.join(self.d, "*.txt")))
+        self.assertEqual(len(res), 2)
+
+    def test_iglob(self):
+        res = sorted(iglob(os.path.join(self.d, "*.py")))
+        self.assertEqual(res, [os.path.join(self.d, "b.py")])
+
+    def test_escape(self):
+        self.assertEqual(escape("a*b.txt"), "a[*]b.txt")
+
+    def test_has_magic(self):
+        self.assertTrue(has_magic("*.txt"))
+        self.assertFalse(has_magic("foo.txt"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            glob_pattern(123)
+        with self.assertRaises(TypeError):
+            iglob(5)
+        with self.assertRaises(TypeError):
+            escape(1)
+        with self.assertRaises(TypeError):
+            has_magic(2)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTGLOBUTILS
 # --- queue_utils.py ---
 cat > "$OUTPUT_DIR/queue_utils.py" <<'QUEUE_UTILS'
 """Utility helpers for queue operations."""

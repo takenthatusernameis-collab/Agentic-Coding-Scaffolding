@@ -101,6 +101,7 @@ py_modules = [
     "path_utils",
     "pattern_utils",
     "plistlib_utils",
+    "glob_utils",
     "functools_utils",
     "config_schema",
     "copy_utils",

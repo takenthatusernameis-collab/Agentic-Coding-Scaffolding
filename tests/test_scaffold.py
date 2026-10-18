@@ -288,12 +288,14 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_threading_utils.py",
             "selectors_utils.py",
             "tests/test_selectors_utils.py",
-            "gzip_utils.py",
-            "tests/test_gzip_utils.py",
-            "plistlib_utils.py",
-            "tests/test_plistlib_utils.py",
-            "socketserver_utils.py",
-            "tests/test_socketserver_utils.py",
+"gzip_utils.py",
+             "tests/test_gzip_utils.py",
+             "plistlib_utils.py",
+             "tests/test_plistlib_utils.py",
+             "glob_utils.py",
+             "tests/test_glob_utils.py",
+             "socketserver_utils.py",
+             "tests/test_socketserver_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -468,14 +470,15 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "sys_utils.py",
             "networking_utils.py",
             "decimal_utils.py",
-            "fractions_utils.py",
-            "heapq_utils.py",
-            "time_utils.py",
-            "selectors_utils.py",
-            "gzip_utils.py",
-            "plistlib_utils.py",
-            "socketserver_utils.py",
-        ]:
+"fractions_utils.py",
+             "heapq_utils.py",
+             "time_utils.py",
+             "selectors_utils.py",
+             "gzip_utils.py",
+             "plistlib_utils.py",
+             "glob_utils.py",
+             "socketserver_utils.py",
+         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
             "tests/test_stats.py",
@@ -526,10 +529,11 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_semver_utils.py",
             "interval_utils.py",
             "tests/test_interval_utils.py",
-            "tests/test_selectors_utils.py",
-            "tests/test_gzip_utils.py",
-            "tests/test_plistlib_utils.py",
-            "tests/test_socketserver_utils.py",
+"tests/test_selectors_utils.py",
+             "tests/test_gzip_utils.py",
+             "tests/test_plistlib_utils.py",
+             "tests/test_glob_utils.py",
+             "tests/test_socketserver_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 

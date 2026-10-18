@@ -196,9 +196,11 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.
 - `tests/test_socketserver_utils.py` — unit tests for `socketserver_utils.py`
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
-- `graphlib_utils.py` — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
 - `greeting_utils.py` — Greeting utilities (`greet`, `format_names`, `random_greeting`) for formatted greeting strings
 - `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`
+- `glob_utils.py` — utilities for pathname pattern expansion wrapping the standard library `glob` module (`glob_pattern`, `iglob`, `escape`, `has_magic`) with input validation
+- `tests/test_glob_utils.py` — unit tests for `glob_utils.py`
+- `graphlib_utils.py` — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
 - `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
 - `queue_utils.py` — FIFO queue helpers (`Queue` class, `enqueue`, `dequeue`, `peek`, `size`, `is_empty`, `clear`)
 - `tests/test_queue_utils.py` — unit tests for `queue_utils.py`

@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `glob_utils.py` — utilities for pathname pattern expansion wrapping the standard library `glob` module (`glob_pattern`, `iglob`, `escape`, `has_magic`) with input validation, plus `tests/test_glob_utils.py`.
+- Synchronized `glob_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
 - Added `email_utils.py` — email utilities wrapping the standard library `email.utils` module (`email_formatdate`, `email_parsedate`, `email_parsedate_to_datetime`, `email_mktime_tz`, `email_parseaddr`, `email_formataddr`, `email_getaddresses`, `email_make_msgid`, `email_quote`, `email_unquote`, `email_format_datetime`) with input validation, plus `tests/test_email_utils.py`.
 - Synchronized `email_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
