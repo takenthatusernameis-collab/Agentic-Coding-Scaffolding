@@ -131,6 +131,7 @@ struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 pprint_utils.py            # Pretty-printing utilities wrapping stdlib pprint (pformat, pprint, isreadable, isrecursive, saferepr)
 reprlib_utils.py           # Reprlib utilities wrapping stdlib reprlib (repr, get_ident, recursive_repr, Repr)
+typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
@@ -214,6 +215,7 @@ test_path_utils.py          # Tests for path_utils.py
   test_pattern_utils.py       # Tests for pattern_utils.py
   test_pprint_utils.py        # Tests for pprint_utils.py
   test_reprlib_utils.py       # Tests for reprlib_utils.py
+  test_typing_utils.py        # Tests for typing_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
@@ -722,3 +724,7 @@ The project includes simple lexical analysis utilities in `shlex_utils.py` wrapp
 ## Contextlib Utilities Module
 
 The project includes contextlib utility functions in `contextlib_utils.py` for wrapping the standard library `contextlib` module: `suppress` returns a context manager that silences listed exceptions, `nullcontext` returns a context manager that yields a given value, `closing` ensures an object's `close()` method is called on exit, `redirect_stdout` and `redirect_stderr` temporarily redirect the standard streams, `chdir` temporarily changes the current working directory, and `ExitStack` is a re-export of the standard library exit stack. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_contextlib_utils.py`.
+
+## Typing Utilities Module
+
+The project includes typing utilities in `typing_utils.py` wrapping the standard library `typing` module: `get_type_hints` returns the type hints of a callable or object, `get_origin` returns the unsubscripted generic type, `get_args` returns the type arguments, and `is_typeddict` reports whether a type is a `TypedDict`. The module also re-exports `overload`, `Final`, `Literal`, and `ClassVar` for convenience. All functions forward their keyword arguments to the standard library. The module is tested in `tests/test_typing_utils.py`.

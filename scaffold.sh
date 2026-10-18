@@ -62,7 +62,9 @@
 
 #   - pprint_utils.py — # Pretty-printing utilities wrapping stdlib pprint (pformat, pprint, isreadable, isrecursive, saferepr)
 #   - reprlib_utils.py — # Reprlib utilities wrapping stdlib reprlib (repr, get_ident, recursive_repr, Repr)
+#   - typing_utils.py — # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 #   - tests/test_linecache_utils.py — # Tests for linecache_utils.py
+#   - tests/test_typing_utils.py — # Tests for typing_utils.py
 
 #   - env_utils.py — # Environment variable handling utilities
 
@@ -846,6 +848,7 @@ py_modules = [
     "linecache_utils",
     "pprint_utils",
     "reprlib_utils",
+    "typing_utils",
     "env_utils",
     "logging_utils",
     "markdown_utils",
@@ -18339,6 +18342,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_pprint_utils.py` — unit tests for `pprint_utils.py`
 - `reprlib_utils.py` — reprlib utilities wrapping stdlib reprlib (`repr`, `get_ident`, `recursive_repr`, `Repr`)
 - `tests/test_reprlib_utils.py` — unit tests for `reprlib_utils.py`
+- `typing_utils.py` — typing utilities wrapping stdlib typing (`get_type_hints`, `get_origin`, `get_args`, `is_typeddict`)
+- `tests/test_typing_utils.py` — unit tests for `typing_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
@@ -19615,6 +19620,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `reprlib_utils.py` — reprlib utilities wrapping the standard library `reprlib` module (`repr`, `get_ident`, `recursive_repr`, `Repr`) with input validation, plus `tests/test_reprlib_utils.py`.
 - Synchronized `reprlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `typing_utils.py` — typing utilities wrapping the standard library `typing` module (`get_type_hints`, `get_origin`, `get_args`, `is_typeddict`) with re-exports of `overload`, `Final`, `Literal`, and `ClassVar`, plus `tests/test_typing_utils.py`.
+- Synchronized `typing_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `contextlib_utils.py` — contextlib utility functions wrapping the standard library `contextlib` module (`suppress`, `nullcontext`, `closing`, `redirect_stdout`, `redirect_stderr`, `chdir`, `ExitStack`) with input validation, plus `tests/test_contextlib_utils.py`.
 - Synchronized `contextlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -28588,6 +28596,90 @@ class TestReprlibUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTREPRLIBUTILS
+# --- typing_utils.py ---
+cat > "$OUTPUT_DIR/typing_utils.py" <<'TYPING_UTILS'
+"""Utilities for working with type hints (wrapping :mod:`typing`)."""
+
+import typing as _typing
+
+
+def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
+    return _typing.get_type_hints(
+        obj, globalns=globalns, localns=localns, include_extras=include_extras
+    )
+
+
+def get_origin(tp):
+    return _typing.get_origin(tp)
+
+
+def get_args(tp):
+    return _typing.get_args(tp)
+
+
+def is_typeddict(tp):
+    return _typing.is_typeddict(tp)
+
+
+overload = _typing.overload
+Final = _typing.Final
+Literal = _typing.Literal
+ClassVar = _typing.ClassVar
+TYPING_UTILS
+# --- tests/test_typing_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_typing_utils.py" <<'TESTTYPINGUTILS'
+import typing
+import unittest
+from typing import List, Optional, TypedDict
+
+from typing_utils import (
+    ClassVar,
+    Final,
+    Literal,
+    get_args,
+    get_origin,
+    get_type_hints,
+    is_typeddict,
+    overload,
+)
+
+
+class TestTypingUtils(unittest.TestCase):
+    def test_get_type_hints(self):
+        def greet(name: str) -> str:
+            return f"hello {name}"
+
+        hints = get_type_hints(greet)
+        self.assertEqual(hints["name"], str)
+        self.assertEqual(hints["return"], str)
+
+    def test_get_origin(self):
+        self.assertEqual(get_origin(List[int]), list)
+        self.assertIsNone(get_origin(int))
+
+    def test_get_args(self):
+        self.assertEqual(get_args(List[int]), (int,))
+        self.assertEqual(get_args(dict), ())
+        self.assertEqual(get_args(Optional[str]), (str, type(None)))
+
+    def test_is_typeddict(self):
+        class Point(TypedDict):
+            x: int
+            y: int
+
+        self.assertTrue(is_typeddict(Point))
+        self.assertFalse(is_typeddict(int))
+
+    def test_reexports_match_typing(self):
+        self.assertIs(overload, typing.overload)
+        self.assertIs(Final, typing.Final)
+        self.assertIs(Literal, typing.Literal)
+        self.assertIs(ClassVar, typing.ClassVar)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTYPINGUTILS
 # --- email_utils.py ---
 cat > "$OUTPUT_DIR/email_utils.py" <<'EMAIL_UTILS'
 """Email utility functions wrapping the standard library 'email.utils' module."""

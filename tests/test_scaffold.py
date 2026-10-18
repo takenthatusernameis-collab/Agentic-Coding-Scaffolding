@@ -291,11 +291,13 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_threading_utils.py",
 "selectors_utils.py",
              "tests/test_selectors_utils.py",
-             "pprint_utils.py",
-             "tests/test_pprint_utils.py",
-             "reprlib_utils.py",
-             "tests/test_reprlib_utils.py",
-             "gzip_utils.py",
+              "pprint_utils.py",
+              "tests/test_pprint_utils.py",
+              "reprlib_utils.py",
+              "tests/test_reprlib_utils.py",
+              "typing_utils.py",
+              "tests/test_typing_utils.py",
+              "gzip_utils.py",
              "tests/test_gzip_utils.py",
              "plistlib_utils.py",
              "tests/test_plistlib_utils.py",
@@ -492,9 +494,10 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "glob_utils.py",
              "shlex_utils.py",
              "keyword_utils.py",
-             "socketserver_utils.py",
-             "pprint_utils.py",
-         ]:
+              "socketserver_utils.py",
+              "pprint_utils.py",
+              "typing_utils.py",
+          ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
             "tests/test_stats.py",
@@ -550,10 +553,11 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "tests/test_plistlib_utils.py",
              "tests/test_glob_utils.py",
              "tests/test_shlex_utils.py",
-             "tests/test_keyword_utils.py",
-             "tests/test_socketserver_utils.py",
-             "tests/test_pprint_utils.py",
-         ]:
+              "tests/test_keyword_utils.py",
+              "tests/test_socketserver_utils.py",
+              "tests/test_pprint_utils.py",
+              "tests/test_typing_utils.py",
+          ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
     def test_scaffold_project_doc_no_inconsistent_indent(self) -> None:
@@ -710,11 +714,13 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "shlex_utils.py",
              "keyword_utils.py",
              "linecache_utils.py",
-             "pprint_utils.py",
-             "tests/test_pprint_utils.py",
-             "reprlib_utils.py",
-             "tests/test_reprlib_utils.py",
-         ]:
+              "pprint_utils.py",
+              "tests/test_pprint_utils.py",
+              "reprlib_utils.py",
+              "tests/test_reprlib_utils.py",
+              "typing_utils.py",
+              "tests/test_typing_utils.py",
+          ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
     def test_file_utils_no_unused_os_import(self) -> None:
@@ -1401,6 +1407,48 @@ class TestScaffoldKiloJson(unittest.TestCase):
             return value
 
         self.assertEqual(guarded(42), 42)
+
+    def test_typing_utils_functions_work(self):
+        """Generated typing_utils.py should have working functions."""
+        import typing
+        from typing import List, Optional, TypedDict
+
+        from typing_utils import (
+            ClassVar,
+            Final,
+            Literal,
+            get_args,
+            get_origin,
+            get_type_hints,
+            is_typeddict,
+            overload,
+        )
+
+        def greet(name: str) -> str:
+            return f"hello {name}"
+
+        hints = get_type_hints(greet)
+        self.assertEqual(hints["name"], str)
+        self.assertEqual(hints["return"], str)
+
+        self.assertEqual(get_origin(List[int]), list)
+        self.assertIsNone(get_origin(int))
+
+        self.assertEqual(get_args(List[int]), (int,))
+        self.assertEqual(get_args(dict), ())
+        self.assertEqual(get_args(Optional[str]), (str, type(None)))
+
+        class Point(TypedDict):
+            x: int
+            y: int
+
+        self.assertTrue(is_typeddict(Point))
+        self.assertFalse(is_typeddict(int))
+
+        self.assertIs(overload, typing.overload)
+        self.assertIs(Final, typing.Final)
+        self.assertIs(Literal, typing.Literal)
+        self.assertIs(ClassVar, typing.ClassVar)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):
