@@ -496,3 +496,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Bootstrap session
 
 - Verified test suite passes (75 test modules).
+
+### Added
+
+- `plistlib_utils.py` — plistlib utility functions wrapping the standard library `plistlib` module (`plist_load`, `plist_loads`, `plist_dump`, `plist_dumps`) for reading/writing binary plist data
+- `tests/test_plistlib_utils.py` — unit tests for `plistlib_utils.py`
+- Synchronized `plistlib_utils.py` across scaffolding (`scaffold.sh` py_modules and heredocs for module/tests/scaffold-project.md, `.kilo/command/scaffold-project.md`, `pyproject.toml`, `tests/test_scaffold.py`); added `plistlib_utils` entries where missing

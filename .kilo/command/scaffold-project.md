@@ -183,8 +183,12 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `number_utils.py` — number utility functions (`clamp`, `round_to`, `is_integer`, `format_number`, `percentage`)
 - `tests/test_number_utils.py` — unit tests for `number_utils.py`
 - `os_utils.py` — operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
+- `gzip_utils.py` — gzip compression/decompression utilities
 - `tests/test_os_utils.py` — unit tests for `os_utils.py`
-- `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
+- `tests/test_gzip_utils.py` — unit tests for `gzip_utils.py`
+- `plistlib_utils.py` — plistlib utility functions wrapping standard library `plistlib` module
+- `tests/test_plistlib_utils.py` — unit tests for `plistlib_utils.py`
+- `sort_utils.py — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
 - `shutil_utils.py` — High-level file and directory operation utilities (`copy_file`, `copy_tree`, `move`, `remove_tree`, `disk_usage`, `make_archive`, `unpack_archive`) wrapping the standard library `shutil` module
 - `tests/test_shutil_utils.py` — unit tests for `shutil_utils.py`
 - `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.

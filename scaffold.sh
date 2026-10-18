@@ -804,6 +804,8 @@ py_modules = [
     "operator_utils",
     "os_utils",
     "graphlib_utils",
+    "gzip_utils",
+    "plistlib_utils",
     "greeting_utils",
     "id_utils",
     "inspect_utils",
@@ -18137,8 +18139,12 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `number_utils.py` — number utility functions (`clamp`, `round_to`, `is_integer`, `format_number`, `percentage`)
 - `tests/test_number_utils.py` — unit tests for `number_utils.py`
 - `os_utils.py` — operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
+- `gzip_utils.py` — gzip compression/decompression utilities
 - `tests/test_os_utils.py` — unit tests for `os_utils.py`
-- `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
+- `tests/test_gzip_utils.py` — unit tests for `gzip_utils.py`
+- `plistlib_utils.py` — plistlib utility functions wrapping standard library `plistlib` module
+- `tests/test_plistlib_utils.py` — unit tests for `plistlib_utils.py`
+- `sort_utils.py — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
 - `shutil_utils.py` — High-level file and directory operation utilities (`copy_file`, `copy_tree`, `move`, `remove_tree`, `disk_usage`, `make_archive`, `unpack_archive`) wrapping the standard library `shutil` module
 - `tests/test_shutil_utils.py` — unit tests for `shutil_utils.py`
 - `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.
@@ -19759,6 +19765,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `os_utils.py` — operating system utilities (`get_platform_info`, `get_cpu_count`, `get_disk_usage`, `get_user_home`, `get_username`, `find_executable`, `expand_path`, `is_executable`) for inspecting the platform and environment using the standard library
 - `tests/test_os_utils.py` — unit tests for `os_utils.py`
+- `tests/test_gzip_utils.py` — unit tests for `gzip_utils.py`
 - Added `os_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
 
 
@@ -27894,7 +27901,168 @@ class TestIsValidOrdering(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTGRAPHLIBUTILS
+# --- gzip_utils.py ---
+cat > "$OUTPUT_DIR/gzip_utils.py" <<'GZIP_UTILS'
+"""Gzip utility functions wrapping the standard library 'gzip' module."""
 
+from __future__ import annotations
+
+import gzip
+from typing import BinaryIO
+
+__all__: list[str] = [
+    "gzip_compress",
+    "gzip_decompress",
+    "gzip_open",
+    "gzip_write",
+    "gzip_read",
+]
+
+
+def gzip_compress(data: bytes, compresslevel: int = 9) -> bytes:
+    """Compress bytes using gzip."""
+    return gzip.compress(data, compresslevel=compresslevel)
+
+
+def gzip_decompress(data: bytes) -> bytes:
+    """Decompress gzip-compressed bytes."""
+    return gzip.decompress(data)
+
+
+def gzip_open(filename: str, mode: str = "rb", compresslevel: int = 9) -> BinaryIO:
+    """Open a gzip file."""
+    return gzip.open(filename, mode, compresslevel=compresslevel)
+
+
+def gzip_write(filename: str, data: bytes, compresslevel: int = 9) -> None:
+    """Write data to a gzip file."""
+    with gzip.open(filename, "wb", compresslevel=compresslevel) as f:
+        f.write(data)
+
+
+def gzip_read(filename: str) -> bytes:
+    """Read and decompress a gzip file."""
+    with gzip.open(filename, "rb") as f:
+        return f.read()
+GZIP_UTILS
+# --- tests/test_gzip_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_gzip_utils.py" <<'TESTGZIPUTILS'
+"""Tests for gzip_utils."""
+
+import os
+import tempfile
+
+from gzip_utils import (
+    gzip_compress,
+    gzip_decompress,
+    gzip_open,
+    gzip_read,
+    gzip_write,
+)
+
+
+def test_gzip_compress_decompress():
+    data = b"hello world" * 10
+    compressed = gzip_compress(data)
+    assert isinstance(compressed, bytes)
+    assert gzip_decompress(compressed) == data
+
+
+def test_gzip_compress_level():
+    data = b"hello world" * 10
+    c9 = gzip_compress(data, compresslevel=9)
+    c1 = gzip_compress(data, compresslevel=1)
+    assert gzip_decompress(c9) == data
+    assert gzip_decompress(c1) == data
+
+
+def test_gzip_open():
+    data = b"hello"
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        name = tmp.name
+    try:
+        with gzip_open(name, "wb") as f:
+            f.write(data)
+        with gzip_open(name, "rb") as f:
+            assert f.read() == data
+    finally:
+        os.remove(name)
+
+
+def test_gzip_write_read():
+    data = b"hello world"
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        name = tmp.name
+    try:
+        gzip_write(name, data)
+        assert gzip_read(name) == data
+    finally:
+        os.remove(name)
+
+
+if __name__ == "__main__":
+    import unittest
+
+    unittest.main()
+TESTGZIPUTILS
+# --- plistlib_utils.py ---
+cat > "$OUTPUT_DIR/plistlib_utils.py" <<'PLISTLIB_UTILS'
+"""Plistlib utility functions wrapping the standard library 'plistlib' module."""
+
+from __future__ import annotations
+
+import plistlib
+from typing import Any, BinaryIO
+
+
+def plist_load(fp: BinaryIO) -> Any:
+    """Load a plist from a binary file object."""
+    return plistlib.load(fp)
+
+
+def plist_loads(data: bytes) -> Any:
+    """Load a plist from bytes."""
+    return plistlib.loads(data)
+
+
+def plist_dump(obj: Any, fp: BinaryIO) -> None:
+    """Write an object as a plist to a binary file object."""
+    plistlib.dump(obj, fp)
+
+
+def plist_dumps(obj: Any) -> bytes:
+    """Serialize an object to plist bytes."""
+    return plistlib.dumps(obj)
+
+
+__all__ = ["plist_load", "plist_loads", "plist_dump", "plist_dumps"]
+PLISTLIB_UTILS
+# --- tests/test_plistlib_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_plistlib_utils.py" <<'TESTPLISTLIBUTILS'
+import io
+
+import plistlib_utils
+
+
+def test_roundtrip_bytes():
+    obj = {"a": 1, "b": [2, 3]}
+    data = plistlib_utils.plist_dumps(obj)
+    assert plistlib_utils.plist_loads(data) == obj
+
+
+def test_load_dump_file():
+    obj = {"x": "y"}
+    buf = io.BytesIO()
+    plistlib_utils.plist_dump(obj, buf)
+    buf.seek(0)
+    assert plistlib_utils.plist_load(buf) == obj
+
+
+if __name__ == "__main__":
+    import unittest
+
+    unittest.main()
+TESTPLISTLIBUTILS
 # --- queue_utils.py ---
 cat > "$OUTPUT_DIR/queue_utils.py" <<'QUEUE_UTILS'
 """Utility helpers for queue operations."""

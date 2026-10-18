@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import gzip
-from typing import BinaryIO
+from typing import IO
 
 __all__: list[str] = [
     "gzip_compress",
@@ -24,9 +24,9 @@ def gzip_decompress(data: bytes) -> bytes:
     return gzip.decompress(data)
 
 
-def gzip_open(filename: str, mode: str = "rb", compresslevel: int = 9) -> BinaryIO:
+def gzip_open(filename: str, mode: str = "rb", compresslevel: int = 9) -> IO[bytes] | IO[str]:
     """Open a gzip file."""
-    return gzip.open(filename, mode, compresslevel=compresslevel)
+    return gzip.open(filename, mode, compresslevel=compresslevel)  # type: ignore[return-value]
 
 
 def gzip_write(filename: str, data: bytes, compresslevel: int = 9) -> None:
