@@ -18520,6 +18520,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `Makefile` — common developer targets (test, lint, typecheck, run, scaffold, clean, help, pre-commit-install, pre-commit-run)
 - `pyproject.toml` — Python project configuration with pytest, ruff, and mypy settings
 - `hello.py` — sample application entry point
+- `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`) with input validation
+- `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
@@ -18559,6 +18561,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ring_buffer_utils.py` — fixed-size circular (ring) buffer utilities
 - `secrets_utils.py` — Cryptographically secure secrets and token utilities (`token_bytes`, `token_hex`, `token_urlsafe`, `compare_digest`, `randbelow`, `randbits`, `choice`)
 - `tests/test_hello.py` — unit tests for `hello.py`
+- `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
+- `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
 - `tests/test_collections_utils.py` — unit tests for `collections_utils.py`
