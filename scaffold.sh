@@ -26,6 +26,7 @@
 #   - pickle_utils.py — # Object serialization utilities wrapping stdlib pickle (dump, dumps, load, loads, pickler, unpickler, is_valid_protocol, validate_protocol)
 #   - marshal_utils.py — # Object serialization utilities wrapping stdlib marshal (dumps, loads, dump, load, get_version)
 #   - zipfile_utils.py — # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
+#   - bz2_utils.py — # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 
 #   - calculator.py — # Simple calculator module with arithmetic operations
 
@@ -959,6 +960,7 @@ py_modules = [
     "shlex_utils",
     "keyword_utils",
     "zipfile_utils",
+    "bz2_utils",
 ]
 
 PYPROJECT
@@ -1878,7 +1880,90 @@ class TestZipfileUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_ZIPFILE_UTILS
+# --- bz2_utils.py ---
+cat > "$OUTPUT_DIR/bz2_utils.py" <<'BZ2_UTILS'
+"""Bz2 utility functions wrapping the standard library 'bz2' module."""
 
+from __future__ import annotations
+
+import bz2
+from typing import IO
+
+__all__: list[str] = [
+    "bz2_compress",
+    "bz2_decompress",
+    "bz2_open",
+    "bz2_write",
+    "bz2_read",
+]
+
+
+def bz2_compress(data: bytes, compresslevel: int = 9) -> bytes:
+    """Compress bytes using bz2."""
+    return bz2.compress(data, compresslevel=compresslevel)
+
+
+def bz2_decompress(data: bytes) -> bytes:
+    """Decompress bz2-compressed bytes."""
+    return bz2.decompress(data)
+
+
+def bz2_open(filename: str, mode: str = "rb", compresslevel: int = 9) -> IO[bytes] | IO[str]:
+    """Open a bz2 file."""
+    return bz2.open(filename, mode, compresslevel=compresslevel)  # type: ignore[return-value]
+
+
+def bz2_write(filename: str, data: bytes, compresslevel: int = 9) -> None:
+    """Write data to a bz2 file."""
+    with bz2.open(filename, "wb", compresslevel=compresslevel) as f:
+        f.write(data)
+
+
+def bz2_read(filename: str) -> bytes:
+    """Read and decompress a bz2 file."""
+    with bz2.open(filename, "rb") as f:
+        return f.read()
+BZ2_UTILS
+
+# --- tests/test_bz2_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_bz2_utils.py" <<'TEST_BZ2_UTILS'
+"""Tests for bz2_utils."""
+
+import os
+import tempfile
+import unittest
+
+from bz2_utils import (
+    bz2_compress,
+    bz2_decompress,
+    bz2_open,
+    bz2_read,
+    bz2_write,
+)
+
+
+class TestBz2Utils(unittest.TestCase):
+    def test_bz2_compress_decompress_roundtrip(self):
+        data = b"hello world" * 10
+        compressed = bz2_compress(data)
+        self.assertEqual(bz2_decompress(compressed), data)
+
+    def test_bz2_write_read_roundtrip(self):
+        data = b"hello world" * 10
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.bz2")
+            bz2_write(path, data)
+            self.assertEqual(bz2_read(path), data)
+
+    def test_bz2_open(self):
+        data = b"hello world"
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.bz2")
+            with bz2_open(path, "wb") as f:
+                f.write(data)
+            with bz2_open(path, "rb") as f:
+                self.assertEqual(f.read(), data)
+TEST_BZ2_UTILS
 # --- calculator.py ---
 cat > "$OUTPUT_DIR/calculator.py" <<'CALCULATOR'
 def add(a: float, b: float) -> float:

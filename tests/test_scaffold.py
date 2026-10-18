@@ -85,6 +85,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "pickle_utils.py",
             "marshal_utils.py",
             "zipfile_utils.py",
+            "bz2_utils.py",
             "calculator.py",
             "config_utils.py",
             "collections_utils.py",
@@ -325,10 +326,16 @@ class TestScaffoldKiloJson(unittest.TestCase):
               "tests/test_socketserver_utils.py",
 "sqlite3_utils.py",
                 "tests/test_sqlite3_utils.py",
-                "marshal_utils.py",
-                "tests/test_marshal_utils.py",
-                "zipfile_utils.py",
-                "tests/test_zipfile_utils.py",
+              "marshal_utils.py",
+              "tests/test_marshal_utils.py",
+              "zipfile_utils.py",
+              "tests/test_zipfile_utils.py",
+              "bz2_utils.py",
+              "tests/test_bz2_utils.py",
+              "bz2_utils.py",
+              "tests/test_bz2_utils.py",
+                "bz2_utils.py",
+                "tests/test_bz2_utils.py",
            ]
         for rel in expected:
             path = self.project_dir / rel
@@ -1689,6 +1696,32 @@ class TestScaffoldProjectNameNormalization(unittest.TestCase):
             msg=f"scaffold.sh failed for name '{name}':\n{result.stderr}",
         )
         return out
+
+    def test_bz2_utils_functions_work(self):
+        """Generated bz2_utils.py should have working functions."""
+        import os
+        import tempfile
+
+        from bz2_utils import (
+            bz2_compress,
+            bz2_decompress,
+            bz2_open,
+            bz2_read,
+            bz2_write,
+        )
+
+        data = b"hello world" * 10
+        compressed = bz2_compress(data)
+        self.assertEqual(bz2_decompress(compressed), data)
+
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "test.bz2")
+            bz2_write(p, data)
+            self.assertEqual(bz2_read(p), data)
+            with bz2_open(p, "rb") as f:
+                self.assertEqual(f.read(), data)
+            with bz2_open(p, "wb", compresslevel=1) as f:
+                f.write(data)
 
     def test_spaces_and_mixed_case_normalized(self) -> None:
         out = self._scaffold("My Cool Tool")

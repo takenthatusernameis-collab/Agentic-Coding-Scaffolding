@@ -110,6 +110,7 @@ socketserver_utils.py           # Socketserver utilities wrapping the standard l
 sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
 marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
 zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
+bz2_utils.py               # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -276,6 +277,7 @@ test_weakref_utils.py       # Tests for weakref_utils.py
    test_warnings_utils.py      # Tests for warnings_utils.py
    test_xml_utils.py           # Tests for xml_utils.py
    test_zipfile_utils.py       # Tests for zipfile_utils.py
+   test_bz2_utils.py           # Tests for bz2_utils.py
    ```
 
 ## How It Works
@@ -502,6 +504,10 @@ The project includes reprlib utilities in `reprlib_utils.py` wrapping the standa
 ## Codecs Utilities Module
 
 The project includes codecs utilities in `codecs_utils.py` wrapping the standard library `codecs` module: `encode` and `decode` encode/decode objects, `lookup` looks up a codec by name, `getencoder`/`getdecoder` return encoder/decoder functions, `getincrementalencoder`/`getincrementaldecoder` return incremental encoders/decoders, `getreader`/`getwriter` return stream readers/writers, `open` opens a file with a given encoding, and `register`/`register_error`/`lookup_error` manage codec registration and error handlers. The module is tested in `tests/test_codecs_utils.py`.
+
+## Bz2 Utilities Module
+
+The project includes BZ2 compression utilities in `bz2_utils.py` wrapping the standard library `bz2` module: `bz2_compress` compresses bytes, `bz2_decompress` decompresses bz2-compressed bytes, `bz2_open` opens a bz2 file with optional compression level, `bz2_write` writes bytes to a bz2 file, and `bz2_read` reads and decompresses a bz2 file. The module is tested in `tests/test_bz2_utils.py`.
 
 ## Configuration Schema Module
 
