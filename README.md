@@ -109,6 +109,7 @@ shutil_utils.py            # High-level file operations (copy, move, remove, arc
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
 sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
 marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
+zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -271,10 +272,11 @@ test_scaffold.py            # Tests for scaffold.sh
   test_version_utils.py       # Tests for version_utils.py
   test_semver_utils.py        # Tests for semver_utils.py
   test_interval_utils.py      # Tests for interval_utils.py
-  test_weakref_utils.py       # Tests for weakref_utils.py
-  test_warnings_utils.py      # Tests for warnings_utils.py
-  test_xml_utils.py           # Tests for xml_utils.py
-  ```
+test_weakref_utils.py       # Tests for weakref_utils.py
+   test_warnings_utils.py      # Tests for warnings_utils.py
+   test_xml_utils.py           # Tests for xml_utils.py
+   test_zipfile_utils.py       # Tests for zipfile_utils.py
+   ```
 
 ## How It Works
 
@@ -782,3 +784,7 @@ The project includes traceback utilities in `traceback_utils.py` wrapping the st
 ## SQLite Utilities Module
 
 The project includes SQLite database utilities in `sqlite3_utils.py` wrapping the standard library `sqlite3` module: `connect` opens a connection (defaulting to an in-memory database), `execute` and `executemany` run SQL statements with optional parameters, `fetch_all`, `fetch_one`, and `fetch_many` return query results, `create_table` creates a table if it does not exist, `insert_row` inserts a row and returns its id, `query` returns rows as dictionaries keyed by column name, and `table_exists` checks whether a table exists. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_sqlite3_utils.py`.
+
+## ZIP Utilities Module
+
+The project includes ZIP archive utilities in `zipfile_utils.py` wrapping the standard library `zipfile` module: `create_archive` creates a ZIP archive at a path containing a list of files, `list_names` returns the member names in an archive, `extract_all` extracts all members of an archive into a destination directory, and `is_zipfile` reports whether a path points to a valid ZIP archive. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_zipfile_utils.py`.

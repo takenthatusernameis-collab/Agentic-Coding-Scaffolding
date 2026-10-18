@@ -25,6 +25,7 @@
 #   - ast_utils.py — # Abstract syntax tree utilities wrapping stdlib ast (parse, unparse, dump, literal_eval, get_docstring, walk, iter_fields, iter_child_nodes, find_all, fix_missing_locations, increment_lineno, copy_location, node_to_string)
 #   - pickle_utils.py — # Object serialization utilities wrapping stdlib pickle (dump, dumps, load, loads, pickler, unpickler, is_valid_protocol, validate_protocol)
 #   - marshal_utils.py — # Object serialization utilities wrapping stdlib marshal (dumps, loads, dump, load, get_version)
+#   - zipfile_utils.py — # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
 
 #   - calculator.py — # Simple calculator module with arithmetic operations
 
@@ -273,6 +274,7 @@
 #   - test_ast_utils.py — # Tests for ast_utils.py
 #   - test_pickle_utils.py — # Tests for pickle_utils.py
 #   - test_marshal_utils.py — # Tests for marshal_utils.py
+#   - test_zipfile_utils.py — # Tests for zipfile_utils.py
 #   - test_async_utils.py — # Tests for async_utils.py
 
 #   - test_array_utils.py — # Tests for array_utils.py
@@ -956,6 +958,7 @@ py_modules = [
     "socketserver_utils",
     "shlex_utils",
     "keyword_utils",
+    "zipfile_utils",
 ]
 
 PYPROJECT
@@ -1611,6 +1614,270 @@ def get_version() -> int:
     """
     return marshal.version
 MARSHAL_UTILS
+
+# --- tests/test_marshal_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_marshal_utils.py" <<'TEST_MARSHAL_UTILS'
+import io
+import marshal
+import unittest
+
+from marshal_utils import dump, dumps, get_version, load, loads
+
+
+class TestMarshalUtils(unittest.TestCase):
+    def test_dumps_round_trip(self):
+        obj = {"name": "Alice", "values": [1, 2, 3]}
+        data = dumps(obj)
+        self.assertIsInstance(data, bytes)
+        self.assertEqual(loads(data), obj)
+
+    def test_dumps_with_explicit_version(self):
+        obj = ("a", 42)
+        data = dumps(obj, version=marshal.version)
+        self.assertIsInstance(data, bytes)
+        self.assertEqual(loads(data), obj)
+
+    def test_dumps_version_validation(self):
+        with self.assertRaises(TypeError):
+            dumps("x", version="1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dumps("x", version=1.0)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            dumps("x", version=marshal.version + 1)
+        with self.assertRaises(ValueError):
+            dumps("x", version=-1)
+
+    def test_dumps_unmarshalable_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            dumps(lambda x: x)
+
+    def test_loads_bytes_like_types(self):
+        obj = [1, 2, 3]
+        data = marshal.dumps(obj)
+        self.assertEqual(loads(data), obj)
+        self.assertEqual(loads(bytearray(data)), obj)
+        self.assertEqual(loads(memoryview(data)), obj)
+
+    def test_loads_validation(self):
+        with self.assertRaises(TypeError):
+            loads("not bytes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            loads(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            loads(None)  # type: ignore[arg-type]
+
+    def test_loads_invalid_data_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            loads(b"not marshal data")
+
+    def test_dump_and_load_file_object(self):
+        obj = {"numbers": [1.0, 2.5], "flag": True}
+        buf = io.BytesIO()
+        dump(obj, buf)
+        buf.seek(0)
+        self.assertEqual(load(buf), obj)
+
+    def test_dump_with_version(self):
+        obj = "test"
+        buf = io.BytesIO()
+        dump(obj, buf, version=marshal.version)
+        buf.seek(0)
+        self.assertEqual(load(buf), obj)
+
+    def test_dump_validation(self):
+        with self.assertRaises(AttributeError):
+            dump("x", object())  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dump("x", io.BytesIO(), version="2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dump("x", io.BytesIO(), version=2.0)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            dump("x", io.BytesIO(), version=marshal.version + 1)
+        with self.assertRaises(ValueError):
+            dump("x", io.BytesIO(), version=-1)
+        bad_file = io.BytesIO()
+        bad_file.write = None  # type: ignore[method-assign]
+        with self.assertRaises(TypeError):
+            dump("x", bad_file)
+
+    def test_dump_raises_value_error_on_marshal_failure(self):
+        buf = io.BytesIO()
+        try:
+            dump(lambda: 1, buf)
+        except ValueError:
+            pass
+        else:
+            buf.truncate(0)
+            buf.seek(0)
+
+    def test_load_validation(self):
+        with self.assertRaises(AttributeError):
+            load(object())  # type: ignore[arg-type]
+        bad_file = io.BytesIO()
+        bad_file.read = None  # type: ignore[method-assign]
+        with self.assertRaises(TypeError):
+            load(bad_file)
+        with self.assertRaises(ValueError):
+            bad_data = io.BytesIO(b"garbage")
+            load(bad_data)
+
+    def test_get_version(self):
+        self.assertIsInstance(get_version(), int)
+        self.assertEqual(get_version(), marshal.version)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_MARSHAL_UTILS
+
+# --- zipfile_utils.py ---
+cat > "$OUTPUT_DIR/zipfile_utils.py" <<'ZIPFILE_UTILS'
+"""Utilities for reading and writing ZIP archives (wrapping :mod:`zipfile`).
+
+This module provides a small, validated layer over the standard library
+``zipfile`` module for creating, inspecting, and extracting archives. All
+functions validate their inputs and raise ``TypeError`` or ``ValueError``
+on invalid arguments.
+"""
+
+import zipfile as _zipfile
+from typing import Any
+
+
+def create_archive(path: str, files: list[str]) -> str:
+    """Create a ZIP archive at *path* containing *files*.
+
+    Args:
+        path: Destination archive path.
+        files: List of file paths to add to the archive.
+
+    Returns:
+        The archive path *path*.
+
+    Raises:
+        TypeError: If *path* is not a str or *files* is not a list of strs.
+        ValueError: If *path* is empty or *files* is empty.
+    """
+    if not isinstance(path, str):
+        raise TypeError("path must be a str")
+    if not path:
+        raise ValueError("path must not be empty")
+    if not isinstance(files, list) or not all(isinstance(f, str) for f in files):
+        raise TypeError("files must be a list of strs")
+    if not files:
+        raise ValueError("files must not be empty")
+    with _zipfile.ZipFile(path, "w", _zipfile.ZIP_DEFLATED) as zf:
+        for f in files:
+            zf.write(f)
+    return path
+
+
+def list_names(path: str) -> list[str]:
+    """Return the list of member names in the archive at *path*.
+
+    Args:
+        path: Path to a ZIP archive.
+
+    Returns:
+        A list of member names.
+
+    Raises:
+        TypeError: If *path* is not a str.
+        ValueError: If *path* is empty.
+    """
+    if not isinstance(path, str):
+        raise TypeError("path must be a str")
+    if not path:
+        raise ValueError("path must not be empty")
+    with _zipfile.ZipFile(path, "r") as zf:
+        return zf.namelist()
+
+
+def extract_all(path: str, dest: str = ".") -> None:
+    """Extract all members of the archive at *path* into *dest*.
+
+    Args:
+        path: Path to a ZIP archive.
+        dest: Destination directory.
+
+    Raises:
+        TypeError: If *path* or *dest* is not a str.
+        ValueError: If *path* or *dest* is empty.
+    """
+    if not isinstance(path, str):
+        raise TypeError("path must be a str")
+    if not path:
+        raise ValueError("path must not be empty")
+    if not isinstance(dest, str):
+        raise TypeError("dest must be a str")
+    if not dest:
+        raise ValueError("dest must not be empty")
+    with _zipfile.ZipFile(path, "r") as zf:
+        zf.extractall(dest)
+
+
+def is_zipfile(path: Any) -> bool:
+    """Return ``True`` if *path* points to a valid ZIP archive.
+
+    Args:
+        path: Path to test.
+
+    Returns:
+        ``True`` when *path* is a ZIP archive, otherwise ``False``.
+    """
+    return _zipfile.is_zipfile(path)
+ZIPFILE_UTILS
+
+# --- tests/test_zipfile_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_zipfile_utils.py" <<'TEST_ZIPFILE_UTILS'
+import os
+import shutil
+import tempfile
+import unittest
+
+from zipfile_utils import create_archive, extract_all, is_zipfile, list_names
+
+
+class TestZipfileUtils(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="zipfile-utils-test-")
+        self.src = os.path.join(self.tmpdir, "a.txt")
+        with open(self.src, "w", encoding="utf-8") as handle:
+            handle.write("hello")
+        self.archive = os.path.join(self.tmpdir, "out.zip")
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_create_and_list(self):
+        create_archive(self.archive, [self.src])
+        self.assertTrue(is_zipfile(self.archive))
+        names = list_names(self.archive)
+        self.assertEqual(len(names), 1)
+
+    def test_extract_all(self):
+        create_archive(self.archive, [self.src])
+        dest = os.path.join(self.tmpdir, "extracted")
+        os.mkdir(dest)
+        extract_all(self.archive, dest)
+        found = False
+        for root, _, files in os.walk(dest):
+            if files:
+                found = True
+        self.assertTrue(found)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            create_archive(123, [self.src])  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            create_archive("", [self.src])
+        with self.assertRaises(ValueError):
+            create_archive(self.archive, [])
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_ZIPFILE_UTILS
 
 # --- calculator.py ---
 cat > "$OUTPUT_DIR/calculator.py" <<'CALCULATOR'
@@ -18880,6 +19147,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `hello.py` — sample application entry point
 - `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`) with input validation
 - `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
+- `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
+- `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
+- `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
@@ -18922,6 +19192,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
+- `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
+- `tests/test_zipfile_utils.py` — unit tests for `zipfile_utils.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
 - `tests/test_collections_utils.py` — unit tests for `collections_utils.py`
@@ -20063,6 +20335,7 @@ semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
 sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
+zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
@@ -20216,9 +20489,10 @@ tests/                     # Python unit tests
   test_interval_utils.py      # Tests for interval_utils.py
   test_weakref_utils.py       # Tests for weakref_utils.py
   test_argparse_utils.py      # Tests for argparse_utils.py
-  test_warnings_utils.py      # Tests for warnings_utils.py
-  test_xml_utils.py           # Tests for xml_utils.py
-  ```
+test_warnings_utils.py      # Tests for warnings_utils.py
+   test_xml_utils.py           # Tests for xml_utils.py
+   test_zipfile_utils.py       # Tests for zipfile_utils.py
+   ```
 ## Getting Started
 
 1. Review `AGENTS.md` for agent instructions and the task handover protocol.
@@ -20277,6 +20551,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation, plus `tests/test_pickle_utils.py`.
 - Synchronized `pickle_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation, plus `tests/test_marshal_utils.py`.
+- Synchronized `marshal_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation, plus `tests/test_zipfile_utils.py`.
+- Synchronized `zipfile_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping the standard library `stat` and `os.stat` modules, plus `tests/test_stat_utils.py`.
 - Synchronized `stat_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.

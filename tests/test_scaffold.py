@@ -83,6 +83,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "abc_utils.py",
             "ast_utils.py",
             "pickle_utils.py",
+            "marshal_utils.py",
+            "zipfile_utils.py",
             "calculator.py",
             "config_utils.py",
             "collections_utils.py",
@@ -322,10 +324,12 @@ class TestScaffoldKiloJson(unittest.TestCase):
               "socketserver_utils.py",
               "tests/test_socketserver_utils.py",
 "sqlite3_utils.py",
-               "tests/test_sqlite3_utils.py",
-               "marshal_utils.py",
-               "tests/test_marshal_utils.py",
-          ]
+                "tests/test_sqlite3_utils.py",
+                "marshal_utils.py",
+                "tests/test_marshal_utils.py",
+                "zipfile_utils.py",
+                "tests/test_zipfile_utils.py",
+           ]
         for rel in expected:
             path = self.project_dir / rel
             self.assertTrue(path.is_file(), f"Expected generated file missing: {rel}")
@@ -388,10 +392,12 @@ class TestScaffoldKiloJson(unittest.TestCase):
         for module in [
             "abc_utils.py",
             "ast_utils.py",
-            "pickle_utils.py",
-            "marshal_utils.py",
-            "tests/test_marshal_utils.py",
-            "stats.py",
+"pickle_utils.py",
+              "marshal_utils.py",
+              "tests/test_marshal_utils.py",
+              "zipfile_utils.py",
+              "tests/test_zipfile_utils.py",
+              "stats.py",
             "math_utils.py",
             "data_utils.py",
             "datetime_utils.py",
@@ -522,9 +528,11 @@ class TestScaffoldKiloJson(unittest.TestCase):
 "pprint_utils.py",
 "traceback_utils.py",
 "typing_utils.py",
-             "pickle_utils.py",
-             "marshal_utils.py",
-            ]:
+              "pickle_utils.py",
+              "marshal_utils.py",
+              "zipfile_utils.py",
+              "tests/test_zipfile_utils.py",
+             ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
             "tests/test_stats.py",
@@ -758,12 +766,14 @@ class TestScaffoldKiloJson(unittest.TestCase):
 "traceback_utils.py",
 "tests/test_traceback_utils.py",
 "typing_utils.py",
-             "tests/test_typing_utils.py",
-             "pickle_utils.py",
-             "tests/test_pickle_utils.py",
-             "marshal_utils.py",
-             "tests/test_marshal_utils.py",
-            ]:
+              "tests/test_typing_utils.py",
+              "pickle_utils.py",
+              "tests/test_pickle_utils.py",
+              "marshal_utils.py",
+              "tests/test_marshal_utils.py",
+              "zipfile_utils.py",
+              "tests/test_zipfile_utils.py",
+             ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
     def test_file_utils_no_unused_os_import(self) -> None:
@@ -1610,6 +1620,49 @@ class TestScaffoldKiloJson(unittest.TestCase):
             self.assertEqual(len(fetch_all(conn, "SELECT name FROM users")), 3)
         finally:
             conn.close()
+
+    def test_zipfile_utils_functions_work(self):
+        """Generated zipfile_utils.py should have working functions."""
+        import os
+        import tempfile
+
+        from zipfile_utils import create_archive, extract_all, is_zipfile, list_names
+
+        tmpdir = tempfile.mkdtemp(prefix="scaffold-zipfile-")
+        try:
+            src = os.path.join(tmpdir, "a.txt")
+            with open(src, "w", encoding="utf-8") as handle:
+                handle.write("hello")
+            archive = os.path.join(tmpdir, "out.zip")
+
+            path = create_archive(archive, [src])
+            self.assertEqual(path, archive)
+            self.assertTrue(is_zipfile(archive))
+            self.assertFalse(is_zipfile(os.path.join(tmpdir, "missing.zip")))
+
+            names = list_names(archive)
+            self.assertEqual(len(names), 1)
+            self.assertTrue(names[0].endswith("a.txt"))
+
+            dest = os.path.join(tmpdir, "extracted")
+            os.mkdir(dest)
+            extract_all(archive, dest)
+            found = False
+            for root, _, files in os.walk(dest):
+                if files:
+                    found = True
+            self.assertTrue(found)
+
+            with self.assertRaises(TypeError):
+                create_archive(123, [src])  # type: ignore[arg-type]
+            with self.assertRaises(ValueError):
+                create_archive("", [src])
+            with self.assertRaises(ValueError):
+                create_archive(archive, [])
+        finally:
+            import shutil
+
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):
