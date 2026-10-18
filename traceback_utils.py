@@ -53,4 +53,10 @@ def format_exc():
         A string containing the exception information, or an empty string
         if no exception is being handled.
     """
-    return _traceback.format_exc()
+    try:
+        result = _traceback.format_exc()
+        if result == 'NoneType: None\n':
+            return ''
+        return result
+    except Exception:
+        return _traceback.format_exc()

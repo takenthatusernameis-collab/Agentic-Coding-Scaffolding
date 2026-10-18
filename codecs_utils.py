@@ -50,9 +50,9 @@ def getwriter(encoding):
     return _codecs.getwriter(encoding)
 
 
-def open(filename, mode="r", encoding=None, errors="strict", buffering=-1, newline=None):
+def open(filename, mode="r", encoding=None, errors="strict", buffering=-1):
     """Open a file with the given encoding."""
-    return _codecs.open(filename, mode, encoding, errors, buffering, newline)
+    return _codecs.open(filename, mode, encoding, errors, buffering)
 
 
 def register(search_function):
@@ -68,20 +68,3 @@ def register_error(name, error_handler):
 def lookup_error(name):
     """Look up an error handler by *name*."""
     return _codecs.lookup_error(name)
-
-
-__all__ = [
-    "encode",
-    "decode",
-    "lookup",
-    "getencoder",
-    "getdecoder",
-    "getincrementalencoder",
-    "getincrementaldecoder",
-    "getreader",
-    "getwriter",
-    "open",
-    "register",
-    "register_error",
-    "lookup_error",
-]
