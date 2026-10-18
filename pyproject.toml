@@ -161,4 +161,5 @@ py_modules = [
     "keyword_utils",
     "linecache_utils",
     "pprint_utils",
+    "reprlib_utils",
 ]

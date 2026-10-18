@@ -130,6 +130,7 @@ cmath_utils.py               # Complex mathematics utilities wrapping the standa
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
 pprint_utils.py            # Pretty-printing utilities wrapping stdlib pprint (pformat, pprint, isreadable, isrecursive, saferepr)
+reprlib_utils.py           # Reprlib utilities wrapping stdlib reprlib (repr, get_ident, recursive_repr, Repr)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
@@ -212,6 +213,7 @@ tests/                     # Python unit tests
 test_path_utils.py          # Tests for path_utils.py
   test_pattern_utils.py       # Tests for pattern_utils.py
   test_pprint_utils.py        # Tests for pprint_utils.py
+  test_reprlib_utils.py       # Tests for reprlib_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py

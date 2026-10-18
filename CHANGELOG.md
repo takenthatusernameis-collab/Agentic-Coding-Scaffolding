@@ -529,3 +529,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `plistlib_utils.py` — plistlib utility functions wrapping the standard library `plistlib` module (`plist_load`, `plist_loads`, `plist_dump`, `plist_dumps`) for reading/writing binary plist data
 - `tests/test_plistlib_utils.py` — unit tests for `plistlib_utils.py`
 - Synchronized `plistlib_utils.py` across scaffolding (`scaffold.sh` py_modules and heredocs for module/tests/scaffold-project.md, `.kilo/command/scaffold-project.md`, `pyproject.toml`, `tests/test_scaffold.py`); added `plistlib_utils` entries where missing
+- Added `reprlib_utils.py` — reprlib utilities wrapping the standard library `reprlib` module (`repr`, `get_ident`, `recursive_repr`, `Repr`) with input validation, plus `tests/test_reprlib_utils.py`.
+- Synchronized `reprlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.

@@ -293,6 +293,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "tests/test_selectors_utils.py",
              "pprint_utils.py",
              "tests/test_pprint_utils.py",
+             "reprlib_utils.py",
+             "tests/test_reprlib_utils.py",
              "gzip_utils.py",
              "tests/test_gzip_utils.py",
              "plistlib_utils.py",
@@ -710,6 +712,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "linecache_utils.py",
              "pprint_utils.py",
              "tests/test_pprint_utils.py",
+             "reprlib_utils.py",
+             "tests/test_reprlib_utils.py",
          ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 

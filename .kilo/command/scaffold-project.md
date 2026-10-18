@@ -115,6 +115,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_linecache_utils.py` — unit tests for `linecache_utils.py`
 - `pprint_utils.py` — pretty-printing utilities wrapping stdlib pprint (`pformat`, `pprint`, `isreadable`, `isrecursive`, `saferepr`)
 - `tests/test_pprint_utils.py` — unit tests for `pprint_utils.py`
+- `reprlib_utils.py` — reprlib utilities wrapping stdlib reprlib (`repr`, `get_ident`, `recursive_repr`, `Repr`)
+- `tests/test_reprlib_utils.py` — unit tests for `reprlib_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`

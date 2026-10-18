@@ -61,6 +61,7 @@
 #   - linecache_utils.py — # Line cache utilities (getline, getlines, updatecache, clearcache) wrapping stdlib linecache
 
 #   - pprint_utils.py — # Pretty-printing utilities wrapping stdlib pprint (pformat, pprint, isreadable, isrecursive, saferepr)
+#   - reprlib_utils.py — # Reprlib utilities wrapping stdlib reprlib (repr, get_ident, recursive_repr, Repr)
 #   - tests/test_linecache_utils.py — # Tests for linecache_utils.py
 
 #   - env_utils.py — # Environment variable handling utilities
@@ -844,6 +845,7 @@ py_modules = [
     "locale_utils",
     "linecache_utils",
     "pprint_utils",
+    "reprlib_utils",
     "env_utils",
     "logging_utils",
     "markdown_utils",
@@ -18335,6 +18337,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_linecache_utils.py` — unit tests for `linecache_utils.py`
 - `pprint_utils.py` — pretty-printing utilities wrapping stdlib pprint (`pformat`, `pprint`, `isreadable`, `isrecursive`, `saferepr`)
 - `tests/test_pprint_utils.py` — unit tests for `pprint_utils.py`
+- `reprlib_utils.py` — reprlib utilities wrapping stdlib reprlib (`repr`, `get_ident`, `recursive_repr`, `Repr`)
+- `tests/test_reprlib_utils.py` — unit tests for `reprlib_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
@@ -19608,6 +19612,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `pprint_utils.py` — pretty-printing utilities wrapping the standard library `pprint` module (`pformat`, `pprint`, `isreadable`, `isrecursive`, `saferepr`) with input validation, plus `tests/test_pprint_utils.py`.
 - Synchronized `pprint_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `reprlib_utils.py` — reprlib utilities wrapping the standard library `reprlib` module (`repr`, `get_ident`, `recursive_repr`, `Repr`) with input validation, plus `tests/test_reprlib_utils.py`.
+- Synchronized `reprlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `contextlib_utils.py` — contextlib utility functions wrapping the standard library `contextlib` module (`suppress`, `nullcontext`, `closing`, `redirect_stdout`, `redirect_stderr`, `chdir`, `ExitStack`) with input validation, plus `tests/test_contextlib_utils.py`.
 - Synchronized `contextlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -28448,6 +28455,139 @@ class TestPprintUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTPPRINTUTILS
+# --- reprlib_utils.py ---
+cat > "$OUTPUT_DIR/reprlib_utils.py" <<'REPRLIB_UTILS'
+"""Utilities for reprlib (wrapping :mod:`reprlib`)."""
+
+import reprlib as _reprlib
+
+
+def repr(obj):
+    return _reprlib.repr(obj)
+
+
+def get_ident():
+    return _reprlib.get_ident()
+
+
+class Repr(_reprlib.Repr):
+    def __init__(
+        self,
+        *,
+        maxlevel=6,
+        maxtuple=6,
+        maxlist=6,
+        maxarray=5,
+        maxdict=4,
+        maxset=6,
+        maxfrozenset=6,
+        maxdeque=6,
+        maxstring=30,
+        maxlong=40,
+        maxother=30,
+        fillvalue="...",
+        indent=None,
+    ):
+        if maxlevel is not None and not isinstance(maxlevel, int) or (
+            isinstance(maxlevel, int) and maxlevel < 0
+        ):
+            raise TypeError("maxlevel must be a non-negative int or None")
+        if not isinstance(maxtuple, int) or maxtuple < 0:
+            raise TypeError("maxtuple must be a non-negative int")
+        if not isinstance(maxlist, int) or maxlist < 0:
+            raise TypeError("maxlist must be a non-negative int")
+        if not isinstance(maxarray, int) or maxarray < 0:
+            raise TypeError("maxarray must be a non-negative int")
+        if not isinstance(maxdict, int) or maxdict < 0:
+            raise TypeError("maxdict must be a non-negative int")
+        if not isinstance(maxset, int) or maxset < 0:
+            raise TypeError("maxset must be a non-negative int")
+        if not isinstance(maxfrozenset, int) or maxfrozenset < 0:
+            raise TypeError("maxfrozenset must be a non-negative int")
+        if not isinstance(maxdeque, int) or maxdeque < 0:
+            raise TypeError("maxdeque must be a non-negative int")
+        if not isinstance(maxstring, int) or maxstring < 0:
+            raise TypeError("maxstring must be a non-negative int")
+        if not isinstance(maxlong, int) or maxlong < 0:
+            raise TypeError("maxlong must be a non-negative int")
+        if not isinstance(maxother, int) or maxother < 0:
+            raise TypeError("maxother must be a non-negative int")
+        if not isinstance(fillvalue, str):
+            raise TypeError("fillvalue must be a string")
+        if indent is not None and not isinstance(indent, (int, str)):
+            raise TypeError("indent must be int, str, or None")
+        if isinstance(indent, int) and indent < 0:
+            raise ValueError("indent must be non-negative")
+        super().__init__(
+            maxlevel=maxlevel,
+            maxtuple=maxtuple,
+            maxlist=maxlist,
+            maxarray=maxarray,
+            maxdict=maxdict,
+            maxset=maxset,
+            maxfrozenset=maxfrozenset,
+            maxdeque=maxdeque,
+            maxstring=maxstring,
+            maxlong=maxlong,
+            maxother=maxother,
+            fillvalue=fillvalue,
+            indent=indent,
+        )
+
+
+aRepr = _reprlib.aRepr
+
+
+def recursive_repr(fillvalue="..."):
+    if not isinstance(fillvalue, str):
+        raise TypeError("fillvalue must be a string")
+    return _reprlib.recursive_repr(fillvalue=fillvalue)
+REPRLIB_UTILS
+# --- tests/test_reprlib_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_reprlib_utils.py" <<'TESTREPRLIBUTILS'
+import unittest
+
+from reprlib_utils import Repr, aRepr, get_ident, recursive_repr, repr as repr_short
+
+
+class TestReprlibUtils(unittest.TestCase):
+    def test_repr(self):
+        self.assertIsInstance(repr_short([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), str)
+
+    def test_get_ident(self):
+        self.assertIsInstance(get_ident(), int)
+
+    def test_recursive_repr(self):
+        class A:
+            def __init__(self):
+                self.other = None
+
+            @recursive_repr()
+            def __repr__(self):
+                if self.other is not None:
+                    return f"A({self.other!r})"
+                return "A()"
+
+        a = A()
+        a.other = a
+        self.assertIn("A(...)", repr(a))
+
+    def test_repr_class(self):
+        r = Repr()
+        self.assertIsInstance(r.repr([1, 2, 3]), str)
+
+    def test_repr_indent_validation(self):
+        with self.assertRaises(TypeError):
+            Repr(indent=object())
+
+    def test_repr_indent_negative(self):
+        with self.assertRaises(ValueError):
+            Repr(indent=-1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTREPRLIBUTILS
 # --- email_utils.py ---
 cat > "$OUTPUT_DIR/email_utils.py" <<'EMAIL_UTILS'
 """Email utility functions wrapping the standard library 'email.utils' module."""
