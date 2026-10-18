@@ -150,6 +150,7 @@ py_modules = [
     "queue_utils",
     "sort_utils",
     "sys_utils",
+    "tarfile_utils",
     "networking_utils",
     "version_utils",
     "decimal_utils",
