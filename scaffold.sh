@@ -58,6 +58,8 @@
 #   - list_utils.py — # Advanced list manipulation utilities
 
 #   - locale_utils.py — # Locale utility functions for working with locale identifiers and language tags
+#   - linecache_utils.py — # Line cache utilities (getline, getlines, updatecache, clearcache) wrapping stdlib linecache
+#   - tests/test_linecache_utils.py — # Tests for linecache_utils.py
 
 #   - env_utils.py — # Environment variable handling utilities
 
@@ -838,6 +840,7 @@ py_modules = [
     "crypto_utils",
     "list_utils",
     "locale_utils",
+    "linecache_utils",
     "env_utils",
     "logging_utils",
     "markdown_utils",
@@ -6805,6 +6808,102 @@ LOCALE_UTILS
 
 # --- tests/test_locale_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_locale_utils.py" <<'TESTLOCALEUTILS'
+
+# --- linecache_utils.py ---
+cat > "$OUTPUT_DIR/linecache_utils.py" <<'LINECACHE_UTILS'
+"""Utilities for reading source lines (wrapping :mod:`linecache`)."""
+
+import linecache as _linecache
+
+
+def getline(filename, lineno, module_globals=None):
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a str")
+    if not isinstance(lineno, int):
+        raise TypeError("lineno must be an int")
+    return _linecache.getline(filename, lineno, module_globals)
+
+
+def getlines(filename, module_globals=None):
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a str")
+    return _linecache.getlines(filename, module_globals)
+
+
+def checkcache(filename=None):
+    return _linecache.checkcache(filename)
+
+
+def updatecache(filename, module_globals=None):
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a str")
+    return _linecache.updatecache(filename, module_globals)
+
+
+def lazycache(filename, module_globals):
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a str")
+    return _linecache.lazycache(filename, module_globals)
+
+
+def clearcache():
+    return _linecache.clearcache()
+
+LINECACHE_UTILS
+
+# --- tests/test_linecache_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_linecache_utils.py" <<'TESTLINECACHE'
+import os
+import tempfile
+import unittest
+
+from linecache_utils import checkcache, clearcache, getline, getlines, updatecache
+
+
+class TestLinecacheUtils(unittest.TestCase):
+    def setUp(self):
+        self.fd, self.path = tempfile.mkstemp()
+        with os.fdopen(self.fd, "w") as f:
+            f.write("first\nsecond\nthird\n")
+
+    def tearDown(self):
+        os.remove(self.path)
+        clearcache()
+
+    def test_getline(self):
+        self.assertEqual(getline(self.path, 2), "second\n")
+
+    def test_getline_type_error(self):
+        with self.assertRaises(TypeError):
+            getline(123, 1)
+
+    def test_getlines(self):
+        self.assertEqual(getlines(self.path), ["first\n", "second\n", "third\n"])
+
+    def test_getlines_type_error(self):
+        with self.assertRaises(TypeError):
+            getlines(123)
+
+    def test_checkcache(self):
+        checkcache(self.path)
+
+    def test_updatecache(self):
+        lines = updatecache(self.path)
+        self.assertEqual(lines, ["first\n", "second\n", "third\n"])
+
+    def test_updatecache_type_error(self):
+        with self.assertRaises(TypeError):
+            updatecache(123)
+
+    def test_clearcache(self):
+        clearcache()
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+TESTLINECACHE
+
 """Tests for locale_utils module."""
 
 import locale_utils
@@ -18136,6 +18235,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_regex_utils.py` — unit tests for `regex_utils.py`
 - `tests/test_scaffold.py` — unit tests for `scaffold.sh`
 - `tests/test_secrets_utils.py` — unit tests for `secrets_utils.py`
+- `contextlib_utils.py` — contextlib utility functions wrapping stdlib contextlib
+- `tests/test_contextlib_utils.py` — unit tests for `contextlib_utils.py`
 - `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
 - `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators)
@@ -18154,6 +18255,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ip_utils.py` — IP address validation and manipulation utilities (IPv4/IPv6, conversion, properties, subnet checks)
 - `tests/test_ip_utils.py` — unit tests for `ip_utils.py`
 - `tests/test_io_utils.py` — unit tests for `io_utils.py`
+- `linecache_utils.py` — line cache utilities (`getline`, `getlines`, `updatecache`, `clearcache`) wrapping stdlib linecache
+- `tests/test_linecache_utils.py` — unit tests for `linecache_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
@@ -19418,6 +19521,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `linecache_utils.py` — line cache utilities wrapping the standard library `linecache` module (`getline`, `getlines`, `updatecache`, `clearcache`) with input validation, plus `tests/test_linecache_utils.py`.
+- Synchronized `linecache_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `contextlib_utils.py` — contextlib utility functions wrapping the standard library `contextlib` module (`suppress`, `nullcontext`, `closing`, `redirect_stdout`, `redirect_stderr`, `chdir`, `ExitStack`) with input validation, plus `tests/test_contextlib_utils.py`.
+- Synchronized `contextlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `keyword_utils.py` — Python keyword classification utilities wrapping the standard library `keyword` module (`is_keyword`, `is_soft_keyword`, `kwlist`, `softkwlist`, `main`) with input validation, plus `tests/test_keyword_utils.py`.
 - Synchronized `keyword_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.

@@ -87,6 +87,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_regex_utils.py` — unit tests for `regex_utils.py`
 - `tests/test_scaffold.py` — unit tests for `scaffold.sh`
 - `tests/test_secrets_utils.py` — unit tests for `secrets_utils.py`
+- `contextlib_utils.py` — contextlib utility functions wrapping stdlib contextlib
+- `tests/test_contextlib_utils.py` — unit tests for `contextlib_utils.py`
 - `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
 - `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators)
@@ -105,6 +107,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ip_utils.py` — IP address validation and manipulation utilities (IPv4/IPv6, conversion, properties, subnet checks)
 - `tests/test_ip_utils.py` — unit tests for `ip_utils.py`
 - `tests/test_io_utils.py` — unit tests for `io_utils.py`
+- `linecache_utils.py` — line cache utilities (`getline`, `getlines`, `updatecache`, `clearcache`) wrapping stdlib linecache
+- `tests/test_linecache_utils.py` — unit tests for `linecache_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
