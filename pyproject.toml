@@ -160,4 +160,5 @@ py_modules = [
     "shlex_utils",
     "keyword_utils",
     "linecache_utils",
+    "pprint_utils",
 ]
