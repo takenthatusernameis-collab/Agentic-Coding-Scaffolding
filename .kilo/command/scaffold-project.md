@@ -221,7 +221,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `shlex_utils.py` — simple lexical analysis utilities wrapping the standard library `shlex` module (`split`, `quote`, `join`) with input validation
 - `tests/test_shlex_utils.py` — unit tests for `shlex_utils.py`
 - `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.
+- `sqlite3_utils.py` — SQLite database utilities (`connect`, `execute`, `executemany`, `fetch_all`, `fetch_one`, `fetch_many`, `create_table`, `insert_row`, `query`, `table_exists`) wrapping the standard library `sqlite3` module with input validation.
 - `tests/test_socketserver_utils.py` — unit tests for `socketserver_utils.py`
+- `tests/test_sqlite3_utils.py` — unit tests for `sqlite3_utils.py`
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
 - `greeting_utils.py` — Greeting utilities (`greet`, `format_names`, `random_greeting`) for formatted greeting strings
 - `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`

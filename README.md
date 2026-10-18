@@ -107,6 +107,7 @@ version_utils.py           # Version utility functions (parse, compare, normaliz
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
+sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -775,3 +776,7 @@ The project includes typing utilities in `typing_utils.py` wrapping the standard
 ## Traceback Utilities Module
 
 The project includes traceback utilities in `traceback_utils.py` wrapping the standard library `traceback` module: `format_exception` formats an exception as a list of strings, `format_exception_only` formats the exception portion, `extract_stack` returns the current stack as `FrameSummary` objects, `format_stack` renders the current stack trace, and `format_exc` returns the active exception as a string. All functions forward to the standard library. The module is tested in `tests/test_traceback_utils.py`.
+
+## SQLite Utilities Module
+
+The project includes SQLite database utilities in `sqlite3_utils.py` wrapping the standard library `sqlite3` module: `connect` opens a connection (defaulting to an in-memory database), `execute` and `executemany` run SQL statements with optional parameters, `fetch_all`, `fetch_one`, and `fetch_many` return query results, `create_table` creates a table if it does not exist, `insert_row` inserts a row and returns its id, `query` returns rows as dictionaries keyed by column name, and `table_exists` checks whether a table exists. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_sqlite3_utils.py`.

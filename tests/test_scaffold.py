@@ -321,6 +321,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
               "tests/test_keyword_utils.py",
               "socketserver_utils.py",
               "tests/test_socketserver_utils.py",
+              "sqlite3_utils.py",
+              "tests/test_sqlite3_utils.py",
          ]
         for rel in expected:
             path = self.project_dir / rel
@@ -512,6 +514,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "shlex_utils.py",
              "keyword_utils.py",
               "socketserver_utils.py",
+              "sqlite3_utils.py",
 "pprint_utils.py",
 "traceback_utils.py",
 "typing_utils.py",
@@ -574,6 +577,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
              "tests/test_shlex_utils.py",
               "tests/test_keyword_utils.py",
               "tests/test_socketserver_utils.py",
+              "tests/test_sqlite3_utils.py",
 "tests/test_pprint_utils.py",
 "tests/test_traceback_utils.py",
 "tests/test_typing_utils.py",
@@ -732,7 +736,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
 "selectors_utils.py",
              "tests/test_selectors_utils.py",
              "socketserver_utils.py",
+             "sqlite3_utils.py",
              "tests/test_socketserver_utils.py",
+             "tests/test_sqlite3_utils.py",
              "glob_utils.py",
              "shlex_utils.py",
              "keyword_utils.py",
@@ -1560,6 +1566,42 @@ class TestScaffoldKiloJson(unittest.TestCase):
             validate_protocol(99)
         self.assertTrue(is_valid_protocol(0))
         self.assertFalse(is_valid_protocol("nope"))
+
+    def test_sqlite3_utils_functions_work(self):
+        """Generated sqlite3_utils.py should have working functions."""
+        from sqlite3_utils import (
+            connect,
+            create_table,
+            fetch_all,
+            fetch_one,
+            insert_row,
+            query,
+            table_exists,
+        )
+
+        conn = connect(":memory:")
+        try:
+            create_table(conn, "users", "id INTEGER PRIMARY KEY, name TEXT")
+            insert_row(conn, "users", ["name"], ["Ada"])
+            insert_row(conn, "users", ["name"], ["Bob"])
+
+            self.assertTrue(table_exists(conn, "users"))
+            self.assertFalse(table_exists(conn, "missing"))
+
+            row_a = fetch_one(
+                conn, "SELECT name FROM users WHERE name = ?", ["Ada"]
+            )
+            self.assertEqual(row_a, ("Ada",))
+            rows = fetch_all(conn, "SELECT name FROM users ORDER BY name")
+            self.assertEqual(rows, [("Ada",), ("Bob",)])
+            named = query(conn, "SELECT name FROM users")
+            self.assertEqual(named, [{"name": "Ada"}, {"name": "Bob"}])
+
+            row_id = insert_row(conn, "users", ["name"], ["Cec"])
+            self.assertEqual(row_id, 3)
+            self.assertEqual(len(fetch_all(conn, "SELECT name FROM users")), 3)
+        finally:
+            conn.close()
 
 
 class TestScaffoldProjectNameNormalization(unittest.TestCase):
