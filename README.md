@@ -80,6 +80,7 @@ json_utils.py            # JSON utility functions (read/write/parse/dump/validat
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
@@ -240,7 +241,8 @@ test_scaffold.py            # Tests for scaffold.sh
   test_shutil_utils.py        # Tests for shutil_utils.py
   test_socketserver_utils.py     # Tests for socketserver_utils.py
   test_sort_utils.py          # Tests for sort_utils.py
-  test_statistics_utils.py    # Tests for statistics_utils.py
+  test_stat_utils.py    # Tests for stat_utils.py
+ test_statistics_utils.py    # Tests for statistics_utils.py
   test_stats.py               # Tests for stats.py
   test_string_utils.py        # Tests for string_utils.py
   test_strings.py             # Tests for strings.py
@@ -445,6 +447,10 @@ The project includes a CSV utilities module in `csv_utils.py` with functions for
 ## Set Utilities Module
 
 The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+
+## Stat Utilities Module
+
+The project includes a stat utilities module in `stat_utils.py` with functions for inspecting file types and permission modes using the standard library `stat` and `os.stat`: `file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, and `stat_info`. All functions validate their inputs by delegating to `os.stat`, which raises `TypeError` for invalid paths and `OSError` for missing files. The module is tested in `tests/test_stat_utils.py`.
 
 ## Statistical Utilities Module
 

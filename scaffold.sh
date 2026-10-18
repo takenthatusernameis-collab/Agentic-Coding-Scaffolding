@@ -112,6 +112,8 @@
 
 #   - set_utils.py — # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 
+#   - stat_utils.py — # Stat file type/mode utilities (file_mode, file_type, is_directory, is_regular_file, is_symlink, is_socket, is_fifo, is_device, filemode, stat_info) wrapping stdlib stat and os.stat
+
 #   - statistics_utils.py — # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 
 #   - string_utils.py — # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
@@ -412,6 +414,8 @@
 #   - test_socketserver_utils.py — # Tests for socketserver_utils.py
 
 #   - test_sort_utils.py — # Tests for sort_utils.py
+
+#   - test_stat_utils.py — # Tests for stat_utils.py
 
 #   - test_statistics_utils.py — # Tests for statistics_utils.py
 
@@ -879,6 +883,7 @@ py_modules = [
     "json_utils",
     "csv_utils",
     "set_utils",
+    "stat_utils",
     "statistics_utils",
     "string_utils",
     "type_utils",
@@ -18523,6 +18528,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
+- `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping stdlib stat and os.stat
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 - `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 - `data_utils.py` — data utility functions
@@ -18562,6 +18568,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `tests/test_stats.py` — unit tests for `stats.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
+- `tests/test_stat_utils.py` — unit tests for `stat_utils.py`
 - `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
 - `tests/test_string_utils.py` — unit tests for `string_utils.py`
 - `tree_utils.py` — tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
@@ -19666,6 +19673,7 @@ json_utils.py            # JSON utility functions (read/write/parse/dump/validat
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
@@ -19814,6 +19822,7 @@ tests/                     # Python unit tests
   test_shutil_utils.py        # Tests for shutil_utils.py
   test_socketserver_utils.py     # Tests for socketserver_utils.py
   test_sort_utils.py          # Tests for sort_utils.py
+  test_stat_utils.py    # Tests for stat_utils.py
   test_statistics_utils.py    # Tests for statistics_utils.py
   test_stats.py               # Tests for stats.py
   test_string_utils.py        # Tests for string_utils.py
@@ -19893,6 +19902,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping the standard library `stat` and `os.stat` modules, plus `tests/test_stat_utils.py`.
+- Synchronized `stat_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Removed a duplicate `copy_utils` entry from `pyproject.toml` `py_modules` (it was listed twice, once near `config_schema` and once near `colorsys_utils`); the module itself, its tests, and all scaffold/doc entries were already present and correct.
 
@@ -36627,6 +36639,207 @@ def is_serving(server: socketserver.BaseServer) -> bool:
         return True
     return not flag.is_set()
 SOCKETSERVER_UTILS
+# --- stat_utils.py ---
+cat > "$OUTPUT_DIR/stat_utils.py" <<'STATUTILS'
+"""Utilities for file type and mode inspection (wrapping :mod:`stat` and :func:`os.stat`)."""
+
+import os
+import stat as _stat
+from typing import Any
+
+
+def file_mode(path: str | os.PathLike[str]) -> int:
+    """Return the permission bits of *path* (the low 12 bits of ``st_mode``).
+
+    Args:
+        path: Filesystem path to inspect.
+
+    Returns:
+        The file permission bits (e.g. ``0o644``).
+    """
+    return _stat.S_IMODE(os.stat(path).st_mode)
+
+
+def file_type(path: str | os.PathLike[str]) -> int:
+    """Return the file type bits of *path*.
+
+    Args:
+        path: Filesystem path to inspect.
+
+    Returns:
+        The file type bits (e.g. ``stat.S_IFREG``).
+    """
+    return _stat.S_IFMT(os.stat(path).st_mode)
+
+
+def is_directory(path: str | os.PathLike[str]) -> bool:
+    """Return True if *path* is a directory."""
+    return _stat.S_ISDIR(os.stat(path).st_mode)
+
+
+def is_regular_file(path: str | os.PathLike[str]) -> bool:
+    """Return True if *path* is a regular file."""
+    return _stat.S_ISREG(os.stat(path).st_mode)
+
+
+def is_symlink(path: str | os.PathLike[str]) -> bool:
+    """Return True if *path* is a symbolic link."""
+    return _stat.S_ISLNK(os.lstat(path).st_mode)
+
+
+def is_socket(path: str | os.PathLike[str]) -> bool:
+    """Return True if *path* is a socket."""
+    return _stat.S_ISSOCK(os.stat(path).st_mode)
+
+
+def is_fifo(path: str | os.PathLike[str]) -> bool:
+    """Return True if *path* is a FIFO (named pipe)."""
+    return _stat.S_ISFIFO(os.stat(path).st_mode)
+
+
+def is_device(path: str | os.PathLike[str]) -> bool:
+    """Return True if *path* is a character or block device."""
+    st_mode = os.stat(path).st_mode
+    return _stat.S_ISCHR(st_mode) or _stat.S_ISBLK(st_mode)
+
+
+def filemode(path: str | os.PathLike[str]) -> str:
+    """Return a string like ``-rwxr-xr-x`` describing *path*'s permissions.
+
+    Args:
+        path: Filesystem path to inspect.
+
+    Returns:
+        The symbolic file mode string.
+    """
+    return _stat.filemode(os.stat(path).st_mode)
+
+
+def stat_info(path: str | os.PathLike[str]) -> dict[str, Any]:
+    """Return a dictionary of the :func:`os.stat` result fields for *path*.
+
+    Args:
+        path: Filesystem path to inspect.
+
+    Returns:
+        A mapping of stat result field names to their values.
+    """
+    result = os.stat(path)
+    return {
+        "mode": result.st_mode,
+        "ino": result.st_ino,
+        "dev": result.st_dev,
+        "nlink": result.st_nlink,
+        "uid": result.st_uid,
+        "gid": result.st_gid,
+        "size": result.st_size,
+        "atime": result.st_atime,
+        "mtime": result.st_mtime,
+        "ctime": result.st_ctime,
+    }
+STATUTILS
+# --- tests/test_stat_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_stat_utils.py" <<'TESTSTATUTILS'
+import os
+import stat as _stat
+import tempfile
+import unittest
+
+from stat_utils import (
+    file_mode,
+    file_type,
+    filemode,
+    is_device,
+    is_directory,
+    is_fifo,
+    is_regular_file,
+    is_socket,
+    is_symlink,
+    stat_info,
+)
+
+
+class TestStatUtils(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="stat-utils-test-")
+        self.file_path = os.path.join(self.tmpdir, "sample.txt")
+        with open(self.file_path, "w", encoding="utf-8") as handle:
+            handle.write("stat-utils sample data\n")
+        self.dir_path = os.path.join(self.tmpdir, "subdir")
+        os.mkdir(self.dir_path)
+
+    def tearDown(self) -> None:
+        for name in ("sample.txt", "subdir"):
+            path = os.path.join(self.tmpdir, name)
+            if os.path.isdir(path) and not os.path.islink(path):
+                os.rmdir(path)
+            elif os.path.exists(path):
+                os.remove(path)
+        os.rmdir(self.tmpdir)
+
+    def test_file_mode_regular_file(self):
+        mode = file_mode(self.file_path)
+        self.assertIsInstance(mode, int)
+        self.assertTrue(mode & 0o600)
+
+    def test_file_mode_directory(self):
+        mode = file_mode(self.dir_path)
+        self.assertIsInstance(mode, int)
+        self.assertTrue(_stat.S_ISDIR(mode) or _stat.S_ISDIR(os.stat(self.dir_path).st_mode))
+
+    def test_file_type(self):
+        self.assertEqual(file_type(self.file_path), _stat.S_IFREG)
+        self.assertEqual(file_type(self.dir_path), _stat.S_IFDIR)
+
+    def test_is_directory(self):
+        self.assertTrue(is_directory(self.dir_path))
+        self.assertFalse(is_directory(self.file_path))
+
+    def test_is_regular_file(self):
+        self.assertTrue(is_regular_file(self.file_path))
+        self.assertFalse(is_regular_file(self.dir_path))
+
+    def test_is_symlink(self):
+        self.assertFalse(is_symlink(self.file_path))
+        link_path = os.path.join(self.tmpdir, "link.txt")
+        os.symlink(self.file_path, link_path)
+        try:
+            self.assertTrue(is_symlink(link_path))
+            self.assertTrue(is_regular_file(link_path))
+        finally:
+            os.remove(link_path)
+
+    def test_is_socket_and_fifo_and_device_false(self):
+        self.assertFalse(is_socket(self.file_path))
+        self.assertFalse(is_fifo(self.file_path))
+        self.assertFalse(is_device(self.file_path))
+
+    def test_filemode_string(self):
+        result = filemode(self.file_path)
+        self.assertIsInstance(result, str)
+        self.assertEqual(len(result), 10)
+        self.assertTrue(result.startswith("-"))
+
+    def test_stat_info_keys(self):
+        info = stat_info(self.file_path)
+        expected = {
+            "mode", "ino", "dev", "nlink", "uid", "gid", "size",
+            "atime", "mtime", "ctime",
+        }
+        self.assertEqual(set(info.keys()), expected)
+        self.assertGreater(info["size"], 0)
+
+    def test_stat_info_rounds_trip_with_os_stat(self):
+        info = stat_info(self.file_path)
+        direct = os.stat(self.file_path)
+        self.assertEqual(info["mode"], direct.st_mode)
+        self.assertEqual(info["size"], direct.st_size)
+        self.assertEqual(info["mtime"], direct.st_mtime)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTSTATUTILS
 
 # --- tests/test_socketserver_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_socketserver_utils.py" <<'TESTSOCKETSERVER'

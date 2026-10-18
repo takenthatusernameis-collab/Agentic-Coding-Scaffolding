@@ -93,6 +93,7 @@ py_modules = [
     "json_utils",
     "csv_utils",
     "set_utils",
+    "stat_utils",
     "statistics_utils",
     "string_utils",
     "type_utils",

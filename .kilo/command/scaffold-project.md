@@ -30,6 +30,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
+- `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping stdlib stat and os.stat
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 - `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 - `data_utils.py` — data utility functions
@@ -71,6 +72,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `tests/test_stats.py` — unit tests for `stats.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
+- `tests/test_stat_utils.py` — unit tests for `stat_utils.py`
 - `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
 - `tests/test_string_utils.py` — unit tests for `string_utils.py`
 - `tree_utils.py` — tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)

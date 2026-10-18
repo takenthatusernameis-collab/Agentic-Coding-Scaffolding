@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping the standard library `stat` and `os.stat` modules, plus `tests/test_stat_utils.py`.
+- Synchronized `stat_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
 - Removed a duplicate `copy_utils` entry from `pyproject.toml` `py_modules` (it was listed twice, once near `config_schema` and once near `colorsys_utils`); the module itself, its tests, and all scaffold/doc entries were already present and correct.
 
 - Added `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`), plus `tests/test_abc_utils.py`.
