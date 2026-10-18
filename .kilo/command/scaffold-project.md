@@ -116,6 +116,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pprint_utils.py` — pretty-printing utilities wrapping stdlib pprint (`pformat`, `pprint`, `isreadable`, `isrecursive`, `saferepr`)
 - `tests/test_pprint_utils.py` — unit tests for `pprint_utils.py`
 - `reprlib_utils.py` — reprlib utilities wrapping stdlib reprlib (`repr`, `get_ident`, `recursive_repr`, `Repr`)
+- `codecs_utils.py` — codecs utilities wrapping stdlib codecs
 - `tests/test_reprlib_utils.py` — unit tests for `reprlib_utils.py`
 - `traceback_utils.py` — traceback utilities wrapping stdlib traceback (`format_exception`, `format_exception_only`, `extract_stack`, `format_stack`, `format_exc`)
 - `tests/test_traceback_utils.py` — unit tests for `traceback_utils.py`
