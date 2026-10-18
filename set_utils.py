@@ -158,9 +158,7 @@ def symmetric_difference(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
     return _to_set(a) ^ _to_set(b)
 
 
-def cartesian_product(
-    a: Sequence[Any], b: Sequence[Any]
-) -> Iterator[Tuple[Any, Any]]:
+def cartesian_product(a: Sequence[Any], b: Sequence[Any]) -> Iterator[Tuple[Any, Any]]:
     """Yield ordered pairs from the Cartesian product of two sequences.
 
     Args:

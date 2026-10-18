@@ -32,4 +32,4 @@ def chunk(data: bytes, size: int) -> list[bytes]:
     if not isinstance(size, int) or size <= 0:
         raise ValueError("size must be a positive integer")
     data = bytes(data)
-    return [data[i:i + size] for i in range(0, len(data), size)]
+    return [data[i : i + size] for i in range(0, len(data), size)]

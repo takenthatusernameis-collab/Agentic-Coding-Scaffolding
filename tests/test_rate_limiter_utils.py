@@ -79,7 +79,7 @@ class TestRateLimiter(unittest.TestCase):
         # We expect intervals of about 0.5 seconds after the first two calls.
         if len(calls) >= 3:
             # Intervals between call2-call3, call3-call4, call4-call5 should be ~0.5
-            intervals = [calls[i+1] - calls[i] for i in range(1, len(calls)-1)]
+            intervals = [calls[i + 1] - calls[i] for i in range(1, len(calls) - 1)]
             for interval in intervals:
                 self.assertAlmostEqual(interval, 0.5, places=1)
 

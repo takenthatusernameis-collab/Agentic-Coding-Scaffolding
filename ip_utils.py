@@ -111,12 +111,12 @@ def normalize_ip(ip_str: str) -> str:
     try:
         if isinstance(ip_str, str):
             # Handle IPv4 with leading zeros
-            if '.' in ip_str and ':' not in ip_str:
+            if "." in ip_str and ":" not in ip_str:
                 # IPv4
-                parts = ip_str.split('.')
+                parts = ip_str.split(".")
                 if all(part.isdigit() for part in parts):
                     parts = [str(int(p)) for p in parts if p]
-                    ip_str_clean = '.'.join(parts)
+                    ip_str_clean = ".".join(parts)
                 else:
                     ip_str_clean = ip_str
             else:

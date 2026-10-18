@@ -44,7 +44,6 @@ def memoize(
         >>> @memoize()
         ... def square(n: int) -> int:
         ...     return n * n
-        ...
         >>> square(4)
         16
     """
@@ -130,16 +129,13 @@ def clear_cache(func: F) -> None:
         >>> @memoize()
         ... def add(a: int, b: int) -> int:
         ...     return a + b
-        ...
         >>> add(1, 2)
         3
         >>> clear_cache(add)
     """
     clear = getattr(func, "clear_cache", None)
     if not callable(clear):
-        raise TypeError(
-            "clear_cache can only be used on functions decorated with memoize"
-        )
+        raise TypeError("clear_cache can only be used on functions decorated with memoize")
     clear()
 
 
@@ -161,7 +157,6 @@ def cache_info(func: F) -> Dict[str, Any]:
         >>> @memoize()
         ... def mul(a: int, b: int) -> int:
         ...     return a * b
-        ...
         >>> mul(2, 3)
         6
         >>> info = cache_info(mul)
@@ -170,7 +165,5 @@ def cache_info(func: F) -> Dict[str, Any]:
     """
     info = getattr(func, "cache_info", None)
     if not callable(info):
-        raise TypeError(
-            "cache_info can only be used on functions decorated with memoize"
-        )
+        raise TypeError("cache_info can only be used on functions decorated with memoize")
     return cast(Dict[str, Any], info())

@@ -77,11 +77,11 @@ def is_valid_uuid(uuid_str: str, version: Optional[int] = None) -> bool:
         True if valid UUID, False otherwise.
 
     Examples:
-        >>> is_valid_uuid('f47ac10b-58cc-4372-a567-0e02b2c3d479')
+        >>> is_valid_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479")
         True
-        >>> is_valid_uuid('not-a-uuid')
+        >>> is_valid_uuid("not-a-uuid")
         False
-        >>> is_valid_uuid('f47ac10b-58cc-4372-a567-0e02b2c3d479', version=4)
+        >>> is_valid_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479", version=4)
         True
     """
     try:
@@ -106,7 +106,7 @@ def parse_uuid(uuid_str: str) -> uuid.UUID:
         ValueError: If the string is not a valid UUID.
 
     Examples:
-        >>> u = parse_uuid('f47ac10b-58cc-4372-a567-0e02b2c3d479')
+        >>> u = parse_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479")
         >>> u.version
         4
     """

@@ -56,33 +56,26 @@ class CircuitBreaker:
         self,
         failure_threshold: int = 5,
         recovery_timeout: float = 30.0,
-        expected_exception: Union[
-            type[BaseException], Tuple[type[BaseException], ...]
-        ] = Exception,
+        expected_exception: Union[type[BaseException], Tuple[type[BaseException], ...]] = Exception,
     ) -> None:
         if isinstance(failure_threshold, bool) or not isinstance(failure_threshold, int):
             raise TypeError("failure_threshold must be an integer")
         if failure_threshold < 1:
             raise ValueError("failure_threshold must be at least 1")
-        if isinstance(recovery_timeout, bool) or not isinstance(
-            recovery_timeout, (int, float)
-        ):
+        if isinstance(recovery_timeout, bool) or not isinstance(recovery_timeout, (int, float)):
             raise TypeError("recovery_timeout must be a number")
         if recovery_timeout <= 0:
             raise ValueError("recovery_timeout must be greater than 0")
 
         if isinstance(expected_exception, type):
-            expected_exceptions: Tuple[type[BaseException], ...] = (
-                expected_exception,
-            )
+            expected_exceptions: Tuple[type[BaseException], ...] = (expected_exception,)
         elif isinstance(expected_exception, tuple) and all(
             isinstance(exc, type) for exc in expected_exception
         ):
             expected_exceptions = expected_exception
         else:
             raise TypeError(
-                "expected_exception must be an exception class or a tuple of "
-                "exception classes"
+                "expected_exception must be an exception class or a tuple of exception classes"
             )
 
         self._failure_threshold = failure_threshold
@@ -179,9 +172,7 @@ class CircuitBreaker:
                     remaining = max(
                         0.0, self._recovery_timeout - (time.monotonic() - self._opened_at)
                     )
-                raise CircuitOpenError(
-                    f"circuit breaker is open; retry in {remaining:.2f} seconds"
-                )
+                raise CircuitOpenError(f"circuit breaker is open; retry in {remaining:.2f} seconds")
             if self._state == self.HALF_OPEN:
                 if self._half_open_trial:
                     raise CircuitOpenError(

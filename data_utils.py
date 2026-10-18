@@ -36,9 +36,7 @@ def omit(d: Dict[K, V], keys: Iterable[K]) -> Dict[K, V]:
     return {k: v for k, v in d.items() if k not in key_set}
 
 
-def flatten_dict(
-    d: Dict[str, Any], parent_key: str = "", sep: str = "."
-) -> Dict[str, Any]:
+def flatten_dict(d: Dict[str, Any], parent_key: str = "", sep: str = ".") -> Dict[str, Any]:
     """Flatten nested dict to dot-notation keys."""
     items: List[tuple] = []
     for k, v in d.items():

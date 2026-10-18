@@ -9,11 +9,13 @@ defaults, enforces required fields, and serializes back to plain
 dictionaries.
 
 Example:
-    >>> schema = ConfigSchema([
-    ...     SchemaField("host", str, default="localhost"),
-    ...     SchemaField("port", int, default=8080, validator=range_validator(1, 65535)),
-    ...     SchemaField("debug", bool, default=False),
-    ... ])
+    >>> schema = ConfigSchema(
+    ...     [
+    ...         SchemaField("host", str, default="localhost"),
+    ...         SchemaField("port", int, default=8080, validator=range_validator(1, 65535)),
+    ...         SchemaField("debug", bool, default=False),
+    ...     ]
+    ... )
     >>> config = schema.validate({"host": "example.com", "port": "9000"})
     >>> config["port"]
     9000
@@ -306,9 +308,7 @@ def choices_validator(*choices: Any) -> Validator:
 
     def validate(value: Any) -> Any:
         if value not in choice_set:
-            raise ValueError(
-                f"value {value!r} is not one of {choice_list!r}"
-            )
+            raise ValueError(f"value {value!r} is not one of {choice_list!r}")
         return value
 
     return validate
@@ -341,17 +341,12 @@ def regex_validator(pattern: Union[str, re.Pattern], flags: int = 0) -> Validato
     elif isinstance(pattern, re.Pattern):
         compiled = pattern
     else:
-        raise TypeError(
-            "pattern must be a string or re.Pattern, "
-            f"got {type(pattern).__name__}"
-        )
+        raise TypeError(f"pattern must be a string or re.Pattern, got {type(pattern).__name__}")
 
     def validate(value: Any) -> str:
         text = str_validator(value)
         if not compiled.match(text):
-            raise ValueError(
-                f"value {text!r} does not match pattern {pattern!r}"
-            )
+            raise ValueError(f"value {text!r} does not match pattern {pattern!r}")
         return text
 
     return validate
@@ -481,15 +476,11 @@ class ConfigSchema:
 
     def required_fields(self) -> List[str]:
         """Return the sorted list of required field names."""
-        return sorted(
-            name for name, field in self._fields.items() if field.required
-        )
+        return sorted(name for name, field in self._fields.items() if field.required)
 
     def optional_fields(self) -> List[str]:
         """Return the sorted list of optional field names."""
-        return sorted(
-            name for name, field in self._fields.items() if not field.required
-        )
+        return sorted(name for name, field in self._fields.items() if not field.required)
 
     def validate(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """Validate and normalize *config* against this schema.
@@ -516,18 +507,14 @@ class ConfigSchema:
         for name, field in self._fields.items():
             if name not in config:
                 if field.required:
-                    raise ConfigValidationError(
-                        f"required field {name!r} is missing"
-                    )
+                    raise ConfigValidationError(f"required field {name!r} is missing")
                 if field.has_default:
                     result[name] = field.default
                 continue
             try:
                 result[name] = field.validate(config[name])
             except (TypeError, ValueError) as exc:
-                raise ConfigValidationError(
-                    f"field {name!r}: {exc}"
-                ) from exc
+                raise ConfigValidationError(f"field {name!r}: {exc}") from exc
         return result
 
     def parse(self, config: Dict[str, Any]) -> Dict[str, Any]:

@@ -33,9 +33,9 @@ def join_path(*parts: Union[str, Path]) -> str:
         The joined path as a string.
 
     Examples:
-        >>> join_path('a', 'b', 'c')
+        >>> join_path("a", "b", "c")
         'a/b/c'
-        >>> join_path('/usr', 'local', 'bin')
+        >>> join_path("/usr", "local", "bin")
         '/usr/local/bin'
     """
     return str(Path(*[str(p) for p in parts]))
@@ -55,9 +55,9 @@ def normalize_path(path: Union[str, Path]) -> str:
         The normalized path as a string.
 
     Examples:
-        >>> normalize_path('a//b/../c')
+        >>> normalize_path("a//b/../c")
         'a/c'
-        >>> normalize_path('/usr/./local//bin')
+        >>> normalize_path("/usr/./local//bin")
         '/usr/local/bin'
     """
     parts: List[str] = []
@@ -91,7 +91,7 @@ def get_absolute_path(path: Union[str, Path]) -> str:
         The absolute path as a string.
 
     Examples:
-        >>> isinstance(get_absolute_path('foo'), str)
+        >>> isinstance(get_absolute_path("foo"), str)
         True
     """
     return str(Path(path).absolute())
@@ -111,7 +111,7 @@ def get_relative_path(path: Union[str, Path], start: Union[str, Path] = ".") -> 
         ValueError: If the path is not relative to the start directory.
 
     Examples:
-        >>> get_relative_path('/usr/local/bin', '/usr')
+        >>> get_relative_path("/usr/local/bin", "/usr")
         'local/bin'
     """
     return str(Path(path).relative_to(Path(start)))
@@ -127,9 +127,9 @@ def get_parent_dir(path: Union[str, Path]) -> str:
         The parent directory as a string.
 
     Examples:
-        >>> get_parent_dir('/usr/local/bin/python')
+        >>> get_parent_dir("/usr/local/bin/python")
         '/usr/local/bin'
-        >>> get_parent_dir('file.txt')
+        >>> get_parent_dir("file.txt")
         '.'
     """
     return str(Path(path).parent)
@@ -145,9 +145,9 @@ def get_file_name(path: Union[str, Path]) -> str:
         The file name as a string.
 
     Examples:
-        >>> get_file_name('/usr/local/bin/python')
+        >>> get_file_name("/usr/local/bin/python")
         'python'
-        >>> get_file_name('archive.tar.gz')
+        >>> get_file_name("archive.tar.gz")
         'archive.tar.gz'
     """
     return Path(path).name
@@ -163,9 +163,9 @@ def get_file_stem(path: Union[str, Path]) -> str:
         The file stem as a string.
 
     Examples:
-        >>> get_file_stem('/usr/local/script.py')
+        >>> get_file_stem("/usr/local/script.py")
         'script'
-        >>> get_file_stem('archive.tar.gz')
+        >>> get_file_stem("archive.tar.gz")
         'archive.tar'
     """
     return Path(path).stem
@@ -181,11 +181,11 @@ def get_file_extension(path: Union[str, Path]) -> str:
         The file extension as a string, or an empty string if none.
 
     Examples:
-        >>> get_file_extension('script.py')
+        >>> get_file_extension("script.py")
         '.py'
-        >>> get_file_extension('Makefile')
+        >>> get_file_extension("Makefile")
         ''
-        >>> get_file_extension('archive.tar.gz')
+        >>> get_file_extension("archive.tar.gz")
         '.gz'
     """
     return Path(path).suffix
@@ -204,9 +204,9 @@ def change_extension(path: Union[str, Path], extension: str) -> str:
         The path with the new extension as a string.
 
     Examples:
-        >>> change_extension('script.py', '.txt')
+        >>> change_extension("script.py", ".txt")
         'script.txt'
-        >>> change_extension('image.png', 'jpg')
+        >>> change_extension("image.png", "jpg")
         'image.jpg'
     """
     if extension and not extension.startswith("."):
@@ -224,9 +224,9 @@ def is_absolute(path: Union[str, Path]) -> bool:
         True if the path is absolute, False otherwise.
 
     Examples:
-        >>> is_absolute('/usr/local/bin')
+        >>> is_absolute("/usr/local/bin")
         True
-        >>> is_absolute('relative/path')
+        >>> is_absolute("relative/path")
         False
     """
     return Path(path).is_absolute()
@@ -242,9 +242,9 @@ def get_path_components(path: Union[str, Path]) -> List[str]:
         A list of path component strings.
 
     Examples:
-        >>> get_path_components('/usr/local/bin')
+        >>> get_path_components("/usr/local/bin")
         ['/', 'usr', 'local', 'bin']
-        >>> get_path_components('a/b/c')
+        >>> get_path_components("a/b/c")
         ['a', 'b', 'c']
     """
     parts = Path(path).parts
@@ -264,9 +264,9 @@ def get_common_path(*paths: Union[str, Path]) -> str:
         ValueError: If fewer than two paths are provided.
 
     Examples:
-        >>> get_common_path('/a/b/c', '/a/b/d')
+        >>> get_common_path("/a/b/c", "/a/b/d")
         '/a/b'
-        >>> get_common_path('x/y/z', 'x/y/w')
+        >>> get_common_path("x/y/z", "x/y/w")
         'x/y'
     """
     if len(paths) < 2:
@@ -296,11 +296,11 @@ def ensure_extension(path: Union[str, Path], extension: str) -> str:
         The path with the extension guaranteed as a string.
 
     Examples:
-        >>> ensure_extension('script.py', '.py')
+        >>> ensure_extension("script.py", ".py")
         'script.py'
-        >>> ensure_extension('script', '.py')
+        >>> ensure_extension("script", ".py")
         'script.py'
-        >>> ensure_extension('image.png', '.py')
+        >>> ensure_extension("image.png", ".py")
         'image.png.py'
     """
     if not extension.startswith("."):

@@ -68,8 +68,7 @@ def colorize(text: str, color: str = "white", bold: bool = False) -> str:
         raise TypeError("color must be a string")
     if color not in _VALID_COLORS:
         raise ValueError(
-            f"unsupported color {color!r}; supported colors are "
-            f"{sorted(_VALID_COLORS)!r}"
+            f"unsupported color {color!r}; supported colors are {sorted(_VALID_COLORS)!r}"
         )
     if not supports_color():
         return text
@@ -239,9 +238,7 @@ def progress_bar(
         try:
             total = len(iterable)  # type: ignore[arg-type]
         except TypeError as exc:
-            raise ValueError(
-                "total must be provided for iterables without len()"
-            ) from exc
+            raise ValueError("total must be provided for iterables without len()") from exc
     bar = ProgressBar(total, width=width, fill=fill, empty=empty, stream=stream)
     with bar:
         for item in iterable:

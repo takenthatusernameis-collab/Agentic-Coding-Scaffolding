@@ -133,12 +133,17 @@ def hash_file(file_path: Union[str, bytes], algorithm: str = "sha256") -> str:
     path_str = file_path.decode("utf-8") if isinstance(file_path, bytes) else file_path
 
     algorithm = algorithm.lower()
-    hash_func = hashlib.new(algorithm) if algorithm in (
-        "md5",
-        "sha1",
-        "sha256",
-        "sha512",
-    ) else None
+    hash_func = (
+        hashlib.new(algorithm)
+        if algorithm
+        in (
+            "md5",
+            "sha1",
+            "sha256",
+            "sha512",
+        )
+        else None
+    )
 
     if hash_func is None:
         raise ValueError(f"Unsupported algorithm: {algorithm}")

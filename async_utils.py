@@ -37,9 +37,7 @@ async def run_in_thread(func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
     return await loop.run_in_executor(None, lambda: func(*args, **kwargs))
 
 
-async def gather_with_timeout(
-    *coros: Awaitable[Any], timeout: Optional[float] = None
-) -> List[Any]:
+async def gather_with_timeout(*coros: Awaitable[Any], timeout: Optional[float] = None) -> List[Any]:
     """Gather multiple coroutines with an optional timeout.
 
     Args:

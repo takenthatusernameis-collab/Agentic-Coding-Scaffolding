@@ -130,5 +130,5 @@ if __name__ == "__main__":
     for i in range(5):
         result = example_function()
         elapsed = time.monotonic() - start
-        print(f"Call {i+1}: {result} at {elapsed:.2f}s")
+        print(f"Call {i + 1}: {result} at {elapsed:.2f}s")
         # We don't sleep here because the decorator will block if needed

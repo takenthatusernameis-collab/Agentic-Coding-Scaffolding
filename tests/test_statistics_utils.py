@@ -32,9 +32,7 @@ class TestHarmonicMean(unittest.TestCase):
 
 class TestGeometricMean(unittest.TestCase):
     def test_geometric_mean_basic(self):
-        self.assertAlmostEqual(
-            geometric_mean([1, 2, 3, 4, 5]), 2.605171084697352
-        )
+        self.assertAlmostEqual(geometric_mean([1, 2, 3, 4, 5]), 2.605171084697352)
 
     def test_geometric_mean_equal(self):
         self.assertEqual(geometric_mean([1, 1, 1]), 1.0)
@@ -95,9 +93,7 @@ class TestPercentile(unittest.TestCase):
 
 class TestCovariance(unittest.TestCase):
     def test_covariance_basic(self):
-        self.assertAlmostEqual(
-            covariance([1, 2, 3, 4, 5], [5, 4, 3, 2, 1]), -2.5
-        )
+        self.assertAlmostEqual(covariance([1, 2, 3, 4, 5], [5, 4, 3, 2, 1]), -2.5)
 
     def test_covariance_positive(self):
         self.assertAlmostEqual(covariance([1, 2, 3], [1, 2, 3]), 1.0)
@@ -119,9 +115,7 @@ class TestCovariance(unittest.TestCase):
 
 class TestCorrelation(unittest.TestCase):
     def test_correlation_negative(self):
-        self.assertAlmostEqual(
-            correlation([1, 2, 3, 4, 5], [5, 4, 3, 2, 1]), -1.0
-        )
+        self.assertAlmostEqual(correlation([1, 2, 3, 4, 5], [5, 4, 3, 2, 1]), -1.0)
 
     def test_correlation_positive(self):
         self.assertAlmostEqual(correlation([1, 2, 3], [1, 2, 3]), 1.0)

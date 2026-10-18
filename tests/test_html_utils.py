@@ -13,7 +13,7 @@ class TestEscapeHtml(unittest.TestCase):
         self.assertEqual(escape_html("Tom & Jerry"), "Tom &amp; Jerry")
 
     def test_escape_html_quotes(self):
-        self.assertEqual(escape_html('He said "hi"'), 'He said &quot;hi&quot;')
+        self.assertEqual(escape_html('He said "hi"'), "He said &quot;hi&quot;")
 
     def test_escape_html_none(self):
         self.assertEqual(escape_html(None), "")
@@ -66,7 +66,7 @@ class TestStripTags(unittest.TestCase):
 
 class TestEscapeAttribute(unittest.TestCase):
     def test_escape_attribute_double_quotes(self):
-        self.assertEqual(escape_attribute('a="b"'), 'a=&quot;b&quot;')
+        self.assertEqual(escape_attribute('a="b"'), "a=&quot;b&quot;")
 
     def test_escape_attribute_single_quotes(self):
         self.assertEqual(escape_attribute("it's"), "it&#x27;s")

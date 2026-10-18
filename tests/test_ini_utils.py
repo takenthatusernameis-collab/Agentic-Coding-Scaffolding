@@ -158,16 +158,12 @@ class TestGetConfigValue(unittest.TestCase):
     def test_get_missing_key_returns_default(self):
         """Test that missing keys return the default value."""
         self.assertIsNone(get_config_value(self.config, "database.hostname"))
-        self.assertEqual(
-            get_config_value(self.config, "database.hostname", "default"), "default"
-        )
+        self.assertEqual(get_config_value(self.config, "database.hostname", "default"), "default")
 
     def test_get_missing_section_returns_default(self):
         """Test that missing sections return the default value."""
         self.assertIsNone(get_config_value(self.config, "missing.host"))
-        self.assertEqual(
-            get_config_value(self.config, "missing.host", "default"), "default"
-        )
+        self.assertEqual(get_config_value(self.config, "missing.host", "default"), "default")
 
     def test_get_with_non_dict_config(self):
         """Test getting value from non-dict config returns default."""

@@ -21,7 +21,7 @@ from xml_utils import (
     xml_to_string,
 )
 
-SIMPLE_XML = "<root><child a=\"1\">text</child><child a=\"2\">more</child></root>"
+SIMPLE_XML = '<root><child a="1">text</child><child a="2">more</child></root>'
 
 
 class TestParseXmlString(unittest.TestCase):
@@ -48,9 +48,7 @@ class TestParseXmlString(unittest.TestCase):
 
 class TestParseXml(unittest.TestCase):
     def test_parses_file(self):
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".xml", delete=False
-        ) as fh:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".xml", delete=False) as fh:
             fh.write(SIMPLE_XML)
             path = fh.name
         try:
@@ -221,9 +219,7 @@ class TestGetSetElementText(unittest.TestCase):
 class TestXmlToString(unittest.TestCase):
     def test_serializes_element(self):
         element = build_xml("empty")
-        self.assertEqual(
-            xml_to_string(element, xml_declaration=False), "<empty />"
-        )
+        self.assertEqual(xml_to_string(element, xml_declaration=False), "<empty />")
 
     def test_serializes_with_children(self):
         parent = build_xml("parent")

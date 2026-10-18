@@ -17,8 +17,26 @@ __all__: List[str] = [
 ]
 
 _SMALL_WORDS = {
-    "a", "an", "and", "as", "at", "but", "by", "en", "for", "if", "in",
-    "nor", "of", "on", "or", "per", "the", "to", "via", "vs",
+    "a",
+    "an",
+    "and",
+    "as",
+    "at",
+    "but",
+    "by",
+    "en",
+    "for",
+    "if",
+    "in",
+    "nor",
+    "of",
+    "on",
+    "or",
+    "per",
+    "the",
+    "to",
+    "via",
+    "vs",
 }
 
 

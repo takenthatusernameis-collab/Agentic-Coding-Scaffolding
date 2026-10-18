@@ -119,7 +119,6 @@ def log_calls(
         >>> @log_calls()
         ... def greet(name: str) -> str:
         ...     return f"Hello, {name}!"
-        ...
         >>> greet("World")
         'Hello, World!'
     """

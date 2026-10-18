@@ -85,9 +85,7 @@ def float_range(minimum: float, maximum: float) -> Callable[[str], float]:
     def _convert(value: str) -> float:
         fv = float(value)
         if fv < minimum or fv > maximum:
-            raise argparse.ArgumentTypeError(
-                f"must be between {minimum} and {maximum}"
-            )
+            raise argparse.ArgumentTypeError(f"must be between {minimum} and {maximum}")
         return fv
 
     return _convert

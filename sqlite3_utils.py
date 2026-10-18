@@ -35,9 +35,7 @@ def connect(database: str = ":memory:", *, timeout: float = 5.0) -> _sqlite3.Con
     return _sqlite3.connect(database, timeout=float(timeout))
 
 
-def execute(
-    conn: _sqlite3.Connection, sql: str, params: Sequence[Any] = ()
-) -> _sqlite3.Cursor:
+def execute(conn: _sqlite3.Connection, sql: str, params: Sequence[Any] = ()) -> _sqlite3.Cursor:
     """Execute *sql* with optional *params* on *conn* and return the cursor.
 
     Args:
@@ -208,9 +206,7 @@ def insert_row(
         raise TypeError("table must be a str")
     if not table:
         raise ValueError("table must not be empty")
-    if not isinstance(columns, (list, tuple)) or not all(
-        isinstance(c, str) for c in columns
-    ):
+    if not isinstance(columns, (list, tuple)) or not all(isinstance(c, str) for c in columns):
         raise TypeError("columns must be a list or tuple of strs")
     if not isinstance(values, (list, tuple)):
         raise TypeError("values must be a list or tuple")
@@ -227,9 +223,7 @@ def insert_row(
     return int(lastrowid) if lastrowid is not None else 0
 
 
-def query(
-    conn: _sqlite3.Connection, sql: str, params: Sequence[Any] = ()
-) -> list[dict[str, Any]]:
+def query(conn: _sqlite3.Connection, sql: str, params: Sequence[Any] = ()) -> list[dict[str, Any]]:
     """Execute *sql* and return rows as dictionaries keyed by column name.
 
     Args:
@@ -268,7 +262,5 @@ def table_exists(conn: _sqlite3.Connection, table: str) -> bool:
         raise TypeError("table must be a str")
     if not table:
         raise ValueError("table must not be empty")
-    cursor = conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,)
-    )
+    cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,))
     return cursor.fetchone() is not None

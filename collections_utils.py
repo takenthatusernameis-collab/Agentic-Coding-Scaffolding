@@ -185,7 +185,7 @@ def uniq_by(iterable: Iterable[T], key_func: Callable[[T], Any]) -> List[T]:
         A list with duplicates (by key) removed, preserving first occurrence order.
 
     Examples:
-        >>> uniq_by([{'id': 1}, {'id': 2}, {'id': 1}], lambda x: x['id'])
+        >>> uniq_by([{"id": 1}, {"id": 2}, {"id": 1}], lambda x: x["id"])
         [{'id': 1}, {'id': 2}]
     """
     seen: Set[Any] = set()
@@ -265,7 +265,7 @@ def merge_dicts(*dicts: Dict[K, V]) -> Dict[K, V]:
         A new merged dictionary.
 
     Examples:
-        >>> merge_dicts({'a': 1}, {'b': 2}, {'a': 3})
+        >>> merge_dicts({"a": 1}, {"b": 2}, {"a": 3})
         {'a': 3, 'b': 2}
     """
     result: Dict[K, V] = {}
@@ -304,7 +304,7 @@ def pluck(iterable: Iterable[Dict[K, Any]], key: K) -> List[Any]:
         List of values for the key (skips missing keys).
 
     Examples:
-        >>> pluck([{'a': 1}, {'a': 2}, {'b': 3}], 'a')
+        >>> pluck([{"a": 1}, {"a": 2}, {"b": 3}], "a")
         [1, 2]
     """
     result: List[Any] = []
@@ -326,7 +326,7 @@ def compact(iterable: Iterable[T]) -> List[T]:
         List with falsy values removed.
 
     Examples:
-        >>> compact([0, 1, False, 2, '', 3, None])
+        >>> compact([0, 1, False, 2, "", 3, None])
         [1, 2, 3]
     """
     result: List[T] = []

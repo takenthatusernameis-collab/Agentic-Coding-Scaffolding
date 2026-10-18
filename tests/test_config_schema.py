@@ -150,26 +150,33 @@ class TestSchemaField(unittest.TestCase):
 
 class TestConfigSchemaValidate(unittest.TestCase):
     def setUp(self):
-        self.schema = ConfigSchema([
-            SchemaField("host", str, default="localhost"),
-            SchemaField("port", int, default=8080, validator=range_validator(1, 65535)),
-            SchemaField("debug", bool, default=False),
-            SchemaField("secret", str, required=True),
-        ])
+        self.schema = ConfigSchema(
+            [
+                SchemaField("host", str, default="localhost"),
+                SchemaField("port", int, default=8080, validator=range_validator(1, 65535)),
+                SchemaField("debug", bool, default=False),
+                SchemaField("secret", str, required=True),
+            ]
+        )
 
     def test_validate_full_config(self):
-        config = self.schema.validate({
-            "host": "example.com",
-            "port": "9000",
-            "debug": "true",
-            "secret": "s3cr3t",
-        })
-        self.assertEqual(config, {
-            "host": "example.com",
-            "port": 9000,
-            "debug": True,
-            "secret": "s3cr3t",
-        })
+        config = self.schema.validate(
+            {
+                "host": "example.com",
+                "port": "9000",
+                "debug": "true",
+                "secret": "s3cr3t",
+            }
+        )
+        self.assertEqual(
+            config,
+            {
+                "host": "example.com",
+                "port": 9000,
+                "debug": True,
+                "secret": "s3cr3t",
+            },
+        )
 
     def test_validate_applies_defaults(self):
         config = self.schema.validate({"secret": "s3cr3t"})
@@ -200,11 +207,13 @@ class TestConfigSchemaValidate(unittest.TestCase):
         self.assertTrue(issubclass(ConfigValidationError, ValueError))
 
     def test_validate_unknown_keys_are_dropped(self):
-        config = self.schema.validate({
-            "secret": "x",
-            "unknown": "ignored",
-            "another": 1,
-        })
+        config = self.schema.validate(
+            {
+                "secret": "x",
+                "unknown": "ignored",
+                "another": 1,
+            }
+        )
         self.assertNotIn("unknown", config)
         self.assertNotIn("another", config)
 

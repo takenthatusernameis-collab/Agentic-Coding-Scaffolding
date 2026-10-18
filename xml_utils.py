@@ -84,9 +84,7 @@ def parse_xml_string(text: str) -> ET.Element:
     return ET.fromstring(text)
 
 
-def build_xml(
-    tag: str, text: Optional[str] = None, **attributes: str
-) -> ET.Element:
+def build_xml(tag: str, text: Optional[str] = None, **attributes: str) -> ET.Element:
     """Build an XML element with the given tag, optional text, and attributes.
 
     Args:
@@ -159,9 +157,7 @@ def set_attribute(element: ET.Element, key: str, value: str) -> None:
     element.set(key, value)
 
 
-def get_attribute(
-    element: ET.Element, key: str, default: Optional[str] = None
-) -> Optional[str]:
+def get_attribute(element: ET.Element, key: str, default: Optional[str] = None) -> Optional[str]:
     """Return the value of attribute ``key`` on ``element``, or ``default``.
 
     Args:
@@ -372,9 +368,7 @@ def xml_to_string(element: ET.Element, xml_declaration: bool = True) -> str:
         raise TypeError("element must be an Element")
     if not isinstance(xml_declaration, bool):
         raise TypeError("xml_declaration must be a bool")
-    return ET.tostring(
-        element, encoding="unicode", xml_declaration=xml_declaration
-    )
+    return ET.tostring(element, encoding="unicode", xml_declaration=xml_declaration)
 
 
 def validate_well_formed(text: str) -> bool:

@@ -16,19 +16,13 @@ from hmac_utils import (
 
 class TestHmacMD5(unittest.TestCase):
     def test_hmac_md5_string(self):
-        self.assertEqual(
-            hmac_md5("hello", "key"), "04130747afca4d79e32e87cf2104f087"
-        )
+        self.assertEqual(hmac_md5("hello", "key"), "04130747afca4d79e32e87cf2104f087")
 
     def test_hmac_md5_bytes(self):
-        self.assertEqual(
-            hmac_md5(b"hello", b"key"), "04130747afca4d79e32e87cf2104f087"
-        )
+        self.assertEqual(hmac_md5(b"hello", b"key"), "04130747afca4d79e32e87cf2104f087")
 
     def test_hmac_md5_empty(self):
-        self.assertEqual(
-            hmac_md5("", "key"), "63530468a04e386459855da0063b6596"
-        )
+        self.assertEqual(hmac_md5("", "key"), "63530468a04e386459855da0063b6596")
 
     def test_hmac_md5_type_error(self):
         with self.assertRaises(TypeError):
@@ -39,14 +33,10 @@ class TestHmacMD5(unittest.TestCase):
 
 class TestHmacSHA1(unittest.TestCase):
     def test_hmac_sha1_string(self):
-        self.assertEqual(
-            hmac_sha1("hello", "key"), "b34ceac4516ff23a143e61d79d0fa7a4fbe5f266"
-        )
+        self.assertEqual(hmac_sha1("hello", "key"), "b34ceac4516ff23a143e61d79d0fa7a4fbe5f266")
 
     def test_hmac_sha1_bytes(self):
-        self.assertEqual(
-            hmac_sha1(b"hello", b"key"), "b34ceac4516ff23a143e61d79d0fa7a4fbe5f266"
-        )
+        self.assertEqual(hmac_sha1(b"hello", b"key"), "b34ceac4516ff23a143e61d79d0fa7a4fbe5f266")
 
     def test_hmac_sha1_type_error(self):
         with self.assertRaises(TypeError):

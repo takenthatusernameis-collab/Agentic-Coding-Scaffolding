@@ -167,6 +167,7 @@ def test_run_in_process_type_errors():
 def test_pool_map():
     def inc(x):
         return x + 1
+
     result = multiprocessing_utils.pool_map(_mp_inc, [1, 2, 3])
     assert result == [2, 3, 4]
 
@@ -175,14 +176,17 @@ def test_pool_map_type_errors():
     with pytest.raises(TypeError):
         multiprocessing_utils.pool_map("bad", [1, 2])  # type: ignore[arg-type]
     with pytest.raises(TypeError):
+
         def iden(x):
             return x
+
         multiprocessing_utils.pool_map(_mp_iden, [1, 2], chunksize="1")  # type: ignore[arg-type]
 
 
 def test_pool_starmap():
     def add2(a, b):
         return a + b
+
     result = multiprocessing_utils.pool_starmap(_mp_add, [(1, 2), (3, 4)])
     assert result == [3, 7]
 
@@ -191,8 +195,10 @@ def test_pool_starmap_type_errors():
     with pytest.raises(TypeError):
         multiprocessing_utils.pool_starmap("bad", [(1, 2)])  # type: ignore[arg-type]
     with pytest.raises(TypeError):
+
         def add2b(a, b):
             return a + b
+
         multiprocessing_utils.pool_starmap(_mp_add, [(1, 2)], chunksize="1")  # type: ignore[arg-type]
 
 

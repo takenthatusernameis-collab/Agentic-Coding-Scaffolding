@@ -84,5 +84,5 @@ class TestBooleanChecks(unittest.TestCase):
         self.assertFalse(is_error(300))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

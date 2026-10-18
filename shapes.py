@@ -14,7 +14,8 @@ def circle_area(radius: float) -> float:
     """
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return math.pi * radius ** 2
+    return math.pi * radius**2
+
 
 def circle_perimeter(radius: float) -> float:
     """Return the perimeter (circumference) of a circle with the given radius.
@@ -28,6 +29,7 @@ def circle_perimeter(radius: float) -> float:
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     return 2 * math.pi * radius
+
 
 def rectangle_area(length: float, width: float) -> float:
     """Return the area of a rectangle.
@@ -43,6 +45,7 @@ def rectangle_area(length: float, width: float) -> float:
         raise ValueError("Length and width cannot be negative.")
     return length * width
 
+
 def rectangle_perimeter(length: float, width: float) -> float:
     """Return the perimeter of a rectangle.
 
@@ -57,6 +60,7 @@ def rectangle_perimeter(length: float, width: float) -> float:
         raise ValueError("Length and width cannot be negative.")
     return 2 * (length + width)
 
+
 def triangle_area(base: float, height: float) -> float:
     """Return the area of a triangle given its base and height.
 
@@ -70,6 +74,7 @@ def triangle_area(base: float, height: float) -> float:
     if base < 0 or height < 0:
         raise ValueError("Base and height cannot be negative.")
     return 0.5 * base * height
+
 
 def triangle_perimeter(side_a: float, side_b: float, side_c: float) -> float:
     """Return the perimeter of a triangle given its three sides.

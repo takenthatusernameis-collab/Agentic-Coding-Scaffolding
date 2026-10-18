@@ -33,8 +33,10 @@ def create_tcp_server(
     host, port = address
     if not isinstance(port, int) or isinstance(port, bool):
         raise TypeError("port must be an integer")
-    if not (isinstance(handler_class, type)
-            and issubclass(handler_class, socketserver.BaseRequestHandler)):
+    if not (
+        isinstance(handler_class, type)
+        and issubclass(handler_class, socketserver.BaseRequestHandler)
+    ):
         raise TypeError("handler_class must be a BaseRequestHandler subclass")
     server = socketserver.TCPServer(address, handler_class)
     server.allow_reuse_address = allow_reuse_address
@@ -52,8 +54,10 @@ def create_udp_server(
     host, port = address
     if not isinstance(port, int) or isinstance(port, bool):
         raise TypeError("port must be an integer")
-    if not (isinstance(handler_class, type)
-            and issubclass(handler_class, socketserver.BaseRequestHandler)):
+    if not (
+        isinstance(handler_class, type)
+        and issubclass(handler_class, socketserver.BaseRequestHandler)
+    ):
         raise TypeError("handler_class must be a BaseRequestHandler subclass")
     server = socketserver.UDPServer(address, handler_class)
     server.allow_reuse_address = allow_reuse_address

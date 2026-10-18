@@ -147,9 +147,7 @@ class TestWrapText(unittest.TestCase):
 
 class TestIndentText(unittest.TestCase):
     def test_indent(self):
-        self.assertEqual(
-            indent_text("line1\nline2", "  "), "  line1\n  line2"
-        )
+        self.assertEqual(indent_text("line1\nline2", "  "), "  line1\n  line2")
 
     def test_default_prefix(self):
         result = indent_text("a\nb")

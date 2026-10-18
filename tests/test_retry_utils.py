@@ -131,9 +131,7 @@ class TestRetryWithBackoffDecorator(unittest.TestCase):
         """Test that jitter affects delay (basic test)."""
         delays = []
 
-        @retry_with_backoff(
-            max_attempts=3, initial_delay=0.01, backoff_factor=2.0, jitter=True
-        )
+        @retry_with_backoff(max_attempts=3, initial_delay=0.01, backoff_factor=2.0, jitter=True)
         def func():
             if len(delays) < 2:  # First two attempts
                 delays.append(time.time())

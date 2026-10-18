@@ -111,9 +111,7 @@ def register(
     return selector.register(fileobj, events, data=data)
 
 
-def unregister(
-    selector: selectors.BaseSelector, fileobj: Any
-) -> selectors.SelectorKey:
+def unregister(selector: selectors.BaseSelector, fileobj: Any) -> selectors.SelectorKey:
     """Unregister a file object from *selector*.
 
     Args:

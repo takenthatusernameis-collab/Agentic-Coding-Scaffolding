@@ -64,7 +64,7 @@ def is_integer(value: Any) -> bool:
     if isinstance(value, float):
         return value.is_integer()
     if isinstance(value, str):
-        if re.match(r'^[-+]?\d+$', value.strip()):
+        if re.match(r"^[-+]?\d+$", value.strip()):
             return True
         return False
     return False
@@ -84,7 +84,7 @@ def is_alphanumeric(value: Any) -> bool:
         return False
     if not value:
         return False
-    return bool(re.match(r'^[a-zA-Z0-9]+$', value))
+    return bool(re.match(r"^[a-zA-Z0-9]+$", value))
 
 
 def is_boolean_string(value: Any) -> bool:
@@ -99,7 +99,7 @@ def is_boolean_string(value: Any) -> bool:
     """
     if not isinstance(value, str):
         return False
-    return value.strip().lower() in ('true', 'false', '1', '0')
+    return value.strip().lower() in ("true", "false", "1", "0")
 
 
 def is_none_or_empty(value: Any) -> bool:
@@ -202,18 +202,18 @@ def is_valid_hostname(hostname: Any) -> bool:
     hostname = hostname.strip()
     if not hostname:
         return False
-    if hostname.endswith('.') or hostname.endswith('..'):
+    if hostname.endswith(".") or hostname.endswith(".."):
         return False
     if len(hostname) > 253:
         return False
-    if hostname.startswith('-') or hostname.endswith('-'):
+    if hostname.startswith("-") or hostname.endswith("-"):
         return False
-    labels = hostname.split('.')
+    labels = hostname.split(".")
     for label in labels:
         if not label:
             return False
         if len(label) > 63:
             return False
-        if not re.match(r'^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$', label):
+        if not re.match(r"^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$", label):
             return False
     return True

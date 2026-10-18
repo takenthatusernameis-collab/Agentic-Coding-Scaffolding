@@ -20,11 +20,11 @@ def get_nested(d: Dict[str, Any] | Any, keys: Iterable[str | int], default: Any 
         The value at the path, or default if not found.
 
     Examples:
-        >>> get_nested({'a': {'b': {'c': 1}}}, ['a', 'b', 'c'])
+        >>> get_nested({"a": {"b": {"c": 1}}}, ["a", "b", "c"])
         1
-        >>> get_nested({'a': {'b': 2}}, ['a', 'x'], default='missing')
+        >>> get_nested({"a": {"b": 2}}, ["a", "x"], default="missing")
         'missing'
-        >>> get_nested({'a': [1, 2, 3]}, ['a', 1])
+        >>> get_nested({"a": [1, 2, 3]}, ["a", 1])
         2
     """
     try:
@@ -49,9 +49,9 @@ def set_nested(d: Dict[str, Any], keys: Iterable[str | int], value: Any) -> Dict
 
     Examples:
         >>> d = {}
-        >>> set_nested(d, ['a', 'b', 'c'], 1)
+        >>> set_nested(d, ["a", "b", "c"], 1)
         {'a': {'b': {'c': 1}}}
-        >>> set_nested(d, ['a', 'b', 'd'], 2)
+        >>> set_nested(d, ["a", "b", "d"], 2)
         {'a': {'b': {'c': 1, 'd': 2}}}
     """
     keys_list = list(keys)
@@ -78,10 +78,10 @@ def delete_nested(d: Dict[str, Any], keys: Iterable[str | int]) -> bool:
         True if the value was deleted, False if the path doesn't exist.
 
     Examples:
-        >>> d = {'a': {'b': {'c': 1}}}
-        >>> delete_nested(d, ['a', 'b', 'c'])
+        >>> d = {"a": {"b": {"c": 1}}}
+        >>> delete_nested(d, ["a", "b", "c"])
         True
-        >>> delete_nested(d, ['a', 'x'])
+        >>> delete_nested(d, ["a", "x"])
         False
     """
     keys_list = list(keys)
@@ -103,7 +103,7 @@ def delete_nested(d: Dict[str, Any], keys: Iterable[str | int]) -> bool:
     return True
 
 
-def flatten_tree(d: Dict[str, Any] | Any, parent_key: str = '', sep: str = '.') -> Dict[str, Any]:
+def flatten_tree(d: Dict[str, Any] | Any, parent_key: str = "", sep: str = ".") -> Dict[str, Any]:
     """Flatten a nested dictionary into a flat dictionary with compound keys.
 
     Args:
@@ -115,7 +115,7 @@ def flatten_tree(d: Dict[str, Any] | Any, parent_key: str = '', sep: str = '.') 
         A flat dictionary.
 
     Examples:
-        >>> flatten_tree({'a': {'b': {'c': 1, 'd': 2}}, 'e': 3})
+        >>> flatten_tree({"a": {"b": {"c": 1, "d": 2}}, "e": 3})
         {'a.b.c': 1, 'a.b.d': 2, 'e': 3}
     """
     items: List[Tuple[str, Any]] = []
@@ -125,12 +125,12 @@ def flatten_tree(d: Dict[str, Any] | Any, parent_key: str = '', sep: str = '.') 
             items.extend(flatten_tree(value, new_key, sep).items())
         return dict(items)
     else:
-        if parent_key == '':
-            return {'': d}
+        if parent_key == "":
+            return {"": d}
         return {parent_key: d}
 
 
-def unflatten_tree(flat: Dict[str, Any], sep: str = '.') -> Dict[str, Any]:
+def unflatten_tree(flat: Dict[str, Any], sep: str = ".") -> Dict[str, Any]:
     """Unflatten a flat dictionary with compound keys back to a nested structure.
 
     Args:
@@ -141,7 +141,7 @@ def unflatten_tree(flat: Dict[str, Any], sep: str = '.') -> Dict[str, Any]:
         A nested dictionary.
 
     Examples:
-        >>> unflatten_tree({'a.b.c': 1, 'a.b.d': 2, 'e': 3})
+        >>> unflatten_tree({"a.b.c": 1, "a.b.d": 2, "e": 3})
         {'a': {'b': {'c': 1, 'd': 2}}, 'e': 3}
     """
     result: Dict[str, Any] = {}
@@ -173,7 +173,7 @@ def map_tree(func: Callable[[Any], Any], tree: Any) -> Any:
         A new tree structure with func applied to all leaves.
 
     Examples:
-        >>> map_tree(lambda x: x * 2, {'a': {'b': 1}, 'c': [2, 3]})
+        >>> map_tree(lambda x: x * 2, {"a": {"b": 1}, "c": [2, 3]})
         {'a': {'b': 2}, 'c': [4, 6]}
     """
     if isinstance(tree, dict):
@@ -203,7 +203,7 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
         A filtered tree structure.
 
     Examples:
-        >>> filter_tree(lambda x: x > 1, {'a': 1, 'b': 2, 'c': {'d': 3, 'e': 0}})
+        >>> filter_tree(lambda x: x > 1, {"a": 1, "b": 2, "c": {"d": 3, "e": 0}})
         {'b': 2, 'c': {'d': 3}}
     """
     if isinstance(tree, dict):

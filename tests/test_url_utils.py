@@ -76,9 +76,7 @@ class TestGetQueryParams(unittest.TestCase):
 
 class TestGetQueryParam(unittest.TestCase):
     def test_get_param_exists(self) -> None:
-        self.assertEqual(
-            get_query_param("https://example.com?q=test&page=2", "q"), "test"
-        )
+        self.assertEqual(get_query_param("https://example.com?q=test&page=2", "q"), "test")
 
     def test_get_param_missing(self) -> None:
         self.assertIsNone(get_query_param("https://example.com?q=test", "missing"))

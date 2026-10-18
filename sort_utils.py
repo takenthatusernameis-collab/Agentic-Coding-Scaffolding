@@ -6,8 +6,10 @@ def is_sorted(items, *, key=None, reverse=False):
     iterator = iter(items)
     previous = next(iterator, None)
     if key is None:
+
         def key(x):
             return x
+
     for current in iterator:
         left = key(previous)
         right = key(current)
@@ -25,8 +27,10 @@ def bubble_sort(items, *, key=None, reverse=False):
     """Return a new list sorted using bubble sort."""
     result = list(items)
     if key is None:
+
         def key(x):
             return x
+
     swapped = True
     while swapped:
         swapped = False
@@ -43,8 +47,10 @@ def bubble_sort(items, *, key=None, reverse=False):
 def merge_sort(items, *, key=None, reverse=False):
     """Return a new list sorted using merge sort."""
     if key is None:
+
         def key(x):
             return x
+
     result = list(items)
     if len(result) <= 1:
         return result

@@ -54,7 +54,7 @@ def divide(a: Any, b: Any) -> Any:
 
 def power(base: Any, exponent: Any) -> Any:
     """Return ``base ** exponent``."""
-    return base ** exponent
+    return base**exponent
 
 
 def modulo(a: Any, b: Any) -> Any:

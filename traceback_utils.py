@@ -55,8 +55,8 @@ def format_exc():
     """
     try:
         result = _traceback.format_exc()
-        if result == 'NoneType: None\n':
-            return ''
+        if result == "NoneType: None\n":
+            return ""
         return result
     except Exception:
         return _traceback.format_exc()

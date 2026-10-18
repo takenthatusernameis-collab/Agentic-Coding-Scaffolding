@@ -100,9 +100,7 @@ class TestEscapePattern(unittest.TestCase):
 
 class TestExtractGroups(unittest.TestCase):
     def test_extract_captured_groups(self):
-        self.assertEqual(
-            extract_groups(r"(\d+)-(\d+)", "ID 12-34 here"), ("12", "34")
-        )
+        self.assertEqual(extract_groups(r"(\d+)-(\d+)", "ID 12-34 here"), ("12", "34"))
 
     def test_extract_no_match(self):
         self.assertIsNone(extract_groups(r"\d+", "no digits"))

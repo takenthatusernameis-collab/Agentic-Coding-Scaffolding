@@ -27,8 +27,10 @@ def compose(*functions: Callable[[Any], Any]) -> Callable[[Any], Any]:
         ValueError: If no functions are provided.
 
     Examples:
-        >>> def add_one(x: int) -> int: return x + 1
-        >>> def multiply_by_two(x: int) -> int: return x * 2
+        >>> def add_one(x: int) -> int:
+        ...     return x + 1
+        >>> def multiply_by_two(x: int) -> int:
+        ...     return x * 2
         >>> composed = compose(multiply_by_two, add_one)
         >>> composed(3)
         8
@@ -57,8 +59,10 @@ def pipe(arg: Any, *functions: Callable[[Any], Any]) -> Any:
         The final result after applying all functions.
 
     Examples:
-        >>> def add_one(x: int) -> int: return x + 1
-        >>> def multiply_by_two(x: int) -> int: return x * 2
+        >>> def add_one(x: int) -> int:
+        ...     return x + 1
+        >>> def multiply_by_two(x: int) -> int:
+        ...     return x * 2
         >>> pipe(3, add_one, multiply_by_two)
         8
     """
@@ -81,7 +85,8 @@ def curry(func: Callable[..., R]) -> Callable[..., Any]:
         TypeError: If ``func`` is not callable.
 
     Examples:
-        >>> def add(x: int, y: int) -> int: return x + y
+        >>> def add(x: int, y: int) -> int:
+        ...     return x + y
         >>> curried = curry(add)
         >>> curried(1)(2)
         3
@@ -92,9 +97,7 @@ def curry(func: Callable[..., R]) -> Callable[..., Any]:
     def curried(*args: Any, **kwargs: Any) -> Any:
         if len(args) + len(kwargs) >= func.__code__.co_argcount:
             return func(*args, **kwargs)
-        return lambda *more_args, **more_kwargs: curried(
-            *args, *more_args, **kwargs, **more_kwargs
-        )
+        return lambda *more_args, **more_kwargs: curried(*args, *more_args, **kwargs, **more_kwargs)
 
     return curried
 

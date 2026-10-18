@@ -24,7 +24,7 @@ class TestTimer(unittest.TestCase):
 
     def timer_with_label(self):
         """Test timer with custom label."""
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             with timer("Custom Label"):
                 time.sleep(0.01)
             # Check that print was called with expected format
@@ -35,7 +35,7 @@ class TestTimer(unittest.TestCase):
 
     def timer_without_label(self):
         """Test timer with default label."""
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             with timer():
                 time.sleep(0.01)
             mock_print.assert_called_once()
@@ -80,7 +80,7 @@ class TestBenchmarkDecorator(unittest.TestCase):
             call_count += 1
             return "success"
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             result = test_func()
 
         self.assertEqual(result, "success")
@@ -101,7 +101,7 @@ class TestBenchmarkDecorator(unittest.TestCase):
             time.sleep(0.01)
             return "success"
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             result = test_func()
 
         self.assertEqual(result, "success")
@@ -113,6 +113,7 @@ class TestBenchmarkDecorator(unittest.TestCase):
 
     def test_benchmark_returns_correct_result(self):
         """Test that benchmark returns the function's actual result."""
+
         @benchmark(iterations=2)
         def test_func():
             return [1, 2, 3]
@@ -123,11 +124,13 @@ class TestBenchmarkDecorator(unittest.TestCase):
     def test_benchmark_invalid_iterations(self):
         """Test that benchmark raises ValueError for invalid iterations."""
         with self.assertRaises(ValueError):
+
             @benchmark(iterations=0)
             def test_func():
                 pass
 
         with self.assertRaises(ValueError):
+
             @benchmark(iterations=-1)
             def test_func():
                 pass

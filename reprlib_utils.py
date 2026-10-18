@@ -29,8 +29,10 @@ class Repr(_reprlib.Repr):
         fillvalue="...",
         indent=None,
     ):
-        if maxlevel is not None and not isinstance(maxlevel, int) or (
-            isinstance(maxlevel, int) and maxlevel < 0
+        if (
+            maxlevel is not None
+            and not isinstance(maxlevel, int)
+            or (isinstance(maxlevel, int) and maxlevel < 0)
         ):
             raise TypeError("maxlevel must be a non-negative int or None")
         if not isinstance(maxtuple, int) or maxtuple < 0:

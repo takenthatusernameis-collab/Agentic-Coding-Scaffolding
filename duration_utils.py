@@ -137,34 +137,24 @@ def parse_duration(duration_str: str) -> float:
 
     for match in _DURATION_PATTERN.finditer(stripped):
         # Any non-whitespace text between matches makes the string invalid.
-        gap = stripped[pos:match.start()].strip()
+        gap = stripped[pos : match.start()].strip()
         if gap:
-            raise ValueError(
-                f"Unable to parse duration segment {gap!r} in {duration_str!r}"
-            )
+            raise ValueError(f"Unable to parse duration segment {gap!r} in {duration_str!r}")
         value = float(match.group(1))
         unit = match.group(2).lower()
         if value < 0:
-            raise ValueError(
-                f"Duration values must be non-negative, got {value!r}"
-            )
+            raise ValueError(f"Duration values must be non-negative, got {value!r}")
         if unit not in DURATION_UNITS:
-            raise ValueError(
-                f"Unknown duration unit {unit!r} in {duration_str!r}"
-            )
+            raise ValueError(f"Unknown duration unit {unit!r} in {duration_str!r}")
         total_seconds += value * DURATION_UNITS[unit]
         pos = match.end()
 
     trailing = stripped[pos:].strip()
     if trailing:
-        raise ValueError(
-            f"Unable to parse duration segment {trailing!r} in {duration_str!r}"
-        )
+        raise ValueError(f"Unable to parse duration segment {trailing!r} in {duration_str!r}")
 
     if pos == 0:
-        raise ValueError(
-            f"Unable to parse duration string {duration_str!r}"
-        )
+        raise ValueError(f"Unable to parse duration string {duration_str!r}")
 
     return total_seconds
 
@@ -282,11 +272,7 @@ def hms_to_seconds(
         if value < 0:
             raise ValueError(f"{name} must be non-negative")
 
-    return float(
-        hours * SECONDS_PER_HOUR
-        + minutes * SECONDS_PER_MINUTE
-        + seconds
-    )
+    return float(hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + seconds)
 
 
 def to_seconds(
@@ -328,10 +314,7 @@ def to_seconds(
             raise ValueError(f"{name} must be non-negative")
 
     return float(
-        hours * SECONDS_PER_HOUR
-        + minutes * SECONDS_PER_MINUTE
-        + seconds
-        + milliseconds / 1000.0
+        hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + seconds + milliseconds / 1000.0
     )
 
 

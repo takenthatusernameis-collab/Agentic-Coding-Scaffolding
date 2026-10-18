@@ -29,5 +29,5 @@ class TestGreetingUtils(unittest.TestCase):
         self.assertEqual(format_names([]), "")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

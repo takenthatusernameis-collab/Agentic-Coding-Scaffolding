@@ -155,9 +155,7 @@ class TestRandomUniform(unittest.TestCase):
             random_uniform(10, 1)
 
     def test_seeded_is_reproducible(self) -> None:
-        self.assertAlmostEqual(
-            random_uniform(0, 1, seed=13), random_uniform(0, 1, seed=13)
-        )
+        self.assertAlmostEqual(random_uniform(0, 1, seed=13), random_uniform(0, 1, seed=13))
 
 
 class TestRandomGaussian(unittest.TestCase):
@@ -169,9 +167,7 @@ class TestRandomGaussian(unittest.TestCase):
             random_gaussian(sigma=-1)
 
     def test_seeded_is_reproducible(self) -> None:
-        self.assertAlmostEqual(
-            random_gaussian(0, 1, seed=17), random_gaussian(0, 1, seed=17)
-        )
+        self.assertAlmostEqual(random_gaussian(0, 1, seed=17), random_gaussian(0, 1, seed=17))
 
 
 if __name__ == "__main__":

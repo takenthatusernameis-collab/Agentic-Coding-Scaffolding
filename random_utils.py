@@ -11,9 +11,7 @@ def _seed_rng(seed: Optional[int]) -> random.Random:
     return random.Random(seed)
 
 
-def random_int(
-    low: int, high: int, seed: Optional[int] = None
-) -> int:
+def random_int(low: int, high: int, seed: Optional[int] = None) -> int:
     """Return a random integer N such that ``low <= N <= high``.
 
     Args:
@@ -37,9 +35,7 @@ def random_int(
     return _seed_rng(seed).randint(low, high)
 
 
-def random_choice(
-    items: Sequence[T], seed: Optional[int] = None
-) -> T:
+def random_choice(items: Sequence[T], seed: Optional[int] = None) -> T:
     """Return a random element from ``items``.
 
     Args:
@@ -61,9 +57,7 @@ def random_choice(
     return _seed_rng(seed).choice(items)
 
 
-def random_sample(
-    items: Sequence[T], n: int, seed: Optional[int] = None
-) -> List[T]:
+def random_sample(items: Sequence[T], n: int, seed: Optional[int] = None) -> List[T]:
     """Return ``n`` unique elements sampled without replacement.
 
     Args:
@@ -91,9 +85,7 @@ def random_sample(
     return _seed_rng(seed).sample(list(items), n)
 
 
-def random_shuffle(
-    items: Sequence[T], seed: Optional[int] = None
-) -> List[T]:
+def random_shuffle(items: Sequence[T], seed: Optional[int] = None) -> List[T]:
     """Return a shuffled copy of ``items``.
 
     The original sequence is not modified.
@@ -176,9 +168,7 @@ def random_uniform(low: float, high: float, seed: Optional[int] = None) -> float
     return _seed_rng(seed).uniform(low, high)
 
 
-def random_gaussian(
-    mu: float = 0.0, sigma: float = 1.0, seed: Optional[int] = None
-) -> float:
+def random_gaussian(mu: float = 0.0, sigma: float = 1.0, seed: Optional[int] = None) -> float:
     """Return a random number drawn from a Gaussian (normal) distribution.
 
     Args:

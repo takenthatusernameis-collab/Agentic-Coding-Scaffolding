@@ -124,6 +124,7 @@ def render_from_dict(
         context = {}
     if not isinstance(context, Mapping):
         raise TypeError("context must be a mapping or None")
+
     class DefaultFormatter(dict):
         def __missing__(self, key: str) -> str:
             return default

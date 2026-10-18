@@ -87,7 +87,7 @@ def unpack(fmt: str, buffer: Union[bytes, bytearray]) -> Tuple[Any, ...]:
         ValueError: If ``fmt`` is invalid or the buffer size is incorrect.
 
     Examples:
-        >>> unpack("<B", b'A')
+        >>> unpack("<B", b"A")
         (65,)
     """
     _validate_format(fmt)
@@ -151,7 +151,7 @@ def unpack_from(fmt: str, buffer: Union[bytes, bytearray], offset: int = 0) -> T
             not enough data in ``buffer``.
 
     Examples:
-        >>> unpack_from(">I", b'ABCD', 0)
+        >>> unpack_from(">I", b"ABCD", 0)
         (1094861636,)
     """
     _validate_format(fmt)

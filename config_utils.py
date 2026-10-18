@@ -28,7 +28,7 @@ def load_config(file_path: Union[str, Path]) -> Dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Configuration file not found: {file_path}")
 
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     if not isinstance(data, dict):
@@ -55,15 +55,12 @@ def save_config(config: Dict[str, Any], file_path: Union[str, Path], indent: int
     path = Path(file_path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(path, 'w', encoding='utf-8') as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=indent, ensure_ascii=False)
 
 
 def get_config_value(
-    config: Dict[str, Any],
-    key_path: str,
-    default: Any = None,
-    separator: str = "."
+    config: Dict[str, Any], key_path: str, default: Any = None, separator: str = "."
 ) -> Any:
     """Get a value from a nested configuration dictionary using dot notation.
 
@@ -99,10 +96,7 @@ def get_config_value(
 
 
 def set_config_value(
-    config: Dict[str, Any],
-    key_path: str,
-    value: Any,
-    separator: str = "."
+    config: Dict[str, Any], key_path: str, value: Any, separator: str = "."
 ) -> None:
     """Set a value in a nested configuration dictionary using dot notation.
 

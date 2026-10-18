@@ -111,9 +111,7 @@ def merge_copy(*mappings: Dict[K, V]) -> Dict[K, V]:
     """
     for mapping in mappings:
         if not isinstance(mapping, dict):
-            raise TypeError(
-                f"all arguments must be dicts, got {type(mapping).__name__}"
-            )
+            raise TypeError(f"all arguments must be dicts, got {type(mapping).__name__}")
     result: Dict[K, V] = {}
     for mapping in mappings:
         result.update(mapping)

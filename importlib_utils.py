@@ -237,7 +237,7 @@ def get_entry_points(group: str | None = None) -> Any:
                             result.append(e)
                     except Exception:
                         continue
-                return type(eps)(result) if hasattr(type(eps), '__call__') else result  # type: ignore
+                return type(eps)(result) if hasattr(type(eps), "__call__") else result  # type: ignore
             except Exception:
                 return eps
         return eps

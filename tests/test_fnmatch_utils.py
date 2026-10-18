@@ -17,6 +17,7 @@ class TestFnmatchUtils(unittest.TestCase):
 
     def test_translate(self):
         import re
+
         self.assertTrue(re.match(translate("*.txt"), "foo.txt"))
 
     def test_type_errors(self):

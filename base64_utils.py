@@ -54,9 +54,7 @@ def base64_encode(data: Union[str, bytes], urlsafe: bool = False) -> str:
         'aGVsbG8='
     """
     encoded = (
-        base64.urlsafe_b64encode(_to_bytes(data))
-        if urlsafe
-        else base64.b64encode(_to_bytes(data))
+        base64.urlsafe_b64encode(_to_bytes(data)) if urlsafe else base64.b64encode(_to_bytes(data))
     )
     return encoded.decode("ascii")
 
@@ -86,9 +84,7 @@ def base64_decode(encoded: str, urlsafe: bool = False) -> str:
     encoded_bytes = encoded.encode("ascii")
     try:
         decoded = (
-            base64.urlsafe_b64decode(encoded_bytes)
-            if urlsafe
-            else base64.b64decode(encoded_bytes)
+            base64.urlsafe_b64decode(encoded_bytes) if urlsafe else base64.b64decode(encoded_bytes)
         )
     except (binascii.Error, ValueError) as exc:
         raise ValueError(f"invalid base64 data: {exc}") from exc

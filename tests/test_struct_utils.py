@@ -40,9 +40,7 @@ class TestUnpack(unittest.TestCase):
         self.assertEqual(unpack("<h", b"\xff\x00"), (255,))
 
     def test_unpack_ints_big_endian(self):
-        self.assertEqual(
-            unpack(">ii", b"\x00\x00\x00\x01\x00\x00\x00\x02"), (1, 2)
-        )
+        self.assertEqual(unpack(">ii", b"\x00\x00\x00\x01\x00\x00\x00\x02"), (1, 2))
 
     def test_unpack_type_error_fmt(self):
         with self.assertRaises(TypeError):

@@ -13,7 +13,7 @@ class TestLoadConfig(unittest.TestCase):
         """Test loading a valid JSON configuration file."""
         config_data = {"key": "value", "number": 42, "nested": {"inner": "data"}}
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(config_data, f)
             temp_path = f.name
 
@@ -30,7 +30,7 @@ class TestLoadConfig(unittest.TestCase):
 
     def test_load_invalid_json(self):
         """Test loading invalid JSON raises json.JSONDecodeError."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write('{"invalid": json}')  # Missing quotes around json
             temp_path = f.name
 
@@ -42,8 +42,8 @@ class TestLoadConfig(unittest.TestCase):
 
     def test_load_valid_but_not_dict(self):
         """Test loading valid JSON that is not a dictionary raises TypeError."""
-        for invalid_json in ['[1, 2, 3]', '"string"', '42', 'true', 'null']:
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        for invalid_json in ["[1, 2, 3]", '"string"', "42", "true", "null"]:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
                 f.write(invalid_json)
                 temp_path = f.name
 
@@ -57,7 +57,7 @@ class TestLoadConfig(unittest.TestCase):
         """Test loading works with Path objects."""
         config_data = {"test": "value"}
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(config_data, f)
             temp_path = Path(f.name)
 
@@ -77,16 +77,13 @@ class TestSaveConfig(unittest.TestCase):
             "database": {
                 "host": "localhost",
                 "port": 5432,
-                "credentials": {
-                    "username": "admin",
-                    "password": "secret"
-                }
+                "credentials": {"username": "admin", "password": "secret"},
             },
             "debug": True,
-            "tags": ["production", "web"]
+            "tags": ["production", "web"],
         }
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             temp_path = f.name
 
         try:
@@ -117,7 +114,7 @@ class TestSaveConfig(unittest.TestCase):
 
     def test_save_invalid_config_type(self):
         """Test that saving non-dict config raises TypeError."""
-        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
             temp_path = f.name
 
         try:
@@ -130,13 +127,13 @@ class TestSaveConfig(unittest.TestCase):
         """Test saving with custom indentation."""
         config = {"key": "value"}
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             temp_path = f.name
 
         try:
             save_config(config, temp_path, indent=4)
 
-            with open(temp_path, 'r') as f:
+            with open(temp_path, "r") as f:
                 content = f.read()
 
             # Should contain indentation
@@ -154,14 +151,11 @@ class TestGetConfigValue(unittest.TestCase):
             "database": {
                 "host": "localhost",
                 "port": 5432,
-                "credentials": {
-                    "username": "admin",
-                    "password": "secret"
-                }
+                "credentials": {"username": "admin", "password": "secret"},
             },
             "debug": True,
             "tags": ["production", "web"],
-            "simple_value": 42
+            "simple_value": 42,
         }
 
     def test_get_top_level_value(self):
@@ -173,10 +167,7 @@ class TestGetConfigValue(unittest.TestCase):
         """Test getting a nested configuration value."""
         self.assertEqual(get_config_value(self.config, "database.host"), "localhost")
         self.assertEqual(get_config_value(self.config, "database.port"), 5432)
-        self.assertEqual(
-            get_config_value(self.config, "database.credentials.username"),
-            "admin"
-        )
+        self.assertEqual(get_config_value(self.config, "database.credentials.username"), "admin")
 
     def test_get_missing_key_returns_default(self):
         """Test that missing keys return the default value."""
@@ -187,10 +178,7 @@ class TestGetConfigValue(unittest.TestCase):
     def test_get_value_via_nested_missing_parent(self):
         """Test getting a value when an intermediate parent is missing."""
         self.assertIsNone(get_config_value(self.config, "missing.parent.child"))
-        self.assertEqual(
-            get_config_value(self.config, "missing.parent.child", "found"),
-            "found"
-        )
+        self.assertEqual(get_config_value(self.config, "missing.parent.child", "found"), "found")
 
     def test_get_with_custom_separator(self):
         """Test using a custom separator."""
@@ -237,14 +225,7 @@ class TestSetConfigValue(unittest.TestCase):
         config = {"existing": "value"}
         set_config_value(config, "new.nested.path", "final")
 
-        expected = {
-            "existing": "value",
-            "new": {
-                "nested": {
-                    "path": "final"
-                }
-            }
-        }
+        expected = {"existing": "value", "new": {"nested": {"path": "final"}}}
         self.assertEqual(config, expected)
 
     def test_set_with_custom_separator(self):
@@ -278,31 +259,11 @@ class TestMergeConfigs(unittest.TestCase):
 
     def test_merge_nested_dicts(self):
         """Test merging nested dictionaries."""
-        base = {
-            "database": {
-                "host": "localhost",
-                "port": 5432
-            },
-            "debug": False
-        }
-        override = {
-            "database": {
-                "port": 5433,
-                "credentials": {
-                    "user": "admin"
-                }
-            },
-            "debug": True
-        }
+        base = {"database": {"host": "localhost", "port": 5432}, "debug": False}
+        override = {"database": {"port": 5433, "credentials": {"user": "admin"}}, "debug": True}
         expected = {
-            "database": {
-                "host": "localhost",
-                "port": 5433,
-                "credentials": {
-                    "user": "admin"
-                }
-            },
-            "debug": True
+            "database": {"host": "localhost", "port": 5433, "credentials": {"user": "admin"}},
+            "debug": True,
         }
         self.assertEqual(merge_configs(base, override), expected)
 

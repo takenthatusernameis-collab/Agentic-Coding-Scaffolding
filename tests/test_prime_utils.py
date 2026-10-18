@@ -20,6 +20,7 @@ class TestPrimeFactors(unittest.TestCase):
 
     def test_product_matches(self) -> None:
         from math import prod
+
         for n in range(2, 200):
             self.assertEqual(prod(prime_factors(n)), n)
 
@@ -86,5 +87,5 @@ class TestPreviousPrime(unittest.TestCase):
             previous_prime(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

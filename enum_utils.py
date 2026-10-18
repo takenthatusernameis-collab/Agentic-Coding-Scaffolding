@@ -64,9 +64,7 @@ def get_enum_member(enum_class: Type[E], key: Any) -> E:
     try:
         return enum_class(key)  # type: ignore[call-overload]
     except ValueError:
-        raise ValueError(
-            f"No enum member in {enum_class.__name__} matches {key!r}"
-        )
+        raise ValueError(f"No enum member in {enum_class.__name__} matches {key!r}")
 
 
 def is_enum_member(enum_class: Type[E], value: Any) -> bool:
@@ -126,9 +124,7 @@ def enum_value_from_name(enum_class: Type[E], name: str) -> Any:
     try:
         return enum_class[name].value  # type: ignore[call-overload]
     except KeyError:
-        raise ValueError(
-            f"{enum_class.__name__} has no member named {name!r}"
-        )
+        raise ValueError(f"{enum_class.__name__} has no member named {name!r}")
 
 
 def enum_name_from_value(enum_class: Type[E], value: Any) -> str:
@@ -150,6 +146,4 @@ def enum_name_from_value(enum_class: Type[E], value: Any) -> str:
     for member in enum_class:
         if member.value == value:
             return member.name
-    raise ValueError(
-        f"{enum_class.__name__} has no member with value {value!r}"
-    )
+    raise ValueError(f"{enum_class.__name__} has no member with value {value!r}")

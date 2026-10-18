@@ -8,8 +8,7 @@ class TestAbcUtils(unittest.TestCase):
     def test_abstractmethod(self):
         class Base(abc.ABC):
             @abc_utils.abstractmethod
-            def method(self):
-                ...
+            def method(self): ...
 
         self.assertTrue(Base.__abstractmethods__)
 
@@ -20,8 +19,7 @@ class TestAbcUtils(unittest.TestCase):
     def test_update_abstractmethods(self):
         class Base(abc.ABC):
             @abc_utils.abstractmethod
-            def method(self):
-                ...
+            def method(self): ...
 
         class Sub(Base):
             def method(self):

@@ -38,11 +38,7 @@ VT = TypeVar("VT")
 
 def _require_type(obj: Any, name: str, cls: Union[type, Tuple[type, ...]]) -> Any:
     if not isinstance(obj, cls):
-        type_names = (
-            cls.__name__
-            if isinstance(cls, type)
-            else " or ".join(c.__name__ for c in cls)
-        )
+        type_names = cls.__name__ if isinstance(cls, type) else " or ".join(c.__name__ for c in cls)
         raise TypeError(f"{name} must be of type {type_names}")
     return obj
 
@@ -276,7 +272,7 @@ def make_dataclass(
         ValueError: If field specifications are invalid.
 
     Examples:
-        >>> Point = make_dataclass('Point', [('x', int), ('y', int)])
+        >>> Point = make_dataclass("Point", [("x", int), ("y", int)])
         >>> Point(x=1, y=2)
         Point(x=1, y=2)
     """
@@ -359,9 +355,9 @@ def get_field_default(class_or_instance: Any, field_name: str) -> Any:
         ... class Point:
         ...     x: int
         ...     y: int = 0
-        >>> get_field_default(Point, 'y')
+        >>> get_field_default(Point, "y")
         0
-        >>> get_field_default(Point, 'x') is MISSING
+        >>> get_field_default(Point, "x") is MISSING
         True
     """
     _require_type(field_name, "field_name", str)
@@ -393,9 +389,9 @@ def has_field(class_or_instance: Any, field_name: str) -> bool:
         ... class Point:
         ...     x: int
         ...     y: int
-        >>> has_field(Point, 'x')
+        >>> has_field(Point, "x")
         True
-        >>> has_field(Point, 'z')
+        >>> has_field(Point, "z")
         False
     """
     _require_type(field_name, "field_name", str)

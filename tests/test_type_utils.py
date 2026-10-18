@@ -1,4 +1,5 @@
 """Unit tests for type_utils module."""
+
 import typing as t
 import unittest
 

@@ -88,11 +88,14 @@ def dependency_order(
             dependency is missing from ``items``.
 
     Examples:
-        >>> dependency_order(["deploy", "build", "deps"], lambda task: {
-        ...     "deploy": ["build"],
-        ...     "build": ["deps"],
-        ...     "deps": [],
-        ... }.get(task, []))
+        >>> dependency_order(
+        ...     ["deploy", "build", "deps"],
+        ...     lambda task: {
+        ...         "deploy": ["build"],
+        ...         "build": ["deps"],
+        ...         "deps": [],
+        ...     }.get(task, []),
+        ... )
         ['deps', 'build', 'deploy']
     """
     if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
@@ -103,16 +106,12 @@ def dependency_order(
         dependencies = list(get_dependencies(item))
         missing = set(dependencies) - item_set
         if missing:
-            raise ValueError(
-                f"dependencies not in items for {item!r}: {sorted(missing)}"
-            )
+            raise ValueError(f"dependencies not in items for {item!r}: {sorted(missing)}")
         nodes[item] = dependencies
     return topological_sort(nodes)
 
 
-def is_valid_ordering(
-    order: Sequence[Any], nodes: Mapping[Any, Iterable[Any]]
-) -> bool:
+def is_valid_ordering(order: Sequence[Any], nodes: Mapping[Any, Iterable[Any]]) -> bool:
     """Return ``True`` if ``order`` is a valid topological order of ``nodes``.
 
     Args:

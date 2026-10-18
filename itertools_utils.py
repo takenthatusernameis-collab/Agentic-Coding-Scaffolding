@@ -4,7 +4,6 @@ Provides convenient wrappers around the standard library ``itertools``
 module with input validation.
 """
 
-
 from itertools import (
     accumulate,
     chain,
@@ -38,9 +37,7 @@ def flatten_once(iterable: Iterable[Iterable[Any]]) -> List[Any]:
     return list(chain.from_iterable(iterable))
 
 
-def take_while_pred(
-    iterable: Iterable[Any], predicate: Callable[[Any], bool]
-) -> List[Any]:
+def take_while_pred(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> List[Any]:
     """Take elements while predicate is truthy."""
     _ensure_iterable(iterable)
     if not callable(predicate):

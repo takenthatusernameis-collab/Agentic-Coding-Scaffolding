@@ -96,8 +96,6 @@ class TestPriorityQueue(unittest.TestCase):
         self.assertFalse(bool(pq))
 
 
-
-
 class TestHelperFunctions(unittest.TestCase):
     def test_push_priority(self):
         pq = PriorityQueue()

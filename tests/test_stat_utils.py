@@ -81,8 +81,16 @@ class TestStatUtils(unittest.TestCase):
     def test_stat_info_keys(self):
         info = stat_info(self.file_path)
         expected = {
-            "mode", "ino", "dev", "nlink", "uid", "gid", "size",
-            "atime", "mtime", "ctime",
+            "mode",
+            "ino",
+            "dev",
+            "nlink",
+            "uid",
+            "gid",
+            "size",
+            "atime",
+            "mtime",
+            "ctime",
         }
         self.assertEqual(set(info.keys()), expected)
         self.assertGreater(info["size"], 0)

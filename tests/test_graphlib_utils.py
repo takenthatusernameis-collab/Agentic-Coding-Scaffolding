@@ -28,9 +28,7 @@ class TestTopologicalSort(unittest.TestCase):
         self.assertEqual(sorted(result), ["a", "b", "c"])
 
     def test_diamond_dependencies(self):
-        result = topological_sort(
-            {"d": ["b", "c"], "b": ["a"], "c": ["a"], "a": []}
-        )
+        result = topological_sort({"d": ["b", "c"], "b": ["a"], "c": ["a"], "a": []})
         self.assertEqual(result[0], "a")
         self.assertEqual(result[-1], "d")
         self.assertLess(result.index("b"), result.index("d"))
@@ -73,9 +71,7 @@ class TestDependencyOrder(unittest.TestCase):
                 "install_deps": [],
             }[task]
 
-        result = dependency_order(
-            ["deploy", "test", "install_deps", "build"], deps
-        )
+        result = dependency_order(["deploy", "test", "install_deps", "build"], deps)
         self.assertEqual(result, ["install_deps", "build", "test", "deploy"])
 
     def test_missing_dependency_raises(self):

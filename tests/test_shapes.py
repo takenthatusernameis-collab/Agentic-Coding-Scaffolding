@@ -73,5 +73,5 @@ class TestTriangle(unittest.TestCase):
             triangle_perimeter(3, 4, -5)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

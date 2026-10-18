@@ -6,9 +6,7 @@ from typing import Union
 DateTimeLike = Union[str, datetime]
 
 
-def parse_datetime(
-    value: str, fmt: str = "%Y-%m-%d %H:%M:%S"
-) -> datetime:
+def parse_datetime(value: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> datetime:
     """Parse a string into a datetime object.
 
     Args:
@@ -24,9 +22,7 @@ def parse_datetime(
     return datetime.strptime(value, fmt)
 
 
-def format_datetime(
-    dt: datetime, fmt: str = "%Y-%m-%d %H:%M:%S"
-) -> str:
+def format_datetime(dt: datetime, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
     """Format a datetime object as a string.
 
     Args:
@@ -128,6 +124,4 @@ def _coerce_datetime(value: DateTimeLike, *formats: str) -> datetime:
             return datetime.strptime(value, fmt)
         except ValueError:
             continue
-    raise ValueError(
-        f"Could not parse '{value}'. Expected formats: {list(formats)}"
-    )
+    raise ValueError(f"Could not parse '{value}'. Expected formats: {list(formats)}")

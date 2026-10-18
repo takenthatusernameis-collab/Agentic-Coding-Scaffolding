@@ -21,9 +21,7 @@ def dumps(obj: Any, version: int = marshal.version) -> bytes:
     if not isinstance(version, int):
         raise TypeError(f"version must be an int, got {type(version).__name__}")
     if version < 0 or version > marshal.version:
-        raise ValueError(
-            f"version must be between 0 and {marshal.version}, got {version}"
-        )
+        raise ValueError(f"version must be between 0 and {marshal.version}, got {version}")
     try:
         return marshal.dumps(obj, version)
     except Exception as e:
@@ -46,8 +44,7 @@ def loads(data: Union[bytes, bytearray, memoryview]) -> Any:
     """
     if not isinstance(data, (bytes, bytearray, memoryview)):
         raise TypeError(
-            f"data must be bytes-like (bytes, bytearray, memoryview), "
-            f"got {type(data).__name__}"
+            f"data must be bytes-like (bytes, bytearray, memoryview), got {type(data).__name__}"
         )
     try:
         return marshal.loads(data)
@@ -79,9 +76,7 @@ def dump(obj: Any, file: Any, version: int = marshal.version) -> None:
     if not isinstance(version, int):
         raise TypeError(f"version must be an int, got {type(version).__name__}")
     if version < 0 or version > marshal.version:
-        raise ValueError(
-            f"version must be between 0 and {marshal.version}, got {version}"
-        )
+        raise ValueError(f"version must be between 0 and {marshal.version}, got {version}")
     try:
         marshal.dump(obj, file, version)
     except Exception as e:

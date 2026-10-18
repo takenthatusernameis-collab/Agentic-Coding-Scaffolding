@@ -28,6 +28,7 @@ def retry(
         >>> @retry(max_attempts=3, delay=0.1, backoff=2.0)
         ... def unreliable_function():
         ...     import random
+        ...
         ...     if random.random() < 0.7:
         ...         raise ValueError("Random failure")
         ...     return "success"
@@ -79,6 +80,7 @@ def retry_with_backoff(
         >>> @retry_with_backoff(max_attempts=3, initial_delay=0.1, backoff_factor=2.0)
         ... def unreliable_function():
         ...     import random
+        ...
         ...     if random.random() < 0.7:
         ...         raise ValueError("Random failure")
         ...     return "success"
@@ -133,6 +135,7 @@ def retry_count(
         >>> @retry_count(max_attempts=3, delay=0.1)
         ... def unreliable_function():
         ...     import random
+        ...
         ...     if random.random() < 0.8:
         ...         raise ValueError("Random failure")
         ...     return "success"
