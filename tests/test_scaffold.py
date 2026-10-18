@@ -1788,6 +1788,45 @@ class TestScaffoldProjectNameNormalization(unittest.TestCase):
                 self.assertEqual(f.read(), data)
             with lzma_open(p, "wb") as f:
                 f.write(data)
+    def test_gc_utils_functions_work(self):
+        """Generated gc_utils.py should have working functions."""
+        import gc
+
+        import gc_utils
+
+        was_enabled = gc.isenabled()
+        try:
+            gc_utils.disable()
+            self.assertFalse(gc_utils.isenabled())
+            gc_utils.enable()
+            self.assertTrue(gc_utils.isenabled())
+        finally:
+            if was_enabled:
+                gc.enable()
+            else:
+                gc.disable()
+
+        self.assertIsInstance(gc_utils.collect(), int)
+        self.assertIsInstance(gc_utils.get_count(), tuple)
+        self.assertIsInstance(gc_utils.get_threshold(), tuple)
+        self.assertIsInstance(gc_utils.get_stats(), list)
+        self.assertIsInstance(gc_utils.get_objects(), list)
+        a = []
+        self.assertIsInstance(gc_utils.get_referents(a), list)
+        self.assertIsInstance(gc_utils.get_referrers([a]), list)
+        orig = gc_utils.get_debug()
+        try:
+            gc_utils.set_debug(0)
+            self.assertEqual(gc_utils.get_debug(), 0)
+        finally:
+            gc_utils.set_debug(orig)
+        orig_t = gc_utils.get_threshold()
+        try:
+            gc_utils.set_threshold(700, 10, 10)
+            gc_utils.set_threshold(1000)
+        finally:
+            gc_utils.set_threshold(*orig_t)
+
 
     def test_spaces_and_mixed_case_normalized(self) -> None:
         out = self._scaffold("My Cool Tool")

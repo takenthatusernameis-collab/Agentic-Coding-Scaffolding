@@ -968,6 +968,7 @@ py_modules = [
     "zipfile_utils",
     "bz2_utils",
     "lzma_utils",
+    "gc_utils",
 ]
 
 PYPROJECT
@@ -2357,45 +2358,148 @@ class TestBz2Utils(unittest.TestCase):
 TEST_BZ2_UTILS
 
 # --- tests/test_lzma_utils.py ---
-cat > "$OUTPUT_DIR/tests/test_lzma_utils.py" <<'TEST_LZMA_UTILS'
-"""Tests for lzma_utils."""
+cat > "$OUTPUT_DIR/tests/test_lzma_utils.py" <<'TEST_LZMA_UTILS
+# --- gc_utils.py ---
+cat > "$OUTPUT_DIR/gc_utils.py" <<'GC_UTILS'
+"""Utilities wrapping the standard library ``gc`` module."""
 
-import os
-import tempfile
+import gc
+
+
+def enable() -> None:
+    gc.enable()
+
+
+def disable() -> None:
+    gc.disable()
+
+
+def isenabled() -> bool:
+    return gc.isenabled()
+
+
+def collect(*, generation: int = 2) -> int:
+    return gc.collect(generation)
+
+
+def get_count() -> tuple:
+    return gc.get_count()
+
+
+def get_objects() -> list:
+    return gc.get_objects()
+
+
+def get_referents(*objs: object) -> list:
+    return gc.get_referents(*objs)
+
+
+def get_referrers(*objs: object) -> list:
+    return gc.get_referrers(*objs)
+
+
+def get_stats() -> list:
+    return gc.get_stats()
+
+
+def set_debug(flags: int) -> None:
+    gc.set_debug(flags)
+
+
+def get_debug() -> int:
+    return gc.get_debug()
+
+
+def set_threshold(threshold0: int, threshold1: int = 0, threshold2: int = 0) -> None:
+    if threshold1 == 0 and threshold2 == 0:
+        gc.set_threshold(threshold0)
+    else:
+        gc.set_threshold(threshold0, threshold1, threshold2)
+
+
+def get_threshold() -> tuple:
+    return gc.get_threshold()
+GC_UTILS
+
+# --- tests/test_gc_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_gc_utils.py" <<'TEST_GC_UTILS'
+"""Tests for gc_utils."""
+
+import gc
 import unittest
 
-from lzma_utils import (
-    lzma_compress,
-    lzma_decompress,
-    lzma_open,
-    lzma_read,
-    lzma_write,
-)
+import gc_utils
 
 
-class TestLzmaUtils(unittest.TestCase):
-    def test_lzma_compress_decompress_roundtrip(self):
-        data = b"hello world" * 10
-        compressed = lzma_compress(data)
-        self.assertEqual(lzma_decompress(compressed), data)
+class TestGcUtils(unittest.TestCase):
+    def test_enable_disable(self):
+        was_enabled = gc.isenabled()
+        try:
+            gc.disable()
+            gc_utils.enable()
+            self.assertTrue(gc.isenabled())
+            gc_utils.disable()
+            self.assertFalse(gc.isenabled())
+        finally:
+            if was_enabled:
+                gc.enable()
+            else:
+                gc.disable()
 
-    def test_lzma_write_read_roundtrip(self):
-        data = b"hello world" * 10
-        with tempfile.TemporaryDirectory() as d:
-            path = os.path.join(d, "test.xz")
-            lzma_write(path, data)
-            self.assertEqual(lzma_read(path), data)
+    def test_isenabled(self):
+        was_enabled = gc.isenabled()
+        try:
+            gc.disable()
+            self.assertFalse(gc_utils.isenabled())
+            gc.enable()
+            self.assertTrue(gc_utils.isenabled())
+        finally:
+            if was_enabled:
+                gc.enable()
+            else:
+                gc.disable()
 
-    def test_lzma_open(self):
-        data = b"hello world"
-        with tempfile.TemporaryDirectory() as d:
-            path = os.path.join(d, "test.xz")
-            with lzma_open(path, "wb") as f:
-                f.write(data)
-            with lzma_open(path, "rb") as f:
-                self.assertEqual(f.read(), data)
-TEST_LZMA_UTILS
+    def test_collect_returns_int(self):
+        result = gc_utils.collect()
+        self.assertIsInstance(result, int)
+
+    def test_get_count(self):
+        count = gc_utils.get_count()
+        self.assertIsInstance(count, tuple)
+
+    def test_get_threshold(self):
+        threshold = gc_utils.get_threshold()
+        self.assertIsInstance(threshold, tuple)
+
+    def test_set_get_debug(self):
+        orig = gc_utils.get_debug()
+        try:
+            gc_utils.set_debug(0)
+            self.assertEqual(gc_utils.get_debug(), 0)
+        finally:
+            gc_utils.set_debug(orig)
+
+    def test_set_threshold(self):
+        orig = gc_utils.get_threshold()
+        try:
+            gc_utils.set_threshold(700, 10, 10)
+            gc_utils.set_threshold(1000)
+        finally:
+            gc_utils.set_threshold(*orig)
+
+    def test_gc_basic_wrappers(self):
+        self.assertIsInstance(gc_utils.get_stats(), list)
+        a = []
+        b = [a]
+        referents = gc_utils.get_referents(a)
+        referrers = gc_utils.get_referrers(b)
+        self.assertIsInstance(referents, list)
+        self.assertIsInstance(referrers, list)
+        objs = gc_utils.get_objects()
+        self.assertIsInstance(objs, list)
+TEST_GC_UTILS
 # --- calculator.py ---
+
 cat > "$OUTPUT_DIR/calculator.py" <<'CALCULATOR'
 def add(a: float, b: float) -> float:
     """Return the sum of a and b."""

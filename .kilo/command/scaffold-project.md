@@ -30,6 +30,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation
 - `bz2_utils.py` — BZ2 compression utilities wrapping the standard library `bz2` module (`bz2_compress`, `bz2_decompress`, `bz2_open`, `bz2_write`, `bz2_read`)
 - `lzma_utils.py` — LZMA compression utilities wrapping the standard library `lzma` module (`lzma_compress`, `lzma_decompress`, `lzma_open`, `lzma_write`, `lzma_read`)
+- `gc_utils.py` — GC utilities wrapping the standard library `gc` module (`enable`, `disable`, `isenabled`, `collect`, `get_count`, `get_stats`, `get_objects`, `get_referents`, `get_referrers`, `set_threshold`, `get_threshold`, `set_debug`, `get_debug`)
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
@@ -163,6 +164,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_zipfile_utils.py` — unit tests for `zipfile_utils.py`
 - `tests/test_bz2_utils.py` — unit tests for `bz2_utils.py`
 - `tests/test_lzma_utils.py` — unit tests for `lzma_utils.py`
+- `tests/test_gc_utils.py` — unit tests for `gc_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
  - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`

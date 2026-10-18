@@ -173,5 +173,7 @@ py_modules = [
     "sqlite3_utils",
     "marshal_utils",
     "zipfile_utils",
+    "lzma_utils",
+    "gc_utils",
     "importlib_utils",
 ]
