@@ -2,7 +2,6 @@ import os
 import shutil
 import tempfile
 import unittest
-import zipfile
 
 from zipfile_utils import create_archive, extract_all, is_zipfile, list_names
 

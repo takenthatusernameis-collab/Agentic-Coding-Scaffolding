@@ -7,7 +7,7 @@ on invalid arguments.
 """
 
 import zipfile as _zipfile
-from typing import Any, Optional
+from typing import Any
 
 
 def create_archive(path: str, files: list[str]) -> str:
