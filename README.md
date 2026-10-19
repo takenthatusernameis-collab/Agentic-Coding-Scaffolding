@@ -176,9 +176,9 @@ tests/                     # Python unit tests
   test_async_utils.py         # Tests for async_utils.py
   test_array_utils.py        # Tests for array_utils.py
   test_base64_utils.py        # Tests for base64_utils.py
+  test_binascii_utils.py      # Tests for binascii_utils.py
   test_bisect_utils.py       # Tests for bisect_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
-  test_call_once_utils.py     # Tests for call_once_utils.py
   test_bytes_utils.py         # Tests for bytes_utils.py
   test_circuit_breaker_utils.py   # Tests for circuit_breaker_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
@@ -192,8 +192,8 @@ tests/                     # Python unit tests
   test_collections_utils.py   # Tests for collections_utils.py
   test_compression_utils.py   # Tests for compression_utils.py
   test_config_schema.py       # Tests for config_schema.py
-  test_copy_utils.py          # Tests for copy_utils.py
   test_config_utils.py        # Tests for config_utils.py
+  test_configparser_utils.py  # Tests for configparser_utils.py
   test_concurrent_utils.py    # Tests for concurrent_utils.py
 test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
   test_context_utils.py       # Tests for context_utils.py
@@ -208,7 +208,9 @@ test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
   test_env_utils.py           # Tests for env_utils.py
   test_exceptions_utils.py    # Tests for exceptions_utils.py
   test_file_utils.py          # Tests for file_utils.py
+  test_fileinput_utils.py     # Tests for fileinput_utils.py
   test_fractions_utils.py     # Tests for fractions_utils.py
+  test_fnmatch_utils.py       # Tests for fnmatch_utils.py
   test_functools_utils.py     # Tests for functools_utils.py
   test_glob_utils.py          # Tests for glob_utils.py
   test_graphlib_utils.py      # Tests for graphlib_utils.py
@@ -218,6 +220,7 @@ test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
   test_hashlib_utils.py       # Tests for hashlib_utils.py
   test_heapq_utils.py         # Tests for heapq_utils.py
   test_keyword_utils.py       # Tests for keyword_utils.py
+  test_linecache_utils.py     # Tests for linecache_utils.py
   test_hello.py               # Tests for hello.py
   test_html_utils.py          # Tests for html_utils.py
   test_http_utils.py          # Tests for http_utils.py
@@ -238,12 +241,14 @@ test_markdown_utils.py      # Tests for markdown_utils.py
   test_operator_utils.py      # Tests for operator_utils.py
   test_os_utils.py            # Tests for os_utils.py
 test_path_utils.py          # Tests for path_utils.py
+  test_pathlib_utils.py       # Tests for pathlib_utils.py
   test_pattern_utils.py       # Tests for pattern_utils.py
   test_pprint_utils.py        # Tests for pprint_utils.py
 test_reprlib_utils.py       # Tests for reprlib_utils.py
 test_traceback_utils.py     # Tests for traceback_utils.py
 test_typing_utils.py        # Tests for typing_utils.py
 test_pickle_utils.py        # Tests for pickle_utils.py
+  test_plistlib_utils.py      # Tests for plistlib_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
@@ -270,6 +275,7 @@ test_secrets_utils.py       # Tests for secrets_utils.py
   test_struct_utils.py        # Tests for struct_utils.py
   test_subprocess_utils.py    # Tests for subprocess_utils.py
   test_sys_utils.py           # Tests for sys_utils.py
+  test_tarfile_utils.py       # Tests for tarfile_utils.py
   test_threading_utils.py     # Tests for threading_utils.py
   test_template_utils.py      # Tests for template_utils.py
   test_terminal_utils.py      # Tests for terminal_utils.py
@@ -396,6 +402,10 @@ The project includes a date and time utilities module in `datetime_utils.py` wit
 
 The project includes a file utilities module in `file_utils.py` with functions for file and path operations: `read_text`, `write_text`, `read_json`, `write_json`, `ensure_dir`, `list_files`, `copy_file`, and `delete_file`. The module is tested in `tests/test_file_utils.py`.
 
+## File Input Utilities Module
+
+The project includes file input utilities in `fileinput_utils.py` wrapping the standard library `fileinput` module: `read_lines` reads all lines from one or more text files, `count_lines` counts the total number of lines across files, and `filenames` collects the names of files as they are read (one per first line). All functions accept an optional iterable of file paths and validate their inputs. The module is tested in `tests/test_fileinput_utils.py`.
+
 ## URL Utilities Module
 
 The project includes a URL and web utilities module in `url_utils.py` with functions for URL validation and manipulation: `is_valid_url`, `extract_domain`, `get_query_params`, `get_query_param`, `add_query_param`, `remove_query_param`, and `build_url`. The module is tested in `tests/test_url_utils.py`.
@@ -500,6 +510,10 @@ The project includes a type introspection utilities module in `type_utils.py` wi
 
 The project includes a path manipulation utilities module in `path_utils.py` with functions for joining, normalizing, splitting, and inspecting filesystem paths: `join_path`, `normalize_path`, `get_absolute_path`, `get_relative_path`, `get_parent_dir`, `get_file_name`, `get_file_stem`, `get_file_extension`, `change_extension`, `is_absolute`, `get_path_components`, `get_common_path`, and `ensure_extension`. The module is tested in `tests/test_path_utils.py`.
 
+## Pathlib Utilities Module
+
+The project includes path manipulation utilities in `pathlib_utils.py` wrapping the standard library `pathlib` module: `ensure_dir` creates a directory (and parents) if missing and returns it, `join` joins path parts into a `Path`, `exists`, `is_file`, and `is_dir` test filesystem entries, `read_text` and `write_text` read/write text files (creating parent directories as needed), `glob` and `rglob` return sorted `Path` lists matching a pattern, and `suffix`, `stem`, and `parent` expose common `Path` attributes. The module is tested in `tests/test_pathlib_utils.py`.
+
 ## Color Utilities Module
 
 The project includes a color manipulation utilities module in `color_utils.py` with functions for converting between color representations (hexadecimal, RGB, HSL), computing WCAG 2.1 relative luminance and contrast ratios, checking accessibility, and adjusting/blending colors: `validate_hex`, `hex_to_rgb`, `rgb_to_hex`, `rgb_to_hsl`, `hsl_to_rgb`, `get_luminance`, `get_contrast_ratio`, `is_accessible`, `adjust_brightness`, and `blend_colors`. Colors are accepted as either a hex string (``#RRGGBB``) or an RGB tuple. The module is tested in `tests/test_color_utils.py`.
@@ -531,6 +545,10 @@ The project includes BZ2 compression utilities in `bz2_utils.py` wrapping the st
 ## Gzip Utilities Module
 
 The project includes gzip compression/decompression utilities in `gzip_utils.py` wrapping the standard library `gzip` module: `gzip_compress` compresses bytes with optional compression level, `gzip_decompress` decompresses gzip-compressed bytes, `gzip_open` opens a gzip file, `gzip_write` writes bytes to a gzip file, and `gzip_read` reads and decompresses a gzip file. The module is tested in `tests/test_gzip_utils.py`.
+
+## Configuration File Parsing Utilities Module
+
+The project includes configuration file parsing utilities in `configparser_utils.py` wrapping the standard library `configparser` module: `load_config` reads an INI-style file into a dictionary of sections (excluding the DEFAULT section), `save_config` writes a configuration dictionary to an INI file, `get_sections` and `get_options` list the sections and options of a parser, `read_files` reads and parses multiple files, and `write_config` serializes a parser to a file. The module re-exports `ConfigParser`, `RawConfigParser`, `BasicInterpolation`, `ExtendedInterpolation`, `DEFAULTSECT`, and the common `configparser` exceptions. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_configparser_utils.py`.
 
 ## Configuration Schema Module
 
@@ -631,6 +649,10 @@ The project includes signal utilities in `signal_utils.py` wrapping the standard
 
 The project includes an INI configuration utilities module in `ini_utils.py` for working with INI-style configuration files: `load_config`, `save_config`, `get_config_value`, `set_config_value`, `merge_configs`, `list_sections`, `has_section`, and `get_section`. Section-based access uses dot notation (``section.key``), keys preserve their case, and parent directories are created automatically on save. The module is tested in `tests/test_ini_utils.py`.
 
+## Filename Pattern Matching Utilities Module
+
+The project includes filename pattern matching utilities in `fnmatch_utils.py` wrapping the standard library `fnmatch` module: `match` tests whether a filename matches a shell-style pattern (case-normalized on the operating system), `match_case` is a case-sensitive variant, `filter_names` returns the subset of names matching a pattern, and `translate` converts a shell-style pattern to a regular expression. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_fnmatch_utils.py`.
+
 ## HTML Utilities Module
 
 The project includes HTML utility functions in `html_utils.py` for escaping, unescaping, and sanitizing HTML content: `escape_html` escapes special characters (`&`, `<`, `>`, `"`, `'`) for safe insertion into HTML documents, `unescape_html` decodes named and numeric HTML entities back to their original characters, `strip_tags` removes all HTML tags leaving only text content, and `escape_attribute` escapes values for safe use inside HTML attributes. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_html_utils.py`.
@@ -646,6 +668,10 @@ The project includes iteration helpers in `itertools_utils.py` wrapping the stan
 ## Base64 Utilities Module
 
 The project includes Base64 and hexadecimal encoding/decoding utilities in `base64_utils.py`: `base64_encode` and `base64_decode` for standard and URL-safe Base64, `base64_encode_bytes` and `base64_decode_bytes` for raw bytes, `hex_encode` and `hex_decode` for hexadecimal, and `is_valid_base64` / `is_valid_hex` for validation. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_base64_utils.py`.
+
+## Binary-to-ASCII Encoding Utilities Module
+
+The project includes binary-to-ASCII encoding and decoding utilities in `binascii_utils.py` wrapping the standard library `binascii` module: `hexlify` and `unhexlify` convert between binary data and hexadecimal strings, `b2a_base64` and `a2b_base64` encode/decode Base64, `b2a_uu` and `a2b_uu` encode/decode UUencoding, `b2a_qp` and `a2b_qp` encode/decode quoted-printable, `crc32` computes a CRC32 checksum, `adler32` computes an Adler32 checksum, and `crc_hqx` computes a CRC-HQX checksum with an optional initial value. All functions accept str or bytes and raise `TypeError` for unsupported types. The module is tested in `tests/test_binascii_utils.py`.
 
 ## Bisect Utilities Module
 
@@ -826,6 +852,18 @@ The project includes traceback utilities in `traceback_utils.py` wrapping the st
 ## SQLite Utilities Module
 
 The project includes SQLite database utilities in `sqlite3_utils.py` wrapping the standard library `sqlite3` module: `connect` opens a connection (defaulting to an in-memory database), `execute` and `executemany` run SQL statements with optional parameters, `fetch_all`, `fetch_one`, and `fetch_many` return query results, `create_table` creates a table if it does not exist, `insert_row` inserts a row and returns its id, `query` returns rows as dictionaries keyed by column name, and `table_exists` checks whether a table exists. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_sqlite3_utils.py`.
+
+## Plistlib Utilities Module
+
+The project includes plistlib utility functions in `plistlib_utils.py` wrapping the standard library `plistlib` module: `plist_load` loads a plist from a binary file object, `plist_loads` loads a plist from bytes, `plist_dump` writes an object as a plist to a binary file object, and `plist_dumps` serializes an object to plist bytes. The module is tested in `tests/test_plistlib_utils.py`.
+
+## Tarfile Utilities Module
+
+The project includes tarfile utility functions in `tarfile_utils.py` wrapping the standard library `tarfile` module: `tarfile_open` opens a tar archive, `tarfile_add` adds a file to a (possibly new) tar archive with an optional arcname, `tarfile_list` lists member names in a tar archive, `tarfile_extract` extracts a single member, `tarfile_extractall` extracts all members, and `tarfile_create` creates a new tar archive containing a list of files with optional arcnames. The module is tested in `tests/test_tarfile_utils.py`.
+
+## Unicode Data Utilities Module
+
+The project includes Unicode data utilities in `unicodedata_utils.py` wrapping the standard library `unicodedata` module: `unicodedata_lookup` looks up a character by name, `unicodedata_name` returns the name of a character, `unicodedata_normalize` returns the normal form of a Unicode string, `unicodedata_category` returns the general category, `unicodedata_bidirectional` returns the bidirectional class, `unicodedata_combining` returns the combining class, `unicodedata_east_asian_width` returns the east asian width, `unicodedata_mirrored` returns whether a character is mirrored, and `unicodedata_decimal`, `unicodedata_digit`, and `unicodedata_numeric` return the numeric value of a character. The module is tested in `tests/test_unicodedata_utils.py`.
 
 ## ZIP Utilities Module
 
