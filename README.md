@@ -133,6 +133,7 @@ cli_utils.py               # Command-line interface utilities (argparse parser, 
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 hmac_utils.py              # HMAC-based message authentication utilities (MD5, SHA1, SHA256, SHA512) with constant-time verification
 hashlib_utils.py           # Hash utilities wrapping hashlib (MD5, SHA1, SHA256, SHA512, SHA3, BLAKE2)
+platform_utils.py          # Platform utilities wrapping the standard library platform module
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
@@ -614,6 +615,10 @@ The project includes HMAC-based message authentication utilities in `hmac_utils.
 ## Hashlib Utilities Module
 
 The project includes hash utilities in `hashlib_utils.py` wrapping the standard library `hashlib` module: `md5_hash`, `sha1_hash`, `sha256_hash`, `sha512_hash`, `sha3_256_hash`, `sha3_512_hash`, `blake2b_hash`, and `blake2s_hash` compute digests of bytes-like input, and `file_hash` computes the digest of file contents using a specified algorithm with chunked reading. All functions validate inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_hashlib_utils.py`.
+
+## Platform Utilities Module
+
+The project includes platform utilities in `platform_utils.py` wrapping the standard library `platform` module: functions to query system information (`get_system`, `get_release`, `get_version`, `get_machine`, `get_processor`, `get_node`, `get_uname`), Python implementation details (`get_python_implementation`, `get_python_version`, `get_python_version_tuple`, `get_python_build`, `get_python_compiler`, `get_python_revision`), and platform identification (`get_platform`, `platform_info`). Input validation is performed where applicable with `TypeError` or `ValueError` raised for invalid arguments. The module is tested in `tests/test_platform_utils.py`.
 
 ## INI Configuration Utilities Module
 

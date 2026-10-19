@@ -930,6 +930,7 @@ py_modules = [
    "timezone_utils",
    "uuid_utils",
      "hashlib_utils",
+     "platform_utils",
      "hash_utils",
      "hmac_utils",
      "http_utils",
@@ -12122,6 +12123,258 @@ class TestHashlibUtils(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# --- platform_utils.py ---
+cat > "$OUTPUT_DIR/platform_utils.py" <<'"'"'PLATFORMUTILS'"'"'
+"""Platform utilities (wrapping :mod:`platform`).
+
+This module provides helpers for inspecting platform and Python implementation
+details using the standard library :mod:`platform`. All functions validate
+inputs and raise :class:`TypeError` or :class:`ValueError` for invalid
+arguments where applicable.
+"""
+
+from __future__ import annotations
+
+import platform
+from typing import Any, Dict
+
+__all__: list[str] = [
+    "get_machine",
+    "get_node",
+    "get_platform",
+    "get_processor",
+    "get_python_build",
+    "get_python_compiler",
+    "get_python_implementation",
+    "get_python_revision",
+    "get_python_version",
+    "get_python_version_tuple",
+    "get_release",
+    "get_system",
+    "get_uname",
+    "get_version",
+    "platform_info",
+]
+
+
+def get_system() -> str:
+    """Return the system name."""
+    return platform.system()
+
+
+def get_release() -> str:
+    """Return the release name of the system."""
+    return platform.release()
+
+
+def get_version() -> str:
+    """Return the system version string."""
+    return platform.version()
+
+
+def get_machine() -> str:
+    """Return the machine type."""
+    return platform.machine()
+
+
+def get_processor() -> str:
+    """Return the processor name (empty string if not available)."""
+    return platform.processor()
+
+
+def get_node() -> str:
+    """Return the network name of the machine."""
+    return platform.node()
+
+
+def get_python_implementation() -> str:
+    """Return the Python implementation name."""
+    return platform.python_implementation()
+
+
+def get_python_version() -> str:
+    """Return the Python version string."""
+    return platform.python_version()
+
+
+def get_python_version_tuple() -> tuple:
+    """Return the Python version as a tuple (major, minor, patchlevel)."""
+    return platform.python_version_tuple()
+
+
+def get_python_build() -> tuple:
+    """Return a tuple (build_number, build_date) for the Python build."""
+    return platform.python_build()
+
+
+def get_python_compiler() -> str:
+    """Return the compiler used to build Python."""
+    return platform.python_compiler()
+
+
+def get_python_revision() -> str:
+    """Return the Python revision."""
+    return platform.python_revision()
+
+
+def get_uname() -> platform.uname_result:
+    """Return a uname_result tuple-like object with system info."""
+    return platform.uname()
+
+
+def get_platform(aliased: bool = False, terse: bool = False) -> str:
+    """Return a single string identifying the platform."""
+    if not isinstance(aliased, bool):
+        raise TypeError("aliased must be a boolean")
+    if not isinstance(terse, bool):
+        raise TypeError("terse must be a boolean")
+    return platform.platform(aliased=aliased, terse=terse)
+
+
+def platform_info() -> Dict[str, Any]:
+    """Return a dictionary with comprehensive platform information."""
+    uname = platform.uname()
+    return {
+        "system": uname.system,
+        "release": uname.release,
+        "version": uname.version,
+        "machine": uname.machine,
+        "processor": uname.processor,
+        "node": uname.node,
+        "python_implementation": platform.python_implementation(),
+        "python_version": platform.python_version(),
+        "python_build": platform.python_build(),
+        "python_compiler": platform.python_compiler(),
+        "python_revision": platform.python_revision(),
+    }
+PLATFORMUTILS
+
+# --- tests/test_platform_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_platform_utils.py" <<'"'"'TEST_PLATFORM_UTILS'"'"'
+"""Unit tests for platform_utils module."""
+
+import unittest
+
+from platform_utils import (
+    get_machine,
+    get_node,
+    get_platform,
+    get_processor,
+    get_python_build,
+    get_python_compiler,
+    get_python_implementation,
+    get_python_revision,
+    get_python_version,
+    get_python_version_tuple,
+    get_release,
+    get_system,
+    get_uname,
+    get_version,
+    platform_info,
+)
+
+
+class TestPlatformUtils(unittest.TestCase):
+    def test_get_system(self):
+        result = get_system()
+        self.assertIsInstance(result, str)
+        self.assertGreater(len(result), 0)
+
+    def test_get_release(self):
+        result = get_release()
+        self.assertIsInstance(result, str)
+
+    def test_get_version(self):
+        result = get_version()
+        self.assertIsInstance(result, str)
+
+    def test_get_machine(self):
+        result = get_machine()
+        self.assertIsInstance(result, str)
+        self.assertGreater(len(result), 0)
+
+    def test_get_processor(self):
+        result = get_processor()
+        self.assertIsInstance(result, str)
+
+    def test_get_node(self):
+        result = get_node()
+        self.assertIsInstance(result, str)
+
+    def test_get_python_implementation(self):
+        result = get_python_implementation()
+        self.assertIsInstance(result, str)
+        self.assertIn(result, ("CPython", "PyPy", "Jython", "IronPython"))
+
+    def test_get_python_version(self):
+        result = get_python_version()
+        self.assertIsInstance(result, str)
+        parts = result.split(".")
+        self.assertGreaterEqual(len(parts), 2)
+
+    def test_get_python_version_tuple(self):
+        result = get_python_version_tuple()
+        self.assertIsInstance(result, tuple)
+        self.assertGreaterEqual(len(result), 2)
+
+    def test_get_python_build(self):
+        result = get_python_build()
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
+
+    def test_get_python_compiler(self):
+        result = get_python_compiler()
+        self.assertIsInstance(result, str)
+
+    def test_get_python_revision(self):
+        result = get_python_revision()
+        self.assertIsInstance(result, str)
+
+    def test_get_uname(self):
+        result = get_uname()
+        self.assertTrue(hasattr(result, "system"))
+        self.assertTrue(hasattr(result, "release"))
+        self.assertTrue(hasattr(result, "version"))
+        self.assertTrue(hasattr(result, "machine"))
+        self.assertTrue(hasattr(result, "node"))
+        self.assertTrue(hasattr(result, "processor"))
+
+    def test_get_platform(self):
+        result = get_platform()
+        self.assertIsInstance(result, str)
+        result2 = get_platform(aliased=False, terse=False)
+        self.assertIsInstance(result2, str)
+
+    def test_get_platform_type_errors(self):
+        with self.assertRaises(TypeError):
+            get_platform(aliased="false")  # type: ignore
+        with self.assertRaises(TypeError):
+            get_platform(terse="false")  # type: ignore
+
+    def test_platform_info(self):
+        info = platform_info()
+        self.assertIsInstance(info, dict)
+        for key in (
+            "system",
+            "release",
+            "version",
+            "machine",
+            "processor",
+            "node",
+            "python_implementation",
+            "python_version",
+            "python_build",
+            "python_compiler",
+            "python_revision",
+        ):
+            self.assertIn(key, info)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_PLATFORM_UTILS
 
 HASHLIBUTESTS
 
