@@ -193,4 +193,5 @@ py_modules = [
     "gc_utils",
     "gettext_utils",
     "importlib_utils",
+    "dis_utils",
 ]
