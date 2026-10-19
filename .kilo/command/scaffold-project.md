@@ -25,6 +25,20 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
 - `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation
+- `unicodedata_utils.py` — unicode character database utilities wrapping the standard library `unicodedata` module (`unicodedata_lookup`, `unicodedata_name`, `unicodedata_normalize`, `unicodedata_category`, `unicodedata_bidirectional`, `unicodedata_combining`, `unicodedata_east_asian_width`, `unicodedata_mirrored`, `unicodedata_decimal`, `unicodedata_digit`, `unicodedata_numeric`) with input validation
+- `tomllib_utils.py` — TOML parsing utilities wrapping the standard library `tomllib` module (`read_toml`, `load_toml_string`, `is_valid_toml`) with input validation
+- `token_utils.py` — python token constant utilities wrapping the standard library `token` module (`is_eof`, `is_nonterminal`, `is_terminal`, `tok_name`, `exact_token_types`, `n_tokens`, `nt_offset`) with input validation
+- `sched_utils.py` — scheduler utilities wrapping the standard library `sched` module (`scheduler`, `enter`, `enterabs`, `cancel`, `empty`, `run`, `queue`) with input validation
+- `quopri_utils.py` — quoted-printable encoding and decoding utilities wrapping the standard library `quopri` module (`encode`, `decode`, `encode_file`, `decode_file`, `isqp`) with input validation
+- `numbers_utils.py` — numeric abstract base class utilities wrapping the standard library `numbers` module (`Number`, `Complex`, `Real`, `Rational`, `Integral`, `is_number`, `is_integral`) with input validation
+- `netrc_utils.py` — netrc utilities wrapping the standard library `netrc` module (`netrc`, `NetrcParseError`) with input validation
+- `getopt_utils.py` — command line option parsing utilities wrapping the standard library `getopt` module (`getopt`, `gnu_getopt`, `GetoptError`) with input validation
+- `filecmp_utils.py` — file comparison utilities wrapping the standard library `filecmp` module (`cmp_files`, `cmp_directories`, `same_file`) with input validation
+- `errno_utils.py` — system error number utilities wrapping the standard library `errno` module (`errorcode`, `strerror`, `is_errno`) with input validation
+- `dis_utils.py` — bytecode disassembly utilities wrapping the standard library `dis` module (`dis`, `disassemble`, `show_code`, `get_instructions`, `code_info`, `findlinestarts`, `findlabels`) with input validation
+- `contextvars_utils.py` — context variable utilities wrapping the standard library `contextvars` module (`ContextVar`, `Token`, `Context`, `copy_context`) with input validation
+- `configparser_utils.py` — INI configuration file parsing utilities wrapping the standard library `configparser` module (`load_config`, `save_config`, `get_sections`, `get_options`, `read_files`, `write_config`) with input validation
+- `binascii_utils.py` — binary-to-ASCII encoding and decoding utilities wrapping the standard library `binascii` module (`hexlify`, `unhexlify`, `b2a_base64`, `a2b_base64`, `b2a_uu`, `a2b_uu`, `b2a_qp`, `a2b_qp`, `crc32`, `adler32`, `crc_hqx`) with input validation
 - `importlib_utils.py` — importlib utilities
 - `atexit_utils.py` — atexit utilities for registering and managing exit handlers
 - `multiprocessing_utils.py` — multiprocessing utilities for pools, processes, locks, queues, and shared memory (dynamic import, reload, spec inspection, metadata, resources)
@@ -162,6 +176,20 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
 - `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
 - `tests/test_pkgutil_utils.py` — unit tests for `pkgutil_utils.py`
+- `tests/test_unicodedata_utils.py` — unit tests for `unicodedata_utils.py`
+- `tests/test_tomllib_utils.py` — unit tests for `tomllib_utils.py`
+- `tests/test_token_utils.py` — unit tests for `token_utils.py`
+- `tests/test_sched_utils.py` — unit tests for `sched_utils.py`
+- `tests/test_quopri_utils.py` — unit tests for `quopri_utils.py`
+- `tests/test_numbers_utils.py` — unit tests for `numbers_utils.py`
+- `tests/test_netrc_utils.py` — unit tests for `netrc_utils.py`
+- `tests/test_getopt_utils.py` — unit tests for `getopt_utils.py`
+- `tests/test_filecmp_utils.py` — unit tests for `filecmp_utils.py`
+- `tests/test_errno_utils.py` — unit tests for `errno_utils.py`
+- `tests/test_dis_utils.py` — unit tests for `dis_utils.py`
+- `tests/test_contextvars_utils.py` — unit tests for `contextvars_utils.py`
+- `tests/test_configparser_utils.py` — unit tests for `configparser_utils.py`
+- `tests/test_binascii_utils.py` — unit tests for `binascii_utils.py`
 - `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
 - `tests/test_atexit_utils.py` — unit tests for `atexit_utils.py`
 - `tests/test_multiprocessing_utils.py` — unit tests for `multiprocessing_utils.py`

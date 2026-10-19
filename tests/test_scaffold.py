@@ -6,6 +6,7 @@ verify that the generated project configuration is complete and consistent.
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -339,6 +340,34 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_marshal_utils.py",
             "pkgutil_utils.py",
             "tests/test_pkgutil_utils.py",
+            "unicodedata_utils.py",
+            "tests/test_unicodedata_utils.py",
+            "tomllib_utils.py",
+            "tests/test_tomllib_utils.py",
+            "token_utils.py",
+            "tests/test_token_utils.py",
+            "sched_utils.py",
+            "tests/test_sched_utils.py",
+            "quopri_utils.py",
+            "tests/test_quopri_utils.py",
+            "numbers_utils.py",
+            "tests/test_numbers_utils.py",
+            "netrc_utils.py",
+            "tests/test_netrc_utils.py",
+            "getopt_utils.py",
+            "tests/test_getopt_utils.py",
+            "filecmp_utils.py",
+            "tests/test_filecmp_utils.py",
+            "errno_utils.py",
+            "tests/test_errno_utils.py",
+            "dis_utils.py",
+            "tests/test_dis_utils.py",
+            "contextvars_utils.py",
+            "tests/test_contextvars_utils.py",
+            "configparser_utils.py",
+            "tests/test_configparser_utils.py",
+            "binascii_utils.py",
+            "tests/test_binascii_utils.py",
             "importlib_utils.py",
             "atexit_utils.py",
             "multiprocessing_utils.py",
@@ -424,6 +453,34 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_marshal_utils.py",
             "pkgutil_utils.py",
             "tests/test_pkgutil_utils.py",
+            "unicodedata_utils.py",
+            "tests/test_unicodedata_utils.py",
+            "tomllib_utils.py",
+            "tests/test_tomllib_utils.py",
+            "token_utils.py",
+            "tests/test_token_utils.py",
+            "sched_utils.py",
+            "tests/test_sched_utils.py",
+            "quopri_utils.py",
+            "tests/test_quopri_utils.py",
+            "numbers_utils.py",
+            "tests/test_numbers_utils.py",
+            "netrc_utils.py",
+            "tests/test_netrc_utils.py",
+            "getopt_utils.py",
+            "tests/test_getopt_utils.py",
+            "filecmp_utils.py",
+            "tests/test_filecmp_utils.py",
+            "errno_utils.py",
+            "tests/test_errno_utils.py",
+            "dis_utils.py",
+            "tests/test_dis_utils.py",
+            "contextvars_utils.py",
+            "tests/test_contextvars_utils.py",
+            "configparser_utils.py",
+            "tests/test_configparser_utils.py",
+            "binascii_utils.py",
+            "tests/test_binascii_utils.py",
             "importlib_utils.py",
             "atexit_utils.py",
             "multiprocessing_utils.py",
@@ -653,6 +710,20 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_marshal_utils.py",
             "tests/test_lzma_utils.py",
             "tests/test_pkgutil_utils.py",
+            "tests/test_unicodedata_utils.py",
+            "tests/test_tomllib_utils.py",
+            "tests/test_token_utils.py",
+            "tests/test_sched_utils.py",
+            "tests/test_quopri_utils.py",
+            "tests/test_numbers_utils.py",
+            "tests/test_netrc_utils.py",
+            "tests/test_getopt_utils.py",
+            "tests/test_filecmp_utils.py",
+            "tests/test_errno_utils.py",
+            "tests/test_dis_utils.py",
+            "tests/test_contextvars_utils.py",
+            "tests/test_configparser_utils.py",
+            "tests/test_binascii_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -835,6 +906,34 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_marshal_utils.py",
             "pkgutil_utils.py",
             "tests/test_pkgutil_utils.py",
+            "unicodedata_utils.py",
+            "tests/test_unicodedata_utils.py",
+            "tomllib_utils.py",
+            "tests/test_tomllib_utils.py",
+            "token_utils.py",
+            "tests/test_token_utils.py",
+            "sched_utils.py",
+            "tests/test_sched_utils.py",
+            "quopri_utils.py",
+            "tests/test_quopri_utils.py",
+            "numbers_utils.py",
+            "tests/test_numbers_utils.py",
+            "netrc_utils.py",
+            "tests/test_netrc_utils.py",
+            "getopt_utils.py",
+            "tests/test_getopt_utils.py",
+            "filecmp_utils.py",
+            "tests/test_filecmp_utils.py",
+            "errno_utils.py",
+            "tests/test_errno_utils.py",
+            "dis_utils.py",
+            "tests/test_dis_utils.py",
+            "contextvars_utils.py",
+            "tests/test_contextvars_utils.py",
+            "configparser_utils.py",
+            "tests/test_configparser_utils.py",
+            "binascii_utils.py",
+            "tests/test_binascii_utils.py",
             "importlib_utils.py",
             "atexit_utils.py",
             "multiprocessing_utils.py",
@@ -1972,6 +2071,68 @@ class TestScaffoldNoTestFlag(unittest.TestCase):
         )
         # The output dir should be the real path, not "--no-test".
         self.assertTrue((out / "pyproject.toml").is_file())
+
+
+class TestScaffoldHeredocs(unittest.TestCase):
+    """scaffold.sh heredocs must be balanced and must not nest generators.
+
+    A heredoc that is opened before its file body is written swallows every
+    following section into the generated file, which silently corrupts the
+    scaffolded project.
+    """
+
+    HEREDOC_OPEN = re.compile(r"^cat > \"\$OUTPUT_DIR/(.+)\" <<'([A-Za-z0-9_]+)'$")
+
+    def setUp(self) -> None:
+        self.lines = SCAFFOLD.read_text().splitlines()
+
+    def _heredocs(self) -> list[tuple[int, str, int]]:
+        """Return (line number, delimiter, end line) for every heredoc."""
+        found = []
+        index = 0
+        while index < len(self.lines):
+            match = self.HEREDOC_OPEN.match(self.lines[index])
+            if not match:
+                index += 1
+                continue
+            delimiter = match.group(2)
+            end = index + 1
+            while end < len(self.lines) and self.lines[end].strip() != delimiter:
+                end += 1
+            found.append((index + 1, delimiter, end))
+            index = end + 1
+        return found
+
+    def test_every_heredoc_has_a_terminator(self) -> None:
+        for line_number, delimiter, end in self._heredocs():
+            self.assertLess(
+                end,
+                len(self.lines),
+                msg=f"heredoc {delimiter!r} opened at line {line_number} has no terminator",
+            )
+
+    def test_heredocs_do_not_contain_nested_generators(self) -> None:
+        for line_number, delimiter, end in self._heredocs():
+            nested = [line for line in self.lines[line_number:end] if line.startswith("cat >")]
+            if nested:
+                self.fail(
+                    f"heredoc {delimiter!r} opened at line {line_number} contains {nested[0]!r}"
+                )
+
+    def test_generated_files_are_not_empty(self) -> None:
+        """Every generated Python file must contain actual content."""
+        for line_number, delimiter, end in self._heredocs():
+            opener = self.HEREDOC_OPEN.match(self.lines[line_number - 1])
+            if opener is None:
+                continue
+            target = opener.group(1)
+            if not target.endswith(".py"):
+                continue
+            body = [line for line in self.lines[line_number:end] if line.strip()]
+            self.assertTrue(
+                body,
+                msg=f"{target} is generated as an empty file (heredoc {delimiter!r})",
+            )
 
 
 if __name__ == "__main__":

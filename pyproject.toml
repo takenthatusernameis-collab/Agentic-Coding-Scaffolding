@@ -200,4 +200,7 @@ py_modules = [
     "dis_utils",
     "ssl_utils",
     "pkgutil_utils",
+    "multiprocessing_utils",
+    "sched_utils",
+    "numbers_utils",
 ]

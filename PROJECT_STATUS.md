@@ -19,9 +19,11 @@ The project foundation is established:
 
 ## Test Suite
 
-- 2240+ tests across all wrapper modules
+- 2427+ tests across all wrapper modules
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
+- `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
+  heredoc structure) and the scaffold smoke test passes end to end
 
 ## Linting / Type Checking
 
@@ -31,3 +33,8 @@ The project foundation is established:
 ## Convention
 
 Each session adds one new stdlib wrapper module (`<module>_utils.py`) with full test coverage, registers it in `pyproject.toml` (`[tool.setuptools] py_modules`), and posts a handover task for the next agent via the Kilo board.
+
+Every module must stay synchronized across all surfaces: the module file, its test,
+`pyproject.toml` `py_modules`, the `scaffold.sh` header comment, embedded `pyproject.toml`,
+module and test heredocs, embedded README and CHANGELOG, the README tree and module section,
+`.kilo/command/scaffold-project.md`, `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.

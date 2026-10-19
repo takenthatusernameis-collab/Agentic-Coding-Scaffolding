@@ -112,6 +112,20 @@ socketserver_utils.py           # Socketserver utilities wrapping the standard l
 sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
 ssl_utils.py              # SSL/TLS utilities wrapping stdlib ssl
 pkgutil_utils.py          # Package and module discovery utilities wrapping stdlib pkgutil (iter_modules, walk_packages, get_data, read_text, resolve_name, iter_importers, extend_path, find_spec)
+unicodedata_utils.py      # Unicode character database utilities wrapping stdlib unicodedata (unicodedata_lookup, unicodedata_name, unicodedata_normalize, unicodedata_category, unicodedata_bidirectional, unicodedata_combining, unicodedata_east_asian_width, unicodedata_mirrored, unicodedata_decimal, unicodedata_digit, unicodedata_numeric)
+tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read_toml, load_toml_string, is_valid_toml)
+token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
+sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
+quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral)
+netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
+getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
+filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
+errno_utils.py            # System error number utilities wrapping stdlib errno (errorcode, strerror, is_errno)
+dis_utils.py              # Bytecode disassembly utilities wrapping stdlib dis (dis, disassemble, show_code, get_instructions, code_info, findlinestarts, findlabels)
+contextvars_utils.py      # Context variable utilities wrapping stdlib contextvars (ContextVar, Token, Context, copy_context)
+configparser_utils.py     # INI configuration file parsing utilities wrapping stdlib configparser (load_config, save_config, get_sections, get_options, read_files, write_config)
+binascii_utils.py         # Binary-to-ASCII encoding and decoding utilities wrapping stdlib binascii (hexlify, unhexlify, b2a_base64, a2b_base64, b2a_uu, a2b_uu, b2a_qp, a2b_qp, crc32, adler32, crc_hqx)
 marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
 importlib_utils.py         # importlib utilities
 atexit_utils.py            # atexit utilities for registering exit handlers
@@ -892,3 +906,47 @@ The project includes SSL/TLS utilities in `ssl_utils.py` wrapping the standard l
 ## Pkgutil Utilities Module
 
 The project includes package and module discovery utilities in `pkgutil_utils.py` wrapping the standard library `pkgutil` module: `iter_modules` lists the modules found in a search path, `walk_packages` recursively lists modules and sub-packages, `get_data` reads a data file shipped inside a package as bytes, `read_text` reads and decodes such a data file, `resolve_name` resolves a dotted name to the module or attribute it refers to, `iter_importers` returns the meta path finders consulted for a module, `extend_path` extends a package path with namespace package directories, and `find_spec` returns the import spec for a module. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_pkgutil_utils.py`.
+
+## Contextvars Utilities Module
+
+The project includes context variable utilities in `contextvars_utils.py` wrapping the standard library `contextvars` module: the module re-exports `ContextVar`, `Token`, and `Context`, and `copy_context` returns a copy of the current context. The module is tested in `tests/test_contextvars_utils.py`.
+
+## Dis Utilities Module
+
+The project includes bytecode disassembly utilities in `dis_utils.py` wrapping the standard library `dis` module: the module re-exports `dis`, `disassemble`, `show_code`, `get_instructions`, `code_info`, `distb`, `disco`, and `Bytecode`, and adds `findlinestarts` and `findlabels`, which resolve line starts and jump targets across Python versions. The module is tested in `tests/test_dis_utils.py`.
+
+## Errno Utilities Module
+
+The project includes system error number utilities in `errno_utils.py` wrapping the standard library `errno` module: `errorcode` returns the symbolic name of an error code, `strerror` returns the human readable message for an error code, and `is_errno` reports whether a symbolic name matches a given error code. The module is tested in `tests/test_errno_utils.py`.
+
+## Filecmp Utilities Module
+
+The project includes file comparison utilities in `filecmp_utils.py` wrapping the standard library `filecmp` module: `cmp_files` compares two files, `cmp_directories` compares two directories and returns a `dircmp` result, and `same_file` reports whether two paths refer to the same file. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_filecmp_utils.py`.
+
+## Getopt Utilities Module
+
+The project includes command line option parsing utilities in `getopt_utils.py` wrapping the standard library `getopt` module: `getopt` parses short and long options using the traditional syntax, `gnu_getopt` parses them using the GNU permutation syntax, and `GetoptError` is re-exported for error handling. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_getopt_utils.py`.
+
+## Netrc Utilities Module
+
+The project includes netrc utilities in `netrc_utils.py` wrapping the standard library `netrc` module: the module re-exports the `netrc` parser and the `NetrcParseError` exception for handling malformed netrc files. The module is tested in `tests/test_netrc_utils.py`.
+
+## Numbers Utilities Module
+
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number` and `is_integral` predicates. The module is tested in `tests/test_numbers_utils.py`.
+
+## Quopri Utilities Module
+
+The project includes quoted-printable utilities in `quopri_utils.py` wrapping the standard library `quopri` module: `encode` and `decode` convert quoted-printable data to and from bytes, `encode_file` and `decode_file` convert files in place, and `isqp` reports whether a string contains quoted-printable data. The module is tested in `tests/test_quopri_utils.py`.
+
+## Sched Utilities Module
+
+The project includes scheduler utilities in `sched_utils.py` wrapping the standard library `sched` module: `scheduler` creates a scheduler instance, `enter` and `enterabs` schedule delayed and absolute events, `cancel` removes a scheduled event, `empty` reports whether the queue is empty, `run` executes the pending events, and `queue` returns the pending events. The module is tested in `tests/test_sched_utils.py`.
+
+## Token Utilities Module
+
+The project includes Python token constant utilities in `token_utils.py` wrapping the standard library `token` module: `is_eof`, `is_nonterminal`, and `is_terminal` classify a token type, `tok_name` returns the token name mapping, `exact_token_types` returns the exact token type mapping, `n_tokens` returns the number of token types, and `nt_offset` returns the non-terminal offset. The module is tested in `tests/test_token_utils.py`.
+
+## Tomllib Utilities Module
+
+The project includes TOML parsing utilities in `tomllib_utils.py` wrapping the standard library `tomllib` module: `read_toml` parses a TOML file, `load_toml_string` parses a TOML document from a string, and `is_valid_toml` reports whether a string is valid TOML. The module is tested in `tests/test_tomllib_utils.py`.
