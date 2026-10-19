@@ -185,7 +185,7 @@ py_modules = [
     "pprint_utils",
     "reprlib_utils",
     "code_utils",
-    "codecs_utils",
+    "codeop_utils",    "codecs_utils",
     "traceback_utils",
     "typing_utils",
     "unicodedata_utils",
