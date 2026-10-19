@@ -91,6 +91,7 @@
 #   - data_utils.py — # Data utility functions
 
 #   - datetime_utils.py — # Date and time utility functions
+#   - dbm_utils.py — # Database utilities wrapping the standard library ``dbm`` module (``open_database``, ``close``, ``which_database``, ``available_backends``, ``read_record``, ``write_record``, ``delete_record``, ``has_key``, ``list_keys``, ``sync_database``, ``is_valid_flag``, ``dbm_error``) with input validation
 
 #   - template_utils.py — # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
 
@@ -369,6 +370,7 @@
 #   - test_data_utils.py — # Tests for data_utils.py
 
 #   - test_datetime_utils.py — # Tests for datetime_utils.py
+#   - tests/test_dbm_utils.py — # Tests for dbm_utils.py
 
 #   - test_decimal_utils.py — # Tests for decimal_utils.py
 
@@ -1636,6 +1638,7 @@ py_modules = [
     "bit_utils",
     "data_utils",
     "datetime_utils",
+    "dbm_utils",
     "file_utils",
     "url_utils",
     "random_utils",
@@ -8688,6 +8691,450 @@ class TestGetWeekdayName(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTDATETIME
+
+# --- dbm_utils.py ---
+cat > "$OUTPUT_DIR/dbm_utils.py" <<'DBM_UTILS'
+"""Database utilities wrapping the standard library ``dbm``.
+
+The :mod:`dbm` module provides a dictionary-like interface to simple
+database files, selecting the best available backend (``dbm.ndbm``,
+``dbm.gnu``, or ``dbm.dumb``). This module wraps that interface in a
+small, validated layer: every helper checks its arguments and raises
+``TypeError`` on invalid input. Keys and values are bytes, matching the
+:mod:`dbm` contract.
+"""
+
+from __future__ import annotations
+
+import dbm as _dbm
+from pathlib import Path
+from typing import Any, List, Literal, Optional, Union, cast
+
+__all__ = [
+    "dbm_error",
+    "delete_record",
+    "has_key",
+    "is_valid_flag",
+    "list_keys",
+    "open_database",
+    "read_record",
+    "sync_database",
+    "write_record",
+    "which_database",
+]
+
+ValidFlag = Literal["r", "w", "c", "n"]
+
+Database = Any
+
+# The exception class raised by :mod:`dbm` operations.
+dbm_error = _dbm.error
+
+
+def is_valid_flag(flag: object) -> bool:
+    """Return ``True`` when *flag* is a valid :mod:`dbm` open mode."""
+    return flag in ("r", "w", "c", "n")
+
+
+def _require_path(value: object, name: str = "file") -> Union[str, Path]:
+    if not isinstance(value, (str, Path)):
+        raise TypeError(f"{name} must be a str or Path, got {type(value).__name__}")
+    return value
+
+
+def _require_flag(flag: str) -> str:
+    if not is_valid_flag(flag):
+        raise TypeError(f"flag must be one of 'r','w','c','n', got {flag!r}")
+    return flag
+
+
+def _require_bytes(value: object, name: str = "value") -> bytes:
+    if not isinstance(value, (bytes, bytearray, memoryview)):
+        raise TypeError(f"{name} must be bytes, got {type(value).__name__}")
+    return bytes(value)
+
+
+def open_database(
+    file: Union[str, Path],
+    flag: ValidFlag = "c",
+    mode: int = 0o644,
+) -> Database:
+    """
+    Open a dbm database at *file*.
+
+    Args:
+        file: Path to the database file.
+        flag: Open mode ('r' read-only, 'w' read-write, 'c' create if
+            missing, 'n' always create a new empty database).
+        mode: File permissions used when creating a new database.
+
+    Returns:
+        An open database object supporting mapping-style access.
+
+    Raises:
+        TypeError: If *file* is not a str or Path, or *flag* is invalid.
+        dbm.error: If the database cannot be opened.
+    """
+    path = _require_path(file)
+    _require_flag(flag)
+    return _dbm.open(str(path), flag=flag, mode=mode)
+
+
+def close(database: Database) -> None:
+    """
+    Close an open database.
+
+    Args:
+        database: An open database object.
+
+    Raises:
+        AttributeError: If *database* lacks a close method.
+    """
+    if not hasattr(database, "close"):
+        raise AttributeError("database must have a 'close' method")
+    database.close()
+
+
+def which_database(file: Union[str, Path]) -> Optional[str]:
+    """
+    Guess which dbm backend module should be used for *file*.
+
+    Args:
+        file: Path to the database file.
+
+    Returns:
+        The backend module name (e.g. ``"dbm.ndbm"``), an empty string
+        when the file format cannot be determined, or ``None`` when the
+        file does not exist.
+    """
+    path = _require_path(file)
+    result = _dbm.whichdb(str(path))
+    if result is None or result == "":
+        return None if not Path(path).exists() else ""
+    return result
+
+
+def available_backends() -> List[str]:
+    """Return the dbm backend modules available on this platform."""
+    backends: List[str] = []
+    for name in ("dbm.ndbm", "dbm.gnu", "dbm.dumb"):
+        try:
+            __import__(name)
+        except ImportError:
+            continue
+        backends.append(name)
+    return backends
+
+
+def read_record(database: Database, key: bytes) -> Optional[bytes]:
+    """
+    Read the value stored under *key*.
+
+    Args:
+        database: An open database object.
+        key: Key to look up (bytes).
+
+    Returns:
+        The stored value, or ``None`` when the key is absent.
+
+    Raises:
+        TypeError: If *key* is not bytes.
+    """
+    key = _require_bytes(key)
+    if key in database:
+        return cast(Optional[bytes], database[key])
+    return None
+
+
+def write_record(database: Database, key: bytes, value: bytes) -> None:
+    """
+    Store *value* under *key* in the database.
+
+    Args:
+        database: An open database object.
+        key: Key to store under (bytes).
+        value: Value to store (bytes).
+
+    Raises:
+        TypeError: If *key* or *value* is not bytes.
+    """
+    key = _require_bytes(key)
+    value = _require_bytes(value)
+    database[key] = value
+
+
+def delete_record(database: Database, key: bytes) -> None:
+    """
+    Remove *key* from the database.
+
+    Args:
+        database: An open database object.
+        key: Key to delete (bytes).
+
+    Raises:
+        TypeError: If *key* is not bytes.
+        KeyError: If *key* is not present.
+    """
+    key = _require_bytes(key)
+    if key not in database:
+        raise KeyError(key)
+    del database[key]
+
+
+def has_key(database: Database, key: bytes) -> bool:
+    """Return ``True`` when *key* is present in the database."""
+    key = _require_bytes(key)
+    return key in database
+
+
+def list_keys(database: Database) -> List[bytes]:
+    """Return all keys stored in the database."""
+    return [key for key in database.keys()]
+
+
+def sync_database(database: Database) -> None:
+    """
+    Write any pending changes to disk.
+
+    Args:
+        database: An open database object.
+
+    Raises:
+        AttributeError: If *database* lacks a sync method.
+    """
+    if not hasattr(database, "sync"):
+        raise AttributeError("database must have a 'sync' method")
+    database.sync()
+DBM_UTILS
+
+# --- tests/test_dbm_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_dbm_utils.py" <<'TEST_DBM_UTILS'
+"""Tests for dbm_utils module."""
+
+import dbm
+import tempfile
+import unittest
+from pathlib import Path
+
+import dbm_utils
+
+
+class TestOpenDatabase(unittest.TestCase):
+    """Verify opening and closing databases."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "sample.db"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_open_database_creates_and_persists(self):
+        database = dbm_utils.open_database(self.path)
+        try:
+            database[b"key"] = b"value"
+        finally:
+            dbm_utils.close(database)
+        reopened = dbm_utils.open_database(self.path, flag="r")
+        try:
+            self.assertEqual(reopened[b"key"], b"value")
+        finally:
+            dbm_utils.close(reopened)
+
+    def test_open_database_read_only(self):
+        database = dbm_utils.open_database(self.path, flag="c")
+        database[b"a"] = b"1"
+        dbm_utils.close(database)
+        read_only = dbm_utils.open_database(self.path, flag="r")
+        try:
+            self.assertEqual(read_only[b"a"], b"1")
+        finally:
+            dbm_utils.close(read_only)
+
+    def test_open_database_new_empty(self):
+        database = dbm_utils.open_database(self.path, flag="c")
+        database[b"existing"] = b"data"
+        dbm_utils.close(database)
+        fresh = dbm_utils.open_database(self.path, flag="n")
+        try:
+            self.assertEqual(list(fresh.keys()), [])
+        finally:
+            dbm_utils.close(fresh)
+
+    def test_open_database_requires_path(self):
+        with self.assertRaises(TypeError):
+            dbm_utils.open_database(42)  # type: ignore[arg-type]
+
+    def test_open_database_accepts_string_path(self):
+        database = dbm_utils.open_database(str(self.path))
+        dbm_utils.close(database)
+        self.assertTrue(self.path.exists())
+
+    def test_open_database_rejects_bad_flag(self):
+        with self.assertRaises(TypeError):
+            dbm_utils.open_database(self.path, flag="x")  # type: ignore[arg-type]
+
+    def test_close_requires_close_method(self):
+        with self.assertRaises(AttributeError):
+            dbm_utils.close(object())
+
+
+class TestRecordOperations(unittest.TestCase):
+    """Verify read, write, delete, and key listing."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "sample.db"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _open(self, flag="c"):
+        return dbm_utils.open_database(self.path, flag=flag)
+
+    def test_write_and_read_record(self):
+        database = self._open()
+        try:
+            dbm_utils.write_record(database, b"alpha", b"one")
+            self.assertEqual(dbm_utils.read_record(database, b"alpha"), b"one")
+            self.assertIsNone(dbm_utils.read_record(database, b"missing"))
+        finally:
+            dbm_utils.close(database)
+
+    def test_write_record_requires_bytes(self):
+        database = self._open()
+        try:
+            with self.assertRaises(TypeError):
+                dbm_utils.write_record(database, "alpha", b"one")  # type: ignore[arg-type]
+            with self.assertRaises(TypeError):
+                dbm_utils.write_record(database, b"alpha", "one")  # type: ignore[arg-type]
+        finally:
+            dbm_utils.close(database)
+
+    def test_delete_record(self):
+        database = self._open()
+        try:
+            dbm_utils.write_record(database, b"temp", b"gone")
+            self.assertTrue(dbm_utils.has_key(database, b"temp"))
+            dbm_utils.delete_record(database, b"temp")
+            self.assertFalse(dbm_utils.has_key(database, b"temp"))
+            self.assertIsNone(dbm_utils.read_record(database, b"temp"))
+        finally:
+            dbm_utils.close(database)
+
+    def test_delete_record_requires_bytes(self):
+        database = self._open()
+        try:
+            with self.assertRaises(TypeError):
+                dbm_utils.delete_record(database, "temp")  # type: ignore[arg-type]
+        finally:
+            dbm_utils.close(database)
+
+    def test_delete_record_missing_key_raises(self):
+        database = self._open()
+        try:
+            with self.assertRaises(KeyError):
+                dbm_utils.delete_record(database, b"absent")
+        finally:
+            dbm_utils.close(database)
+
+    def test_has_key(self):
+        database = self._open()
+        try:
+            self.assertFalse(dbm_utils.has_key(database, b"anything"))
+            dbm_utils.write_record(database, b"present", b"yes")
+            self.assertTrue(dbm_utils.has_key(database, b"present"))
+        finally:
+            dbm_utils.close(database)
+
+    def test_has_key_requires_bytes(self):
+        database = self._open()
+        try:
+            with self.assertRaises(TypeError):
+                dbm_utils.has_key(database, "present")  # type: ignore[arg-type]
+        finally:
+            dbm_utils.close(database)
+
+    def test_list_keys(self):
+        database = self._open()
+        try:
+            self.assertEqual(dbm_utils.list_keys(database), [])
+            dbm_utils.write_record(database, b"b", b"2")
+            dbm_utils.write_record(database, b"a", b"1")
+            self.assertEqual(sorted(dbm_utils.list_keys(database)), [b"a", b"b"])
+        finally:
+            dbm_utils.close(database)
+
+    def test_sync_database(self):
+        database = self._open()
+        try:
+            dbm_utils.write_record(database, b"sync", b"me")
+            dbm_utils.sync_database(database)
+            self.assertEqual(dbm_utils.read_record(database, b"sync"), b"me")
+        finally:
+            dbm_utils.close(database)
+
+    def test_sync_database_requires_sync_method(self):
+        with self.assertRaises(AttributeError):
+            dbm_utils.sync_database(object())
+
+
+class TestDatabaseInspection(unittest.TestCase):
+    """Verify flag validation, backend detection, and error exposure."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "sample.db"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_is_valid_flag(self):
+        self.assertTrue(dbm_utils.is_valid_flag("r"))
+        self.assertTrue(dbm_utils.is_valid_flag("w"))
+        self.assertTrue(dbm_utils.is_valid_flag("c"))
+        self.assertTrue(dbm_utils.is_valid_flag("n"))
+        self.assertFalse(dbm_utils.is_valid_flag("x"))
+        self.assertFalse(dbm_utils.is_valid_flag(None))
+        self.assertFalse(dbm_utils.is_valid_flag(1))
+
+    def test_available_backends_include_dumb(self):
+        self.assertIn("dbm.dumb", dbm_utils.available_backends())
+
+    def test_which_database_existing_file(self):
+        database = dbm_utils.open_database(self.path, flag="c")
+        dbm_utils.close(database)
+        self.assertIsNotNone(dbm_utils.which_database(self.path))
+
+    def test_which_database_missing_file(self):
+        missing = Path(self.tmp.name) / "nope.db"
+        self.assertFalse(missing.exists())
+        self.assertIsNone(dbm_utils.which_database(missing))
+
+    def test_dbm_error_is_dbm_error(self):
+        self.assertIs(dbm_utils.dbm_error, dbm.error)
+
+
+class TestContextManager(unittest.TestCase):
+    """Verify databases can be used as context managers."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "sample.db"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_database_supports_context_manager(self):
+        with dbm_utils.open_database(self.path) as database:
+            dbm_utils.write_record(database, b"ctx", b"ok")
+        with dbm_utils.open_database(self.path, flag="r") as database:
+            self.assertEqual(database[b"ctx"], b"ok")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_DBM_UTILS
 
 # --- file_utils.py ---
 cat > "$OUTPUT_DIR/file_utils.py" <<'FILEUTILS'

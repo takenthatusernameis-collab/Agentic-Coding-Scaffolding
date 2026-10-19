@@ -81,6 +81,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 - `data_utils.py` — data utility functions
 - `datetime_utils.py` — date and time utility functions
+- `dbm_utils.py` — database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
 - `file_utils.py` — file and path utility functions
 - `url_utils.py` — URL and web utility functions
 - `uuid_utils.py` — UUID utility functions for generating and validating UUIDs
@@ -180,6 +181,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
+- `tests/test_dbm_utils.py` — unit tests for `dbm_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
 - `tests/test_url_utils.py` — unit tests for `url_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`

@@ -48,6 +48,7 @@ math_utils.py               # Mathematical utility functions
 data_utils.py                # Data utility functions
 dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
 datetime_utils.py           # Date and time utility functions
+dbm_utils.py                 # Database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
 template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
 file_utils.py               # File and path utility functions
 url_utils.py                # URL and web utility functions
@@ -242,6 +243,7 @@ test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
   test_data_utils.py          # Tests for data_utils.py
   test_dataclasses_utils.py      # Tests for dataclasses_utils.py
   test_datetime_utils.py      # Tests for datetime_utils.py
+  test_dbm_utils.py        # Tests for dbm_utils.py
   test_decimal_utils.py       # Tests for decimal_utils.py
   test_dict_utils.py          # Tests for dict_utils.py
   test_duration_utils.py      # Tests for duration_utils.py
@@ -480,6 +482,10 @@ The project includes dataclass utilities in `dataclasses_utils.py` wrapping the 
 ## Datetime Utilities Module
 
 The project includes a date and time utilities module in `datetime_utils.py` with functions for date/time parsing, formatting, and arithmetic: `parse_datetime`, `format_datetime`, `days_between`, `is_leap_year`, `add_days`, and `get_weekday_name`. The module is tested in `tests/test_datetime_utils.py`.
+
+## Database Utilities Module
+
+The project includes database utilities in `dbm_utils.py` wrapping the standard library `dbm` module: `open_database` opens a database file, `close` and `sync_database` manage the connection, `write_record`/`read_record`/`delete_record`/`has_key`/`list_keys` manipulate byte keys and values, `which_database` detects the backend, `available_backends` lists usable backends, `is_valid_flag` validates open modes, and `dbm_error` exposes the dbm exception class. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_dbm_utils.py`.
 
 ## File Utilities Module
 
