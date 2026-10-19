@@ -128,6 +128,21 @@ configparser_utils.py     # INI configuration file parsing utilities wrapping st
 binascii_utils.py         # Binary-to-ASCII encoding and decoding utilities wrapping stdlib binascii (hexlify, unhexlify, b2a_base64, a2b_base64, b2a_uu, a2b_uu, b2a_qp, a2b_qp, crc32, adler32, crc_hqx)
 shelve_utils.py           # Persistent key/value storage utilities wrapping stdlib shelve (open_shelf, close, sync, keys, get, set_value, delete, contains, is_shelf)
 zlib_utils.py             # Zlib compression and checksum utilities wrapping stdlib zlib (zlib_compress, zlib_decompress, zlib_compressobj, zlib_decompressobj, zlib_crc32, zlib_adler32)
+deprecation_utils.py      # Deprecation utilities (deprecated decorator) with optional version, replacement, and message
+linecache_utils.py        # Line cache utilities (getline, getlines, updatecache, clearcache) wrapping stdlib linecache
+plistlib_utils.py         # Property list utilities wrapping stdlib plistlib (plist_load, plist_loads, plist_dump, plist_dumps)
+shlex_utils.py            # Simple lexical analysis utilities wrapping stdlib shlex (split, quote, join)
+cmd_utils.py              # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
+code_utils.py             # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
+copyreg_utils.py          # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
+fileinput_utils.py        # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
+fnmatch_utils.py          # Filename pattern matching utilities wrapping stdlib fnmatch (match, match_case, filter_names, translate)
+getpass_utils.py          # Secure password input utilities wrapping stdlib getpass (getpass, getuser)
+pathlib_utils.py          # Path manipulation utilities wrapping stdlib pathlib (ensure_dir, join, exists, is_file, is_dir, read_text, write_text, glob, rglob, suffix, stem, parent)
+runpy_utils.py            # Python module execution utilities wrapping stdlib runpy (run_module, run_path)
+tarfile_utils.py          # Tar archive utilities wrapping stdlib tarfile (tarfile_open, tarfile_add, tarfile_list, tarfile_extract, tarfile_extractall, tarfile_create)
+types_utils.py            # Dynamic type creation utilities wrapping stdlib types (new_class, new_function, is_function, is_method, is_generator, is_coroutine, is_lambda, simple_namespace)
+zoneinfo_utils.py         # IANA timezone utilities wrapping stdlib zoneinfo (zoneinfo_get, zoneinfo_available_timezones)
 marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
 importlib_utils.py         # importlib utilities
 atexit_utils.py            # atexit utilities for registering exit handlers
@@ -329,6 +344,40 @@ test_zipfile_utils.py       # Tests for zipfile_utils.py
 test_lzma_utils.py          # Tests for lzma_utils.py
     test_gc_utils.py            # Tests for gc_utils.py
     test_zlib_utils.py          # Tests for zlib_utils.py
+    test_argparse_utils.py      # Tests for argparse_utils.py
+    test_call_once_utils.py     # Tests for call_once_utils.py
+    test_codecs_utils.py        # Tests for codecs_utils.py
+    test_contextlib_utils.py    # Tests for contextlib_utils.py
+    test_contextvars_utils.py   # Tests for contextvars_utils.py
+    test_copy_utils.py          # Tests for copy_utils.py
+    test_deprecation_utils.py   # Tests for deprecation_utils.py
+    test_difflib_utils.py       # Tests for difflib_utils.py
+    test_dis_utils.py           # Tests for dis_utils.py
+    test_email_utils.py         # Tests for email_utils.py
+    test_enum_utils.py          # Tests for enum_utils.py
+    test_errno_utils.py         # Tests for errno_utils.py
+    test_filecmp_utils.py       # Tests for filecmp_utils.py
+    test_getopt_utils.py        # Tests for getopt_utils.py
+    test_gettext_utils.py       # Tests for gettext_utils.py
+    test_gzip_utils.py          # Tests for gzip_utils.py
+    test_inspect_utils.py       # Tests for inspect_utils.py
+    test_netrc_utils.py         # Tests for netrc_utils.py
+    test_numbers_utils.py       # Tests for numbers_utils.py
+    test_platform_utils.py      # Tests for platform_utils.py
+    test_quopri_utils.py        # Tests for quopri_utils.py
+    test_sched_utils.py         # Tests for sched_utils.py
+    test_selectors_utils.py     # Tests for selectors_utils.py
+    test_shlex_utils.py         # Tests for shlex_utils.py
+    test_token_utils.py         # Tests for token_utils.py
+    test_tomllib_utils.py       # Tests for tomllib_utils.py
+    test_unicodedata_utils.py   # Tests for unicodedata_utils.py
+    test_cmd_utils.py           # Tests for cmd_utils.py
+    test_code_utils.py          # Tests for code_utils.py
+    test_copyreg_utils.py       # Tests for copyreg_utils.py
+    test_getpass_utils.py       # Tests for getpass_utils.py
+    test_runpy_utils.py         # Tests for runpy_utils.py
+    test_types_utils.py         # Tests for types_utils.py
+    test_zoneinfo_utils.py      # Tests for zoneinfo_utils.py
      ```
 
 ## How It Works
@@ -962,3 +1011,103 @@ The project includes Python token constant utilities in `token_utils.py` wrappin
 ## Tomllib Utilities Module
 
 The project includes TOML parsing utilities in `tomllib_utils.py` wrapping the standard library `tomllib` module: `read_toml` parses a TOML file, `load_toml_string` parses a TOML document from a string, and `is_valid_toml` reports whether a string is valid TOML. The module is tested in `tests/test_tomllib_utils.py`.
+
+## Command Interpreter Utilities Module
+
+The project includes command interpreter utilities in `cmd_utils.py` wrapping the standard library `cmd` module: `identchars` returns the characters allowed in command names, `prompt_default` returns the default prompt string, and `main` exposes the module's `main` entry point when it is available. The `Cmd` class is a thin subclass of `cmd.Cmd`. The module is tested in `tests/test_cmd_utils.py`.
+
+## Interactive Console Utilities Module
+
+The project includes interactive console utilities in `code_utils.py` wrapping the standard library `code` module: `interact` runs an interactive console session, `compile_command` compiles a single console command and returns `None` while the input is incomplete, `console_class` returns the `InteractiveConsole` class, and `interpreter_class` returns the `InteractiveInterpreter` class. The module is tested in `tests/test_code_utils.py`.
+
+## Copyreg Utilities Module
+
+The project includes pickle support registration utilities in `copyreg_utils.py` wrapping the standard library `copyreg` module: `add_extension` and `remove_extension` register and unregister pickling extensions for a type, `clear_extension_cache` clears the extension cache, `constructor` registers a reduction function for a type, `dispatch_table` returns the global dispatch table, and `pickle` registers a reduction function for a type. The module is tested in `tests/test_copyreg_utils.py`.
+
+## Getpass Utilities Module
+
+The project includes secure password input utilities in `getpass_utils.py` wrapping the standard library `getpass` module: `getpass` prompts for a password without echoing it back to the terminal, and `getuser` returns the name of the user running the process. The module is tested in `tests/test_getpass_utils.py`.
+
+## Runpy Utilities Module
+
+The project includes Python module execution utilities in `runpy_utils.py` wrapping the standard library `runpy` module: `run_module` executes a module and returns its globals, and `run_path` executes a Python file and returns its globals. The module is tested in `tests/test_runpy_utils.py`.
+
+## Types Utilities Module
+
+The project includes dynamic type utilities in `types_utils.py` wrapping the standard library `types` module: `new_class` and `new_function` create classes and functions at runtime, `is_function`, `is_method`, `is_generator`, `is_coroutine`, and `is_lambda` report the runtime type of an object, and `simple_namespace` creates a `SimpleNamespace`. The module is tested in `tests/test_types_utils.py`.
+
+## Zoneinfo Utilities Module
+
+The project includes IANA timezone utilities in `zoneinfo_utils.py` wrapping the standard library `zoneinfo` module: `zoneinfo_get` returns a `ZoneInfo` for an IANA key and `zoneinfo_available_timezones` returns the set of available keys. The module is tested in `tests/test_zoneinfo_utils.py`.
+
+## Array Utilities Module
+
+The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, and `array_count` and `array_index` search for a value. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
+
+## Atexit Utilities Module
+
+The project includes exit handler utilities in `atexit_utils.py` wrapping the standard library `atexit` module: `register` and `add` schedule a function to run at interpreter exit, `unregister` and `remove` cancel a scheduled function, `clear` drops every registered handler, `get_registered` lists the registered handlers, and `run_exit_handlers` runs them immediately. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_atexit_utils.py`.
+
+## Calendar Utilities Module
+
+The project includes calendar utilities in `calendar_utils.py` wrapping the standard library `calendar` module: `is_leap_year` reports whether a year is a leap year, `days_in_month` returns the number of days in a month, `first_day_of_month` returns the weekday a month starts on, `month_name` and `day_name` return localized names, `month_calendar` renders a month grid, `weekdays_in_month` and `weekend_days_in_month` collect the matching dates, `is_weekend` reports whether a date falls on a weekend, and `add_months` shifts a date by a number of months. The module is tested in `tests/test_calendar_utils.py`.
+
+## Complex Mathematics Utilities Module
+
+The project includes complex mathematics utilities in `cmath_utils.py` wrapping the standard library `cmath` module: `phase`, `polar`, and `rect` convert between rectangular and polar forms, `exp`, `log`, `log10`, and `sqrt` provide the elementary functions, `sin`, `cos`, `tan`, `asin`, `acos`, and `atan` provide the trigonometric functions, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, and `atanh` provide the hyperbolic functions, and `isfinite`, `isinf`, `isnan`, and `isclose` inspect complex values. The module is tested in `tests/test_cmath_utils.py`.
+
+## Concurrent Futures Utilities Module
+
+The project includes `concurrent.futures` utilities in `concurrent_futures_utils.py` wrapping the standard library `concurrent.futures` module: `ThreadPoolExecutor` and `ProcessPoolExecutor` are re-exported, `Future` and `as_completed` support result collection, `wait` waits on a set of futures with the `FIRST_COMPLETED` and `FIRST_EXCEPTION` policies, `thread_pool_executor` and `process_pool_executor` build validated executors, `submit` schedules a callable, `as_completed_iter` yields futures as they finish, and `wait_futures` waits for a group of futures. The module is tested in `tests/test_concurrent_futures_utils.py`.
+
+## Garbage Collector Utilities Module
+
+The project includes garbage collector utilities in `gc_utils.py` wrapping the standard library `gc` module: `enable` and `disable` toggle automatic collection, `isenabled` reports the current state, `collect` runs a collection pass, `get_count` reports the collection counters, `get_objects` lists tracked objects, `get_referents` and `get_referrers` inspect object relationships, `get_stats` reports per-generation statistics, `set_debug` and `get_debug` control the debug flags, and `set_threshold` and `get_threshold` manage the collection thresholds. The module is tested in `tests/test_gc_utils.py`.
+
+## Greeting Utilities Module
+
+The project includes greeting utilities in `greeting_utils.py`: `format_greeting` renders a greeting for a person and `format_names` renders a greeting for a list of people. The module is tested in `tests/test_greeting_utils.py`.
+
+## Importlib Utilities Module
+
+The project includes import utilities in `importlib_utils.py` wrapping the standard library `importlib` module: `import_module` and `reload_module` load and reload modules, `find_spec` and `get_spec` return import specifications, `get_module_name_from_path` derives a module name from a file path, `is_module_available` reports whether a module can be imported, `get_source_file` and `get_loader` describe a module's origin, `get_distribution` and `get_distribution_version` read installed package metadata, `get_entry_points` lists entry points, `read_text` and `read_binary` read package resources, `is_resource` reports resource availability, `path` returns a package's search path, and `get_attr_from_module` and `call_func_from_module` reach into imported modules. The module is tested in `tests/test_importlib_utils.py`.
+
+## Interval Utilities Module
+
+The project includes interval utilities in `interval_utils.py`: `normalize_interval` orders the bounds of an interval, `is_valid_interval` reports whether the bounds are ordered, `interval_contains` tests for containment, `interval_overlaps` tests for overlap, `interval_intersection` and `interval_union` combine two intervals, `merge_intervals` collapses overlapping intervals, and `interval_length` measures the span. The module is tested in `tests/test_interval_utils.py`.
+
+## Line Cache Utilities Module
+
+The project includes line cache utilities in `linecache_utils.py` wrapping the standard library `linecache` module: `getline` and `getlines` read cached source lines, `checkcache` reports whether a file has stale cached data, `updatecache` refreshes the cache for a file, `lazycache` loads a file's lines on demand, and `clearcache` empties the cache. The module is tested in `tests/test_linecache_utils.py`.
+
+## LZMA Utilities Module
+
+The project includes LZMA compression utilities in `lzma_utils.py` wrapping the standard library `lzma` module: `lzma_compress` compresses bytes, `lzma_decompress` reverses it, `lzma_open` opens a compressed file, and `lzma_write` and `lzma_read` stream data through an archive. The module is tested in `tests/test_lzma_utils.py`.
+
+## Marshal Utilities Module
+
+The project includes object serialization utilities in `marshal_utils.py` wrapping the standard library `marshal` module: `dumps` and `loads` serialize and deserialize objects to and from bytes, `dump` and `load` write and read serialized objects to a file, and `get_version` reports the supported marshal version. The module is tested in `tests/test_marshal_utils.py`.
+
+## Multiprocessing Utilities Module
+
+The project includes multiprocessing utilities in `multiprocessing_utils.py` wrapping the standard library `multiprocessing` module: `get_context` selects a start method, `cpu_count` reports the available CPUs, `active_children` and `current_process` report process state, `freeze_support` enables frozen executables, `create_pool`, `pool_map`, and `pool_starmap` run work in a pool, `create_queue` and `create_simple_queue` build queues, `create_lock`, `create_rlock`, `create_semaphore`, `create_event`, and `create_condition` build synchronization primitives, `create_value` and `create_array` build shared memory, `create_process` and `run_in_process` start a child process, and `is_forking`, `is_spawn`, and `is_forkserver` report the active start method. The module is tested in `tests/test_multiprocessing_utils.py`.
+
+## Secrets Utilities Module
+
+The project includes cryptographically secure secret utilities in `secrets_utils.py` wrapping the standard library `secrets` module: `token_bytes`, `token_hex`, and `token_urlsafe` generate random tokens, `compare_digest` compares two secrets in constant time, `randbelow` and `randbits` generate random numbers, and `choice` picks a random element from a sequence. All functions validate their inputs and raise `ValueError` on invalid arguments. The module is tested in `tests/test_secrets_utils.py`.
+
+## Semantic Versioning Utilities Module
+
+The project includes semantic versioning utilities in `semver_utils.py`: the `SemanticVersion` class parses and compares version strings, `parse_semver` parses a semantic version, `compare_semver` compares two versions, `bump_major`, `bump_minor`, and `bump_patch` increment a version component, and `is_valid_semver` reports whether a string is a valid semantic version. The module is tested in `tests/test_semver_utils.py`.
+
+## Shutil Utilities Module
+
+The project includes high-level file operation utilities in `shutil_utils.py` wrapping the standard library `shutil` module: `copy_file` and `copy_tree` copy files and directories, `move` moves a path, `remove_tree` deletes a directory tree, `disk_usage` reports disk usage for a path, `make_archive` and `unpack_archive` build and expand archives, and `which` locates an executable on `PATH`. The module is tested in `tests/test_shutil_utils.py`.
+
+## Subprocess Utilities Module
+
+The project includes subprocess utilities in `subprocess_utils.py` wrapping the standard library `subprocess` module: `run_command` runs a command and captures its output, `check_output` runs a command and returns its standard output, and `check_call` runs a command and raises on a non-zero exit status. The module is tested in `tests/test_subprocess_utils.py`.
+
+## Weak Reference Utilities Module
+
+The project includes weak reference utilities in `weakref_utils.py` wrapping the standard library `weakref` module: `WeakRef` and `WeakMethod` are re-exported, `create_weakref` creates a weak reference to an object, `create_proxy` creates a transparent proxy, `get_object` resolves a reference to its target, `is_alive` reports whether the target still exists, and `create_finalizer` registers a callback for when the target is collected. The module is tested in `tests/test_weakref_utils.py`.

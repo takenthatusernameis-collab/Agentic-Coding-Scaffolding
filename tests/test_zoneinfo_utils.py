@@ -1,7 +1,6 @@
 """Tests for zoneinfo_utils."""
 
 import unittest
-
 from zoneinfo import ZoneInfo
 
 from zoneinfo_utils import zoneinfo_available_timezones, zoneinfo_get

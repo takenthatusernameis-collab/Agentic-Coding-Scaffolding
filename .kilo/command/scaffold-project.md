@@ -40,6 +40,23 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `configparser_utils.py` — INI configuration file parsing utilities wrapping the standard library `configparser` module (`load_config`, `save_config`, `get_sections`, `get_options`, `read_files`, `write_config`) with input validation
 - `shelve_utils.py` — persistent key/value storage utilities wrapping the standard library `shelve` module (`open_shelf`, `close`, `sync`, `keys`, `get`, `set_value`, `delete`, `contains`, `is_shelf`) with input validation
 - `zlib_utils.py` — zlib compression and checksum utilities wrapping the standard library `zlib` module (`zlib_compress`, `zlib_decompress`, `zlib_compressobj`, `zlib_decompressobj`, `zlib_crc32`, `zlib_adler32`) with input validation
+- `cmd_utils.py` — command interpreter utilities wrapping the standard library `cmd` module (`identchars`, `prompt_default`, `main`) with input validation
+- `code_utils.py` — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation
+- `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
+- `fileinput_utils.py` — file input iteration utilities wrapping the standard library `fileinput` module (`read_lines`, `count_lines`, `filenames`) with input validation
+- `fnmatch_utils.py` — filename pattern matching utilities wrapping the standard library `fnmatch` module (`match`, `match_case`, `filter_names`, `translate`) with input validation
+- `getpass_utils.py` — secure password input utilities wrapping the standard library `getpass` module (`getpass`, `getuser`) with input validation
+- `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
+- `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
+- `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
+- `tarfile_utils.py` — tar archive utilities wrapping the standard library `tarfile` module (`tarfile_open`, `tarfile_add`, `tarfile_list`, `tarfile_extract`, `tarfile_extractall`, `tarfile_create`) with input validation
+- `types_utils.py` — dynamic type creation utilities wrapping the standard library `types` module (`new_class`, `new_function`, `is_function`, `is_method`, `is_generator`, `is_coroutine`, `is_lambda`, `simple_namespace`) with input validation
+- `zoneinfo_utils.py` — IANA timezone utilities wrapping the standard library `zoneinfo` module (`zoneinfo_get`, `zoneinfo_available_timezones`) with input validation
+- `array_utils.py` — array utilities wrapping the standard library `array` module (`array_create`, `array_fromlist`, `array_tolist`, `array_append`, `array_extend`, `array_insert`, `array_pop`, `array_remove`, `array_reverse`, `array_buffer_info`, `array_byteswap`, `array_count`, `array_index`) with input validation
+- `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
+- `cmath_utils.py` — complex mathematics utilities wrapping the standard library `cmath` module (`phase`, `polar`, `rect`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `isfinite`, `isinf`, `isnan`, `isclose`)
+- `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
+- `threading_utils.py` — threading utilities wrapping the standard library `threading` module (`create_lock`, `create_rlock`, `create_semaphore`, `create_bounded_semaphore`, `create_event`, `create_condition`, `create_timer`, `create_thread`, `current_thread`, `active_count`, `enumerate_threads`, `synchronized`) with input validation
 - `binascii_utils.py` — binary-to-ASCII encoding and decoding utilities wrapping the standard library `binascii` module (`hexlify`, `unhexlify`, `b2a_base64`, `a2b_base64`, `b2a_uu`, `a2b_uu`, `b2a_qp`, `a2b_qp`, `crc32`, `adler32`, `crc_hqx`) with input validation
 - `importlib_utils.py` — importlib utilities
 - `atexit_utils.py` — atexit utilities for registering and managing exit handlers
@@ -79,7 +96,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
 - `timing_utils.py` — performance measurement helpers
 - `async_utils.py` — asynchronous utility functions
- - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
+- `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
 - `call_once_utils.py` — call-once execution utilities ensuring a function runs only a single time
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
@@ -193,6 +210,24 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_configparser_utils.py` — unit tests for `configparser_utils.py`
 - `tests/test_shelve_utils.py` — unit tests for `shelve_utils.py`
 - `tests/test_zlib_utils.py` — unit tests for `zlib_utils.py`
+- `tests/test_cmd_utils.py` — unit tests for `cmd_utils.py`
+- `tests/test_code_utils.py` — unit tests for `code_utils.py`
+- `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`
+- `tests/test_fileinput_utils.py` — unit tests for `fileinput_utils.py`
+- `tests/test_fnmatch_utils.py` — unit tests for `fnmatch_utils.py`
+- `tests/test_getpass_utils.py` — unit tests for `getpass_utils.py`
+- `tests/test_pathlib_utils.py` — unit tests for `pathlib_utils.py`
+- `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
+- `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
+- `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
+- `tests/test_types_utils.py` — unit tests for `types_utils.py`
+- `tests/test_zoneinfo_utils.py` — unit tests for `zoneinfo_utils.py`
+- `tests/test_array_utils.py` — unit tests for `array_utils.py`
+- `tests/test_calendar_utils.py` — unit tests for `calendar_utils.py`
+- `tests/test_cmath_utils.py` — unit tests for `cmath_utils.py`
+- `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
+- `tests/test_threading_utils.py` — unit tests for `threading_utils.py`
+- `tests/test_codecs_utils.py` — unit tests for `codecs_utils.py`
 - `tests/test_binascii_utils.py` — unit tests for `binascii_utils.py`
 - `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
 - `tests/test_atexit_utils.py` — unit tests for `atexit_utils.py`
@@ -203,7 +238,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_gc_utils.py` — unit tests for `gc_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
- - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
+- `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
 - `tests/test_call_once_utils.py` — unit tests for `call_once_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_concurrent_futures_utils.py` — unit tests for `concurrent_futures_utils.py`
