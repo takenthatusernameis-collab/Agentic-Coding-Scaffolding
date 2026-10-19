@@ -1,5 +1,5 @@
-import unittest
 import ssl
+import unittest
 from datetime import datetime
 
 import ssl_utils
@@ -48,7 +48,9 @@ class TestSSLUtils(unittest.TestCase):
     def test_is_tls_version_supported(self):
         self.assertIsInstance(ssl_utils.is_tls_version_supported(ssl.PROTOCOL_TLS_CLIENT), bool)
         if ssl_utils.PROTOCOL_TLSv1_2 is not None:
-            self.assertIsInstance(ssl_utils.is_tls_version_supported(ssl_utils.PROTOCOL_TLSv1_2), bool)
+            self.assertIsInstance(
+                ssl_utils.is_tls_version_supported(ssl_utils.PROTOCOL_TLSv1_2), bool
+            )
 
     def test_is_tls_version_supported_invalid_type(self):
         with self.assertRaises(TypeError):
@@ -123,7 +125,8 @@ class TestSSLUtils(unittest.TestCase):
         cert = {"notBefore": "20200101000000Z", "notAfter": "20200102000000Z"}
         self.assertFalse(ssl_utils.cert_is_valid_at_time(cert, time=1690000000))
         # In range
-        self.assertTrue(ssl_utils.cert_is_valid_at_time(cert, time=1577865600))  # 2020-01-01 12:00:00Z approx
+        self.assertTrue(ssl_utils.cert_is_valid_at_time(cert, time=1577865600))
+        # 2020-01-01 12:00:00Z approx
 
     def test_cert_is_valid_at_time_invalid_cert_type(self):
         with self.assertRaises(TypeError):

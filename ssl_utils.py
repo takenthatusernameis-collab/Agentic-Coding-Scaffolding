@@ -8,10 +8,8 @@ and working with TLS protocol versions. All functions validate inputs and raise
 from __future__ import annotations
 
 import ssl
-import socket
-from collections import namedtuple
 from datetime import datetime
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 
 # Re-export SSL constants and classes that are commonly used
 PROTOCOL_TLS = ssl.PROTOCOL_TLS
@@ -217,13 +215,15 @@ def cert_time_to_seconds(cert_time: str) -> int:
     if cert_time.endswith("Z"):
         try:
             dt = datetime.strptime(cert_time, "%Y%m%d%H%M%SZ")
-            return int(dt.replace(tzinfo=datetime.now().astimezone().tzinfo.__class__() if False else None).timestamp() if False else int((dt - datetime(1970, 1, 1)).total_seconds()))
+            return int((dt - datetime(1970, 1, 1)).total_seconds())
         except ValueError:
             pass
         # Simpler approach
         try:
             dt = datetime.strptime(cert_time[:-1], "%Y%m%d%H%M%S")
-            return int(dt.timestamp()) if dt.tzinfo else int((dt - datetime(1970, 1, 1)).total_seconds())
+            if dt.tzinfo:
+                return int(dt.timestamp())
+            return int((dt - datetime(1970, 1, 1)).total_seconds())
         except ValueError as exc:
             raise ValueError(f"invalid cert_time format: {cert_time!r}") from exc
 
@@ -238,7 +238,7 @@ def cert_time_to_seconds(cert_time: str) -> int:
             dt = datetime.strptime(cert_time, fmt)
             if dt.tzinfo is None:
                 # Treat as UTC for naive times in this context
-                return int(dt.replace(tzinfo=None).timestamp()) if False else int((dt - datetime(1970, 1, 1)).total_seconds())
+                return int((dt - datetime(1970, 1, 1)).total_seconds())
             return int(dt.timestamp())
         except ValueError:
             continue
@@ -323,7 +323,11 @@ def is_tls_version_supported(version: int) -> bool:
         return getattr(ssl, "HAS_TLSv1_2", False)
     if version == getattr(ssl, "PROTOCOL_TLSv1_3", -1) and version != -1:
         return getattr(ssl, "HAS_TLSv1_3", False)
-    if version == getattr(ssl, "PROTOCOL_TLS", -1) or version == getattr(ssl, "PROTOCOL_TLS_CLIENT", -1) or version == getattr(ssl, "PROTOCOL_TLS_SERVER", -1):
+    if (
+        version == getattr(ssl, "PROTOCOL_TLS", -1)
+        or version == getattr(ssl, "PROTOCOL_TLS_CLIENT", -1)
+        or version == getattr(ssl, "PROTOCOL_TLS_SERVER", -1)
+    ):
         return True
 
     # For other versions, do a basic validity check
