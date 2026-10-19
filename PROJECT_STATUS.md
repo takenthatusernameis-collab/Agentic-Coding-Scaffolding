@@ -1,19 +1,60 @@
-- Added `signal_utils.py` wrapping stdlib `signal` with `tests/test_signal_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, CHANGELOG, and `PROJECT_STATUS.md`.
-- Last completed work: `signal_utils.py` wrapping stdlib `signal` added with `tests/test_signal_utils.py`.
-- Next suggested work: add the next stdlib-wrapping utility module with tests and synchronize it across `scaffold.sh`, `pyproject.toml`, `README.md`, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, `CHANGELOG.md`, and `PROJECT_STATUS.md`; then verify `make test`, `make lint`, `make typecheck`.
-# Project Status
+"""Tests for unicodedata_utils."""
 
-- Added `bz2_utils.py` wrapping stdlib `bz2` with `tests/test_bz2_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions (including `test_bz2_utils_functions_work`), CHANGELOG, and `PROJECT_STATUS.md`.
-- Added `concurrent_futures_utils.py` wrapping stdlib `concurrent.futures` with `tests/test_concurrent_futures_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, CHANGELOG, and `PROJECT_STATUS.md`.
-- Added `lzma_utils.py` wrapping stdlib `lzma` with `tests/test_lzma_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions (including `test_lzma_utils_functions_work`), CHANGELOG, and `PROJECT_STATUS.md`. Last completed work: `lzma_utils.py` synchronization.
-- Next suggested work: add the next stdlib-wrapping utility module with tests; then verify `make test`, `make lint`, `make typecheck`."
-- Previous completed work: `sqlite3_utils.py` wrapping stdlib `sqlite3` added with `tests/test_sqlite3_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs, `.kilo/command/scaffold-project.md` entries), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py` assertions, CHANGELOG, and `PROJECT_STATUS.md`.
-- Previous completed work: `pickle_utils.py` wrapping stdlib `pickle` added with `tests/test_pickle_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py` assertions, CHANGELOG, and `PROJECT_STATUS.md`.
-- Previous completed work: `stat_utils` wrapping stdlib `stat` and `os.stat` added with `tests/test_stat_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py` assertions, CHANGELOG, and `PROJECT_STATUS.md`.
-- Previous completed work: `typing_utils` wrapping stdlib `typing` added with `tests/test_typing_utils.py`; synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs, `.kilo/command/scaffold-project.md` entries, CHANGELOG Unreleased entry), `pyproject.toml` `py_modules`, `README.md` (tree + module section), `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
-- Previous completed work: `pprint_utils` wrapping stdlib `pprint` added with `tests/test_pprint_utils.py`; synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs, `.kilo/command/scaffold-project.md` entries, CHANGELOG Unreleased entry), `pyproject.toml` `py_modules`, `README.md` (tree + module section), `tests/test_scaffold.py` assertions, and `CHANGELOG.md`. Fixed a pre-existing test assertion in `test_pprint_utils.py` (`saferepr` expected `...` but `pprint.saferepr` emits `<Recursion on dict with id=...>`; now asserts `"Recursion"`).
-- Added `platform_utils.py` wrapping stdlib `platform` with `tests/test_platform_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, CHANGELOG, and `PROJECT_STATUS.md`.
-- Last completed work: `platform_utils.py` wrapping stdlib `platform` added with `tests/test_platform_utils.py`.
-- Next suggested work: add the next stdlib-wrapping utility module with tests and synchronize it across `scaffold.sh`, `pyproject.toml`, `README.md`, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, `CHANGELOG.md`, and `PROJECT_STATUS.md`; then verify `make test`, `make lint`, `make typecheck`.
+from unicodedata_utils import (
+    unicodedata_bidirectional,
+    unicodedata_category,
+    unicodedata_combining,
+    unicodedata_decimal,
+    unicodedata_digit,
+    unicodedata_east_asian_width,
+    unicodedata_lookup,
+    unicodedata_mirrored,
+    unicodedata_name,
+    unicodedata_normalize,
+    unicodedata_numeric,
+)
 
-- Added `codecs_utils.py` wrapping stdlib `codecs`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs, `.kilo/command/scaffold-project.md` entries), `pyproject.toml` `py_modules`, README module section, CHANGELOG, and `tests/test_scaffold.py` assertions. Removed tracked backup artifacts `scaffold.sh.broken` and `scaffold.sh.clean`.
+
+def test_unicodedata_lookup():
+    assert unicodedata_lookup("LATIN SMALL LETTER A") == "a"
+
+
+def test_unicodedata_name():
+    assert unicodedata_name("a") == "LATIN SMALL LETTER A"
+
+
+def test_unicodedata_normalize():
+    assert unicodedata_normalize("NFC", "a\u0301") == "\u00e1"
+
+
+def test_unicodedata_category():
+    assert unicodedata_category("a") == "Ll"
+
+
+def test_unicodedata_bidirectional():
+    assert unicodedata_bidirectional("a") == "L"
+
+
+def test_unicodedata_combining():
+    assert unicodedata_combining("\u0301") == 230
+
+
+def test_unicodedata_east_asian_width():
+    assert unicodedata_east_asian_width("a") == "Na"
+
+
+def test_unicodedata_mirrored():
+    assert unicodedata_mirrored("(") == 1
+
+
+def test_unicodedata_decimal():
+    assert unicodedata_decimal("\u0660") == 0
+
+
+def test_unicodedata_digit():
+    assert unicodedata_digit("\u0669") == 9
+
+
+def test_unicodedata_numeric():
+    assert unicodedata_numeric("\u00bd") == 0.5
+""" filePath="/home/runner/work/Agentic-Coding-Scaffolding/Agentic-Coding-Scaffolding/tests/test_unicodedata_utils.py- Added `unicodedata_utils.py` wrapping stdlib `unicodedata` with `tests/test_unicodedata_utils.py`.
