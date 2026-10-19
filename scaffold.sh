@@ -50,6 +50,7 @@
 #   - cmd_utils.py — # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
 #   - this_utils.py — # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 #   - tokenize_utils.py — # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
+#   - socket_utils.py — # Low-level socket utilities wrapping stdlib socket (create_socket, connect_socket, send_all, receive_bytes, resolve_address, error_name)
 #   - code_utils.py — # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 #   - codeop_utils.py — # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
 #   - copyreg_utils.py — # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
@@ -472,6 +473,7 @@
 #   - test_cmd_utils.py — # Tests for cmd_utils.py
 #   - test_this_utils.py — # Tests for this_utils.py
 #   - test_tokenize_utils.py — # Tests for tokenize_utils.py
+#   - test_socket_utils.py — # Tests for socket_utils.py
 #   - test_code_utils.py — # Tests for code_utils.py
 #   - test_codeop_utils.py — # Tests for codeop_utils.py
 #   - test_copyreg_utils.py — # Tests for copyreg_utils.py
@@ -1769,6 +1771,7 @@ py_modules = [
     "cmd_utils",
     "this_utils",
     "tokenize_utils",
+    "socket_utils",
     "code_utils",
     "codeop_utils",
     "copyreg_utils",
@@ -23799,6 +23802,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `cmd_utils.py` — command interpreter utilities wrapping the standard library `cmd` module (`identchars`, `prompt_default`, `main`) with input validation
 - `this_utils.py` — Zen of Python utilities wrapping the standard library `this` module (`zen_of_python`, `translation_table`, `cipher_index`, `this`, `print_zen`) with input validation
 - `tokenize_utils.py` — source tokenization utilities wrapping the standard library `tokenize` module (`tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens, is_comment, is_string, is_number, is_name, is_keyword`) with input validation
+- `socket_utils.py` — low-level socket utilities wrapping the standard library `socket` module (`create_socket, create_tcp_socket, create_udp_socket, socket_address, resolve_address, connect_socket, create_connection, bind_socket, listen_socket, accept_connection, send_all, send_to, receive_bytes, receive_from, set_timeout, get_timeout, set_nonblocking, set_reuse_address, set_keepalive, shutdown_socket, close_socket, get_socket_name, get_peer_name, socket_family_name, socket_type_name, error_name, get_hostname, has_ipv6, is_ipv6_address`) with input validation
 - `code_utils.py` — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation
 - `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
 - `fileinput_utils.py` — file input iteration utilities wrapping the standard library `fileinput` module (`read_lines`, `count_lines`, `filenames`) with input validation
@@ -23971,6 +23975,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_cmd_utils.py` — unit tests for `cmd_utils.py`
 - `tests/test_this_utils.py` — unit tests for `this_utils.py`
 - `tests/test_tokenize_utils.py` — unit tests for `tokenize_utils.py`
+- `tests/test_socket_utils.py` — unit tests for `socket_utils.py`
 - `tests/test_code_utils.py` — unit tests for `code_utils.py`
 - `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`
 - `tests/test_fileinput_utils.py` — unit tests for `fileinput_utils.py`
@@ -25093,6 +25098,7 @@ zlib_utils.py             # Zlib compression and checksum utilities wrapping std
 cmd_utils.py                       # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
 this_utils.py                      # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 tokenize_utils.py                  # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
+socket_utils.py                    # Low-level socket utilities wrapping stdlib socket (create_socket, connect_socket, send_all, receive_bytes, resolve_address, error_name)
 code_utils.py                       # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 codeop_utils.py                     # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
 copyreg_utils.py                       # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
@@ -25241,6 +25247,7 @@ tests/                     # Python unit tests
   test_cmd_utils.py           # Tests for cmd_utils.py
   test_this_utils.py          # Tests for this_utils.py
   test_tokenize_utils.py      # Tests for tokenize_utils.py
+  test_socket_utils.py        # Tests for socket_utils.py
   test_code_utils.py          # Tests for code_utils.py
   test_codeop_utils.py        # Tests for codeop_utils.py
   test_copyreg_utils.py       # Tests for copyreg_utils.py
@@ -25418,6 +25425,10 @@ The project includes Zen of Python utilities in `this_utils.py` wrapping the sta
 
 The project includes source tokenization utilities in `tokenize_utils.py` wrapping the standard library `tokenize` module: `tokenize_source` tokenizes in-memory source text, `tokenize_file` tokenizes a file using its declared encoding, `generate_tokens` yields tokens from a `readline` callable, `untokenize` rebuilds source text from a token stream, `token_name` returns the name registered for a token type, `token_type` returns the numeric type registered for a token name, `detect_encoding` detects the source encoding of a byte stream, `significant_tokens` drops comments and blank lines, and the `is_comment`, `is_string`, `is_number`, `is_name` and `is_keyword` predicates classify individual tokens. The module is tested in `tests/test_tokenize_utils.py`.
 
+## Socket Utilities Module
+
+The project includes low-level socket utilities in `socket_utils.py` wrapping the standard library `socket` module: `create_socket` creates a socket for a given address family and socket type, `create_tcp_socket` and `create_udp_socket` create stream and datagram sockets, `socket_address` validates a `(host, port)` pair, `resolve_address` resolves a host and port into candidate addresses, `connect_socket` and `create_connection` establish client connections, `bind_socket`, `listen_socket` and `accept_connection` set up servers, `send_all`, `send_to`, `receive_bytes` and `receive_from` move data over sockets, `set_timeout`, `get_timeout`, `set_nonblocking`, `set_reuse_address` and `set_keepalive` configure socket options, `shutdown_socket` and `close_socket` release sockets, `get_socket_name` and `get_peer_name` inspect bound and peer addresses, `socket_family_name` and `socket_type_name` translate numeric constants into readable names, `error_name` maps operating system error codes to their symbolic names, `get_hostname` returns the local hostname, `has_ipv6` reports IPv6 support, and `is_ipv6_address` checks IPv6 address strings. The module is tested in `tests/test_socket_utils.py`.
+
 ## Interactive Console Utilities Module
 
 The project includes interactive console utilities in `code_utils.py` wrapping the standard library `code` module: `interact` runs an interactive console session, `compile_command` compiles a single console command and returns `None` while the input is incomplete, `console_class` returns the `InteractiveConsole` class, and `interpreter_class` returns the `InteractiveInterpreter` class. The module is tested in `tests/test_code_utils.py`.
@@ -25493,6 +25504,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `socket_utils.py` to the generated project — low-level socket utilities wrapping the standard library `socket` module (`create_socket, create_tcp_socket, create_udp_socket, socket_address, resolve_address, connect_socket, create_connection, bind_socket, listen_socket, accept_connection, send_all, send_to, receive_bytes, receive_from, set_timeout, get_timeout, set_nonblocking, set_reuse_address, set_keepalive, shutdown_socket, close_socket, get_socket_name, get_peer_name, socket_family_name, socket_type_name, error_name, get_hostname, has_ipv6, is_ipv6_address`) with input validation, plus `tests/test_socket_utils.py`.
+- Synchronized `socket_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Completed the `scaffold.sh` header comment inventory: every wrapper module and its test now has a header entry, and the six duplicate entries left by earlier sessions were removed.
 
 - Added `tests/test_multiprocessing_utils.py` — unit tests for `multiprocessing_utils.py`.
@@ -49154,3 +49167,1106 @@ def test_clear_traces():
     tracemalloc_utils.clear_traces()
     tracemalloc_utils.stop()
 TEST_TRACEMALLOC_UTILS
+
+
+# --- socket_utils.py ---
+cat > "$OUTPUT_DIR/socket_utils.py" <<'SOCKET_UTILS'
+"""Low-level socket utilities wrapping the standard library socket module.
+
+The :mod:`socket` module is the foundation of all network communication in
+Python. This wrapper exposes a small, validated surface over it so callers can
+create sockets, resolve addresses, move data over connections, and translate
+numeric error codes into readable names without repeating the usual type
+checks.
+"""
+
+from __future__ import annotations
+
+import errno
+import socket
+from typing import Any, List, Optional, Tuple
+
+__all__ = [
+    "AF_INET",
+    "AF_INET6",
+    "AF_UNIX",
+    "SOCK_STREAM",
+    "SOCK_DGRAM",
+    "SHUT_RD",
+    "SHUT_WR",
+    "SHUT_RDWR",
+    "create_socket",
+    "create_tcp_socket",
+    "create_udp_socket",
+    "socket_address",
+    "resolve_address",
+    "connect_socket",
+    "create_connection",
+    "bind_socket",
+    "listen_socket",
+    "accept_connection",
+    "send_all",
+    "send_to",
+    "receive_bytes",
+    "receive_from",
+    "set_timeout",
+    "get_timeout",
+    "set_nonblocking",
+    "set_reuse_address",
+    "set_keepalive",
+    "shutdown_socket",
+    "close_socket",
+    "get_socket_name",
+    "get_peer_name",
+    "socket_family_name",
+    "socket_type_name",
+    "error_name",
+    "get_hostname",
+    "has_ipv6",
+    "is_ipv6_address",
+]
+
+# Address families re-exported for convenience.
+AF_INET = socket.AF_INET
+AF_INET6 = socket.AF_INET6
+AF_UNIX = socket.AF_UNIX
+
+# Socket types re-exported for convenience.
+SOCK_STREAM = socket.SOCK_STREAM
+SOCK_DGRAM = socket.SOCK_DGRAM
+
+# Shutdown modes re-exported for convenience.
+SHUT_RD = socket.SHUT_RD
+SHUT_WR = socket.SHUT_WR
+SHUT_RDWR = socket.SHUT_RDWR
+
+# The default buffer size used by the receive helpers.
+DEFAULT_BUFFER_SIZE = 4096
+
+# The largest valid TCP/UDP port number.
+MAX_PORT = 65535
+
+
+def _require_socket(sock: Any, name: str = "sock") -> socket.socket:
+    """Return *sock* when it is a socket, otherwise raise ``TypeError``."""
+    if not isinstance(sock, socket.socket):
+        raise TypeError(f"{name} must be a socket, got {type(sock).__name__}")
+    return sock
+
+
+def _require_int(value: Any, name: str) -> int:
+    """Return *value* when it is a plain integer, otherwise raise ``TypeError``."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def _require_host(value: Any, name: str = "host") -> str:
+    """Return *value* when it is a string, otherwise raise ``TypeError``."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _require_port(value: Any, name: str = "port") -> int:
+    """Return *value* when it is a valid port number, otherwise raise."""
+    port = _require_int(value, name)
+    if not 0 <= port <= MAX_PORT:
+        raise ValueError(f"{name} must be between 0 and {MAX_PORT}, got {port}")
+    return port
+
+
+def _require_address(value: Any, name: str = "address") -> Any:
+    """Return *value* when it is a ``(host, port)`` pair, otherwise raise."""
+    if not isinstance(value, (tuple, list)) or len(value) != 2:
+        raise TypeError(f"{name} must be a (host, port) tuple")
+    host = _require_host(value[0], f"{name}[0]")
+    port = _require_port(value[1], f"{name}[1]")
+    return (host, port)
+
+
+def _require_data(value: Any, name: str = "data") -> bytes:
+    """Return *value* as immutable bytes, otherwise raise ``TypeError``."""
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        return bytes(value)
+    raise TypeError(f"{name} must be bytes-like, got {type(value).__name__}")
+
+
+def _require_timeout(value: Any, name: str = "timeout") -> Optional[float]:
+    """Return *value* when it is ``None`` or a non-negative number."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"{name} must be non-negative, got {value}")
+    return float(value)
+
+
+def create_socket(
+    family: int = socket.AF_INET,
+    sock_type: int = socket.SOCK_STREAM,
+    proto: int = 0,
+) -> socket.socket:
+    """Create a new socket.
+
+    Args:
+        family: Address family, such as ``AF_INET`` or ``AF_INET6``.
+        sock_type: Socket type, such as ``SOCK_STREAM`` or ``SOCK_DGRAM``.
+        proto: Protocol number, ``0`` for the default protocol.
+
+    Returns:
+        The newly created socket.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        OSError: If the socket cannot be created.
+    """
+    _require_int(family, "family")
+    _require_int(sock_type, "sock_type")
+    _require_int(proto, "proto")
+    return socket.socket(family, sock_type, proto)
+
+
+def create_tcp_socket(family: int = socket.AF_INET) -> socket.socket:
+    """Create a stream (TCP) socket.
+
+    Args:
+        family: Address family of the socket.
+
+    Returns:
+        The newly created TCP socket.
+
+    Raises:
+        TypeError: If *family* is not an integer.
+    """
+    return create_socket(family, socket.SOCK_STREAM)
+
+
+def create_udp_socket(family: int = socket.AF_INET) -> socket.socket:
+    """Create a datagram (UDP) socket.
+
+    Args:
+        family: Address family of the socket.
+
+    Returns:
+        The newly created UDP socket.
+
+    Raises:
+        TypeError: If *family* is not an integer.
+    """
+    return create_socket(family, socket.SOCK_DGRAM)
+
+
+def socket_address(host: str, port: int) -> Tuple[str, int]:
+    """Build a validated ``(host, port)`` address pair.
+
+    Args:
+        host: Hostname or IP address.
+        port: Port number.
+
+    Returns:
+        The validated address tuple.
+
+    Raises:
+        TypeError: If *host* is not a string or *port* is not an integer.
+        ValueError: If *port* is outside the valid range.
+    """
+    return (_require_host(host), _require_port(port))
+
+
+def resolve_address(
+    host: str,
+    port: int,
+    family: int = socket.AF_UNSPEC,
+    sock_type: int = socket.SOCK_STREAM,
+) -> List[Tuple[Any, ...]]:
+    """Resolve *host* and *port* into a list of candidate addresses.
+
+    Args:
+        host: Hostname or IP address to resolve.
+        port: Port number to resolve.
+        family: Address family filter, ``AF_UNSPEC`` for every family.
+        sock_type: Socket type filter.
+
+    Returns:
+        The list of ``(family, type, proto, canonname, sockaddr)`` tuples
+        produced by :func:`socket.getaddrinfo`.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *port* is outside the valid range.
+        socket.gaierror: If the address cannot be resolved.
+    """
+    text = _require_host(host)
+    number = _require_port(port)
+    _require_int(family, "family")
+    _require_int(sock_type, "sock_type")
+    return list(socket.getaddrinfo(text, number, family, sock_type))
+
+
+def connect_socket(
+    sock: socket.socket,
+    address: Any,
+    timeout: Optional[float] = None,
+) -> socket.socket:
+    """Connect *sock* to *address*.
+
+    Args:
+        sock: The socket to connect.
+        address: A ``(host, port)`` tuple.
+        timeout: Optional timeout applied before connecting.
+
+    Returns:
+        The connected socket.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *timeout* is negative.
+        OSError: If the connection fails.
+    """
+    connection = _require_socket(sock)
+    target = _require_address(address)
+    wait = _require_timeout(timeout)
+    if wait is not None:
+        connection.settimeout(wait)
+    connection.connect(target)
+    return connection
+
+
+def create_connection(address: Any, timeout: Optional[float] = None) -> socket.socket:
+    """Create a socket connected to *address*.
+
+    Args:
+        address: A ``(host, port)`` tuple.
+        timeout: Optional timeout applied to the new socket.
+
+    Returns:
+        The connected socket.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *timeout* is negative.
+        OSError: If the connection fails.
+    """
+    target = _require_address(address)
+    wait = _require_timeout(timeout)
+    return socket.create_connection(target, timeout=wait)
+
+
+def bind_socket(sock: socket.socket, address: Any) -> socket.socket:
+    """Bind *sock* to *address*.
+
+    Args:
+        sock: The socket to bind.
+        address: A ``(host, port)`` tuple.
+
+    Returns:
+        The bound socket.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        OSError: If the bind fails.
+    """
+    connection = _require_socket(sock)
+    target = _require_address(address)
+    connection.bind(target)
+    return connection
+
+
+def listen_socket(sock: socket.socket, backlog: int = socket.SOMAXCONN) -> socket.socket:
+    """Mark *sock* as a listening socket.
+
+    Args:
+        sock: The socket to listen on.
+        backlog: Maximum number of pending connections.
+
+    Returns:
+        The listening socket.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *backlog* is negative.
+        OSError: If the socket cannot listen.
+    """
+    connection = _require_socket(sock)
+    size = _require_int(backlog, "backlog")
+    if size < 0:
+        raise ValueError(f"backlog must be non-negative, got {size}")
+    connection.listen(size)
+    return connection
+
+
+def accept_connection(sock: socket.socket) -> Tuple[socket.socket, Any]:
+    """Accept a pending connection on *sock*.
+
+    Args:
+        sock: The listening socket.
+
+    Returns:
+        A tuple of the accepted socket and the peer address.
+
+    Raises:
+        TypeError: If *sock* is not a socket.
+        OSError: If no connection can be accepted.
+    """
+    connection = _require_socket(sock)
+    client, address = connection.accept()
+    return client, address
+
+
+def send_all(sock: socket.socket, data: Any) -> int:
+    """Send *data* over *sock*.
+
+    Args:
+        sock: The connected socket.
+        data: The bytes to send.
+
+    Returns:
+        The number of bytes sent.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        OSError: If the data cannot be sent.
+    """
+    connection = _require_socket(sock)
+    payload = _require_data(data)
+    connection.sendall(payload)
+    return len(payload)
+
+
+def send_to(sock: socket.socket, data: Any, address: Any) -> int:
+    """Send *data* to *address* using *sock*.
+
+    Args:
+        sock: The socket to send from.
+        data: The bytes to send.
+        address: A ``(host, port)`` tuple.
+
+    Returns:
+        The number of bytes sent.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        OSError: If the data cannot be sent.
+    """
+    connection = _require_socket(sock)
+    payload = _require_data(data)
+    target = _require_address(address)
+    return int(connection.sendto(payload, target))
+
+
+def receive_bytes(sock: socket.socket, bufsize: int = DEFAULT_BUFFER_SIZE) -> bytes:
+    """Receive up to *bufsize* bytes from *sock*.
+
+    Args:
+        sock: The connected socket.
+        bufsize: Maximum number of bytes to read.
+
+    Returns:
+        The bytes that were received.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *bufsize* is not positive.
+        OSError: If the data cannot be received.
+    """
+    connection = _require_socket(sock)
+    size = _require_int(bufsize, "bufsize")
+    if size <= 0:
+        raise ValueError(f"bufsize must be positive, got {size}")
+    return bytes(connection.recv(size))
+
+
+def receive_from(sock: socket.socket, bufsize: int = DEFAULT_BUFFER_SIZE) -> Tuple[bytes, Any]:
+    """Receive a datagram from *sock* along with its sender address.
+
+    Args:
+        sock: The bound socket.
+        bufsize: Maximum number of bytes to read.
+
+    Returns:
+        A tuple of the received bytes and the sender address.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *bufsize* is not positive.
+        OSError: If the datagram cannot be received.
+    """
+    connection = _require_socket(sock)
+    size = _require_int(bufsize, "bufsize")
+    if size <= 0:
+        raise ValueError(f"bufsize must be positive, got {size}")
+    data, address = connection.recvfrom(size)
+    return bytes(data), address
+
+
+def set_timeout(sock: socket.socket, timeout: Optional[float]) -> socket.socket:
+    """Set the timeout of *sock*.
+
+    Args:
+        sock: The socket to configure.
+        timeout: Timeout in seconds, or ``None`` for a blocking socket.
+
+    Returns:
+        The configured socket.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *timeout* is negative.
+    """
+    connection = _require_socket(sock)
+    wait = _require_timeout(timeout)
+    connection.settimeout(wait)
+    return connection
+
+
+def get_timeout(sock: socket.socket) -> Optional[float]:
+    """Return the timeout of *sock*.
+
+    Args:
+        sock: The socket to inspect.
+
+    Returns:
+        The timeout in seconds, or ``None`` when the socket is blocking.
+
+    Raises:
+        TypeError: If *sock* is not a socket.
+    """
+    connection = _require_socket(sock)
+    timeout = connection.gettimeout()
+    if timeout is None:
+        return None
+    return float(timeout)
+
+
+def set_nonblocking(sock: socket.socket, flag: bool = True) -> socket.socket:
+    """Put *sock* in non-blocking mode, or back into blocking mode.
+
+    Args:
+        sock: The socket to configure.
+        flag: ``True`` for non-blocking mode, ``False`` for blocking mode.
+
+    Returns:
+        The configured socket.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+    """
+    connection = _require_socket(sock)
+    if not isinstance(flag, bool):
+        raise TypeError(f"flag must be a bool, got {type(flag).__name__}")
+    connection.setblocking(not flag)
+    return connection
+
+
+def set_reuse_address(sock: socket.socket, flag: bool = True) -> socket.socket:
+    """Enable or disable address reuse on *sock*.
+
+    Args:
+        sock: The socket to configure.
+        flag: ``True`` to allow the address to be reused.
+
+    Returns:
+        The configured socket.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        OSError: If the option cannot be set.
+    """
+    connection = _require_socket(sock)
+    if not isinstance(flag, bool):
+        raise TypeError(f"flag must be a bool, got {type(flag).__name__}")
+    connection.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 if flag else 0)
+    return connection
+
+
+def set_keepalive(sock: socket.socket, flag: bool = True) -> socket.socket:
+    """Enable or disable TCP keepalive on *sock*.
+
+    Args:
+        sock: The socket to configure.
+        flag: ``True`` to enable keepalive probes.
+
+    Returns:
+        The configured socket.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        OSError: If the option cannot be set.
+    """
+    connection = _require_socket(sock)
+    if not isinstance(flag, bool):
+        raise TypeError(f"flag must be a bool, got {type(flag).__name__}")
+    connection.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1 if flag else 0)
+    return connection
+
+
+def shutdown_socket(sock: socket.socket, how: int = socket.SHUT_RDWR) -> socket.socket:
+    """Shut down one or both directions of *sock*.
+
+    Args:
+        sock: The socket to shut down.
+        how: Shutdown mode, one of ``SHUT_RD``, ``SHUT_WR`` or ``SHUT_RDWR``.
+
+    Returns:
+        The socket that was shut down.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        OSError: If the shutdown fails.
+    """
+    connection = _require_socket(sock)
+    mode = _require_int(how, "how")
+    if mode not in (socket.SHUT_RD, socket.SHUT_WR, socket.SHUT_RDWR):
+        raise ValueError(f"how must be one of SHUT_RD, SHUT_WR or SHUT_RDWR, got {mode}")
+    connection.shutdown(mode)
+    return connection
+
+
+def close_socket(sock: socket.socket) -> None:
+    """Close *sock*.
+
+    Closing an already closed socket is not an error.
+
+    Args:
+        sock: The socket to close.
+
+    Raises:
+        TypeError: If *sock* is not a socket.
+    """
+    connection = _require_socket(sock)
+    connection.close()
+
+
+def get_socket_name(sock: socket.socket) -> Any:
+    """Return the local address *sock* is bound to.
+
+    Args:
+        sock: The socket to inspect.
+
+    Returns:
+        The bound address of the socket.
+
+    Raises:
+        TypeError: If *sock* is not a socket.
+        OSError: If the address cannot be read.
+    """
+    connection = _require_socket(sock)
+    return connection.getsockname()
+
+
+def get_peer_name(sock: socket.socket) -> Any:
+    """Return the address of the peer *sock* is connected to.
+
+    Args:
+        sock: The connected socket.
+
+    Returns:
+        The peer address of the socket.
+
+    Raises:
+        TypeError: If *sock* is not a socket.
+        OSError: If the peer address cannot be read.
+    """
+    connection = _require_socket(sock)
+    return connection.getpeername()
+
+
+def socket_family_name(family: int) -> str:
+    """Return the readable name of an address family.
+
+    Args:
+        family: The numeric address family.
+
+    Returns:
+        The family name, or ``"UNKNOWN"`` when the family is not registered.
+
+    Raises:
+        TypeError: If *family* is not an integer.
+    """
+    number = _require_int(family, "family")
+    try:
+        return socket.AddressFamily(number).name
+    except ValueError:
+        return "UNKNOWN"
+
+
+def socket_type_name(sock_type: int) -> str:
+    """Return the readable name of a socket type.
+
+    Args:
+        sock_type: The numeric socket type.
+
+    Returns:
+        The socket type name, or ``"UNKNOWN"`` when the type is not registered.
+
+    Raises:
+        TypeError: If *sock_type* is not an integer.
+    """
+    number = _require_int(sock_type, "sock_type")
+    try:
+        return socket.SocketKind(number).name
+    except ValueError:
+        return "UNKNOWN"
+
+
+def error_name(error: Any) -> str:
+    """Return the symbolic name of an operating system error code.
+
+    Args:
+        error: An :class:`OSError` instance or a numeric error code.
+
+    Returns:
+        The error name, such as ``"ECONNREFUSED"``, or ``"UNKNOWN"`` when the
+        code is not registered.
+
+    Raises:
+        TypeError: If *error* is neither an ``OSError`` nor an integer.
+    """
+    if isinstance(error, OSError):
+        code = error.errno
+    else:
+        code = _require_int(error, "error")
+    if code is None:
+        return "UNKNOWN"
+    return errno.errorcode.get(code, "UNKNOWN")
+
+
+def get_hostname() -> str:
+    """Return the hostname of the local machine."""
+    return socket.gethostname()
+
+
+def has_ipv6() -> bool:
+    """Return ``True`` when the platform supports IPv6."""
+    return bool(socket.has_ipv6)
+
+
+def is_ipv6_address(host: str) -> bool:
+    """Return ``True`` when *host* is a valid IPv6 address.
+
+    Args:
+        host: The address to inspect.
+
+    Returns:
+        ``True`` when *host* is a valid IPv6 address.
+
+    Raises:
+        TypeError: If *host* is not a string.
+    """
+    text = _require_host(host)
+    try:
+        socket.inet_pton(socket.AF_INET6, text)
+    except (OSError, ValueError):
+        return False
+    return True
+SOCKET_UTILS
+
+# --- tests/test_socket_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_socket_utils.py" <<'TEST_SOCKET_UTILS'
+"""Tests for socket_utils module."""
+
+import errno
+import socket
+import unittest
+
+import socket_utils
+
+
+class TestCreateSocket(unittest.TestCase):
+    """Verify socket creation helpers."""
+
+    def setUp(self):
+        self._sockets = []
+
+    def tearDown(self):
+        for sock in getattr(self, "_sockets", []):
+            sock.close()
+        self._sockets = []
+
+    def _track(self, sock):
+        self._sockets.append(sock)
+        return sock
+
+    def test_create_socket_defaults_to_tcp(self):
+        sock = self._track(socket_utils.create_socket())
+        self.assertIsInstance(sock, socket.socket)
+        self.assertEqual(sock.family, socket.AF_INET)
+        self.assertEqual(sock.type, socket.SOCK_STREAM)
+
+    def test_create_socket_with_udp(self):
+        sock = self._track(socket_utils.create_socket(socket.AF_INET, socket.SOCK_DGRAM))
+        self.assertEqual(sock.type, socket.SOCK_DGRAM)
+
+    def test_create_socket_rejects_non_int_family(self):
+        with self.assertRaises(TypeError):
+            socket_utils.create_socket("AF_INET")  # type: ignore[arg-type]
+
+    def test_create_socket_rejects_bool_type(self):
+        with self.assertRaises(TypeError):
+            socket_utils.create_socket(socket.AF_INET, True)  # type: ignore[arg-type]
+
+    def test_create_socket_rejects_non_int_proto(self):
+        with self.assertRaises(TypeError):
+            socket_utils.create_socket(socket.AF_INET, socket.SOCK_STREAM, "0")  # type: ignore[arg-type]
+
+    def test_create_tcp_socket(self):
+        sock = self._track(socket_utils.create_tcp_socket())
+        self.assertEqual(sock.type, socket.SOCK_STREAM)
+
+    def test_create_udp_socket(self):
+        sock = self._track(socket_utils.create_udp_socket())
+        self.assertEqual(sock.type, socket.SOCK_DGRAM)
+
+    def test_create_udp_socket_rejects_bad_family(self):
+        with self.assertRaises(TypeError):
+            socket_utils.create_udp_socket(1.5)  # type: ignore[arg-type]
+
+
+class TestAddressHelpers(unittest.TestCase):
+    """Verify address construction and resolution."""
+
+    def test_socket_address_returns_tuple(self):
+        self.assertEqual(socket_utils.socket_address("127.0.0.1", 8080), ("127.0.0.1", 8080))
+
+    def test_socket_address_rejects_non_string_host(self):
+        with self.assertRaises(TypeError):
+            socket_utils.socket_address(1234, 80)  # type: ignore[arg-type]
+
+    def test_socket_address_rejects_non_int_port(self):
+        with self.assertRaises(TypeError):
+            socket_utils.socket_address("127.0.0.1", "80")  # type: ignore[arg-type]
+
+    def test_socket_address_rejects_bool_port(self):
+        with self.assertRaises(TypeError):
+            socket_utils.socket_address("127.0.0.1", True)  # type: ignore[arg-type]
+
+    def test_socket_address_rejects_out_of_range_port(self):
+        with self.assertRaises(ValueError):
+            socket_utils.socket_address("127.0.0.1", 70000)
+
+    def test_resolve_address_of_loopback(self):
+        results = socket_utils.resolve_address("127.0.0.1", 80)
+        self.assertTrue(results)
+        self.assertTrue(all(len(item) == 5 for item in results))
+
+    def test_resolve_address_rejects_bad_port(self):
+        with self.assertRaises(ValueError):
+            socket_utils.resolve_address("127.0.0.1", -1)
+
+    def test_resolve_address_rejects_bad_host(self):
+        with self.assertRaises(TypeError):
+            socket_utils.resolve_address(None, 80)  # type: ignore[arg-type]
+
+    def test_resolve_address_rejects_unknown_host(self):
+        with self.assertRaises(socket.gaierror):
+            socket_utils.resolve_address("not a valid host", 80)
+
+
+class TestConnectionHelpers(unittest.TestCase):
+    """Verify connecting, binding and listening."""
+
+    def setUp(self):
+        self._sockets = []
+
+    def tearDown(self):
+        for sock in self._sockets:
+            try:
+                sock.close()
+            except OSError:
+                pass
+        self._sockets = []
+
+    def _track(self, sock):
+        self._sockets.append(sock)
+        return sock
+
+    def _server(self):
+        server = self._track(socket_utils.create_tcp_socket())
+        socket_utils.set_reuse_address(server)
+        socket_utils.bind_socket(server, ("127.0.0.1", 0))
+        socket_utils.listen_socket(server)
+        return server
+
+    def test_connect_and_accept_over_loopback(self):
+        server = self._server()
+        host, port = socket_utils.get_socket_name(server)[:2]
+        client = self._track(socket_utils.create_tcp_socket())
+        socket_utils.connect_socket(client, (host, port))
+        accepted, address = socket_utils.accept_connection(server)
+        self._track(accepted)
+        self.assertIsInstance(address, tuple)
+        self.assertEqual(socket_utils.get_peer_name(client)[:2], (host, port))
+        self.assertEqual(socket_utils.get_peer_name(accepted)[:2], address[:2])
+
+    def test_connect_socket_requires_socket(self):
+        with self.assertRaises(TypeError):
+            socket_utils.connect_socket("not a socket", ("127.0.0.1", 80))  # type: ignore[arg-type]
+
+    def test_connect_socket_requires_address_tuple(self):
+        sock = self._track(socket_utils.create_tcp_socket())
+        with self.assertRaises(TypeError):
+            socket_utils.connect_socket(sock, "127.0.0.1:80")  # type: ignore[arg-type]
+
+    def test_connect_socket_rejects_negative_timeout(self):
+        sock = self._track(socket_utils.create_tcp_socket())
+        with self.assertRaises(ValueError):
+            socket_utils.connect_socket(sock, ("127.0.0.1", 80), timeout=-1)
+
+    def test_bind_socket_requires_socket(self):
+        with self.assertRaises(TypeError):
+            socket_utils.bind_socket(object(), ("127.0.0.1", 0))  # type: ignore[arg-type]
+
+    def test_listen_socket_rejects_negative_backlog(self):
+        sock = self._track(socket_utils.create_tcp_socket())
+        with self.assertRaises(ValueError):
+            socket_utils.listen_socket(sock, backlog=-1)
+
+    def test_listen_socket_rejects_non_int_backlog(self):
+        sock = self._track(socket_utils.create_tcp_socket())
+        with self.assertRaises(TypeError):
+            socket_utils.listen_socket(sock, backlog="5")  # type: ignore[arg-type]
+
+    def test_accept_connection_requires_socket(self):
+        with self.assertRaises(TypeError):
+            socket_utils.accept_connection(42)  # type: ignore[arg-type]
+
+    def test_create_connection_to_open_port(self):
+        server = self._server()
+        host, port = socket_utils.get_socket_name(server)[:2]
+        client = self._track(socket_utils.create_connection((host, port), timeout=5))
+        accepted, _ = socket_utils.accept_connection(server)
+        self._track(accepted)
+        self.assertIsInstance(client, socket.socket)
+
+    def test_create_connection_rejects_bad_address(self):
+        with self.assertRaises(TypeError):
+            socket_utils.create_connection(("127.0.0.1",))  # type: ignore[arg-type]
+
+
+class TestDataTransfer(unittest.TestCase):
+    """Verify sending and receiving data."""
+
+    def setUp(self):
+        self.left, self.right = socket.socketpair()
+
+    def tearDown(self):
+        self.left.close()
+        self.right.close()
+
+    def test_send_all_and_receive_bytes(self):
+        socket_utils.send_all(self.left, b"ping")
+        self.assertEqual(socket_utils.receive_bytes(self.right), b"ping")
+
+    def test_send_all_accepts_bytearray(self):
+        socket_utils.send_all(self.left, bytearray(b"pong"))
+        self.assertEqual(socket_utils.receive_bytes(self.right), b"pong")
+
+    def test_send_all_requires_bytes(self):
+        with self.assertRaises(TypeError):
+            socket_utils.send_all(self.left, "text")  # type: ignore[arg-type]
+
+    def test_send_all_requires_socket(self):
+        with self.assertRaises(TypeError):
+            socket_utils.send_all(None, b"data")  # type: ignore[arg-type]
+
+    def test_receive_bytes_requires_positive_bufsize(self):
+        with self.assertRaises(ValueError):
+            socket_utils.receive_bytes(self.right, bufsize=0)
+
+    def test_receive_bytes_requires_int_bufsize(self):
+        with self.assertRaises(TypeError):
+            socket_utils.receive_bytes(self.right, bufsize="10")  # type: ignore[arg-type]
+
+    def test_send_and_receive_datagram(self):
+        left = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        right = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            left.bind(("127.0.0.1", 0))
+            right.bind(("127.0.0.1", 0))
+            sent = socket_utils.send_to(left, b"datagram", socket_utils.get_socket_name(right))
+            self.assertEqual(sent, 8)
+            data, address = socket_utils.receive_from(right)
+            self.assertEqual(data, b"datagram")
+            self.assertEqual(address[:2], ("127.0.0.1", socket_utils.get_socket_name(left)[1]))
+        finally:
+            left.close()
+            right.close()
+
+    def test_send_to_requires_address(self):
+        with self.assertRaises(TypeError):
+            socket_utils.send_to(self.left, b"data", "127.0.0.1:9")  # type: ignore[arg-type]
+
+    def test_receive_from_requires_socket(self):
+        with self.assertRaises(TypeError):
+            socket_utils.receive_from(None)  # type: ignore[arg-type]
+
+
+class TestSocketOptions(unittest.TestCase):
+    """Verify timeout, blocking and socket option helpers."""
+
+    def setUp(self):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def tearDown(self):
+        self.sock.close()
+
+    def test_set_and_get_timeout(self):
+        socket_utils.set_timeout(self.sock, 2.5)
+        self.assertEqual(socket_utils.get_timeout(self.sock), 2.5)
+
+    def test_set_timeout_none_restores_blocking_mode(self):
+        socket_utils.set_timeout(self.sock, 1.0)
+        socket_utils.set_timeout(self.sock, None)
+        self.assertIsNone(socket_utils.get_timeout(self.sock))
+
+    def test_set_timeout_rejects_bad_type(self):
+        with self.assertRaises(TypeError):
+            socket_utils.set_timeout(self.sock, "5")  # type: ignore[arg-type]
+
+    def test_set_timeout_rejects_negative_value(self):
+        with self.assertRaises(ValueError):
+            socket_utils.set_timeout(self.sock, -0.5)
+
+    def test_set_nonblocking_switches_mode(self):
+        socket_utils.set_nonblocking(self.sock)
+        self.assertEqual(self.sock.gettimeout(), 0.0)
+        socket_utils.set_nonblocking(self.sock, False)
+        self.assertIsNone(self.sock.gettimeout())
+
+    def test_set_nonblocking_rejects_non_bool(self):
+        with self.assertRaises(TypeError):
+            socket_utils.set_nonblocking(self.sock, 1)  # type: ignore[arg-type]
+
+    def test_set_reuse_address(self):
+        socket_utils.set_reuse_address(self.sock)
+        self.assertEqual(self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR), 1)
+
+    def test_set_reuse_address_rejects_non_bool(self):
+        with self.assertRaises(TypeError):
+            socket_utils.set_reuse_address(self.sock, "yes")  # type: ignore[arg-type]
+
+    def test_set_keepalive(self):
+        socket_utils.set_keepalive(self.sock)
+        self.assertEqual(self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE), 1)
+
+    def test_set_keepalive_rejects_non_bool(self):
+        with self.assertRaises(TypeError):
+            socket_utils.set_keepalive(self.sock, 0)  # type: ignore[arg-type]
+
+    def test_get_socket_name_of_unbound_socket(self):
+        name = socket_utils.get_socket_name(self.sock)
+        self.assertIsInstance(name, tuple)
+
+    def test_get_peer_name_requires_socket(self):
+        with self.assertRaises(TypeError):
+            socket_utils.get_peer_name(None)  # type: ignore[arg-type]
+
+
+class TestShutdownAndClose(unittest.TestCase):
+    """Verify shutting down and closing sockets."""
+
+    def test_shutdown_socket(self):
+        left, right = socket.socketpair()
+        try:
+            socket_utils.shutdown_socket(left, socket_utils.SHUT_WR)
+            self.assertEqual(right.recv(1), b"")
+        finally:
+            left.close()
+            right.close()
+
+    def test_shutdown_socket_rejects_unknown_mode(self):
+        left, right = socket.socketpair()
+        try:
+            with self.assertRaises(ValueError):
+                socket_utils.shutdown_socket(left, 99)
+        finally:
+            left.close()
+            right.close()
+
+    def test_shutdown_socket_requires_socket(self):
+        with self.assertRaises(TypeError):
+            socket_utils.shutdown_socket(object())  # type: ignore[arg-type]
+
+    def test_close_socket(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        socket_utils.close_socket(sock)
+        self.assertEqual(sock.fileno(), -1)
+
+    def test_close_socket_requires_socket(self):
+        with self.assertRaises(TypeError):
+            socket_utils.close_socket("not a socket")  # type: ignore[arg-type]
+
+
+class TestNaming(unittest.TestCase):
+    """Verify the naming helpers."""
+
+    def test_socket_family_name(self):
+        self.assertEqual(socket_utils.socket_family_name(socket.AF_INET), "AF_INET")
+        self.assertEqual(socket_utils.socket_family_name(socket.AF_INET6), "AF_INET6")
+
+    def test_socket_family_name_of_unknown_family(self):
+        self.assertEqual(socket_utils.socket_family_name(9999), "UNKNOWN")
+
+    def test_socket_family_name_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            socket_utils.socket_family_name("AF_INET")  # type: ignore[arg-type]
+
+    def test_socket_type_name(self):
+        self.assertEqual(socket_utils.socket_type_name(socket.SOCK_STREAM), "SOCK_STREAM")
+        self.assertEqual(socket_utils.socket_type_name(socket.SOCK_DGRAM), "SOCK_DGRAM")
+
+    def test_socket_type_name_of_unknown_type(self):
+        self.assertEqual(socket_utils.socket_type_name(9999), "UNKNOWN")
+
+    def test_socket_type_name_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            socket_utils.socket_type_name(None)  # type: ignore[arg-type]
+
+    def test_error_name_of_os_error(self):
+        error = OSError(errno.ECONNREFUSED, "Connection refused")
+        self.assertEqual(socket_utils.error_name(error), "ECONNREFUSED")
+
+    def test_error_name_of_code(self):
+        self.assertEqual(socket_utils.error_name(errno.EAGAIN), "EAGAIN")
+
+    def test_error_name_of_unknown_code(self):
+        self.assertEqual(socket_utils.error_name(999999), "UNKNOWN")
+
+    def test_error_name_of_os_error_without_errno(self):
+        self.assertEqual(socket_utils.error_name(OSError("boom")), "UNKNOWN")
+
+    def test_error_name_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            socket_utils.error_name("ECONNREFUSED")  # type: ignore[arg-type]
+
+
+class TestHostInformation(unittest.TestCase):
+    """Verify host related helpers."""
+
+    def test_get_hostname(self):
+        self.assertIsInstance(socket_utils.get_hostname(), str)
+        self.assertTrue(socket_utils.get_hostname())
+
+    def test_has_ipv6(self):
+        self.assertIsInstance(socket_utils.has_ipv6(), bool)
+
+    def test_is_ipv6_address(self):
+        self.assertTrue(socket_utils.is_ipv6_address("::1"))
+        self.assertTrue(socket_utils.is_ipv6_address("2001:db8::1"))
+
+    def test_is_ipv6_address_rejects_ipv4(self):
+        self.assertFalse(socket_utils.is_ipv6_address("127.0.0.1"))
+
+    def test_is_ipv6_address_rejects_garbage(self):
+        self.assertFalse(socket_utils.is_ipv6_address("not-an-address"))
+
+    def test_is_ipv6_address_requires_string(self):
+        with self.assertRaises(TypeError):
+            socket_utils.is_ipv6_address(None)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_SOCKET_UTILS

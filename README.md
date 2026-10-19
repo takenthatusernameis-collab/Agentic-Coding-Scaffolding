@@ -136,6 +136,7 @@ shlex_utils.py            # Simple lexical analysis utilities wrapping stdlib sh
 cmd_utils.py              # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
 this_utils.py             # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 tokenize_utils.py         # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
+socket_utils.py           # Low-level socket utilities wrapping stdlib socket (create_socket, connect_socket, send_all, receive_bytes, resolve_address, error_name)
 code_utils.py             # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 codeop_utils.py           # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
 copyreg_utils.py          # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
@@ -381,6 +382,7 @@ test_lzma_utils.py          # Tests for lzma_utils.py
     test_cmd_utils.py           # Tests for cmd_utils.py
     test_this_utils.py          # Tests for this_utils.py
     test_tokenize_utils.py      # Tests for tokenize_utils.py
+    test_socket_utils.py        # Tests for socket_utils.py
     test_code_utils.py          # Tests for code_utils.py
     test_codeop_utils.py        # Tests for codeop_utils.py
     test_copyreg_utils.py       # Tests for copyreg_utils.py
@@ -1041,6 +1043,10 @@ The project includes Zen of Python utilities in `this_utils.py` wrapping the sta
 ## Source Tokenization Utilities Module
 
 The project includes source tokenization utilities in `tokenize_utils.py` wrapping the standard library `tokenize` module: `tokenize_source` tokenizes in-memory source text, `tokenize_file` tokenizes a file using its declared encoding, `generate_tokens` yields tokens from a `readline` callable, `untokenize` rebuilds source text from a token stream, `token_name` returns the name registered for a token type, `token_type` returns the numeric type registered for a token name, `detect_encoding` detects the source encoding of a byte stream, `significant_tokens` drops comments and blank lines, and the `is_comment`, `is_string`, `is_number`, `is_name` and `is_keyword` predicates classify individual tokens. The module is tested in `tests/test_tokenize_utils.py`.
+
+## Socket Utilities Module
+
+The project includes low-level socket utilities in `socket_utils.py` wrapping the standard library `socket` module: `create_socket` creates a socket for a given address family and socket type, `create_tcp_socket` and `create_udp_socket` create stream and datagram sockets, `socket_address` validates a `(host, port)` pair, `resolve_address` resolves a host and port into candidate addresses, `connect_socket` and `create_connection` establish client connections, `bind_socket`, `listen_socket` and `accept_connection` set up servers, `send_all`, `send_to`, `receive_bytes` and `receive_from` move data over sockets, `set_timeout`, `get_timeout`, `set_nonblocking`, `set_reuse_address` and `set_keepalive` configure socket options, `shutdown_socket` and `close_socket` release sockets, `get_socket_name` and `get_peer_name` inspect bound and peer addresses, `socket_family_name` and `socket_type_name` translate numeric constants into readable names, `error_name` maps operating system error codes to their symbolic names, `get_hostname` returns the local hostname, `has_ipv6` reports IPv6 support, and `is_ipv6_address` checks IPv6 address strings. The module is tested in `tests/test_socket_utils.py`.
 
 ## Interactive Console Utilities Module
 
