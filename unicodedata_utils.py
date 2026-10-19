@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Literal
-
 import unicodedata
+from typing import Literal
 
 __all__: list[str] = [
     "unicodedata_lookup",

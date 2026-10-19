@@ -132,6 +132,7 @@ py_modules = [
     "html_utils",
     "array_utils",
     "base64_utils",
+    "binascii_utils",
     "bisect_utils",
     "bz2_utils",
     "contextlib_utils",

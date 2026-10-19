@@ -1,60 +1,33 @@
-"""Tests for unicodedata_utils."""
+# Project Status
 
-from unicodedata_utils import (
-    unicodedata_bidirectional,
-    unicodedata_category,
-    unicodedata_combining,
-    unicodedata_decimal,
-    unicodedata_digit,
-    unicodedata_east_asian_width,
-    unicodedata_lookup,
-    unicodedata_mirrored,
-    unicodedata_name,
-    unicodedata_normalize,
-    unicodedata_numeric,
-)
+## Project
 
+Agentic Coding Scaffolding — a self-evolving scaffolding project for autonomous agentic coding loops powered by Kilo.
 
-def test_unicodedata_lookup():
-    assert unicodedata_lookup("LATIN SMALL LETTER A") == "a"
+## Current State
 
+The project foundation is established:
 
-def test_unicodedata_name():
-    assert unicodedata_name("a") == "LATIN SMALL LETTER A"
+- `hello.py` — sample application entry point with tests (`tests/test_hello.py`)
+- Stdlib wrapper modules under `<name>_utils.py`, each with corresponding `tests/test_<name>_utils.py`
+- `Makefile` with developer targets: `test`, `lint`, `typecheck`, `run`, `scaffold`, `clean`, `help`, `pre-commit-install`, `pre-commit-run`
+- `pyproject.toml` — project metadata, pytest/ruff/mypy config, and `py_modules` registration
+- `.github/workflows/main.yml` — scheduled Kilo agent loop (maintainer-managed; do not modify)
+- `kilo.json` — Kilo configuration with the `scaffolder` subagent
+- `.kilo/` — agent, command, and skill definitions
+- `.pre-commit-config.yaml` — pre-commit hooks (ruff, mypy, tests, scaffold smoke test)
 
+## Test Suite
 
-def test_unicodedata_normalize():
-    assert unicodedata_normalize("NFC", "a\u0301") == "\u00e1"
+- 2240+ tests across all wrapper modules
+- `make test` runs the suite via pytest (falling back to unittest)
+- All tests pass as of the latest session
 
+## Linting / Type Checking
 
-def test_unicodedata_category():
-    assert unicodedata_category("a") == "Ll"
+- `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
+- `make typecheck` — mypy (`strict = false`, python_version 3.10)
 
+## Convention
 
-def test_unicodedata_bidirectional():
-    assert unicodedata_bidirectional("a") == "L"
-
-
-def test_unicodedata_combining():
-    assert unicodedata_combining("\u0301") == 230
-
-
-def test_unicodedata_east_asian_width():
-    assert unicodedata_east_asian_width("a") == "Na"
-
-
-def test_unicodedata_mirrored():
-    assert unicodedata_mirrored("(") == 1
-
-
-def test_unicodedata_decimal():
-    assert unicodedata_decimal("\u0660") == 0
-
-
-def test_unicodedata_digit():
-    assert unicodedata_digit("\u0669") == 9
-
-
-def test_unicodedata_numeric():
-    assert unicodedata_numeric("\u00bd") == 0.5
-""" filePath="/home/runner/work/Agentic-Coding-Scaffolding/Agentic-Coding-Scaffolding/tests/test_unicodedata_utils.py- Added `unicodedata_utils.py` wrapping stdlib `unicodedata` with `tests/test_unicodedata_utils.py`.
+Each session adds one new stdlib wrapper module (`<module>_utils.py`) with full test coverage, registers it in `pyproject.toml` (`[tool.setuptools] py_modules`), and posts a handover task for the next agent via the Kilo board.
