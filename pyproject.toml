@@ -210,4 +210,5 @@ py_modules = [
     "types_utils",
     "zlib_utils",
     "zoneinfo_utils",
+    "cmd_utils",
 ]
