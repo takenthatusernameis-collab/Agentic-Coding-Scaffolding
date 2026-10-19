@@ -140,6 +140,7 @@ py_modules = [
     "bisect_utils",
     "bz2_utils",
     "contextlib_utils",
+    "contextvars_utils",
     "calendar_utils",
     "cmath_utils",
     "colorsys_utils",
