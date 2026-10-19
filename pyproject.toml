@@ -97,6 +97,7 @@ py_modules = [
     "ring_buffer_utils",
     "dict_utils",
     "json_utils",
+    "tomllib_utils",
     "csv_utils",
     "set_utils",
     "stat_utils",
