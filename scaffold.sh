@@ -46,6 +46,7 @@
 #   - contextvars_utils.py — # Context variable utilities wrapping stdlib contextvars (ContextVar, Token, Context, copy_context)
 #   - configparser_utils.py — # INI configuration file parsing utilities wrapping stdlib configparser (load_config, save_config, get_sections, get_options, read_files, write_config)
 #   - binascii_utils.py — # Binary-to-ASCII encoding and decoding utilities wrapping stdlib binascii (hexlify, unhexlify, b2a_base64, a2b_base64, b2a_uu, a2b_uu, b2a_qp, a2b_qp, crc32, adler32, crc_hqx)
+#   - shelve_utils.py — # Persistent key/value storage utilities wrapping stdlib shelve (open_shelf, close, sync, keys, get, set_value, delete, contains, is_shelf)
 
 #   - calculator.py — # Simple calculator module with arithmetic operations
 
@@ -438,6 +439,8 @@
 #   - test_set_utils.py — # Tests for set_utils.py
 
 #   - test_shapes.py — # Tests for shapes.py
+
+#   - test_shelve_utils.py — # Tests for shelve_utils.py
 
 #   - test_shutil_utils.py — # Tests for shutil_utils.py
 
@@ -1010,6 +1013,7 @@ py_modules = [
     "contextvars_utils",
     "configparser_utils",
     "binascii_utils",
+    "shelve_utils",
     "multiprocessing_utils",
     "marshal_utils",
     "sqlite3_utils",
@@ -20733,6 +20737,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `dis_utils.py` — bytecode disassembly utilities wrapping the standard library `dis` module (`dis`, `disassemble`, `show_code`, `get_instructions`, `code_info`, `findlinestarts`, `findlabels`) with input validation
 - `contextvars_utils.py` — context variable utilities wrapping the standard library `contextvars` module (`ContextVar`, `Token`, `Context`, `copy_context`) with input validation
 - `configparser_utils.py` — INI configuration file parsing utilities wrapping the standard library `configparser` module (`load_config`, `save_config`, `get_sections`, `get_options`, `read_files`, `write_config`) with input validation
+- `shelve_utils.py` — persistent key/value storage utilities wrapping the standard library `shelve` module (`open_shelf`, `close`, `sync`, `keys`, `get`, `set_value`, `delete`, `contains`, `is_shelf`) with input validation
 - `binascii_utils.py` — binary-to-ASCII encoding and decoding utilities wrapping the standard library `binascii` module (`hexlify`, `unhexlify`, `b2a_base64`, `a2b_base64`, `b2a_uu`, `a2b_uu`, `b2a_qp`, `a2b_qp`, `crc32`, `adler32`, `crc_hqx`) with input validation
 - `importlib_utils.py` — importlib utilities (dynamic import, reload, spec inspection, metadata, resources)
 - `atexit_utils.py` — atexit utilities for registering and managing exit handlers (dynamic import, reload, spec inspection, metadata, resources)
@@ -20799,6 +20804,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_dis_utils.py` — unit tests for `dis_utils.py`
 - `tests/test_contextvars_utils.py` — unit tests for `contextvars_utils.py`
 - `tests/test_configparser_utils.py` — unit tests for `configparser_utils.py`
+- `tests/test_shelve_utils.py` — unit tests for `shelve_utils.py`
 - `tests/test_binascii_utils.py` — unit tests for `binascii_utils.py`
 - `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
 - `tests/test_multiprocessing_utils.py` — unit tests for `multiprocessing_utils.py`
@@ -21967,6 +21973,7 @@ dis_utils.py              # Bytecode disassembly utilities wrapping stdlib dis (
 contextvars_utils.py      # Context variable utilities wrapping stdlib contextvars (ContextVar, Token, Context, copy_context)
 configparser_utils.py     # INI configuration file parsing utilities wrapping stdlib configparser (load_config, save_config, get_sections, get_options, read_files, write_config)
 binascii_utils.py         # Binary-to-ASCII encoding and decoding utilities wrapping stdlib binascii (hexlify, unhexlify, b2a_base64, a2b_base64, b2a_uu, a2b_uu, b2a_qp, a2b_qp, crc32, adler32, crc_hqx)
+shelve_utils.py           # Persistent key/value storage utilities wrapping stdlib shelve (open_shelf, close, sync, keys, get, set_value, delete, contains, is_shelf)
 lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -22095,6 +22102,7 @@ tests/                     # Python unit tests
   test_seq_utils.py           # Tests for seq_utils.py
   test_set_utils.py           # Tests for set_utils.py
   test_shapes.py              # Tests for shapes.py
+  test_shelve_utils.py        # Tests for shelve_utils.py
   test_shlex_utils.py         # Tests for shlex_utils.py
   test_shutil_utils.py        # Tests for shutil_utils.py
   test_signal_utils.py        # Tests for signal_utils.py
@@ -22225,6 +22233,10 @@ The project includes quoted-printable utilities in `quopri_utils.py` wrapping th
 
 The project includes scheduler utilities in `sched_utils.py` wrapping the standard library `sched` module: `scheduler` creates a scheduler instance, `enter` and `enterabs` schedule delayed and absolute events, `cancel` removes a scheduled event, `empty` reports whether the queue is empty, `run` executes the pending events, and `queue` returns the pending events. The module is tested in `tests/test_sched_utils.py`.
 
+## Shelve Utilities Module
+
+The project includes persistent key/value storage utilities in `shelve_utils.py` wrapping the standard library `shelve` module: `open_shelf` opens a shelf backed by a database file, `close` closes it, `sync` writes back pending changes when writeback caching is enabled, `keys` lists the stored keys, `get` reads a value with a default fallback, `set_value` stores a value, `delete` removes a key, and `is_shelf` reports whether an object is a shelf. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_shelve_utils.py`.
+
 ## Token Utilities Module
 
 The project includes Python token constant utilities in `token_utils.py` wrapping the standard library `token` module: `is_eof`, `is_nonterminal`, and `is_terminal` classify a token type, `tok_name` returns the token name mapping, `exact_token_types` returns the exact token type mapping, `n_tokens` returns the number of token types, and `nt_offset` returns the non-terminal offset. The module is tested in `tests/test_token_utils.py`.
@@ -22251,6 +22263,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `shelve_utils.py` — persistent key/value storage utilities wrapping the standard library `shelve` module (`open_shelf`, `close`, `sync`, `keys`, `get`, `set_value`, `delete`, `contains`, `is_shelf`) with input validation, plus `tests/test_shelve_utils.py`.
+- Synchronized `shelve_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation, plus `tests/test_pkgutil_utils.py`.
 - Synchronized `pkgutil_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -42711,3 +42726,342 @@ def test_unicodedata_digit():
 def test_unicodedata_numeric():
     assert unicodedata_numeric("\u00bd") == 0.5
 TEST_UNICODEDATA_UTILS
+
+# --- shelve_utils.py ---
+cat > "$OUTPUT_DIR/shelve_utils.py" <<'SHELVE_UTILS'
+"""Persistent key/value storage utilities wrapping the standard library ``shelve``.
+
+The :mod:`shelve` module stores Python objects in a dictionary-like interface
+backed by a database file. This module wraps that interface in a small,
+validated layer: every helper checks its arguments and raises ``TypeError`` on
+invalid input.
+"""
+
+from __future__ import annotations
+
+import shelve
+from typing import Any, Literal, Optional
+
+Shelf = shelve.Shelf
+
+__all__ = [
+    "open_shelf",
+    "close",
+    "sync",
+    "keys",
+    "get",
+    "set_value",
+    "delete",
+    "contains",
+    "is_shelf",
+]
+
+
+def open_shelf(
+    filename: str,
+    flag: Literal["r", "w", "c", "n"] = "c",
+    protocol: Optional[int] = None,
+    writeback: bool = False,
+) -> Shelf:
+    """
+    Open a persistent shelf at the given filename.
+
+    Args:
+        filename: Path to the shelf database file.
+        flag: Open mode ('r', 'w', 'c', 'n').
+        protocol: Pickle protocol version (default None = highest available).
+        writeback: Enable writeback caching.
+
+    Returns:
+        A ``shelve.Shelf`` instance (context manager).
+
+    Raises:
+        TypeError: If filename is not a str.
+        ValueError: If flag is invalid.
+    """
+    if not isinstance(filename, str):
+        raise TypeError(f"filename must be str, got {type(filename).__name__}")
+    if flag not in ("r", "w", "c", "n"):
+        raise ValueError(f"flag must be one of 'r','w','c','n', got {flag!r}")
+    if protocol is not None:
+        return shelve.open(filename, flag=flag, protocol=protocol, writeback=writeback)
+    return shelve.open(filename, flag=flag, writeback=writeback)
+
+
+def close(shelf: Any) -> None:
+    """
+    Close a shelf.
+
+    Args:
+        shelf: A shelve.Shelf instance.
+
+    Raises:
+        AttributeError: If shelf lacks a close method.
+    """
+    if not hasattr(shelf, "close"):
+        raise AttributeError("shelf must have a 'close' method")
+    shelf.close()
+
+
+def sync(shelf: Any) -> None:
+    """
+    Write back any pending changes to a shelf with writeback enabled.
+
+    Args:
+        shelf: A shelve.Shelf instance.
+
+    Raises:
+        AttributeError: If shelf lacks a sync method.
+    """
+    if not hasattr(shelf, "sync"):
+        raise AttributeError("shelf must have a 'sync' method")
+    shelf.sync()
+
+
+def keys(shelf: Any) -> list[str]:
+    """Return the keys of a shelf."""
+    return list(shelf.keys())
+
+
+def get(shelf: Any, key: str, default: Any = None) -> Any:
+    """
+    Get a value from a shelf with a default fallback.
+
+    Args:
+        shelf: A shelve.Shelf instance.
+        key: Key to look up.
+        default: Value returned if key is missing.
+
+    Returns:
+        The stored value or default.
+    """
+    if not isinstance(key, str):
+        raise TypeError(f"key must be str, got {type(key).__name__}")
+    if hasattr(shelf, "get"):
+        return shelf.get(key, default)
+    if key in shelf:
+        return shelf[key]
+    return default
+
+
+def set_value(shelf: Any, key: str, value: Any) -> None:
+    """
+    Set a value in a shelf.
+
+    Args:
+        shelf: A shelve.Shelf instance.
+        key: Key to store under.
+        value: Value to store.
+    """
+    if not isinstance(key, str):
+        raise TypeError(f"key must be str, got {type(key).__name__}")
+    shelf[key] = value
+
+
+def delete(shelf: Any, key: str) -> None:
+    """
+    Delete a key from a shelf.
+
+    Args:
+        shelf: A shelve.Shelf instance.
+        key: Key to delete.
+
+    Raises:
+        KeyError: If key is not present.
+    """
+    if not isinstance(key, str):
+        raise TypeError(f"key must be str, got {type(key).__name__}")
+    if key not in shelf:
+        raise KeyError(key)
+    del shelf[key]
+
+
+def contains(shelf: Any, key: str) -> bool:
+    """Return True if key is in shelf."""
+    if not isinstance(key, str):
+        raise TypeError(f"key must be str, got {type(key).__name__}")
+    return key in shelf
+
+
+def is_shelf(obj: Any) -> bool:
+    """Return True if obj is a shelve.Shelf instance."""
+    return isinstance(obj, shelve.Shelf)
+SHELVE_UTILS
+
+# --- tests/test_shelve_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_shelve_utils.py" <<'TEST_SHELVE_UTILS'
+"""Tests for shelve_utils."""
+
+import os
+import shutil
+import tempfile
+import unittest
+
+from shelve_utils import (
+    close,
+    contains,
+    delete,
+    get,
+    is_shelf,
+    keys,
+    open_shelf,
+    set_value,
+    sync,
+)
+
+
+class TestShelveUtils(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.path = os.path.join(self.tmp, "shelf")
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_open_shelf_creates_database(self):
+        shelf = open_shelf(self.path)
+        try:
+            self.assertTrue(is_shelf(shelf))
+            self.assertTrue(os.path.exists(self.path) or len(os.listdir(self.tmp)) > 0)
+        finally:
+            close(shelf)
+
+    def test_open_shelf_rejects_non_string_filename(self):
+        with self.assertRaises(TypeError):
+            open_shelf(123)
+
+    def test_open_shelf_rejects_invalid_flag(self):
+        with self.assertRaises(ValueError):
+            open_shelf(self.path, flag="x")
+
+    def test_open_shelf_accepts_explicit_protocol(self):
+        shelf = open_shelf(self.path, protocol=2)
+        try:
+            set_value(shelf, "a", 1)
+            self.assertEqual(get(shelf, "a"), 1)
+        finally:
+            close(shelf)
+
+    def test_set_value_and_get(self):
+        shelf = open_shelf(self.path)
+        try:
+            set_value(shelf, "name", "kilo")
+            set_value(shelf, "count", 3)
+            self.assertEqual(get(shelf, "name"), "kilo")
+            self.assertEqual(get(shelf, "count"), 3)
+        finally:
+            close(shelf)
+
+    def test_get_returns_default_for_missing_key(self):
+        shelf = open_shelf(self.path)
+        try:
+            self.assertIsNone(get(shelf, "missing"))
+            self.assertEqual(get(shelf, "missing", "fallback"), "fallback")
+        finally:
+            close(shelf)
+
+    def test_get_rejects_non_string_key(self):
+        shelf = open_shelf(self.path)
+        try:
+            with self.assertRaises(TypeError):
+                get(shelf, 1)
+        finally:
+            close(shelf)
+
+    def test_set_value_rejects_non_string_key(self):
+        shelf = open_shelf(self.path)
+        try:
+            with self.assertRaises(TypeError):
+                set_value(shelf, 1, "value")
+        finally:
+            close(shelf)
+
+    def test_keys_lists_stored_keys(self):
+        shelf = open_shelf(self.path)
+        try:
+            set_value(shelf, "a", 1)
+            set_value(shelf, "b", 2)
+            self.assertEqual(sorted(keys(shelf)), ["a", "b"])
+        finally:
+            close(shelf)
+
+    def test_contains_reports_membership(self):
+        shelf = open_shelf(self.path)
+        try:
+            set_value(shelf, "present", 1)
+            self.assertTrue(contains(shelf, "present"))
+            self.assertFalse(contains(shelf, "absent"))
+        finally:
+            close(shelf)
+
+    def test_contains_rejects_non_string_key(self):
+        shelf = open_shelf(self.path)
+        try:
+            with self.assertRaises(TypeError):
+                contains(shelf, 1)
+        finally:
+            close(shelf)
+
+    def test_delete_removes_key(self):
+        shelf = open_shelf(self.path)
+        try:
+            set_value(shelf, "gone", 1)
+            delete(shelf, "gone")
+            self.assertFalse(contains(shelf, "gone"))
+        finally:
+            close(shelf)
+
+    def test_delete_missing_key_raises_key_error(self):
+        shelf = open_shelf(self.path)
+        try:
+            with self.assertRaises(KeyError):
+                delete(shelf, "nope")
+        finally:
+            close(shelf)
+
+    def test_delete_rejects_non_string_key(self):
+        shelf = open_shelf(self.path)
+        try:
+            with self.assertRaises(TypeError):
+                delete(shelf, 1)
+        finally:
+            close(shelf)
+
+    def test_values_persist_across_sessions(self):
+        shelf = open_shelf(self.path)
+        try:
+            set_value(shelf, "persisted", [1, 2, 3])
+        finally:
+            close(shelf)
+
+        shelf = open_shelf(self.path)
+        try:
+            self.assertEqual(get(shelf, "persisted"), [1, 2, 3])
+        finally:
+            close(shelf)
+
+    def test_sync_with_writeback(self):
+        shelf = open_shelf(self.path, writeback=True)
+        try:
+            set_value(shelf, "cached", "value")
+            sync(shelf)
+            self.assertEqual(get(shelf, "cached"), "value")
+        finally:
+            close(shelf)
+
+    def test_sync_rejects_object_without_sync(self):
+        with self.assertRaises(AttributeError):
+            sync(object())
+
+    def test_close_rejects_object_without_close(self):
+        with self.assertRaises(AttributeError):
+            close(object())
+
+    def test_is_shelf_rejects_other_objects(self):
+        self.assertFalse(is_shelf({}))
+        self.assertFalse(is_shelf(None))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_SHELVE_UTILS

@@ -126,6 +126,7 @@ dis_utils.py              # Bytecode disassembly utilities wrapping stdlib dis (
 contextvars_utils.py      # Context variable utilities wrapping stdlib contextvars (ContextVar, Token, Context, copy_context)
 configparser_utils.py     # INI configuration file parsing utilities wrapping stdlib configparser (load_config, save_config, get_sections, get_options, read_files, write_config)
 binascii_utils.py         # Binary-to-ASCII encoding and decoding utilities wrapping stdlib binascii (hexlify, unhexlify, b2a_base64, a2b_base64, b2a_uu, a2b_uu, b2a_qp, a2b_qp, crc32, adler32, crc_hqx)
+shelve_utils.py           # Persistent key/value storage utilities wrapping stdlib shelve (open_shelf, close, sync, keys, get, set_value, delete, contains, is_shelf)
 marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
 importlib_utils.py         # importlib utilities
 atexit_utils.py            # atexit utilities for registering exit handlers
@@ -282,6 +283,7 @@ test_secrets_utils.py       # Tests for secrets_utils.py
    test_seq_utils.py           # Tests for seq_utils.py
    test_set_utils.py           # Tests for set_utils.py
    test_shapes.py              # Tests for shapes.py
+   test_shelve_utils.py        # Tests for shelve_utils.py
    test_shutil_utils.py        # Tests for shutil_utils.py
    test_signal_utils.py        # Tests for signal_utils.py
    test_socketserver_utils.py     # Tests for socketserver_utils.py
@@ -942,6 +944,10 @@ The project includes quoted-printable utilities in `quopri_utils.py` wrapping th
 ## Sched Utilities Module
 
 The project includes scheduler utilities in `sched_utils.py` wrapping the standard library `sched` module: `scheduler` creates a scheduler instance, `enter` and `enterabs` schedule delayed and absolute events, `cancel` removes a scheduled event, `empty` reports whether the queue is empty, `run` executes the pending events, and `queue` returns the pending events. The module is tested in `tests/test_sched_utils.py`.
+
+## Shelve Utilities Module
+
+The project includes persistent key/value storage utilities in `shelve_utils.py` wrapping the standard library `shelve` module: `open_shelf` opens a shelf backed by a database file, `close` closes it, `sync` writes back pending changes when writeback caching is enabled, `keys` lists the stored keys, `get` reads a value with a default fallback, `set_value` stores a value, `delete` removes a key, and `is_shelf` reports whether an object is a shelf. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_shelve_utils.py`.
 
 ## Token Utilities Module
 

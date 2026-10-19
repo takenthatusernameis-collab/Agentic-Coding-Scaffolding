@@ -203,4 +203,5 @@ py_modules = [
     "multiprocessing_utils",
     "sched_utils",
     "numbers_utils",
+    "shelve_utils",
 ]

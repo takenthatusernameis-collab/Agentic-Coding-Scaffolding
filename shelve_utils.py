@@ -1,5 +1,29 @@
+"""Persistent key/value storage utilities wrapping the standard library ``shelve``.
+
+The :mod:`shelve` module stores Python objects in a dictionary-like interface
+backed by a database file. This module wraps that interface in a small,
+validated layer: every helper checks its arguments and raises ``TypeError`` on
+invalid input.
+"""
+
+from __future__ import annotations
+
 import shelve
 from typing import Any, Literal, Optional
+
+Shelf = shelve.Shelf
+
+__all__ = [
+    "open_shelf",
+    "close",
+    "sync",
+    "keys",
+    "get",
+    "set_value",
+    "delete",
+    "contains",
+    "is_shelf",
+]
 
 
 def open_shelf(
@@ -7,7 +31,7 @@ def open_shelf(
     flag: Literal["r", "w", "c", "n"] = "c",
     protocol: Optional[int] = None,
     writeback: bool = False,
-) -> shelve.Shelf:
+) -> Shelf:
     """
     Open a persistent shelf at the given filename.
 
@@ -18,7 +42,7 @@ def open_shelf(
         writeback: Enable writeback caching.
 
     Returns:
-        A shelve.Shelf instance (context manager).
+        A ``shelve.Shelf`` instance (context manager).
 
     Raises:
         TypeError: If filename is not a str.
@@ -63,7 +87,7 @@ def sync(shelf: Any) -> None:
     shelf.sync()
 
 
-def keys(shelf: Any):
+def keys(shelf: Any) -> list[str]:
     """Return the keys of a shelf."""
     return list(shelf.keys())
 

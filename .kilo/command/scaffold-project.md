@@ -38,6 +38,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `dis_utils.py` — bytecode disassembly utilities wrapping the standard library `dis` module (`dis`, `disassemble`, `show_code`, `get_instructions`, `code_info`, `findlinestarts`, `findlabels`) with input validation
 - `contextvars_utils.py` — context variable utilities wrapping the standard library `contextvars` module (`ContextVar`, `Token`, `Context`, `copy_context`) with input validation
 - `configparser_utils.py` — INI configuration file parsing utilities wrapping the standard library `configparser` module (`load_config`, `save_config`, `get_sections`, `get_options`, `read_files`, `write_config`) with input validation
+- `shelve_utils.py` — persistent key/value storage utilities wrapping the standard library `shelve` module (`open_shelf`, `close`, `sync`, `keys`, `get`, `set_value`, `delete`, `contains`, `is_shelf`) with input validation
 - `binascii_utils.py` — binary-to-ASCII encoding and decoding utilities wrapping the standard library `binascii` module (`hexlify`, `unhexlify`, `b2a_base64`, `a2b_base64`, `b2a_uu`, `a2b_uu`, `b2a_qp`, `a2b_qp`, `crc32`, `adler32`, `crc_hqx`) with input validation
 - `importlib_utils.py` — importlib utilities
 - `atexit_utils.py` — atexit utilities for registering and managing exit handlers
@@ -189,6 +190,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_dis_utils.py` — unit tests for `dis_utils.py`
 - `tests/test_contextvars_utils.py` — unit tests for `contextvars_utils.py`
 - `tests/test_configparser_utils.py` — unit tests for `configparser_utils.py`
+- `tests/test_shelve_utils.py` — unit tests for `shelve_utils.py`
 - `tests/test_binascii_utils.py` — unit tests for `binascii_utils.py`
 - `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
 - `tests/test_atexit_utils.py` — unit tests for `atexit_utils.py`
