@@ -206,6 +206,7 @@ py_modules = [
     "sched_utils",
     "numbers_utils",
     "shelve_utils",
+    "types_utils",
     "zlib_utils",
     "zoneinfo_utils",
 ]
