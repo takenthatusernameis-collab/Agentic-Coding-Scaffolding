@@ -156,6 +156,7 @@ py_modules = [
     "selectors_utils",
     "socketserver_utils",
     "seq_utils",
+    "quopri_utils",
     "queue_utils",
     "sort_utils",
     "sys_utils",
