@@ -1,5 +1,7 @@
 """Tests for zlib_utils."""
 
+import unittest
+
 from zlib_utils import (
     zlib_adler32,
     zlib_compress,
@@ -10,23 +12,47 @@ from zlib_utils import (
 )
 
 
-def test_zlib_compress_decompress_roundtrip():
-    data = b"hello world" * 10
-    compressed = zlib_compress(data)
-    assert zlib_decompress(compressed) == data
+class TestZlibUtils(unittest.TestCase):
+    def test_compress_decompress_roundtrip(self):
+        data = b"hello world" * 10
+        compressed = zlib_compress(data)
+        self.assertNotEqual(compressed, data)
+        self.assertEqual(zlib_decompress(compressed), data)
+
+    def test_compress_with_level(self):
+        data = b"hello world" * 100
+        compressed = zlib_compress(data, level=9)
+        self.assertEqual(zlib_decompress(compressed), data)
+
+    def test_compressobj_decompressobj_roundtrip(self):
+        data = b"hello world" * 10
+        co = zlib_compressobj()
+        compressed = co.compress(data) + co.flush()
+        do = zlib_decompressobj()
+        self.assertEqual(do.decompress(compressed), data)
+
+    def test_crc32(self):
+        self.assertEqual(zlib_crc32(b"hello"), 907060870)
+
+    def test_adler32(self):
+        self.assertEqual(zlib_adler32(b"hello"), 103547413)
+
+    def test_compress_rejects_non_bytes(self):
+        with self.assertRaises(TypeError):
+            zlib_compress("not bytes")  # type: ignore[arg-type]
+
+    def test_decompress_rejects_non_bytes(self):
+        with self.assertRaises(TypeError):
+            zlib_decompress("not bytes")  # type: ignore[arg-type]
+
+    def test_crc32_rejects_non_bytes(self):
+        with self.assertRaises(TypeError):
+            zlib_crc32("not bytes")  # type: ignore[arg-type]
+
+    def test_adler32_rejects_non_bytes(self):
+        with self.assertRaises(TypeError):
+            zlib_adler32("not bytes")  # type: ignore[arg-type]
 
 
-def test_zlib_compressobj_decompressobj_roundtrip():
-    data = b"hello world" * 10
-    co = zlib_compressobj()
-    compressed = co.compress(data) + co.flush()
-    do = zlib_decompressobj()
-    assert do.decompress(compressed) == data
-
-
-def test_zlib_crc32():
-    assert zlib_crc32(b"hello") == 907060870
-
-
-def test_zlib_adler32():
-    assert zlib_adler32(b"hello") == 103547413
+if __name__ == "__main__":
+    unittest.main()

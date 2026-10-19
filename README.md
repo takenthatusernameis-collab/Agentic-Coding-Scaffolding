@@ -127,6 +127,7 @@ contextvars_utils.py      # Context variable utilities wrapping stdlib contextva
 configparser_utils.py     # INI configuration file parsing utilities wrapping stdlib configparser (load_config, save_config, get_sections, get_options, read_files, write_config)
 binascii_utils.py         # Binary-to-ASCII encoding and decoding utilities wrapping stdlib binascii (hexlify, unhexlify, b2a_base64, a2b_base64, b2a_uu, a2b_uu, b2a_qp, a2b_qp, crc32, adler32, crc_hqx)
 shelve_utils.py           # Persistent key/value storage utilities wrapping stdlib shelve (open_shelf, close, sync, keys, get, set_value, delete, contains, is_shelf)
+zlib_utils.py             # Zlib compression and checksum utilities wrapping stdlib zlib (zlib_compress, zlib_decompress, zlib_compressobj, zlib_decompressobj, zlib_crc32, zlib_adler32)
 marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
 importlib_utils.py         # importlib utilities
 atexit_utils.py            # atexit utilities for registering exit handlers
@@ -325,9 +326,10 @@ test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
 test_zipfile_utils.py       # Tests for zipfile_utils.py
    test_bz2_utils.py           # Tests for bz2_utils.py
-   test_lzma_utils.py          # Tests for lzma_utils.py
-   test_gc_utils.py            # Tests for gc_utils.py
-    ```
+test_lzma_utils.py          # Tests for lzma_utils.py
+    test_gc_utils.py            # Tests for gc_utils.py
+    test_zlib_utils.py          # Tests for zlib_utils.py
+     ```
 
 ## How It Works
 
@@ -948,6 +950,10 @@ The project includes scheduler utilities in `sched_utils.py` wrapping the standa
 ## Shelve Utilities Module
 
 The project includes persistent key/value storage utilities in `shelve_utils.py` wrapping the standard library `shelve` module: `open_shelf` opens a shelf backed by a database file, `close` closes it, `sync` writes back pending changes when writeback caching is enabled, `keys` lists the stored keys, `get` reads a value with a default fallback, `set_value` stores a value, `delete` removes a key, and `is_shelf` reports whether an object is a shelf. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_shelve_utils.py`.
+
+## Zlib Utilities Module
+
+The project includes zlib compression and checksum utilities in `zlib_utils.py` wrapping the standard library `zlib` module: `zlib_compress` compresses bytes at a given compression level, `zlib_decompress` reverses it, `zlib_compressobj` and `zlib_decompressobj` create streaming compression and decompression objects, and `zlib_crc32` and `zlib_adler32` compute CRC-32 and Adler-32 checksums. The module is tested in `tests/test_zlib_utils.py`.
 
 ## Token Utilities Module
 

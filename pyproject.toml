@@ -205,4 +205,5 @@ py_modules = [
     "numbers_utils",
     "shelve_utils",
     "zlib_utils",
+    "zoneinfo_utils",
 ]

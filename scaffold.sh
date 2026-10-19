@@ -47,6 +47,7 @@
 #   - configparser_utils.py — # INI configuration file parsing utilities wrapping stdlib configparser (load_config, save_config, get_sections, get_options, read_files, write_config)
 #   - binascii_utils.py — # Binary-to-ASCII encoding and decoding utilities wrapping stdlib binascii (hexlify, unhexlify, b2a_base64, a2b_base64, b2a_uu, a2b_uu, b2a_qp, a2b_qp, crc32, adler32, crc_hqx)
 #   - shelve_utils.py — # Persistent key/value storage utilities wrapping stdlib shelve (open_shelf, close, sync, keys, get, set_value, delete, contains, is_shelf)
+#   - zlib_utils.py — # Zlib compression and checksum utilities wrapping stdlib zlib (zlib_compress, zlib_decompress, zlib_compressobj, zlib_decompressobj, zlib_crc32, zlib_adler32)
 
 #   - calculator.py — # Simple calculator module with arithmetic operations
 
@@ -441,6 +442,7 @@
 #   - test_shapes.py — # Tests for shapes.py
 
 #   - test_shelve_utils.py — # Tests for shelve_utils.py
+#   - test_zlib_utils.py — # Tests for zlib_utils.py
 
 #   - test_shutil_utils.py — # Tests for shutil_utils.py
 
@@ -1014,6 +1016,7 @@ py_modules = [
     "configparser_utils",
     "binascii_utils",
     "shelve_utils",
+    "zlib_utils",
     "multiprocessing_utils",
     "marshal_utils",
     "sqlite3_utils",
@@ -20738,6 +20741,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `contextvars_utils.py` — context variable utilities wrapping the standard library `contextvars` module (`ContextVar`, `Token`, `Context`, `copy_context`) with input validation
 - `configparser_utils.py` — INI configuration file parsing utilities wrapping the standard library `configparser` module (`load_config`, `save_config`, `get_sections`, `get_options`, `read_files`, `write_config`) with input validation
 - `shelve_utils.py` — persistent key/value storage utilities wrapping the standard library `shelve` module (`open_shelf`, `close`, `sync`, `keys`, `get`, `set_value`, `delete`, `contains`, `is_shelf`) with input validation
+- `zlib_utils.py` — zlib compression and checksum utilities wrapping the standard library `zlib` module (`zlib_compress`, `zlib_decompress`, `zlib_compressobj`, `zlib_decompressobj`, `zlib_crc32`, `zlib_adler32`) with input validation
 - `binascii_utils.py` — binary-to-ASCII encoding and decoding utilities wrapping the standard library `binascii` module (`hexlify`, `unhexlify`, `b2a_base64`, `a2b_base64`, `b2a_uu`, `a2b_uu`, `b2a_qp`, `a2b_qp`, `crc32`, `adler32`, `crc_hqx`) with input validation
 - `importlib_utils.py` — importlib utilities (dynamic import, reload, spec inspection, metadata, resources)
 - `atexit_utils.py` — atexit utilities for registering and managing exit handlers (dynamic import, reload, spec inspection, metadata, resources)
@@ -20805,6 +20809,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_contextvars_utils.py` — unit tests for `contextvars_utils.py`
 - `tests/test_configparser_utils.py` — unit tests for `configparser_utils.py`
 - `tests/test_shelve_utils.py` — unit tests for `shelve_utils.py`
+- `tests/test_zlib_utils.py` — unit tests for `zlib_utils.py`
 - `tests/test_binascii_utils.py` — unit tests for `binascii_utils.py`
 - `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
 - `tests/test_multiprocessing_utils.py` — unit tests for `multiprocessing_utils.py`
@@ -21974,6 +21979,7 @@ contextvars_utils.py      # Context variable utilities wrapping stdlib contextva
 configparser_utils.py     # INI configuration file parsing utilities wrapping stdlib configparser (load_config, save_config, get_sections, get_options, read_files, write_config)
 binascii_utils.py         # Binary-to-ASCII encoding and decoding utilities wrapping stdlib binascii (hexlify, unhexlify, b2a_base64, a2b_base64, b2a_uu, a2b_uu, b2a_qp, a2b_qp, crc32, adler32, crc_hqx)
 shelve_utils.py           # Persistent key/value storage utilities wrapping stdlib shelve (open_shelf, close, sync, keys, get, set_value, delete, contains, is_shelf)
+zlib_utils.py             # Zlib compression and checksum utilities wrapping stdlib zlib (zlib_compress, zlib_decompress, zlib_compressobj, zlib_decompressobj, zlib_crc32, zlib_adler32)
 lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -22103,6 +22109,7 @@ tests/                     # Python unit tests
   test_set_utils.py           # Tests for set_utils.py
   test_shapes.py              # Tests for shapes.py
   test_shelve_utils.py        # Tests for shelve_utils.py
+  test_zlib_utils.py          # Tests for zlib_utils.py
   test_shlex_utils.py         # Tests for shlex_utils.py
   test_shutil_utils.py        # Tests for shutil_utils.py
   test_signal_utils.py        # Tests for signal_utils.py
@@ -22237,6 +22244,10 @@ The project includes scheduler utilities in `sched_utils.py` wrapping the standa
 
 The project includes persistent key/value storage utilities in `shelve_utils.py` wrapping the standard library `shelve` module: `open_shelf` opens a shelf backed by a database file, `close` closes it, `sync` writes back pending changes when writeback caching is enabled, `keys` lists the stored keys, `get` reads a value with a default fallback, `set_value` stores a value, `delete` removes a key, and `is_shelf` reports whether an object is a shelf. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_shelve_utils.py`.
 
+## Zlib Utilities Module
+
+The project includes zlib compression and checksum utilities in `zlib_utils.py` wrapping the standard library `zlib` module: `zlib_compress` compresses bytes at a given compression level, `zlib_decompress` reverses it, `zlib_compressobj` and `zlib_decompressobj` create streaming compression and decompression objects, and `zlib_crc32` and `zlib_adler32` compute CRC-32 and Adler-32 checksums. The module is tested in `tests/test_zlib_utils.py`.
+
 ## Token Utilities Module
 
 The project includes Python token constant utilities in `token_utils.py` wrapping the standard library `token` module: `is_eof`, `is_nonterminal`, and `is_terminal` classify a token type, `tok_name` returns the token name mapping, `exact_token_types` returns the exact token type mapping, `n_tokens` returns the number of token types, and `nt_offset` returns the non-terminal offset. The module is tested in `tests/test_token_utils.py`.
@@ -22266,6 +22277,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `shelve_utils.py` — persistent key/value storage utilities wrapping the standard library `shelve` module (`open_shelf`, `close`, `sync`, `keys`, `get`, `set_value`, `delete`, `contains`, `is_shelf`) with input validation, plus `tests/test_shelve_utils.py`.
 - Synchronized `shelve_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `zlib_utils.py` — zlib compression and checksum utilities wrapping the standard library `zlib` module (`zlib_compress`, `zlib_decompress`, `zlib_compressobj`, `zlib_decompressobj`, `zlib_crc32`, `zlib_adler32`) with input validation, plus `tests/test_zlib_utils.py`.
+- Synchronized `zlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation, plus `tests/test_pkgutil_utils.py`.
 - Synchronized `pkgutil_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -43065,3 +43079,185 @@ class TestShelveUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_SHELVE_UTILS
+
+# --- zlib_utils.py ---
+cat > "$OUTPUT_DIR/zlib_utils.py" <<'ZLIB_UTILS'
+"""Zlib compression and checksum utilities wrapping the standard library ``zlib``.
+
+The :mod:`zlib` module provides DEFLATE compression and the CRC-32 and Adler-32
+checksums. This module wraps those primitives in a small, validated layer: every
+helper checks its arguments and raises ``TypeError`` on invalid input.
+"""
+
+from __future__ import annotations
+
+import zlib as _zlib
+from typing import Any
+
+__all__: list[str] = [
+    "zlib_compress",
+    "zlib_decompress",
+    "zlib_compressobj",
+    "zlib_decompressobj",
+    "zlib_crc32",
+    "zlib_adler32",
+]
+
+
+def zlib_compress(data: bytes, level: int = -1) -> bytes:
+    """
+    Compress bytes using zlib DEFLATE.
+
+    Args:
+        data: Bytes to compress.
+        level: Compression level (-1 default, 0 none, 9 max).
+
+    Returns:
+        The compressed bytes.
+
+    Raises:
+        TypeError: If data is not bytes.
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError(f"data must be bytes, got {type(data).__name__}")
+    return _zlib.compress(bytes(data), level=level)
+
+
+def zlib_decompress(data: bytes) -> bytes:
+    """
+    Decompress zlib-compressed bytes.
+
+    Args:
+        data: Compressed bytes.
+
+    Returns:
+        The decompressed bytes.
+
+    Raises:
+        TypeError: If data is not bytes.
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError(f"data must be bytes, got {type(data).__name__}")
+    return _zlib.decompress(bytes(data))
+
+
+def zlib_compressobj(level: int = -1) -> Any:
+    """
+    Create a compression object for streaming compression.
+
+    Args:
+        level: Compression level (-1 default, 0 none, 9 max).
+
+    Returns:
+        A ``zlib.compressobj`` instance.
+    """
+    return _zlib.compressobj(level=level)
+
+
+def zlib_decompressobj() -> Any:
+    """
+    Create a decompression object for streaming decompression.
+
+    Returns:
+        A ``zlib.decompressobj`` instance.
+    """
+    return _zlib.decompressobj()
+
+
+def zlib_crc32(data: bytes) -> int:
+    """
+    Compute the CRC-32 checksum of data.
+
+    Args:
+        data: Bytes to checksum.
+
+    Returns:
+        The CRC-32 checksum as an unsigned integer.
+
+    Raises:
+        TypeError: If data is not bytes.
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError(f"data must be bytes, got {type(data).__name__}")
+    return _zlib.crc32(bytes(data)) & 0xFFFFFFFF
+
+
+def zlib_adler32(data: bytes) -> int:
+    """
+    Compute the Adler-32 checksum of data.
+
+    Args:
+        data: Bytes to checksum.
+
+    Returns:
+        The Adler-32 checksum as an unsigned integer.
+
+    Raises:
+        TypeError: If data is not bytes.
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError(f"data must be bytes, got {type(data).__name__}")
+    return _zlib.adler32(bytes(data)) & 0xFFFFFFFF
+ZLIB_UTILS
+
+# --- tests/test_zlib_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_zlib_utils.py" <<'TEST_ZLIB_UTILS'
+"""Tests for zlib_utils."""
+
+import unittest
+
+from zlib_utils import (
+    zlib_adler32,
+    zlib_compress,
+    zlib_compressobj,
+    zlib_crc32,
+    zlib_decompress,
+    zlib_decompressobj,
+)
+
+
+class TestZlibUtils(unittest.TestCase):
+    def test_compress_decompress_roundtrip(self):
+        data = b"hello world" * 10
+        compressed = zlib_compress(data)
+        self.assertNotEqual(compressed, data)
+        self.assertEqual(zlib_decompress(compressed), data)
+
+    def test_compress_with_level(self):
+        data = b"hello world" * 100
+        compressed = zlib_compress(data, level=9)
+        self.assertEqual(zlib_decompress(compressed), data)
+
+    def test_compressobj_decompressobj_roundtrip(self):
+        data = b"hello world" * 10
+        co = zlib_compressobj()
+        compressed = co.compress(data) + co.flush()
+        do = zlib_decompressobj()
+        self.assertEqual(do.decompress(compressed), data)
+
+    def test_crc32(self):
+        self.assertEqual(zlib_crc32(b"hello"), 907060870)
+
+    def test_adler32(self):
+        self.assertEqual(zlib_adler32(b"hello"), 103547413)
+
+    def test_compress_rejects_non_bytes(self):
+        with self.assertRaises(TypeError):
+            zlib_compress("not bytes")  # type: ignore[arg-type]
+
+    def test_decompress_rejects_non_bytes(self):
+        with self.assertRaises(TypeError):
+            zlib_decompress("not bytes")  # type: ignore[arg-type]
+
+    def test_crc32_rejects_non_bytes(self):
+        with self.assertRaises(TypeError):
+            zlib_crc32("not bytes")  # type: ignore[arg-type]
+
+    def test_adler32_rejects_non_bytes(self):
+        with self.assertRaises(TypeError):
+            zlib_adler32("not bytes")  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_ZLIB_UTILS
