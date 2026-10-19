@@ -30,6 +30,7 @@
 #   - bz2_utils.py — # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 #   - lzma_utils.py — # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 #   - signal_utils.py — # Signal utilities wrapping stdlib signal (alarm, pause, register_handler, register_int_handler, register_term_handler, set_handler, get_handler, get_signal_name, is_valid_signal, signal_names, interrupt_handler, suspend_handler, unregister_handler, signal_info)
+#   - ssl_utils.py — # SSL/TLS utilities wrapping stdlib ssl (create_default_context, create_context, match_hostname, get_server_certificate, get_server_certificate_tuple, cert_time_to_seconds, verify_cert_chain, get_default_verify_paths, is_tls_version_supported, get_cert_subject, get_cert_issuer, get_cert_san, cert_is_valid_at_time)
 
 #   - calculator.py — # Simple calculator module with arithmetic operations
 
@@ -978,6 +979,7 @@ py_modules = [
     "lzma_utils",
     "gc_utils",
     "gettext_utils",
+    "ssl_utils",
 ]
 
 PYPROJECT

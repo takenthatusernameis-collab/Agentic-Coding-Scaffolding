@@ -110,6 +110,7 @@ semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
 sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
+ssl_utils.py              # SSL/TLS utilities wrapping stdlib ssl
 marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
 importlib_utils.py         # importlib utilities
 atexit_utils.py            # atexit utilities for registering exit handlers
@@ -269,8 +270,10 @@ test_secrets_utils.py       # Tests for secrets_utils.py
    test_shutil_utils.py        # Tests for shutil_utils.py
    test_signal_utils.py        # Tests for signal_utils.py
    test_socketserver_utils.py     # Tests for socketserver_utils.py
-  test_sort_utils.py          # Tests for sort_utils.py
-  test_stat_utils.py    # Tests for stat_utils.py
+test_sort_utils.py          # Tests for sort_utils.py
+   test_sqlite3_utils.py       # Tests for sqlite3_utils.py
+   test_ssl_utils.py           # Tests for ssl_utils.py
+   test_stat_utils.py    # Tests for stat_utils.py
  test_statistics_utils.py    # Tests for statistics_utils.py
   test_stats.py               # Tests for stats.py
   test_string_utils.py        # Tests for string_utils.py
@@ -879,3 +882,7 @@ The project includes ZIP archive utilities in `zipfile_utils.py` wrapping the st
 ## Gettext Utilities Module
 
 The project includes internationalization utilities in `gettext_utils.py` wrapping the standard library `gettext` module: `gettext` translates a message in the current domain, `dgettext` translates a message in a named domain, `ngettext` and `dngettext` select singular or plural translations based on a count, `textdomain` sets or gets the current message domain, `bindtextdomain` binds a domain to a locale directory, and `install` installs the translation function into Python's builtins namespace. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_gettext_utils.py`.
+
+## SSL Utilities Module
+
+The project includes SSL/TLS utilities in `ssl_utils.py` wrapping the standard library `ssl` module: `create_default_context` and `create_context` create SSL contexts with protocol validation, `match_hostname` verifies a certificate against a hostname (with fallback for Python 3.12+ where `ssl.match_hostname` is removed), `get_server_certificate` and `get_server_certificate_tuple` retrieve DER-encoded certificates from a connected socket, `cert_time_to_seconds` converts ASN.1 GENERALIZEDTIME strings to epoch seconds, `verify_cert_chain` validates a certificate chain, `get_default_verify_paths` returns the system's default CA paths, `is_tls_version_supported` checks TLS version support, `get_cert_subject`, `get_cert_issuer`, and `get_cert_san` extract certificate fields, and `cert_is_valid_at_time` checks whether a certificate is valid at a given time. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_ssl_utils.py`.

@@ -111,6 +111,7 @@ py_modules = [
     "pattern_utils",
     "plistlib_utils",
     "glob_utils",
+    "getopt_utils",
     "functools_utils",
     "config_schema",
     "ctypes_utils",
@@ -194,4 +195,5 @@ py_modules = [
     "gettext_utils",
     "importlib_utils",
     "dis_utils",
+    "ssl_utils",
 ]
