@@ -204,4 +204,5 @@ py_modules = [
     "sched_utils",
     "numbers_utils",
     "shelve_utils",
+    "zlib_utils",
 ]
