@@ -120,6 +120,7 @@ py_modules = [
     "exceptions_utils",
     "email_utils",
     "enum_utils",
+    "errno_utils",
     "io_utils",
     "ini_utils",
     "compression_utils",
