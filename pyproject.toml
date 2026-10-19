@@ -199,4 +199,5 @@ py_modules = [
     "importlib_utils",
     "dis_utils",
     "ssl_utils",
+    "pkgutil_utils",
 ]

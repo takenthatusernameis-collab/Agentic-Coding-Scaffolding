@@ -337,6 +337,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_sqlite3_utils.py",
             "marshal_utils.py",
             "tests/test_marshal_utils.py",
+            "pkgutil_utils.py",
+            "tests/test_pkgutil_utils.py",
             "importlib_utils.py",
             "atexit_utils.py",
             "multiprocessing_utils.py",
@@ -420,6 +422,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "pickle_utils.py",
             "marshal_utils.py",
             "tests/test_marshal_utils.py",
+            "pkgutil_utils.py",
+            "tests/test_pkgutil_utils.py",
             "importlib_utils.py",
             "atexit_utils.py",
             "multiprocessing_utils.py",
@@ -648,6 +652,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_pickle_utils.py",
             "tests/test_marshal_utils.py",
             "tests/test_lzma_utils.py",
+            "tests/test_pkgutil_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -828,6 +833,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_pickle_utils.py",
             "marshal_utils.py",
             "tests/test_marshal_utils.py",
+            "pkgutil_utils.py",
+            "tests/test_pkgutil_utils.py",
             "importlib_utils.py",
             "atexit_utils.py",
             "multiprocessing_utils.py",

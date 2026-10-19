@@ -31,6 +31,7 @@
 #   - lzma_utils.py — # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 #   - signal_utils.py — # Signal utilities wrapping stdlib signal (alarm, pause, register_handler, register_int_handler, register_term_handler, set_handler, get_handler, get_signal_name, is_valid_signal, signal_names, interrupt_handler, suspend_handler, unregister_handler, signal_info)
 #   - ssl_utils.py — # SSL/TLS utilities wrapping stdlib ssl (create_default_context, create_context, match_hostname, get_server_certificate, get_server_certificate_tuple, cert_time_to_seconds, verify_cert_chain, get_default_verify_paths, is_tls_version_supported, get_cert_subject, get_cert_issuer, get_cert_san, cert_is_valid_at_time)
+#   - pkgutil_utils.py — # Package and module discovery utilities wrapping stdlib pkgutil (iter_modules, walk_packages, get_data, read_text, resolve_name, iter_importers, extend_path, find_spec)
 
 #   - calculator.py — # Simple calculator module with arithmetic operations
 
@@ -980,6 +981,7 @@ py_modules = [
     "gc_utils",
     "gettext_utils",
     "ssl_utils",
+    "pkgutil_utils",
 ]
 
 PYPROJECT
@@ -20705,6 +20707,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
+- `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation
 - `importlib_utils.py` — importlib utilities (dynamic import, reload, spec inspection, metadata, resources)
 - `atexit_utils.py` — atexit utilities for registering and managing exit handlers (dynamic import, reload, spec inspection, metadata, resources)
 - `multiprocessing_utils.py` — multiprocessing utilities with validation
@@ -20756,6 +20759,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
 - `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
+- `tests/test_pkgutil_utils.py` — unit tests for `pkgutil_utils.py`
 - `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
 - `tests/test_multiprocessing_utils.py` — unit tests for `multiprocessing_utils.py`
 - `tests/test_concurrent_futures_utils.py` — unit tests for `concurrent_futures_utils.py`
@@ -21910,6 +21914,7 @@ sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
 importlib_utils.py         # importlib utilities (dynamic import, reload, spec, metadata, resources)
 atexit_utils.py            # atexit utilities for registering exit handlers
 zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
+pkgutil_utils.py           # Package and module discovery utilities wrapping stdlib pkgutil (iter_modules, walk_packages, get_data, read_text, resolve_name, iter_importers, extend_path, find_spec)
 lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -22120,6 +22125,10 @@ The project includes object serialization utilities in `pickle_utils.py` wrappin
 
 The project includes internationalization utilities in `gettext_utils.py` wrapping the standard library `gettext` module: `gettext` translates a message in the current domain, `dgettext` translates a message in a named domain, `ngettext` and `dngettext` select singular or plural translations based on a count, `textdomain` sets or gets the current message domain, `bindtextdomain` binds a domain to a locale directory, and `install` installs the translation function into Python's builtins namespace. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_gettext_utils.py`.
 
+## Pkgutil Utilities Module
+
+The project includes package and module discovery utilities in `pkgutil_utils.py` wrapping the standard library `pkgutil` module: `iter_modules` lists the modules found in a search path, `walk_packages` recursively lists modules and sub-packages, `get_data` reads a data file shipped inside a package as bytes, `read_text` reads and decodes such a data file, `resolve_name` resolves a dotted name to the module or attribute it refers to, `iter_importers` returns the meta path finders consulted for a module, `extend_path` extends a package path with namespace package directories, and `find_spec` returns the import spec for a module. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_pkgutil_utils.py`.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -22134,6 +22143,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation, plus `tests/test_pkgutil_utils.py`.
+- Synchronized `pkgutil_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `gettext_utils.py` — internationalization utilities wrapping the standard library `gettext` module (`gettext`, `dgettext`, `ngettext`, `dngettext`, `textdomain`, `bindtextdomain`, `install`) with input validation, plus `tests/test_gettext_utils.py`.
 - Synchronized `gettext_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -40620,3 +40632,395 @@ class TestSignalUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_SIGNAL_UTILS
+
+# --- pkgutil_utils.py ---
+cat > "$OUTPUT_DIR/pkgutil_utils.py" <<'PKGUTIL_UTILS'
+"""Utilities for package and module discovery (wrapping :mod:`pkgutil`).
+
+This module provides a small, validated layer over the standard library
+``pkgutil`` module for locating modules inside packages, reading package data
+files, and resolving importable names. All functions validate their inputs and
+raise ``TypeError`` on invalid arguments.
+"""
+
+from __future__ import annotations
+
+import importlib.util
+import pkgutil
+from typing import Any, Callable, Sequence
+
+__all__ = [
+    "iter_modules",
+    "walk_packages",
+    "get_data",
+    "read_text",
+    "resolve_name",
+    "iter_importers",
+    "extend_path",
+    "find_spec",
+]
+
+
+def _validate_path(path: Sequence[str] | None) -> list[str] | None:
+    """Validate and normalize a sequence of search directories.
+
+    Args:
+        path: Optional sequence of directory paths to search.
+
+    Returns:
+        A list of directory paths, or None when *path* is None.
+
+    Raises:
+        TypeError: If *path* is not None and not a sequence of strings.
+    """
+    if path is None:
+        return None
+    if isinstance(path, (str, bytes)):
+        raise TypeError("path must be a sequence of strings, not a single string")
+    if not isinstance(path, Sequence):
+        raise TypeError("path must be a sequence of strings")
+    for entry in path:
+        if not isinstance(entry, str):
+            raise TypeError("path entries must be strings")
+    return list(path)
+
+
+def _validate_prefix(prefix: str) -> str:
+    """Validate a module name prefix.
+
+    Args:
+        prefix: Prefix prepended to discovered module names.
+
+    Returns:
+        The validated prefix.
+
+    Raises:
+        TypeError: If *prefix* is not a string.
+    """
+    if not isinstance(prefix, str):
+        raise TypeError("prefix must be a str")
+    return prefix
+
+
+def iter_modules(
+    path: Sequence[str] | None = None, prefix: str = ""
+) -> list[tuple[str, bool]]:
+    """List the modules found in *path*.
+
+    Args:
+        path: Optional sequence of directories to search. When None the
+            current ``sys.path`` is searched.
+        prefix: Prefix prepended to every discovered module name.
+
+    Returns:
+        A list of ``(name, is_package)`` tuples.
+
+    Raises:
+        TypeError: If *path* is not a sequence of strings or *prefix* is not
+            a string.
+    """
+    directories = _validate_path(path)
+    _validate_prefix(prefix)
+    return [(info.name, info.ispkg) for info in pkgutil.iter_modules(directories, prefix)]
+
+
+def walk_packages(
+    path: Sequence[str] | None = None,
+    prefix: str = "",
+    onerror: Callable[[str], None] | None = None,
+) -> list[tuple[str, bool]]:
+    """Recursively list the modules and sub-packages found in *path*.
+
+    Args:
+        path: Optional sequence of directories to search. When None the
+            current ``sys.path`` is searched.
+        prefix: Prefix prepended to every discovered module name.
+        onerror: Optional callable invoked with the name of a package that
+            could not be imported.
+
+    Returns:
+        A list of ``(name, is_package)`` tuples for every discovered module.
+
+    Raises:
+        TypeError: If *path* is not a sequence of strings, *prefix* is not a
+            string, or *onerror* is not callable.
+    """
+    directories = _validate_path(path)
+    _validate_prefix(prefix)
+    if onerror is not None and not callable(onerror):
+        raise TypeError("onerror must be callable")
+    found = pkgutil.walk_packages(directories, prefix, onerror)
+    return [(info.name, info.ispkg) for info in found]
+
+
+def get_data(package: str, resource: str) -> bytes:
+    """Read a data file shipped inside *package*.
+
+    Args:
+        package: Name of the package that contains the resource.
+        resource: Name of the resource file inside the package.
+
+    Returns:
+        The raw bytes of the resource.
+
+    Raises:
+        TypeError: If *package* or *resource* is not a string.
+        OSError: If the resource cannot be found.
+    """
+    if not isinstance(package, str):
+        raise TypeError("package must be a str")
+    if not isinstance(resource, str):
+        raise TypeError("resource must be a str")
+    data = pkgutil.get_data(package, resource)
+    if data is None:
+        raise OSError(f"resource {resource!r} not found in package {package!r}")
+    return data
+
+
+def read_text(
+    package: str, resource: str, encoding: str = "utf-8", errors: str = "strict"
+) -> str:
+    """Read a data file shipped inside *package* and decode it as text.
+
+    Args:
+        package: Name of the package that contains the resource.
+        resource: Name of the resource file inside the package.
+        encoding: Text encoding used to decode the resource.
+        errors: Error handling scheme used when decoding fails.
+
+    Returns:
+        The decoded contents of the resource.
+
+    Raises:
+        TypeError: If any argument is not a string.
+        OSError: If the resource cannot be found.
+        UnicodeDecodeError: If the resource cannot be decoded.
+    """
+    if not isinstance(encoding, str):
+        raise TypeError("encoding must be a str")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be a str")
+    return get_data(package, resource).decode(encoding, errors)
+
+
+def resolve_name(name: str) -> Any:
+    """Resolve a dotted name to the module or attribute it refers to.
+
+    Args:
+        name: Dotted module name, optionally with a ``:attr`` suffix.
+
+    Returns:
+        The resolved object, usually a module.
+
+    Raises:
+        TypeError: If *name* is not a string.
+        ValueError: If *name* is not a valid dotted name.
+        ImportError: If the name cannot be imported.
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    return pkgutil.resolve_name(name)
+
+
+def iter_importers(fullname: str = "") -> list[Any]:
+    """Return the meta path finders that would be consulted for *fullname*.
+
+    Args:
+        fullname: Fully qualified module name to find importers for.
+
+    Returns:
+        A list of importer objects, in the order they are consulted.
+
+    Raises:
+        TypeError: If *fullname* is not a string.
+    """
+    if not isinstance(fullname, str):
+        raise TypeError("fullname must be a str")
+    return list(pkgutil.iter_importers(fullname))
+
+
+def extend_path(path: list[str], name: str) -> list[str]:
+    """Extend a package ``__path__`` with the directories of a namespace package.
+
+    Args:
+        path: Existing package path entries.
+        name: Name of the package being extended.
+
+    Returns:
+        The extended list of package path entries.
+
+    Raises:
+        TypeError: If *path* is not a list of strings or *name* is not a
+            string.
+    """
+    if not isinstance(path, list) or not all(isinstance(entry, str) for entry in path):
+        raise TypeError("path must be a list of strings")
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    return pkgutil.extend_path(path, name)
+
+
+def find_spec(name: str) -> Any:
+    """Return the import spec for the module named *name*.
+
+    This replaces the deprecated :func:`pkgutil.get_loader` helper and
+    returns ``None`` when the module cannot be found.
+
+    Args:
+        name: Name of the module to look up.
+
+    Returns:
+        The module spec, or None when the module cannot be found.
+
+    Raises:
+        TypeError: If *name* is not a string.
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    return importlib.util.find_spec(name)
+PKGUTIL_UTILS
+
+# --- tests/test_pkgutil_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_pkgutil_utils.py" <<'TEST_PKGUTIL_UTILS'
+import os
+import sys
+import tempfile
+import unittest
+
+from pkgutil_utils import (
+    extend_path,
+    find_spec,
+    get_data,
+    iter_importers,
+    iter_modules,
+    read_text,
+    resolve_name,
+    walk_packages,
+)
+
+
+class TestPkgutilUtils(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.pkg = os.path.join(self.tmp, "samplepkg")
+        os.makedirs(self.pkg)
+        with open(os.path.join(self.pkg, "__init__.py"), "w") as f:
+            f.write("VALUE = 42\n")
+        with open(os.path.join(self.pkg, "data.txt"), "w") as f:
+            f.write("payload")
+        with open(os.path.join(self.pkg, "mod.py"), "w") as f:
+            f.write("X = 1\n")
+        sub = os.path.join(self.pkg, "sub")
+        os.makedirs(sub)
+        with open(os.path.join(sub, "__init__.py"), "w") as f:
+            f.write("")
+        with open(os.path.join(sub, "leaf.py"), "w") as f:
+            f.write("Y = 2\n")
+
+    def tearDown(self):
+        sys.path.remove(self.tmp) if self.tmp in sys.path else None
+
+    def test_iter_modules_finds_modules_and_packages(self):
+        found = dict(iter_modules([self.tmp]))
+        self.assertEqual(found, {"samplepkg": True})
+        children = dict(iter_modules([self.pkg]))
+        self.assertIn("mod", children)
+        self.assertFalse(children["mod"])
+        self.assertIn("sub", children)
+        self.assertTrue(children["sub"])
+
+    def test_iter_modules_applies_prefix(self):
+        found = dict(iter_modules([self.tmp], prefix="pkg."))
+        self.assertEqual(found, {"pkg.samplepkg": True})
+
+    def test_iter_modules_rejects_string_path(self):
+        with self.assertRaises(TypeError):
+            iter_modules(self.tmp)
+
+    def test_iter_modules_rejects_non_string_entries(self):
+        with self.assertRaises(TypeError):
+            iter_modules([1])
+
+    def test_iter_modules_rejects_non_string_prefix(self):
+        with self.assertRaises(TypeError):
+            iter_modules([self.pkg], prefix=5)
+
+
+    def test_walk_packages_finds_nested_modules(self):
+        names = dict(walk_packages([self.pkg], prefix="samplepkg."))
+        self.assertIn("samplepkg.mod", names)
+        self.assertIn("samplepkg.sub", names)
+        self.assertIn("samplepkg.sub.leaf", names)
+        self.assertTrue(names["samplepkg.sub"])
+
+    def test_walk_packages_rejects_non_callable_onerror(self):
+        with self.assertRaises(TypeError):
+            walk_packages([self.pkg], onerror="nope")
+
+    def test_get_data_reads_bytes(self):
+        sys.path.insert(0, self.tmp)
+        try:
+            data = get_data("samplepkg", "data.txt")
+        finally:
+            sys.path.remove(self.tmp)
+        self.assertEqual(data, b"payload")
+
+    def test_get_data_type_errors(self):
+        with self.assertRaises(TypeError):
+            get_data(1, "data.txt")
+        with self.assertRaises(TypeError):
+            get_data("samplepkg", 2)
+
+    def test_read_text_decodes_contents(self):
+        sys.path.insert(0, self.tmp)
+        try:
+            text = read_text("samplepkg", "data.txt")
+        finally:
+            sys.path.remove(self.tmp)
+        self.assertEqual(text, "payload")
+
+    def test_read_text_rejects_non_string_encoding(self):
+        with self.assertRaises(TypeError):
+            read_text("samplepkg", "data.txt", encoding=1)
+
+    def test_resolve_name_returns_module(self):
+        module = resolve_name("json")
+        self.assertEqual(module.__name__, "json")
+
+    def test_resolve_name_type_error(self):
+        with self.assertRaises(TypeError):
+            resolve_name(None)
+
+    def test_iter_importers_returns_finders(self):
+        importers = iter_importers("json")
+        self.assertIsInstance(importers, list)
+        self.assertTrue(len(importers) > 0)
+
+    def test_iter_importers_type_error(self):
+        with self.assertRaises(TypeError):
+            iter_importers(1)
+
+    def test_extend_path_returns_list(self):
+        result = extend_path([self.tmp], "samplepkg")
+        self.assertIsInstance(result, list)
+        self.assertIn(self.tmp, result)
+
+    def test_extend_path_type_errors(self):
+        with self.assertRaises(TypeError):
+            extend_path("not-a-list", "samplepkg")
+        with self.assertRaises(TypeError):
+            extend_path([], 1)
+
+    def test_find_spec_returns_spec(self):
+        spec = find_spec("json")
+        self.assertIsNotNone(spec)
+        self.assertEqual(spec.name, "json")
+
+    def test_find_spec_type_error(self):
+        with self.assertRaises(TypeError):
+            find_spec(1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_PKGUTIL_UTILS

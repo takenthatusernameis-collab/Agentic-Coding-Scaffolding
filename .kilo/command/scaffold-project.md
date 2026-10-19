@@ -24,6 +24,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
+- `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation
 - `importlib_utils.py` — importlib utilities
 - `atexit_utils.py` — atexit utilities for registering and managing exit handlers
 - `multiprocessing_utils.py` — multiprocessing utilities for pools, processes, locks, queues, and shared memory (dynamic import, reload, spec inspection, metadata, resources)
@@ -160,6 +161,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
 - `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
+- `tests/test_pkgutil_utils.py` — unit tests for `pkgutil_utils.py`
 - `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
 - `tests/test_atexit_utils.py` — unit tests for `atexit_utils.py`
 - `tests/test_multiprocessing_utils.py` — unit tests for `multiprocessing_utils.py`
