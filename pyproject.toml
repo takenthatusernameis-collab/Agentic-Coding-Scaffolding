@@ -179,6 +179,7 @@ py_modules = [
     "unicodedata_utils",
     "abc_utils",
     "ast_utils",
+    "atexit_utils",
     "pickle_utils",
     "sqlite3_utils",
     "marshal_utils",
