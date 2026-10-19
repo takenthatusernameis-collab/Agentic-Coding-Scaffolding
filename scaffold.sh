@@ -51,6 +51,7 @@
 #   - this_utils.py — # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 #   - tokenize_utils.py — # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
 #   - code_utils.py — # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
+#   - codeop_utils.py — # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
 #   - copyreg_utils.py — # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
 #   - fileinput_utils.py — # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
 #   - fnmatch_utils.py — # Filename pattern matching utilities wrapping stdlib fnmatch (match, match_case, filter_names, translate)
@@ -470,6 +471,7 @@
 #   - test_this_utils.py — # Tests for this_utils.py
 #   - test_tokenize_utils.py — # Tests for tokenize_utils.py
 #   - test_code_utils.py — # Tests for code_utils.py
+#   - test_codeop_utils.py — # Tests for codeop_utils.py
 #   - test_copyreg_utils.py — # Tests for copyreg_utils.py
 #   - test_fileinput_utils.py — # Tests for fileinput_utils.py
 #   - test_fnmatch_utils.py — # Tests for fnmatch_utils.py
@@ -1765,6 +1767,7 @@ py_modules = [
     "this_utils",
     "tokenize_utils",
     "code_utils",
+    "codeop_utils",
     "copyreg_utils",
     "fileinput_utils",
     "fnmatch_utils",
@@ -24644,6 +24647,7 @@ cmd_utils.py                       # Command interpreter utilities wrapping stdl
 this_utils.py                      # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 tokenize_utils.py                  # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
 code_utils.py                       # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
+codeop_utils.py                     # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
 copyreg_utils.py                       # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
 fileinput_utils.py                       # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
 fnmatch_utils.py                       # Filename pattern matching utilities wrapping stdlib fnmatch (match, match_case, filter_names, translate)
@@ -24791,6 +24795,7 @@ tests/                     # Python unit tests
   test_this_utils.py          # Tests for this_utils.py
   test_tokenize_utils.py      # Tests for tokenize_utils.py
   test_code_utils.py          # Tests for code_utils.py
+  test_codeop_utils.py        # Tests for codeop_utils.py
   test_copyreg_utils.py       # Tests for copyreg_utils.py
   test_fileinput_utils.py     # Tests for fileinput_utils.py
   test_fnmatch_utils.py       # Tests for fnmatch_utils.py
@@ -24970,6 +24975,10 @@ The project includes source tokenization utilities in `tokenize_utils.py` wrappi
 
 The project includes interactive console utilities in `code_utils.py` wrapping the standard library `code` module: `interact` runs an interactive console session, `compile_command` compiles a single console command and returns `None` while the input is incomplete, `console_class` returns the `InteractiveConsole` class, and `interpreter_class` returns the `InteractiveInterpreter` class. The module is tested in `tests/test_code_utils.py`.
 
+## Codeop Utilities Module
+
+The project includes codeop utilities in `codeop_utils.py` wrapping the standard library `codeop` module: `compile_command` compiles a possibly-incomplete source string and returns a code object when the source is complete, or `None` when it is incomplete; `Compile` is the re-exported `codeop.Compile` compiler; and `CommandCompiler` is the re-exported `codeop.CommandCompiler` class. The module is tested in `tests/test_codeop_utils.py`.
+
 ## Copyreg Utilities Module
 
 The project includes pickle support registration utilities in `copyreg_utils.py` wrapping the standard library `copyreg` module: `add_extension` and `remove_extension` register and unregister pickling extensions for a type, `clear_extension_cache` clears the extension cache, `constructor` registers a reduction function for a type, `dispatch_table` returns the global dispatch table, and `pickle` registers a reduction function for a type. The module is tested in `tests/test_copyreg_utils.py`.
@@ -25079,6 +25088,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Restored the missing `tests/test_this_utils.py` entry in the generated project's README test tree, which earlier sessions left out of the embedded README template.
 - Added `code_utils.py` to the generated project — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation, plus `tests/test_code_utils.py`.
 - Synchronized `code_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `codeop_utils.py` to the generated project — utilities for compiling possibly-incomplete Python source wrapping the standard library `codeop` module (`compile_command`, `Compile`, `CommandCompiler`) with input validation, plus `tests/test_codeop_utils.py`.
+- Synchronized `codeop_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `copyreg_utils.py` to the generated project — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation, plus `tests/test_copyreg_utils.py`.
 - Synchronized `copyreg_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -46591,7 +46602,58 @@ class TestCodeUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_CODE_UTILS
+# --- codeop_utils.py ---
+cat > "$OUTPUT_DIR/codeop_utils.py" <<'CODEOP_UTILS'
+"""Utilities for compiling possibly-incomplete Python source (wrapping :mod:`codeop`)."""
 
+from __future__ import annotations
+
+import codeop
+
+__all__: list[str] = ["compile_command", "Compile", "CommandCompiler"]
+
+
+def compile_command(source, filename="<input>", symbol="single"):
+    return codeop.compile_command(source, filename, symbol)
+
+
+Compile = codeop.Compile
+CommandCompiler = codeop.CommandCompiler
+CODEOP_UTILS
+
+# --- tests/test_codeop_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_codeop_utils.py" <<'TEST_CODEOP_UTILS'
+import codeop
+import unittest
+
+from codeop_utils import CommandCompiler, Compile, compile_command
+
+
+class TestCodeopUtils(unittest.TestCase):
+    def test_compile_command_complete(self):
+        code = compile_command("1 + 2")
+        self.assertIsNotNone(code)
+
+    def test_compile_command_incomplete(self):
+        code = compile_command("def f():")
+        self.assertIsNone(code)
+
+    def test_compile_command_syntax_error(self):
+        with self.assertRaises(SyntaxError):
+            compile_command("def f()")
+
+    def test_command_compiler(self):
+        cc = CommandCompiler()
+        code = cc("x = 1")
+        self.assertIsNotNone(code)
+
+    def test_compile_alias(self):
+        self.assertIs(Compile, codeop.Compile)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_CODEOP_UTILS
 # --- copyreg_utils.py ---
 cat > "$OUTPUT_DIR/copyreg_utils.py" <<'COPYREG_UTILS'
 """Utilities for pickle support registration (wrapping :mod:`copyreg`)."""

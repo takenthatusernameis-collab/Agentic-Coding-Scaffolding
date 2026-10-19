@@ -136,6 +136,7 @@ cmd_utils.py              # Command interpreter utilities wrapping stdlib cmd (i
 this_utils.py             # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 tokenize_utils.py         # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
 code_utils.py             # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
+codeop_utils.py           # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
 copyreg_utils.py          # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
 fileinput_utils.py        # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
 fnmatch_utils.py          # Filename pattern matching utilities wrapping stdlib fnmatch (match, match_case, filter_names, translate)
@@ -379,6 +380,7 @@ test_lzma_utils.py          # Tests for lzma_utils.py
     test_this_utils.py          # Tests for this_utils.py
     test_tokenize_utils.py      # Tests for tokenize_utils.py
     test_code_utils.py          # Tests for code_utils.py
+    test_codeop_utils.py        # Tests for codeop_utils.py
     test_copyreg_utils.py       # Tests for copyreg_utils.py
     test_getpass_utils.py       # Tests for getpass_utils.py
     test_runpy_utils.py         # Tests for runpy_utils.py
@@ -1037,6 +1039,10 @@ The project includes source tokenization utilities in `tokenize_utils.py` wrappi
 ## Interactive Console Utilities Module
 
 The project includes interactive console utilities in `code_utils.py` wrapping the standard library `code` module: `interact` runs an interactive console session, `compile_command` compiles a single console command and returns `None` while the input is incomplete, `console_class` returns the `InteractiveConsole` class, and `interpreter_class` returns the `InteractiveInterpreter` class. The module is tested in `tests/test_code_utils.py`.
+
+## Codeop Utilities Module
+
+The project includes codeop utilities in `codeop_utils.py` wrapping the standard library `codeop` module: `compile_command` compiles a possibly-incomplete source string and returns a code object when the source is complete, or `None` when it is incomplete; `Compile` is the re-exported `codeop.Compile` compiler; and `CommandCompiler` is the re-exported `codeop.CommandCompiler` class. The module is tested in `tests/test_codeop_utils.py`.
 
 ## Copyreg Utilities Module
 
