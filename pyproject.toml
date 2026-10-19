@@ -129,6 +129,7 @@ py_modules = [
     "template_utils",
     "time_utils",
     "timezone_utils",
+    "token_utils",
     "uuid_utils",
     "hash_utils",
     "http_utils",
