@@ -109,6 +109,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators)
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
+- `ctypes_utils.py` — ctypes utility functions wrapping the standard library `ctypes` module (fundamental C types, `Structure`, `Union`, `POINTER`, `Array`, `CFUNCTYPE`, `sizeof`, `alignment`, `addressof`, `pointer`, `byref`, `cast`, `memmove`, `memset`, `string_at`, `create_string_buffer`, `create_unicode_buffer`, `get_errno`, `set_errno`, `get_last_error`, `set_last_error`, `find_library`)
+- `tests/test_ctypes_utils.py` — unit tests for `ctypes_utils.py`
 - `copy_utils.py` — copy utilities (`shallow_copy`, `deep_copy`, `copy_dict`, `deep_copy_dict`, `merge_copy`, `is_same_object`) wrapping stdlib copy module
 - `tests/test_copy_utils.py` — unit tests for `copy_utils.py`
 - `dataclasses_utils.py` — dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)

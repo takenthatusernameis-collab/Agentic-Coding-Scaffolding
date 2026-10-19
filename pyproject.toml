@@ -113,6 +113,7 @@ py_modules = [
     "glob_utils",
     "functools_utils",
     "config_schema",
+    "ctypes_utils",
     "copy_utils",
     "exceptions_utils",
     "email_utils",

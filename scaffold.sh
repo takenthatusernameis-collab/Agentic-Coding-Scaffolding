@@ -247,6 +247,8 @@
 
 #   - config_schema.py — # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
 
+#   - ctypes_utils.py — # Ctypes utility functions wrapping the standard library ctypes module (sizeof, alignment, addressof, pointer, byref, cast, memmove, memset, string_at, create_string_buffer, create_unicode_buffer, get_errno, set_errno, find_library, CFUNCTYPE)
+
 #   - copy_utils.py — # Copy utilities (shallow/deep copy, dict copy, merge) wrapping stdlib copy module
 
 #   - exceptions_utils.py — # Custom exception classes and error handling utilities
@@ -912,6 +914,7 @@ py_modules = [
     "pattern_utils",
     "functools_utils",
     "config_schema",
+    "ctypes_utils",
     "copy_utils",
     "dataclasses_utils",
     "exceptions_utils",
@@ -25698,6 +25701,572 @@ class ConfigSchema:
         merged.update(other._fields)
         return ConfigSchema(list(merged.values()))
 CONFIG_SCHEMA
+# --- ctypes_utils.py ---
+cat > "$OUTPUT_DIR/ctypes_utils.py" <<'CTYPES_UTILS'
+"""Ctypes utility functions wrapping the standard library ``ctypes`` module."""
+
+from __future__ import annotations
+
+from typing import Any
+
+import ctypes as _ctypes
+from ctypes.util import find_library as _find_library
+
+__all__: list[str] = [
+    "c_byte",
+    "c_ubyte",
+    "c_short",
+    "c_ushort",
+    "c_int",
+    "c_uint",
+    "c_long",
+    "c_ulong",
+    "c_longlong",
+    "c_ulonglong",
+    "c_float",
+    "c_double",
+    "c_longdouble",
+    "c_char",
+    "c_wchar",
+    "c_bool",
+    "c_void_p",
+    "c_char_p",
+    "c_wchar_p",
+    "c_size_t",
+    "c_ssize_t",
+    "c_int8",
+    "c_uint8",
+    "c_int16",
+    "c_uint16",
+    "c_int32",
+    "c_uint32",
+    "c_int64",
+    "c_uint64",
+    "Structure",
+    "Union",
+    "POINTER",
+    "Array",
+    "CFUNCTYPE",
+    "sizeof",
+    "alignment",
+    "addressof",
+    "pointer",
+    "byref",
+    "cast",
+    "memmove",
+    "memset",
+    "string_at",
+    "create_string_buffer",
+    "create_unicode_buffer",
+    "get_errno",
+    "set_errno",
+    "get_last_error",
+    "set_last_error",
+    "find_library",
+]
+
+
+c_byte = _ctypes.c_byte
+c_ubyte = _ctypes.c_ubyte
+c_short = _ctypes.c_short
+c_ushort = _ctypes.c_ushort
+c_int = _ctypes.c_int
+c_uint = _ctypes.c_uint
+c_long = _ctypes.c_long
+c_ulong = _ctypes.c_ulong
+c_longlong = _ctypes.c_longlong
+c_ulonglong = _ctypes.c_ulonglong
+c_float = _ctypes.c_float
+c_double = _ctypes.c_double
+c_longdouble = _ctypes.c_longdouble
+c_char = _ctypes.c_char
+c_wchar = _ctypes.c_wchar
+c_bool = _ctypes.c_bool
+c_void_p = _ctypes.c_void_p
+c_char_p = _ctypes.c_char_p
+c_wchar_p = _ctypes.c_wchar_p
+c_size_t = _ctypes.c_size_t
+c_ssize_t = _ctypes.c_ssize_t
+c_int8 = _ctypes.c_int8
+c_uint8 = _ctypes.c_uint8
+c_int16 = _ctypes.c_int16
+c_uint16 = _ctypes.c_uint16
+c_int32 = _ctypes.c_int32
+c_uint32 = _ctypes.c_uint32
+c_int64 = _ctypes.c_int64
+c_uint64 = _ctypes.c_uint64
+
+Structure = _ctypes.Structure
+Union = _ctypes.Union
+POINTER = _ctypes.POINTER
+Array = _ctypes.Array
+CFUNCTYPE = _ctypes.CFUNCTYPE
+
+
+def sizeof(obj: Any) -> int:
+    """Return the size in bytes of a ctypes type or instance.
+
+    Args:
+        obj: A ctypes type or instance.
+
+    Returns:
+        The size in bytes of *obj*.
+
+    See :func:`ctypes.sizeof`.
+    """
+    return _ctypes.sizeof(obj)
+
+
+def alignment(obj_or_type: Any) -> int:
+    """Return the alignment in bytes of a ctypes type or instance.
+
+    Args:
+        obj_or_type: A ctypes type or instance.
+
+    Returns:
+        The alignment in bytes of *obj_or_type*.
+
+    See :func:`ctypes.alignment`.
+    """
+    return _ctypes.alignment(obj_or_type)
+
+
+def addressof(obj: Any) -> int:
+    """Return the address of a ctypes instance as an integer.
+
+    Args:
+        obj: A ctypes instance.
+
+    Returns:
+        The memory address of *obj*.
+
+    See :func:`ctypes.addressof`.
+    """
+    return _ctypes.addressof(obj)
+
+
+def pointer(obj: Any) -> Any:
+    """Return a ctypes pointer to *obj*.
+
+    Args:
+        obj: A ctypes instance or type.
+
+    Returns:
+        A ctypes pointer referencing *obj*.
+
+    See :func:`ctypes.pointer`.
+    """
+    return _ctypes.pointer(obj)
+
+
+def byref(obj: Any, offset: int = 0) -> Any:
+    """Return a lightweight pointer to *obj* as a ctypes byref object.
+
+    Args:
+        obj: A ctypes instance.
+        offset: An optional byte offset added to the address.
+
+    Returns:
+        A ctypes byref object for *obj*.
+
+    See :func:`ctypes.byref`.
+    """
+    return _ctypes.byref(obj, offset)
+
+
+def cast(obj: Any, type: Any) -> Any:
+    """Cast a ctypes object to a different ctypes type.
+
+    Args:
+        obj: A ctypes instance or pointer.
+        type: A ctypes type to cast to.
+
+    Returns:
+        A ctypes object of type *type* referencing the same memory.
+
+    See :func:`ctypes.cast`.
+    """
+    return _ctypes.cast(obj, type)
+
+
+def memmove(dst: Any, src: Any, count: int) -> None:
+    """Copy *count* bytes from *src* to *dst*.
+
+    Args:
+        dst: Destination buffer (ctypes instance or integer address).
+        src: Source buffer (ctypes instance or integer address).
+        count: Number of bytes to copy.
+
+    Returns:
+        None; memory is copied in place.
+
+    See :func:`ctypes.memmove`.
+    """
+    _ctypes.memmove(dst, src, count)
+
+
+def memset(dst: Any, char: int, count: int) -> None:
+    """Fill *count* bytes of *dst* with the byte value *char*.
+
+    Args:
+        dst: Destination buffer (ctypes instance or integer address).
+        char: Byte value (0-255) to fill with.
+        count: Number of bytes to fill.
+
+    Returns:
+        None; memory is filled in place.
+
+    See :func:`ctypes.memset`.
+    """
+    _ctypes.memset(dst, char, count)
+
+
+def string_at(addr: int, size: int = -1) -> bytes:
+    """Return the C string at memory address *addr* as ``bytes``.
+
+    Args:
+        addr: Memory address of the string.
+        size: Maximum number of bytes to read. A negative value reads
+            up to the first null byte.
+
+    Returns:
+        The string at *addr* as ``bytes``.
+
+    See :func:`ctypes.string_at`.
+    """
+    return _ctypes.string_at(addr, size)
+
+
+def create_string_buffer(init_or_size: Any, size: int | None = None) -> Any:
+    """Create a mutable character buffer.
+
+    Args:
+        init_or_size: An initial bytes-like value or the buffer size.
+        size: An optional explicit buffer size.
+
+    Returns:
+        A mutable ctypes character buffer.
+
+    See :func:`ctypes.create_string_buffer`.
+    """
+    if size is None:
+        return _ctypes.create_string_buffer(init_or_size)
+    return _ctypes.create_string_buffer(init_or_size, size)
+
+
+def create_unicode_buffer(init_or_size: Any, size: int | None = None) -> Any:
+    """Create a mutable unicode character buffer.
+
+    Args:
+        init_or_size: An initial string or the buffer size in characters.
+        size: An optional explicit buffer size in characters.
+
+    Returns:
+        A mutable ctypes unicode buffer.
+
+    See :func:`ctypes.create_unicode_buffer`.
+    """
+    if size is None:
+        return _ctypes.create_unicode_buffer(init_or_size)
+    return _ctypes.create_unicode_buffer(init_or_size, size)
+
+
+def get_errno() -> int:
+    """Return the current value of the ctypes errno variable.
+
+    Returns:
+        The current errno value.
+
+    See :func:`ctypes.get_errno`.
+    """
+    return _ctypes.get_errno()
+
+
+def set_errno(errno: int) -> None:
+    """Set the current value of the ctypes errno variable.
+
+    Args:
+        errno: The errno value to set.
+
+    Returns:
+        None.
+
+    See :func:`ctypes.set_errno`.
+    """
+    _ctypes.set_errno(errno)
+
+
+def get_last_error() -> int:
+    """Return the current value of the ctypes last-error variable.
+
+    Available on Windows. On other platforms this raises ``AttributeError``.
+
+    Returns:
+        The current last-error value.
+
+    Raises:
+        AttributeError: If last-error is not supported on this platform.
+
+    See :func:`ctypes.get_last_error`.
+    """
+    return _ctypes.get_last_error()
+
+
+def set_last_error(errno: int) -> None:
+    """Set the current value of the ctypes last-error variable.
+
+    Available on Windows. On other platforms this raises ``AttributeError``.
+
+    Args:
+        errno: The last-error value to set.
+
+    Returns:
+        None.
+
+    Raises:
+        AttributeError: If last-error is not supported on this platform.
+
+    See :func:`ctypes.set_last_error`.
+    """
+    _ctypes.set_last_error(errno)
+
+
+def find_library(name: str) -> str | None:
+    """Locate a shared library by name.
+
+    Args:
+        name: The library name to locate (e.g. ``"c"`` or ``"m"``).
+
+    Returns:
+        The path to the library, or ``None`` if it cannot be found.
+
+    See :func:`ctypes.util.find_library`.
+    """
+    return _find_library(name)
+CTYPES_UTILS
+# --- tests/test_ctypes_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_ctypes_utils.py" <<'TEST_CTYPES_UTILS'
+"""Tests for ctypes_utils."""
+
+import ctypes
+import unittest
+
+from ctypes_utils import (
+    Array,
+    CFUNCTYPE,
+    POINTER,
+    Structure,
+    Union,
+    alignment,
+    addressof,
+    byref,
+    cast,
+    c_bool,
+    c_byte,
+    c_char,
+    c_char_p,
+    c_double,
+    c_float,
+    c_int,
+    c_int8,
+    c_int16,
+    c_int32,
+    c_int64,
+    c_long,
+    c_longdouble,
+    c_longlong,
+    c_short,
+    c_size_t,
+    c_ssize_t,
+    c_ubyte,
+    c_uint,
+    c_uint8,
+    c_uint16,
+    c_uint32,
+    c_uint64,
+    c_ulong,
+    c_ulonglong,
+    c_ushort,
+    c_void_p,
+    c_wchar,
+    c_wchar_p,
+    create_string_buffer,
+    create_unicode_buffer,
+    find_library,
+    get_errno,
+    get_last_error,
+    memmove,
+    memset,
+    pointer,
+    set_errno,
+    set_last_error,
+    sizeof,
+    string_at,
+)
+
+
+class TestCtypesUtilsTypes(unittest.TestCase):
+    def test_fundamental_types_match_ctypes(self):
+        self.assertIs(c_byte, ctypes.c_byte)
+        self.assertIs(c_ubyte, ctypes.c_ubyte)
+        self.assertIs(c_short, ctypes.c_short)
+        self.assertIs(c_ushort, ctypes.c_ushort)
+        self.assertIs(c_int, ctypes.c_int)
+        self.assertIs(c_uint, ctypes.c_uint)
+        self.assertIs(c_long, ctypes.c_long)
+        self.assertIs(c_ulong, ctypes.c_ulong)
+        self.assertIs(c_longlong, ctypes.c_longlong)
+        self.assertIs(c_ulonglong, ctypes.c_ulonglong)
+        self.assertIs(c_float, ctypes.c_float)
+        self.assertIs(c_double, ctypes.c_double)
+        self.assertIs(c_longdouble, ctypes.c_longdouble)
+        self.assertIs(c_char, ctypes.c_char)
+        self.assertIs(c_wchar, ctypes.c_wchar)
+        self.assertIs(c_bool, ctypes.c_bool)
+        self.assertIs(c_void_p, ctypes.c_void_p)
+        self.assertIs(c_char_p, ctypes.c_char_p)
+        self.assertIs(c_wchar_p, ctypes.c_wchar_p)
+        self.assertIs(c_size_t, ctypes.c_size_t)
+        self.assertIs(c_ssize_t, ctypes.c_ssize_t)
+        self.assertIs(c_int8, ctypes.c_int8)
+        self.assertIs(c_uint8, ctypes.c_uint8)
+        self.assertIs(c_int16, ctypes.c_int16)
+        self.assertIs(c_uint16, ctypes.c_uint16)
+        self.assertIs(c_int32, ctypes.c_int32)
+        self.assertIs(c_uint32, ctypes.c_uint32)
+        self.assertIs(c_int64, ctypes.c_int64)
+        self.assertIs(c_uint64, ctypes.c_uint64)
+
+    def test_composite_reexports_match_ctypes(self):
+        self.assertIs(Structure, ctypes.Structure)
+        self.assertIs(Union, ctypes.Union)
+        self.assertIs(POINTER, ctypes.POINTER)
+        self.assertIs(Array, ctypes.Array)
+        self.assertIs(CFUNCTYPE, ctypes.CFUNCTYPE)
+
+
+class TestCtypesUtilsSizeofAlignment(unittest.TestCase):
+    def test_sizeof_type(self):
+        self.assertEqual(sizeof(c_int), ctypes.sizeof(ctypes.c_int))
+        self.assertEqual(sizeof(c_double), ctypes.sizeof(ctypes.c_double))
+        self.assertEqual(sizeof(c_char), ctypes.sizeof(ctypes.c_char))
+
+    def test_sizeof_instance(self):
+        self.assertEqual(sizeof(c_int(5)), ctypes.sizeof(ctypes.c_int(5)))
+
+    def test_alignment(self):
+        self.assertEqual(alignment(c_int), ctypes.alignment(ctypes.c_int))
+        self.assertEqual(alignment(c_double), ctypes.alignment(ctypes.c_double))
+
+
+class TestCtypesUtilsAddressofPointer(unittest.TestCase):
+    def test_addressof(self):
+        value = c_int(42)
+        self.assertEqual(addressof(value), ctypes.addressof(value))
+
+    def test_pointer(self):
+        value = c_int(7)
+        p = pointer(value)
+        self.assertEqual(p.contents.value, 7)
+
+    def test_byref(self):
+        value = c_int(3)
+        ref = byref(value)
+        self.assertIsNotNone(ref)
+        deref = cast(ref, POINTER(c_int)).contents
+        self.assertEqual(deref.value, 3)
+
+
+class TestCtypesUtilsCast(unittest.TestCase):
+    def test_cast_pointer(self):
+        value = c_int(255)
+        p = pointer(value)
+        cp = cast(p, c_void_p)
+        self.assertIsInstance(cp, c_void_p)
+
+
+class TestCtypesUtilsMemory(unittest.TestCase):
+    def test_memset_string_at(self):
+        buf = create_string_buffer(b"hello")
+        memset(buf, ord("x"), 2)
+        self.assertEqual(buf.raw[:2], b"xx")
+
+    def test_memmove(self):
+        buf = create_string_buffer(b"hello world")
+        memmove(buf, addressof(buf) + 6, 5)
+        self.assertEqual(buf.value, b"world world")
+
+    def test_string_at(self):
+        buf = create_string_buffer(b"abcdef")
+        addr = addressof(buf)
+        self.assertEqual(string_at(addr, 3), b"abc")
+
+    def test_create_string_buffer(self):
+        buf = create_string_buffer(b"hello")
+        self.assertEqual(buf.value, b"hello")
+        self.assertGreaterEqual(sizeof(buf), 6)
+
+    def test_create_string_buffer_with_size(self):
+        buf = create_string_buffer(10)
+        self.assertEqual(sizeof(buf), 10)
+
+    def test_create_unicode_buffer(self):
+        buf = create_unicode_buffer("hello")
+        self.assertEqual(buf.value, "hello")
+
+
+class TestCtypesUtilsErrno(unittest.TestCase):
+    def test_get_errno_set_errno(self):
+        set_errno(0)
+        self.assertEqual(get_errno(), 0)
+        set_errno(42)
+        self.assertEqual(get_errno(), 42)
+        set_errno(0)
+
+
+class TestCtypesUtilsLastError(unittest.TestCase):
+    def test_get_last_error_set_last_error_platform(self):
+        if hasattr(ctypes, "get_last_error"):
+            set_last_error(0)
+            self.assertEqual(get_last_error(), 0)
+            set_last_error(7)
+            self.assertEqual(get_last_error(), 7)
+            set_last_error(0)
+        else:
+            with self.assertRaises(AttributeError):
+                get_last_error()
+            with self.assertRaises(AttributeError):
+                set_last_error(0)
+
+
+class TestCtypesUtilsFindLibrary(unittest.TestCase):
+    def test_find_library(self):
+        result = find_library("c")
+        self.assertTrue(result is None or isinstance(result, str))
+
+
+class TestCtypesUtilsCFunctype(unittest.TestCase):
+    def test_cfunctype_creates_callable_type(self):
+        func_type = CFUNCTYPE(c_int, c_int, c_int)
+        self.assertTrue(callable(func_type))
+        instance = func_type(lambda a, b: a + b)
+        self.assertEqual(instance(2, 3), 5)
+
+
+class TestCtypesUtilsStructure(unittest.TestCase):
+    def test_structure_subclass(self):
+        class Point(Structure):
+            _fields_ = [("x", c_int), ("y", c_int)]
+
+        p = Point(1, 2)
+        self.assertEqual(p.x, 1)
+        self.assertEqual(p.y, 2)
+        self.assertEqual(sizeof(Point), ctypes.sizeof(ctypes.c_int) * 2)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_CTYPES_UTILS
 # --- tests/test_config_schema.py ---
 cat > "$OUTPUT_DIR/tests/test_config_schema.py" <<'TESTCONFIGSCHEMA'
 """Tests for config_schema module."""

@@ -156,6 +156,7 @@ typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_h
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
+ctypes_utils.py            # Ctypes utility functions wrapping the standard library ctypes module
 copy_utils.py              # Copy utilities (shallow/deep copy, dict copy, merge) wrapping stdlib copy module
 exceptions_utils.py        # Custom exception classes and error handling utilities
 email_utils.py             # Email utilities wrapping the standard library email.utils module
@@ -195,6 +196,7 @@ tests/                     # Python unit tests
   test_config_schema.py       # Tests for config_schema.py
   test_config_utils.py        # Tests for config_utils.py
   test_configparser_utils.py  # Tests for configparser_utils.py
+  test_ctypes_utils.py        # Tests for ctypes_utils.py
   test_concurrent_utils.py    # Tests for concurrent_utils.py
 test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
   test_context_utils.py       # Tests for context_utils.py
@@ -556,6 +558,10 @@ The project includes configuration file parsing utilities in `configparser_utils
 The project includes a configuration schema module in `config_schema.py` with declarative, typed configuration schemas. `SchemaField` describes a single typed field (`str`, `int`, `float`, `bool`) with optional defaults, required flags, and validators, and `ConfigSchema` composes fields to validate, coerce, and normalize configuration dictionaries. Built-in validators include `int_validator`, `float_validator`, `str_validator`, `bool_validator`, `email_validator`, `hostname_validator`, `url_validator`, `range_validator`, `choices_validator`, and `regex_validator`. The module is tested in `tests/test_config_schema.py`.
 
 Completed task: Added a new `config_schema.py` module with typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators such as `range_validator`, `choices_validator`, `email_validator`) and its tests. Synchronized the scaffold template: added `config_schema.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions. Verified all tests pass, ruff and mypy are clean.
+
+## Ctypes Utilities Module
+
+The project includes a ctypes utilities module in `ctypes_utils.py` wrapping the standard library `ctypes` module. It re-exports the fundamental C-compatible data types (`c_int`, `c_char_p`, `c_void_p`, `c_size_t`, `c_double`, and more), the composite types (`Structure`, `Union`, `POINTER`, `Array`), the factory (`CFUNCTYPE`), and helper functions (`sizeof`, `alignment`, `addressof`, `pointer`, `byref`, `cast`, `memmove`, `memset`, `string_at`, `create_string_buffer`, `create_unicode_buffer`, `get_errno`, `set_errno`, `get_last_error`, `set_last_error`, `find_library`). The module is tested in `tests/test_ctypes_utils.py`.
 
 ## Exception Utilities Module
 
