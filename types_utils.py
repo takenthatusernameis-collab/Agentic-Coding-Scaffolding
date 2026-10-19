@@ -24,8 +24,8 @@ __all__ = [
 
 def new_class(
     name: str,
-    bases: tuple = (),
-    exec_body: Optional[Callable[[dict], None]] = None,
+    bases: tuple[type, ...] = (),
+    exec_body: Optional[Callable[[dict[Any, Any]], None]] = None,
 ) -> type:
     if not isinstance(name, str):
         raise TypeError("name must be a str")
@@ -38,10 +38,10 @@ def new_class(
 
 def new_function(
     code: Any,
-    globals_dict: dict,
+    globals_dict: dict[Any, Any],
     name: Optional[str] = None,
-    argdefs: Optional[tuple] = None,
-    closure: Optional[tuple] = None,
+    argdefs: Optional[tuple[Any, ...]] = None,
+    closure: Optional[tuple[Any, ...]] = None,
 ) -> types.FunctionType:
     if not isinstance(globals_dict, dict):
         raise TypeError("globals_dict must be a dict")

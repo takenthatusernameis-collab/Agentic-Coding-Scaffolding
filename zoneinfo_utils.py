@@ -6,7 +6,7 @@ those primitives in a small, validated layer.
 
 from __future__ import annotations
 
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError, available_timezones
+from zoneinfo import ZoneInfo, available_timezones
 
 __all__: list[str] = [
     "zoneinfo_get",

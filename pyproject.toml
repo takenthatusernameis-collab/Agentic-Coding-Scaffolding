@@ -179,6 +179,7 @@ py_modules = [
     "semver_utils",
     "shutil_utils",
     "shlex_utils",
+    "runpy_utils",
     "keyword_utils",
     "linecache_utils",
     "pprint_utils",

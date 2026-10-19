@@ -76,7 +76,6 @@ class TestTypesUtils(unittest.TestCase):
         async def c():
             return 1
 
-        import asyncio
 
         coro = c()
         self.assertTrue(is_coroutine(coro))

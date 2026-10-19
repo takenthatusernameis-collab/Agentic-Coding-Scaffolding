@@ -1,6 +1,7 @@
 """Tests for copyreg_utils."""
 
 import copyreg
+
 import copyreg_utils
 
 
