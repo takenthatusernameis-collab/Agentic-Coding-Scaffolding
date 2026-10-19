@@ -49,6 +49,7 @@
 #   - zlib_utils.py — # Zlib compression and checksum utilities wrapping stdlib zlib (zlib_compress, zlib_decompress, zlib_compressobj, zlib_decompressobj, zlib_crc32, zlib_adler32)
 #   - cmd_utils.py — # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
 #   - this_utils.py — # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
+#   - tokenize_utils.py — # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
 #   - code_utils.py — # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 #   - copyreg_utils.py — # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
 #   - fileinput_utils.py — # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
@@ -463,6 +464,7 @@
 #   - test_zlib_utils.py — # Tests for zlib_utils.py
 #   - test_cmd_utils.py — # Tests for cmd_utils.py
 #   - test_this_utils.py — # Tests for this_utils.py
+#   - test_tokenize_utils.py — # Tests for tokenize_utils.py
 #   - test_code_utils.py — # Tests for code_utils.py
 #   - test_copyreg_utils.py — # Tests for copyreg_utils.py
 #   - test_fileinput_utils.py — # Tests for fileinput_utils.py
@@ -1756,6 +1758,7 @@ py_modules = [
     "zlib_utils",
     "cmd_utils",
     "this_utils",
+    "tokenize_utils",
     "code_utils",
     "copyreg_utils",
     "fileinput_utils",
@@ -23340,6 +23343,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `zlib_utils.py` — zlib compression and checksum utilities wrapping the standard library `zlib` module (`zlib_compress`, `zlib_decompress`, `zlib_compressobj`, `zlib_decompressobj`, `zlib_crc32`, `zlib_adler32`) with input validation
 - `cmd_utils.py` — command interpreter utilities wrapping the standard library `cmd` module (`identchars`, `prompt_default`, `main`) with input validation
 - `this_utils.py` — Zen of Python utilities wrapping the standard library `this` module (`zen_of_python`, `translation_table`, `cipher_index`, `this`, `print_zen`) with input validation
+- `tokenize_utils.py` — source tokenization utilities wrapping the standard library `tokenize` module (`tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens, is_comment, is_string, is_number, is_name, is_keyword`) with input validation
 - `code_utils.py` — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation
 - `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
 - `fileinput_utils.py` — file input iteration utilities wrapping the standard library `fileinput` module (`read_lines`, `count_lines`, `filenames`) with input validation
@@ -23511,6 +23515,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_zlib_utils.py` — unit tests for `zlib_utils.py`
 - `tests/test_cmd_utils.py` — unit tests for `cmd_utils.py`
 - `tests/test_this_utils.py` — unit tests for `this_utils.py`
+- `tests/test_tokenize_utils.py` — unit tests for `tokenize_utils.py`
 - `tests/test_code_utils.py` — unit tests for `code_utils.py`
 - `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`
 - `tests/test_fileinput_utils.py` — unit tests for `fileinput_utils.py`
@@ -24632,6 +24637,7 @@ shelve_utils.py           # Persistent key/value storage utilities wrapping stdl
 zlib_utils.py             # Zlib compression and checksum utilities wrapping stdlib zlib (zlib_compress, zlib_decompress, zlib_compressobj, zlib_decompressobj, zlib_crc32, zlib_adler32)
 cmd_utils.py                       # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
 this_utils.py                      # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
+tokenize_utils.py                  # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
 code_utils.py                       # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 copyreg_utils.py                       # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
 fileinput_utils.py                       # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
@@ -24777,6 +24783,8 @@ tests/                     # Python unit tests
   test_shelve_utils.py        # Tests for shelve_utils.py
   test_zlib_utils.py          # Tests for zlib_utils.py
   test_cmd_utils.py           # Tests for cmd_utils.py
+  test_this_utils.py          # Tests for this_utils.py
+  test_tokenize_utils.py      # Tests for tokenize_utils.py
   test_code_utils.py          # Tests for code_utils.py
   test_copyreg_utils.py       # Tests for copyreg_utils.py
   test_fileinput_utils.py     # Tests for fileinput_utils.py
@@ -24949,6 +24957,10 @@ The project includes command interpreter utilities in `cmd_utils.py` wrapping th
 
 The project includes Zen of Python utilities in `this_utils.py` wrapping the standard library `this` module: `zen_of_python` returns the Zen of Python as a single string, `translation_table` returns the ROT13 translation table used to encode the Zen, `cipher_index` returns the cipher key index, `this` returns the module's `this` callable when it is available (or `None`), and `print_zen` prints the Zen of Python to standard output. The module is tested in `tests/test_this_utils.py`.
 
+## Source Tokenization Utilities Module
+
+The project includes source tokenization utilities in `tokenize_utils.py` wrapping the standard library `tokenize` module: `tokenize_source` tokenizes in-memory source text, `tokenize_file` tokenizes a file using its declared encoding, `generate_tokens` yields tokens from a `readline` callable, `untokenize` rebuilds source text from a token stream, `token_name` returns the name registered for a token type, `token_type` returns the numeric type registered for a token name, `detect_encoding` detects the source encoding of a byte stream, `significant_tokens` drops comments and blank lines, and the `is_comment`, `is_string`, `is_number`, `is_name` and `is_keyword` predicates classify individual tokens. The module is tested in `tests/test_tokenize_utils.py`.
+
 ## Interactive Console Utilities Module
 
 The project includes interactive console utilities in `code_utils.py` wrapping the standard library `code` module: `interact` runs an interactive console session, `compile_command` compiles a single console command and returns `None` while the input is incomplete, `console_class` returns the `InteractiveConsole` class, and `interpreter_class` returns the `InteractiveInterpreter` class. The module is tested in `tests/test_code_utils.py`.
@@ -25057,6 +25069,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `cmd_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `this_utils.py` to the generated project — Zen of Python utilities wrapping the standard library `this` module (`zen_of_python`, `translation_table`, `cipher_index`, `this`, `print_zen`) with input validation, plus `tests/test_this_utils.py`.
 - Synchronized `this_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `tokenize_utils.py` to the generated project — source tokenization utilities wrapping the standard library `tokenize` module (`tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens, is_comment, is_string, is_number, is_name, is_keyword`) with input validation, plus `tests/test_tokenize_utils.py`.
+- Synchronized `tokenize_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Restored the missing `tests/test_this_utils.py` entry in the generated project's README test tree, which earlier sessions left out of the embedded README template.
 - Added `code_utils.py` to the generated project — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation, plus `tests/test_code_utils.py`.
 - Synchronized `code_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
@@ -46096,6 +46111,424 @@ def test_print_zen(capsys):
     assert "Gur Mra bs Clguba" in out
 TEST_THIS_UTILS
 
+# --- tokenize_utils.py ---
+cat > "$OUTPUT_DIR/tokenize_utils.py" <<'TOKENIZE_UTILS'
+"""Utilities for Python source tokenization (wrapping :mod:`tokenize`).
+
+The :mod:`tokenize` module turns Python source code into a stream of tokens.
+This wrapper exposes a small, validated surface over that functionality so
+callers can tokenize in-memory sources or files, look token types up by name,
+and rebuild source text from a token stream.
+"""
+
+from __future__ import annotations
+
+import io
+import keyword
+import token as _token
+import tokenize as _tokenize
+from collections.abc import Iterable
+from pathlib import Path
+from typing import Any, Callable, List, Tuple, Union
+
+__all__ = [
+    "TokenInfo",
+    "tokenize_source",
+    "tokenize_file",
+    "generate_tokens",
+    "untokenize",
+    "token_name",
+    "token_type",
+    "detect_encoding",
+    "significant_tokens",
+    "is_comment",
+    "is_string",
+    "is_number",
+    "is_name",
+    "is_keyword",
+]
+
+# The token record produced by the standard library tokenizer.
+TokenInfo = _tokenize.TokenInfo
+
+# Token types that carry no meaning for Python code itself.
+_IGNORED_TOKEN_TYPES = frozenset(
+    {
+        _tokenize.COMMENT,
+        _tokenize.NL,
+        _tokenize.ENCODING,
+        _tokenize.INDENT,
+        _tokenize.DEDENT,
+        _tokenize.ENDMARKER,
+    }
+)
+
+
+def _require_text(value: object, name: str = "source") -> str:
+    """Return *value* when it is a string, otherwise raise ``TypeError``."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _require_callable(value: object, name: str) -> Callable[..., Any]:
+    """Return *value* when it is callable, otherwise raise ``TypeError``."""
+    if not callable(value):
+        raise TypeError(f"{name} must be callable, got {type(value).__name__}")
+    return value
+
+
+def tokenize_source(source: str) -> List[TokenInfo]:
+    """Tokenize *source* text and return the resulting token list.
+
+    Args:
+        source: Python source code to tokenize.
+
+    Returns:
+        The tokens produced by :func:`tokenize.generate_tokens`.
+
+    Raises:
+        TypeError: If *source* is not a string.
+    """
+    text = _require_text(source)
+    return list(_tokenize.generate_tokens(io.StringIO(text).readline))
+
+
+def tokenize_file(path: Union[str, Path]) -> List[TokenInfo]:
+    """Tokenize the Python source file at *path*.
+
+    The file is decoded using the encoding declared by its cookie or by the
+    PEP 263 default, exactly as the standard library tokenizer does.
+
+    Args:
+        path: Path of the file to tokenize.
+
+    Returns:
+        The tokens produced by :func:`tokenize.generate_tokens`.
+
+    Raises:
+        TypeError: If *path* is neither a string nor a path-like object.
+        FileNotFoundError: If *path* does not exist.
+    """
+    if not isinstance(path, (str, Path)):
+        raise TypeError(f"path must be a string or Path, got {type(path).__name__}")
+    file_path = Path(path)
+    with _tokenize.open(file_path) as handle:
+        text = handle.read()
+    return tokenize_source(text)
+
+
+def generate_tokens(readline: Callable[[], str]) -> Iterable[TokenInfo]:
+    """Yield tokens from a *readline* callable.
+
+    Args:
+        readline: Callable returning one line of source at a time.
+
+    Returns:
+        An iterator of tokens.
+
+    Raises:
+        TypeError: If *readline* is not callable.
+    """
+    reader = _require_callable(readline, "readline")
+    return _tokenize.generate_tokens(reader)
+
+
+def untokenize(tokens: Iterable[Any]) -> str:
+    """Rebuild source text from a stream of tokens.
+
+    Args:
+        tokens: Tokens produced by :func:`tokenize_source` or
+            :func:`generate_tokens`.
+
+    Returns:
+        The reconstructed source text.
+
+    Raises:
+        TypeError: If *tokens* is not iterable.
+    """
+    if not isinstance(tokens, Iterable):
+        raise TypeError(f"tokens must be iterable, got {type(tokens).__name__}")
+    return _tokenize.untokenize(list(tokens))
+
+
+def token_name(token_type: int) -> str:
+    """Return the human readable name of *token_type*.
+
+    Args:
+        token_type: Numeric token type, such as ``token.NAME``.
+
+    Returns:
+        The token name, or ``"UNKNOWN"`` when the type is not registered.
+
+    Raises:
+        TypeError: If *token_type* is not an integer.
+    """
+    if isinstance(token_type, bool) or not isinstance(token_type, int):
+        raise TypeError(f"token_type must be an int, got {type(token_type).__name__}")
+    return _token.tok_name.get(token_type, "UNKNOWN")
+
+
+def token_type(name: str) -> int:
+    """Return the numeric token type registered under *name*.
+
+    Args:
+        name: Token name, such as ``"NAME"``.
+
+    Returns:
+        The numeric token type.
+
+    Raises:
+        TypeError: If *name* is not a string.
+        KeyError: If *name* is not a known token name.
+    """
+    text = _require_text(name, "name")
+    exact = _token.EXACT_TOKEN_TYPES.get(text)
+    if exact is not None:
+        return exact
+    for value, known in _token.tok_name.items():
+        if known == text:
+            return value
+    raise KeyError(f"unknown token name: {text!r}")
+
+
+def detect_encoding(readline: Callable[[], bytes]) -> Tuple[str, List[bytes]]:
+    """Detect the source encoding declared by a byte stream.
+
+    Args:
+        readline: Callable returning one line of bytes at a time.
+
+    Returns:
+        A tuple of the detected encoding and the lines that were read.
+
+    Raises:
+        TypeError: If *readline* is not callable.
+    """
+    reader = _require_callable(readline, "readline")
+    encoding, lines = _tokenize.detect_encoding(reader)
+    return encoding, list(lines)
+
+
+def significant_tokens(tokens: Iterable[TokenInfo]) -> List[TokenInfo]:
+    """Return the tokens of *tokens* that carry meaning for Python code.
+
+    Comments, blank lines, encoding markers, indentation markers and the end
+    marker are removed from the stream.
+
+    Args:
+        tokens: Tokens to filter.
+
+    Returns:
+        The filtered token list.
+
+    Raises:
+        TypeError: If *tokens* is not iterable.
+    """
+    if not isinstance(tokens, Iterable):
+        raise TypeError(f"tokens must be iterable, got {type(tokens).__name__}")
+    return [tok for tok in tokens if tok.type not in _IGNORED_TOKEN_TYPES]
+
+
+def is_comment(token: TokenInfo) -> bool:
+    """Return ``True`` when *token* is a comment token."""
+    return token.type == _tokenize.COMMENT
+
+
+def is_string(token: TokenInfo) -> bool:
+    """Return ``True`` when *token* is a string literal token."""
+    return token.type == _tokenize.STRING
+
+
+def is_number(token: TokenInfo) -> bool:
+    """Return ``True`` when *token* is a numeric literal token."""
+    return token.type == _tokenize.NUMBER
+
+
+def is_name(token: TokenInfo) -> bool:
+    """Return ``True`` when *token* is a name token."""
+    return token.type == _tokenize.NAME
+
+
+def is_keyword(token: TokenInfo) -> bool:
+    """Return ``True`` when *token* is a name token holding a Python keyword."""
+    return token.type == _tokenize.NAME and keyword.iskeyword(token.string)
+TOKENIZE_UTILS
+
+# --- tests/test_tokenize_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_tokenize_utils.py" <<'TEST_TOKENIZE_UTILS'
+"""Tests for tokenize_utils module."""
+
+import codecs
+import io
+import tempfile
+import unittest
+from pathlib import Path
+
+import tokenize_utils
+
+
+class TestTokenizeSource(unittest.TestCase):
+    """Verify tokenizing of in-memory sources."""
+
+    def test_tokenize_source_returns_tokens(self):
+        tokens = tokenize_utils.tokenize_source("x = 1\n")
+        self.assertTrue(tokens)
+        self.assertTrue(all(isinstance(tok, tokenize_utils.TokenInfo) for tok in tokens))
+
+    def test_tokenize_source_reports_names_and_values(self):
+        tokens = tokenize_utils.tokenize_source("x = 1\n")
+        strings = [tok.string for tok in tokens]
+        self.assertIn("x", strings)
+        self.assertIn("1", strings)
+        self.assertIn("=", strings)
+
+    def test_tokenize_source_of_empty_string(self):
+        tokens = tokenize_utils.tokenize_source("")
+        self.assertTrue(all(tok.string == "" for tok in tokens))
+
+    def test_tokenize_source_requires_string(self):
+        with self.assertRaises(TypeError):
+            tokenize_utils.tokenize_source(123)  # type: ignore[arg-type]
+
+
+class TestTokenizeFile(unittest.TestCase):
+    """Verify tokenizing of files on disk."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "sample.py"
+        self.path.write_text("# -*- coding: utf-8 -*-\nx = 1\n", encoding="utf-8")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_tokenize_file_returns_tokens(self):
+        tokens = tokenize_utils.tokenize_file(self.path)
+        self.assertIn("x", [tok.string for tok in tokens])
+
+    def test_tokenize_file_accepts_string_path(self):
+        tokens = tokenize_utils.tokenize_file(str(self.path))
+        self.assertIn("x", [tok.string for tok in tokens])
+
+    def test_tokenize_file_missing_file(self):
+        with self.assertRaises(FileNotFoundError):
+            tokenize_utils.tokenize_file(Path(self.tmp.name) / "missing.py")
+
+    def test_tokenize_file_rejects_bad_type(self):
+        with self.assertRaises(TypeError):
+            tokenize_utils.tokenize_file(42)  # type: ignore[arg-type]
+
+
+class TestGenerateAndUntokenize(unittest.TestCase):
+    """Verify the low level tokenizer helpers."""
+
+    def test_generate_tokens_yields_tokens(self):
+        tokens = list(tokenize_utils.generate_tokens(io.StringIO("x = 1\n").readline))
+        self.assertTrue(tokens)
+        self.assertIn("x", [tok.string for tok in tokens])
+
+    def test_generate_tokens_requires_callable(self):
+        with self.assertRaises(TypeError):
+            tokenize_utils.generate_tokens("not callable")  # type: ignore[arg-type]
+
+    def test_untokenize_round_trip(self):
+        source = "x = 1  # comment\n"
+        tokens = tokenize_utils.tokenize_source(source)
+        self.assertEqual(tokenize_utils.untokenize(tokens), source)
+
+    def test_untokenize_requires_iterable(self):
+        with self.assertRaises(TypeError):
+            tokenize_utils.untokenize(5)  # type: ignore[arg-type]
+
+
+class TestTokenNames(unittest.TestCase):
+    """Verify token name lookups."""
+
+    def test_token_name_of_known_type(self):
+        self.assertEqual(tokenize_utils.token_name(1), "NAME")
+        self.assertEqual(tokenize_utils.token_name(2), "NUMBER")
+
+    def test_token_name_of_unknown_type(self):
+        self.assertEqual(tokenize_utils.token_name(-123), "UNKNOWN")
+
+    def test_token_name_requires_int(self):
+        with self.assertRaises(TypeError):
+            tokenize_utils.token_name("NAME")  # type: ignore[arg-type]
+
+    def test_token_type_lookup(self):
+        self.assertEqual(tokenize_utils.token_type("NAME"), 1)
+        self.assertEqual(tokenize_utils.token_type("NUMBER"), 2)
+
+    def test_token_type_of_unknown_name(self):
+        with self.assertRaises(KeyError):
+            tokenize_utils.token_type("NOT_A_TOKEN")
+
+    def test_token_type_requires_string(self):
+        with self.assertRaises(TypeError):
+            tokenize_utils.token_type(1)  # type: ignore[arg-type]
+
+
+class TestDetectEncoding(unittest.TestCase):
+    """Verify source encoding detection."""
+
+    def test_detect_encoding_defaults_to_utf8(self):
+        lines = [b"x = 1\n"]
+        encoding, read = tokenize_utils.detect_encoding(iter(lines).__next__)
+        self.assertEqual(encoding, "utf-8")
+        self.assertEqual(read, [b"x = 1\n"])
+
+    def test_detect_encoding_reads_cookie(self):
+        lines = [b"# -*- coding: latin-1 -*-\n", b"x = 1\n"]
+        encoding, read = tokenize_utils.detect_encoding(iter(lines).__next__)
+        # The standard library normalizes the cookie to the canonical codec name.
+        self.assertEqual(codecs.lookup(encoding).name, codecs.lookup("latin-1").name)
+        self.assertEqual(read, [b"# -*- coding: latin-1 -*-\n"])
+
+    def test_detect_encoding_of_empty_stream(self):
+        encoding, read = tokenize_utils.detect_encoding(iter([]).__next__)
+        self.assertEqual(encoding, "utf-8")
+        self.assertEqual(read, [])
+
+    def test_detect_encoding_requires_callable(self):
+        with self.assertRaises(TypeError):
+            tokenize_utils.detect_encoding(None)  # type: ignore[arg-type]
+
+
+class TestSignificantTokens(unittest.TestCase):
+    """Verify token filtering and predicates."""
+
+    def test_significant_tokens_drops_comments_and_blanks(self):
+        tokens = tokenize_utils.tokenize_source("x = 1  # comment\n\n")
+        significant = tokenize_utils.significant_tokens(tokens)
+        names = [tokenize_utils.token_name(tok.type) for tok in significant]
+        self.assertNotIn("COMMENT", names)
+        self.assertNotIn("NL", names)
+        self.assertIn("NAME", names)
+
+    def test_significant_tokens_requires_iterable(self):
+        with self.assertRaises(TypeError):
+            tokenize_utils.significant_tokens(None)  # type: ignore[arg-type]
+
+    def test_token_predicates(self):
+        tokens = tokenize_utils.tokenize_source("import os\nvalue = 'text'\ncount = 2\n")
+        by_string = {tok.string: tok for tok in tokens}
+        self.assertTrue(tokenize_utils.is_name(by_string["import"]))
+        self.assertTrue(tokenize_utils.is_string(by_string["'text'"]))
+        self.assertTrue(tokenize_utils.is_number(by_string["2"]))
+        self.assertTrue(tokenize_utils.is_keyword(by_string["import"]))
+        self.assertFalse(tokenize_utils.is_keyword(by_string["os"]))
+        self.assertFalse(tokenize_utils.is_number(by_string["os"]))
+
+    def test_is_comment_detects_comments(self):
+        tokens = tokenize_utils.tokenize_source("x = 1  # comment\n")
+        comments = [tok for tok in tokens if tokenize_utils.is_comment(tok)]
+        self.assertEqual(len(comments), 1)
+        self.assertEqual(comments[0].string, "# comment")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_TOKENIZE_UTILS
 # --- code_utils.py ---
 cat > "$OUTPUT_DIR/code_utils.py" <<'CODE_UTILS'
 """Utilities for Python interactive console support (wrapping :mod:`code`)."""

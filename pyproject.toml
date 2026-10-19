@@ -212,4 +212,5 @@ py_modules = [
     "zoneinfo_utils",
     "cmd_utils",
     "this_utils",
+    "tokenize_utils",
 ]
