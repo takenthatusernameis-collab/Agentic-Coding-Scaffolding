@@ -168,6 +168,10 @@
 
 #   - tree_utils.py — # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 
+#   - tracemalloc_utils.py — # Tracemalloc memory tracing utilities wrapping stdlib tracemalloc (is_tracing, get_traced_memory, get_traceback_limit, start, stop, clear_traces)
+
+#   - tests/test_tracemalloc_utils.py — # Tests for tracemalloc_utils.py
+
 #   - type_utils.py — # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 
 #   - path_utils.py — # Path manipulation utilities (join, normalize, components, extensions)
@@ -1711,6 +1715,7 @@ py_modules = [
     "struct_utils",
     "duration_utils",
     "temp_utils",
+    "tracemalloc_utils",
     "xml_utils",
     "weakref_utils",
     "argparse_utils",
@@ -48566,3 +48571,77 @@ class TestZoneinfoAvailableTimezones(unittest.TestCase):
         self.assertIsInstance(tzs, set)
         self.assertIn("UTC", tzs)
 TEST_ZONEINFO_UTILS
+
+# --- tracemalloc_utils.py ---
+cat > "$OUTPUT_DIR/tracemalloc_utils.py" <<'TRACEMALLOC_UTILS'
+"""Utilities for tracing Python memory allocations (wrapping :mod:`tracemalloc`)."""
+
+import tracemalloc as _tracemalloc
+
+
+def is_tracing():
+    """Return whether tracemalloc is currently tracing allocations."""
+    return _tracemalloc.is_tracing()
+
+
+def get_traced_memory():
+    """Return current and peak traced memory as a tuple."""
+    return _tracemalloc.get_traced_memory()
+
+
+def get_traceback_limit():
+    """Return the traceback limit used for traces."""
+    return _tracemalloc.get_traceback_limit()
+
+
+def start(nframes=1):
+    """Start tracing allocations with the given frame depth."""
+    _tracemalloc.start(nframes)
+
+
+def stop():
+    """Stop tracing allocations."""
+    _tracemalloc.stop()
+
+
+def clear_traces():
+    """Clear all recorded traces."""
+    _tracemalloc.clear_traces()
+TRACEMALLOC_UTILS
+
+# --- tests/test_tracemalloc_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_tracemalloc_utils.py" <<'TEST_TRACEMALLOC_UTILS'
+import tracemalloc
+
+import tracemalloc_utils
+
+
+def test_is_tracing():
+    tracemalloc.stop()
+    assert tracemalloc_utils.is_tracing() is False
+
+
+def test_start_stop():
+    tracemalloc_utils.start(1)
+    assert tracemalloc_utils.is_tracing() is True
+    tracemalloc_utils.stop()
+    assert tracemalloc_utils.is_tracing() is False
+
+
+def test_get_traced_memory():
+    tracemalloc_utils.start(1)
+    current, peak = tracemalloc_utils.get_traced_memory()
+    assert isinstance(current, int)
+    assert isinstance(peak, int)
+    tracemalloc_utils.stop()
+
+
+def test_traceback_limit():
+    assert isinstance(tracemalloc_utils.get_traceback_limit(), int)
+
+
+def test_clear_traces():
+    tracemalloc_utils.start(1)
+    tracemalloc_utils.clear_traces()
+    tracemalloc_utils.stop()
+TEST_TRACEMALLOC_UTILS

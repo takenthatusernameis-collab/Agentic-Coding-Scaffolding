@@ -172,6 +172,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_reprlib_utils.py` — unit tests for `reprlib_utils.py`
 - `traceback_utils.py` — traceback utilities wrapping stdlib traceback (`format_exception`, `format_exception_only`, `extract_stack`, `format_stack`, `format_exc`)
 - `tests/test_traceback_utils.py` — unit tests for `traceback_utils.py`
+- `tracemalloc_utils.py` — tracemalloc memory tracing utilities wrapping stdlib tracemalloc (`is_tracing`, `get_traced_memory`, `get_traceback_limit`, `start`, `stop`, `clear_traces`)
+- `tests/test_tracemalloc_utils.py` — unit tests for `tracemalloc_utils.py`
 - `typing_utils.py` — typing utilities wrapping stdlib typing (`get_type_hints`, `get_origin`, `get_args`, `is_typeddict`) with re-exports of `overload`, `Final`, `Literal`, and `ClassVar`
 - `tests/test_typing_utils.py` — unit tests for `typing_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
