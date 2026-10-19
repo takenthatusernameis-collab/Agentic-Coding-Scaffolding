@@ -213,4 +213,5 @@ py_modules = [
     "cmd_utils",
     "this_utils",
     "tokenize_utils",
+    "tracemalloc_utils",
 ]
