@@ -88,6 +88,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "zipfile_utils.py",
             "bz2_utils.py",
             "lzma_utils.py",
+            "signal_utils.py",
             "calculator.py",
             "config_utils.py",
             "collections_utils.py",
@@ -345,6 +346,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_bz2_utils.py",
             "lzma_utils.py",
             "tests/test_lzma_utils.py",
+            "signal_utils.py",
+            "tests/test_signal_utils.py",
             "bz2_utils.py",
             "tests/test_bz2_utils.py",
             "bz2_utils.py",
@@ -426,6 +429,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_bz2_utils.py",
             "lzma_utils.py",
             "tests/test_lzma_utils.py",
+            "signal_utils.py",
+            "tests/test_signal_utils.py",
             "stats.py",
             "math_utils.py",
             "data_utils.py",
@@ -571,6 +576,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_concurrent_futures_utils.py",
             "lzma_utils.py",
             "tests/test_lzma_utils.py",
+            "signal_utils.py",
+            "tests/test_signal_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
         for test in [
@@ -824,6 +831,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_concurrent_futures_utils.py",
             "lzma_utils.py",
             "tests/test_lzma_utils.py",
+            "signal_utils.py",
+            "tests/test_signal_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
@@ -1788,6 +1797,66 @@ class TestScaffoldProjectNameNormalization(unittest.TestCase):
                 self.assertEqual(f.read(), data)
             with lzma_open(p, "wb") as f:
                 f.write(data)
+
+    def test_signal_utils_functions_work(self):
+        """Generated signal_utils.py should have working functions."""
+        import signal
+
+        from signal_utils import (
+            alarm,
+            get_handler,
+            get_signal_name,
+            interrupt_handler,
+            is_valid_signal,
+            pause,
+            register_int_handler,
+            register_term_handler,
+            set_handler,
+            signal_info,
+            signal_names,
+            suspend_handler,
+            unregister_handler,
+        )
+
+        self.assertTrue(is_valid_signal(signal.SIGINT))
+        self.assertFalse(is_valid_signal("SIGINT"))
+        self.assertFalse(is_valid_signal(999999))
+        self.assertEqual(get_signal_name(signal.SIGINT), "SIGINT")
+        self.assertIn("SIGINT", signal_names())
+
+        handler = get_handler(signal.SIGINT)
+        self.assertIn(handler, (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler))
+
+        original = signal.getsignal(signal.SIGUSR1 if hasattr(signal, "SIGUSR1") else signal.SIGINT)
+        sig = signal.SIGUSR1 if hasattr(signal, "SIGUSR1") else signal.SIGINT
+        original_int = signal.getsignal(signal.SIGINT)
+        original_term = signal.getsignal(signal.SIGTERM)
+        try:
+            set_handler(sig, suspend_handler)
+            self.assertIs(signal.getsignal(sig), suspend_handler)
+            register_int_handler(suspend_handler)
+            self.assertIs(signal.getsignal(signal.SIGINT), suspend_handler)
+            register_term_handler(suspend_handler)
+            self.assertIs(signal.getsignal(signal.SIGTERM), suspend_handler)
+            unregister_handler(sig)
+            self.assertIs(signal.getsignal(sig), signal.SIG_DFL)
+        finally:
+            signal.signal(sig, original)
+            signal.signal(signal.SIGINT, original_int)
+            signal.signal(signal.SIGTERM, original_term)
+
+        with self.assertRaises(KeyboardInterrupt):
+            interrupt_handler(signal.SIGINT, None)
+        self.assertIsNone(suspend_handler(signal.SIGINT, None))
+        self.assertEqual(alarm(0), 0)
+        self.assertTrue(callable(pause))
+
+        info = signal_info()
+        self.assertIsInstance(info, dict)
+        self.assertIn("names", info)
+        self.assertIn("sigint_handler", info)
+        self.assertIn("alarm_available", info)
+
     def test_gc_utils_functions_work(self):
         """Generated gc_utils.py should have working functions."""
         import gc

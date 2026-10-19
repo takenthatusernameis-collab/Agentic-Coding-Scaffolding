@@ -29,6 +29,7 @@
 #   - zipfile_utils.py — # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
 #   - bz2_utils.py — # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 #   - lzma_utils.py — # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
+#   - signal_utils.py — # Signal utilities wrapping stdlib signal (alarm, pause, register_handler, register_int_handler, register_term_handler, set_handler, get_handler, get_signal_name, is_valid_signal, signal_names, interrupt_handler, suspend_handler, unregister_handler, signal_info)
 
 #   - calculator.py — # Simple calculator module with arithmetic operations
 
@@ -931,6 +932,7 @@ py_modules = [
    "uuid_utils",
      "hashlib_utils",
      "platform_utils",
+     "signal_utils",
      "hash_utils",
      "hmac_utils",
      "http_utils",
@@ -20352,6 +20354,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation
 - `bz2_utils.py` — BZ2 compression utilities wrapping the standard library `bz2` module (`bz2_compress`, `bz2_decompress`, `bz2_open`, `bz2_write`, `bz2_read`)
 - `lzma_utils.py` — LZMA compression utilities wrapping the standard library `lzma` module (`lzma_compress`, `lzma_decompress`, `lzma_open`, `lzma_write`, `lzma_read`)
+- `signal_utils.py` — signal utilities wrapping the standard library `signal` module (`alarm`, `pause`, `register_handler`, `register_int_handler`, `register_term_handler`, `set_handler`, `get_handler`, `get_signal_name`, `is_valid_signal`, `signal_names`, `interrupt_handler`, `suspend_handler`, `unregister_handler`, `signal_info`) with input validation
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
@@ -20401,6 +20404,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_zipfile_utils.py` — unit tests for `zipfile_utils.py`
 - `tests/test_bz2_utils.py` — unit tests for `bz2_utils.py`
 - `tests/test_lzma_utils.py` — unit tests for `lzma_utils.py`
+- `tests/test_signal_utils.py` — unit tests for `signal_utils.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
 - `tests/test_collections_utils.py` — unit tests for `collections_utils.py`
@@ -21558,6 +21562,9 @@ timezone_utils.py          # Time zone utilities (IANA lookups, conversion, form
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 hmac_utils.py              # HMAC-based message authentication utilities (MD5, SHA1, SHA256, SHA512) with constant-time verification
+hashlib_utils.py           # Hash utilities wrapping hashlib (MD5, SHA1, SHA256, SHA512, SHA3, BLAKE2)
+platform_utils.py          # Platform utilities wrapping the standard library platform module
+signal_utils.py            # Signal utilities wrapping the standard library signal module
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 inspect_utils.py           # Callable and object introspection utilities (get_callable_name, is_callable, is_async_callable, get_signature, get_parameter_names, get_parameter_kinds, count_parameters, has_parameter, bind_arguments, is_builtin, get_source_file, get_source_lines)
@@ -21633,6 +21640,7 @@ tests/                     # Python unit tests
   test_greeting_utils.py      # Tests for greeting_utils.py
   test_hash_utils.py          # Tests for hash_utils.py
   test_hmac_utils.py          # Tests for hmac_utils.py
+  test_hashlib_utils.py       # Tests for hashlib_utils.py
   test_heapq_utils.py         # Tests for heapq_utils.py
   test_hello.py               # Tests for hello.py
   test_html_utils.py          # Tests for html_utils.py
@@ -21671,6 +21679,7 @@ tests/                     # Python unit tests
   test_shapes.py              # Tests for shapes.py
   test_shlex_utils.py         # Tests for shlex_utils.py
   test_shutil_utils.py        # Tests for shutil_utils.py
+  test_signal_utils.py        # Tests for signal_utils.py
   test_socketserver_utils.py     # Tests for socketserver_utils.py
   test_sort_utils.py          # Tests for sort_utils.py
   test_stat_utils.py    # Tests for stat_utils.py
@@ -21783,6 +21792,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `lzma_utils.py` — LZMA compression utilities wrapping the standard library `lzma` module (`lzma_compress`, `lzma_decompress`, `lzma_open`, `lzma_write`, `lzma_read`) with input validation, plus `tests/test_lzma_utils.py`.
 - Synchronized `lzma_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
+- Added `signal_utils.py` — signal utilities wrapping the standard library `signal` module (`alarm`, `pause`, `register_handler`, `register_int_handler`, `register_term_handler`, `set_handler`, `get_handler`, `get_signal_name`, `is_valid_signal`, `signal_names`, `interrupt_handler`, `suspend_handler`, `unregister_handler`, `signal_info`) with input validation, plus `tests/test_signal_utils.py`.
+- Synchronized `signal_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping the standard library `stat` and `os.stat` modules, plus `tests/test_stat_utils.py`.
 - Synchronized `stat_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -39335,3 +39347,342 @@ class TestSqlite3Utils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_SQLITE3_UTILS
+
+# --- signal_utils.py ---
+cat > "$OUTPUT_DIR/signal_utils.py" <<'SIGNALUTILS'
+"""Signal utilities (wrapping :mod:`signal`).
+
+This module provides helpers for working with POSIX signals using the
+standard library :mod:`signal` module. All functions validate inputs and
+raise :class:`TypeError` or :class:`ValueError` for invalid arguments where
+applicable.
+"""
+
+from __future__ import annotations
+
+import signal
+from typing import Any, Callable, Dict, List
+
+__all__: list[str] = [
+    "alarm",
+    "get_handler",
+    "get_signal_name",
+    "interrupt_handler",
+    "is_valid_signal",
+    "pause",
+    "register_handler",
+    "register_int_handler",
+    "register_term_handler",
+    "set_handler",
+    "signal_info",
+    "signal_names",
+    "suspend_handler",
+    "unregister_handler",
+]
+
+
+def is_valid_signal(sig: Any) -> bool:
+    """Return True if ``sig`` is a valid signal number on this platform."""
+    if not isinstance(sig, int):
+        return False
+    try:
+        signal.Signals(sig)
+    except ValueError:
+        return False
+    return True
+
+
+def get_signal_name(sig: int) -> str:
+    """Return the name of the signal identified by ``sig``.
+
+    Args:
+        sig: Signal number.
+
+    Returns:
+        Signal name (e.g., ``"SIGINT"``).
+
+    Raises:
+        TypeError: If ``sig`` is not an int.
+        ValueError: If ``sig`` is not a valid signal number.
+    """
+    if not isinstance(sig, int):
+        raise TypeError("sig must be an int")
+    try:
+        return signal.Signals(sig).name
+    except ValueError as exc:
+        raise ValueError(f"invalid signal number: {sig!r}") from exc
+
+
+def signal_names() -> List[str]:
+    """Return a sorted list of all signal names available on this platform."""
+    return sorted(s.name for s in signal.Signals)
+
+
+def get_handler(sig: int) -> Any:
+    """Return the current handler for ``sig``.
+
+    Args:
+        sig: Signal number.
+
+    Returns:
+        The current handler (callable, ``signal.SIG_DFL``, or
+        ``signal.SIG_IGN``).
+
+    Raises:
+        TypeError: If ``sig`` is not an int.
+        ValueError: If ``sig`` is not a valid signal number.
+    """
+    if not isinstance(sig, int):
+        raise TypeError("sig must be an int")
+    if not is_valid_signal(sig):
+        raise ValueError(f"invalid signal number: {sig!r}")
+    return signal.getsignal(sig)
+
+
+def set_handler(sig: int, handler: Any) -> None:
+    """Set the handler for ``sig``.
+
+    Args:
+        sig: Signal number.
+        handler: A callable, ``signal.SIG_DFL``, or ``signal.SIG_IGN``.
+
+    Raises:
+        TypeError: If ``sig`` is not an int.
+        ValueError: If ``sig`` is not a valid signal number.
+    """
+    if not isinstance(sig, int):
+        raise TypeError("sig must be an int")
+    if not is_valid_signal(sig):
+        raise ValueError(f"invalid signal number: {sig!r}")
+    signal.signal(sig, handler)
+
+
+def register_handler(sig: int, handler: Callable[[int, Any], Any]) -> None:
+    """Register a callable ``handler`` for ``sig``.
+
+    Args:
+        sig: Signal number.
+        handler: Callable invoked with (signum, frame) when the signal fires.
+
+    Raises:
+        TypeError: If ``sig`` is not an int or ``handler`` is not callable.
+        ValueError: If ``sig`` is not a valid signal number.
+    """
+    if not isinstance(sig, int):
+        raise TypeError("sig must be an int")
+    if not callable(handler):
+        raise TypeError("handler must be callable")
+    if not is_valid_signal(sig):
+        raise ValueError(f"invalid signal number: {sig!r}")
+    signal.signal(sig, handler)
+
+
+def register_int_handler(handler: Callable[[int, Any], Any]) -> None:
+    """Register ``handler`` for ``SIGINT`` (KeyboardInterrupt).
+
+    Raises:
+        TypeError: If ``handler`` is not callable.
+    """
+    if not callable(handler):
+        raise TypeError("handler must be callable")
+    signal.signal(signal.SIGINT, handler)
+
+
+def register_term_handler(handler: Callable[[int, Any], Any]) -> None:
+    """Register ``handler`` for ``SIGTERM``.
+
+    Raises:
+        TypeError: If ``handler`` is not callable.
+    """
+    if not callable(handler):
+        raise TypeError("handler must be callable")
+    signal.signal(signal.SIGTERM, handler)
+
+
+def interrupt_handler(signum: int, frame: Any) -> None:
+    """Default ``SIGINT`` handler that raises :class:`KeyboardInterrupt`."""
+    raise KeyboardInterrupt
+
+
+def suspend_handler(signum: int, frame: Any) -> None:
+    """No-op signal handler used to suppress or ignore a signal."""
+    return None
+
+
+def unregister_handler(sig: int) -> None:
+    """Reset the handler for ``sig`` to its default (``SIG_DFL``).
+
+    Args:
+        sig: Signal number.
+
+    Raises:
+        TypeError: If ``sig`` is not an int.
+        ValueError: If ``sig`` is not a valid signal number.
+    """
+    if not isinstance(sig, int):
+        raise TypeError("sig must be an int")
+    if not is_valid_signal(sig):
+        raise ValueError(f"invalid signal number: {sig!r}")
+    signal.signal(sig, signal.SIG_DFL)
+
+
+def alarm(seconds: int) -> int:
+    """Schedule a ``SIGALRM`` to be delivered after ``seconds`` seconds.
+
+    Args:
+        seconds: Number of seconds before the signal is delivered.
+
+    Returns:
+        The number of seconds remaining on any previously scheduled alarm.
+
+    Raises:
+        TypeError: If ``seconds`` is not an int.
+        ValueError: If ``seconds`` is negative.
+    """
+    if not isinstance(seconds, int):
+        raise TypeError("seconds must be an int")
+    if seconds < 0:
+        raise ValueError("seconds must be non-negative")
+    return signal.alarm(seconds)
+
+
+def pause() -> None:
+    """Wait for the next signal to be delivered."""
+    signal.pause()
+
+
+def signal_info() -> Dict[str, Any]:
+    """Return a dictionary with signal-related information.
+
+    Returns:
+        Dictionary with signal names, the SIGINT handler, and whether
+        SIGALRM is available.
+    """
+    return {
+        "names": signal_names(),
+        "sigint_handler": signal.getsignal(signal.SIGINT),
+        "alarm_available": hasattr(signal, "alarm"),
+    }
+SIGNALUTILS
+
+# --- tests/test_signal_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_signal_utils.py" <<'TEST_SIGNAL_UTILS'
+"""Unit tests for signal_utils module."""
+
+import signal
+import unittest
+
+from signal_utils import (
+    alarm,
+    get_handler,
+    get_signal_name,
+    interrupt_handler,
+    is_valid_signal,
+    pause,
+    register_handler,
+    register_int_handler,
+    register_term_handler,
+    set_handler,
+    signal_info,
+    signal_names,
+    suspend_handler,
+    unregister_handler,
+)
+
+# Use SIGUSR1 when available (POSIX), otherwise fall back to SIGINT so the
+# tests run on platforms with a reduced signal set.
+_TEST_SIGNAL = signal.SIGUSR1 if hasattr(signal, "SIGUSR1") else signal.SIGINT
+
+
+class TestSignalUtils(unittest.TestCase):
+    def test_is_valid_signal(self):
+        self.assertTrue(is_valid_signal(signal.SIGINT))
+        self.assertFalse(is_valid_signal("SIGINT"))
+        self.assertFalse(is_valid_signal(999999))
+        self.assertFalse(is_valid_signal(None))
+
+    def test_get_signal_name(self):
+        self.assertEqual(get_signal_name(signal.SIGINT), "SIGINT")
+        with self.assertRaises(TypeError):
+            get_signal_name("SIGINT")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            get_signal_name(999999)
+
+    def test_signal_names(self):
+        names = signal_names()
+        self.assertIsInstance(names, list)
+        self.assertIn("SIGINT", names)
+        self.assertEqual(names, sorted(names))
+
+    def test_get_handler(self):
+        handler = get_handler(signal.SIGINT)
+        self.assertIn(handler, (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler))
+
+    def test_set_handler_round_trip(self):
+        original = signal.getsignal(_TEST_SIGNAL)
+        try:
+            set_handler(_TEST_SIGNAL, suspend_handler)
+            self.assertIs(signal.getsignal(_TEST_SIGNAL), suspend_handler)
+        finally:
+            signal.signal(_TEST_SIGNAL, original)
+
+    def test_register_int_handler(self):
+        original = signal.getsignal(signal.SIGINT)
+        try:
+            register_int_handler(suspend_handler)
+            self.assertIs(signal.getsignal(signal.SIGINT), suspend_handler)
+        finally:
+            signal.signal(signal.SIGINT, original)
+
+    def test_register_term_handler(self):
+        original = signal.getsignal(signal.SIGTERM)
+        try:
+            register_term_handler(suspend_handler)
+            self.assertIs(signal.getsignal(signal.SIGTERM), suspend_handler)
+        finally:
+            signal.signal(signal.SIGTERM, original)
+
+    def test_register_handler_type_errors(self):
+        with self.assertRaises(TypeError):
+            register_handler("SIGINT", suspend_handler)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            register_handler(signal.SIGINT, "not callable")  # type: ignore[arg-type]
+
+    def test_interrupt_handler(self):
+        with self.assertRaises(KeyboardInterrupt):
+            interrupt_handler(signal.SIGINT, None)
+
+    def test_suspend_handler(self):
+        self.assertIsNone(suspend_handler(signal.SIGINT, None))
+
+    def test_alarm(self):
+        self.assertEqual(alarm(0), 0)
+
+    def test_alarm_type_errors(self):
+        with self.assertRaises(TypeError):
+            alarm("5")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            alarm(-1)
+
+    def test_pause_is_callable(self):
+        self.assertTrue(callable(pause))
+
+    def test_signal_info(self):
+        info = signal_info()
+        self.assertIsInstance(info, dict)
+        self.assertIn("names", info)
+        self.assertIn("sigint_handler", info)
+        self.assertIn("alarm_available", info)
+
+    def test_unregister_handler(self):
+        original = signal.getsignal(_TEST_SIGNAL)
+        try:
+            unregister_handler(_TEST_SIGNAL)
+            self.assertIs(signal.getsignal(_TEST_SIGNAL), signal.SIG_DFL)
+        finally:
+            signal.signal(_TEST_SIGNAL, original)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_SIGNAL_UTILS

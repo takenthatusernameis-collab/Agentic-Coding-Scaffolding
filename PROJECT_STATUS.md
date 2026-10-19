@@ -1,5 +1,6 @@
-- Added `concurrent_futures_utils.py` wrapping stdlib `concurrent.futures` with `tests/test_concurrent_futures_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, CHANGELOG, and `PROJECT_STATUS.md`.
-- Last completed work: `concurrent_futures_utils.py` wrapping stdlib `concurrent.futures` added with `tests/test_concurrent_futures_utils.py`.
+- Added `signal_utils.py` wrapping stdlib `signal` with `tests/test_signal_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, CHANGELOG, and `PROJECT_STATUS.md`.
+- Last completed work: `signal_utils.py` wrapping stdlib `signal` added with `tests/test_signal_utils.py`.
+- Next suggested work: add the next stdlib-wrapping utility module with tests and synchronize it across `scaffold.sh`, `pyproject.toml`, `README.md`, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, `CHANGELOG.md`, and `PROJECT_STATUS.md`; then verify `make test`, `make lint`, `make typecheck`.
 # Project Status
 
 - Added `bz2_utils.py` wrapping stdlib `bz2` with `tests/test_bz2_utils.py`; fully synchronized across `scaffold.sh` (header comment, `py_modules`, module + test heredocs), `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions (including `test_bz2_utils_functions_work`), CHANGELOG, and `PROJECT_STATUS.md`.

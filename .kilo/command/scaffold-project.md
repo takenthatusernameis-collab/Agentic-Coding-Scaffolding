@@ -197,6 +197,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_hashlib_utils.py` — unit tests for `hashlib_utils.py`
 - `platform_utils.py` — platform utilities wrapping the standard library `platform` module (system, release, version, machine, processor, node, Python build/compiler/revision/implementation/version, uname, and platform identification with validation)
 - `tests/test_platform_utils.py` — unit tests for `platform_utils.py`
+- `signal_utils.py` — signal utilities wrapping the standard library `signal` module (alarm, pause, register_handler, register_int_handler, register_term_handler, set_handler, get_handler, get_signal_name, is_valid_signal, signal_names, interrupt_handler, suspend_handler, unregister_handler, signal_info) with input validation
+- `tests/test_signal_utils.py` — unit tests for `signal_utils.py`
 - `tests/test_hmac_utils.py` — unit tests for `hmac_utils.py`
 - `tests/test_id_utils.py` — unit tests for `id_utils.py`
 - `http_utils.py` — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`)

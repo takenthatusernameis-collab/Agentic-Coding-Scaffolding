@@ -134,6 +134,7 @@ hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, 
 hmac_utils.py              # HMAC-based message authentication utilities (MD5, SHA1, SHA256, SHA512) with constant-time verification
 hashlib_utils.py           # Hash utilities wrapping hashlib (MD5, SHA1, SHA256, SHA512, SHA3, BLAKE2)
 platform_utils.py          # Platform utilities wrapping the standard library platform module
+signal_utils.py            # Signal utilities wrapping the standard library signal module
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
@@ -214,6 +215,7 @@ test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
   test_greeting_utils.py      # Tests for greeting_utils.py
   test_hash_utils.py          # Tests for hash_utils.py
   test_hmac_utils.py          # Tests for hmac_utils.py
+  test_hashlib_utils.py       # Tests for hashlib_utils.py
   test_heapq_utils.py         # Tests for heapq_utils.py
   test_keyword_utils.py       # Tests for keyword_utils.py
   test_hello.py               # Tests for hello.py
@@ -252,12 +254,13 @@ test_pickle_utils.py        # Tests for pickle_utils.py
 test_retry_utils.py         # Tests for retry_utils.py
 test_ring_buffer_utils.py   # Tests for ring_buffer_utils.py
 test_scaffold.py            # Tests for scaffold.sh
-  test_secrets_utils.py       # Tests for secrets_utils.py
-  test_seq_utils.py           # Tests for seq_utils.py
-  test_set_utils.py           # Tests for set_utils.py
-  test_shapes.py              # Tests for shapes.py
-  test_shutil_utils.py        # Tests for shutil_utils.py
-  test_socketserver_utils.py     # Tests for socketserver_utils.py
+test_secrets_utils.py       # Tests for secrets_utils.py
+   test_seq_utils.py           # Tests for seq_utils.py
+   test_set_utils.py           # Tests for set_utils.py
+   test_shapes.py              # Tests for shapes.py
+   test_shutil_utils.py        # Tests for shutil_utils.py
+   test_signal_utils.py        # Tests for signal_utils.py
+   test_socketserver_utils.py     # Tests for socketserver_utils.py
   test_sort_utils.py          # Tests for sort_utils.py
   test_stat_utils.py    # Tests for stat_utils.py
  test_statistics_utils.py    # Tests for statistics_utils.py
@@ -619,6 +622,10 @@ The project includes hash utilities in `hashlib_utils.py` wrapping the standard 
 ## Platform Utilities Module
 
 The project includes platform utilities in `platform_utils.py` wrapping the standard library `platform` module: functions to query system information (`get_system`, `get_release`, `get_version`, `get_machine`, `get_processor`, `get_node`, `get_uname`), Python implementation details (`get_python_implementation`, `get_python_version`, `get_python_version_tuple`, `get_python_build`, `get_python_compiler`, `get_python_revision`), and platform identification (`get_platform`, `platform_info`). Input validation is performed where applicable with `TypeError` or `ValueError` raised for invalid arguments. The module is tested in `tests/test_platform_utils.py`.
+
+## Signal Utilities Module
+
+The project includes signal utilities in `signal_utils.py` wrapping the standard library `signal` module: `is_valid_signal` checks whether a number is a valid signal, `get_signal_name` returns the name of a signal, and `signal_names` lists all available signal names. Handlers can be inspected with `get_handler`, set with `set_handler`, registered with `register_handler`, and reset to default with `unregister_handler`. Convenience helpers `register_int_handler` and `register_term_handler` register handlers for `SIGINT` and `SIGTERM` respectively, while `interrupt_handler` and `suspend_handler` provide common handler implementations. `alarm` schedules a `SIGALRM`, `pause` waits for the next signal, and `signal_info` returns a summary dictionary. All functions validate inputs and raise `TypeError` or `ValueError` for invalid arguments. The module is tested in `tests/test_signal_utils.py`.
 
 ## INI Configuration Utilities Module
 

@@ -59,6 +59,7 @@ py_modules = [
     "hmac_utils",
     "hashlib_utils",
     "platform_utils",
+    "signal_utils",
     "id_utils",
     "inspect_utils",
     "bit_utils",
