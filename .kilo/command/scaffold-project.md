@@ -45,6 +45,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tokenize_utils.py` — source tokenization utilities wrapping the standard library `tokenize` module (`tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens, is_comment, is_string, is_number, is_name, is_keyword`) with input validation
 - `socket_utils.py` — low-level socket utilities wrapping the standard library `socket` module (`create_socket, create_tcp_socket, create_udp_socket, socket_address, resolve_address, connect_socket, create_connection, bind_socket, listen_socket, accept_connection, send_all, send_to, receive_bytes, receive_from, set_timeout, get_timeout, set_nonblocking, set_reuse_address, set_keepalive, shutdown_socket, close_socket, get_socket_name, get_peer_name, socket_family_name, socket_type_name, error_name, get_hostname, has_ipv6, is_ipv6_address`) with input validation
 - `sysconfig_utils.py` — build configuration utilities wrapping the standard library `sysconfig` module (`get_config_vars`, `get_config_var`, `has_config_var`, `list_config_var_names`, `get_paths`, `get_path`, `get_platform`, `get_python_version`, `get_default_scheme`, `get_preferred_scheme`, `get_scheme_names`, `is_python_build`, `get_config_h_filename`, `get_makefile_filename`) with input validation
+- `mimetypes_utils.py` — MIME type detection utilities wrapping the standard library `mimetypes` module (`guess_type, guess_extension, guess_all_extensions, type_for_extension, add_type, init_database, normalize_extension, is_valid_mime_type, mime_category, is_text_mime_type`) with input validation
 - `code_utils.py` — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation
 - `codeop_utils.py` — utilities for compiling possibly-incomplete Python source wrapping the standard library `codeop` module (`compile_command`, `Compile`, `CommandCompiler`) with input validation
 - `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
@@ -224,6 +225,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_tokenize_utils.py` — unit tests for `tokenize_utils.py`
 - `tests/test_socket_utils.py` — unit tests for `socket_utils.py`
 - `tests/test_sysconfig_utils.py` — unit tests for `sysconfig_utils.py`
+- `tests/test_mimetypes_utils.py` — unit tests for `mimetypes_utils.py`
 - `tests/test_code_utils.py` — unit tests for `code_utils.py`
 - `tests/test_codeop_utils.py` — unit tests for `codeop_utils.py`
 - `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`

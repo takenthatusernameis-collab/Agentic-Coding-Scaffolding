@@ -138,6 +138,7 @@ this_utils.py             # Zen of Python utilities wrapping stdlib this (zen_of
 tokenize_utils.py         # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
 socket_utils.py           # Low-level socket utilities wrapping stdlib socket (create_socket, connect_socket, send_all, receive_bytes, resolve_address, error_name)
 sysconfig_utils.py        # Build configuration utilities wrapping stdlib sysconfig (get_config_vars, get_config_var, get_paths, get_path, get_platform, get_scheme_names)
+mimetypes_utils.py        # MIME type detection utilities wrapping stdlib mimetypes (guess_type, guess_extension, guess_all_extensions, add_type, init_database)
 code_utils.py             # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 codeop_utils.py           # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
 copyreg_utils.py          # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
@@ -385,6 +386,7 @@ test_lzma_utils.py          # Tests for lzma_utils.py
     test_tokenize_utils.py      # Tests for tokenize_utils.py
     test_socket_utils.py        # Tests for socket_utils.py
     test_sysconfig_utils.py     # Tests for sysconfig_utils.py
+    test_mimetypes_utils.py     # Tests for mimetypes_utils.py
     test_code_utils.py          # Tests for code_utils.py
     test_codeop_utils.py        # Tests for codeop_utils.py
     test_copyreg_utils.py       # Tests for copyreg_utils.py
@@ -1053,6 +1055,10 @@ The project includes low-level socket utilities in `socket_utils.py` wrapping th
 ## Build Configuration Utilities Module
 
 The project includes build configuration utilities in `sysconfig_utils.py` wrapping the standard library `sysconfig` module: `get_config_vars` returns the configuration variables of the running interpreter, `get_config_var` returns the value of a single configuration variable, `has_config_var` reports whether a configuration variable is defined, `list_config_var_names` returns the sorted names of the known configuration variables, `get_paths` returns the installation paths of a scheme, `get_path` returns a single installation path, `get_platform` returns the platform string of the interpreter, `get_python_version` returns the version as `major.minor`, `get_default_scheme` returns the default installation scheme, `get_preferred_scheme` resolves the preferred scheme of an installation type, `get_scheme_names` returns the known installation schemes, `is_python_build` reports whether the interpreter was built from source, `get_config_h_filename` returns the path of `pyconfig.h`, and `get_makefile_filename` returns the path of the interpreter `Makefile`. The module is tested in `tests/test_sysconfig_utils.py`.
+
+## MIME Type Utilities Module
+
+The project includes MIME type utilities in `mimetypes_utils.py` wrapping the standard library `mimetypes` module: `guess_type` guesses the MIME type and content encoding of a file name or URL, `guess_extension` guesses the extension of a MIME type, `guess_all_extensions` returns every extension registered for a MIME type, `type_for_extension` returns the MIME type of an extension, `add_type` registers a custom extension for a MIME type, `init_database` initializes the MIME type database and reads extra `mime.types` files, `normalize_extension` lower cases an extension and adds the leading dot, `is_valid_mime_type` reports whether a value is a well formed `type/subtype` pair, `mime_category` returns the top level type of a MIME type, and `is_text_mime_type` reports whether a MIME type describes textual content. The module is tested in `tests/test_mimetypes_utils.py`.
 
 ## Interactive Console Utilities Module
 

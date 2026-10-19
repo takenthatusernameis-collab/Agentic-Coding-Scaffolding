@@ -52,6 +52,7 @@
 #   - tokenize_utils.py — # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
 #   - socket_utils.py — # Low-level socket utilities wrapping stdlib socket (create_socket, connect_socket, send_all, receive_bytes, resolve_address, error_name)
 #   - sysconfig_utils.py — # Build configuration utilities wrapping stdlib sysconfig (get_config_vars, get_config_var, get_paths, get_path, get_platform, get_scheme_names)
+#   - mimetypes_utils.py — # MIME type detection utilities wrapping stdlib mimetypes (guess_type, guess_extension, guess_all_extensions, add_type, init_database)
 #   - code_utils.py — # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 #   - codeop_utils.py — # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
 #   - copyreg_utils.py — # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
@@ -476,6 +477,7 @@
 #   - test_tokenize_utils.py — # Tests for tokenize_utils.py
 #   - test_socket_utils.py — # Tests for socket_utils.py
 #   - test_sysconfig_utils.py — # Tests for sysconfig_utils.py
+#   - test_mimetypes_utils.py — # Tests for mimetypes_utils.py
 #   - test_code_utils.py — # Tests for code_utils.py
 #   - test_codeop_utils.py — # Tests for codeop_utils.py
 #   - test_copyreg_utils.py — # Tests for copyreg_utils.py
@@ -1775,6 +1777,7 @@ py_modules = [
     "tokenize_utils",
     "socket_utils",
     "sysconfig_utils",
+    "mimetypes_utils",
     "code_utils",
     "codeop_utils",
     "copyreg_utils",
@@ -23807,6 +23810,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tokenize_utils.py` — source tokenization utilities wrapping the standard library `tokenize` module (`tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens, is_comment, is_string, is_number, is_name, is_keyword`) with input validation
 - `socket_utils.py` — low-level socket utilities wrapping the standard library `socket` module (`create_socket, create_tcp_socket, create_udp_socket, socket_address, resolve_address, connect_socket, create_connection, bind_socket, listen_socket, accept_connection, send_all, send_to, receive_bytes, receive_from, set_timeout, get_timeout, set_nonblocking, set_reuse_address, set_keepalive, shutdown_socket, close_socket, get_socket_name, get_peer_name, socket_family_name, socket_type_name, error_name, get_hostname, has_ipv6, is_ipv6_address`) with input validation
 - `sysconfig_utils.py` — build configuration utilities wrapping the standard library `sysconfig` module (`get_config_vars, get_config_var, has_config_var, list_config_var_names, get_paths, get_path, get_platform, get_python_version, get_default_scheme, get_preferred_scheme, get_scheme_names, is_python_build, get_config_h_filename, get_makefile_filename`) with input validation
+- `mimetypes_utils.py` — MIME type detection utilities wrapping the standard library `mimetypes` module (`guess_type, guess_extension, guess_all_extensions, type_for_extension, add_type, init_database, normalize_extension, is_valid_mime_type, mime_category, is_text_mime_type`) with input validation
 - `code_utils.py` — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation
 - `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
 - `fileinput_utils.py` — file input iteration utilities wrapping the standard library `fileinput` module (`read_lines`, `count_lines`, `filenames`) with input validation
@@ -23981,6 +23985,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_tokenize_utils.py` — unit tests for `tokenize_utils.py`
 - `tests/test_socket_utils.py` — unit tests for `socket_utils.py`
 - `tests/test_sysconfig_utils.py` — unit tests for `sysconfig_utils.py`
+- `tests/test_mimetypes_utils.py` — unit tests for `mimetypes_utils.py`
 - `tests/test_code_utils.py` — unit tests for `code_utils.py`
 - `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`
 - `tests/test_fileinput_utils.py` — unit tests for `fileinput_utils.py`
@@ -25105,6 +25110,7 @@ this_utils.py                      # Zen of Python utilities wrapping stdlib thi
 tokenize_utils.py                  # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
 socket_utils.py                    # Low-level socket utilities wrapping stdlib socket (create_socket, connect_socket, send_all, receive_bytes, resolve_address, error_name)
 sysconfig_utils.py                 # Build configuration utilities wrapping stdlib sysconfig (get_config_vars, get_config_var, get_paths, get_path, get_platform, get_scheme_names)
+mimetypes_utils.py                 # MIME type detection utilities wrapping stdlib mimetypes (guess_type, guess_extension, guess_all_extensions, add_type, init_database)
 code_utils.py                       # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 codeop_utils.py                     # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
 copyreg_utils.py                       # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
@@ -25255,6 +25261,7 @@ tests/                     # Python unit tests
   test_tokenize_utils.py      # Tests for tokenize_utils.py
   test_socket_utils.py        # Tests for socket_utils.py
   test_sysconfig_utils.py     # Tests for sysconfig_utils.py
+  test_mimetypes_utils.py     # Tests for mimetypes_utils.py
   test_code_utils.py          # Tests for code_utils.py
   test_codeop_utils.py        # Tests for codeop_utils.py
   test_copyreg_utils.py       # Tests for copyreg_utils.py
@@ -25440,6 +25447,10 @@ The project includes low-level socket utilities in `socket_utils.py` wrapping th
 
 The project includes build configuration utilities in `sysconfig_utils.py` wrapping the standard library `sysconfig` module: `get_config_vars` returns the configuration variables of the running interpreter, `get_config_var` returns the value of a single configuration variable, `has_config_var` reports whether a configuration variable is defined, `list_config_var_names` returns the sorted names of the known configuration variables, `get_paths` returns the installation paths of a scheme, `get_path` returns a single installation path, `get_platform` returns the platform string of the interpreter, `get_python_version` returns the version as `major.minor`, `get_default_scheme` returns the default installation scheme, `get_preferred_scheme` resolves the preferred scheme of an installation type, `get_scheme_names` returns the known installation schemes, `is_python_build` reports whether the interpreter was built from source, `get_config_h_filename` returns the path of `pyconfig.h`, and `get_makefile_filename` returns the path of the interpreter `Makefile`. The module is tested in `tests/test_sysconfig_utils.py`.
 
+## MIME Type Utilities Module
+
+The project includes MIME type utilities in `mimetypes_utils.py` wrapping the standard library `mimetypes` module: `guess_type` guesses the MIME type and content encoding of a file name or URL, `guess_extension` guesses the extension of a MIME type, `guess_all_extensions` returns every extension registered for a MIME type, `type_for_extension` returns the MIME type of an extension, `add_type` registers a custom extension for a MIME type, `init_database` initializes the MIME type database and reads extra `mime.types` files, `normalize_extension` lower cases an extension and adds the leading dot, `is_valid_mime_type` reports whether a value is a well formed `type/subtype` pair, `mime_category` returns the top level type of a MIME type, and `is_text_mime_type` reports whether a MIME type describes textual content. The module is tested in `tests/test_mimetypes_utils.py`.
+
 ## Interactive Console Utilities Module
 
 The project includes interactive console utilities in `code_utils.py` wrapping the standard library `code` module: `interact` runs an interactive console session, `compile_command` compiles a single console command and returns `None` while the input is incomplete, `console_class` returns the `InteractiveConsole` class, and `interpreter_class` returns the `InteractiveInterpreter` class. The module is tested in `tests/test_code_utils.py`.
@@ -25515,6 +25526,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `mimetypes_utils.py` to the generated project — MIME type detection utilities wrapping the standard library `mimetypes` module (`guess_type, guess_extension, guess_all_extensions, type_for_extension, add_type, init_database, normalize_extension, is_valid_mime_type, mime_category, is_text_mime_type`) with input validation, plus `tests/test_mimetypes_utils.py`.
+- Synchronized `mimetypes_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `sysconfig_utils.py` to the generated project — build configuration utilities wrapping the standard library `sysconfig` module (`get_config_vars, get_config_var, has_config_var, list_config_var_names, get_paths, get_path, get_platform, get_python_version, get_default_scheme, get_preferred_scheme, get_scheme_names, is_python_build, get_config_h_filename, get_makefile_filename`) with input validation, plus `tests/test_sysconfig_utils.py`.
 - Synchronized `sysconfig_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `socket_utils.py` to the generated project — low-level socket utilities wrapping the standard library `socket` module (`create_socket, create_tcp_socket, create_udp_socket, socket_address, resolve_address, connect_socket, create_connection, bind_socket, listen_socket, accept_connection, send_all, send_to, receive_bytes, receive_from, set_timeout, get_timeout, set_nonblocking, set_reuse_address, set_keepalive, shutdown_socket, close_socket, get_socket_name, get_peer_name, socket_family_name, socket_type_name, error_name, get_hostname, has_ipv6, is_ipv6_address`) with input validation, plus `tests/test_socket_utils.py`.
@@ -50719,3 +50732,601 @@ class TestGetPreferredScheme(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_SYSCONFIG_UTILS
+
+
+# --- mimetypes_utils.py ---
+cat > "$OUTPUT_DIR/mimetypes_utils.py" <<'MIMETYPES_UTILS'
+"""Utilities for MIME type detection (wrapping :mod:`mimetypes`).
+
+The :mod:`mimetypes` module maps file name extensions to MIME types and MIME
+types back to extensions. This wrapper exposes a small, validated surface over
+that functionality so callers can detect the type of a file, look up the
+extensions registered for a MIME type, and register custom mappings without
+repeating the usual type checks.
+"""
+
+from __future__ import annotations
+
+import mimetypes as _mimetypes
+import re
+from typing import List, Optional, Sequence, Tuple
+
+__all__ = [
+    "guess_type",
+    "guess_extension",
+    "guess_all_extensions",
+    "type_for_extension",
+    "add_type",
+    "init_database",
+    "normalize_extension",
+    "is_valid_mime_type",
+    "mime_category",
+    "is_text_mime_type",
+]
+
+# MIME types that carry textual payloads even though their top level type is
+# not "text".
+_TEXT_APPLICATION_TYPES = frozenset(
+    {
+        "application/json",
+        "application/ld+json",
+        "application/xml",
+        "application/xhtml+xml",
+        "application/javascript",
+        "application/x-javascript",
+        "application/x-www-form-urlencoded",
+        "application/yaml",
+        "application/x-yaml",
+        "application/toml",
+        "application/csv",
+        "application/sql",
+    }
+)
+
+# A MIME type is a "type/subtype" pair built from the characters allowed in
+# an RFC 2045 token.
+_MIME_TYPE_PATTERN = re.compile(
+    r"^[A-Za-z0-9][A-Za-z0-9!#$&^_.+-]*/[A-Za-z0-9][A-Za-z0-9!#$&^_.+-]*$"
+)
+
+
+def _require_text(value: object, name: str) -> str:
+    """Return *value* when it is a string, otherwise raise ``TypeError``."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _require_flag(value: object, name: str) -> bool:
+    """Return *value* when it is a boolean, otherwise raise ``TypeError``."""
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def guess_type(url: str, strict: bool = True) -> Tuple[Optional[str], Optional[str]]:
+    """Guess the MIME type of the file behind *url*.
+
+    Args:
+        url: File name or URL to inspect.
+        strict: Whether only the standard MIME types are considered.
+
+    Returns:
+        A tuple of the MIME type and the content encoding. Both entries are
+        ``None`` when the type cannot be guessed.
+
+    Raises:
+        TypeError: If *url* is not a string or *strict* is not a boolean.
+    """
+    target = _require_text(url, "url")
+    strict_flag = _require_flag(strict, "strict")
+    mime_type, encoding = _mimetypes.guess_type(target, strict=strict_flag)
+    return mime_type, encoding
+
+
+def guess_extension(mime_type: str, strict: bool = True) -> Optional[str]:
+    """Guess the file extension of *mime_type*.
+
+    Args:
+        mime_type: MIME type to look up, such as ``"text/html"``.
+        strict: Whether only the standard MIME types are considered.
+
+    Returns:
+        The extension, including the leading dot, or ``None`` when the type is
+        unknown.
+
+    Raises:
+        TypeError: If *mime_type* is not a string or *strict* is not a boolean.
+    """
+    value = _require_text(mime_type, "mime_type")
+    strict_flag = _require_flag(strict, "strict")
+    return _mimetypes.guess_extension(value, strict=strict_flag)
+
+
+def guess_all_extensions(mime_type: str, strict: bool = True) -> List[str]:
+    """Guess every file extension registered for *mime_type*.
+
+    Args:
+        mime_type: MIME type to look up, such as ``"text/html"``.
+        strict: Whether only the standard MIME types are considered.
+
+    Returns:
+        The matching extensions, including the leading dot. The list is empty
+        when the type is unknown.
+
+    Raises:
+        TypeError: If *mime_type* is not a string or *strict* is not a boolean.
+    """
+    value = _require_text(mime_type, "mime_type")
+    strict_flag = _require_flag(strict, "strict")
+    return list(_mimetypes.guess_all_extensions(value, strict=strict_flag))
+
+
+def normalize_extension(extension: str) -> str:
+    """Return *extension* in the canonical form used by the MIME database.
+
+    The canonical form is lower case and includes the leading dot, so
+    ``"HTML"`` and ``".html"`` both normalize to ``".html"``.
+
+    Args:
+        extension: Extension to normalize, with or without a leading dot.
+
+    Returns:
+        The normalized extension.
+
+    Raises:
+        TypeError: If *extension* is not a string.
+        ValueError: If *extension* is empty or only whitespace.
+    """
+    value = _require_text(extension, "extension").strip()
+    if not value:
+        raise ValueError("extension must not be empty")
+    if not value.startswith("."):
+        value = f".{value}"
+    return value.lower()
+
+
+def type_for_extension(extension: str, strict: bool = True) -> Optional[str]:
+    """Return the MIME type registered for *extension*.
+
+    Args:
+        extension: Extension to look up, with or without a leading dot.
+        strict: Whether only the standard MIME types are considered.
+
+    Returns:
+        The MIME type, or ``None`` when the extension is unknown.
+
+    Raises:
+        TypeError: If *extension* is not a string or *strict* is not a boolean.
+        ValueError: If *extension* is empty or only whitespace.
+    """
+    suffix = normalize_extension(extension)
+    strict_flag = _require_flag(strict, "strict")
+    mime_type, _encoding = _mimetypes.guess_type(f"file{suffix}", strict=strict_flag)
+    return mime_type
+
+
+def add_type(mime_type: str, extension: str, strict: bool = True) -> None:
+    """Register *extension* as an additional suffix of *mime_type*.
+
+    The mapping is added to the database shared by the standard library, so it
+    is visible to later calls of :func:`guess_type` and :func:`guess_extension`.
+
+    Args:
+        mime_type: MIME type to register, such as ``"application/x-kilo"``.
+        extension: Extension to register, with or without a leading dot.
+        strict: Whether the mapping replaces an already known extension.
+
+    Raises:
+        TypeError: If an argument has an unsupported type.
+        ValueError: If *extension* is empty or only whitespace.
+    """
+    value = _require_text(mime_type, "mime_type")
+    suffix = normalize_extension(extension)
+    strict_flag = _require_flag(strict, "strict")
+    _mimetypes.add_type(value, suffix, strict=strict_flag)
+
+
+def init_database(files: Optional[Sequence[str]] = None) -> None:
+    """Initialize the MIME type database.
+
+    Calling the function without arguments restores the platform defaults.
+    Passing file names reads those files in addition to the current database.
+
+    Args:
+        files: Paths of ``mime.types`` files to read, or ``None``.
+
+    Raises:
+        TypeError: If *files* is not a sequence of strings or ``None``.
+    """
+    if files is None:
+        _mimetypes.init()
+        return
+    if isinstance(files, (str, bytes)):
+        raise TypeError("files must be a sequence of strings or None")
+    paths: List[str] = []
+    for index, item in enumerate(files):
+        if not isinstance(item, str):
+            raise TypeError(f"files[{index}] must be a string, got {type(item).__name__}")
+        paths.append(item)
+    _mimetypes.init(files=paths)
+
+
+def is_valid_mime_type(mime_type: str) -> bool:
+    """Return ``True`` when *mime_type* is a well formed ``type/subtype`` value.
+
+    Args:
+        mime_type: MIME type to check.
+
+    Returns:
+        ``True`` when the value consists of a type and a subtype separated by
+        a slash.
+
+    Raises:
+        TypeError: If *mime_type* is not a string.
+    """
+    value = _require_text(mime_type, "mime_type")
+    return bool(_MIME_TYPE_PATTERN.match(value))
+
+
+def mime_category(mime_type: str) -> str:
+    """Return the top level type of *mime_type*.
+
+    Args:
+        mime_type: MIME type to inspect, such as ``"text/html"``.
+
+    Returns:
+        The top level type in lower case, such as ``"text"``. The empty
+        string is returned when the MIME type is malformed.
+
+    Raises:
+        TypeError: If *mime_type* is not a string.
+    """
+    value = _require_text(mime_type, "mime_type")
+    if not is_valid_mime_type(value):
+        return ""
+    return value.split("/", 1)[0].lower()
+
+
+def is_text_mime_type(mime_type: str) -> bool:
+    """Return ``True`` when *mime_type* describes textual content.
+
+    Beside the ``text/*`` types the known textual application types, such as
+    ``"application/json"``, are reported as text as well.
+
+    Args:
+        mime_type: MIME type to inspect.
+
+    Returns:
+        ``True`` when the payload of the type is text.
+
+    Raises:
+        TypeError: If *mime_type* is not a string.
+    """
+    value = _require_text(mime_type, "mime_type")
+    if mime_category(value) == "text":
+        return True
+    return value.lower() in _TEXT_APPLICATION_TYPES
+MIMETYPES_UTILS
+
+# --- tests/test_mimetypes_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_mimetypes_utils.py" <<'TEST_MIMETYPES_UTILS'
+"""Tests for mimetypes_utils module."""
+
+import mimetypes
+import os
+import tempfile
+import unittest
+
+import mimetypes_utils
+
+# A MIME type and extension that are not part of the platform database.
+_CUSTOM_TYPE = "application/x-kilo-test"
+_CUSTOM_EXTENSION = ".kilotest"
+
+
+def register_custom_type() -> None:
+    """Register the custom type used by the tests."""
+    mimetypes_utils.add_type(_CUSTOM_TYPE, _CUSTOM_EXTENSION)
+
+
+class TestGuessType(unittest.TestCase):
+    """Verify detection of the MIME type of a file."""
+
+    def test_guess_type_returns_a_tuple(self):
+        result = mimetypes_utils.guess_type("page.html")
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
+
+    def test_guess_type_of_known_extension(self):
+        expected = mimetypes.guess_type("page.html")
+        if expected[0] is None:
+            self.skipTest("the platform MIME database does not know .html")
+        self.assertEqual(mimetypes_utils.guess_type("page.html"), expected)
+
+    def test_guess_type_of_unknown_extension(self):
+        self.assertEqual(
+            mimetypes_utils.guess_type("archive.definitely-not-a-type"),
+            (None, None),
+        )
+
+    def test_guess_type_ignores_the_query_string(self):
+        result = mimetypes_utils.guess_type("https://example.com/page.html?q=1")
+        self.assertEqual(result, mimetypes.guess_type("https://example.com/page.html?q=1"))
+
+    def test_guess_type_matches_the_standard_library(self):
+        for url in ("a.txt", "b.html", "c.json", "d.png", "e.definitely-unknown"):
+            with self.subTest(url=url):
+                self.assertEqual(mimetypes_utils.guess_type(url), mimetypes.guess_type(url))
+
+    def test_guess_type_supports_the_non_strict_database(self):
+        url = "archive.definitely-not-a-type"
+        self.assertEqual(
+            mimetypes_utils.guess_type(url, strict=False),
+            mimetypes.guess_type(url, strict=False),
+        )
+
+    def test_guess_type_requires_a_string(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.guess_type(None)  # type: ignore[arg-type]
+
+    def test_guess_type_requires_a_boolean_strict_flag(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.guess_type("page.html", strict="yes")  # type: ignore[arg-type]
+
+
+class TestGuessExtension(unittest.TestCase):
+    """Verify lookup of the extension of a MIME type."""
+
+    def setUp(self):
+        register_custom_type()
+
+    def test_guess_extension_returns_the_extension(self):
+        self.assertEqual(
+            mimetypes_utils.guess_extension(_CUSTOM_TYPE),
+            _CUSTOM_EXTENSION,
+        )
+
+    def test_guess_extension_of_unknown_type(self):
+        self.assertIsNone(mimetypes_utils.guess_extension("application/definitely-unknown"))
+
+    def test_guess_extension_matches_the_standard_library(self):
+        for mime_type in ("text/html", "text/plain", "application/json"):
+            with self.subTest(mime_type=mime_type):
+                self.assertEqual(
+                    mimetypes_utils.guess_extension(mime_type),
+                    mimetypes.guess_extension(mime_type),
+                )
+
+    def test_guess_extension_requires_a_string(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.guess_extension(None)  # type: ignore[arg-type]
+
+    def test_guess_extension_requires_a_boolean_strict_flag(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.guess_extension("text/html", strict=1)  # type: ignore[arg-type]
+
+
+class TestGuessAllExtensions(unittest.TestCase):
+    """Verify lookup of every extension of a MIME type."""
+
+    def setUp(self):
+        register_custom_type()
+
+    def test_guess_all_extensions_returns_a_list(self):
+        extensions = mimetypes_utils.guess_all_extensions(_CUSTOM_TYPE)
+        self.assertIsInstance(extensions, list)
+        self.assertIn(_CUSTOM_EXTENSION, extensions)
+
+    def test_guess_all_extensions_of_unknown_type(self):
+        self.assertEqual(
+            mimetypes_utils.guess_all_extensions("application/definitely-unknown"),
+            [],
+        )
+
+    def test_guess_all_extensions_matches_the_standard_library(self):
+        for mime_type in ("text/html", "application/json"):
+            with self.subTest(mime_type=mime_type):
+                self.assertEqual(
+                    mimetypes_utils.guess_all_extensions(mime_type),
+                    list(mimetypes.guess_all_extensions(mime_type)),
+                )
+
+    def test_guess_all_extensions_requires_a_string(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.guess_all_extensions(None)  # type: ignore[arg-type]
+
+
+class TestAddType(unittest.TestCase):
+    """Verify registration of custom MIME type mappings."""
+
+    def setUp(self):
+        register_custom_type()
+
+    def test_add_type_registers_the_mapping(self):
+        mimetypes_utils.add_type("application/x-kilo-other", ".kiloother")
+        self.assertEqual(
+            mimetypes_utils.guess_type("data.kiloother"),
+            ("application/x-kilo-other", None),
+        )
+
+    def test_add_type_returns_none(self):
+        self.assertIsNone(mimetypes_utils.add_type("application/x-kilo-third", ".kilothird"))
+
+    def test_add_type_requires_a_string_type(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.add_type(None, ".kilo")  # type: ignore[arg-type]
+
+    def test_add_type_requires_a_non_empty_extension(self):
+        with self.assertRaises(ValueError):
+            mimetypes_utils.add_type("application/x-kilo", "   ")
+
+    def test_add_type_requires_a_boolean_strict_flag(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.add_type("application/x-kilo", ".kilo", strict="no")  # type: ignore[arg-type]
+
+
+class TestTypeForExtension(unittest.TestCase):
+    """Verify lookup of the MIME type of an extension."""
+
+    def setUp(self):
+        register_custom_type()
+
+    def test_type_for_extension_with_a_leading_dot(self):
+        self.assertEqual(
+            mimetypes_utils.type_for_extension(_CUSTOM_EXTENSION),
+            _CUSTOM_TYPE,
+        )
+
+    def test_type_for_extension_without_a_leading_dot(self):
+        self.assertEqual(
+            mimetypes_utils.type_for_extension(_CUSTOM_EXTENSION.lstrip(".")),
+            _CUSTOM_TYPE,
+        )
+
+    def test_type_for_extension_of_unknown_extension(self):
+        self.assertIsNone(
+            mimetypes_utils.type_for_extension(".definitely-not-a-type"),
+        )
+
+    def test_type_for_extension_requires_a_string(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.type_for_extension(None)  # type: ignore[arg-type]
+
+    def test_type_for_extension_rejects_an_empty_extension(self):
+        with self.assertRaises(ValueError):
+            mimetypes_utils.type_for_extension("")
+
+
+class TestNormalizeExtension(unittest.TestCase):
+    """Verify normalization of file extensions."""
+
+    def test_normalize_extension_adds_the_leading_dot(self):
+        self.assertEqual(mimetypes_utils.normalize_extension("html"), ".html")
+
+    def test_normalize_extension_keeps_the_leading_dot(self):
+        self.assertEqual(mimetypes_utils.normalize_extension(".html"), ".html")
+
+    def test_normalize_extension_lowercases_the_extension(self):
+        self.assertEqual(mimetypes_utils.normalize_extension(".HTML"), ".html")
+
+    def test_normalize_extension_trims_whitespace(self):
+        self.assertEqual(mimetypes_utils.normalize_extension("  .png  "), ".png")
+
+    def test_normalize_extension_requires_a_string(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.normalize_extension(None)  # type: ignore[arg-type]
+
+    def test_normalize_extension_rejects_an_empty_extension(self):
+        with self.assertRaises(ValueError):
+            mimetypes_utils.normalize_extension("   ")
+
+
+class TestInitDatabase(unittest.TestCase):
+    """Verify initialization of the MIME type database."""
+
+    def tearDown(self):
+        mimetypes_utils.init_database()
+
+    def test_init_database_restores_the_platform_defaults(self):
+        mimetypes_utils.add_type("application/x-kilo-temporary", ".kilotemporary")
+        self.assertEqual(
+            mimetypes_utils.guess_type("data.kilotemporary"),
+            ("application/x-kilo-temporary", None),
+        )
+        mimetypes_utils.init_database()
+        self.assertIsNone(mimetypes_utils.guess_type("data.kilotemporary")[0])
+
+    def test_init_database_reads_extra_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "custom.mime")
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write("text/x-kilomime kilomime\n")
+            mimetypes_utils.init_database([path])
+            self.assertEqual(
+                mimetypes_utils.guess_type("data.kilomime"),
+                ("text/x-kilomime", None),
+            )
+
+    def test_init_database_ignores_missing_files(self):
+        mimetypes_utils.init_database(["/definitely/not/a/mime/file"])
+        self.assertIsInstance(mimetypes_utils.guess_type("page.html"), tuple)
+
+    def test_init_database_rejects_a_string(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.init_database("/etc/mime.types")  # type: ignore[arg-type]
+
+    def test_init_database_rejects_a_list_of_non_strings(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.init_database([1])  # type: ignore[list-item]
+
+
+class TestIsValidMimeType(unittest.TestCase):
+    """Verify validation of MIME type strings."""
+
+    def test_is_valid_mime_type_accepts_a_type_and_subtype(self):
+        self.assertTrue(mimetypes_utils.is_valid_mime_type("text/html"))
+
+    def test_is_valid_mime_type_accepts_a_structured_suffix(self):
+        self.assertTrue(mimetypes_utils.is_valid_mime_type("application/vnd.api+json"))
+
+    def test_is_valid_mime_type_rejects_a_missing_subtype(self):
+        self.assertFalse(mimetypes_utils.is_valid_mime_type("text"))
+
+    def test_is_valid_mime_type_rejects_an_empty_subtype(self):
+        self.assertFalse(mimetypes_utils.is_valid_mime_type("text/"))
+
+    def test_is_valid_mime_type_rejects_a_missing_type(self):
+        self.assertFalse(mimetypes_utils.is_valid_mime_type("/html"))
+
+    def test_is_valid_mime_type_rejects_an_empty_value(self):
+        self.assertFalse(mimetypes_utils.is_valid_mime_type(""))
+
+    def test_is_valid_mime_type_requires_a_string(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.is_valid_mime_type(None)  # type: ignore[arg-type]
+
+
+class TestMimeCategory(unittest.TestCase):
+    """Verify extraction of the top level type of a MIME type."""
+
+    def test_mime_category_of_a_text_type(self):
+        self.assertEqual(mimetypes_utils.mime_category("text/html"), "text")
+
+    def test_mime_category_is_lower_case(self):
+        self.assertEqual(mimetypes_utils.mime_category("IMAGE/PNG"), "image")
+
+    def test_mime_category_of_a_malformed_type(self):
+        self.assertEqual(mimetypes_utils.mime_category("not-a-type"), "")
+
+    def test_mime_category_requires_a_string(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.mime_category(None)  # type: ignore[arg-type]
+
+
+class TestIsTextMimeType(unittest.TestCase):
+    """Verify detection of textual MIME types."""
+
+    def test_is_text_mime_type_accepts_text_types(self):
+        self.assertTrue(mimetypes_utils.is_text_mime_type("text/html"))
+        self.assertTrue(mimetypes_utils.is_text_mime_type("text/plain"))
+
+    def test_is_text_mime_type_accepts_textual_application_types(self):
+        self.assertTrue(mimetypes_utils.is_text_mime_type("application/json"))
+        self.assertTrue(mimetypes_utils.is_text_mime_type("application/xml"))
+
+    def test_is_text_mime_type_rejects_binary_types(self):
+        self.assertFalse(mimetypes_utils.is_text_mime_type("image/png"))
+        self.assertFalse(mimetypes_utils.is_text_mime_type("application/pdf"))
+
+    def test_is_text_mime_type_rejects_malformed_types(self):
+        self.assertFalse(mimetypes_utils.is_text_mime_type("not-a-type"))
+
+    def test_is_text_mime_type_requires_a_string(self):
+        with self.assertRaises(TypeError):
+            mimetypes_utils.is_text_mime_type(None)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_MIMETYPES_UTILS

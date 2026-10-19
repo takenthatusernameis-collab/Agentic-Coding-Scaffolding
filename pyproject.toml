@@ -217,5 +217,6 @@ py_modules = [
     "tokenize_utils",
     "socket_utils",
     "sysconfig_utils",
+    "mimetypes_utils",
     "tracemalloc_utils",
 ]
