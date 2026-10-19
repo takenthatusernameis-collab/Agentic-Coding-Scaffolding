@@ -121,6 +121,7 @@ py_modules = [
     "email_utils",
     "enum_utils",
     "errno_utils",
+    "getpass_utils",
     "io_utils",
     "ini_utils",
     "compression_utils",
