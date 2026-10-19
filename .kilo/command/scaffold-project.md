@@ -251,7 +251,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_sqlite3_utils.py` — unit tests for `sqlite3_utils.py`
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
 - `greeting_utils.py` — Greeting utilities (`greet`, `format_names`, `random_greeting`) for formatted greeting strings
+- `gettext_utils.py` — internationalization utilities wrapping the standard library `gettext` module (`gettext`, `dgettext`, `ngettext`, `dngettext`, `textdomain`, `bindtextdomain`, `install`) with input validation
 - `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`
+- `tests/test_gettext_utils.py` — unit tests for `gettext_utils.py`
 - `glob_utils.py` — utilities for pathname pattern expansion wrapping the standard library `glob` module (`glob_pattern`, `iglob`, `escape`, `has_magic`) with input validation
 - `tests/test_glob_utils.py` — unit tests for `glob_utils.py`
 - `keyword_utils.py` — Python keyword classification utilities wrapping the standard library `keyword` module (`is_keyword`, `is_soft_keyword`, `kwlist`, `softkwlist`, `main`) with input validation

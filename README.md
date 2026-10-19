@@ -118,6 +118,7 @@ zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (crea
 bz2_utils.py               # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 gc_utils.py                # GC utilities wrapping stdlib gc (enable, disable, isenabled, collect, get_count, get_stats, get_objects, get_referents, get_referrers, set_threshold, get_threshold, set_debug, get_debug)
+gettext_utils.py           # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
@@ -868,3 +869,7 @@ The project includes Unicode data utilities in `unicodedata_utils.py` wrapping t
 ## ZIP Utilities Module
 
 The project includes ZIP archive utilities in `zipfile_utils.py` wrapping the standard library `zipfile` module: `create_archive` creates a ZIP archive at a path containing a list of files, `list_names` returns the member names in an archive, `extract_all` extracts all members of an archive into a destination directory, and `is_zipfile` reports whether a path points to a valid ZIP archive. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_zipfile_utils.py`.
+
+## Gettext Utilities Module
+
+The project includes internationalization utilities in `gettext_utils.py` wrapping the standard library `gettext` module: `gettext` translates a message in the current domain, `dgettext` translates a message in a named domain, `ngettext` and `dngettext` select singular or plural translations based on a count, `textdomain` sets or gets the current message domain, `bindtextdomain` binds a domain to a locale directory, and `install` installs the translation function into Python's builtins namespace. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_gettext_utils.py`.

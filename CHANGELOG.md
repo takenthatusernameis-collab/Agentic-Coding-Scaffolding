@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `gettext_utils.py` — internationalization utilities wrapping the standard library `gettext` module (`gettext`, `dgettext`, `ngettext`, `dngettext`, `textdomain`, `bindtextdomain`, `install`) with input validation, plus `tests/test_gettext_utils.py`.
+- Synchronized `gettext_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+
 - Added `signal_utils.py` — signal utilities wrapping the standard library `signal` module (`alarm`, `pause`, `register_handler`, `register_int_handler`, `register_term_handler`, `set_handler`, `get_handler`, `get_signal_name`, `is_valid_signal`, `signal_names`, `interrupt_handler`, `suspend_handler`, `unregister_handler`, `signal_info`) with input validation, plus `tests/test_signal_utils.py`.
 - Synchronized `signal_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 

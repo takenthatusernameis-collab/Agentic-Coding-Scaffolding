@@ -158,6 +158,7 @@
 #   - graphlib_utils.py — # Graph and dependency resolution utilities (topological sort, cycle detection)
 
 #   - greeting_utils.py — # Greeting utilities (greet, format_names, random_greeting)
+#   - gettext_utils.py — # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
 
 #   - version_utils.py — # Version utility functions (parse, compare, normalize)
 
@@ -973,6 +974,7 @@ py_modules = [
     "bz2_utils",
     "lzma_utils",
     "gc_utils",
+    "gettext_utils",
 ]
 
 PYPROJECT
@@ -2462,6 +2464,357 @@ def set_threshold(threshold0: int, threshold1: int = 0, threshold2: int = 0) -> 
 def get_threshold() -> tuple:
     return gc.get_threshold()
 GC_UTILS
+
+# --- gettext_utils.py ---
+cat > "$OUTPUT_DIR/gettext_utils.py" <<'GETTEXT_UTILS'
+"""Utilities wrapping :mod:`gettext` for internationalization and localization.
+
+This module provides a small, consistent API around :mod:`gettext` for marking
+and translating strings, managing translation domains and catalog bindings, and
+installing the translation function into Python's builtins namespace.
+"""
+
+import gettext as _gettext
+from typing import Container, Optional
+
+
+__all__: list[str] = [
+    "bindtextdomain",
+    "bind_textdomain_codeset",
+    "dngettext",
+    "dgettext",
+    "gettext",
+    "install",
+    "ngettext",
+    "textdomain",
+]
+
+
+def gettext(message: str) -> str:
+    """Return the translated string for *message* in the current domain.
+
+    Args:
+        message: The message to translate.
+
+    Returns:
+        The translated string, or *message* itself when no translation is
+        available.
+
+    Raises:
+        TypeError: If ``message`` is not a string.
+
+    Example:
+        >>> gettext("Hello")
+        'Hello'
+    """
+    if not isinstance(message, str):
+        raise TypeError("message must be a string")
+    return _gettext.gettext(message)
+
+
+def dgettext(domain: str, message: str) -> str:
+    """Return the translated string for *message* in *domain*.
+
+    Args:
+        domain: The message domain to look up translations in.
+        message: The message to translate.
+
+    Returns:
+        The translated string, or *message* itself when no translation is
+        available.
+
+    Raises:
+        TypeError: If ``domain`` or ``message`` is not a string.
+
+    See :func:`gettext.dgettext`.
+    """
+    if not isinstance(domain, str):
+        raise TypeError("domain must be a string")
+    if not isinstance(message, str):
+        raise TypeError("message must be a string")
+    return _gettext.dgettext(domain, message)
+
+
+def ngettext(singular: str, plural: str, n: int) -> str:
+    """Return the translated string for *singular* or *plural* based on *n*.
+
+    Args:
+        singular: The singular form of the message.
+        plural: The plural form of the message.
+        n: The number used to select the singular or plural form.
+
+    Returns:
+        The translated singular or plural string.
+
+    Raises:
+        TypeError: If ``singular`` or ``plural`` is not a string, or ``n``
+            is not an integer.
+
+    See :func:`gettext.ngettext`.
+    """
+    if not isinstance(singular, str):
+        raise TypeError("singular must be a string")
+    if not isinstance(plural, str):
+        raise TypeError("plural must be a string")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    return _gettext.ngettext(singular, plural, n)
+
+
+def dngettext(domain: str, singular: str, plural: str, n: int) -> str:
+    """Return the translated string for *singular* or *plural* in *domain* based on *n*.
+
+    Args:
+        domain: The message domain to look up translations in.
+        singular: The singular form of the message.
+        plural: The plural form of the message.
+        n: The number used to select the singular or plural form.
+
+    Returns:
+        The translated singular or plural string.
+
+    Raises:
+        TypeError: If ``domain``, ``singular``, or ``plural`` is not a string,
+            or ``n`` is not an integer.
+
+    See :func:`gettext.dngettext`.
+    """
+    if not isinstance(domain, str):
+        raise TypeError("domain must be a string")
+    if not isinstance(singular, str):
+        raise TypeError("singular must be a string")
+    if not isinstance(plural, str):
+        raise TypeError("plural must be a string")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    return _gettext.dngettext(domain, singular, plural, n)
+
+
+def textdomain(domain: Optional[str] = None) -> str:
+    """Set or get the current message domain.
+
+    Args:
+        domain: The domain to set, or ``None`` to return the current domain.
+
+    Returns:
+        The current message domain after the optional change.
+
+    Raises:
+        TypeError: If ``domain`` is not a string or None.
+
+    See :func:`gettext.textdomain`.
+    """
+    if domain is not None and not isinstance(domain, str):
+        raise TypeError("domain must be a string or None")
+    return _gettext.textdomain(domain)
+
+
+def bindtextdomain(domain: str, localedir: Optional[str] = None) -> str:
+    """Bind *domain* to the locale directory *localedir*.
+
+    Args:
+        domain: The message domain to bind.
+        localedir: The directory containing locale data, or ``None`` to return
+            the current binding without changing it.
+
+    Returns:
+        The bound localedir for *domain*.
+
+    Raises:
+        TypeError: If ``domain`` is not a string or ``localedir`` is not a
+            string or None.
+
+    See :func:`gettext.bindtextdomain`.
+    """
+    if not isinstance(domain, str):
+        raise TypeError("domain must be a string")
+    if localedir is not None and not isinstance(localedir, str):
+        raise TypeError("localedir must be a string or None")
+    return _gettext.bindtextdomain(domain, localedir)
+
+
+def install(
+    domain: str,
+    localedir: Optional[str] = None,
+    names: Optional[Container[str]] = None,
+) -> None:
+    """Install the :func:`gettext` function into Python's builtins namespace.
+
+    After calling this, ``_`` (a common alias for :func:`gettext`) is bound in
+    ``builtins`` so it can be used to mark strings for translation.
+
+    Args:
+        domain: The message domain to install translations for.
+        localedir: The directory containing locale data.
+        names: An optional iterable of builtin names to install.
+
+    Raises:
+        TypeError: If ``domain`` is not a string or ``names`` is not an
+            iterable of strings or None.
+
+    See :func:`gettext.install`.
+    """
+    if not isinstance(domain, str):
+        raise TypeError("domain must be a string")
+    if names is not None and not isinstance(names, Iterable):
+        raise TypeError("names must be an iterable of strings or None")
+    _gettext.install(domain, localedir=localedir, names=names)
+GETTEXT_UTILS
+
+# --- tests/test_gettext_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_gettext_utils.py" <<'TEST_GETTEXT_UTILS'
+"""Tests for gettext_utils."""
+
+import builtins
+import unittest
+
+from gettext_utils import (
+    bindtextdomain,
+    bind_textdomain_codeset,
+    dgettext,
+    dngettext,
+    gettext,
+    install,
+    ngettext,
+    textdomain,
+)
+
+
+class TestGettext(unittest.TestCase):
+    def test_returns_message_when_no_translation(self):
+        self.assertEqual(gettext("Hello"), "Hello")
+        self.assertEqual(gettext("Goodbye"), "Goodbye")
+
+    def test_returns_empty_string_when_set_empty(self):
+        self.assertEqual(gettext(""), "")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            gettext(123)  # type: ignore[arg-type]
+
+
+class TestDgettext(unittest.TestCase):
+    def test_returns_message_when_no_translation(self):
+        self.assertEqual(dgettext("messages", "Hello"), "Hello")
+
+    def test_non_string_domain_raises(self):
+        with self.assertRaises(TypeError):
+            dgettext(123, "Hello")  # type: ignore[arg-type]
+
+    def test_non_string_message_raises(self):
+        with self.assertRaises(TypeError):
+            dgettext("messages", 123)  # type: ignore[arg-type]
+
+
+class TestNgettext(unittest.TestCase):
+    def test_returns_singular_for_one(self):
+        self.assertEqual(ngettext("one item", "many items", 1), "one item")
+
+    def test_returns_plural_for_zero(self):
+        self.assertEqual(ngettext("one item", "many items", 0), "many items")
+
+    def test_returns_plural_for_other(self):
+        self.assertEqual(ngettext("one item", "many items", 2), "many items")
+        self.assertEqual(ngettext("one item", "many items", 10), "many items")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            ngettext(123, "many", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ngettext("one", 123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ngettext("one", "many", "1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ngettext("one", "many", True)  # type: ignore[arg-type]
+
+
+class TestDngettext(unittest.TestCase):
+    def test_returns_singular_for_one(self):
+        self.assertEqual(dngettext("messages", "one item", "many items", 1), "one item")
+
+    def test_returns_plural_for_other(self):
+        self.assertEqual(dngettext("messages", "one item", "many items", 2), "many items")
+        self.assertEqual(dngettext("messages", "one item", "many items", 0), "many items")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            dngettext(123, "one", "many", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dngettext("messages", 123, "many", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dngettext("messages", "one", 123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dngettext("messages", "one", "many", "1")  # type: ignore[arg-type]
+
+
+class TestTextdomain(unittest.TestCase):
+    def test_set_and_get_domain(self):
+        self.assertEqual(textdomain("myapp"), "myapp")
+        self.assertEqual(textdomain(), "myapp")
+
+    def test_none_returns_current_domain(self):
+        textdomain("myapp")
+        self.assertEqual(textdomain(None), "myapp")
+
+    def test_invalid_type_raises(self):
+        with self.assertRaises(TypeError):
+            textdomain(123)  # type: ignore[arg-type]
+
+
+class TestBindtextdomain(unittest.TestCase):
+    def test_set_and_get_binding(self):
+        self.assertEqual(bindtextdomain("myapp", "/tmp/locale"), "/tmp/locale")
+        self.assertEqual(bindtextdomain("myapp"), "/tmp/locale")
+
+    def test_none_localedir_returns_binding(self):
+        bindtextdomain("myapp", "/tmp/locale")
+        self.assertEqual(bindtextdomain("myapp", None), "/tmp/locale")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            bindtextdomain(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            bindtextdomain("myapp", 123)  # type: ignore[arg-type]
+
+
+class TestBindTextdomainCodeset(unittest.TestCase):
+    def test_set_and_get_codeset(self):
+        self.assertEqual(bind_textdomain_codeset("myapp", "UTF-8"), "UTF-8")
+        self.assertEqual(bind_textdomain_codeset("myapp"), "UTF-8")
+
+    def test_none_codeset_returns_current(self):
+        bind_textdomain_codeset("myapp", "UTF-8")
+        self.assertEqual(bind_textdomain_codeset("myapp", None), "UTF-8")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            bind_textdomain_codeset(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            bind_textdomain_codeset("myapp", 123)  # type: ignore[arg-type]
+
+
+class TestInstall(unittest.TestCase):
+    def test_installs_underscore_in_builtins(self):
+        try:
+            install("myapp", names=("gettext", "ngettext"))
+            self.assertTrue(callable(builtins._))
+            self.assertEqual(builtins._("Hello"), "Hello")
+        finally:
+            if hasattr(builtins, "_"):
+                del builtins._
+
+    def test_rejects_non_iterable_names(self):
+        with self.assertRaises(TypeError):
+            install("myapp", names=123)  # type: ignore[arg-type]
+
+    def test_rejects_non_string_domain(self):
+        with self.assertRaises(TypeError):
+            install(123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_GETTEXT_UTILS
 
 # --- tests/test_gc_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_gc_utils.py" <<'TEST_GC_UTILS'
@@ -20567,7 +20920,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
 - `graphlib_utils.py` — graph and dependency resolution utilities (`topological_sort`, `has_cycle`, `dependency_order`, `is_valid_ordering`) for topological sorting and cycle detection of directed graphs
 - `greeting_utils.py` — Greeting utilities (`greet`, `format_names`, `random_greeting`) for formatted greeting strings
+- `gettext_utils.py` — internationalization utilities wrapping the standard library `gettext` module (`gettext`, `dgettext`, `ngettext`, `dngettext`, `textdomain`, `bindtextdomain`, `install`) with input validation
 - `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`
+- `tests/test_gettext_utils.py` — unit tests for `gettext_utils.py`
 - `glob_utils.py` — utilities for pathname pattern expansion wrapping the standard library `glob` module (`glob_pattern`, `iglob`, `escape`, `has_magic`) with input validation
 - `tests/test_glob_utils.py` — unit tests for `glob_utils.py`
 - `keyword_utils.py` — Python keyword classification utilities wrapping the standard library `keyword` module (`is_keyword`, `is_soft_keyword`, `kwlist`, `softkwlist`, `main`) with input validation
@@ -21541,6 +21896,7 @@ sys_utils.py               # Python runtime and system information utilities (ve
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 greeting_utils.py          # Greeting utilities (greet, format_names, random_greeting)
+gettext_utils.py           # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
 version_utils.py           # Version utility functions (parse, compare, normalize)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
@@ -21755,6 +22111,10 @@ The project includes abstract syntax tree utilities in `ast_utils.py` wrapping t
 
 The project includes object serialization utilities in `pickle_utils.py` wrapping the standard library `pickle` module: `dump` and `dumps` serialize objects to a binary file and bytes respectively, `load` and `loads` deserialize objects from a binary file and bytes, `pickler` and `unpickler` return streaming :class:`pickle.Pickler` and :class:`pickle.Unpickler` instances, `is_valid_protocol` reports whether a protocol number is supported, and `validate_protocol` normalizes a protocol argument (defaulting to the highest protocol) and raises `TypeError` for non-ints and `ValueError` for unsupported values. The module is tested in `tests/test_pickle_utils.py`.
 
+## Gettext Utilities Module
+
+The project includes internationalization utilities in `gettext_utils.py` wrapping the standard library `gettext` module: `gettext` translates a message in the current domain, `dgettext` translates a message in a named domain, `ngettext` and `dngettext` select singular or plural translations based on a count, `textdomain` sets or gets the current message domain, `bindtextdomain` binds a domain to a locale directory, and `install` installs the translation function into Python's builtins namespace. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_gettext_utils.py`.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -21769,6 +22129,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+
+- Added `gettext_utils.py` — internationalization utilities wrapping the standard library `gettext` module (`gettext`, `dgettext`, `ngettext`, `dngettext`, `textdomain`, `bindtextdomain`, `install`) with input validation, plus `tests/test_gettext_utils.py`.
+- Synchronized `gettext_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation, plus `tests/test_pickle_utils.py`.
 - Synchronized `pickle_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.

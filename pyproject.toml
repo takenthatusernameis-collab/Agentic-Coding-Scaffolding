@@ -188,5 +188,6 @@ py_modules = [
     "zipfile_utils",
     "lzma_utils",
     "gc_utils",
+    "gettext_utils",
     "importlib_utils",
 ]
