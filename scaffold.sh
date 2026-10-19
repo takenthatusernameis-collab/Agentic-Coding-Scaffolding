@@ -51,6 +51,7 @@
 #   - this_utils.py — # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 #   - tokenize_utils.py — # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
 #   - socket_utils.py — # Low-level socket utilities wrapping stdlib socket (create_socket, connect_socket, send_all, receive_bytes, resolve_address, error_name)
+#   - sysconfig_utils.py — # Build configuration utilities wrapping stdlib sysconfig (get_config_vars, get_config_var, get_paths, get_path, get_platform, get_scheme_names)
 #   - code_utils.py — # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 #   - codeop_utils.py — # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
 #   - copyreg_utils.py — # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
@@ -474,6 +475,7 @@
 #   - test_this_utils.py — # Tests for this_utils.py
 #   - test_tokenize_utils.py — # Tests for tokenize_utils.py
 #   - test_socket_utils.py — # Tests for socket_utils.py
+#   - test_sysconfig_utils.py — # Tests for sysconfig_utils.py
 #   - test_code_utils.py — # Tests for code_utils.py
 #   - test_codeop_utils.py — # Tests for codeop_utils.py
 #   - test_copyreg_utils.py — # Tests for copyreg_utils.py
@@ -1772,6 +1774,7 @@ py_modules = [
     "this_utils",
     "tokenize_utils",
     "socket_utils",
+    "sysconfig_utils",
     "code_utils",
     "codeop_utils",
     "copyreg_utils",
@@ -23803,6 +23806,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `this_utils.py` — Zen of Python utilities wrapping the standard library `this` module (`zen_of_python`, `translation_table`, `cipher_index`, `this`, `print_zen`) with input validation
 - `tokenize_utils.py` — source tokenization utilities wrapping the standard library `tokenize` module (`tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens, is_comment, is_string, is_number, is_name, is_keyword`) with input validation
 - `socket_utils.py` — low-level socket utilities wrapping the standard library `socket` module (`create_socket, create_tcp_socket, create_udp_socket, socket_address, resolve_address, connect_socket, create_connection, bind_socket, listen_socket, accept_connection, send_all, send_to, receive_bytes, receive_from, set_timeout, get_timeout, set_nonblocking, set_reuse_address, set_keepalive, shutdown_socket, close_socket, get_socket_name, get_peer_name, socket_family_name, socket_type_name, error_name, get_hostname, has_ipv6, is_ipv6_address`) with input validation
+- `sysconfig_utils.py` — build configuration utilities wrapping the standard library `sysconfig` module (`get_config_vars, get_config_var, has_config_var, list_config_var_names, get_paths, get_path, get_platform, get_python_version, get_default_scheme, get_preferred_scheme, get_scheme_names, is_python_build, get_config_h_filename, get_makefile_filename`) with input validation
 - `code_utils.py` — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation
 - `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
 - `fileinput_utils.py` — file input iteration utilities wrapping the standard library `fileinput` module (`read_lines`, `count_lines`, `filenames`) with input validation
@@ -23976,6 +23980,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_this_utils.py` — unit tests for `this_utils.py`
 - `tests/test_tokenize_utils.py` — unit tests for `tokenize_utils.py`
 - `tests/test_socket_utils.py` — unit tests for `socket_utils.py`
+- `tests/test_sysconfig_utils.py` — unit tests for `sysconfig_utils.py`
 - `tests/test_code_utils.py` — unit tests for `code_utils.py`
 - `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`
 - `tests/test_fileinput_utils.py` — unit tests for `fileinput_utils.py`
@@ -25099,6 +25104,7 @@ cmd_utils.py                       # Command interpreter utilities wrapping stdl
 this_utils.py                      # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 tokenize_utils.py                  # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
 socket_utils.py                    # Low-level socket utilities wrapping stdlib socket (create_socket, connect_socket, send_all, receive_bytes, resolve_address, error_name)
+sysconfig_utils.py                 # Build configuration utilities wrapping stdlib sysconfig (get_config_vars, get_config_var, get_paths, get_path, get_platform, get_scheme_names)
 code_utils.py                       # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 codeop_utils.py                     # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
 copyreg_utils.py                       # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
@@ -25248,6 +25254,7 @@ tests/                     # Python unit tests
   test_this_utils.py          # Tests for this_utils.py
   test_tokenize_utils.py      # Tests for tokenize_utils.py
   test_socket_utils.py        # Tests for socket_utils.py
+  test_sysconfig_utils.py     # Tests for sysconfig_utils.py
   test_code_utils.py          # Tests for code_utils.py
   test_codeop_utils.py        # Tests for codeop_utils.py
   test_copyreg_utils.py       # Tests for copyreg_utils.py
@@ -25429,6 +25436,10 @@ The project includes source tokenization utilities in `tokenize_utils.py` wrappi
 
 The project includes low-level socket utilities in `socket_utils.py` wrapping the standard library `socket` module: `create_socket` creates a socket for a given address family and socket type, `create_tcp_socket` and `create_udp_socket` create stream and datagram sockets, `socket_address` validates a `(host, port)` pair, `resolve_address` resolves a host and port into candidate addresses, `connect_socket` and `create_connection` establish client connections, `bind_socket`, `listen_socket` and `accept_connection` set up servers, `send_all`, `send_to`, `receive_bytes` and `receive_from` move data over sockets, `set_timeout`, `get_timeout`, `set_nonblocking`, `set_reuse_address` and `set_keepalive` configure socket options, `shutdown_socket` and `close_socket` release sockets, `get_socket_name` and `get_peer_name` inspect bound and peer addresses, `socket_family_name` and `socket_type_name` translate numeric constants into readable names, `error_name` maps operating system error codes to their symbolic names, `get_hostname` returns the local hostname, `has_ipv6` reports IPv6 support, and `is_ipv6_address` checks IPv6 address strings. The module is tested in `tests/test_socket_utils.py`.
 
+## Build Configuration Utilities Module
+
+The project includes build configuration utilities in `sysconfig_utils.py` wrapping the standard library `sysconfig` module: `get_config_vars` returns the configuration variables of the running interpreter, `get_config_var` returns the value of a single configuration variable, `has_config_var` reports whether a configuration variable is defined, `list_config_var_names` returns the sorted names of the known configuration variables, `get_paths` returns the installation paths of a scheme, `get_path` returns a single installation path, `get_platform` returns the platform string of the interpreter, `get_python_version` returns the version as `major.minor`, `get_default_scheme` returns the default installation scheme, `get_preferred_scheme` resolves the preferred scheme of an installation type, `get_scheme_names` returns the known installation schemes, `is_python_build` reports whether the interpreter was built from source, `get_config_h_filename` returns the path of `pyconfig.h`, and `get_makefile_filename` returns the path of the interpreter `Makefile`. The module is tested in `tests/test_sysconfig_utils.py`.
+
 ## Interactive Console Utilities Module
 
 The project includes interactive console utilities in `code_utils.py` wrapping the standard library `code` module: `interact` runs an interactive console session, `compile_command` compiles a single console command and returns `None` while the input is incomplete, `console_class` returns the `InteractiveConsole` class, and `interpreter_class` returns the `InteractiveInterpreter` class. The module is tested in `tests/test_code_utils.py`.
@@ -25504,6 +25515,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `sysconfig_utils.py` to the generated project — build configuration utilities wrapping the standard library `sysconfig` module (`get_config_vars, get_config_var, has_config_var, list_config_var_names, get_paths, get_path, get_platform, get_python_version, get_default_scheme, get_preferred_scheme, get_scheme_names, is_python_build, get_config_h_filename, get_makefile_filename`) with input validation, plus `tests/test_sysconfig_utils.py`.
+- Synchronized `sysconfig_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `socket_utils.py` to the generated project — low-level socket utilities wrapping the standard library `socket` module (`create_socket, create_tcp_socket, create_udp_socket, socket_address, resolve_address, connect_socket, create_connection, bind_socket, listen_socket, accept_connection, send_all, send_to, receive_bytes, receive_from, set_timeout, get_timeout, set_nonblocking, set_reuse_address, set_keepalive, shutdown_socket, close_socket, get_socket_name, get_peer_name, socket_family_name, socket_type_name, error_name, get_hostname, has_ipv6, is_ipv6_address`) with input validation, plus `tests/test_socket_utils.py`.
 - Synchronized `socket_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Completed the `scaffold.sh` header comment inventory: every wrapper module and its test now has a header entry, and the six duplicate entries left by earlier sessions were removed.
@@ -50270,3 +50283,439 @@ class TestHostInformation(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_SOCKET_UTILS
+
+
+# --- sysconfig_utils.py ---
+cat > "$OUTPUT_DIR/sysconfig_utils.py" <<'SYSCONFIG_UTILS'
+"""Utilities for interpreter build configuration (wrapping :mod:`sysconfig`).
+
+The :mod:`sysconfig` module exposes the configuration variables, installation
+paths and schemes that describe how the running interpreter was built and where
+it keeps its files. This wrapper exposes a small, validated surface over that
+functionality so callers can look up build metadata, resolve installation
+paths, and inspect the available installation schemes without repeating the
+usual type checks.
+"""
+
+from __future__ import annotations
+
+import sysconfig as _sysconfig
+from typing import Any, Dict, List, Optional, Tuple, cast
+
+__all__ = [
+    "get_config_vars",
+    "get_config_var",
+    "has_config_var",
+    "list_config_var_names",
+    "get_paths",
+    "get_path",
+    "get_platform",
+    "get_python_version",
+    "get_default_scheme",
+    "get_preferred_scheme",
+    "get_scheme_names",
+    "is_python_build",
+    "get_config_h_filename",
+    "get_makefile_filename",
+]
+
+# The installation types understood by :func:`get_preferred_scheme`.
+_INSTALLATION_TYPES = ("prefix", "home", "user")
+
+
+def _require_text(value: object, name: str) -> str:
+    """Return *value* when it is a string, otherwise raise ``TypeError``."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _require_optional_text(value: object, name: str) -> Optional[str]:
+    """Return *value* when it is a string or ``None``, otherwise raise ``TypeError``."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string or None, got {type(value).__name__}")
+    return value
+
+
+def _require_optional_mapping(value: object, name: str) -> Optional[Dict[str, Any]]:
+    """Return *value* when it is a mapping or ``None``, otherwise raise ``TypeError``."""
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise TypeError(f"{name} must be a dict or None, got {type(value).__name__}")
+    return value
+
+
+def _require_flag(value: object, name: str) -> bool:
+    """Return *value* when it is a boolean, otherwise raise ``TypeError``."""
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def get_config_vars() -> Dict[str, Any]:
+    """Return the configuration variables of the running interpreter.
+
+    The variables describe the build of the interpreter, such as the compiler
+    used, the platform triplet and the installation prefixes.
+
+    Returns:
+        A mapping of configuration variable names to their values.
+    """
+    return dict(_sysconfig.get_config_vars())
+
+
+def get_config_var(name: str) -> Any:
+    """Return the configuration variable registered under *name*.
+
+    Args:
+        name: Name of the configuration variable, such as ``"CC"``.
+
+    Returns:
+        The value of the variable, or ``None`` when it is not defined.
+
+    Raises:
+        TypeError: If *name* is not a string.
+    """
+    key = _require_text(name, "name")
+    return _sysconfig.get_config_var(key)
+
+
+def has_config_var(name: str) -> bool:
+    """Return ``True`` when the configuration variable *name* is defined.
+
+    Args:
+        name: Name of the configuration variable.
+
+    Returns:
+        ``True`` when the variable is known to the standard library.
+
+    Raises:
+        TypeError: If *name* is not a string.
+    """
+    key = _require_text(name, "name")
+    return key in _sysconfig.get_config_vars()
+
+
+def list_config_var_names() -> List[str]:
+    """Return the sorted names of the known configuration variables."""
+    return sorted(_sysconfig.get_config_vars())
+
+
+def get_paths(
+    scheme: Optional[str] = None,
+    vars: Optional[Dict[str, Any]] = None,
+    expand: bool = True,
+) -> Dict[str, str]:
+    """Return the installation paths of the running interpreter.
+
+    Args:
+        scheme: Installation scheme to describe, or ``None`` for the default.
+        vars: Additional variables that override the discovered ones.
+        expand: Whether to expand the ``{variable}`` placeholders of the scheme.
+
+    Returns:
+        A mapping of path names, such as ``"stdlib"``, to their values.
+
+    Raises:
+        TypeError: If any argument has an unsupported type.
+        KeyError: If *scheme* is not a known installation scheme.
+    """
+    scheme_name = _require_optional_text(scheme, "scheme")
+    overrides = _require_optional_mapping(vars, "vars")
+    should_expand = _require_flag(expand, "expand")
+    if scheme_name is None:
+        scheme_name = _sysconfig.get_default_scheme()
+    return dict(_sysconfig.get_paths(scheme_name, overrides, should_expand))
+
+
+def get_path(
+    name: str,
+    scheme: Optional[str] = None,
+    vars: Optional[Dict[str, Any]] = None,
+    expand: bool = True,
+) -> str:
+    """Return the installation path registered under *name*.
+
+    Args:
+        name: Name of the path, such as ``"purelib"``.
+        scheme: Installation scheme to describe, or ``None`` for the default.
+        vars: Additional variables that override the discovered ones.
+        expand: Whether to expand the ``{variable}`` placeholders of the scheme.
+
+    Returns:
+        The configured path.
+
+    Raises:
+        TypeError: If any argument has an unsupported type.
+        KeyError: If *name* is not a known path name.
+    """
+    key = _require_text(name, "name")
+    paths = get_paths(scheme, vars, expand)
+    if key not in paths:
+        raise KeyError(f"unknown path name: {key!r}")
+    return paths[key]
+
+
+def get_platform() -> str:
+    """Return the platform string of the running interpreter."""
+    return _sysconfig.get_platform()
+
+
+def get_python_version() -> str:
+    """Return the Python version as ``"major.minor"``."""
+    return _sysconfig.get_python_version()
+
+
+def get_default_scheme() -> str:
+    """Return the default installation scheme of the current platform."""
+    return _sysconfig.get_default_scheme()
+
+
+def get_preferred_scheme(scheme: str) -> str:
+    """Return the preferred installation scheme for the given installation type.
+
+    The installation type is one of ``"prefix"``, ``"home"`` or ``"user"``.
+    Interpreters that do not know an installation type fall back to the
+    documented POSIX defaults.
+
+    Args:
+        scheme: Installation type to resolve.
+
+    Returns:
+        The name of the preferred installation scheme.
+
+    Raises:
+        TypeError: If *scheme* is not a string.
+        KeyError: If *scheme* is not a known installation type.
+    """
+    key = _require_text(scheme, "scheme")
+    try:
+        preferred = cast(str, _sysconfig.get_preferred_scheme(cast(Any, key)))
+    except (KeyError, ValueError):
+        if key not in _INSTALLATION_TYPES:
+            raise KeyError(f"unknown installation type: {key!r}") from None
+        if key == "prefix":
+            return _sysconfig.get_default_scheme()
+        return "posix_home" if key == "home" else "posix_user"
+    return preferred
+
+
+def get_scheme_names() -> Tuple[str, ...]:
+    """Return the names of the known installation schemes."""
+    return tuple(_sysconfig.get_scheme_names())
+
+
+def is_python_build() -> bool:
+    """Return ``True`` when the interpreter was built from source locally."""
+    return bool(_sysconfig.is_python_build())
+
+
+def get_config_h_filename() -> str:
+    """Return the path of the ``pyconfig.h`` header of the interpreter."""
+    return _sysconfig.get_config_h_filename()
+
+
+def get_makefile_filename() -> str:
+    """Return the path of the ``Makefile`` used to build the interpreter."""
+    return _sysconfig.get_makefile_filename()
+SYSCONFIG_UTILS
+
+# --- tests/test_sysconfig_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_sysconfig_utils.py" <<'TEST_SYSCONFIG_UTILS'
+"""Tests for sysconfig_utils module."""
+
+import re
+import sysconfig
+import unittest
+
+import sysconfig_utils
+
+
+class TestGetConfigVars(unittest.TestCase):
+    """Verify access to the interpreter configuration variables."""
+
+    def test_get_config_vars_returns_mapping(self):
+        variables = sysconfig_utils.get_config_vars()
+        self.assertIsInstance(variables, dict)
+        self.assertTrue(variables)
+
+    def test_get_config_vars_contains_prefix(self):
+        variables = sysconfig_utils.get_config_vars()
+        self.assertIn("prefix", variables)
+        self.assertIn("exec_prefix", variables)
+
+    def test_get_config_vars_returns_a_copy(self):
+        variables = sysconfig_utils.get_config_vars()
+        variables["prefix"] = "/mutated"
+        self.assertNotEqual(sysconfig_utils.get_config_vars()["prefix"], "/mutated")
+
+    def test_get_config_var_of_known_name(self):
+        self.assertEqual(
+            sysconfig_utils.get_config_var("prefix"),
+            sysconfig.get_config_var("prefix"),
+        )
+
+    def test_get_config_var_of_unknown_name(self):
+        self.assertIsNone(sysconfig_utils.get_config_var("definitely-not-a-variable"))
+
+    def test_get_config_var_requires_string(self):
+        with self.assertRaises(TypeError):
+            sysconfig_utils.get_config_var(1)  # type: ignore[arg-type]
+
+    def test_has_config_var(self):
+        self.assertTrue(sysconfig_utils.has_config_var("prefix"))
+        self.assertFalse(sysconfig_utils.has_config_var("definitely-not-a-variable"))
+
+    def test_has_config_var_requires_string(self):
+        with self.assertRaises(TypeError):
+            sysconfig_utils.has_config_var(None)  # type: ignore[arg-type]
+
+    def test_list_config_var_names(self):
+        names = sysconfig_utils.list_config_var_names()
+        self.assertIsInstance(names, list)
+        self.assertIn("prefix", names)
+        self.assertEqual(names, sorted(names))
+
+    def test_list_config_var_names_matches_config_vars(self):
+        self.assertEqual(
+            sysconfig_utils.list_config_var_names(),
+            sorted(sysconfig_utils.get_config_vars()),
+        )
+
+
+class TestGetPaths(unittest.TestCase):
+    """Verify access to the interpreter installation paths."""
+
+    def test_get_paths_returns_mapping(self):
+        paths = sysconfig_utils.get_paths()
+        self.assertIsInstance(paths, dict)
+        self.assertTrue(paths)
+
+    def test_get_paths_contains_known_names(self):
+        paths = sysconfig_utils.get_paths()
+        for name in ("stdlib", "platstdlib", "purelib", "platlib", "include", "scripts"):
+            self.assertIn(name, paths)
+
+    def test_get_paths_without_expansion_keeps_placeholders(self):
+        paths = sysconfig_utils.get_paths(expand=False)
+        self.assertTrue(any("{" in value for value in paths.values()))
+
+    def test_get_paths_with_expansion_resolves_placeholders(self):
+        paths = sysconfig_utils.get_paths(expand=True)
+        self.assertFalse(any("{" in value for value in paths.values()))
+
+    def test_get_paths_supports_every_scheme(self):
+        for scheme in sysconfig_utils.get_scheme_names():
+            with self.subTest(scheme=scheme):
+                paths = sysconfig_utils.get_paths(scheme=scheme)
+                self.assertIn("purelib", paths)
+
+    def test_get_paths_rejects_unknown_scheme(self):
+        with self.assertRaises(KeyError):
+            sysconfig_utils.get_paths(scheme="definitely-not-a-scheme")
+
+    def test_get_paths_rejects_bad_types(self):
+        with self.assertRaises(TypeError):
+            sysconfig_utils.get_paths(scheme=1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sysconfig_utils.get_paths(vars=["prefix"])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sysconfig_utils.get_paths(expand="yes")  # type: ignore[arg-type]
+
+
+class TestGetPath(unittest.TestCase):
+    """Verify lookup of a single installation path."""
+
+    def test_get_path_returns_string(self):
+        self.assertIsInstance(sysconfig_utils.get_path("purelib"), str)
+
+    def test_get_path_matches_get_paths(self):
+        paths = sysconfig_utils.get_paths()
+        self.assertEqual(sysconfig_utils.get_path("purelib"), paths["purelib"])
+
+    def test_get_path_of_unknown_name(self):
+        with self.assertRaises(KeyError):
+            sysconfig_utils.get_path("definitely-not-a-path")
+
+    def test_get_path_requires_string(self):
+        with self.assertRaises(TypeError):
+            sysconfig_utils.get_path(None)  # type: ignore[arg-type]
+
+    def test_get_path_rejects_bad_types(self):
+        with self.assertRaises(TypeError):
+            sysconfig_utils.get_path("purelib", scheme=1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sysconfig_utils.get_path("purelib", vars="prefix")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sysconfig_utils.get_path("purelib", expand=1)  # type: ignore[arg-type]
+
+
+class TestInterpreterMetadata(unittest.TestCase):
+    """Verify the interpreter metadata helpers."""
+
+    def test_get_platform(self):
+        platform = sysconfig_utils.get_platform()
+        self.assertIsInstance(platform, str)
+        self.assertTrue(platform)
+
+    def test_get_python_version(self):
+        version = sysconfig_utils.get_python_version()
+        self.assertIsInstance(version, str)
+        self.assertTrue(re.fullmatch(r"\d+\.\d+", version))
+
+    def test_get_default_scheme(self):
+        scheme = sysconfig_utils.get_default_scheme()
+        self.assertIsInstance(scheme, str)
+        self.assertIn(scheme, sysconfig_utils.get_scheme_names())
+
+    def test_get_scheme_names(self):
+        names = sysconfig_utils.get_scheme_names()
+        self.assertIsInstance(names, tuple)
+        self.assertTrue(names)
+        self.assertIn("posix_prefix", names)
+
+    def test_is_python_build(self):
+        self.assertIsInstance(sysconfig_utils.is_python_build(), bool)
+
+    def test_get_config_h_filename(self):
+        filename = sysconfig_utils.get_config_h_filename()
+        self.assertIsInstance(filename, str)
+        self.assertTrue(filename)
+
+    def test_get_makefile_filename(self):
+        filename = sysconfig_utils.get_makefile_filename()
+        self.assertIsInstance(filename, str)
+        self.assertTrue(filename)
+
+
+class TestGetPreferredScheme(unittest.TestCase):
+    """Verify resolution of the preferred installation scheme."""
+
+    def test_get_preferred_scheme_for_installation_types(self):
+        for installation_type in ("prefix", "home", "user"):
+            with self.subTest(installation_type=installation_type):
+                scheme = sysconfig_utils.get_preferred_scheme(installation_type)
+                self.assertIsInstance(scheme, str)
+                self.assertTrue(scheme)
+
+    def test_get_preferred_scheme_prefix_matches_default(self):
+        self.assertEqual(
+            sysconfig_utils.get_preferred_scheme("prefix"),
+            sysconfig_utils.get_default_scheme(),
+        )
+
+    def test_get_preferred_scheme_of_unknown_type(self):
+        with self.assertRaises(KeyError):
+            sysconfig_utils.get_preferred_scheme("definitely-not-a-type")
+
+    def test_get_preferred_scheme_requires_string(self):
+        with self.assertRaises(TypeError):
+            sysconfig_utils.get_preferred_scheme(None)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_SYSCONFIG_UTILS
