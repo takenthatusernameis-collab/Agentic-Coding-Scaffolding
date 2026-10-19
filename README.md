@@ -132,6 +132,7 @@ timezone_utils.py          # Time zone utilities (IANA lookups, conversion, form
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 hmac_utils.py              # HMAC-based message authentication utilities (MD5, SHA1, SHA256, SHA512) with constant-time verification
+hashlib_utils.py           # Hash utilities wrapping hashlib (MD5, SHA1, SHA256, SHA512, SHA3, BLAKE2)
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
@@ -608,6 +609,11 @@ The project includes hashing and checksum utilities in `hash_utils.py` for compu
 ## HMAC Utilities Module
 
 The project includes HMAC-based message authentication utilities in `hmac_utils.py` for computing HMAC signatures (MD5, SHA1, SHA256, SHA512) with constant-time signature verification: `hmac_md5`, `hmac_sha1`, `hmac_sha256`, `hmac_sha512`, `hmac_new`, `sign`, `verify`, and `compare_digest`. The module is tested in `tests/test_hmac_utils.py`.
+
+
+## Hashlib Utilities Module
+
+The project includes hash utilities in `hashlib_utils.py` wrapping the standard library `hashlib` module: `md5_hash`, `sha1_hash`, `sha256_hash`, `sha512_hash`, `sha3_256_hash`, `sha3_512_hash`, `blake2b_hash`, and `blake2s_hash` compute digests of bytes-like input, and `file_hash` computes the digest of file contents using a specified algorithm with chunked reading. All functions validate inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_hashlib_utils.py`.
 
 ## INI Configuration Utilities Module
 

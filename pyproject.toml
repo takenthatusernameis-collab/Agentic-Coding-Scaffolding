@@ -57,6 +57,7 @@ py_modules = [
     "greeting_utils",
     "gzip_utils",
     "hmac_utils",
+    "hashlib_utils",
     "id_utils",
     "inspect_utils",
     "bit_utils",

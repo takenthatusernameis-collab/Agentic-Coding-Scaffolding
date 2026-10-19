@@ -192,7 +192,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `hash_utils.py` — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
 - `hmac_utils.py` — HMAC-based message authentication utilities (MD5, SHA1, SHA256, SHA512) with constant-time verification
 - `tests/test_hash_utils.py` — unit tests for `hash_utils.py`
-- `tests/test_hmac_utils.py` — unit tests for `hmac_utils.py`
+- `tests/test_hmac_utils.py`
+- `hashlib_utils.py` — hash utilities wrapping the standard library `hashlib` module (`md5_hash`, `sha1_hash`, `sha256_hash`, `sha512_hash`, `sha3_256_hash`, `sha3_512_hash`, `blake2b_hash`, `blake2s_hash`, `file_hash`) with input validation
+- `tests/test_hashlib_utils.py` — unit tests for `hashlib_utils.py`
+ — unit tests for `hmac_utils.py`
 - `tests/test_id_utils.py` — unit tests for `id_utils.py`
 - `http_utils.py` — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`)
 - `id_utils.py` — Identifier generation and validation utilities (`generate_id`, `new_id`, `is_valid_id`) for short URL-safe random identifiers with input validation

@@ -577,3 +577,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_concurrent_futures_utils.py` — unit tests for `concurrent_futures_utils.py`
 - Synchronized `concurrent_futures_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
+- Added `hashlib_utils.py` — hash utilities wrapping the standard library `hashlib` module (`md5_hash`, `sha1_hash`, `sha256_hash`, `sha512_hash`, `sha3_256_hash`, `sha3_512_hash`, `blake2b_hash`, `blake2s_hash`, `file_hash`) with input validation, plus `tests/test_hashlib_utils.py`.
+- Synchronized `hashlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+

@@ -44,7 +44,8 @@ def tarfile_extractall(archive: str, path: str | None = None) -> None:
         tf.extractall(path=path)  # type: ignore[arg-type]
 
 
-def tarfile_create(archive: str, files: Iterable[str], arcnames: Iterable[str] | None = None, base_dir: str | None = None) -> None:
+def tarfile_create(archive: str, files: Iterable[str], arcnames: Iterable[str] | None = None,
+                     base_dir: str | None = None) -> None:
     """Create a new tar archive containing the given files."""
     names = list(files)
     arcs = list(arcnames) if arcnames is not None else None
