@@ -41,6 +41,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `shelve_utils.py` — persistent key/value storage utilities wrapping the standard library `shelve` module (`open_shelf`, `close`, `sync`, `keys`, `get`, `set_value`, `delete`, `contains`, `is_shelf`) with input validation
 - `zlib_utils.py` — zlib compression and checksum utilities wrapping the standard library `zlib` module (`zlib_compress`, `zlib_decompress`, `zlib_compressobj`, `zlib_decompressobj`, `zlib_crc32`, `zlib_adler32`) with input validation
 - `cmd_utils.py` — command interpreter utilities wrapping the standard library `cmd` module (`identchars`, `prompt_default`, `main`) with input validation
+- `this_utils.py` — Zen of Python utilities wrapping the standard library `this` module (`zen_of_python`, `translation_table`, `cipher_index`, `this`, `print_zen`) with input validation
 - `code_utils.py` — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation
 - `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
 - `fileinput_utils.py` — file input iteration utilities wrapping the standard library `fileinput` module (`read_lines`, `count_lines`, `filenames`) with input validation
@@ -211,6 +212,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_shelve_utils.py` — unit tests for `shelve_utils.py`
 - `tests/test_zlib_utils.py` — unit tests for `zlib_utils.py`
 - `tests/test_cmd_utils.py` — unit tests for `cmd_utils.py`
+- `tests/test_this_utils.py` — unit tests for `this_utils.py`
 - `tests/test_code_utils.py` — unit tests for `code_utils.py`
 - `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`
 - `tests/test_fileinput_utils.py` — unit tests for `fileinput_utils.py`

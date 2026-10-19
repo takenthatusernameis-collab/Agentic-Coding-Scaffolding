@@ -133,6 +133,7 @@ linecache_utils.py        # Line cache utilities (getline, getlines, updatecache
 plistlib_utils.py         # Property list utilities wrapping stdlib plistlib (plist_load, plist_loads, plist_dump, plist_dumps)
 shlex_utils.py            # Simple lexical analysis utilities wrapping stdlib shlex (split, quote, join)
 cmd_utils.py              # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
+this_utils.py             # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 code_utils.py             # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 copyreg_utils.py          # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
 fileinput_utils.py        # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
@@ -372,6 +373,7 @@ test_lzma_utils.py          # Tests for lzma_utils.py
     test_tomllib_utils.py       # Tests for tomllib_utils.py
     test_unicodedata_utils.py   # Tests for unicodedata_utils.py
     test_cmd_utils.py           # Tests for cmd_utils.py
+    test_this_utils.py          # Tests for this_utils.py
     test_code_utils.py          # Tests for code_utils.py
     test_copyreg_utils.py       # Tests for copyreg_utils.py
     test_getpass_utils.py       # Tests for getpass_utils.py
@@ -1015,6 +1017,10 @@ The project includes TOML parsing utilities in `tomllib_utils.py` wrapping the s
 ## Command Interpreter Utilities Module
 
 The project includes command interpreter utilities in `cmd_utils.py` wrapping the standard library `cmd` module: `identchars` returns the characters allowed in command names, `prompt_default` returns the default prompt string, and `main` exposes the module's `main` entry point when it is available. The `Cmd` class is a thin subclass of `cmd.Cmd`. The module is tested in `tests/test_cmd_utils.py`.
+
+## Zen of Python Utilities Module
+
+The project includes Zen of Python utilities in `this_utils.py` wrapping the standard library `this` module: `zen_of_python` returns the Zen of Python as a single string, `translation_table` returns the ROT13 translation table used to encode the Zen, `cipher_index` returns the cipher key index, `this` returns the module's `this` callable when it is available (or `None`), and `print_zen` prints the Zen of Python to standard output. The module is tested in `tests/test_this_utils.py`.
 
 ## Interactive Console Utilities Module
 

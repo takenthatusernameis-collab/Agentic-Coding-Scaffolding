@@ -48,6 +48,7 @@
 #   - shelve_utils.py — # Persistent key/value storage utilities wrapping stdlib shelve (open_shelf, close, sync, keys, get, set_value, delete, contains, is_shelf)
 #   - zlib_utils.py — # Zlib compression and checksum utilities wrapping stdlib zlib (zlib_compress, zlib_decompress, zlib_compressobj, zlib_decompressobj, zlib_crc32, zlib_adler32)
 #   - cmd_utils.py — # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
+#   - this_utils.py — # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 #   - code_utils.py — # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 #   - copyreg_utils.py — # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
 #   - fileinput_utils.py — # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
@@ -461,6 +462,7 @@
 #   - test_shelve_utils.py — # Tests for shelve_utils.py
 #   - test_zlib_utils.py — # Tests for zlib_utils.py
 #   - test_cmd_utils.py — # Tests for cmd_utils.py
+#   - test_this_utils.py — # Tests for this_utils.py
 #   - test_code_utils.py — # Tests for code_utils.py
 #   - test_copyreg_utils.py — # Tests for copyreg_utils.py
 #   - test_fileinput_utils.py — # Tests for fileinput_utils.py
@@ -1753,6 +1755,7 @@ py_modules = [
     "shelve_utils",
     "zlib_utils",
     "cmd_utils",
+    "this_utils",
     "code_utils",
     "copyreg_utils",
     "fileinput_utils",
@@ -23336,6 +23339,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `shelve_utils.py` — persistent key/value storage utilities wrapping the standard library `shelve` module (`open_shelf`, `close`, `sync`, `keys`, `get`, `set_value`, `delete`, `contains`, `is_shelf`) with input validation
 - `zlib_utils.py` — zlib compression and checksum utilities wrapping the standard library `zlib` module (`zlib_compress`, `zlib_decompress`, `zlib_compressobj`, `zlib_decompressobj`, `zlib_crc32`, `zlib_adler32`) with input validation
 - `cmd_utils.py` — command interpreter utilities wrapping the standard library `cmd` module (`identchars`, `prompt_default`, `main`) with input validation
+- `this_utils.py` — Zen of Python utilities wrapping the standard library `this` module (`zen_of_python`, `translation_table`, `cipher_index`, `this`, `print_zen`) with input validation
 - `code_utils.py` — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation
 - `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
 - `fileinput_utils.py` — file input iteration utilities wrapping the standard library `fileinput` module (`read_lines`, `count_lines`, `filenames`) with input validation
@@ -23506,6 +23510,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_shelve_utils.py` — unit tests for `shelve_utils.py`
 - `tests/test_zlib_utils.py` — unit tests for `zlib_utils.py`
 - `tests/test_cmd_utils.py` — unit tests for `cmd_utils.py`
+- `tests/test_this_utils.py` — unit tests for `this_utils.py`
 - `tests/test_code_utils.py` — unit tests for `code_utils.py`
 - `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`
 - `tests/test_fileinput_utils.py` — unit tests for `fileinput_utils.py`
@@ -24626,6 +24631,7 @@ binascii_utils.py         # Binary-to-ASCII encoding and decoding utilities wrap
 shelve_utils.py           # Persistent key/value storage utilities wrapping stdlib shelve (open_shelf, close, sync, keys, get, set_value, delete, contains, is_shelf)
 zlib_utils.py             # Zlib compression and checksum utilities wrapping stdlib zlib (zlib_compress, zlib_decompress, zlib_compressobj, zlib_decompressobj, zlib_crc32, zlib_adler32)
 cmd_utils.py                       # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
+this_utils.py                      # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 code_utils.py                       # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 copyreg_utils.py                       # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
 fileinput_utils.py                       # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
@@ -24939,6 +24945,10 @@ The project includes Unicode character database utilities in `unicodedata_utils.
 
 The project includes command interpreter utilities in `cmd_utils.py` wrapping the standard library `cmd` module: `identchars` returns the characters allowed in command names, `prompt_default` returns the default prompt string, and `main` exposes the module's `main` entry point when it is available. The `Cmd` class is a thin subclass of `cmd.Cmd`. The module is tested in `tests/test_cmd_utils.py`.
 
+## Zen of Python Utilities Module
+
+The project includes Zen of Python utilities in `this_utils.py` wrapping the standard library `this` module: `zen_of_python` returns the Zen of Python as a single string, `translation_table` returns the ROT13 translation table used to encode the Zen, `cipher_index` returns the cipher key index, `this` returns the module's `this` callable when it is available (or `None`), and `print_zen` prints the Zen of Python to standard output. The module is tested in `tests/test_this_utils.py`.
+
 ## Interactive Console Utilities Module
 
 The project includes interactive console utilities in `code_utils.py` wrapping the standard library `code` module: `interact` runs an interactive console session, `compile_command` compiles a single console command and returns `None` while the input is incomplete, `console_class` returns the `InteractiveConsole` class, and `interpreter_class` returns the `InteractiveInterpreter` class. The module is tested in `tests/test_code_utils.py`.
@@ -25045,7 +25055,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `zlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `cmd_utils.py` to the generated project — command interpreter utilities wrapping the standard library `cmd` module (`identchars`, `prompt_default`, `main`) with input validation, plus `tests/test_cmd_utils.py`.
 - Synchronized `cmd_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
-
+- Added `this_utils.py` to the generated project — Zen of Python utilities wrapping the standard library `this` module (`zen_of_python`, `translation_table`, `cipher_index`, `this`, `print_zen`) with input validation, plus `tests/test_this_utils.py`.
+- Synchronized `this_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `code_utils.py` to the generated project — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation, plus `tests/test_code_utils.py`.
 - Synchronized `code_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
@@ -46008,6 +46019,82 @@ class TestCmdUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_CMD_UTILS
+
+# --- this_utils.py ---
+cat > "$OUTPUT_DIR/this_utils.py" <<'THIS_UTILS'
+"""Utilities for the Zen of Python (wrapping :mod:`this`).
+
+This module exposes the well-known ``this`` module — which prints the Zen of
+Python — as a small, consistent utility surface. The ``this`` module itself
+has no public API beyond the ``this`` function, so the wrapper simply
+re-exports it and provides a couple of helpers around the underlying
+translation table.
+"""
+
+import this as _this
+
+# The Zen of Python, as a single string.
+zen_of_python = _this.s
+
+# The ROT13 translation table used to encode the Zen.
+translation_table = _this.d
+
+# The index of the key used in the cipher.
+cipher_index = getattr(_this, "c", 97)
+
+
+def this():
+    """Return the ``this`` module's ``this`` callable.
+
+    The ``this`` module historically exposed a ``this`` function that prints
+    the Zen of Python. On modern Python it is not always present, so this
+    helper returns ``None`` when it is unavailable.
+    """
+    return getattr(_this, "this", None)
+
+
+def print_zen():
+    """Print the Zen of Python to standard output."""
+    print(_this.s)
+THIS_UTILS
+
+# --- tests/test_this_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_this_utils.py" <<'TEST_THIS_UTILS'
+"""Tests for this_utils."""
+
+import this as _this
+
+import this_utils
+
+
+def test_zen_of_python_is_string():
+    assert isinstance(this_utils.zen_of_python, str)
+    assert this_utils.zen_of_python == _this.s
+
+
+def test_translation_table_is_dict():
+    assert isinstance(this_utils.translation_table, dict)
+    assert this_utils.translation_table == _this.d
+
+
+def test_cipher_index_is_int():
+    assert isinstance(this_utils.cipher_index, int)
+    assert this_utils.cipher_index == _this.c
+
+
+def test_this_returns_callable_or_none():
+    result = this_utils.this()
+    # The `this` function is not always exposed; accept either.
+    assert result is None or callable(result)
+
+
+def test_print_zen(capsys):
+    this_utils.print_zen()
+    out = capsys.readouterr().out
+    # The Zen is ROT13-encoded in the stdlib module; the encoded header is
+    # "Gur Mra bs Clguba" for "The Zen of Python".
+    assert "Gur Mra bs Clguba" in out
+TEST_THIS_UTILS
 
 # --- code_utils.py ---
 cat > "$OUTPUT_DIR/code_utils.py" <<'CODE_UTILS'

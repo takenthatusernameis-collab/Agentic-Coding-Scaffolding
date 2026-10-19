@@ -19,7 +19,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 2723 tests across all wrapper modules
+- 2728 tests across all wrapper modules
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
