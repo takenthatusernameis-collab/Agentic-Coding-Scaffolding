@@ -1,4 +1,6 @@
-# Project Status
+## Latest Session (2026-10-20) — webbrowser sync pending
+
+webbrowser_utils.py and its test were added but not synchronized across README, CHANGELOG, scaffold-project.md, test_scaffold.py, or scaffold.sh. Next agent: complete synchronization following the ftplib_utils/poplib_utils pattern, then pick the next stdlib wrapper (xmlrpc or syslog).
 
 ## Project
 
