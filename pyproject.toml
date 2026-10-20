@@ -242,6 +242,7 @@ py_modules = [
     "imaplib_utils",
     "zipapp_utils",
     "py_compile_utils",
+    "pyclbr_utils",
     "compileall_utils",
     "modulefinder_utils",
     "optparse_utils",

@@ -660,6 +660,8 @@
 #   - tests/test_symtable_utils.py — # Tests for symtable_utils.py
 #   - optparse_utils.py — # Optparse utilities wrapping the standard library optparse module (make_parser, add_option, add_flag, add_count_option, add_option_group, parse_args, get_option, has_option, remove_option, get_default_values, set_defaults, get_usage, format_usage, format_help, format_option_help, get_prog_name, dest_for, string_type, int_type, float_type, choice_type, values_to_dict)
 #   - tests/test_optparse_utils.py — # Tests for optparse_utils.py
+#   - pyclbr_utils.py — # Pyclbr utilities wrapping the standard library pyclbr module (read_module, read_module_ex, class_names, function_names, find_class, find_function, has_class, has_function, is_class, is_function)
+#   - tests/test_pyclbr_utils.py — # Tests for pyclbr_utils.py
 set -euo pipefail
 
 usage() {
@@ -4263,6 +4265,7 @@ py_modules = [
      "compileall_utils",
     "modulefinder_utils",
     "optparse_utils",
+    "pyclbr_utils",
      "mailbox_utils",
     "wave_utils",
     "mmap_utils",
@@ -28154,6 +28157,7 @@ py_compile_utils.py        # Py_compile utilities wrapping stdlib py_compile (co
 compileall_utils.py         # Compileall utilities wrapping stdlib compileall (compile_file, compile_dir, compile_path, main, pyc_path)
 modulefinder_utils.py        # Modulefinder utilities wrapping stdlib modulefinder (load_script, find_dependencies, find_modules, missing_modules, missing_importers, module_path, is_package, report)
 optparse_utils.py          # Optparse utilities wrapping stdlib optparse (make_parser, add_option, add_flag, add_count_option, add_option_group, parse_args, get_option, has_option, remove_option, get_default_values, set_defaults, get_usage, format_usage, format_help, format_option_help, get_prog_name, dest_for, string_type, int_type, float_type, choice_type, values_to_dict)
+pyclbr_utils.py            # Pyclbr utilities wrapping stdlib pyclbr (read_module, read_module_ex, class_names, function_names, find_class, find_function, has_class, has_function, is_class, is_function)
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
@@ -29333,6 +29337,10 @@ The project includes dependency analysis utilities in `modulefinder_utils.py` wr
 
 The project includes command-line option parsing utilities in `optparse_utils.py` wrapping the standard library `optparse` module: `make_parser` creates an `OptionParser` with validated metadata; `add_option` adds an option to a parser or to an option group; `add_flag` adds a boolean flag; `add_count_option` adds an option that counts its occurrences; and `add_option_group` creates an option group. `parse_args` parses a command line and returns the parsed values together with the remaining arguments, and it can either keep the standard library behaviour of printing a usage message and terminating the interpreter or raise `OptionParseError` instead. `get_option`, `has_option`, and `remove_option` query and change the registered options; `get_default_values` and `set_defaults` work with the default values; `get_usage`, `format_usage`, `format_help`, `format_option_help`, and `get_prog_name` render the help text; `dest_for` returns the destination attribute the standard library derives from an option string; `string_type`, `int_type`, `float_type`, and `choice_type` are value converters; and `values_to_dict` turns the parsed values into a plain dictionary. `Option`, `OptionParser`, `OptionGroup`, `OptionContainer`, `Values`, `OptionError`, `OptionValueError`, `OptionConflictError`, `BadOptionError`, `SUPPRESS_HELP`, and `SUPPRESS_USAGE` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_optparse_utils.py`.
 
+## Pyclbr Utilities Module
+
+The project includes class and function browser utilities in `pyclbr_utils.py` wrapping the standard library `pyclbr` module: `read_module` returns the classes defined in a module, `read_module_ex` returns both its classes and its top-level functions, and `class_names`, `function_names`, `find_class`, `find_function`, `has_class`, `has_function`, `is_class`, and `is_function` query the result. The analysis is purely static: the source is read but never imported or executed, so the module is safe to inspect from a test suite. `Class` and `Function` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pyclbr_utils.py`.
+
 ## Hello Module
 
 The project includes a sample application entry point in `hello.py`: `main` prints a greeting for the given name and defaults to `"World"`, and running the module directly greets the name given on the command line. The module is tested in `tests/test_hello.py`.
@@ -29351,6 +29359,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Add `pyclbr_utils.py` wrapping the standard library `pyclbr` module (`read_module`, `read_module_ex`, `class_names`, `function_names`, `find_class`, `find_function`, `has_class`, `has_function`, `is_class`, `is_function`) with input validation, plus unit tests in `tests/test_pyclbr_utils.py`.
+- Synchronized `pyclbr_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `optparse_utils.py` wrapping the standard library `optparse` module (`make_parser`, `add_option`, `add_flag`, `add_count_option`, `add_option_group`, `parse_args`, `get_option`, `has_option`, `remove_option`, `get_default_values`, `set_defaults`, `get_usage`, `format_usage`, `format_help`, `format_option_help`, `get_prog_name`, `dest_for`, `string_type`, `int_type`, `float_type`, `choice_type`, `values_to_dict`) with input validation, plus unit tests in `tests/test_optparse_utils.py`.
 - Synchronized `optparse_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - `pickletools_utils.py` — stdlib `pickletools` wrapper module with tests

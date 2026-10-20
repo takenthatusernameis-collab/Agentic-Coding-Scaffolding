@@ -458,6 +458,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_zipapp_utils.py` — unit tests for `zipapp_utils.py`
 - `py_compile_utils.py` — py_compile utilities wrapping the standard library `py_compile` module (`compile_file`/`py_compile_file`, `get_invalidation_mode`, `parse_invalidation_mode`, `is_pyc_file`, `main`) with input validation
 - `tests/test_py_compile_utils.py` — unit tests for `py_compile_utils.py`
+- `pyclbr_utils.py` — pyclbr utilities wrapping the standard library `pyclbr` module (`read_module`, `read_module_ex`, `class_names`, `function_names`, `find_class`, `find_function`, `has_class`, `has_function`, `is_class`, `is_function`) with input validation
+- `tests/test_pyclbr_utils.py` — unit tests for `pyclbr_utils.py`
 - `compileall_utils.py` — compileall utilities wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation
 - `tests/test_compileall_utils.py` — unit tests for `compileall_utils.py`
 - `modulefinder_utils.py` — modulefinder utilities wrapping the standard library `modulefinder` module (`load_script`, `find_dependencies`, `find_modules`, `missing_modules`, `missing_importers`, `module_path`, `is_package`, `report`) with input validation
