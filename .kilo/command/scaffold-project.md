@@ -429,3 +429,6 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_trace_utils.py` — unit tests for `trace_utils.py`
 - `profile_utils.py` — profiling utilities wrapping stdlib profile
 - `tests/test_profile_utils.py` — tests
+
+- `pstats_utils.py` — profiling statistics utilities wrapping stdlib pstats
+- `tests/test_pstats_utils.py` — tests for pstats_utils.py

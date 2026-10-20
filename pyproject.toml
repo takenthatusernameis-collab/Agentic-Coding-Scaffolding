@@ -154,6 +154,7 @@ py_modules = [
     "bisect_utils",
     "trace_utils",
     "profile_utils",
+    "pstats_utils",
     "bz2_utils",
     "contextlib_utils",
     "contextvars_utils",

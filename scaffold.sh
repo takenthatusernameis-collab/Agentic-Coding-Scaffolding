@@ -276,8 +276,10 @@
 #   - bisect_utils.py — # Bisect utility functions for binary search on sorted sequences
 #   - trace_utils.py — # Execution tracing utilities wrapping the standard library trace module (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 #   - profile_utils.py — # Profiling utilities wrapping the standard library profile module (Profile, run, runctx, new_profiler)
+#   - pstats_utils.py — # Profiling statistics utilities wrapping the standard library pstats module (Stats, SortKey, new_stats, load_stats, add_stats, print_stats, sort_stats, strip_dirs, reverse_order, dump_stats)
 #   - tests/test_trace_utils.py — # Tests for trace_utils.py
 #   - tests/test_profile_utils.py — # Tests for profile_utils.py
+#   - tests/test_pstats_utils.py — # Tests for pstats_utils.py
 #   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 #   - tests/test_contextlib_utils.py — # Tests for contextlib_utils.py
 
@@ -27144,6 +27146,9 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_trace_utils.py` — unit tests for `trace_utils.py`
 - `profile_utils.py` — profiling utilities wrapping stdlib profile
 - `tests/test_profile_utils.py` — tests
+
+- `pstats_utils.py` — profiling statistics utilities wrapping stdlib pstats
+- `tests/test_pstats_utils.py` — tests for pstats_utils.py
 SCAFFOLD
 
 
@@ -28534,6 +28539,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `trace_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `profile_utils.py` to the generated project — profiling utilities wrapping the standard library `profile` module (`Profile`, `run`, `runctx`, `new_profiler`) with input validation, plus `tests/test_profile_utils.py`.
 - Synchronized `profile_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `pstats_utils.py` to the generated project — profiling statistics utilities wrapping the standard library `pstats` module (`Stats`, `SortKey`, `new_stats`, `load_stats`, `add_stats`, `print_stats`, `sort_stats`, `strip_dirs`, `reverse_order`, `dump_stats`) with input validation, plus `tests/test_pstats_utils.py`.
+- Synchronized `pstats_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `re_utils.py` to the generated project — regular expression utilities wrapping the standard library `re` module (`find_all`, `find_matches`, `search`, `match`, `full_match`, `split`, `sub`, `subn`, `compile_regex`, `escape`) with input validation, plus `tests/test_re_utils.py`.
+- Synchronized `re_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `tempfile_utils.py` to the generated project — temporary file and directory utilities wrapping the standard library `tempfile` module (`get_tempdir`, `gettempprefix`, `mkstemp`, `mkdtemp`, `NamedTemporaryFile`, `SpooledTemporaryFile`, `TemporaryDirectory`) with input validation, plus `tests/test_tempfile_utils.py`.
+- Synchronized `tempfile_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `doctest_utils.py` to the generated project — doctest utilities wrapping the standard library `doctest` module (`parse_doctests`, `find_doctests`, `run_string_examples`, `run_docstring_examples`, `run_module_examples`, `run_file_examples`, `summarize_results`, `format_failure`) with input validation, plus `tests/test_doctest_utils.py`.
 - Synchronized `doctest_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `tools/refresh_scaffold.py`, a maintainer tool that rewrites the file copies embedded in `scaffold.sh` from the repository sources and reports stale copies with `--check`.
@@ -54797,3 +54808,227 @@ class TestIsTextMimeType(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_MIMETYPES_UTILS
+
+
+# --- pstats_utils.py ---
+cat > "$OUTPUT_DIR/pstats_utils.py" <<'PSTATS_UTILS'
+"""Utilities for stats objects from profile runs (wrapping :mod:`pstats`).
+
+The :mod:`pstats` module provides tools for managing and printing the
+statistics produced by the :mod:`profile` and :mod:`cProfile` modules.
+This wrapper exposes a validated surface for creating and manipulating
+:class:`pstats.Stats` objects.
+"""
+
+from __future__ import annotations
+
+import pstats as _pstats
+from typing import Any, Optional, Union
+
+__all__ = [
+    "Stats",
+    "SortKey",
+    "new_stats",
+    "load_stats",
+    "add_stats",
+    "print_stats",
+    "sort_stats",
+    "strip_dirs",
+    "reverse_order",
+    "dump_stats",
+]
+
+
+def _require_str(value: object, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_optional_str(value: object, name: str) -> Optional[str]:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str or None, got {type(value).__name__}")
+    return value
+
+
+def _require_int(value: object, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+Stats = _pstats.Stats
+SortKey = _pstats.SortKey
+
+
+def new_stats(
+    *filenames: Union[str, _pstats.Stats],
+    stream: Any = None,
+) -> _pstats.Stats:
+    """Create a new Stats object."""
+    if stream is not None and not hasattr(stream, "write"):
+        raise TypeError("stream must have a write method or None")
+    if not filenames:
+        return _pstats.Stats(stream=stream)
+    return _pstats.Stats(*filenames, stream=stream)
+
+
+def load_stats(*filenames: Union[str, _pstats.Stats]) -> _pstats.Stats:
+    """Load statistics from files."""
+    if not filenames:
+        raise ValueError("at least one filename or Stats object is required")
+    return _pstats.Stats(*filenames)
+
+
+def add_stats(stats: _pstats.Stats, *filenames: Union[str, _pstats.Stats]) -> _pstats.Stats:
+    """Add statistics from other files to an existing Stats object."""
+    if not isinstance(stats, _pstats.Stats):
+        raise TypeError(f"stats must be a pstats.Stats, got {type(stats).__name__}")
+    if not filenames:
+        raise ValueError("at least one filename or Stats object is required")
+    stats.add(*filenames)
+    return stats
+
+
+def print_stats(
+    stats: _pstats.Stats,
+    *restrictions: Any,
+    sort: Any = -1,
+) -> _pstats.Stats:
+    """Print the stats report."""
+    if not isinstance(stats, _pstats.Stats):
+        raise TypeError(f"stats must be a pstats.Stats, got {type(stats).__name__}")
+    stats.print_stats(*restrictions)
+    if sort != -1:
+        stats.sort_stats(sort)
+        stats.print_stats(*restrictions)
+    return stats
+
+
+def sort_stats(stats: _pstats.Stats, *field: Any) -> _pstats.Stats:
+    """Sort the stats by the given criteria."""
+    if not isinstance(stats, _pstats.Stats):
+        raise TypeError(f"stats must be a pstats.Stats, got {type(stats).__name__}")
+    stats.sort_stats(*field)
+    return stats
+
+
+def strip_dirs(stats: _pstats.Stats) -> _pstats.Stats:
+    """Remove leading path information from file names."""
+    if not isinstance(stats, _pstats.Stats):
+        raise TypeError(f"stats must be a pstats.Stats, got {type(stats).__name__}")
+    stats.strip_dirs()
+    return stats
+
+
+def reverse_order(stats: _pstats.Stats) -> _pstats.Stats:
+    """Reverse the sorting order."""
+    if not isinstance(stats, _pstats.Stats):
+        raise TypeError(f"stats must be a pstats.Stats, got {type(stats).__name__}")
+    stats.reverse_order()
+    return stats
+
+
+def dump_stats(stats: _pstats.Stats, filename: str) -> None:
+    """Save the stats to a file."""
+    if not isinstance(stats, _pstats.Stats):
+        raise TypeError(f"stats must be a pstats.Stats, got {type(stats).__name__}")
+    _require_str(filename, "filename")
+    stats.dump_stats(filename)
+PSTATS_UTILS
+
+# --- tests/test_pstats_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_pstats_utils.py" <<'TEST_PSTATS_UTILS'
+"""Tests for pstats_utils module."""
+
+import io
+import pstats
+import unittest
+
+import pstats_utils
+
+
+class TestPstatsUtils(unittest.TestCase):
+    def test_new_stats(self):
+        s = pstats_utils.new_stats()
+        self.assertIsInstance(s, pstats.Stats)
+
+    def test_new_stats_with_stream(self):
+        buf = io.StringIO()
+        s = pstats_utils.new_stats(stream=buf)
+        self.assertIsInstance(s, pstats.Stats)
+
+    def test_new_stats_bad_stream(self):
+        with self.assertRaises(TypeError):
+            pstats_utils.new_stats(stream=123)
+
+    def test_load_stats_no_args(self):
+        with self.assertRaises(ValueError):
+            pstats_utils.load_stats()
+
+    def test_add_stats_type_error(self):
+        with self.assertRaises(TypeError):
+            pstats_utils.add_stats(123)
+
+    def test_add_stats_no_files(self):
+        s = pstats_utils.new_stats()
+        with self.assertRaises(ValueError):
+            pstats_utils.add_stats(s)
+
+    def test_sort_stats(self):
+        s = pstats_utils.new_stats()
+        result = pstats_utils.sort_stats(s, "time")
+        self.assertIs(result, s)
+
+    def test_sort_stats_type_error(self):
+        with self.assertRaises(TypeError):
+            pstats_utils.sort_stats(123)
+
+    def test_strip_dirs(self):
+        s = pstats_utils.new_stats()
+        result = pstats_utils.strip_dirs(s)
+        self.assertIs(result, s)
+
+    def test_strip_dirs_type_error(self):
+        with self.assertRaises(TypeError):
+            pstats_utils.strip_dirs(123)
+
+    def test_reverse_order(self):
+        s = pstats_utils.new_stats()
+        result = pstats_utils.reverse_order(s)
+        self.assertIs(result, s)
+
+    def test_reverse_order_type_error(self):
+        with self.assertRaises(TypeError):
+            pstats_utils.reverse_order(123)
+
+    def test_dump_stats(self):
+        s = pstats_utils.new_stats()
+        result = pstats_utils.dump_stats(s, "/tmp/test.pstats")
+        self.assertIsNone(result)
+
+    def test_dump_stats_type_error(self):
+        s = pstats_utils.new_stats()
+        with self.assertRaises(TypeError):
+            pstats_utils.dump_stats(s, 123)
+        with self.assertRaises(TypeError):
+            pstats_utils.dump_stats(123, "file.pstats")
+
+    def test_print_stats(self):
+        s = pstats_utils.new_stats()
+        result = pstats_utils.print_stats(s)
+        self.assertIs(result, s)
+
+    def test_print_stats_type_error(self):
+        with self.assertRaises(TypeError):
+            pstats_utils.print_stats(123)
+
+    def test_sort_key_export(self):
+        self.assertTrue(hasattr(pstats_utils, "SortKey"))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_PSTATS_UTILS

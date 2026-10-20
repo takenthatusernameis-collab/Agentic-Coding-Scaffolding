@@ -733,6 +733,11 @@ The project includes prompt utility functions in `prompt_utils.py` for working w
 
 The project includes regular expression utilities in `regex_utils.py` for safe regex compilation, matching, extraction, and manipulation: `compile_pattern`, `is_valid_pattern`, `match_pattern`, `search_pattern`, `find_all`, `replace_pattern`, `split_pattern`, `escape_pattern`, `extract_groups`, and `named_groups`. The module is tested in `tests/test_regex_utils.py`.
 
+
+## Regular Expression Utilities Module (re_utils)
+
+The project includes regular expression utilities in `re_utils.py` wrapping the standard library `re` module: `find_all` returns all non-overlapping matches as strings, `find_matches` returns `re.Match` objects, `search` and `match` find patterns, `full_match` requires the entire string to match, `split` splits by pattern, `sub` and `subn` substitute matches with strings or callables, `compile_regex` compiles a regex pattern with optional flags, and `escape` escapes special characters. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_re_utils.py`.
+
 ## Tree Utilities Module
 
 The project includes tree and nested structure utilities in `tree_utils.py` for getting, setting, deleting, flattening, unflattening, mapping, and filtering nested structures: `get_nested`, `set_nested`, `delete_nested`, `flatten_tree`, `unflatten_tree`, `map_tree`, and `filter_tree`. The module is tested in `tests/test_tree_utils.py`.
@@ -817,6 +822,11 @@ The project includes time duration utilities in `duration_utils.py` for parsing,
 ## Temporary File and Directory Utilities Module
 
 The project includes temporary file and directory utilities in `temp_utils.py` for creating, writing, reading, and cleaning up temporary filesystem resources: `create_temp_file` and `create_temp_dir` create named temp files/directories, `temp_file` and `temp_dir` are context managers that remove resources on exit, `write_temp_file` and `read_temp_file` read/write temp file contents, `cleanup_temp_path` removes a temp file or directory, `is_temp_path` checks whether a path lives under the system temp directory, and `temp_path_exists` reports whether a path exists. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_temp_utils.py`.
+
+
+## Temporary Files Utilities Module (tempfile_utils)
+
+The project includes temporary file and directory utilities in `tempfile_utils.py` wrapping the standard library `tempfile` module: `get_tempdir` and `gettempprefix` return temp directory and prefix, `mkstemp` and `mkdtemp` create temporary files and directories, `NamedTemporaryFile`, `SpooledTemporaryFile`, and `TemporaryDirectory` provide context managers/file objects for temporary resources. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_tempfile_utils.py`.
 
 ## XML Parsing and Generation Utilities Module
 
@@ -1216,3 +1226,13 @@ The project includes execution tracing utilities in `trace_utils.py` wrapping th
 profile_utils.py
 tests/test_profile_utils.py
 `profile_utils.py`
+
+
+## Profile Utilities Module
+
+The project includes profiling utilities in `profile_utils.py` wrapping the standard library `profile` module: `run` profiles a single statement, `runctx` profiles a statement in given namespaces, `new_profiler` creates a new profiler instance, `Profile` is the profiler class, and `main` runs the profile module's command-line entry point. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_profile_utils.py`.
+
+
+## Pstats Utilities Module
+
+The project includes profiling statistics utilities in `pstats_utils.py` wrapping the standard library `pstats` module: `new_stats` creates `Stats` objects from profile files, `load_stats` loads statistics, `add_stats` merges statistics, `print_stats` prints reports, `sort_stats` sorts results, `strip_dirs` removes path prefixes, `reverse_order` reverses sort order, and `dump_stats` saves statistics to files. `Stats` and `SortKey` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pstats_utils.py`.
