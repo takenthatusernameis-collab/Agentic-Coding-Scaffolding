@@ -209,6 +209,7 @@ py_modules = [
     "sqlite3_utils",
     "marshal_utils",
     "zipfile_utils",
+    "zipimport_utils",
     "mailbox_utils",
     "lzma_utils",
     "mailcap_utils",
