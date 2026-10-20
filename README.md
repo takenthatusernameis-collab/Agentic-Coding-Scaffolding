@@ -117,6 +117,7 @@ zipapp_utils.py            # Zipapp utilities wrapping stdlib zipapp (create_arc
 py_compile_utils.py        # Py_compile utilities wrapping stdlib py_compile (compile_file/py_compile_file, get_invalidation_mode, parse_invalidation_mode, is_pyc_file, main)
 compileall_utils.py         # Compileall utilities wrapping stdlib compileall (compile_file, compile_dir, compile_path, main, pyc_path)
 modulefinder_utils.py        # Modulefinder utilities wrapping stdlib modulefinder (load_script, find_dependencies, find_modules, missing_modules, missing_importers, module_path, is_package, report)
+optparse_utils.py          # Optparse utilities wrapping stdlib optparse (make_parser, add_option, add_flag, add_count_option, add_option_group, parse_args, get_option, has_option, remove_option, get_default_values, set_defaults, get_usage, format_usage, format_help, format_option_help, get_prog_name, dest_for, string_type, int_type, float_type, choice_type, values_to_dict)
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
@@ -342,6 +343,7 @@ test_pickle_utils.py        # Tests for pickle_utils.py
   test_plistlib_utils.py      # Tests for plistlib_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
   test_modulefinder_utils.py   # Tests for modulefinder_utils.py
+  test_optparse_utils.py       # Tests for optparse_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
   test_queue_utils.py         # Tests for queue_utils.py
@@ -1320,3 +1322,8 @@ The project includes compileall utilities in `compileall_utils.py` wrapping the 
 ## Modulefinder Utilities Module
 
 The project includes dependency analysis utilities in `modulefinder_utils.py` wrapping the standard library `modulefinder` module: `load_script` analyses a script statically and returns the module finder that holds the result; `find_dependencies` returns the sorted names of every module the script imports; `find_modules` maps every dependency to the file it was found in; `missing_modules` returns the imports that could not be resolved; `missing_importers` names the modules that import those unresolved names; `module_path` returns the file a single dependency was found in; `is_package` reports whether a dependency is a package; and `report` returns the textual dependency report instead of printing it. The analysis is purely static: the script is never imported and never executed. `Module` and `ModuleFinder` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_modulefinder_utils.py`.
+
+
+## Optparse Utilities Module
+
+The project includes command-line option parsing utilities in `optparse_utils.py` wrapping the standard library `optparse` module: `make_parser` creates an `OptionParser` with validated metadata; `add_option` adds an option to a parser or to an option group; `add_flag` adds a boolean flag; `add_count_option` adds an option that counts its occurrences; and `add_option_group` creates an option group. `parse_args` parses a command line and returns the parsed values together with the remaining arguments, and it can either keep the standard library behaviour of printing a usage message and terminating the interpreter or raise `OptionParseError` instead. `get_option`, `has_option`, and `remove_option` query and change the registered options; `get_default_values` and `set_defaults` work with the default values; `get_usage`, `format_usage`, `format_help`, `format_option_help`, and `get_prog_name` render the help text; `dest_for` returns the destination attribute the standard library derives from an option string; `string_type`, `int_type`, `float_type`, and `choice_type` are value converters; and `values_to_dict` turns the parsed values into a plain dictionary. `Option`, `OptionParser`, `OptionGroup`, `OptionContainer`, `Values`, `OptionError`, `OptionValueError`, `OptionConflictError`, `BadOptionError`, `SUPPRESS_HELP`, and `SUPPRESS_USAGE` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_optparse_utils.py`.

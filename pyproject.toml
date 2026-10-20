@@ -242,4 +242,5 @@ py_modules = [
     "py_compile_utils",
     "compileall_utils",
     "modulefinder_utils",
+    "optparse_utils",
 ]

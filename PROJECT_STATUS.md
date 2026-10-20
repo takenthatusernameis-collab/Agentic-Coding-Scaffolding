@@ -20,7 +20,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 3441 tests across all wrapper modules (1624 subtests)
+- 3516 tests across all wrapper modules (1632 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -30,14 +30,14 @@ The project foundation is established:
   documented in `README.md`, listed in `.kilo/command/scaffold-project.md` and `CHANGELOG.md`, and
   asserted in `tests/test_scaffold.py`
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 3367 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 3442 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 408 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 410 source files
 
 ## Keeping the Scaffold Synchronized
 
@@ -58,13 +58,14 @@ expectation in `tests/test_scaffold_sync.py`.
   `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
   `sndhdr` (removed in Python 3.13), `cgitb` (removed in Python 3.13), `smtplib`, `ftplib`, `poplib`,
   `webbrowser`, `xmlrpc`, `xdrlib`, `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`,
-  `opcode`, `optparse`, `rlcompleter`, `pyclbr`, and `encodings`. A natural next candidate is
-  `optparse_utils.py` wrapping the standard library `optparse` module: it is pure and hermetic, with
-  no network, subprocess, or interpreter-state dependencies. `opcode`, `rlcompleter`, and `pyclbr` are
-  equally hermetic alternatives. Note that the stack formatting helpers (`format_stack`, `format_list`,
-  `format_exception_only`, `print_stack`, `walk_stack`, `extract_stack`) live in the standard library
-  `traceback` module and are already wrapped by `traceback_utils.py`; the `trace` module itself only
-  offers `Trace`, `CoverageResults`, `PRAGMA_NOCOVER`, and `main`.
+  `opcode`, `rlcompleter`, `pyclbr`, and `encodings`. A natural next candidate is `opcode_utils.py`
+  wrapping the standard library `opcode` module: it is pure and hermetic, with no network, subprocess,
+  or interpreter-state dependencies. `rlcompleter` and `pyclbr` are equally hermetic alternatives;
+  `pyclbr` reads source files but never imports them, so the analysis stays static. Note that the
+  stack formatting helpers (`format_stack`, `format_list`, `format_exception_only`, `print_stack`,
+  `walk_stack`, `extract_stack`) live in the standard library `traceback` module and are already
+  wrapped by `traceback_utils.py`; the `trace` module itself only offers `Trace`, `CoverageResults`,
+  `PRAGMA_NOCOVER`, and `main`.
 - Keep every new wrapper hermetic: the test suite must never open a network connection or block on a
   subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with
   `unittest.mock.patch` instead of real servers. The same rule applies to the compiler wrappers:
@@ -72,11 +73,41 @@ expectation in `tests/test_scaffold_sync.py`.
   byte-compiles the interpreter's own import path. `modulefinder_utils.py` follows the rule as well:
   the analysis is static, so the analysed script is never imported or executed, and the tests restrict
   the search path to a temporary directory so the suite never scans the whole import path.
+  `optparse_utils.py` follows it too: the parser never touches the network, and the tests parse
+  command lines from lists instead of `sys.argv`, except for one test that patches `sys.argv` with
+  `unittest.mock.patch`.
 - Keep `make lint` and `make typecheck` green. Previous sessions left `mailcap_utils.py`,
   `mailbox_utils.py`, and `wave_utils.py` failing mypy and three files failing ruff; the latest
   session repaired them, so a new module must not reintroduce the drift.
 
 Completed in the latest session:
+
+- Added `optparse_utils.py` wrapping the standard library `optparse` module (`make_parser`,
+  `add_option`, `add_flag`, `add_count_option`, `add_option_group`, `parse_args`, `get_option`,
+  `has_option`, `remove_option`, `get_default_values`, `set_defaults`, `get_usage`, `format_usage`,
+  `format_help`, `format_option_help`, `get_prog_name`, `dest_for`, `string_type`, `int_type`,
+  `float_type`, `choice_type`, `values_to_dict`) with typed signatures, docstrings, `__all__`, and
+  input validation, plus unit tests in `tests/test_optparse_utils.py`. `Option`, `OptionParser`,
+  `OptionGroup`, `OptionContainer`, `Values`, `OptionError`, `OptionValueError`,
+  `OptionConflictError`, `BadOptionError`, `SUPPRESS_HELP`, and `SUPPRESS_USAGE` are re-exported.
+- The wrapper keeps the standard library as the single source of truth and adds two conveniences the
+  standard library does not offer: every helper validates the types of its arguments and raises
+  `TypeError` or `ValueError` before the standard library is reached, and `parse_args` can be told to
+  raise the new `OptionParseError` instead of printing a usage message and terminating the
+  interpreter. `OptionParseError` derives from `optparse.OptionError`, so `except OptionError` still
+  catches it, and it carries the usage message the standard library produced.
+- Custom option types are supported even though the standard library only knows a fixed set of type
+  names: a callable converter is installed on the option itself, so the option keeps the string type
+  of the standard library and the converter takes over the conversion. A converter that follows the
+  standard library calling convention `(option, opt, value)` is used as is, and a converter that
+  takes a single value, such as `int`, is adapted automatically.
+- Synchronized the new module across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh`
+  header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README
+  tree and module section, the embedded CHANGELOG, the README tree and module section,
+  `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `optparse_utils.py` and `tests/test_optparse_utils.py`, and its 3442 tests, ruff, and mypy all
+  pass.
 
 - Added `modulefinder_utils.py` wrapping the standard library `modulefinder` module
   (`load_script`, `find_dependencies`, `find_modules`, `missing_modules`, `missing_importers`,
