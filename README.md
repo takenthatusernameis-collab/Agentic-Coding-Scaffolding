@@ -111,6 +111,7 @@ os_utils.py                # Operating system utilities (platform info, CPU coun
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
 wave_utils.py              # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames, create_writer)
+uu_utils.py                # Uuencode utilities wrapping stdlib uu (uu_encode, uu_decode, encode_uu, decode_uu, parse_uu_header, is_uuencoded)
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
@@ -1289,3 +1290,8 @@ The project includes IMAP4 client utilities in `imaplib_utils.py` wrapping the s
 ## Wave Utilities Module
 
 The project includes wave audio utilities in `wave_utils.py` wrapping the standard library `wave` module: `open_read` and `open_write` open WAV files for reading and writing, `wave_info` returns the audio parameters as a dictionary, `read_frames` and `write_frames` transfer raw frame data, `create_writer` builds a configured :class:`wave.Wave_write`, and `get_params`/`set_params` plus the per-field setters inspect and adjust channel count, sample width, frame rate, frame count, and compression type. `Error`, `WAVE_FORMAT_PCM`, and `WAVE_FORMAT_EXTENSIBLE` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_wave_utils.py`.
+
+
+## Uuencode Utilities Module
+
+The project includes uuencode utilities in `uu_utils.py` wrapping the standard library `uu` module: `uu_encode` writes the uuencoded form of a payload to a file, `uu_decode` decodes a uuencoded file back into bytes, `encode_uu` and `decode_uu` do the same entirely in memory, `parse_uu_header` reads the `begin <mode> <name>` header, and `is_uuencoded` reports whether a payload carries such a header. `DEFAULT_FILE_MODE` is the permission mask recorded in the header when the caller does not pick one. Unlike the standard library decoder, the helpers never derive an output filename from the header, so nothing is written to the working directory unless an explicit destination is given. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The standard library `uu` module was removed in Python 3.13, so the helpers raise `RuntimeError` when the interpreter no longer ships it. The module is tested in `tests/test_uu_utils.py`.

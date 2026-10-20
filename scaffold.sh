@@ -292,6 +292,8 @@
 #   - tests/test_mailcap_utils.py — # Tests for mailcap_utils.py
 #   - wave_utils.py — # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames)
 #   - tests/test_wave_utils.py — # Tests for wave_utils.py
+#   - uu_utils.py — # Uuencode utilities wrapping stdlib uu (uu_encode, uu_decode, encode_uu, decode_uu, parse_uu_header, is_uuencoded)
+#   - tests/test_uu_utils.py — # Tests for uu_utils.py
 #   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 #   - tests/test_contextlib_utils.py — # Tests for contextlib_utils.py
 
@@ -4246,6 +4248,7 @@ py_modules = [
     "pstats_utils",
     "timeit_utils",
     "unittest_utils",
+    "uu_utils",
 ]
 
 PYPROJECT
@@ -27181,14 +27184,14 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_symtable_utils.py` — unit tests for `symtable_utils.py`
 - `imaplib_utils.py` — IMAP4 client utilities wrapping the standard library `imaplib` module (`create_imap4`, `create_imap4_ssl`, `create_imap4_stream`, `parse_capabilities`, `has_capability`, `parse_flags`, `parse_fetch_flags`, `format_flags`, `parse_internaldate`, `format_internaldate`, `int_to_ap`) with input validation
 - `tests/test_imaplib_utils.py` — unit tests for `imaplib_utils.py`
-- `mailbox_utils.py` — Mailbox utilities wrapping the standard library `mailbox` module with validated constructors and helpers
+- `mailbox_utils.py` — mailbox utilities wrapping the standard library `mailbox` module (factory helpers and exception/type checks)
 - `tests/test_mailbox_utils.py` — unit tests for `mailbox_utils.py`
 - `mailcap_utils.py` — Mailcap utilities wrapping the standard library `mailcap` module
 - `tests/test_mailcap_utils.py` — unit tests for `mailcap_utils.py`
-- `mailbox_utils.py` — mailbox utilities wrapping the standard library `mailbox` module (factory helpers and exception/type checks)
-- `tests/test_mailbox_utils.py` — unit tests for `mailbox_utils.py`
 - `wave_utils.py` — wave audio utilities wrapping the standard library `wave` module (`open_read`, `open_write`, `wave_info`, `read_frames`, `write_frames`, `create_writer`, `get_params`, `set_params`, per-field setters) with input validation
 - `tests/test_wave_utils.py` — unit tests for `wave_utils.py`
+- `uu_utils.py` — uuencode utilities wrapping the standard library `uu` module (`uu_encode`, `uu_decode`, `encode_uu`, `decode_uu`, `parse_uu_header`, `is_uuencoded`) with input validation
+- `tests/test_uu_utils.py` — unit tests for `uu_utils.py`
 SCAFFOLD
 
 
@@ -28034,6 +28037,7 @@ hello.py                     # Sample application entry point
 abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
 gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
+mailcap_utils.py            # Mailcap utilities wrapping stdlib mailcap
 pickle_utils.py              # Object serialization utilities wrapping stdlib pickle
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
@@ -28104,6 +28108,8 @@ number_utils.py            # Number utility functions (clamp, round_to, is_integ
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
+wave_utils.py              # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames, create_writer)
+uu_utils.py                # Uuencode utilities wrapping stdlib uu (uu_encode, uu_decode, encode_uu, decode_uu, parse_uu_header, is_uuencoded)
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
@@ -28206,6 +28212,7 @@ profile_utils.py             # Profiling utilities wrapping stdlib profile (Prof
 pstats_utils.py              # Profiling statistics utilities wrapping stdlib pstats (Stats, SortKey, new_stats, load_stats, add_stats, print_stats, sort_stats, strip_dirs, reverse_order, dump_stats)
 select_utils.py              # I/O multiplexing utilities wrapping stdlib select (select, create_poller, poll_register, poll_poll, PIPE_BUF)
 imaplib_utils.py             # IMAP4 client utilities wrapping stdlib imaplib (create_imap4, create_imap4_ssl, create_imap4_stream, parse_capabilities, has_capability, parse_flags, parse_fetch_flags, format_flags, parse_internaldate, format_internaldate, int_to_ap)
+mailbox_utils.py             # Mailbox utilities wrapping stdlib mailbox (create_* factories)
 unittest_utils.py            # Unittest utilities wrapping stdlib unittest (TestCase, TestSuite, TestLoader, TextTestRunner, make_suite, run_tests, main)
 typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
@@ -28223,6 +28230,7 @@ argparse_utils.py           # Argument parsing utilities
 warnings_utils.py           # Utilities wrapping the standard library warnings module
 compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
 gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
+mailcap_utils.py            # Mailcap utilities wrapping stdlib mailcap
 ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
@@ -28314,8 +28322,12 @@ test_doctest_utils.py       # Tests for doctest_utils.py
 test_symtable_utils.py      # Tests for symtable_utils.py
 test_profile_utils.py        # Tests for profile_utils.py
 test_pstats_utils.py         # Tests for pstats_utils.py
-test_select_utils.py         # Tests for select_utils.py
-test_imaplib_utils.py        # Tests for imaplib_utils.py
+ test_select_utils.py         # Tests for select_utils.py
+ test_imaplib_utils.py        # Tests for imaplib_utils.py
+ test_mailbox_utils.py        # Tests for mailbox_utils.py
+
+mailbox_utils.py             # Mailbox utilities wrapping stdlib mailbox (create_* factories)
+ test_mailbox_utils.py        # Tests for mailbox_utils.py
 test_unittest_utils.py       # Tests for unittest_utils.py
 test_typing_utils.py        # Tests for typing_utils.py
 test_pickle_utils.py        # Tests for pickle_utils.py
@@ -28400,6 +28412,7 @@ test_lzma_utils.py          # Tests for lzma_utils.py
     test_getopt_utils.py        # Tests for getopt_utils.py
     test_gettext_utils.py       # Tests for gettext_utils.py
     test_gzip_utils.py          # Tests for gzip_utils.py
+ test_mailcap_utils.py       # Tests for mailcap_utils.py
     test_inspect_utils.py       # Tests for inspect_utils.py
     test_netrc_utils.py         # Tests for netrc_utils.py
     test_numbers_utils.py       # Tests for numbers_utils.py
@@ -29227,12 +29240,27 @@ The project includes symbol table utilities in `symtable_utils.py` wrapping the 
 
 ## Imaplib Utilities Module
 
-The project includes IMAP4 client utilities
+The project includes IMAP4 client utilities in `imaplib_utils.py` wrapping the standard library `imaplib` module: `create_imap4` builds an `IMAP4` client, `create_imap4_ssl` builds an `IMAP4_SSL` client, `create_imap4_stream` builds an `IMAP4_stream` client for a local command, `parse_capabilities` reads the capability names a server advertises, `has_capability` reports whether a capability is advertised, `parse_flags` reads the flags of a `FLAGS` response, `parse_fetch_flags` extracts the flags from a `FETCH` response, `format_flags` renders flags in the wire format, `parse_internaldate` reads an `INTERNALDATE` value, `format_internaldate` renders a timestamp as an `INTERNALDATE` value, and `int_to_ap` converts an integer into its `A`-`P` digit representation. `IMAP4`, `IMAP4_SSL`, `IMAP4_stream`, `IMAP4Error`, `IMAP4AbortError`, `IMAP4ReadOnlyError`, `CRLF`, `IMAP4_PORT`, and `IMAP4_SSL_PORT` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_imaplib_utils.py`.
+
 
 ## Mailbox Utilities Module
 
 The project includes mailbox utilities in `mailbox_utils.py` wrapping the standard library `mailbox` module: factory helpers for mbox/Maildir/MH/MMDF/Babyl mailboxes and message objects, plus exception type checks. The module is tested in `tests/test_mailbox_utils.py`.
- in `imaplib_utils.py` wrapping the standard library `imaplib` module: `create_imap4` builds an `IMAP4` client, `create_imap4_ssl` builds an `IMAP4_SSL` client, `create_imap4_stream` builds an `IMAP4_stream` client for a local command, `parse_capabilities` reads the capability names a server advertises, `has_capability` reports whether a capability is advertised, `parse_flags` reads the flags of a `FLAGS` response, `parse_fetch_flags` extracts the flags from a `FETCH` response, `format_flags` renders flags in the wire format, `parse_internaldate` reads an `INTERNALDATE` value, `format_internaldate` renders a timestamp as an `INTERNALDATE` value, and `int_to_ap` converts an integer into its `A`-`P` digit representation. `IMAP4`, `IMAP4_SSL`, `IMAP4_stream`, `IMAP4Error`, `IMAP4AbortError`, `IMAP4ReadOnlyError`, `CRLF`, `IMAP4_PORT`, and `IMAP4_SSL_PORT` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_imaplib_utils.py`.
+
+
+## Mailcap Utilities Module
+
+The project includes mailcap utilities in `mailcap_utils.py` wrapping the standard library `mailcap` module: `getcaps`, `list_mailcap_files`, `read_mailcap_file`, `parse_line`, `parse_field`, `find_match`, `lookup`, `subst`, and `find_param`. The module is tested in `tests/test_mailcap_utils.py`.
+
+
+## Wave Utilities Module
+
+The project includes wave audio utilities in `wave_utils.py` wrapping the standard library `wave` module: `open_read` and `open_write` open WAV files for reading and writing, `wave_info` returns the audio parameters as a dictionary, `read_frames` and `write_frames` transfer raw frame data, `create_writer` builds a configured :class:`wave.Wave_write`, and `get_params`/`set_params` plus the per-field setters inspect and adjust channel count, sample width, frame rate, frame count, and compression type. `Error`, `WAVE_FORMAT_PCM`, and `WAVE_FORMAT_EXTENSIBLE` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_wave_utils.py`.
+
+
+## Uuencode Utilities Module
+
+The project includes uuencode utilities in `uu_utils.py` wrapping the standard library `uu` module: `uu_encode` writes the uuencoded form of a payload to a file, `uu_decode` decodes a uuencoded file back into bytes, `encode_uu` and `decode_uu` do the same entirely in memory, `parse_uu_header` reads the `begin <mode> <name>` header, and `is_uuencoded` reports whether a payload carries such a header. `DEFAULT_FILE_MODE` is the permission mask recorded in the header when the caller does not pick one. Unlike the standard library decoder, the helpers never derive an output filename from the header, so nothing is written to the working directory unless an explicit destination is given. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The standard library `uu` module was removed in Python 3.13, so the helpers raise `RuntimeError` when the interpreter no longer ships it. The module is tested in `tests/test_uu_utils.py`.
 
 ## Hello Module
 
@@ -29254,6 +29282,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - Moved the scaffold summary and smoke test to the end of `scaffold.sh`: both used to run in the middle of the generator, so the "Created files" listing missed every module written after that point and the smoke test only discovered the tests written up to that point. The smoke test now also runs after the project name has been substituted into the templated documents.
 - Registered `asyncio_utils`, `imaplib_utils`, `mmap_utils`, `profile_utils`, `pstats_utils`, `timeit_utils`, and `unittest_utils` in the `pyproject.toml` template embedded in `scaffold.sh`, so a generated project declares every module it ships.
+- Add `uu_utils.py` wrapping the standard library `uu` module (`uu_encode`, `uu_decode`, `encode_uu`, `decode_uu`, `parse_uu_header`, `is_uuencoded`) with input validation, plus unit tests in `tests/test_uu_utils.py`.
+- Add `wave_utils.py` wrapping the standard library `wave` module (`open_read`, `open_write`, `wave_info`, `read_frames`, `write_frames`, `create_writer`, `get_params`, `set_params`, and per-field parameter setters) with input validation, plus unit tests in `tests/test_wave_utils.py`.
+- Add `mailcap_utils.py` wrapping the standard library `mailcap` module with mailcap helpers, plus unit tests in `tests/test_mailcap_utils.py`.
 - Add `mailbox_utils.py` wrapping the standard library `mailbox` module (factory helpers for mbox/Maildir/MH/MMDF/Babyl, message factories, and exception type checks) with unit tests in `tests/test_mailbox_utils.py`.
 - Added `imaplib_utils.py` to the generated project — IMAP4 client utilities wrapping the standard library `imaplib` module (`create_imap4`, `create_imap4_ssl`, `create_imap4_stream`, `parse_capabilities`, `has_capability`, `parse_flags`, `parse_fetch_flags`, `format_flags`, `parse_internaldate`, `format_internaldate`, `int_to_ap`) with input validation, plus `tests/test_imaplib_utils.py`.
 - Synchronized `imaplib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -56787,8 +56818,7 @@ from __future__ import annotations
 import mailbox as _mailbox
 import os
 from email.message import Message
-from typing import Any, Iterator, List, Optional, Type, Union
-
+from typing import Any, Callable, Iterator, List, Optional, Type, Union, cast
 
 __all__ = [
     "Babyl",
@@ -56906,11 +56936,12 @@ def open_mailbox(
             raise TypeError("factory must be a mailbox.Mailbox subclass")
     if hasattr(_mailbox, "open"):
         try:
-            return _mailbox.open(path, factory=factory, create=create)  # type: ignore[attr-defined]
+            return _mailbox.open(path, factory=factory, create=create)  # type: ignore[attr-defined,no-any-return]
         except Exception:
             pass
     if factory is not None:
-        return factory(path, create=create)
+        constructor = cast(Callable[..., Mailbox], factory)
+        return constructor(path, create=create)
     if os.path.isdir(path):
         return _mailbox.Maildir(path, create=create)
     return _mailbox.mbox(path, create=create)
@@ -57139,22 +57170,22 @@ def getcaps() -> dict[str, list[dict[str, Any]]]:
 
 def list_mailcap_files() -> list[str]:
     """Return the list of mailcap files found on the system."""
-    return mailcap.listmailcapfiles()
+    return mailcap.listmailcapfiles()  # type: ignore[attr-defined,no-any-return]
 
 
 def read_mailcap_file(fp: Any) -> dict[str, list[dict[str, Any]]]:
     """Read a mailcap file and return a dict keyed by MIME type."""
-    return mailcap.readmailcapfile(fp)
+    return mailcap.readmailcapfile(fp)  # type: ignore[attr-defined,no-any-return]
 
 
 def parse_line(line: str) -> tuple[Any, Any]:
     """Parse one mailcap entry line."""
-    return mailcap.parseline(line)
+    return mailcap.parseline(line)  # type: ignore[attr-defined,no-any-return]
 
 
 def parse_field(line: str, i: int, n: int) -> tuple[str, int]:
     """Separate one key-value pair in a mailcap entry."""
-    return mailcap.parsefield(line, i, n)
+    return mailcap.parsefield(line, i, n)  # type: ignore[attr-defined,no-any-return]
 
 
 def find_match(
@@ -57176,7 +57207,7 @@ def lookup(
     key: str | None = None,
 ) -> list[dict[str, Any]]:
     """Look up mailcap entries for a MIME type."""
-    return mailcap.lookup(caps, mime_type, key=key)
+    return mailcap.lookup(caps, mime_type, key=key)  # type: ignore[attr-defined,no-any-return]
 
 
 def subst(
@@ -57188,12 +57219,12 @@ def subst(
     """Substitute fields into a mailcap command string."""
     if plist is None:
         plist = []
-    return mailcap.subst(field, mime_type, filename, plist)
+    return mailcap.subst(field, mime_type, filename, plist)  # type: ignore[attr-defined,no-any-return]
 
 
 def find_param(name: str, plist: list[str]) -> str:
     """Find a parameter value in a plist."""
-    return mailcap.findparam(name, plist)
+    return mailcap.findparam(name, plist)  # type: ignore[attr-defined,no-any-return]
 MAILCAP_UTILS
 
 cat > "$OUTPUT_DIR/tests/test_mailcap_utils.py" <<'TEST_MAILCAP_UTILS'
@@ -57201,7 +57232,6 @@ cat > "$OUTPUT_DIR/tests/test_mailcap_utils.py" <<'TEST_MAILCAP_UTILS'
 
 from __future__ import annotations
 
-import mailcap
 import os
 import tempfile
 import unittest
@@ -57372,7 +57402,7 @@ def open_read(file: str, mode: str = "rb") -> _wave.Wave_read:
     """
     _require_str(file, "file")
     _require_str(mode, "mode")
-    return _wave.open(file, mode)
+    return _wave.open(file, mode)  # type: ignore[no-any-return]
 
 
 def open_write(file: str, mode: str = "wb") -> _wave.Wave_write:
@@ -57391,7 +57421,7 @@ def open_write(file: str, mode: str = "wb") -> _wave.Wave_write:
     """
     _require_str(file, "file")
     _require_str(mode, "mode")
-    return _wave.open(file, mode)
+    return _wave.open(file, mode)  # type: ignore[no-any-return]
 
 
 def wave_info(file: str) -> Dict[str, Any]:
@@ -57584,11 +57614,18 @@ def create_writer(
         wave.Error: If the file cannot be opened.
     """
     writer = open_write(file)
-    set_nchannels(writer, nchannels)
-    set_sampwidth(writer, sampwidth)
-    set_framerate(writer, framerate)
-    set_nframes(writer, nframes)
-    set_comptype(writer, comptype, compname)
+    try:
+        set_nchannels(writer, nchannels)
+        set_sampwidth(writer, sampwidth)
+        set_framerate(writer, framerate)
+        set_nframes(writer, nframes)
+        set_comptype(writer, comptype, compname)
+    except Exception:
+        try:
+            writer.close()
+        except Exception:
+            pass
+        raise
     return writer
 
 
@@ -57619,23 +57656,22 @@ def write_frames(wave_write: _wave.Wave_write, data: bytes) -> None:
     writer.writeframes(_require_bytes(data, "data"))
 
 
+def _mark_closed(wave_obj: Any) -> None:
+    """Close *wave_obj* and flag it as closed when the object allows it."""
+    wave_obj.close()
+    try:
+        wave_obj.closed = True  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
+
 def close_wave(wave_obj: Any) -> None:
     """Close a :class:`wave.Wave_read` or :class:`wave.Wave_write`."""
     if isinstance(wave_obj, _wave.Wave_read):
-        obj = _require_wave_read(wave_obj, "wave_obj")
-        obj.close()
-        try:
-            obj.closed = True  # type: ignore[attr-defined]
-        except Exception:
-            pass
+        _mark_closed(_require_wave_read(wave_obj, "wave_obj"))
         return
     if isinstance(wave_obj, _wave.Wave_write):
-        obj = _require_wave_write(wave_obj, "wave_obj")
-        obj.close()
-        try:
-            obj.closed = True  # type: ignore[attr-defined]
-        except Exception:
-            pass
+        _mark_closed(_require_wave_write(wave_obj, "wave_obj"))
         return
     raise TypeError(
         "wave_obj must be a wave.Wave_read or wave.Wave_write, "
@@ -57649,9 +57685,8 @@ cat > "$OUTPUT_DIR/tests/test_wave_utils.py" <<'TEST_WAVE_UTILS'
 import os
 import tempfile
 import unittest
-from unittest import mock
-
 import wave
+from unittest import mock
 
 import wave_utils
 
@@ -57874,16 +57909,18 @@ class TestCreateWriter(unittest.TestCase):
                 wave_utils.close_wave(writer)
 
     def test_create_writer_bad_arguments(self):
-        with self.assertRaises(TypeError):
-            wave_utils.create_writer(123, 1, 2, 8000)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            wave_utils.create_writer("path", "1", 2, 8000)  # type: ignore[arg-type]
-        with self.assertRaises(ValueError):
-            wave_utils.create_writer("path", 0, 2, 8000)
-        with self.assertRaises(ValueError):
-            wave_utils.create_writer("path", 1, 0, 8000)
-        with self.assertRaises(ValueError):
-            wave_utils.create_writer("path", 1, 2, 0)
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            with self.assertRaises(TypeError):
+                wave_utils.create_writer(123, 1, 2, 8000)  # type: ignore[arg-type]
+            with self.assertRaises(TypeError):
+                wave_utils.create_writer(path, "1", 2, 8000)  # type: ignore[arg-type]
+            with self.assertRaises(ValueError):
+                wave_utils.create_writer(path, 0, 2, 8000)
+            with self.assertRaises(ValueError):
+                wave_utils.create_writer(path, 1, 0, 8000)
+            with self.assertRaises(ValueError):
+                wave_utils.create_writer(path, 1, 2, 0)
 
 
 class TestReadFrames(unittest.TestCase):
@@ -58803,6 +58840,538 @@ class TestModuleSurface(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_SYMTABLE_UTILS
+
+# --- uu_utils.py ---
+cat > "$OUTPUT_DIR/uu_utils.py" <<'UU_UTILS'
+"""Uuencode utilities wrapping the standard library :mod:`uu` module.
+
+The :mod:`uu` module implements the historical uuencode format, an ASCII-only
+encoding that carries a binary payload inside plain text.  A payload opens with
+a ``begin <mode> <name>`` header, continues with one encoded line per 45 input
+bytes, and closes with an ``end`` line.
+
+This wrapper exposes validated helpers for encoding and decoding payloads both
+in memory and on disk, plus small utilities for inspecting the header of an
+encoded payload.
+
+.. note::
+
+   The :mod:`uu` module was deprecated in Python 3.11 and removed in Python
+   3.13 as part of :pep:`594`.  The import below degrades gracefully: when the
+   interpreter no longer ships the module, the helpers raise a
+   :class:`RuntimeError` that points at the :mod:`binascii_utils` replacements.
+
+The helpers never write to the current working directory behind the caller's
+back.  The standard library decoder derives an output filename from the header
+when no destination is supplied; this wrapper always decodes into memory and
+only touches the filesystem when an explicit destination is given.
+"""
+
+from __future__ import annotations
+
+import io
+import os
+import warnings
+from typing import Any, Dict, Optional, Union
+
+__all__ = [
+    "DEFAULT_FILE_MODE",
+    "decode_uu",
+    "encode_uu",
+    "is_uuencoded",
+    "parse_uu_header",
+    "uu_decode",
+    "uu_encode",
+]
+
+#: Permission mask recorded in the header when the caller does not pick one.
+DEFAULT_FILE_MODE = 0o666
+
+PathLike = Union[str, "os.PathLike[str]"]
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import uu as _uu
+except ImportError:  # pragma: no cover - Python 3.13 removed the module
+    _uu = None  # type: ignore[assignment]
+
+
+def _uu_module() -> Any:
+    """Return the standard library ``uu`` module.
+
+    Returns:
+        The imported :mod:`uu` module.
+
+    Raises:
+        RuntimeError: If the interpreter no longer ships the ``uu`` module.
+    """
+    if _uu is None:  # pragma: no cover - Python 3.13 removed the module
+        raise RuntimeError(
+            "the standard library 'uu' module was removed in Python 3.13; "
+            "use binascii_utils.b2a_uu and binascii_utils.a2b_uu instead"
+        )
+    return _uu
+
+
+def _require_bytes(value: Any, name: str) -> bytes:
+    """Return *value* as bytes, raising ``TypeError`` for other types."""
+    if isinstance(value, bytes):
+        return value
+    if isinstance(value, (bytearray, memoryview)):
+        return bytes(value)
+    raise TypeError(f"{name} must be bytes, got {type(value).__name__}")
+
+
+def _require_text(value: Any, name: str) -> str:
+    """Return *value* as text, raising ``TypeError`` for other types."""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        return bytes(value).decode("ascii", errors="replace")
+    raise TypeError(f"{name} must be str or bytes, got {type(value).__name__}")
+
+
+def _require_path(value: Any, name: str) -> str:
+    """Return *value* as a filesystem path string."""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, os.PathLike):
+        return os.fspath(value)  # type: ignore[no-any-return]
+    raise TypeError(f"{name} must be str or os.PathLike, got {type(value).__name__}")
+
+
+def _require_optional_str(value: Any, name: str) -> Optional[str]:
+    """Return *value* when it is a string or ``None``."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str or None, got {type(value).__name__}")
+    return value
+
+
+def _require_optional_mode(value: Any, name: str) -> Optional[int]:
+    """Return *value* when it is a permission mask or ``None``."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int or None, got {type(value).__name__}")
+    if not 0 <= value <= 0o7777:
+        raise ValueError(f"{name} must be a permission mask, got {value}")
+    return value
+
+
+def _split_header(text: str) -> Optional[list[str]]:
+    """Return the fields of the uuencoded ``begin`` header, or ``None``."""
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        if not line.startswith("begin "):
+            return None
+        fields = line.split(" ", 2)
+        if len(fields) != 3:
+            return None
+        try:
+            int(fields[1], 8)
+        except ValueError:
+            return None
+        return fields
+    return None
+
+
+def encode_uu(data: Any, name: str = "data", mode: Optional[int] = None) -> str:
+    """Return the uuencoded representation of *data* as ASCII text.
+
+    Args:
+        data: The binary payload to encode.
+        name: The file name recorded in the ``begin`` header.
+        mode: The permission mask recorded in the header.  Defaults to
+            :data:`DEFAULT_FILE_MODE`.
+
+    Returns:
+        The uuencoded payload, including its header and terminator.
+
+    Raises:
+        TypeError: If *data* is not bytes-like, *name* is not a string, or
+            *mode* is not an integer.
+        ValueError: If *mode* is not a valid permission mask.
+        RuntimeError: If the interpreter no longer ships the ``uu`` module.
+    """
+    payload = _require_bytes(data, "data")
+    file_name = _require_optional_str(name, "name") or "data"
+    permission = DEFAULT_FILE_MODE if mode is None else _require_optional_mode(mode, "mode")
+    uu_module = _uu_module()
+    source = io.BytesIO(payload)
+    target = io.BytesIO()
+    uu_module.encode(source, target, name=file_name, mode=permission)
+    return target.getvalue().decode("ascii")
+
+
+def decode_uu(text: Any) -> bytes:
+    """Return the binary payload carried by the uuencoded *text*.
+
+    Args:
+        text: The uuencoded payload, as text or bytes.
+
+    Returns:
+        The decoded binary payload.
+
+    Raises:
+        TypeError: If *text* is neither text nor bytes.
+        uu.Error: If *text* does not hold a valid uuencoded payload.
+        RuntimeError: If the interpreter no longer ships the ``uu`` module.
+    """
+    raw = _require_text(text, "text").encode("ascii", errors="replace")
+    uu_module = _uu_module()
+    target = io.BytesIO()
+    uu_module.decode(io.BytesIO(raw), target)
+    return target.getvalue()
+
+
+def parse_uu_header(text: Any) -> Dict[str, str]:
+    """Return the header recorded by a uuencoded payload.
+
+    Args:
+        text: The uuencoded payload, as text or bytes.
+
+    Returns:
+        A dictionary with the octal ``mode`` string and the ``name`` recorded
+        in the ``begin <mode> <name>`` header.
+
+    Raises:
+        TypeError: If *text* is neither text nor bytes.
+        ValueError: If *text* does not start with a valid ``begin`` header.
+    """
+    fields = _split_header(_require_text(text, "text"))
+    if fields is None:
+        raise ValueError("no valid 'begin <mode> <name>' header found")
+    return {"mode": fields[1], "name": fields[2].strip()}
+
+
+def is_uuencoded(text: Any) -> bool:
+    """Return ``True`` when *text* opens with a valid uuencoded header.
+
+    Args:
+        text: The candidate payload, as text or bytes.
+
+    Returns:
+        ``True`` when the payload starts with a ``begin <mode> <name>`` header.
+
+    Raises:
+        TypeError: If *text* is neither text nor bytes.
+    """
+    return _split_header(_require_text(text, "text")) is not None
+
+
+def uu_encode(
+    data: Any,
+    out_path: PathLike,
+    name: Optional[str] = None,
+    mode: Optional[int] = None,
+) -> str:
+    """Write the uuencoded representation of *data* to *out_path*.
+
+    Args:
+        data: The binary payload to encode.
+        out_path: The path of the file to write.
+        name: The file name recorded in the ``begin`` header.  Defaults to the
+            base name of *out_path*.
+        mode: The permission mask recorded in the header.  Defaults to
+            :data:`DEFAULT_FILE_MODE`.
+
+    Returns:
+        The uuencoded payload that was written.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *mode* is not a valid permission mask.
+        OSError: If the destination cannot be written.
+        RuntimeError: If the interpreter no longer ships the ``uu`` module.
+    """
+    target_path = _require_path(out_path, "out_path")
+    file_name = _require_optional_str(name, "name")
+    if file_name is None:
+        file_name = os.path.basename(target_path) or "data"
+    encoded = encode_uu(data, name=file_name, mode=mode)
+    with open(target_path, "w", encoding="ascii", newline="\n") as handle:
+        handle.write(encoded)
+    return encoded
+
+
+def uu_decode(
+    in_path: PathLike,
+    out_path: Optional[PathLike] = None,
+    mode: Optional[int] = None,
+) -> bytes:
+    """Decode the uuencoded file *in_path* and return the binary payload.
+
+    The payload is always decoded into memory first, so the standard library
+    decoder never derives an output filename from the header on its own.
+
+    Args:
+        in_path: The path of the uuencoded file to read.
+        out_path: The path of the file to write.  When omitted, nothing is
+            written to disk.
+        mode: The permission mask applied to *out_path*.  When omitted, the
+            mode recorded in the uuencoded header is used.  Setuid, setgid,
+            and sticky bits are always masked off.
+
+    Returns:
+        The decoded binary payload.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *mode* is not a valid permission mask.
+        OSError: If the source cannot be read or the destination written.
+        uu.Error: If *in_path* does not hold a valid uuencoded payload.
+        RuntimeError: If the interpreter no longer ships the ``uu`` module.
+    """
+    source_path = _require_path(in_path, "in_path")
+    destination = None if out_path is None else _require_path(out_path, "out_path")
+    permission = _require_optional_mode(mode, "mode")
+    uu_module = _uu_module()
+    with open(source_path, "rb") as handle:
+        raw = handle.read()
+    target = io.BytesIO()
+    uu_module.decode(io.BytesIO(raw), target)
+    payload = target.getvalue()
+    if destination is not None:
+        with open(destination, "wb") as handle:
+            handle.write(payload)
+        effective = permission if permission is not None else _recorded_mode(raw)
+        os.chmod(destination, effective & 0o777)
+    return payload
+
+
+def _recorded_mode(raw: bytes) -> int:
+    """Return the permission mask recorded in the header of *raw*."""
+    try:
+        header = parse_uu_header(raw)
+    except ValueError:
+        return DEFAULT_FILE_MODE
+    return int(header["mode"], 8)
+UU_UTILS
+
+# --- tests/test_uu_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_uu_utils.py" <<'TEST_UU_UTILS'
+"""Tests for uu_utils module."""
+
+import os
+import stat
+import tempfile
+import unittest
+from unittest import mock
+
+import uu_utils
+
+
+class TestEncodeUu(unittest.TestCase):
+    def test_encode_returns_ascii_text(self):
+        encoded = uu_utils.encode_uu(b"hello world\n", name="greeting")
+        self.assertIsInstance(encoded, str)
+        self.assertTrue(encoded.startswith("begin "))
+        self.assertTrue(encoded.endswith("end\n"))
+
+    def test_encode_header_records_name_and_mode(self):
+        encoded = uu_utils.encode_uu(b"payload", name="greeting", mode=0o644)
+        header = uu_utils.parse_uu_header(encoded)
+        self.assertEqual(header["name"], "greeting")
+        self.assertEqual(header["mode"], "644")
+
+    def test_encode_default_name_and_mode(self):
+        encoded = uu_utils.encode_uu(b"payload")
+        header = uu_utils.parse_uu_header(encoded)
+        self.assertEqual(header["name"], "data")
+        self.assertEqual(header["mode"], "666")
+
+    def test_encode_accepts_bytearray(self):
+        encoded = uu_utils.encode_uu(bytearray(b"payload"))
+        self.assertEqual(uu_utils.decode_uu(encoded), b"payload")
+
+    def test_encode_rejects_bad_types(self):
+        with self.assertRaises(TypeError):
+            uu_utils.encode_uu("not bytes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            uu_utils.encode_uu(b"payload", name=5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            uu_utils.encode_uu(b"payload", mode="644")  # type: ignore[arg-type]
+
+    def test_encode_rejects_out_of_range_mode(self):
+        with self.assertRaises(ValueError):
+            uu_utils.encode_uu(b"payload", mode=0o100000)
+
+
+class TestDecodeUu(unittest.TestCase):
+    def test_decode_roundtrip(self):
+        encoded = uu_utils.encode_uu(b"hello world\n")
+        self.assertEqual(uu_utils.decode_uu(encoded), b"hello world\n")
+
+    def test_decode_accepts_bytes(self):
+        encoded = uu_utils.encode_uu(b"payload")
+        self.assertEqual(uu_utils.decode_uu(encoded.encode("ascii")), b"payload")
+
+    def test_decode_binary_payload(self):
+        payload = bytes(range(256))
+        encoded = uu_utils.encode_uu(payload)
+        self.assertEqual(uu_utils.decode_uu(encoded), payload)
+
+    def test_decode_long_payload(self):
+        payload = b"x" * 5000
+        encoded = uu_utils.encode_uu(payload)
+        self.assertEqual(uu_utils.decode_uu(encoded), payload)
+
+    def test_decode_rejects_bad_type(self):
+        with self.assertRaises(TypeError):
+            uu_utils.decode_uu(123)  # type: ignore[arg-type]
+
+    def test_decode_rejects_payload_without_header(self):
+        with self.assertRaises(Exception):
+            uu_utils.decode_uu("not a uuencoded payload")
+
+
+class TestParseUuHeader(unittest.TestCase):
+    def test_parse_header(self):
+        encoded = uu_utils.encode_uu(b"payload", name="greeting", mode=0o600)
+        self.assertEqual(
+            uu_utils.parse_uu_header(encoded), {"mode": "600", "name": "greeting"}
+        )
+
+    def test_parse_header_accepts_bytes(self):
+        encoded = uu_utils.encode_uu(b"payload", name="greeting")
+        self.assertEqual(uu_utils.parse_uu_header(encoded.encode("ascii"))["name"], "greeting")
+
+    def test_parse_header_rejects_missing_header(self):
+        with self.assertRaises(ValueError):
+            uu_utils.parse_uu_header("no header here")
+
+    def test_parse_header_rejects_non_octal_mode(self):
+        with self.assertRaises(ValueError):
+            uu_utils.parse_uu_header("begin xyz file\n")
+
+    def test_parse_header_rejects_bad_type(self):
+        with self.assertRaises(TypeError):
+            uu_utils.parse_uu_header(123)  # type: ignore[arg-type]
+
+
+class TestIsUuencoded(unittest.TestCase):
+    def test_is_uuencoded_true(self):
+        self.assertTrue(uu_utils.is_uuencoded(uu_utils.encode_uu(b"payload")))
+
+    def test_is_uuencoded_false(self):
+        self.assertFalse(uu_utils.is_uuencoded("plain text"))
+        self.assertFalse(uu_utils.is_uuencoded(""))
+
+    def test_is_uuencoded_rejects_bad_type(self):
+        with self.assertRaises(TypeError):
+            uu_utils.is_uuencoded(123)  # type: ignore[arg-type]
+
+
+class TestUuEncode(unittest.TestCase):
+    def test_encode_writes_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "payload.uu")
+            encoded = uu_utils.uu_encode(b"hello world\n", path)
+            with open(path, "r", encoding="ascii") as handle:
+                self.assertEqual(handle.read(), encoded)
+            self.assertTrue(encoded.startswith("begin "))
+
+    def test_encode_defaults_name_to_base_name(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "payload.uu")
+            uu_utils.uu_encode(b"payload", path)
+            self.assertEqual(uu_utils.parse_uu_header(open(path).read())["name"], "payload.uu")
+
+    def test_encode_accepts_path_like(self):
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "payload.uu"
+            uu_utils.uu_encode(b"payload", path)
+            self.assertTrue(path.is_file())
+
+    def test_encode_roundtrip_through_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "payload.uu")
+            uu_utils.uu_encode(b"hello world\n", path)
+            self.assertEqual(uu_utils.uu_decode(path), b"hello world\n")
+
+    def test_encode_rejects_bad_types(self):
+        with self.assertRaises(TypeError):
+            uu_utils.uu_encode("not bytes", "/tmp/payload.uu")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            uu_utils.uu_encode(b"payload", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            uu_utils.uu_encode(b"payload", "/tmp/payload.uu", name=5)  # type: ignore[arg-type]
+
+
+class TestUuDecode(unittest.TestCase):
+    def test_decode_returns_payload_without_writing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "payload.uu")
+            uu_utils.uu_encode(b"hello world\n", path)
+            before = sorted(os.listdir(directory))
+            self.assertEqual(uu_utils.uu_decode(path), b"hello world\n")
+            self.assertEqual(sorted(os.listdir(directory)), before)
+
+    def test_decode_writes_destination(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = os.path.join(directory, "payload.uu")
+            destination = os.path.join(directory, "payload.bin")
+            uu_utils.uu_encode(b"hello world\n", source)
+            result = uu_utils.uu_decode(source, destination)
+            self.assertEqual(result, b"hello world\n")
+            with open(destination, "rb") as handle:
+                self.assertEqual(handle.read(), b"hello world\n")
+
+    def test_decode_applies_recorded_mode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = os.path.join(directory, "payload.uu")
+            destination = os.path.join(directory, "payload.bin")
+            uu_utils.uu_encode(b"payload", source, mode=0o600)
+            uu_utils.uu_decode(source, destination)
+            self.assertEqual(stat.S_IMODE(os.stat(destination).st_mode), 0o600)
+
+    def test_decode_mode_overrides_recorded_mode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = os.path.join(directory, "payload.uu")
+            destination = os.path.join(directory, "payload.bin")
+            uu_utils.uu_encode(b"payload", source, mode=0o600)
+            uu_utils.uu_decode(source, destination, mode=0o644)
+            self.assertEqual(stat.S_IMODE(os.stat(destination).st_mode), 0o644)
+
+    def test_decode_rejects_bad_types(self):
+        with self.assertRaises(TypeError):
+            uu_utils.uu_decode(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            uu_utils.uu_decode("/tmp/payload.uu", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            uu_utils.uu_decode("/tmp/payload.uu", "/tmp/payload.bin", mode="600")  # type: ignore[arg-type]
+
+    def test_decode_rejects_out_of_range_mode(self):
+        with self.assertRaises(ValueError):
+            uu_utils.uu_decode("/tmp/payload.uu", "/tmp/payload.bin", mode=0o100000)
+
+    def test_decode_missing_file(self):
+        with self.assertRaises(OSError):
+            uu_utils.uu_decode("/nonexistent/payload.uu")
+
+
+class TestUuUnavailable(unittest.TestCase):
+    def test_helpers_report_missing_standard_library_module(self):
+        with mock.patch.object(uu_utils, "_uu", None):
+            with self.assertRaises(RuntimeError):
+                uu_utils.encode_uu(b"payload")
+            with self.assertRaises(RuntimeError):
+                uu_utils.decode_uu("begin 666 data\n")
+            with self.assertRaises(RuntimeError):
+                uu_utils.uu_encode(b"payload", "/tmp/payload.uu")
+            with self.assertRaises(RuntimeError):
+                uu_utils.uu_decode("/tmp/payload.uu")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_UU_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

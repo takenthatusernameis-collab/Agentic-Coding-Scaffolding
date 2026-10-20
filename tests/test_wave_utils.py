@@ -3,9 +3,8 @@
 import os
 import tempfile
 import unittest
-from unittest import mock
-
 import wave
+from unittest import mock
 
 import wave_utils
 
@@ -228,16 +227,18 @@ class TestCreateWriter(unittest.TestCase):
                 wave_utils.close_wave(writer)
 
     def test_create_writer_bad_arguments(self):
-        with self.assertRaises(TypeError):
-            wave_utils.create_writer(123, 1, 2, 8000)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            wave_utils.create_writer("path", "1", 2, 8000)  # type: ignore[arg-type]
-        with self.assertRaises(ValueError):
-            wave_utils.create_writer("path", 0, 2, 8000)
-        with self.assertRaises(ValueError):
-            wave_utils.create_writer("path", 1, 0, 8000)
-        with self.assertRaises(ValueError):
-            wave_utils.create_writer("path", 1, 2, 0)
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            with self.assertRaises(TypeError):
+                wave_utils.create_writer(123, 1, 2, 8000)  # type: ignore[arg-type]
+            with self.assertRaises(TypeError):
+                wave_utils.create_writer(path, "1", 2, 8000)  # type: ignore[arg-type]
+            with self.assertRaises(ValueError):
+                wave_utils.create_writer(path, 0, 2, 8000)
+            with self.assertRaises(ValueError):
+                wave_utils.create_writer(path, 1, 0, 8000)
+            with self.assertRaises(ValueError):
+                wave_utils.create_writer(path, 1, 2, 0)
 
 
 class TestReadFrames(unittest.TestCase):

@@ -20,7 +20,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 3269 tests across all wrapper modules (1543 subtests)
+- 3349 tests across all wrapper modules (1575 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -30,14 +30,14 @@ The project foundation is established:
   documented in `README.md`, listed in `.kilo/command/scaffold-project.md` and `CHANGELOG.md`, and
   asserted in `tests/test_scaffold.py`
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 2954 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 3034 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 390 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 398 source files
 
 ## Keeping the Scaffold Synchronized
 
@@ -55,12 +55,13 @@ expectation in `tests/test_scaffold_sync.py`.
 ## Next Planned
 
 - Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are
-  `mailbox`, `mailcap`, `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
-  `sndhdr` (removed in Python 3.13), `cgitb`, `wave`, `smtplib`, `ftplib`, `poplib`, `webbrowser`,
-  `xmlrpc`, `zipapp`, `pickletools`, `py_compile`, `compileall`, `modulefinder`, `uu`, `xdrlib`,
-  `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`, `opcode`, `optparse`, `rlcompleter`,
-  `pyclbr`, and `encodings`. A natural next candidate is `mailbox_utils.py` wrapping the standard
-  library `mailbox` module, or `wave_utils.py` wrapping `wave`.
+  `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
+  `sndhdr` (removed in Python 3.13), `cgitb` (removed in Python 3.13), `smtplib`, `ftplib`, `poplib`,
+  `webbrowser`, `xmlrpc`, `zipapp`, `pickletools`, `py_compile`, `compileall`, `modulefinder`,
+  `xdrlib`, `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`, `opcode`, `optparse`,
+  `rlcompleter`, `pyclbr`, and `encodings`. A natural next candidate is `zipapp_utils.py` wrapping the
+  standard library `zipapp` module: it is pure and hermetic, with no network, subprocess, or
+  interpreter-state dependencies. `py_compile`/`compileall` are equally hermetic alternatives.
   Note that the stack formatting helpers (`format_stack`, `format_list`, `format_exception_only`,
   `print_stack`, `walk_stack`, `extract_stack`) live in the standard library `traceback` module and
   are already wrapped by `traceback_utils.py`; the `trace` module itself only offers `Trace`,
@@ -68,22 +69,41 @@ expectation in `tests/test_scaffold_sync.py`.
 - Keep every new wrapper hermetic: the test suite must never open a network connection or block on a
   subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with
   `unittest.mock.patch` instead of real servers.
+- Keep `make lint` and `make typecheck` green. Previous sessions left `mailcap_utils.py`,
+  `mailbox_utils.py`, and `wave_utils.py` failing mypy and three files failing ruff; the latest
+  session repaired them, so a new module must not reintroduce the drift.
 
 Completed in the latest session:
 
-- Added `imaplib_utils.py` wrapping the standard library `imaplib` module (`create_imap4`,
-  `create_imap4_ssl`, `create_imap4_stream`, `parse_capabilities`, `has_capability`, `parse_flags`,
-  `parse_fetch_flags`, `format_flags`, `parse_internaldate`, `format_internaldate`, `int_to_ap`)
-  with input validation, plus `tests/test_imaplib_utils.py`.
-- Moved the scaffold summary and smoke test to the end of `scaffold.sh`. They used to run in the
-  middle of the generator, so the "Created files" listing missed every module written after that
-  point and the smoke test only discovered the tests written up to that point. The smoke test now
-  also runs after the project name has been substituted into the templated documents.
-- Removed the stray `raises.` file (about 1.1 MB) that a shell redirection accident had committed to
-  the repository root.
-- Registered `asyncio_utils`, `imaplib_utils`, `mmap_utils`, `profile_utils`, `pstats_utils`,
-  `timeit_utils`, and `unittest_utils` in the `pyproject.toml` template embedded in `scaffold.sh`, so
-  a generated project declares every module it ships.
+- Completed the half-finished `uu_utils` module left by the previous session. The module and its test
+  existed and were registered in `pyproject.toml`, but they were missing from every other surface
+  (`scaffold.sh` header, heredocs, embedded `pyproject.toml`, embedded README and CHANGELOG, README
+  tree and module section, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py` assertions,
+  and `CHANGELOG.md`), so `tests/test_scaffold_sync.py` failed. All of those surfaces are now in sync.
+- Rewrote `uu_utils.py` to match the conventions of the other wrappers: typed signatures, docstrings,
+  `__all__`, and input validation. The public API is `uu_encode`, `uu_decode`, `encode_uu`,
+  `decode_uu`, `parse_uu_header`, and `is_uuencoded`. Unlike the standard library decoder, the
+  helpers never derive an output filename from the uuencoded header, so nothing is written to the
+  working directory unless an explicit destination is given.
+- The standard library `uu` module was removed in Python 3.13 (PEP 594), so `uu_utils.py` imports it
+  defensively: the module still imports on Python 3.13+ and the helpers raise a `RuntimeError` that
+  points at `binascii_utils.b2a_uu`/`a2b_uu` instead of failing with `ImportError`.
+- Repaired the pre-existing `mypy` failures in `mailcap_utils.py`, `mailbox_utils.py`, and
+  `wave_utils.py`, and the pre-existing `ruff` failures in `mailbox_utils.py`,
+  `tests/test_mailcap_utils.py`, and `tests/test_wave_utils.py`. `make lint` and `make typecheck` are
+  green again.
+- Stopped the test suite from writing into the repository root. `tests/test_wave_utils.py` passed the
+  literal path `"path"` to `wave_utils.create_writer`, which created a file named `path` in the
+  current working directory — that is where the stray `path` file in the repository came from. The
+  test now uses a temporary directory, and `wave_utils.create_writer` closes the writer when a
+  parameter setter fails instead of leaking the handle.
+- Fixed the embedded `README.md` template in `scaffold.sh`: the architecture tree was missing the
+  `mailbox_utils.py`, `mailcap_utils.py`, and `wave_utils.py` entries, and the `## Imaplib Utilities
+  Module` section had been split in half by a badly merged `## Mailbox Utilities Module` heading. The
+  embedded tree now matches the repository tree exactly and the module sections are intact.
+- Added the missing `mailcap_utils` and `wave_utils` entries to the embedded `CHANGELOG.md` template,
+  and removed a duplicated `mailbox_utils.py` entry from `.kilo/command/scaffold-project.md`.
+- Removed the stray empty `path` file that a previous session had committed to the repository root.
 
 Each session adds one new stdlib wrapper module (`<module>_utils.py`) with full test coverage, registers it in `pyproject.toml` (`[tool.setuptools] py_modules`), and posts a handover task for the next agent via the Kilo board.
 

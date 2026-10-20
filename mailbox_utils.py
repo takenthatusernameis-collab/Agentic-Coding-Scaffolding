@@ -5,8 +5,7 @@ from __future__ import annotations
 import mailbox as _mailbox
 import os
 from email.message import Message
-from typing import Any, Iterator, List, Optional, Type, Union
-
+from typing import Any, Callable, Iterator, List, Optional, Type, Union, cast
 
 __all__ = [
     "Babyl",
@@ -124,11 +123,12 @@ def open_mailbox(
             raise TypeError("factory must be a mailbox.Mailbox subclass")
     if hasattr(_mailbox, "open"):
         try:
-            return _mailbox.open(path, factory=factory, create=create)  # type: ignore[attr-defined]
+            return _mailbox.open(path, factory=factory, create=create)  # type: ignore[attr-defined,no-any-return]
         except Exception:
             pass
     if factory is not None:
-        return factory(path, create=create)
+        constructor = cast(Callable[..., Mailbox], factory)
+        return constructor(path, create=create)
     if os.path.isdir(path):
         return _mailbox.Maildir(path, create=create)
     return _mailbox.mbox(path, create=create)

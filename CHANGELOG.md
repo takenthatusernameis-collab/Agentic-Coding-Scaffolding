@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Add `uu_utils.py` wrapping the standard library `uu` module (`uu_encode`, `uu_decode`, `encode_uu`, `decode_uu`, `parse_uu_header`, `is_uuencoded`) with input validation, plus unit tests in `tests/test_uu_utils.py`.
+- Synchronized `uu_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Stopped the test suite from writing into the repository root: `tests/test_wave_utils.py` passed the literal path `"path"` to `wave_utils.create_writer`, which created a file named `path` in the current working directory. The test now uses a temporary directory, and `wave_utils.create_writer` closes the writer when a parameter setter fails instead of leaking the handle.
+- Repaired the pre-existing `mypy` failures in `mailcap_utils.py`, `mailbox_utils.py`, and `wave_utils.py` and the pre-existing `ruff` failures in `mailbox_utils.py`, `tests/test_mailcap_utils.py`, and `tests/test_wave_utils.py`; `make lint` and `make typecheck` are green again.
 - Add `wave_utils.py` wrapping the standard library `wave` module (`open_read`, `open_write`, `wave_info`, `read_frames`, `write_frames`, `create_writer`, `get_params`, `set_params`, and per-field parameter setters) with input validation, plus unit tests in `tests/test_wave_utils.py`.
 - Add `mailbox_utils.py` wrapping the standard library `mailbox` module (factory helpers for mbox/Maildir/MH/MMDF/Babyl, message factories, and exception type checks) with unit tests in `tests/test_mailbox_utils.py`.
 

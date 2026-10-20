@@ -100,7 +100,7 @@ def open_read(file: str, mode: str = "rb") -> _wave.Wave_read:
     """
     _require_str(file, "file")
     _require_str(mode, "mode")
-    return _wave.open(file, mode)
+    return _wave.open(file, mode)  # type: ignore[no-any-return]
 
 
 def open_write(file: str, mode: str = "wb") -> _wave.Wave_write:
@@ -119,7 +119,7 @@ def open_write(file: str, mode: str = "wb") -> _wave.Wave_write:
     """
     _require_str(file, "file")
     _require_str(mode, "mode")
-    return _wave.open(file, mode)
+    return _wave.open(file, mode)  # type: ignore[no-any-return]
 
 
 def wave_info(file: str) -> Dict[str, Any]:
@@ -312,11 +312,18 @@ def create_writer(
         wave.Error: If the file cannot be opened.
     """
     writer = open_write(file)
-    set_nchannels(writer, nchannels)
-    set_sampwidth(writer, sampwidth)
-    set_framerate(writer, framerate)
-    set_nframes(writer, nframes)
-    set_comptype(writer, comptype, compname)
+    try:
+        set_nchannels(writer, nchannels)
+        set_sampwidth(writer, sampwidth)
+        set_framerate(writer, framerate)
+        set_nframes(writer, nframes)
+        set_comptype(writer, comptype, compname)
+    except Exception:
+        try:
+            writer.close()
+        except Exception:
+            pass
+        raise
     return writer
 
 
@@ -347,23 +354,22 @@ def write_frames(wave_write: _wave.Wave_write, data: bytes) -> None:
     writer.writeframes(_require_bytes(data, "data"))
 
 
+def _mark_closed(wave_obj: Any) -> None:
+    """Close *wave_obj* and flag it as closed when the object allows it."""
+    wave_obj.close()
+    try:
+        wave_obj.closed = True  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
+
 def close_wave(wave_obj: Any) -> None:
     """Close a :class:`wave.Wave_read` or :class:`wave.Wave_write`."""
     if isinstance(wave_obj, _wave.Wave_read):
-        obj = _require_wave_read(wave_obj, "wave_obj")
-        obj.close()
-        try:
-            obj.closed = True  # type: ignore[attr-defined]
-        except Exception:
-            pass
+        _mark_closed(_require_wave_read(wave_obj, "wave_obj"))
         return
     if isinstance(wave_obj, _wave.Wave_write):
-        obj = _require_wave_write(wave_obj, "wave_obj")
-        obj.close()
-        try:
-            obj.closed = True  # type: ignore[attr-defined]
-        except Exception:
-            pass
+        _mark_closed(_require_wave_write(wave_obj, "wave_obj"))
         return
     raise TypeError(
         "wave_obj must be a wave.Wave_read or wave.Wave_write, "
