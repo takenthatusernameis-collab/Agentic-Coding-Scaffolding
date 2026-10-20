@@ -187,6 +187,7 @@ py_modules = [
     "heapq_utils",
     "interval_utils",
     "semver_utils",
+    "select_utils",
     "shutil_utils",
     "shlex_utils",
     "runpy_utils",

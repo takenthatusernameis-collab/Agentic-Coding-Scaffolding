@@ -280,6 +280,8 @@
 #   - tests/test_trace_utils.py — # Tests for trace_utils.py
 #   - tests/test_profile_utils.py — # Tests for profile_utils.py
 #   - tests/test_pstats_utils.py — # Tests for pstats_utils.py
+#   - select_utils.py — # I/O multiplexing utilities wrapping the standard library select module (select, create_poller, poll_register, poll_poll, PIPE_BUF)
+#   - tests/test_select_utils.py — # Tests for select_utils.py
 #   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 #   - tests/test_contextlib_utils.py — # Tests for contextlib_utils.py
 
@@ -4163,6 +4165,7 @@ py_modules = [
     "heapq_utils",
     "interval_utils",
     "semver_utils",
+    "select_utils",
     "shutil_utils",
     "socketserver_utils",
     "shlex_utils",
@@ -27149,6 +27152,9 @@ scaffold-project my-cool-tool ./out --no-test
 
 - `pstats_utils.py` — profiling statistics utilities wrapping stdlib pstats
 - `tests/test_pstats_utils.py` — tests for pstats_utils.py
+
+- `select_utils.py` — I/O multiplexing utilities wrapping the standard library `select` module (`select`, `create_poller`, `poll_register`, `poll_poll`, `PIPE_BUF`) with input validation
+- `tests/test_select_utils.py` — unit tests for `select_utils.py`
 SCAFFOLD
 
 
@@ -28541,6 +28547,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `profile_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `pstats_utils.py` to the generated project — profiling statistics utilities wrapping the standard library `pstats` module (`Stats`, `SortKey`, `new_stats`, `load_stats`, `add_stats`, `print_stats`, `sort_stats`, `strip_dirs`, `reverse_order`, `dump_stats`) with input validation, plus `tests/test_pstats_utils.py`.
 - Synchronized `pstats_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `select_utils.py` to the generated project — I/O multiplexing utilities wrapping the standard library `select` module (`select`, `create_poller`, `poll_register`, `poll_poll`, `PIPE_BUF`) with input validation, plus `tests/test_select_utils.py`.
+- Synchronized `select_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `re_utils.py` to the generated project — regular expression utilities wrapping the standard library `re` module (`find_all`, `find_matches`, `search`, `match`, `full_match`, `split`, `sub`, `subn`, `compile_regex`, `escape`) with input validation, plus `tests/test_re_utils.py`.
 - Synchronized `re_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `tempfile_utils.py` to the generated project — temporary file and directory utilities wrapping the standard library `tempfile` module (`get_tempdir`, `gettempprefix`, `mkstemp`, `mkdtemp`, `NamedTemporaryFile`, `SpooledTemporaryFile`, `TemporaryDirectory`) with input validation, plus `tests/test_tempfile_utils.py`.
@@ -55032,3 +55040,277 @@ class TestPstatsUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_PSTATS_UTILS
+
+# --- select_utils.py ---
+cat > "$OUTPUT_DIR/select_utils.py" <<'SELECT_UTILS'
+"""I/O multiplexing utilities (wrapping :mod:`select`).
+
+The :mod:`select` module provides direct access to the operating system's
+I/O multiplexing primitives. This wrapper exposes a small, validated surface
+over :func:`select.select` and the :class:`select.poll` object so callers can
+wait for file descriptors to become readable or writable without having to
+remember the exact argument order or error types of the standard library.
+"""
+
+from __future__ import annotations
+
+import select as _select
+from typing import List, Optional, Sequence, Tuple
+
+__all__ = [
+    "PIPE_BUF",
+    "create_poller",
+    "poll_poll",
+    "poll_register",
+    "select",
+]
+
+
+def _require_list(value: object, name: str) -> List[int]:
+    """Return *value* when it is a list of integers, otherwise raise."""
+    if not isinstance(value, list):
+        raise TypeError(f"{name} must be a list, got {type(value).__name__}")
+    for index, item in enumerate(value):
+        if isinstance(item, bool) or not isinstance(item, int):
+            raise TypeError(
+                f"{name}[{index}] must be an int, got {type(item).__name__}"
+            )
+    return value
+
+
+def _require_optional_number(
+    value: object, name: str
+) -> Optional[float]:
+    """Return *value* as a float when it is a number or None, otherwise raise."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"{name} must not be negative")
+    return float(value)
+
+
+def _require_int(value: object, name: str) -> int:
+    """Return *value* when it is a non-bool int, otherwise raise."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def select(
+    rlist: Sequence[int],
+    wlist: Sequence[int],
+    xlist: Sequence[int],
+    timeout: Optional[float] = None,
+) -> Tuple[List[int], List[int], List[int]]:
+    """Wait for I/O completion on a set of file descriptors.
+
+    Wraps :func:`select.select` with input validation. Returns three lists
+    of file descriptors that are ready for reading, writing, or have an
+    exceptional condition, respectively.
+
+    Args:
+        rlist: File descriptors to wait for readability.
+        wlist: File descriptors to wait for writability.
+        xlist: File descriptors to wait for exceptional conditions.
+        timeout: Maximum time to wait in seconds, or ``None`` to block
+            indefinitely.
+
+    Returns:
+        A tuple ``(readable, writable, exceptional)`` of file descriptor
+        lists.
+
+    Raises:
+        TypeError: If any descriptor list is not a list of ints, or if
+            *timeout* is not a number or None.
+        ValueError: If *timeout* is negative.
+        OSError: If an underlying descriptor is invalid or the call fails.
+
+    Examples:
+        >>> import os
+        >>> read_fd, write_fd = os.pipe()
+        >>> readable, writable, exceptional = select([read_fd], [], [], 0)
+        >>> readable == []
+        True
+        >>> os.close(read_fd)
+        >>> os.close(write_fd)
+    """
+    reads = _require_list(rlist, "rlist")
+    writes = _require_list(wlist, "wlist")
+    exceptions = _require_list(xlist, "xlist")
+    timeout_value = _require_optional_number(timeout, "timeout")
+    readable, writable, exceptional = _select.select(
+        reads, writes, exceptions, timeout_value
+    )
+    return list(readable), list(writable), list(exceptional)
+
+
+def create_poller() -> _select.poll:
+    """Create a new poll object.
+
+    Returns:
+        A :class:`select.poll` instance ready to have file descriptors
+        registered with :func:`poll_register`.
+
+    Raises:
+        AttributeError: If the platform does not provide ``select.poll``.
+    """
+    return _select.poll()
+
+
+def poll_register(poller: _select.poll, fd: int, events: int) -> None:
+    """Register a file descriptor with a poll object.
+
+    Args:
+        poller: A :class:`select.poll` instance.
+        fd: The file descriptor to register.
+        events: The event mask (e.g. ``select.POLLIN`` or ``select.POLLOUT``).
+
+    Raises:
+        TypeError: If *poller* has no ``register`` method, or *fd*/*events*
+            are not ints.
+        OSError: If *fd* is invalid.
+    """
+    if not hasattr(poller, "register"):
+        raise TypeError(
+            "poller must be a select.poll-like object with a register method"
+        )
+    file_descriptor = _require_int(fd, "fd")
+    event_mask = _require_int(events, "events")
+    poller.register(file_descriptor, event_mask)
+
+
+def poll_poll(
+    poller: _select.poll, timeout: Optional[float] = None
+) -> List[Tuple[int, int]]:
+    """Poll a poll object for registered events.
+
+    Args:
+        poller: A :class:`select.poll` instance.
+        timeout: Maximum time to wait in seconds, or ``None`` to block.
+
+    Returns:
+        A list of ``(fd, event)`` pairs for descriptors with pending events.
+
+    Raises:
+        TypeError: If *poller* has no ``poll`` method or *timeout* is invalid.
+        ValueError: If *timeout* is negative.
+    """
+    if not hasattr(poller, "poll"):
+        raise TypeError(
+            "poller must be a select.poll-like object with a poll method"
+        )
+    timeout_value = _require_optional_number(timeout, "timeout")
+    return poller.poll(timeout_value)
+
+
+PIPE_BUF = _select.PIPE_BUF
+SELECT_UTILS
+
+# --- tests/test_select_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_select_utils.py" <<'TEST_SELECT_UTILS'
+"""Tests for select_utils module."""
+
+import os
+import select
+import unittest
+
+import select_utils
+
+
+class TestSelect(unittest.TestCase):
+    def test_select_returns_lists(self):
+        read_fd, write_fd = os.pipe()
+        try:
+            readable, writable, exceptional = select_utils.select(
+                [read_fd], [write_fd], [], 0
+            )
+            self.assertIsInstance(readable, list)
+            self.assertIsInstance(writable, list)
+            self.assertIsInstance(exceptional, list)
+        finally:
+            os.close(read_fd)
+            os.close(write_fd)
+
+    def test_select_no_timeout(self):
+        read_fd, write_fd = os.pipe()
+        try:
+            readable, writable, exceptional = select_utils.select(
+                [read_fd], [write_fd], [], 0
+            )
+            self.assertTrue(all(isinstance(fd, int) for fd in readable + writable + exceptional))
+            self.assertIn(write_fd, writable)
+        finally:
+            os.close(read_fd)
+            os.close(write_fd)
+
+    def test_select_invalid_rlist(self):
+        with self.assertRaises(TypeError):
+            select_utils.select("not-a-list", [], [], 0)  # type: ignore[arg-type]
+
+    def test_select_list_with_non_int(self):
+        with self.assertRaises(TypeError):
+            select_utils.select([1, "two"], [], [], 0)
+
+    def test_select_timeout_negative(self):
+        with self.assertRaises(ValueError):
+            select_utils.select([], [], [], -1)
+
+    def test_select_timeout_bool(self):
+        with self.assertRaises(TypeError):
+            select_utils.select([], [], [], True)  # type: ignore[arg-type]
+
+    def test_select_os_error_on_bad_fd(self):
+        with self.assertRaises((OSError, ValueError)):
+            select_utils.select([999999], [], [], 0)
+
+    def test_pipe_buf_is_int(self):
+        self.assertIsInstance(select_utils.PIPE_BUF, int)
+        self.assertGreater(select_utils.PIPE_BUF, 0)
+
+
+class TestPoller(unittest.TestCase):
+    def test_create_poller(self):
+        poller = select_utils.create_poller()
+        self.assertTrue(hasattr(poller, "register"))
+        self.assertTrue(hasattr(poller, "poll"))
+
+    def test_poller_register_and_poll(self):
+        read_fd, write_fd = os.pipe()
+        poller = select_utils.create_poller()
+        try:
+            select_utils.poll_register(poller, read_fd, select.POLLIN)
+            ready = select_utils.poll_poll(poller, 0)
+            self.assertEqual(ready, [])
+        finally:
+            os.close(read_fd)
+            os.close(write_fd)
+
+    def test_poller_register_invalid_fd(self):
+        poller = select_utils.create_poller()
+        with self.assertRaises(TypeError):
+            select_utils.poll_register(poller, "fd", select.POLLIN)  # type: ignore[arg-type]
+
+    def test_poller_register_invalid_events(self):
+        poller = select_utils.create_poller()
+        with self.assertRaises(TypeError):
+            select_utils.poll_register(poller, 3, "events")  # type: ignore[arg-type]
+
+    def test_poller_register_bad_poller(self):
+        with self.assertRaises(TypeError):
+            select_utils.poll_register("not-a-poller", 3, select.POLLIN)  # type: ignore[arg-type]
+
+    def test_poll_poll_bad_poller(self):
+        with self.assertRaises(TypeError):
+            select_utils.poll_poll("not-a-poller", 0)  # type: ignore[arg-type]
+
+    def test_poll_timeout_negative(self):
+        poller = select_utils.create_poller()
+        with self.assertRaises(ValueError):
+            select_utils.poll_poll(poller, -1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_SELECT_UTILS

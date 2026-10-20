@@ -1236,3 +1236,8 @@ The project includes profiling utilities in `profile_utils.py` wrapping the stan
 ## Pstats Utilities Module
 
 The project includes profiling statistics utilities in `pstats_utils.py` wrapping the standard library `pstats` module: `new_stats` creates `Stats` objects from profile files, `load_stats` loads statistics, `add_stats` merges statistics, `print_stats` prints reports, `sort_stats` sorts results, `strip_dirs` removes path prefixes, `reverse_order` reverses sort order, and `dump_stats` saves statistics to files. `Stats` and `SortKey` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pstats_utils.py`.
+
+
+## Select Utilities Module
+
+The project includes I/O multiplexing utilities in `select_utils.py` wrapping the standard library `select` module: `select` waits for file descriptors to become readable, writable, or exceptional with input validation, `create_poller` builds a `select.poll` object, `poll_register` registers a file descriptor with an event mask, and `poll_poll` polls for pending events. `PIPE_BUF` is re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_select_utils.py`.

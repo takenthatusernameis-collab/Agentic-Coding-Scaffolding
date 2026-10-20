@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `pstats_utils.py` to the generated project — profiling statistics utilities wrapping the standard library `pstats` module (`Stats`, `SortKey`, `new_stats`, `load_stats`, `add_stats`, `print_stats`, `sort_stats`, `strip_dirs`, `reverse_order`, `dump_stats`) with input validation, plus `tests/test_pstats_utils.py`.
 - Synchronized `pstats_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `select_utils.py` to the generated project — I/O multiplexing utilities wrapping the standard library `select` module (`select`, `create_poller`, `poll_register`, `poll_poll`, `PIPE_BUF`) with input validation, plus `tests/test_select_utils.py`.
+- Synchronized `select_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 
 - Added `trace_utils.py` to the generated project — execution tracing utilities wrapping the standard library `trace` module (`new_tracer`, `run_traced`, `run_script_traced`, `counted_lines`, `line_counts`, `called_functions`, `call_relationships`, `is_ignored_filename`, `merge_results`, `write_coverage_report`, `summarize_coverage`, `format_coverage_summary`, `clear_counts`) with input validation, plus `tests/test_trace_utils.py`.

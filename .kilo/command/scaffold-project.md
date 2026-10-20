@@ -432,3 +432,6 @@ scaffold-project my-cool-tool ./out --no-test
 
 - `pstats_utils.py` — profiling statistics utilities wrapping stdlib pstats
 - `tests/test_pstats_utils.py` — tests for pstats_utils.py
+
+- `select_utils.py` — I/O multiplexing utilities wrapping the standard library `select` module (`select`, `create_poller`, `poll_register`, `poll_poll`, `PIPE_BUF`) with input validation
+- `tests/test_select_utils.py` — unit tests for `select_utils.py`
