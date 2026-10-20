@@ -677,6 +677,7 @@
 #   - termios_utils.py — # Terminal attribute utilities wrapping the standard library termios (get_attributes, set_attributes, make_raw, make_cbreak, get_window_size, set_window_size)
 #   - fcntl_utils.py — # File control utilities wrapping the standard library fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
 #   - pty_utils.py — # Pseudo-terminal utilities wrapping the standard library pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
+#   - stringprep_utils.py — # String preparation utilities wrapping the standard library stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -690,6 +691,7 @@
 #   - tests/test_termios_utils.py — # Tests for termios_utils.py
 #   - tests/test_fcntl_utils.py — # Tests for fcntl_utils.py
 #   - tests/test_pty_utils.py — # Tests for pty_utils.py
+#   - tests/test_stringprep_utils.py — # Tests for stringprep_utils.py
 set -euo pipefail
 
 usage() {
@@ -4319,6 +4321,7 @@ py_modules = [
     "termios_utils",
     "fcntl_utils",
     "pty_utils",
+    "stringprep_utils",
 ]
 
 PYPROJECT
@@ -26887,7 +26890,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `grp_utils.py` — group database utilities wrapping the standard library `grp` module (getgrgid, getgrnam, getgrall) with input validation
 - `termios_utils.py` — terminal attribute utilities wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation
 - `fcntl_utils.py` — file control utilities wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation
-- `pty_utils.py` — pseudo-terminal utilities wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation and re-exported constants
+- `pty_utils.py` — pseudo-terminal utilities wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation, a `ForkResult` named tuple, and re-exported constants
+- `stringprep_utils.py` — string preparation utilities wrapping the standard library `stringprep` module (table_names, map_table_names, in_table, map_table, is_unassigned, is_mapped_to_nothing, is_prohibited, is_allowed, is_bidi_allowed, map_text, find_problems, is_preparable) with input validation and read-only table mappings
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27099,6 +27103,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_termios_utils.py` — unit tests for `termios_utils.py`
 - `tests/test_fcntl_utils.py` — unit tests for `fcntl_utils.py`
 - `tests/test_pty_utils.py` — unit tests for `pty_utils.py`
+- `tests/test_stringprep_utils.py` — unit tests for `stringprep_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -28379,6 +28384,8 @@ pwd_utils.py                 # Password database utilities wrapping stdlib pwd (
 grp_utils.py                 # Group database utilities wrapping stdlib grp (getgrgid, getgrnam, getgrall)
 termios_utils.py             # Terminal attribute utilities wrapping stdlib termios (get_attributes, set_attributes, make_raw, make_cbreak, get_window_size, set_window_size)
 fcntl_utils.py               # File control utilities wrapping stdlib fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
+pty_utils.py                 # Pseudo-terminal utilities wrapping stdlib pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
+stringprep_utils.py          # String preparation utilities wrapping stdlib stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -28551,6 +28558,8 @@ test_weakref_utils.py       # Tests for weakref_utils.py
     test_grp_utils.py            # Tests for grp_utils.py
     test_termios_utils.py        # Tests for termios_utils.py
     test_fcntl_utils.py          # Tests for fcntl_utils.py
+    test_pty_utils.py            # Tests for pty_utils.py
+    test_stringprep_utils.py     # Tests for stringprep_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -29508,7 +29517,7 @@ tests/test_termios_utils.py - Tests for termios_utils module
 
 ## Termios Utilities Module
 
-The project includes terminal attribute utilities in `termios_utils.py` wrapping the standard library `termios` module: `get_attributes` reads the attributes of a terminal, `set_attributes` writes them back, `make_raw` builds a raw configuration, `make_cbreak` builds a cbreak configuration, `set_read_timeout` and `set_blocking` configure how a read waits for data, `get_window_size` and `set_window_size` read and write the size of the window, `drain` waits until the output was transmitted, `flush` discards the data the terminal has not processed yet, `pause_output` and `resume_output` suspend and resume the output, `send_break` sends a break, and `is_available` reports whether the interpreter ships the standard library module. The attributes are returned in an `Attributes` named tuple with the fields `iflag`, `oflag`, `cflag`, `lflag`, `ispeed`, `ospeed`, and `cc`, and the size of the window is returned in a `WindowSize` named tuple with the fields `rows`, `columns`, `x_pixels`, and `y_pixels`. The control character slots (`VINTR`, `VQUIT`, `VERASE`, `VKILL`, `VEOF`, `VTIME`, `VMIN`, and the rest) and the moments and queues of the standard library (`TCSANOW`, `TCSADRAIN`, `TCSAFLUSH`, `TCIFLUSH`, and `TCOFLUSH`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `termios` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_termios_utils.py`.
+The project includes terminal attribute utilities in `termios_utils.py` wrapping the standard library `termios` module: `get_attributes` reads the attributes of a terminal, `set_attributes` writes them back, `make_raw` builds a raw configuration, `make_cbreak` builds a cbreak configuration, `set_read_timeout` and `set_blocking` configure how a read waits for data, `get_window_size` and `set_window_size` read and write the size of the window, `drain` waits until the output was transmitted, `flush` discards the data the terminal has not processed yet, `pause_output` and `resume_output` suspend and resume the output, `send_break` sends a break, `control_character_names` returns the names of the control characters, `baud_rates` returns the standard baud rates, and `is_available` reports whether the interpreter ships the standard library module. The attributes are returned in an `Attributes` named tuple with the fields `iflag`, `oflag`, `cflag`, `lflag`, `ispeed`, `ospeed`, and `cc`, and the size of the window is returned in a `WindowSize` named tuple with the fields `rows`, `columns`, `x_pixels`, and `y_pixels`. The control character slots (`VINTR`, `VQUIT`, `VERASE`, `VKILL`, `VEOF`, `VTIME`, `VMIN`, and the rest) and the moments and queues of the standard library (`TCSANOW`, `TCSADRAIN`, `TCSAFLUSH`, `TCIFLUSH`, and `TCOFLUSH`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `termios` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_termios_utils.py`.
 
 tests/test_fcntl_utils.py - Tests for fcntl_utils module
 
@@ -29516,9 +29525,17 @@ tests/test_fcntl_utils.py - Tests for fcntl_utils module
 
 The project includes file control utilities in `fcntl_utils.py` wrapping the standard library `fcntl` module: `flock` places an advisory lock on a file, `unlock` releases it, `lockf` places an advisory lock on a region of a file, `control` performs the other control operations on a file descriptor, `ioctl` performs a device specific control operation, `get_descriptor_flags` and `set_descriptor_flags` read and write the flags of a file descriptor, `is_cloexec` reports whether a file descriptor is closed when the process executes a new program, `get_file_status_flags` and `set_file_status_flags` read and write the status flags of an open file, `duplicate_fd` copies a file descriptor, `file_lock` locks a file for the duration of a block of code, `lock_kind` and `lock_modes` translate the name of a lock mode into its operation, and `is_available` reports whether the interpreter ships the standard library module. The lock operations (`LOCK_SH`, `LOCK_EX`, `LOCK_NB`, and `LOCK_UN`), the record lock commands (`F_LOCK`, `F_TLOCK`, and `F_ULOCK`), and the control constants (`F_GETFD`, `F_SETFD`, `F_GETFL`, `F_SETFL`, `F_DUPFD`, `F_DUPFD_CLOEXEC`, and `FD_CLOEXEC`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `fcntl` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_fcntl_utils.py`.
 
+tests/test_pty_utils.py - Tests for pty_utils module
+
 ## Pseudo-terminal Utilities Module
 
-The project includes pseudo-terminal utilities in `pty_utils.py` wrapping the standard library `pty` module: `openpty` opens a new pseudo-terminal pair and returns `(master_fd, slave_fd)`, `open_terminal` is an alias for `openpty`, `master_open` opens a pseudo-terminal and returns `(name, fd)`, `slave_open` opens the slave end of a pseudo-terminal by name, `fork` forks a process and connects the child's controlling terminal to a new pseudo-terminal, and `spawn` spawns a process connected to its controlling terminal via a pseudo-terminal. The constants `STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`, and `CHILD` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `pty` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_pty_utils.py`.
+The project includes pseudo-terminal utilities in `pty_utils.py` wrapping the standard library `pty` module: `openpty` opens a new pseudo-terminal pair and returns `(master_fd, slave_fd)`, `open_terminal` opens the same pair under a name that spells out its purpose, `master_open` opens a pseudo-terminal and returns `(name, fd)`, `slave_open` opens the slave end of a pseudo-terminal by name, `fork` forks a process and connects the child's controlling terminal to a new pseudo-terminal, and `spawn` runs a program with a pseudo-terminal as its controlling terminal and waits for it. The result of `fork` is a `ForkResult` named tuple with the fields `pid` and `master_fd`, and the constants `STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`, and `CHILD` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `pty` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The standard library deprecated `master_open` and `slave_open` in Python 3.12, so the wrapper never calls them and works on every supported interpreter. The module is tested in `tests/test_pty_utils.py`.
+
+tests/test_stringprep_utils.py - Tests for stringprep_utils module
+
+## String Preparation Utilities Module
+
+The project includes string preparation utilities in `stringprep_utils.py` wrapping the standard library `stringprep` module: `table_names` returns the names of the set tables of RFC 3454, `map_table_names` returns the names of the mapping tables, `in_table` reports whether a character belongs to a set table, `map_table` maps a character with a mapping table, `is_unassigned` reports whether a character is an unassigned code point, `is_mapped_to_nothing` reports whether a character is commonly mapped to nothing, `is_prohibited` reports whether a character belongs to the prohibited output, `is_allowed` reports whether a character may be stored in a prepared string, `is_bidi_allowed` reports whether a character may appear in a bidirectional name, `map_text` performs the mapping step of RFC 3454 on a whole string, `find_problems` reports the characters that prevent a string from being stored, and `is_preparable` reports whether a string may be prepared. The tables are also exposed as the read-only mappings `TABLES` and `MAP_TABLES`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_stringprep_utils.py`.
 
 tests/test_opcode_utils.py - Tests for opcode_utils module
 
@@ -29558,8 +29575,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - Add `fcntl_utils.py` wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation, plus unit tests in `tests/test_fcntl_utils.py`.
 - Synchronized `fcntl_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
-- Add `pty_utils.py` wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation and re-exported constants, plus unit tests in `tests/test_pty_utils.py`.
+- Add `pty_utils.py` wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation, a `ForkResult` named tuple, and re-exported constants, plus unit tests in `tests/test_pty_utils.py`.
 - Synchronized `pty_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired `pty_utils.py`, which called the `pty.master_open` and `pty.slave_open` functions that the standard library deprecated in Python 3.12, and which returned the result of `fork` as a plain tuple; the wrapper now opens the pseudo-terminal with `os.openpty` and returns a `ForkResult` named tuple.
+- Completed the `pty_utils.py` synchronization, which left the architecture tree of the README and of the README template embedded in `scaffold.sh` without the new module.
+- Add `stringprep_utils.py` wrapping the standard library `stringprep` module (table_names, map_table_names, in_table, map_table, is_unassigned, is_mapped_to_nothing, is_prohibited, is_allowed, is_bidi_allowed, map_text, find_problems, is_preparable) with input validation and read-only table mappings, plus unit tests in `tests/test_stringprep_utils.py`.
+- Synchronized `stringprep_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `termios_utils.py` wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation, plus unit tests in `tests/test_termios_utils.py`.
 - Synchronized `termios_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Added `dbm_utils.py` to the generated project — database utilities wrapping the standard library `dbm` module (`open_database`, `close`, `which_database`, `available_backends`, `read_record`, `write_record`, `delete_record`, `has_key`, `list_keys`, `sync_database`, `is_valid_flag`, `dbm_error`) with input validation, plus `tests/test_dbm_utils.py`.
@@ -73359,28 +73380,38 @@ TEST_FCNTL_UTILS
 cat > "$OUTPUT_DIR/pty_utils.py" <<'PTY_UTILS'
 """Pseudo-terminal utilities wrapping the standard library :mod:`pty` module.
 
-The :mod:`pty` module handles the pseudo-terminal concept: starting another
-process and being able to write to and read from its controlling terminal
-programmatically.
+The :mod:`pty` module opens a pseudo-terminal, forks a process onto it, and
+runs a program with the pseudo-terminal as its controlling terminal.  A
+program that drives a child process therefore reads and writes the terminal
+of the child instead of a pipe.
 
 This wrapper validates every argument before the standard library is reached,
 so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
-an opaque failure from the C layer.  It returns values in a consistent form
-and adds small conveniences on top of :func:`openpty`, :func:`fork`, and
-:func:`spawn`.
+an opaque failure from the C layer.  It returns values in a consistent form:
+the result of :func:`fork` is a :class:`ForkResult` named tuple with stable
+field names, and :func:`master_open` always returns the name of the device
+before its file descriptor.
 
 .. note::
 
    The :mod:`pty` module only exists on Unix-like platforms.  The import
    below degrades gracefully: when the interpreter does not ship the module,
-   the helpers raise a :class:`RuntimeError` that names the missing module,
-   while the pure helpers keep working.
+   the helpers that talk to the operating system raise a
+   :class:`RuntimeError` that names the missing module, while the pure
+   helpers keep working.
+
+The standard library deprecated :func:`pty.master_open` and
+:func:`pty.slave_open` in Python 3.12, because the pseudo-terminal of the
+host is opened with :func:`os.openpty` and :func:`os.ttyname` instead.  The
+wrapper never calls the deprecated functions, so it works on every supported
+interpreter without raising a :class:`DeprecationWarning`.
 """
 
 from __future__ import annotations
 
 import os
-from typing import Any, Callable, List, Tuple, Union
+from collections.abc import Sequence
+from typing import Any, Callable, NamedTuple
 
 try:
     import pty as _pty
@@ -73390,6 +73421,7 @@ except ImportError:  # pragma: no cover - the module is Unix-only
 
 __all__: list[str] = [
     "CHILD",
+    "ForkResult",
     "STDERR_FILENO",
     "STDIN_FILENO",
     "STDOUT_FILENO",
@@ -73409,8 +73441,22 @@ STDIN_FILENO: int = getattr(os, "STDIN_FILENO", 0)
 STDOUT_FILENO: int = getattr(os, "STDOUT_FILENO", 1)
 #: File descriptor for stderr.
 STDERR_FILENO: int = getattr(os, "STDERR_FILENO", 2)
-#: A constant returned from :func:`fork` when the child process is running.
-CHILD: int = getattr(os, "CHILD", 0)
+#: The value :func:`fork` reports to the child process.
+CHILD: int = 0
+
+
+class ForkResult(NamedTuple):
+    """The result of :func:`fork`.
+
+    Attributes:
+        pid: The process identifier of the child process, or zero in the
+            child process itself.
+        master_fd: The file descriptor of the master end of the new
+            pseudo-terminal.
+    """
+
+    pid: int
+    master_fd: int
 
 
 def _pty_module() -> Any:
@@ -73429,7 +73475,7 @@ def is_available() -> bool:
     return _pty is not None
 
 
-def openpty() -> Tuple[int, int]:
+def openpty() -> tuple[int, int]:
     """Open a new pseudo-terminal pair.
 
     Returns:
@@ -73445,57 +73491,53 @@ def openpty() -> Tuple[int, int]:
     return int(master_fd), int(slave_fd)
 
 
-# Keep an alias matching the style of other wrappers.
-open_terminal = openpty
+def open_terminal() -> tuple[int, int]:
+    """Open a new pseudo-terminal pair.
 
-
-def master_open() -> Tuple[str, int]:
-    """Open a pseudo-terminal and return the master device and its name.
+    This is an alias of :func:`openpty` that spells out the purpose of the
+    helper.
 
     Returns:
-        A pair ``(master_name, master_fd)`` where *master_name* is the name of
-        the master device and *master_fd* is its file descriptor.
+        A pair ``(master_fd, slave_fd)``.
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
         OSError: If the operating system fails to allocate a pseudo-terminal.
     """
-    pty_mod = _pty_module()
+    return openpty()
+
+
+def master_open() -> tuple[str, int]:
+    """Open a pseudo-terminal and return the name of the slave device.
+
+    The standard library function of the same name returns the file
+    descriptor before the name, and it is deprecated since Python 3.12.  This
+    helper returns the name first and the file descriptor second, and it never
+    calls the deprecated function.
+
+    Returns:
+        A pair ``(slave_name, master_fd)`` where *slave_name* is the path of
+        the slave device and *master_fd* is the file descriptor of the master
+        end.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pty`` module.
+        OSError: If the operating system fails to allocate a pseudo-terminal.
+    """
+    master_fd, slave_fd = openpty()
     try:
-        result = pty_mod.master_open()  # type: ignore[attr-defined]
-    except AttributeError:
-        master_fd, slave_fd = openpty()
-        try:
-            name = os.ttyname(slave_fd)
-        except OSError:
-            name = ""
-        finally:
-            try:
-                os.close(slave_fd)
-            except OSError:
-                pass
-        return name, master_fd
-    if isinstance(result, tuple):
-        if len(result) == 2:
-            a, b = result
-            # Python 3.x returns (fd, name); older versions may return (name, fd)
-            if isinstance(a, int) and isinstance(b, str):
-                return str(b), int(a)
-            if isinstance(a, str) and isinstance(b, int):
-                return str(a), int(b)
-            # Try to be flexible
-            if isinstance(a, int):
-                return str(b), int(a)
-            return str(a), int(b)
-    raise RuntimeError("master_open() returned an unexpected value")
+        name = os.ttyname(slave_fd)
+    finally:
+        os.close(slave_fd)
+    return name, master_fd
 
 
 def slave_open(tty_name: str) -> int:
     """Open the slave end of a pseudo-terminal by name.
 
     Args:
-        tty_name: The name of the slave device (as returned by
-            :func:`master_open` or :func:`os.ttyname`).
+        tty_name: The name of the slave device, as returned by
+            :func:`master_open` or by :func:`os.ttyname`.
 
     Returns:
         The file descriptor of the slave end.
@@ -73510,81 +73552,91 @@ def slave_open(tty_name: str) -> int:
         raise TypeError(f"tty_name must be a str, got {type(tty_name).__name__}")
     if tty_name == "":
         raise ValueError("tty_name must not be empty")
-    try:
-        fd = _pty_module().slave_open(tty_name)  # type: ignore[attr-defined]
-    except AttributeError:
-        fd = os.open(tty_name, os.O_RDWR)
-    return int(fd)
+    _pty_module()
+    return int(os.open(tty_name, os.O_RDWR | getattr(os, "O_NOCTTY", 0)))
 
 
-def fork() -> Union[int, Tuple[int, int]]:
-    """Fork a process and connect the child's controlling terminal to a new
-    pseudo-terminal.
+def fork() -> ForkResult:
+    """Fork a process and give it a new pseudo-terminal.
+
+    The child process becomes the session leader of the new pseudo-terminal,
+    so it has a controlling terminal of its own.
 
     Returns:
-        In some Python versions returns ``0`` in the child process and the
-        process ID of the child in the parent process.  In other versions
-        returns a tuple ``(pid, fd)`` as returned by the standard library.
+        A :class:`ForkResult` named tuple with the process identifier of the
+        child and the file descriptor of the master end of the new
+        pseudo-terminal.  The process identifier is zero in the child
+        process itself.
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
         OSError: If the fork fails.
     """
-    result = _pty_module().fork()
-    if isinstance(result, tuple):
-        return tuple(int(x) for x in result)
-    return int(result)
+    pid, master_fd = _pty_module().fork()
+    return ForkResult(int(pid), int(master_fd))
+
+
+def _read(fd: int) -> bytes:
+    """Read up to a kilobyte from *fd* and return empty bytes at the end."""
+    try:
+        return os.read(fd, 1024)
+    except OSError:
+        return b""
+
 
 def spawn(
-    argv: List[str],
+    argv: Sequence[str],
     master_read: Callable[[int], bytes] | None = None,
     stdin_read: Callable[[int], bytes] | None = None,
 ) -> int:
-    """Spawn a process connected to its controlling terminal via a
-    pseudo-terminal.
+    """Run a program with a pseudo-terminal as its controlling terminal.
+
+    The helper waits for the program to finish and returns its exit status,
+    so it blocks until the child process ends.
 
     Args:
-        argv: The command line to execute as passed to :func:`os.execvp`.
-        master_read: A callable used to read from the master end.  If omitted,
-            the standard library's default is used.
-        stdin_read: A callable used to read from stdin.  If omitted, the
-            standard library's default is used.
+        argv: The command line of the program, as a sequence of strings.  The
+            first element is the program and the rest are its arguments.
+        master_read: The callable that reads the master end of the
+            pseudo-terminal.  The default reads a kilobyte at a time.
+        stdin_read: The callable that reads the standard input.  The default
+            reads a kilobyte at a time.
 
     Returns:
-        The exit status of the spawned process.
+        The exit status of the program.
 
     Raises:
-        TypeError: If *argv* is not a list of strings.
+        TypeError: If *argv* is not a sequence of strings, or if one of the
+            callables is not callable.
         ValueError: If *argv* is empty.
         RuntimeError: If the interpreter does not ship the ``pty`` module.
-        OSError: If spawning the process fails.
+        OSError: If the program cannot be started.
     """
-    if not isinstance(argv, list):
-        raise TypeError(f"argv must be a list, got {type(argv).__name__}")
+    if isinstance(argv, (str, bytes)):
+        raise TypeError("argv must be a sequence of str, got str")
+    if not isinstance(argv, Sequence):
+        raise TypeError(f"argv must be a sequence, got {type(argv).__name__}")
+    argv = list(argv)
     if len(argv) == 0:
         raise ValueError("argv must not be empty")
-    for i, arg in enumerate(argv):
-        if not isinstance(arg, str):
+    for index, argument in enumerate(argv):
+        if not isinstance(argument, str):
             raise TypeError(
-                f"argv[{i}] must be a str, got {type(arg).__name__}"
+                f"argv[{index}] must be a str, got {type(argument).__name__}"
             )
+    for name, callback in (("master_read", master_read), ("stdin_read", stdin_read)):
+        if callback is not None and not callable(callback):
+            raise TypeError(f"{name} must be callable, got {type(callback).__name__}")
     pty_mod = _pty_module()
-    try:
-        if master_read is None and stdin_read is None:
-            return int(pty_mod.spawn(argv))
-        return int(pty_mod.spawn(argv, master_read, stdin_read))
-    except TypeError:
-        try:
-            return int(pty_mod.spawn(argv))
-        except Exception:
-            raise
+    if master_read is None and stdin_read is None:
+        return int(pty_mod.spawn(argv))
+    return int(pty_mod.spawn(argv, master_read or _read, stdin_read or _read))
 PTY_UTILS
 
 cat > "$OUTPUT_DIR/tests/test_pty_utils.py" <<'TEST_PTY_UTILS'
 """Tests for pty_utils."""
 
 import os
-import sys
 import unittest
 from unittest.mock import patch
 
@@ -73593,6 +73645,7 @@ from pty_utils import (
     STDERR_FILENO,
     STDIN_FILENO,
     STDOUT_FILENO,
+    ForkResult,
     fork,
     is_available,
     master_open,
@@ -73604,93 +73657,655 @@ from pty_utils import (
 
 
 class TestPtyUtils(unittest.TestCase):
+    """Verify the pseudo-terminal helpers of the wrapper."""
+
     def test_is_available(self):
         self.assertIsInstance(is_available(), bool)
+        self.assertEqual(is_available(), is_available())
+
+    def test_the_file_descriptor_constants(self):
+        self.assertEqual(STDIN_FILENO, 0)
+        self.assertEqual(STDOUT_FILENO, 1)
+        self.assertEqual(STDERR_FILENO, 2)
+        self.assertEqual(CHILD, 0)
+
+    def test_the_fork_result_is_a_named_tuple(self):
+        result = ForkResult(pid=1, master_fd=2)
+        self.assertEqual(result.pid, 1)
+        self.assertEqual(result.master_fd, 2)
+        self.assertEqual(tuple(result), (1, 2))
 
     @unittest.skipUnless(is_available(), "pty module not available")
-    def test_openpty_returns_fds(self):
+    def test_openpty_returns_two_descriptors(self):
         master_fd, slave_fd = openpty()
-        self.assertIsInstance(master_fd, int)
-        self.assertIsInstance(slave_fd, int)
-        self.assertGreaterEqual(master_fd, 0)
-        self.assertGreaterEqual(slave_fd, 0)
-        os.close(master_fd)
-        os.close(slave_fd)
-
-    @unittest.skipUnless(is_available(), "pty module not available")
-    def test_open_terminal_alias(self):
-        master_fd, slave_fd = open_terminal()
-        self.assertIsInstance(master_fd, int)
-        self.assertIsInstance(slave_fd, int)
-        os.close(master_fd)
-        os.close(slave_fd)
-
-    @unittest.skipUnless(is_available(), "pty module not available")
-    def test_master_open(self):
-        name, fd = master_open()
-        self.assertIsInstance(name, str)
-        self.assertIsInstance(fd, int)
-        self.assertGreaterEqual(fd, 0)
         try:
-            os.close(fd)
-        except OSError:
-            pass
+            self.assertIsInstance(master_fd, int)
+            self.assertIsInstance(slave_fd, int)
+            self.assertGreaterEqual(master_fd, 0)
+            self.assertGreaterEqual(slave_fd, 0)
+            self.assertNotEqual(master_fd, slave_fd)
+        finally:
+            os.close(master_fd)
+            os.close(slave_fd)
 
     @unittest.skipUnless(is_available(), "pty module not available")
-    def test_slave_open_validates_arguments(self):
+    def test_open_terminal_matches_openpty(self):
+        master_fd, slave_fd = open_terminal()
+        try:
+            self.assertIsInstance(master_fd, int)
+            self.assertIsInstance(slave_fd, int)
+        finally:
+            os.close(master_fd)
+            os.close(slave_fd)
+
+    @unittest.skipUnless(is_available(), "pty module not available")
+    def test_master_open_returns_the_name_and_the_descriptor(self):
+        name, master_fd = master_open()
+        try:
+            self.assertIsInstance(name, str)
+            self.assertTrue(name)
+            self.assertIsInstance(master_fd, int)
+            self.assertGreaterEqual(master_fd, 0)
+        finally:
+            os.close(master_fd)
+
+    @unittest.skipUnless(is_available(), "pty module not available")
+    def test_slave_open_reopens_the_slave_device(self):
+        name, master_fd = master_open()
+        try:
+            slave_fd = slave_open(name)
+            self.assertIsInstance(slave_fd, int)
+            self.assertGreaterEqual(slave_fd, 0)
+            os.close(slave_fd)
+        finally:
+            os.close(master_fd)
+
+    def test_slave_open_validates_the_name(self):
         with self.assertRaises(TypeError):
             slave_open(123)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             slave_open("")
 
-    @unittest.skipUnless(sys.platform != "win32", "Unix-like required")
-    def test_fileno_constants(self):
-        self.assertEqual(STDIN_FILENO, 0)
-        self.assertEqual(STDOUT_FILENO, 1)
-        self.assertEqual(STDERR_FILENO, 2)
+    def test_fork_returns_a_fork_result(self):
+        with patch("pty_utils._pty") as module:
+            module.fork.return_value = (4321, 17)
+            result = fork()
+        self.assertIsInstance(result, ForkResult)
+        self.assertEqual(result.pid, 4321)
+        self.assertEqual(result.master_fd, 17)
 
-    @unittest.skipUnless(is_available(), "pty module not available")
-    def test_fork_returns_int(self):
-        result = fork()
-        self.assertTrue(isinstance(result, int) or isinstance(result, tuple))
-        if isinstance(result, tuple):
-            self.assertTrue(all(isinstance(x, int) for x in result))
-            pid = result[0]
-        else:
-            pid = result
-        if pid == 0:
-            os._exit(0)
-        elif pid > 0:
-            os.waitpid(pid, 0)
-
-    @unittest.skipUnless(is_available(), "pty module not available")
-    def test_spawn_validates_arguments(self):
+    def test_spawn_validates_the_command_line(self):
         with self.assertRaises(TypeError):
             spawn("echo")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            spawn(42)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             spawn([])
         with self.assertRaises(TypeError):
             spawn([123])  # type: ignore[arg-type]
 
-    @unittest.skipUnless(is_available(), "pty module not available")
-    def test_spawn_runs_true(self):
-        status = spawn([sys.executable, "-c", "import sys; sys.exit(0)"])
-        self.assertIsInstance(status, int)
+    def test_spawn_validates_the_readers(self):
+        with self.assertRaises(TypeError):
+            spawn(["echo"], master_read="not callable")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            spawn(["echo"], stdin_read="not callable")  # type: ignore[arg-type]
 
-    def test_missing_module_raises_runtimeerror(self):
+    def test_spawn_runs_the_program(self):
+        with patch("pty_utils._pty") as module:
+            module.spawn.return_value = 0
+            status = spawn(["echo", "hello"])
+        self.assertEqual(status, 0)
+        module.spawn.assert_called_once_with(["echo", "hello"])
+
+    def test_spawn_passes_the_readers(self):
+        def read(fd):
+            return b""
+
+        with patch("pty_utils._pty") as module:
+            module.spawn.return_value = 3
+            status = spawn(["echo"], master_read=read, stdin_read=read)
+        self.assertEqual(status, 3)
+        self.assertEqual(module.spawn.call_args.args[0], ["echo"])
+        self.assertIs(module.spawn.call_args.args[1], read)
+        self.assertIs(module.spawn.call_args.args[2], read)
+
+    def test_the_missing_module_raises_a_runtime_error(self):
         with patch("pty_utils._pty", None):
             with self.assertRaises(RuntimeError):
                 openpty()
             with self.assertRaises(RuntimeError):
+                open_terminal()
+            with self.assertRaises(RuntimeError):
                 master_open()
+            with self.assertRaises(RuntimeError):
+                slave_open("/dev/pts/0")
             with self.assertRaises(RuntimeError):
                 fork()
             with self.assertRaises(RuntimeError):
-                spawn([sys.executable])
+                spawn(["echo"])
 
-    def test_child_constant(self):
-        self.assertIsInstance(CHILD, int)
+    def test_the_missing_module_still_reports_that_it_is_unavailable(self):
+        with patch("pty_utils._pty", None):
+            self.assertFalse(is_available())
+
+    def test_all_is_sorted_and_unique(self):
+        import pty_utils
+
+        self.assertIsNotNone(pty_utils.__all__)
+        self.assertEqual(len(pty_utils.__all__), len(set(pty_utils.__all__)))
+        self.assertEqual(pty_utils.__all__, sorted(pty_utils.__all__))
+        for name in pty_utils.__all__:
+            self.assertTrue(hasattr(pty_utils, name), name)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_PTY_UTILS
+
+cat > "$OUTPUT_DIR/stringprep_utils.py" <<'STRINGPREP_UTILS'
+"""String preparation utilities wrapping the standard library :mod:`stringprep` module.
+
+The :mod:`stringprep` module exposes the tables of RFC 3454, the "String
+Preparation" framework that the internationalized domain names of RFC 3491
+are built on.  A table is either a set, which answers whether a character
+belongs to it, or a mapping, which turns a character into another one.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure from the C layer.  It also adds the conveniences that the
+standard library leaves to the caller: the tables are addressed by their name
+such as ``"b1"``, the prohibited output of RFC 3454 is summarized by
+:func:`is_prohibited`, and :func:`map_text` performs the mapping step of the
+framework in one call.
+
+The module is pure computation, so it works on every platform and never
+touches the file system, the network, or a process.
+"""
+
+from __future__ import annotations
+
+import stringprep as _stringprep
+from types import MappingProxyType
+from typing import Callable, Mapping
+
+__all__: list[str] = [
+    "MAP_TABLES",
+    "TABLES",
+    "find_problems",
+    "in_table",
+    "is_allowed",
+    "is_bidi_allowed",
+    "is_mapped_to_nothing",
+    "is_preparable",
+    "is_prohibited",
+    "is_unassigned",
+    "map_table",
+    "map_table_names",
+    "map_text",
+    "table_names",
+]
+
+
+#: The set tables of RFC 3454, addressed by their name.
+TABLES: Mapping[str, Callable[[str], bool]] = MappingProxyType(
+    {
+        "a1": _stringprep.in_table_a1,
+        "b1": _stringprep.in_table_b1,
+        "c11": _stringprep.in_table_c11,
+        "c12": _stringprep.in_table_c12,
+        "c11_c12": _stringprep.in_table_c11_c12,
+        "c21": _stringprep.in_table_c21,
+        "c22": _stringprep.in_table_c22,
+        "c21_c22": _stringprep.in_table_c21_c22,
+        "c3": _stringprep.in_table_c3,
+        "c4": _stringprep.in_table_c4,
+        "c5": _stringprep.in_table_c5,
+        "c6": _stringprep.in_table_c6,
+        "c7": _stringprep.in_table_c7,
+        "c8": _stringprep.in_table_c8,
+        "c9": _stringprep.in_table_c9,
+        "d1": _stringprep.in_table_d1,
+        "d2": _stringprep.in_table_d2,
+    }
+)
+
+#: The mapping tables of RFC 3454, addressed by their name.
+MAP_TABLES: Mapping[str, Callable[[str], str]] = MappingProxyType(
+    {
+        "b2": _stringprep.map_table_b2,
+        "b3": _stringprep.map_table_b3,
+    }
+)
+
+# The tables of the prohibited output of RFC 3454.  Table C.1.1, the plain
+# space, is not one of them: it is allowed in a stored string.
+_PROHIBITED_TABLES: tuple[str, ...] = (
+    "c12",
+    "c21",
+    "c22",
+    "c3",
+    "c4",
+    "c5",
+    "c6",
+    "c7",
+    "c8",
+    "c9",
+)
+
+
+def _character(value: str, name: str = "character") -> str:
+    """Return *value* after checking that it is a single character.
+
+    Args:
+        value: The character to check.
+        name: The name of the argument, used in the error messages.
+
+    Raises:
+        TypeError: If *value* is not a string.
+        ValueError: If *value* is empty or holds more than one character.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    if len(value) != 1:
+        raise ValueError(f"{name} must be a single character, got {len(value)}")
+    return value
+
+
+def table_names() -> tuple[str, ...]:
+    """Return the names of the set tables of RFC 3454.
+
+    The names are the ones the framework uses: ``"a1"`` for the unassigned
+    code points, ``"b1"`` for the characters that are commonly mapped to
+    nothing, ``"c11"`` up to ``"c9"`` for the prohibited output, and ``"d1"``
+    and ``"d2"`` for the bidirectional characters.
+    """
+    return tuple(sorted(TABLES))
+
+
+def map_table_names() -> tuple[str, ...]:
+    """Return the names of the mapping tables of RFC 3454.
+
+    The names are the ones the framework uses: ``"b2"`` for the case folding
+    with the compatibility decomposition and ``"b3"`` for the plain case
+    folding.
+    """
+    return tuple(sorted(MAP_TABLES))
+
+
+def in_table(name: str, character: str) -> bool:
+    """Report whether a character belongs to a set table of RFC 3454.
+
+    Args:
+        name: The name of the table, such as ``"b1"``.
+        character: The character to look for.
+
+    Returns:
+        ``True`` when the character belongs to the table.
+
+    Raises:
+        TypeError: If *name* or *character* is not a string.
+        ValueError: If *name* is not the name of a set table, or if
+            *character* is not a single character.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    table = TABLES.get(name)
+    if table is None:
+        raise ValueError(f"unknown table: {name}")
+    return bool(table(_character(character)))
+
+
+def map_table(name: str, character: str) -> str:
+    """Map a character with a mapping table of RFC 3454.
+
+    Args:
+        name: The name of the table, such as ``"b2"``.
+        character: The character to map.
+
+    Returns:
+        The mapped character, which may be empty for a character that is
+        mapped to nothing.
+
+    Raises:
+        TypeError: If *name* or *character* is not a string.
+        ValueError: If *name* is not the name of a mapping table, or if
+            *character* is not a single character.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    table = MAP_TABLES.get(name)
+    if table is None:
+        raise ValueError(f"unknown mapping table: {name}")
+    return str(table(_character(character)))
+
+
+def is_unassigned(character: str) -> bool:
+    """Report whether a character is an unassigned code point.
+
+    The unassigned code points are the ones of table A.1 of RFC 3454.
+
+    Raises:
+        TypeError: If *character* is not a string.
+        ValueError: If *character* is not a single character.
+    """
+    return bool(_stringprep.in_table_a1(_character(character)))
+
+
+def is_mapped_to_nothing(character: str) -> bool:
+    """Report whether a character is commonly mapped to nothing.
+
+    The characters of table B.1 of RFC 3454, such as the soft hyphen, are
+    removed while a string is prepared.
+
+    Raises:
+        TypeError: If *character* is not a string.
+        ValueError: If *character* is not a single character.
+    """
+    return bool(_stringprep.in_table_b1(_character(character)))
+
+
+def is_prohibited(character: str) -> bool:
+    """Report whether a character belongs to the prohibited output.
+
+    The prohibited output of RFC 3454 gathers the tables C.1.2 up to C.9, so
+    the non-ASCII spaces, the control characters, the private use characters,
+    the non-character code points, the surrogates, and the characters that
+    are inappropriate for plain text or for a canonical representation.
+
+    Raises:
+        TypeError: If *character* is not a string.
+        ValueError: If *character* is not a single character.
+    """
+    _character(character)
+    return any(TABLES[name](character) for name in _PROHIBITED_TABLES)
+
+
+def is_allowed(character: str) -> bool:
+    """Report whether a character may be stored in a prepared string.
+
+    A character is allowed when it is neither an unassigned code point nor
+    part of the prohibited output of RFC 3454.  The characters that are
+    commonly mapped to nothing stay allowed, because they are removed while
+    the string is mapped rather than rejected.
+
+    Raises:
+        TypeError: If *character* is not a string.
+        ValueError: If *character* is not a single character.
+    """
+    _character(character)
+    return not is_unassigned(character) and not is_prohibited(character)
+
+
+def is_bidi_allowed(character: str) -> bool:
+    """Report whether a character may appear in a bidirectional name.
+
+    The characters of the tables D.1 and D.2 of RFC 3454, the right-to-left
+    and the left-to-right characters, may appear in a name that mixes the two
+    directions.
+
+    Raises:
+        TypeError: If *character* is not a string.
+        ValueError: If *character* is not a single character.
+    """
+    _character(character)
+    return bool(_stringprep.in_table_d1(character) or _stringprep.in_table_d2(character))
+
+
+def map_text(text: str) -> str:
+    """Map a string with the mapping step of RFC 3454.
+
+    The characters of table B.1 are removed, the rest is mapped with the
+    table B.2, and the result is mapped with the table B.3.
+
+    Args:
+        text: The string to map.
+
+    Returns:
+        The mapped string.
+
+    Raises:
+        TypeError: If *text* is not a string.
+    """
+    if not isinstance(text, str):
+        raise TypeError(f"text must be a str, got {type(text).__name__}")
+    removed = "".join(char for char in text if not _stringprep.in_table_b1(char))
+    folded = "".join(_stringprep.map_table_b2(char) for char in removed)
+    return "".join(_stringprep.map_table_b3(char) for char in folded)
+
+
+def find_problems(text: str) -> list[str]:
+    """Return the problems of a string that holds the prohibited output.
+
+    Every character that is an unassigned code point or that belongs to the
+    prohibited output of RFC 3454 is reported, so a caller can show why a
+    string cannot be stored.
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        One message per offending character, in the order of the string.
+
+    Raises:
+        TypeError: If *text* is not a string.
+    """
+    if not isinstance(text, str):
+        raise TypeError(f"text must be a str, got {type(text).__name__}")
+    problems: list[str] = []
+    for char in text:
+        if is_unassigned(char):
+            problems.append(f"unassigned code point U+{ord(char):04X}")
+        elif is_prohibited(char):
+            problems.append(f"prohibited code point U+{ord(char):04X}")
+    return problems
+
+
+def is_preparable(text: str) -> bool:
+    """Report whether a string may be prepared and stored.
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        ``True`` when the string holds no unassigned code point and no part
+        of the prohibited output of RFC 3454.
+
+    Raises:
+        TypeError: If *text* is not a string.
+    """
+    if not isinstance(text, str):
+        raise TypeError(f"text must be a str, got {type(text).__name__}")
+    return not find_problems(text)
+STRINGPREP_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_stringprep_utils.py" <<'TEST_STRINGPREP_UTILS'
+"""Tests for stringprep_utils."""
+
+import unittest
+
+import stringprep_utils
+from stringprep_utils import (
+    MAP_TABLES,
+    TABLES,
+    find_problems,
+    in_table,
+    is_allowed,
+    is_bidi_allowed,
+    is_mapped_to_nothing,
+    is_preparable,
+    is_prohibited,
+    is_unassigned,
+    map_table,
+    map_table_names,
+    map_text,
+    table_names,
+)
+
+
+class TestStringprepUtils(unittest.TestCase):
+    """Verify the string preparation helpers of the wrapper."""
+
+    def test_the_tables_are_read_only(self):
+        with self.assertRaises(TypeError):
+            TABLES["a2"] = lambda char: True  # type: ignore[index]
+        with self.assertRaises(TypeError):
+            MAP_TABLES["b4"] = lambda char: char  # type: ignore[index]
+
+    def test_table_names(self):
+        names = table_names()
+        self.assertEqual(names, tuple(sorted(names)))
+        self.assertIn("a1", names)
+        self.assertIn("b1", names)
+        self.assertIn("c21", names)
+        self.assertIn("d1", names)
+        self.assertEqual(len(names), len(TABLES))
+
+    def test_map_table_names(self):
+        names = map_table_names()
+        self.assertEqual(names, ("b2", "b3"))
+        self.assertEqual(len(names), len(MAP_TABLES))
+
+    def test_in_table_finds_a_member(self):
+        self.assertTrue(in_table("b1", "\u00ad"))
+        self.assertFalse(in_table("b1", "a"))
+        self.assertTrue(in_table("a1", "\u0378"))
+        self.assertTrue(in_table("c21", "\n"))
+        self.assertTrue(in_table("d1", "\u05d0"))
+
+    def test_in_table_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            in_table(1, "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            in_table("b1", 1)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            in_table("b1", "")
+        with self.assertRaises(ValueError):
+            in_table("b1", "ab")
+        with self.assertRaises(ValueError):
+            in_table("z9", "a")
+
+    def test_map_table_maps_a_character(self):
+        self.assertEqual(map_table("b3", "A"), "a")
+        self.assertEqual(map_table("b2", "A"), "a")
+        self.assertEqual(map_table("b2", "\u00df"), "ss")
+
+    def test_map_table_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            map_table(1, "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            map_table("b2", 1)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            map_table("b2", "")
+        with self.assertRaises(ValueError):
+            map_table("b2", "ab")
+        with self.assertRaises(ValueError):
+            map_table("b1", "a")
+
+    def test_is_unassigned(self):
+        self.assertTrue(is_unassigned("\u0378"))
+        self.assertFalse(is_unassigned("a"))
+        self.assertFalse(is_unassigned("\u00e9"))
+
+    def test_is_mapped_to_nothing(self):
+        self.assertTrue(is_mapped_to_nothing("\u00ad"))
+        self.assertTrue(is_mapped_to_nothing("\u200b"))
+        self.assertFalse(is_mapped_to_nothing("a"))
+
+    def test_is_prohibited(self):
+        self.assertTrue(is_prohibited("\n"))
+        self.assertTrue(is_prohibited("\u0085"))
+        self.assertTrue(is_prohibited("\u00a0"))
+        self.assertTrue(is_prohibited("\ue000"))
+        self.assertTrue(is_prohibited("\uffff"))
+        self.assertTrue(is_prohibited("\ud800"))
+        self.assertTrue(is_prohibited("\ufffd"))
+        self.assertTrue(is_prohibited("\u2ff0"))
+        self.assertTrue(is_prohibited("\u200e"))
+        self.assertTrue(is_prohibited("\U000e0001"))
+
+    def test_is_prohibited_keeps_the_plain_space(self):
+        self.assertFalse(is_prohibited(" "))
+        self.assertFalse(is_prohibited("a"))
+        self.assertFalse(is_prohibited("1"))
+
+    def test_is_allowed(self):
+        self.assertTrue(is_allowed("a"))
+        self.assertTrue(is_allowed(" "))
+        self.assertTrue(is_allowed("1"))
+        self.assertFalse(is_allowed("\u0378"))
+        self.assertFalse(is_allowed("\n"))
+        self.assertFalse(is_allowed("\ue000"))
+
+    def test_is_bidi_allowed(self):
+        self.assertTrue(is_bidi_allowed("a"))
+        self.assertTrue(is_bidi_allowed("\u05d0"))
+        self.assertFalse(is_bidi_allowed("1"))
+
+    def test_map_text_removes_the_characters_mapped_to_nothing(self):
+        self.assertEqual(map_text("a\u00adb"), "ab")
+        self.assertEqual(map_text("a\u200bb"), "ab")
+
+    def test_map_text_folds_the_case(self):
+        self.assertEqual(map_text("ABC"), "abc")
+        self.assertEqual(map_text(""), "")
+        self.assertEqual(map_text("\u00df"), "ss")
+
+    def test_find_problems_reports_the_offending_characters(self):
+        self.assertEqual(find_problems("example.com"), [])
+        problems = find_problems("a\u0378\n")
+        self.assertEqual(len(problems), 2)
+        self.assertIn("U+0378", problems[0])
+        self.assertIn("unassigned", problems[0])
+        self.assertIn("U+000A", problems[1])
+        self.assertIn("prohibited", problems[1])
+
+    def test_is_preparable(self):
+        self.assertTrue(is_preparable("example.com"))
+        self.assertTrue(is_preparable(""))
+        self.assertFalse(is_preparable("a\nb"))
+        self.assertFalse(is_preparable("a\u0378"))
+
+    def test_the_helpers_validate_their_arguments(self):
+        with self.assertRaises(TypeError):
+            is_unassigned(1)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            is_unassigned("")
+        with self.assertRaises(TypeError):
+            is_mapped_to_nothing(1)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            is_mapped_to_nothing("ab")
+        with self.assertRaises(TypeError):
+            is_prohibited(1)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            is_prohibited("ab")
+        with self.assertRaises(TypeError):
+            is_allowed(1)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            is_allowed("")
+        with self.assertRaises(TypeError):
+            is_bidi_allowed(1)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            is_bidi_allowed("ab")
+        with self.assertRaises(TypeError):
+            map_text(1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find_problems(1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_preparable(1)  # type: ignore[arg-type]
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertIsNotNone(stringprep_utils.__all__)
+        self.assertEqual(
+            len(stringprep_utils.__all__), len(set(stringprep_utils.__all__))
+        )
+        self.assertEqual(stringprep_utils.__all__, sorted(stringprep_utils.__all__))
+        for name in stringprep_utils.__all__:
+            self.assertTrue(hasattr(stringprep_utils, name), name)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_STRINGPREP_UTILS
 
 
 # --- substitute the project name in the templated documents ---

@@ -257,6 +257,8 @@ pwd_utils.py                 # Password database utilities wrapping stdlib pwd (
 grp_utils.py                 # Group database utilities wrapping stdlib grp (getgrgid, getgrnam, getgrall)
 termios_utils.py             # Terminal attribute utilities wrapping stdlib termios (get_attributes, set_attributes, make_raw, make_cbreak, get_window_size, set_window_size)
 fcntl_utils.py               # File control utilities wrapping stdlib fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
+pty_utils.py                 # Pseudo-terminal utilities wrapping stdlib pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
+stringprep_utils.py          # String preparation utilities wrapping stdlib stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -427,6 +429,8 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_grp_utils.py            # Tests for grp_utils.py
     test_termios_utils.py        # Tests for termios_utils.py
     test_fcntl_utils.py          # Tests for fcntl_utils.py
+    test_pty_utils.py            # Tests for pty_utils.py
+    test_stringprep_utils.py     # Tests for stringprep_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -1445,4 +1449,8 @@ The project includes file control utilities in `fcntl_utils.py` wrapping the sta
 
 ## Pseudo-terminal Utilities Module
 
-The project includes pseudo-terminal utilities in `pty_utils.py` wrapping the standard library `pty` module: `openpty` opens a new pseudo-terminal pair and returns `(master_fd, slave_fd)`, `open_terminal` is an alias for `openpty`, `master_open` opens a pseudo-terminal and returns `(name, fd)`, `slave_open` opens the slave end of a pseudo-terminal by name, `fork` forks a process and connects the child's controlling terminal to a new pseudo-terminal, and `spawn` spawns a process connected to its controlling terminal via a pseudo-terminal. The constants `STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`, and `CHILD` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `pty` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_pty_utils.py`.
+The project includes pseudo-terminal utilities in `pty_utils.py` wrapping the standard library `pty` module: `openpty` opens a new pseudo-terminal pair and returns `(master_fd, slave_fd)`, `open_terminal` opens the same pair under a name that spells out its purpose, `master_open` opens a pseudo-terminal and returns `(name, fd)`, `slave_open` opens the slave end of a pseudo-terminal by name, `fork` forks a process and connects the child's controlling terminal to a new pseudo-terminal, and `spawn` runs a program with a pseudo-terminal as its controlling terminal and waits for it. The result of `fork` is a `ForkResult` named tuple with the fields `pid` and `master_fd`, and the constants `STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`, and `CHILD` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `pty` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The standard library deprecated `master_open` and `slave_open` in Python 3.12, so the wrapper never calls them and works on every supported interpreter. The module is tested in `tests/test_pty_utils.py`.
+
+## String Preparation Utilities Module
+
+The project includes string preparation utilities in `stringprep_utils.py` wrapping the standard library `stringprep` module: `table_names` returns the names of the set tables of RFC 3454, `map_table_names` returns the names of the mapping tables, `in_table` reports whether a character belongs to a set table, `map_table` maps a character with a mapping table, `is_unassigned` reports whether a character is an unassigned code point, `is_mapped_to_nothing` reports whether a character is commonly mapped to nothing, `is_prohibited` reports whether a character belongs to the prohibited output, `is_allowed` reports whether a character may be stored in a prepared string, `is_bidi_allowed` reports whether a character may appear in a bidirectional name, `map_text` performs the mapping step of RFC 3454 on a whole string, `find_problems` reports the characters that prevent a string from being stored, and `is_preparable` reports whether a string may be prepared. The tables are also exposed as the read-only mappings `TABLES` and `MAP_TABLES`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_stringprep_utils.py`.

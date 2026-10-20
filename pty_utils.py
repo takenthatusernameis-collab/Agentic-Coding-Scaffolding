@@ -1,27 +1,37 @@
 """Pseudo-terminal utilities wrapping the standard library :mod:`pty` module.
 
-The :mod:`pty` module handles the pseudo-terminal concept: starting another
-process and being able to write to and read from its controlling terminal
-programmatically.
+The :mod:`pty` module opens a pseudo-terminal, forks a process onto it, and
+runs a program with the pseudo-terminal as its controlling terminal.  A
+program that drives a child process therefore reads and writes the terminal
+of the child instead of a pipe.
 
 This wrapper validates every argument before the standard library is reached,
 so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
-an opaque failure from the C layer.  It returns values in a consistent form
-and adds small conveniences on top of :func:`openpty`, :func:`fork`, and
-:func:`spawn`.
+an opaque failure from the C layer.  It returns values in a consistent form:
+the result of :func:`fork` is a :class:`ForkResult` named tuple with stable
+field names, and :func:`master_open` always returns the name of the device
+before its file descriptor.
 
 .. note::
 
    The :mod:`pty` module only exists on Unix-like platforms.  The import
    below degrades gracefully: when the interpreter does not ship the module,
-   the helpers raise a :class:`RuntimeError` that names the missing module,
-   while the pure helpers keep working.
+   the helpers that talk to the operating system raise a
+   :class:`RuntimeError` that names the missing module, while the pure
+   helpers keep working.
+
+The standard library deprecated :func:`pty.master_open` and
+:func:`pty.slave_open` in Python 3.12, because the pseudo-terminal of the
+host is opened with :func:`os.openpty` and :func:`os.ttyname` instead.  The
+wrapper never calls the deprecated functions, so it works on every supported
+interpreter without raising a :class:`DeprecationWarning`.
 """
 
 from __future__ import annotations
 
 import os
-from typing import Any, Callable, List, Tuple, Union
+from collections.abc import Sequence
+from typing import Any, Callable, NamedTuple
 
 try:
     import pty as _pty
@@ -31,6 +41,7 @@ except ImportError:  # pragma: no cover - the module is Unix-only
 
 __all__: list[str] = [
     "CHILD",
+    "ForkResult",
     "STDERR_FILENO",
     "STDIN_FILENO",
     "STDOUT_FILENO",
@@ -50,8 +61,22 @@ STDIN_FILENO: int = getattr(os, "STDIN_FILENO", 0)
 STDOUT_FILENO: int = getattr(os, "STDOUT_FILENO", 1)
 #: File descriptor for stderr.
 STDERR_FILENO: int = getattr(os, "STDERR_FILENO", 2)
-#: A constant returned from :func:`fork` when the child process is running.
-CHILD: int = getattr(os, "CHILD", 0)
+#: The value :func:`fork` reports to the child process.
+CHILD: int = 0
+
+
+class ForkResult(NamedTuple):
+    """The result of :func:`fork`.
+
+    Attributes:
+        pid: The process identifier of the child process, or zero in the
+            child process itself.
+        master_fd: The file descriptor of the master end of the new
+            pseudo-terminal.
+    """
+
+    pid: int
+    master_fd: int
 
 
 def _pty_module() -> Any:
@@ -70,7 +95,7 @@ def is_available() -> bool:
     return _pty is not None
 
 
-def openpty() -> Tuple[int, int]:
+def openpty() -> tuple[int, int]:
     """Open a new pseudo-terminal pair.
 
     Returns:
@@ -86,57 +111,53 @@ def openpty() -> Tuple[int, int]:
     return int(master_fd), int(slave_fd)
 
 
-# Keep an alias matching the style of other wrappers.
-open_terminal = openpty
+def open_terminal() -> tuple[int, int]:
+    """Open a new pseudo-terminal pair.
 
-
-def master_open() -> Tuple[str, int]:
-    """Open a pseudo-terminal and return the master device and its name.
+    This is an alias of :func:`openpty` that spells out the purpose of the
+    helper.
 
     Returns:
-        A pair ``(master_name, master_fd)`` where *master_name* is the name of
-        the master device and *master_fd* is its file descriptor.
+        A pair ``(master_fd, slave_fd)``.
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
         OSError: If the operating system fails to allocate a pseudo-terminal.
     """
-    pty_mod = _pty_module()
+    return openpty()
+
+
+def master_open() -> tuple[str, int]:
+    """Open a pseudo-terminal and return the name of the slave device.
+
+    The standard library function of the same name returns the file
+    descriptor before the name, and it is deprecated since Python 3.12.  This
+    helper returns the name first and the file descriptor second, and it never
+    calls the deprecated function.
+
+    Returns:
+        A pair ``(slave_name, master_fd)`` where *slave_name* is the path of
+        the slave device and *master_fd* is the file descriptor of the master
+        end.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pty`` module.
+        OSError: If the operating system fails to allocate a pseudo-terminal.
+    """
+    master_fd, slave_fd = openpty()
     try:
-        result = pty_mod.master_open()  # type: ignore[attr-defined]
-    except AttributeError:
-        master_fd, slave_fd = openpty()
-        try:
-            name = os.ttyname(slave_fd)
-        except OSError:
-            name = ""
-        finally:
-            try:
-                os.close(slave_fd)
-            except OSError:
-                pass
-        return name, master_fd
-    if isinstance(result, tuple):
-        if len(result) == 2:
-            a, b = result
-            # Python 3.x returns (fd, name); older versions may return (name, fd)
-            if isinstance(a, int) and isinstance(b, str):
-                return str(b), int(a)
-            if isinstance(a, str) and isinstance(b, int):
-                return str(a), int(b)
-            # Try to be flexible
-            if isinstance(a, int):
-                return str(b), int(a)
-            return str(a), int(b)
-    raise RuntimeError("master_open() returned an unexpected value")
+        name = os.ttyname(slave_fd)
+    finally:
+        os.close(slave_fd)
+    return name, master_fd
 
 
 def slave_open(tty_name: str) -> int:
     """Open the slave end of a pseudo-terminal by name.
 
     Args:
-        tty_name: The name of the slave device (as returned by
-            :func:`master_open` or :func:`os.ttyname`).
+        tty_name: The name of the slave device, as returned by
+            :func:`master_open` or by :func:`os.ttyname`.
 
     Returns:
         The file descriptor of the slave end.
@@ -151,71 +172,82 @@ def slave_open(tty_name: str) -> int:
         raise TypeError(f"tty_name must be a str, got {type(tty_name).__name__}")
     if tty_name == "":
         raise ValueError("tty_name must not be empty")
-    try:
-        fd = _pty_module().slave_open(tty_name)  # type: ignore[attr-defined]
-    except AttributeError:
-        fd = os.open(tty_name, os.O_RDWR)
-    return int(fd)
+    _pty_module()
+    return int(os.open(tty_name, os.O_RDWR | getattr(os, "O_NOCTTY", 0)))
 
 
-def fork() -> Union[int, Tuple[int, ...]]:
-    """Fork a process and connect the child's controlling terminal to a new
-    pseudo-terminal.
+def fork() -> ForkResult:
+    """Fork a process and give it a new pseudo-terminal.
+
+    The child process becomes the session leader of the new pseudo-terminal,
+    so it has a controlling terminal of its own.
 
     Returns:
-        In some Python versions returns ``0`` in the child process and the
-        process ID of the child in the parent process.  In other versions
-        returns a tuple ``(pid, fd)`` as returned by the standard library.
+        A :class:`ForkResult` named tuple with the process identifier of the
+        child and the file descriptor of the master end of the new
+        pseudo-terminal.  The process identifier is zero in the child
+        process itself.
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
         OSError: If the fork fails.
     """
-    result = _pty_module().fork()
-    if isinstance(result, tuple):
-        return tuple(int(x) for x in result)
-    return int(result)
+    pid, master_fd = _pty_module().fork()
+    return ForkResult(int(pid), int(master_fd))
+
+
+def _read(fd: int) -> bytes:
+    """Read up to a kilobyte from *fd* and return empty bytes at the end."""
+    try:
+        return os.read(fd, 1024)
+    except OSError:
+        return b""
+
 
 def spawn(
-    argv: List[str],
+    argv: Sequence[str],
     master_read: Callable[[int], bytes] | None = None,
     stdin_read: Callable[[int], bytes] | None = None,
 ) -> int:
-    """Spawn a process connected to its controlling terminal via a
-    pseudo-terminal.
+    """Run a program with a pseudo-terminal as its controlling terminal.
+
+    The helper waits for the program to finish and returns its exit status,
+    so it blocks until the child process ends.
 
     Args:
-        argv: The command line to execute as passed to :func:`os.execvp`.
-        master_read: A callable used to read from the master end.  If omitted,
-            the standard library's default is used.
-        stdin_read: A callable used to read from stdin.  If omitted, the
-            standard library's default is used.
+        argv: The command line of the program, as a sequence of strings.  The
+            first element is the program and the rest are its arguments.
+        master_read: The callable that reads the master end of the
+            pseudo-terminal.  The default reads a kilobyte at a time.
+        stdin_read: The callable that reads the standard input.  The default
+            reads a kilobyte at a time.
 
     Returns:
-        The exit status of the spawned process.
+        The exit status of the program.
 
     Raises:
-        TypeError: If *argv* is not a list of strings.
+        TypeError: If *argv* is not a sequence of strings, or if one of the
+            callables is not callable.
         ValueError: If *argv* is empty.
         RuntimeError: If the interpreter does not ship the ``pty`` module.
-        OSError: If spawning the process fails.
+        OSError: If the program cannot be started.
     """
-    if not isinstance(argv, list):
-        raise TypeError(f"argv must be a list, got {type(argv).__name__}")
+    if isinstance(argv, (str, bytes)):
+        raise TypeError("argv must be a sequence of str, got str")
+    if not isinstance(argv, Sequence):
+        raise TypeError(f"argv must be a sequence, got {type(argv).__name__}")
+    argv = list(argv)
     if len(argv) == 0:
         raise ValueError("argv must not be empty")
-    for i, arg in enumerate(argv):
-        if not isinstance(arg, str):
+    for index, argument in enumerate(argv):
+        if not isinstance(argument, str):
             raise TypeError(
-                f"argv[{i}] must be a str, got {type(arg).__name__}"
+                f"argv[{index}] must be a str, got {type(argument).__name__}"
             )
+    for name, callback in (("master_read", master_read), ("stdin_read", stdin_read)):
+        if callback is not None and not callable(callback):
+            raise TypeError(f"{name} must be callable, got {type(callback).__name__}")
     pty_mod = _pty_module()
-    try:
-        if master_read is None and stdin_read is None:
-            return int(pty_mod.spawn(argv))
-        return int(pty_mod.spawn(argv, master_read, stdin_read))
-    except TypeError:
-        try:
-            return int(pty_mod.spawn(argv))
-        except Exception:
-            raise
+    if master_read is None and stdin_read is None:
+        return int(pty_mod.spawn(argv))
+    return int(pty_mod.spawn(argv, master_read or _read, stdin_read or _read))

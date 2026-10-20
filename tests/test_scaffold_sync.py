@@ -66,6 +66,23 @@ def embedded_pyproject(scaffold_text: str) -> str:
     return match.group("body") if match else ""
 
 
+def readme_module_paragraph(readme_text: str, name: str) -> str:
+    """Return the paragraph of the README that describes a module."""
+    for line in readme_text.split("\n"):
+        if line.startswith("The project includes") and f"`{name}.py`" in line:
+            return line
+    return ""
+
+
+def readme_tree_line(readme_text: str, name: str) -> str:
+    """Return the line of the architecture tree of the README for a module."""
+    pattern = re.compile(rf"^{re.escape(name)}\.py\s+#")
+    for line in readme_text.split("\n"):
+        if pattern.match(line):
+            return line
+    return ""
+
+
 class TestScaffoldSync(unittest.TestCase):
     """Verify the repository and the scaffold generator stay in sync."""
 
@@ -237,6 +254,34 @@ class TestScaffoldSync(unittest.TestCase):
                     f"tests/test_{name}.py",
                     readme,
                     f"the embedded README.md does not mention tests/test_{name}.py",
+                )
+
+    def test_the_embedded_readme_reuses_the_repository_module_sections(self) -> None:
+        readme = self.embedded_text("README.md")
+        self.assertTrue(readme, "scaffold.sh does not embed a README.md template")
+        for name in self.modules:
+            paragraph = readme_module_paragraph(self.readme_text, name)
+            if not paragraph:
+                continue
+            with self.subTest(module=name):
+                self.assertIn(
+                    paragraph,
+                    readme,
+                    f"the embedded README.md does not reuse the module section of {name}.py",
+                )
+
+    def test_the_embedded_readme_reuses_the_repository_architecture_tree(self) -> None:
+        readme = self.embedded_text("README.md")
+        self.assertTrue(readme, "scaffold.sh does not embed a README.md template")
+        for name in self.modules:
+            tree_line = readme_tree_line(self.readme_text, name)
+            if not tree_line:
+                continue
+            with self.subTest(module=name):
+                self.assertIn(
+                    tree_line,
+                    readme,
+                    f"the embedded README.md does not reuse the tree entry of {name}.py",
                 )
 
     def test_the_embedded_changelog_documents_every_module(self) -> None:

@@ -1,9 +1,13 @@
 ## Unreleased
 
+- Add `stringprep_utils.py` wrapping the standard library `stringprep` module (table_names, map_table_names, in_table, map_table, is_unassigned, is_mapped_to_nothing, is_prohibited, is_allowed, is_bidi_allowed, map_text, find_problems, is_preparable) with input validation and read-only table mappings, plus unit tests in `tests/test_stringprep_utils.py`.
+- Synchronized `stringprep_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `fcntl_utils.py` wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation, plus unit tests in `tests/test_fcntl_utils.py`.
-- Add `pty_utils.py` wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation and re-exported constants, plus unit tests in `tests/test_pty_utils.py`.
+- Add `pty_utils.py` wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation, a `ForkResult` named tuple, and re-exported constants, plus unit tests in `tests/test_pty_utils.py`.
 - Synchronized `fcntl_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Synchronized `pty_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired `pty_utils.py`, which called the `pty.master_open` and `pty.slave_open` functions that the standard library deprecated in Python 3.12, and which returned the result of `fork` as a plain tuple; the wrapper now opens the pseudo-terminal with `os.openpty` and returns a `ForkResult` named tuple.
+- Completed the `pty_utils.py` synchronization, which left the architecture tree of the README and of the README template embedded in `scaffold.sh` without the new module.
 - Add `termios_utils.py` wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation, plus unit tests in `tests/test_termios_utils.py`.
 - Synchronized `termios_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Repaired the README template embedded in `scaffold.sh`, which did not document the `pwd_utils`, `grp_utils`, `opcode_utils`, `pickletools_utils`, and `zipapp_utils` modules or their tests.

@@ -260,4 +260,5 @@ py_modules = [
     "termios_utils",
     "fcntl_utils",
     "pty_utils",
+    "stringprep_utils",
 ]
