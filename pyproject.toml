@@ -219,4 +219,5 @@ py_modules = [
     "sysconfig_utils",
     "mimetypes_utils",
     "tracemalloc_utils",
+    "tty_utils",
 ]
