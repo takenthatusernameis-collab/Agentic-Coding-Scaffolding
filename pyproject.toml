@@ -255,4 +255,6 @@ py_modules = [
     "syslog_utils",
     "faulthandler_utils",
     "resource_utils",
+    "pwd_utils",
+    "grp_utils",
 ]

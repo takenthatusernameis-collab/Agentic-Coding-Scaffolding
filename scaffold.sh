@@ -672,6 +672,8 @@
 #   - syslog_utils.py — # System logging utilities wrapping the standard library syslog (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, facility_name)
 #   - faulthandler_utils.py — # Fault handler utilities wrapping the standard library faulthandler (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister, is_available)
 #   - resource_utils.py — # Resource usage utilities wrapping the standard library resource (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available)
+#   - pwd_utils.py — # Password database utilities wrapping the standard library pwd (getpwuid, getpwnam, getpwall)
+#   - grp_utils.py — # Group database utilities wrapping the standard library grp (getgrgid, getgrnam, getgrall)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -680,6 +682,8 @@
 #   - tests/test_syslog_utils.py — # Tests for syslog_utils.py
 #   - tests/test_faulthandler_utils.py — # Tests for faulthandler_utils.py
 #   - tests/test_resource_utils.py — # Tests for resource_utils.py
+#   - tests/test_pwd_utils.py — # Tests for pwd_utils.py
+#   - tests/test_grp_utils.py — # Tests for grp_utils.py
 set -euo pipefail
 
 usage() {
@@ -4304,6 +4308,8 @@ py_modules = [
     "syslog_utils",
     "faulthandler_utils",
     "resource_utils",
+    "pwd_utils",
+    "grp_utils",
 ]
 
 PYPROJECT
@@ -26868,6 +26874,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `syslog_utils.py` — system logging utilities wrapping the standard library `syslog` module (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, priority_names, facility_name, facility_names, option_names, is_available) with input validation
 - `faulthandler_utils.py` — fault handler utilities wrapping the standard library `faulthandler` module (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister) with input validation
 - `resource_utils.py` — resource usage utilities wrapping the standard library `resource` module (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available) with input validation
+- `pwd_utils.py` — password database utilities wrapping the standard library `pwd` module (getpwuid, getpwnam, getpwall) with input validation
+- `grp_utils.py` — group database utilities wrapping the standard library `grp` module (getgrgid, getgrnam, getgrall) with input validation
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27074,6 +27082,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_syslog_utils.py` — unit tests for `syslog_utils.py`
 - `tests/test_faulthandler_utils.py` — unit tests for `faulthandler_utils.py`
 - `tests/test_resource_utils.py` — unit tests for `resource_utils.py`
+- `tests/test_pwd_utils.py` — unit tests for `pwd_utils.py`
+- `tests/test_grp_utils.py` — unit tests for `grp_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -29471,7 +29481,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 - Add `resource_utils.py` wrapping the standard library `resource` module (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available) with input validation, plus unit tests in `tests/test_resource_utils.py`.
-- Synchronized `resource_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Add `pwd_utils.py` wrapping the standard library `pwd` module (getpwuid, getpwnam, getpwall) with input validation, plus unit tests in `tests/test_pwd_utils.py`.
+- Add `grp_utils.py` wrapping the standard library `grp` module (getgrgid, getgrnam, getgrall) with input validation, plus unit tests in `tests/test_grp_utils.py`.
+- Synchronized `pwd_utils.py` and `grp_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `faulthandler_utils.py` wrapping the standard library `faulthandler` module (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister, is_available) with input validation, plus unit tests in `tests/test_faulthandler_utils.py`.
 - Synchronized `faulthandler_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `syslog_utils.py` wrapping the standard library `syslog` module (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, priority_names, facility_name, facility_names, option_names, is_available) with input validation, plus unit tests in `tests/test_syslog_utils.py`.
@@ -70733,6 +70745,485 @@ class TestResourceUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_RESOURCE_UTILS
+cat > "$OUTPUT_DIR/pwd_utils.py" <<'PWD_UTILS'
+"""Password database utilities wrapping the standard library :mod:`pwd` module.
+
+The :mod:`pwd` module provides access to the Unix password database.  A
+program looks up a user by name with :func:`pwd.getpwnam` or by numeric
+user identifier with :func:`pwd.getpwuid`, and enumerates all entries with
+:func:`pwd.getpwall`.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure from the C layer.  It returns records as :class:`Passwd`
+named tuples with stable field names on every platform, and it adds helpers to
+look up entries and to enumerate the database.
+
+.. note::
+
+   The :mod:`pwd` module only exists on Unix-like platforms.  The import
+   below degrades gracefully: when the interpreter does not ship the module,
+   the helpers raise a :class:`RuntimeError` that names the missing module,
+   while the pure helpers keep working.
+
+The helpers never modify the password database.
+"""
+
+from __future__ import annotations
+
+from typing import Any, List, NamedTuple
+
+try:
+    import pwd as _pwd
+except ImportError:  # pragma: no cover - the module is Unix-only
+    _pwd = None  # type: ignore[assignment]
+
+
+class Passwd(NamedTuple):
+    """A password database entry.
+
+    Attributes:
+        name: The login name.
+        passwd: The encrypted password (may be ``'x'`` or ``'*'``).
+        uid: The numeric user identifier.
+        gid: The numeric group identifier.
+        gecos: The user name or comment field.
+        dir: The home directory.
+        shell: The login shell.
+    """
+
+    name: str
+    passwd: str
+    uid: int
+    gid: int
+    gecos: str
+    dir: str
+    shell: str
+
+
+__all__: list[str] = [
+    "Passwd",
+    "getpwall",
+    "getpwnam",
+    "getpwuid",
+    "is_available",
+]
+
+
+def _pwd_module() -> Any:
+    """Return the standard library ``pwd`` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pwd`` module.
+    """
+    if _pwd is None:
+        raise RuntimeError("the standard library module 'pwd' is not available")
+    return _pwd
+
+
+def is_available() -> bool:
+    """Return ``True`` if the ``pwd`` module is available."""
+    return _pwd is not None
+
+
+def _record_to_passwd(record: Any) -> Passwd:
+    """Convert a ``pwd.struct_passwd`` to a :class:`Passwd` named tuple."""
+    return Passwd(
+        name=str(record.pw_name),
+        passwd=str(record.pw_passwd),
+        uid=int(record.pw_uid),
+        gid=int(record.pw_gid),
+        gecos=str(record.pw_gecos),
+        dir=str(record.pw_dir),
+        shell=str(record.pw_shell),
+    )
+
+
+def getpwuid(uid: int) -> Passwd:
+    """Return the password database entry for the user with numeric *uid*.
+
+    Args:
+        uid: The numeric user identifier.
+
+    Returns:
+        The :class:`Passwd` record for the user.
+
+    Raises:
+        TypeError: If *uid* is not an int.
+        ValueError: If *uid* is negative.
+        KeyError: If no user has the given identifier.
+        RuntimeError: If the interpreter does not ship the ``pwd`` module.
+    """
+    if isinstance(uid, bool) or not isinstance(uid, int):
+        raise TypeError(f"uid must be an int, got {type(uid).__name__}")
+    if uid < 0:
+        raise ValueError(f"uid must not be negative, got {uid}")
+    try:
+        record = _pwd_module().getpwuid(uid)
+    except KeyError:
+        raise KeyError(f"getpwuid(): uid not found: {uid}") from None
+    return _record_to_passwd(record)
+
+
+def getpwnam(name: str) -> Passwd:
+    """Return the password database entry for the user with *name*.
+
+    Args:
+        name: The login name.
+
+    Returns:
+        The :class:`Passwd` record for the user.
+
+    Raises:
+        TypeError: If *name* is not a str.
+        ValueError: If *name* is empty.
+        KeyError: If no user has the given name.
+        RuntimeError: If the interpreter does not ship the ``pwd`` module.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    if name == "":
+        raise ValueError("name must not be empty")
+    try:
+        record = _pwd_module().getpwnam(name)
+    except KeyError:
+        raise KeyError(f"getpwnam(): name not found: {name!r}") from None
+    return _record_to_passwd(record)
+
+
+def getpwall() -> List[Passwd]:
+    """Return every entry in the password database.
+
+    Returns:
+        A list of :class:`Passwd` records.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pwd`` module.
+    """
+    records = _pwd_module().getpwall()
+    return [_record_to_passwd(record) for record in records]
+PWD_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_pwd_utils.py" <<'TEST_PWD_UTILS'
+"""Tests for pwd_utils."""
+
+import unittest
+from unittest.mock import patch
+
+from pwd_utils import (
+    Passwd,
+    getpwall,
+    getpwnam,
+    getpwuid,
+    is_available,
+)
+
+
+class TestPwdUtils(unittest.TestCase):
+    def test_is_available(self):
+        self.assertIsInstance(is_available(), bool)
+
+    def test_getpwuid_reads_root_on_unix(self):
+        if not is_available():
+            self.skipTest("pwd module not available")
+        record = getpwuid(0)
+        self.assertIsInstance(record, Passwd)
+        self.assertEqual(record.uid, 0)
+        self.assertIsInstance(record.name, str)
+        self.assertIsInstance(record.gid, int)
+        self.assertIsInstance(record.dir, str)
+        self.assertIsInstance(record.shell, str)
+        # tuple unpacking works
+        name, passwd, uid, gid, gecos, dir_, shell = record
+        self.assertEqual(name, record.name)
+        self.assertEqual(uid, record.uid)
+
+    def test_getpwnam_reads_root_on_unix(self):
+        if not is_available():
+            self.skipTest("pwd module not available")
+        record = getpwnam("root")
+        self.assertIsInstance(record, Passwd)
+        self.assertEqual(record.uid, 0)
+        self.assertEqual(record.name, "root")
+
+    def test_getpwall_returns_list(self):
+        if not is_available():
+            self.skipTest("pwd module not available")
+        records = getpwall()
+        self.assertIsInstance(records, list)
+        self.assertGreater(len(records), 0)
+        self.assertIsInstance(records[0], Passwd)
+
+    def test_getpwuid_validates_arguments(self):
+        with self.assertRaises(TypeError):
+            getpwuid("0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            getpwuid(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            getpwuid(-1)
+
+    def test_getpwnam_validates_arguments(self):
+        with self.assertRaises(TypeError):
+            getpwnam(0)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            getpwnam("")
+
+    def test_getpwuid_missing_raises_keyerror(self):
+        if not is_available():
+            self.skipTest("pwd module not available")
+        with self.assertRaises(KeyError):
+            getpwuid(99999)
+
+    def test_getpwnam_missing_raises_keyerror(self):
+        if not is_available():
+            self.skipTest("pwd module not available")
+        with self.assertRaises(KeyError):
+            getpwnam("thisuserdoesnotexist12345")
+
+    def test_missing_module_raises_runtimeerror(self):
+        with patch("pwd_utils._pwd", None):
+            with self.assertRaises(RuntimeError):
+                getpwuid(0)
+            with self.assertRaises(RuntimeError):
+                getpwnam("root")
+            with self.assertRaises(RuntimeError):
+                getpwall()
+TEST_PWD_UTILS
+
+cat > "$OUTPUT_DIR/grp_utils.py" <<'GRP_UTILS'
+"""Group database utilities wrapping the standard library :mod:`grp` module.
+
+The :mod:`grp` module provides access to the Unix group database.  A program
+looks up a group by name with :func:`grp.getgrnam` or by numeric group
+identifier with :func:`grp.getgrgid`, and enumerates all entries with
+:func:`grp.getgrall`.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure from the C layer.  It returns records as :class:`Group`
+named tuples with stable field names on every platform, and it adds helpers to
+look up entries and to enumerate the database.
+
+.. note::
+
+   The :mod:`grp` module only exists on Unix-like platforms.  The import
+   below degrades gracefully: when the interpreter does not ship the module,
+   the helpers raise a :class:`RuntimeError` that names the missing module,
+   while the pure helpers keep working.
+
+The helpers never modify the group database.
+"""
+
+from __future__ import annotations
+
+from typing import Any, List, NamedTuple
+
+try:
+    import grp as _grp
+except ImportError:  # pragma: no cover - the module is Unix-only
+    _grp = None  # type: ignore[assignment]
+
+
+class Group(NamedTuple):
+    """A group database entry.
+
+    Attributes:
+        name: The group name.
+        passwd: The encrypted password (may be ``'x'`` or empty).
+        gid: The numeric group identifier.
+        mem: A list of the login names that are members of the group.
+    """
+
+    name: str
+    passwd: str
+    gid: int
+    mem: List[str]
+
+
+__all__: list[str] = [
+    "Group",
+    "getgrall",
+    "getgrgid",
+    "getgrnam",
+    "is_available",
+]
+
+
+def _grp_module() -> Any:
+    """Return the standard library ``grp`` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``grp`` module.
+    """
+    if _grp is None:
+        raise RuntimeError("the standard library module 'grp' is not available")
+    return _grp
+
+
+def is_available() -> bool:
+    """Return ``True`` if the ``grp`` module is available."""
+    return _grp is not None
+
+
+def _record_to_group(record: Any) -> Group:
+    """Convert a ``grp.struct_group`` to a :class:`Group` named tuple."""
+    return Group(
+        name=str(record.gr_name),
+        passwd=str(record.gr_passwd),
+        gid=int(record.gr_gid),
+        mem=list(record.gr_mem),
+    )
+
+
+def getgrgid(gid: int) -> Group:
+    """Return the group database entry for the group with numeric *gid*.
+
+    Args:
+        gid: The numeric group identifier.
+
+    Returns:
+        The :class:`Group` record for the group.
+
+    Raises:
+        TypeError: If *gid* is not an int.
+        ValueError: If *gid* is negative.
+        KeyError: If no group has the given identifier.
+        RuntimeError: If the interpreter does not ship the ``grp`` module.
+    """
+    if isinstance(gid, bool) or not isinstance(gid, int):
+        raise TypeError(f"gid must be an int, got {type(gid).__name__}")
+    if gid < 0:
+        raise ValueError(f"gid must not be negative, got {gid}")
+    try:
+        record = _grp_module().getgrgid(gid)
+    except KeyError:
+        raise KeyError(f"getgrgid(): gid not found: {gid}") from None
+    return _record_to_group(record)
+
+
+def getgrnam(name: str) -> Group:
+    """Return the group database entry for the group with *name*.
+
+    Args:
+        name: The group name.
+
+    Returns:
+        The :class:`Group` record for the group.
+
+    Raises:
+        TypeError: If *name* is not a str.
+        ValueError: If *name* is empty.
+        KeyError: If no group has the given name.
+        RuntimeError: If the interpreter does not ship the ``grp`` module.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    if name == "":
+        raise ValueError("name must not be empty")
+    try:
+        record = _grp_module().getgrnam(name)
+    except KeyError:
+        raise KeyError(f"getgrnam(): name not found: {name!r}") from None
+    return _record_to_group(record)
+
+
+def getgrall() -> List[Group]:
+    """Return every entry in the group database.
+
+    Returns:
+        A list of :class:`Group` records.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``grp`` module.
+    """
+    records = _grp_module().getgrall()
+    return [_record_to_group(record) for record in records]
+GRP_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_grp_utils.py" <<'TEST_GRP_UTILS'
+"""Tests for grp_utils."""
+
+import unittest
+from unittest.mock import patch
+
+from grp_utils import (
+    Group,
+    getgrall,
+    getgrgid,
+    getgrnam,
+    is_available,
+)
+
+
+class TestGrpUtils(unittest.TestCase):
+    def test_is_available(self):
+        self.assertIsInstance(is_available(), bool)
+
+    def test_getgrgid_reads_root_on_unix(self):
+        if not is_available():
+            self.skipTest("grp module not available")
+        record = getgrgid(0)
+        self.assertIsInstance(record, Group)
+        self.assertEqual(record.gid, 0)
+        self.assertIsInstance(record.name, str)
+        self.assertIsInstance(record.mem, list)
+        # tuple unpacking works
+        name, passwd, gid, mem = record
+        self.assertEqual(name, record.name)
+        self.assertEqual(gid, record.gid)
+
+    def test_getgrnam_reads_root_on_unix(self):
+        if not is_available():
+            self.skipTest("grp module not available")
+        record = getgrnam("root")
+        self.assertIsInstance(record, Group)
+        self.assertEqual(record.gid, 0)
+        self.assertEqual(record.name, "root")
+
+    def test_getgrall_returns_list(self):
+        if not is_available():
+            self.skipTest("grp module not available")
+        records = getgrall()
+        self.assertIsInstance(records, list)
+        self.assertGreater(len(records), 0)
+        self.assertIsInstance(records[0], Group)
+
+    def test_getgrgid_validates_arguments(self):
+        with self.assertRaises(TypeError):
+            getgrgid("0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            getgrgid(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            getgrgid(-1)
+
+    def test_getgrnam_validates_arguments(self):
+        with self.assertRaises(TypeError):
+            getgrnam(0)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            getgrnam("")
+
+    def test_getgrgid_missing_raises_keyerror(self):
+        if not is_available():
+            self.skipTest("grp module not available")
+        with self.assertRaises(KeyError):
+            getgrgid(99999)
+
+    def test_getgrnam_missing_raises_keyerror(self):
+        if not is_available():
+            self.skipTest("grp module not available")
+        with self.assertRaises(KeyError):
+            getgrnam("thisgroupdoesnotexist12345")
+
+    def test_missing_module_raises_runtimeerror(self):
+        with patch("grp_utils._grp", None):
+            with self.assertRaises(RuntimeError):
+                getgrgid(0)
+            with self.assertRaises(RuntimeError):
+                getgrnam("root")
+            with self.assertRaises(RuntimeError):
+                getgrall()
+TEST_GRP_UTILS
+
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

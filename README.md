@@ -253,6 +253,8 @@ xmlrpc_utils.py             # XML-RPC utilities wrapping stdlib xmlrpc (dumps_va
 syslog_utils.py             # System logging utilities wrapping stdlib syslog (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, facility_name)
 faulthandler_utils.py        # Fault handler utilities wrapping stdlib faulthandler (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister)
 resource_utils.py            # Resource usage utilities wrapping stdlib resource (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available)
+pwd_utils.py                 # Password database utilities wrapping stdlib pwd (getpwuid, getpwnam, getpwall)
+grp_utils.py                 # Group database utilities wrapping stdlib grp (getgrgid, getgrnam, getgrall)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -419,6 +421,8 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_syslog_utils.py        # Tests for syslog_utils.py
     test_faulthandler_utils.py   # Tests for faulthandler_utils.py
     test_resource_utils.py       # Tests for resource_utils.py
+    test_pwd_utils.py            # Tests for pwd_utils.py
+    test_grp_utils.py            # Tests for grp_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -1418,3 +1422,11 @@ tests/test_resource_utils.py - Tests for resource_utils module
 ## Resource Utilities Module
 
 The project includes resource usage utilities in `resource_utils.py` wrapping the standard library `resource` module: `get_rlimit` reads the soft and the hard limit of a resource for the running process, `set_rlimit` sets the limits of a resource for the running process, `prlimit` reads or sets the limits of another process, `get_rusage` reports the resource usage of a process, `get_page_size` returns the size of a memory page, `limit_names` returns the limit constants of the host platform, `limit_value` and `limit_name` translate a limit between its name and its value, `usage_names` returns the usage constants, `usage_as_dict` turns a usage record into a dictionary, and `is_available` reports whether the interpreter ships the standard library module. The limits are returned in a `Limit` named tuple with a `soft` and a `hard` field, the usage is returned in a `Usage` named tuple with the same fields on every platform, and every limit can be addressed by its name such as `"RLIMIT_NOFILE"`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `resource` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers that talk to the operating system raise a `RuntimeError` elsewhere, and `prlimit` is only available on Linux. The module is tested in `tests/test_resource_utils.py`.
+
+## Password Database Utilities Module
+
+The project includes password database utilities in `pwd_utils.py` wrapping the standard library `pwd` module: `getpwuid` looks up a user by numeric identifier, `getpwnam` looks up a user by name, `getpwall` returns every entry in the password database, and `is_available` reports whether the interpreter ships the standard library module. Records are returned as `Passwd` named tuples with the fields `name`, `passwd`, `uid`, `gid`, `gecos`, `dir`, and `shell`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments, while lookups for missing entries raise `KeyError`. The `pwd` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_pwd_utils.py`.
+
+## Group Database Utilities Module
+
+The project includes group database utilities in `grp_utils.py` wrapping the standard library `grp` module: `getgrgid` looks up a group by numeric identifier, `getgrnam` looks up a group by name, `getgrall` returns every entry in the group database, and `is_available` reports whether the interpreter ships the standard library module. Records are returned as `Group` named tuples with the fields `name`, `passwd`, `gid`, and `mem`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments, while lookups for missing entries raise `KeyError`. The `grp` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_grp_utils.py`.
