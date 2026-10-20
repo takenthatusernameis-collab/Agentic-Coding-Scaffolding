@@ -1,6 +1,12 @@
+## Unreleased
+
+- Add `webbrowser_utils.py` wrapping the standard library `webbrowser` module (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers, Error) with input validation, plus unit tests in `tests/test_webbrowser_utils.py`.
+- Synchronized `webbrowser_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Add `xmlrpc_utils.py` wrapping the standard library `xmlrpc` package (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, marshal_params, unmarshal_params, create_marshaller, create_transport, create_proxy, create_dispatcher, register_function, register_instance, register_introspection_functions, register_multicall_functions, resolve_dotted_attribute, list_public_methods, create_server, create_multi_path_server) with input validation, plus unit tests in `tests/test_xmlrpc_utils.py`.
+- Synchronized `xmlrpc_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired the misplaced `ftplib_utils.py` and `poplib_utils.py` entries, which had been written above the `## Unreleased` heading of this changelog.
 - Add `ftplib_utils.py` wrapping the standard library `ftplib` module (FTP, FTP_TLS, error classes, FTP_PORT, MAXLINE, create_ftp, create_ftp_tls, connect_ftp, parse257, parse150, parse227, parse229) with input validation, plus unit tests in `tests/test_ftplib_utils.py`.
 - Add `poplib_utils.py` wrapping the standard library `poplib` module (POP3, POP3_SSL, error_proto, POP3_PORT, POP3_SSL_PORT, create_pop3, create_pop3_ssl, connect_pop3) with input validation, plus unit tests in `tests/test_poplib_utils.py`.
-## Unreleased
 
 - Add `smtplib_utils.py` wrapping the standard library `smtplib` module (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text) with input validation, plus unit tests in `tests/test_smtplib_utils.py`.
 - Synchronized `smtplib_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.

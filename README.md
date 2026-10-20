@@ -248,6 +248,8 @@ ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
+webbrowser_utils.py         # Web browser utilities wrapping stdlib webbrowser (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers)
+xmlrpc_utils.py             # XML-RPC utilities wrapping stdlib xmlrpc (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, create_proxy, create_server)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -406,9 +408,11 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_version_utils.py       # Tests for version_utils.py
   test_semver_utils.py        # Tests for semver_utils.py
   test_interval_utils.py      # Tests for interval_utils.py
-test_weakref_utils.py       # Tests for weakref_utils.py
-   test_warnings_utils.py      # Tests for warnings_utils.py
-   test_xml_utils.py           # Tests for xml_utils.py
+ test_weakref_utils.py       # Tests for weakref_utils.py
+    test_warnings_utils.py      # Tests for warnings_utils.py
+    test_webbrowser_utils.py    # Tests for webbrowser_utils.py
+    test_xml_utils.py           # Tests for xml_utils.py
+    test_xmlrpc_utils.py        # Tests for xmlrpc_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -1373,3 +1377,17 @@ tests/test_poplib_utils.py - Tests for poplib_utils module
 ## Poplib Utilities Module
 
 The project includes POP3 utilities in `poplib_utils.py` wrapping the standard library `poplib` module: `POP3`, `POP3_SSL`, `error_proto`, `POP3_PORT`, `POP3_SSL_PORT`, plus validated helpers `create_pop3`, `create_pop3_ssl`, `connect_pop3`.
+
+
+tests/test_webbrowser_utils.py - Tests for webbrowser_utils module
+
+## Webbrowser Utilities Module
+
+The project includes web browser utilities in `webbrowser_utils.py` wrapping the standard library `webbrowser` module: `open_url` displays a URL with the default browser, `open_new` opens a URL in a new browser window, `open_new_tab` opens a URL in a new browser tab, `get_controller` returns the controller of a registered browser, `register_browser` registers a browser controller class under a name, and `register_standard_browsers` registers the browsers the standard library can discover on the system. `Error` is re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments, so a caller never reaches the browser with a malformed request. The module is tested in `tests/test_webbrowser_utils.py`.
+
+
+tests/test_xmlrpc_utils.py - Tests for xmlrpc_utils module
+
+## Xmlrpc Utilities Module
+
+The project includes XML-RPC utilities in `xmlrpc_utils.py` wrapping the standard library `xmlrpc` package: `dumps_value` encodes arguments into a request or response document, `loads_value` decodes a document into its arguments and method name, `build_request` builds a method call document, `parse_method_call` parses a method call, `parse_method_response` parses a method response and raises `Fault` for a fault, `marshal_params` and `unmarshal_params` encode and decode a bare `<params>` document, `create_marshaller` and `create_transport` build the standard library encoding and transport objects, `create_proxy` builds a lazy client proxy, `create_dispatcher` builds a dispatcher that maps remote calls onto local callables, `register_function`, `register_instance`, `register_introspection_functions` and `register_multicall_functions` populate a dispatcher, `resolve_dotted_attribute` and `list_public_methods` inspect the objects a dispatcher exposes, and `create_server` and `create_multi_path_server` build the standard library servers. `Fault`, `ProtocolError`, `ResponseError`, `Binary`, `DateTime`, `Marshaller`, `Unmarshaller`, `Transport`, `ServerProxy`, `MultiCall`, `SimpleXMLRPCServer`, `MultiPathXMLRPCServer`, `SimpleXMLRPCDispatcher`, and the standard library request handlers are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The encoding helpers are pure computation and the connection helpers only build objects, so the module never opens a connection on its own. The module is tested in `tests/test_xmlrpc_utils.py`.

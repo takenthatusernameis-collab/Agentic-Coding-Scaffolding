@@ -1,6 +1,82 @@
-## Latest Session (2026-10-20) — webbrowser sync pending
+## Latest Session (2026-10-20) — webbrowser synchronized, xmlrpc added
 
-webbrowser_utils.py and its test were added but not synchronized across README, CHANGELOG, scaffold-project.md, test_scaffold.py, or scaffold.sh. Next agent: complete synchronization following the ftplib_utils/poplib_utils pattern, then pick the next stdlib wrapper (xmlrpc or syslog).
+The board held no task, so this session completed the interrupted `webbrowser_utils` handover and then added the next wrapper module.
+
+Completed in the latest session:
+
+- Completed the `webbrowser_utils.py` synchronization. The module and its test existed and were registered in `pyproject.toml`, but they were missing from the `scaffold.sh` header comment, the generator heredocs, the embedded `pyproject.toml`, the embedded README tree and module sections, the embedded CHANGELOG, the README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and `CHANGELOG.md`. All of those surfaces are now in sync.
+- Rewrote `webbrowser_utils.py` to match the conventions of the other wrappers: typed signatures, docstrings, `__all__`, and input validation. `TypeError` is raised for an argument of the wrong type and `ValueError` for an argument of the right type but an unusable value, and `open_url` now validates the `autoraise` flag as well. The module re-exports `Error` and adds `register_standard_browsers` next to `open_url`, `open_new`, `open_new_tab`, `get_controller`, and `register_browser`.
+- Added `xmlrpc_utils.py` wrapping the standard library `xmlrpc` package (`dumps_value`, `loads_value`, `build_request`, `parse_method_call`, `parse_method_response`, `marshal_params`, `unmarshal_params`, `create_marshaller`, `create_transport`, `create_proxy`, `create_dispatcher`, `register_function`, `register_instance`, `register_introspection_functions`, `register_multicall_functions`, `resolve_dotted_attribute`, `list_public_methods`, `create_server`, `create_multi_path_server`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_xmlrpc_utils.py`. `Fault`, `ProtocolError`, `ResponseError`, `Binary`, `DateTime`, `Marshaller`, `Unmarshaller`, `Transport`, `SafeTransport`, `ServerProxy`, `MultiCall`, `MultiCallIterator`, `SimpleXMLRPCServer`, `MultiPathXMLRPCServer`, `SimpleXMLRPCDispatcher`, `SimpleXMLRPCRequestHandler`, and `CGIXMLRPCRequestHandler` are re-exported.
+- The wrapper covers both halves of the protocol. The encoding helpers are pure computation, `create_proxy` builds a lazy client proxy that opens no connection until a remote method is called, and `create_server` and `create_multi_path_server` only build the standard library servers so the caller decides when a socket is bound. The test suite therefore stays hermetic: the server helpers are exercised with `unittest.mock.patch("xmlrpc_utils._server.SimpleXMLRPCServer")` and `unittest.mock.patch("xmlrpc_utils._server.MultiPathXMLRPCServer")`, so no test ever opens a socket.
+- Repaired a pre-existing drift in the `pyproject.toml` template embedded in `scaffold.sh`: its `py_modules` list was missing `mailcap_utils`, `pickletools_utils`, `opcode_utils`, `webbrowser_utils`, and `xmlrpc_utils`, so a scaffolded project did not register every module it ships.
+- Repaired the pre-existing `ruff` `E501` failures in `ftplib_utils.py`: the two `ftplib.FTP` and `ftplib.FTP_TLS` constructor calls were written on a single over-long line and are now split across one argument per line.
+- Repaired the misplaced `ftplib_utils.py` and `poplib_utils.py` entries in `CHANGELOG.md`: they had been written above the `## Unreleased` heading. The same two entries were missing from the changelog template embedded in `scaffold.sh`, and the embedded README template was missing the `Ftplib`, `Poplib`, `Webbrowser`, and `Xmlrpc` module sections. All of them are now present.
+- Synchronized the new modules across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh` header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README tree and module sections, the embedded CHANGELOG, the README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships `webbrowser_utils.py`, `xmlrpc_utils.py`, and both of their tests, its 3723 tests, ruff, and mypy all pass, and a second generation project scaffolds correctly as well.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are
+  `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
+  `sndhdr` (removed in Python 3.13), `cgitb` (removed in Python 3.13), `syslog`, `termios`,
+  `fcntl`, `grp`, `pwd`, `pty`, `resource`, and `encodings`. A natural next candidate is
+  `syslog_utils.py` wrapping the standard library `syslog` module: the `openlog`, `syslog`,
+  `closelog`, `setlogmask`, and `LOG_*` priority constants follow the same pattern as
+  `xmlrpc_utils.py`. Note that `syslog` is a Unix-only module, so the module has to import it
+  defensively and raise a `RuntimeError` on platforms that do not ship it — the same pattern
+  `uu_utils.py` uses for the removed `uu` module and `xdrlib_utils.py` uses for `xdrlib`. The
+  `syslog` functions write to the system log, so the tests must patch
+  `syslog_utils._syslog.openlog`, `syslog_utils._syslog.syslog`, and
+  `syslog_utils._syslog.closelog` and must never write to the real system log.
+- Keep every new wrapper hermetic: the test suite must never open a network connection or block on a
+  subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with
+  `unittest.mock.patch` instead of real servers. `smtplib_utils.py` follows it: the tests replay
+  scripted server replies through a fake socket and never touch the network. `xmlrpc_utils.py`
+  follows it as well: the server helpers are patched and the encoding helpers only compare
+  strings. The same rule applies to the compiler wrappers: `compileall_utils.py` narrows
+  `sys.path` with `unittest.mock.patch` so the suite never byte-compiles the interpreter's own
+  import path. `modulefinder_utils.py` follows the rule as well: the analysis is static, so the
+  analysed script is never imported or executed, and the tests restrict the search path to a
+  temporary directory so the suite never scans the whole import path. `optparse_utils.py` follows
+  it too: the parser never touches the network, and the tests parse command lines from lists
+  instead of `sys.argv`, except for one test that patches `sys.argv` with `unittest.mock.patch`.
+  `xdrlib_utils.py` follows it as well: the XDR encoding is pure computation, so the tests only
+  compare byte strings.
+- Keep `make lint` and `make typecheck` green. The previous session left two `E501` failures in
+  `ftplib_utils.py`; the latest session repaired them, so a new module must not reintroduce the
+  drift.
+- Consider strengthening `tests/test_scaffold_sync.py`: it verifies the repository surfaces but
+  not that the `pyproject.toml` template embedded in `scaffold.sh` registers every module, which
+  is how the `mailcap_utils`, `pickletools_utils`, and `opcode_utils` entries went missing.
+
+Previously completed:
+
+- Added `smtplib_utils.py` wrapping the standard library `smtplib` module (`quoteaddr`,
+  `quote_string`, `quote_data`, `parse_address`, `address_only`, `format_address`, `getfqdn`,
+  `parse_response`, `parse_ehlo_features`, `build_message`, `create_smtp`, `create_smtp_ssl`,
+  `create_lmtp`, `send_message`, `send_text`) with typed signatures, docstrings, `__all__`, and input
+  validation, plus unit tests in `tests/test_smtplib_utils.py`. `SMTP`, `SMTP_SSL`, `LMTP`, and the
+  standard library error classes (`SMTPException`, `SMTPNotSupportedError`, `SMTPServerDisconnected`,
+  `SMTPResponseException`, `SMTPSenderRefused`, `SMTPRecipientsRefused`, `SMTPDataError`,
+  `SMTPConnectError`, `SMTPHeloError`, `SMTPAuthenticationError`) are re-exported.
+- The wrapper adds three conveniences the standard library does not offer: every argument is
+  validated before the standard library is reached, `build_message` assembles a complete
+  `email.message.EmailMessage` from plain values (and guesses the media type of an attachment from
+  its file name), and `parse_response` and `parse_ehlo_features` parse captured server replies
+  without needing a connection.
+- The wrapper never opens a connection on its own: `create_smtp`, `create_smtp_ssl` and `create_lmtp`
+  build the standard library clients, and `send_message` and `send_text` operate on a client the
+  caller already owns. The test suite therefore stays hermetic — `tests/test_smtplib_utils.py`
+  replays scripted server replies through a fake socket installed with
+  `unittest.mock.patch("socket.create_connection")`, so no test ever opens a network connection, and
+  the SSL client is exercised by patching `ssl.SSLContext.wrap_socket`.
+- Synchronized the new module across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh`
+  header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README
+  tree and module section, the embedded CHANGELOG, the README tree and module section,
+  `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `smtplib_utils.py` and `tests/test_smtplib_utils.py`, its 3652 tests, ruff, and mypy all pass, and
+  a second generation project scaffolds correctly as well.
 
 ## Project
 
@@ -22,7 +98,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 3726 tests across all wrapper modules (1720 subtests)
+- 3797 tests across all wrapper modules (1752 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -32,14 +108,14 @@ The project foundation is established:
   documented in `README.md`, listed in `.kilo/command/scaffold-project.md` and `CHANGELOG.md`, and
   asserted in `tests/test_scaffold.py`
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 3652 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 3723 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 420 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 428 source files
 
 ## Keeping the Scaffold Synchronized
 
@@ -54,11 +130,11 @@ The tool rewrites the embedded copies from the repository sources. Run it with `
 stale copies without rewriting the generator; the same command runs as part of the test suite
 expectation in `tests/test_scaffold_sync.py`.
 
-## Latest Session (2026-10-20)
+## Earlier Session (2026-10-20) — smtplib
 
 The board held no task, so this session added the next wrapper module.
 
-Completed in the latest session:
+Completed in that session:
 
 - Added `smtplib_utils.py` wrapping the standard library `smtplib` module (`quoteaddr`,
   `quote_string`, `quote_data`, `parse_address`, `address_only`, `format_address`, `getfqdn`,

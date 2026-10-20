@@ -251,4 +251,5 @@ py_modules = [
     "smtplib_utils",
     "ftplib_utils",
     "poplib_utils",
+    "xmlrpc_utils",
 ]

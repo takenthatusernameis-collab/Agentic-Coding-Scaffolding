@@ -667,9 +667,13 @@
 #   - smtplib_utils.py — # Smtplib utilities wrapping the standard library smtplib module (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text)
 #   - ftplib_utils.py — # Ftplib utilities wrapping the standard library ftplib (FTP, FTP_TLS, create_ftp, create_ftp_tls, connect_ftp, parse257, parse150, parse227, parse229)
 #   - poplib_utils.py — # Poplib utilities wrapping the standard library poplib (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
+#   - webbrowser_utils.py — # Web browser utilities wrapping the standard library webbrowser (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers)
+#   - xmlrpc_utils.py — # XML-RPC utilities wrapping the standard library xmlrpc (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, create_proxy, create_server)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
+#   - tests/test_webbrowser_utils.py — # Tests for webbrowser_utils.py
+#   - tests/test_xmlrpc_utils.py — # Tests for xmlrpc_utils.py
 set -euo pipefail
 
 usage() {
@@ -4286,6 +4290,11 @@ py_modules = [
     "timeit_utils",
     "unittest_utils",
     "uu_utils",
+    "mailcap_utils",
+    "pickletools_utils",
+    "opcode_utils",
+    "webbrowser_utils",
+    "xmlrpc_utils",
 ]
 
 PYPROJECT
@@ -26845,6 +26854,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `fnmatch_utils.py` — filename pattern matching utilities wrapping the standard library `fnmatch` module (`match`, `match_case`, `filter_names`, `translate`) with input validation
 - `getpass_utils.py` — secure password input utilities wrapping the standard library `getpass` module (`getpass`, `getuser`) with input validation
 - `poplib_utils.py` — poplib utilities wrapping the standard library `poplib` module (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
+- `webbrowser_utils.py` — web browser utilities wrapping the standard library `webbrowser` module (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers) with input validation
+- `xmlrpc_utils.py` — XML-RPC utilities wrapping the standard library `xmlrpc` package (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, marshal_params, unmarshal_params, create_marshaller, create_transport, create_proxy, create_dispatcher, register_function, register_instance, register_introspection_functions, register_multicall_functions, resolve_dotted_attribute, list_public_methods, create_server, create_multi_path_server) with input validation
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27046,6 +27057,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_getpass_utils.py` — unit tests for `getpass_utils.py`
 - `tests/test_pathlib_utils.py` — unit tests for `pathlib_utils.py`
 - `tests/test_poplib_utils.py` — unit tests for `poplib_utils.py`
+- `tests/test_webbrowser_utils.py` — unit tests for `webbrowser_utils.py`
+- `tests/test_xmlrpc_utils.py` — unit tests for `xmlrpc_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -28314,6 +28327,8 @@ ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
+webbrowser_utils.py         # Web browser utilities wrapping stdlib webbrowser (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers)
+xmlrpc_utils.py             # XML-RPC utilities wrapping stdlib xmlrpc (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, create_proxy, create_server)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -28472,8 +28487,10 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_semver_utils.py        # Tests for semver_utils.py
   test_interval_utils.py      # Tests for interval_utils.py
 test_weakref_utils.py       # Tests for weakref_utils.py
-   test_warnings_utils.py      # Tests for warnings_utils.py
-   test_xml_utils.py           # Tests for xml_utils.py
+    test_warnings_utils.py      # Tests for warnings_utils.py
+    test_webbrowser_utils.py    # Tests for webbrowser_utils.py
+    test_xml_utils.py           # Tests for xml_utils.py
+    test_xmlrpc_utils.py        # Tests for xmlrpc_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -29383,6 +29400,22 @@ The project includes XDR (eXternal Data Representation) utilities in `xdrlib_uti
 
 The project includes SMTP client utilities in `smtplib_utils.py` wrapping the standard library `smtplib` module: `quoteaddr` quotes an address the way a server expects it; `quote_string` quotes a string so that it can be used inside a header; `quote_data` quotes a message body so that it cannot end the message early; `parse_address` splits an address into its display name and its address; `address_only` returns an address without its display name; `format_address` formats a display name and an address as a single header value; `getfqdn` returns the fully qualified domain name of a host; `parse_response` parses a raw server reply into its code and its message; and `parse_ehlo_features` parses the service extensions a server announced in its EHLO reply. `build_message` assembles a complete `email.message.EmailMessage` from plain values and guesses the media type of an attachment from its file name. `create_smtp`, `create_smtp_ssl`, and `create_lmtp` build the standard library clients, and `send_message` and `send_text` send a message with a client the caller already owns. `SMTP`, `SMTP_SSL`, `LMTP`, and the standard library error classes are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module never opens a connection on its own, so the caller stays in control of when a connection is attempted and the test suite stays hermetic. The module is tested in `tests/test_smtplib_utils.py`.
 
+## Ftplib Utilities Module
+
+The project includes FTP utilities in `ftplib_utils.py` wrapping the standard library `ftplib` module: `FTP` and `FTP_TLS` classes, `error_reply`, `error_temp`, `error_perm`, `error_proto`, `all_errors`, `FTP_PORT`, `MAXLINE`, plus validated helpers `create_ftp`, `create_ftp_tls`, `connect_ftp`, `parse257`, `parse150`, `parse227`, `parse229`. The module is tested in `tests/test_ftplib_utils.py`.
+
+## Poplib Utilities Module
+
+The project includes POP3 utilities in `poplib_utils.py` wrapping the standard library `poplib` module: `POP3`, `POP3_SSL`, `error_proto`, `POP3_PORT`, `POP3_SSL_PORT`, plus validated helpers `create_pop3`, `create_pop3_ssl`, `connect_pop3`. The module is tested in `tests/test_poplib_utils.py`.
+
+## Webbrowser Utilities Module
+
+The project includes web browser utilities in `webbrowser_utils.py` wrapping the standard library `webbrowser` module: `open_url` displays a URL with the default browser, `open_new` opens a URL in a new browser window, `open_new_tab` opens a URL in a new browser tab, `get_controller` returns the controller of a registered browser, `register_browser` registers a browser controller class under a name, and `register_standard_browsers` registers the browsers the standard library can discover on the system. `Error` is re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments, so a caller never reaches the browser with a malformed request. The module is tested in `tests/test_webbrowser_utils.py`.
+
+## Xmlrpc Utilities Module
+
+The project includes XML-RPC utilities in `xmlrpc_utils.py` wrapping the standard library `xmlrpc` package: `dumps_value` encodes arguments into a request or response document, `loads_value` decodes a document into its arguments and method name, `build_request` builds a method call document, `parse_method_call` parses a method call, `parse_method_response` parses a method response and raises `Fault` for a fault, `marshal_params` and `unmarshal_params` encode and decode a bare `<params>` document, `create_marshaller` and `create_transport` build the standard library encoding and transport objects, `create_proxy` builds a lazy client proxy, `create_dispatcher` builds a dispatcher that maps remote calls onto local callables, `register_function`, `register_instance`, `register_introspection_functions` and `register_multicall_functions` populate a dispatcher, `resolve_dotted_attribute` and `list_public_methods` inspect the objects a dispatcher exposes, and `create_server` and `create_multi_path_server` build the standard library servers. `Fault`, `ProtocolError`, `ResponseError`, `Binary`, `DateTime`, `Marshaller`, `Unmarshaller`, `Transport`, `ServerProxy`, `MultiCall`, `SimpleXMLRPCServer`, `MultiPathXMLRPCServer`, `SimpleXMLRPCDispatcher`, and the standard library request handlers are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The encoding helpers are pure computation and the connection helpers only build objects, so the module never opens a connection on its own. The module is tested in `tests/test_xmlrpc_utils.py`.
+
 ## Hello Module
 
 The project includes a sample application entry point in `hello.py`: `main` prints a greeting for the given name and defaults to `"World"`, and running the module directly greets the name given on the command line. The module is tested in `tests/test_hello.py`.
@@ -29401,6 +29434,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Add `webbrowser_utils.py` wrapping the standard library `webbrowser` module (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers, Error) with input validation, plus unit tests in `tests/test_webbrowser_utils.py`.
+- Synchronized `webbrowser_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Add `xmlrpc_utils.py` wrapping the standard library `xmlrpc` package (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, marshal_params, unmarshal_params, create_marshaller, create_transport, create_proxy, create_dispatcher, register_function, register_instance, register_introspection_functions, register_multicall_functions, resolve_dotted_attribute, list_public_methods, create_server, create_multi_path_server) with input validation, plus unit tests in `tests/test_xmlrpc_utils.py`.
+- Synchronized `xmlrpc_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired the embedded `pyproject.toml` template, which was missing the `mailcap_utils`, `pickletools_utils`, `opcode_utils`, `webbrowser_utils`, and `xmlrpc_utils` entries of its `py_modules` list.
+- Add `ftplib_utils.py` wrapping the standard library `ftplib` module (FTP, FTP_TLS, error classes, FTP_PORT, MAXLINE, create_ftp, create_ftp_tls, connect_ftp, parse257, parse150, parse227, parse229) with input validation, plus unit tests in `tests/test_ftplib_utils.py`.
+- Add `poplib_utils.py` wrapping the standard library `poplib` module (POP3, POP3_SSL, error_proto, POP3_PORT, POP3_SSL_PORT, create_pop3, create_pop3_ssl, connect_pop3) with input validation, plus unit tests in `tests/test_poplib_utils.py`.
 - Add `smtplib_utils.py` wrapping the standard library `smtplib` module (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text) with input validation, plus unit tests in `tests/test_smtplib_utils.py`.
 - Synchronized `smtplib_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `xdrlib_utils.py` wrapping the standard library `xdrlib` module (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array) with input validation, plus unit tests in `tests/test_xdrlib_utils.py`.
@@ -65483,7 +65523,15 @@ def create_ftp(
             raise TypeError("source_address must be a (host, port) tuple or None")
     if not isinstance(encoding, str):
         raise TypeError("encoding must be a str")
-    ftp = ftplib.FTP(host=host, user=user, passwd=passwd, acct=acct,              timeout=timeout, source_address=source_address, encoding=encoding)  # type: ignore[arg-type]
+    ftp = ftplib.FTP(
+        host=host,
+        user=user,
+        passwd=passwd,
+        acct=acct,
+        timeout=timeout,
+        source_address=source_address,
+        encoding=encoding,
+    )  # type: ignore[arg-type]
     return ftp
 
 
@@ -65518,8 +65566,16 @@ def create_ftp_tls(
             raise TypeError("source_address must be a (host, port) tuple or None")
     if not isinstance(encoding, str):
         raise TypeError("encoding must be a str")
-    ftp = ftplib.FTP_TLS(host=host, user=user, passwd=passwd, acct=acct,                  context=context, timeout=timeout, source_address=source_address,
-                  encoding=encoding)  # type: ignore[arg-type]
+    ftp = ftplib.FTP_TLS(
+        host=host,
+        user=user,
+        passwd=passwd,
+        acct=acct,
+        context=context,
+        timeout=timeout,
+        source_address=source_address,
+        encoding=encoding,
+    )  # type: ignore[arg-type]
     return ftp
 
 
@@ -65872,6 +65928,1122 @@ class TestConnectPOP3(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_POPLIB_UTILS
+
+# --- webbrowser_utils.py ---
+cat > "$OUTPUT_DIR/webbrowser_utils.py" <<'WEBBROWSER_UTILS'
+"""Web browser utilities wrapping the standard library :mod:`webbrowser` module.
+
+The standard library module launches a browser for a URL and keeps a registry
+of the browsers it knows about.  The helpers in this module validate their
+arguments before the standard library is reached, so a caller gets a clear
+``TypeError`` or ``ValueError`` instead of a browser failing halfway through a
+launch.
+"""
+
+from __future__ import annotations
+
+import webbrowser as _webbrowser
+from typing import Any
+
+__all__: list[str] = [
+    "Error",
+    "open_url",
+    "open_new",
+    "open_new_tab",
+    "get_controller",
+    "register_browser",
+    "register_standard_browsers",
+]
+
+Error = _webbrowser.Error
+
+
+def _require_url(url: object) -> str:
+    """Return *url* when it is a usable URL string."""
+    if not isinstance(url, str):
+        raise TypeError(f"url must be a str, got {type(url).__name__}")
+    if not url:
+        raise ValueError("url must not be empty")
+    return url
+
+
+def _require_new(new: object) -> int:
+    """Return *new* when it is one of the three documented window modes."""
+    if isinstance(new, bool) or not isinstance(new, int):
+        raise TypeError(f"new must be an int, got {type(new).__name__}")
+    if new not in (0, 1, 2):
+        raise ValueError(f"new must be 0, 1, or 2, got {new}")
+    return new
+
+
+def open_url(url: str, new: int = 0, autoraise: bool = True) -> bool:
+    """Display *url* using the default browser.
+
+    Args:
+        url: The URL to open.
+        new: 0 = same window, 1 = new window, 2 = new tab.
+        autoraise: Whether to raise the window.
+
+    Returns:
+        True when a browser was launched successfully.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If the URL is empty or ``new`` is not a window mode.
+    """
+    _require_url(url)
+    _require_new(new)
+    if not isinstance(autoraise, bool):
+        raise TypeError(f"autoraise must be a bool, got {type(autoraise).__name__}")
+    return bool(_webbrowser.open(url, new=new, autoraise=autoraise))
+
+
+def open_new(url: str) -> bool:
+    """Open *url* in a new browser window.
+
+    Args:
+        url: The URL to open.
+
+    Returns:
+        True when a browser was launched successfully.
+    """
+    _require_url(url)
+    return bool(_webbrowser.open_new(url))
+
+
+def open_new_tab(url: str) -> bool:
+    """Open *url* in a new browser tab.
+
+    Args:
+        url: The URL to open.
+
+    Returns:
+        True when a browser was launched successfully.
+    """
+    _require_url(url)
+    return bool(_webbrowser.open_new_tab(url))
+
+
+def get_controller(using: str | None = None) -> Any:
+    """Return a browser controller.
+
+    Args:
+        using: The name of a registered browser, or ``None`` for the default.
+
+    Returns:
+        The controller object, or ``None`` when no browser is available.
+    """
+    if using is not None:
+        if not isinstance(using, str):
+            raise TypeError(f"using must be a str or None, got {type(using).__name__}")
+        if not using:
+            raise ValueError("using must not be empty")
+    return _webbrowser.get(using)
+
+
+def register_browser(
+    name: str,
+    klass: Any,
+    instance: Any = None,
+    *,
+    preferred: bool = False,
+) -> None:
+    """Register a browser controller class under *name*.
+
+    Args:
+        name: The name the browser is registered under.
+        klass: The controller class.
+        instance: An optional controller instance used instead of *klass*.
+        preferred: Whether the browser becomes the preferred one.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    if not name:
+        raise ValueError("name must not be empty")
+    if not isinstance(preferred, bool):
+        raise TypeError(f"preferred must be a bool, got {type(preferred).__name__}")
+    _webbrowser.register(name, klass, instance, preferred=preferred)
+
+
+def register_standard_browsers() -> None:
+    """Register the browsers the standard library can discover on this system."""
+    _webbrowser.register_standard_browsers()
+WEBBROWSER_UTILS
+
+# --- tests/test_webbrowser_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_webbrowser_utils.py" <<'TEST_WEBBROWSER_UTILS'
+import unittest
+from unittest.mock import patch
+
+from webbrowser_utils import (
+    Error,
+    get_controller,
+    open_new,
+    open_new_tab,
+    open_url,
+    register_browser,
+    register_standard_browsers,
+)
+
+
+class TestWebbrowserUtils(unittest.TestCase):
+    def test_open_url_invalid(self):
+        with self.assertRaises(ValueError):
+            open_url("")
+        with self.assertRaises(TypeError):
+            open_url(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            open_url("http://x", new=5)
+        with self.assertRaises(TypeError):
+            open_url("http://x", new="1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            open_url("http://x", autoraise="yes")  # type: ignore[arg-type]
+
+    @patch("webbrowser_utils._webbrowser.open", return_value=True)
+    def test_open_url(self, mock_open):
+        self.assertTrue(open_url("http://example.com", new=1, autoraise=False))
+        mock_open.assert_called_with("http://example.com", new=1, autoraise=False)
+
+    @patch("webbrowser_utils._webbrowser.open", return_value=False)
+    def test_open_url_reports_failure(self, mock_open):
+        self.assertFalse(open_url("http://example.com"))
+        mock_open.assert_called_once()
+
+    @patch("webbrowser_utils._webbrowser.open_new", return_value=True)
+    def test_open_new(self, mock_open):
+        self.assertTrue(open_new("http://example.com"))
+        mock_open.assert_called_with("http://example.com")
+
+    @patch("webbrowser_utils._webbrowser.open_new_tab", return_value=True)
+    def test_open_new_tab(self, mock_open):
+        self.assertTrue(open_new_tab("http://example.com"))
+        mock_open.assert_called_with("http://example.com")
+
+    def test_open_new_invalid(self):
+        with self.assertRaises(ValueError):
+            open_new("")
+        with self.assertRaises(TypeError):
+            open_new(None)  # type: ignore[arg-type]
+
+    def test_open_new_tab_invalid(self):
+        with self.assertRaises(ValueError):
+            open_new_tab("")
+        with self.assertRaises(TypeError):
+            open_new_tab(None)  # type: ignore[arg-type]
+
+    @patch("webbrowser_utils._webbrowser.get", return_value="ctrl")
+    def test_get_controller(self, mock_get):
+        self.assertEqual(get_controller("firefox"), "ctrl")
+        mock_get.assert_called_with("firefox")
+
+    @patch("webbrowser_utils._webbrowser.get", return_value="ctrl")
+    def test_get_controller_default(self, mock_get):
+        self.assertEqual(get_controller(), "ctrl")
+        mock_get.assert_called_with(None)
+
+    def test_get_controller_invalid(self):
+        with self.assertRaises(ValueError):
+            get_controller("")
+        with self.assertRaises(TypeError):
+            get_controller(5)  # type: ignore[arg-type]
+
+    @patch("webbrowser_utils._webbrowser.register")
+    def test_register_browser(self, mock_reg):
+        class K:
+            pass
+
+        register_browser("mybrowser", K, preferred=True)
+        mock_reg.assert_called_with("mybrowser", K, None, preferred=True)
+
+    def test_register_browser_invalid(self):
+        with self.assertRaises(ValueError):
+            register_browser("", object)
+        with self.assertRaises(TypeError):
+            register_browser(5, object)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            register_browser("name", object, preferred="yes")  # type: ignore[arg-type]
+
+    @patch("webbrowser_utils._webbrowser.register_standard_browsers")
+    def test_register_standard_browsers(self, mock_register):
+        register_standard_browsers()
+        mock_register.assert_called_once_with()
+
+    def test_error_is_exception(self):
+        self.assertTrue(issubclass(Error, Exception))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_WEBBROWSER_UTILS
+
+# --- xmlrpc_utils.py ---
+cat > "$OUTPUT_DIR/xmlrpc_utils.py" <<'XMLRPC_UTILS'
+"""XML-RPC utilities wrapping the standard library :mod:`xmlrpc` package.
+
+The module covers both halves of the protocol: the client half
+(:mod:`xmlrpc.client`) and the server half (:mod:`xmlrpc.server`).  Every
+helper validates its arguments before the standard library is reached, so a
+caller gets a clear ``TypeError`` or ``ValueError`` instead of a malformed
+request.
+
+The encoding helpers are pure computation and never touch the network.  The
+helpers that would open a connection (``create_proxy``) or bind a socket
+(``create_server``, ``create_multi_path_server``) only build the standard
+library objects, so the caller stays in control of when a connection is
+attempted.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Sequence
+from xmlrpc import client as _client
+from xmlrpc import server as _server
+
+__all__: list[str] = [
+    "Binary",
+    "DateTime",
+    "Error",
+    "Fault",
+    "Marshaller",
+    "MultiCall",
+    "MultiCallIterator",
+    "ProtocolError",
+    "ResponseError",
+    "SafeTransport",
+    "ServerProxy",
+    "Transport",
+    "Unmarshaller",
+    "CGIXMLRPCRequestHandler",
+    "MultiPathXMLRPCServer",
+    "SimpleXMLRPCDispatcher",
+    "SimpleXMLRPCRequestHandler",
+    "SimpleXMLRPCServer",
+    "build_request",
+    "create_dispatcher",
+    "create_marshaller",
+    "create_multi_path_server",
+    "create_proxy",
+    "create_server",
+    "create_transport",
+    "dumps_value",
+    "list_public_methods",
+    "loads_value",
+    "marshal_params",
+    "parse_method_call",
+    "parse_method_response",
+    "register_function",
+    "register_instance",
+    "register_introspection_functions",
+    "register_multicall_functions",
+    "resolve_dotted_attribute",
+    "unmarshal_params",
+]
+
+Error = _client.Error
+Fault = _client.Fault
+ProtocolError = _client.ProtocolError
+ResponseError = _client.ResponseError
+Binary = _client.Binary
+DateTime = _client.DateTime
+Marshaller = _client.Marshaller
+Unmarshaller = _client.Unmarshaller
+Transport = _client.Transport
+SafeTransport = _client.SafeTransport
+ServerProxy = _client.ServerProxy
+MultiCall = _client.MultiCall
+MultiCallIterator = _client.MultiCallIterator
+
+SimpleXMLRPCServer = _server.SimpleXMLRPCServer
+MultiPathXMLRPCServer = _server.MultiPathXMLRPCServer
+SimpleXMLRPCRequestHandler = _server.SimpleXMLRPCRequestHandler
+CGIXMLRPCRequestHandler = _server.CGIXMLRPCRequestHandler
+SimpleXMLRPCDispatcher = _server.SimpleXMLRPCDispatcher
+
+
+def _require_params(params: object) -> tuple[Any, ...]:
+    """Return *params* as a tuple of XML-RPC arguments."""
+    if isinstance(params, (str, bytes, bytearray)):
+        raise TypeError("params must be a list or tuple, not a string")
+    if not isinstance(params, (list, tuple)):
+        raise TypeError(f"params must be a list or tuple, got {type(params).__name__}")
+    return tuple(params)
+
+
+def _require_document(document: object) -> str | bytes:
+    """Return *document* as the text or bytes of an XML-RPC document."""
+    if isinstance(document, (str, bytes, bytearray)):
+        return bytes(document) if isinstance(document, bytearray) else document
+    raise TypeError(f"document must be a str or bytes, got {type(document).__name__}")
+
+
+def _require_name(name: object, label: str) -> str:
+    """Return *name* when it is a usable, non-empty identifier."""
+    if not isinstance(name, str):
+        raise TypeError(f"{label} must be a str, got {type(name).__name__}")
+    if not name:
+        raise ValueError(f"{label} must not be empty")
+    return name
+
+
+def _require_bool(value: object, label: str) -> bool:
+    """Return *value* when it is a boolean."""
+    if not isinstance(value, bool):
+        raise TypeError(f"{label} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def dumps_value(
+    params: Sequence[Any],
+    methodname: str | None = None,
+    methodresponse: bool | None = None,
+    encoding: str | None = None,
+    allow_none: bool = False,
+) -> str:
+    """Encode XML-RPC arguments into a request or response document.
+
+    Args:
+        params: The arguments of the call or the result of the response.
+        methodname: The name of the method being called.
+        methodresponse: Whether the document is a response.
+        encoding: The text encoding of the document.
+        allow_none: Whether ``None`` may be marshalled.
+
+    Returns:
+        The encoded document.
+    """
+    values = _require_params(params)
+    if methodname is not None:
+        _require_name(methodname, "methodname")
+    if methodresponse is not None:
+        _require_bool(methodresponse, "methodresponse")
+    if encoding is not None and not isinstance(encoding, str):
+        raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
+    _require_bool(allow_none, "allow_none")
+    if methodresponse and len(values) != 1:
+        raise ValueError("a response document must carry exactly one value")
+    return _client.dumps(
+        values,
+        methodname=methodname,
+        methodresponse=methodresponse,
+        encoding=encoding,
+        allow_none=allow_none,
+    )
+
+
+def loads_value(
+    document: str | bytes,
+    use_datetime: bool = False,
+    use_builtin_types: bool = False,
+) -> tuple[tuple[Any, ...], str | None]:
+    """Decode an XML-RPC document into its arguments and method name.
+
+    Args:
+        document: The document to decode.
+        use_datetime: Whether dates are decoded as ``datetime`` objects.
+        use_builtin_types: Whether binary and date values use builtin types.
+
+    Returns:
+        A tuple of the decoded arguments and the method name.  The method name
+        is ``None`` for a response document.
+    """
+    payload = _require_document(document)
+    _require_bool(use_datetime, "use_datetime")
+    _require_bool(use_builtin_types, "use_builtin_types")
+    params, methodname = _client.loads(
+        payload,
+        use_datetime=use_datetime,
+        use_builtin_types=use_builtin_types,
+    )
+    return params, methodname
+
+
+def build_request(methodname: str, params: Sequence[Any] = ()) -> str:
+    """Build an XML-RPC method call document.
+
+    Args:
+        methodname: The name of the method to call.
+        params: The arguments of the call.
+
+    Returns:
+        The encoded method call document.
+    """
+    name = _require_name(methodname, "methodname")
+    values = _require_params(params)
+    return _client.dumps(values, methodname=name)
+
+
+def parse_method_call(document: str | bytes) -> tuple[str, tuple[Any, ...]]:
+    """Parse an XML-RPC method call document.
+
+    Args:
+        document: The method call document.
+
+    Returns:
+        A tuple of the method name and the call arguments.
+    """
+    payload = _require_document(document)
+    params, methodname = _client.loads(payload)
+    if not methodname:
+        raise ValueError("document does not contain a method call")
+    return methodname, params
+
+
+def parse_method_response(document: str | bytes) -> tuple[Any, ...]:
+    """Parse an XML-RPC method response document.
+
+    Args:
+        document: The method response document.
+
+    Returns:
+        The result of the call.
+
+    Raises:
+        Fault: When the document carries a fault instead of a result.
+    """
+    payload = _require_document(document)
+    params, methodname = _client.loads(payload)
+    if methodname:
+        raise ValueError("document contains a method call, not a method response")
+    return params
+
+
+def marshal_params(params: Sequence[Any]) -> str:
+    """Encode XML-RPC arguments as a ``<params>`` document.
+
+    Args:
+        params: The arguments to encode.
+
+    Returns:
+        The encoded ``<params>`` document.
+    """
+    values = _require_params(params)
+    marshaller = _client.Marshaller()
+    return marshaller.dumps(values)
+
+
+def unmarshal_params(document: str | bytes) -> tuple[Any, ...]:
+    """Decode a ``<params>`` document into its arguments.
+
+    Args:
+        document: The document to decode.
+
+    Returns:
+        The decoded arguments.
+    """
+    payload = _require_document(document)
+    params, _methodname = _client.loads(payload)
+    return params
+
+
+def create_marshaller(encoding: str | None = None, allow_none: bool = False) -> Marshaller:
+    """Create a marshaller for XML-RPC values.
+
+    Args:
+        encoding: The text encoding of the produced documents.
+        allow_none: Whether ``None`` may be marshalled.
+    """
+    if encoding is not None and not isinstance(encoding, str):
+        raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
+    _require_bool(allow_none, "allow_none")
+    return _client.Marshaller(encoding=encoding, allow_none=allow_none)
+
+
+def create_transport(
+    use_datetime: bool = False,
+    use_builtin_types: bool = False,
+    *,
+    headers: Sequence[tuple[str, str]] = (),
+) -> Transport:
+    """Create the transport used by a client proxy.
+
+    Args:
+        use_datetime: Whether dates are decoded as ``datetime`` objects.
+        use_builtin_types: Whether binary and date values use builtin types.
+        headers: Extra HTTP headers sent with every request.
+    """
+    _require_bool(use_datetime, "use_datetime")
+    _require_bool(use_builtin_types, "use_builtin_types")
+    if not isinstance(headers, (list, tuple)):
+        raise TypeError(f"headers must be a list or tuple, got {type(headers).__name__}")
+    return _client.Transport(
+        use_datetime=use_datetime,
+        use_builtin_types=use_builtin_types,
+        headers=tuple(headers),
+    )
+
+
+def create_proxy(
+    uri: str,
+    transport: Transport | None = None,
+    encoding: str | None = None,
+    verbose: bool = False,
+    allow_none: bool = False,
+    use_datetime: bool = False,
+    use_builtin_types: bool = False,
+    *,
+    headers: Sequence[tuple[str, str]] = (),
+    context: Any = None,
+) -> ServerProxy:
+    """Create a client proxy for an XML-RPC server.
+
+    The proxy is lazy: no connection is opened until a remote method is
+    called.
+
+    Args:
+        uri: The URI of the server.
+        transport: The transport used for the requests.
+        encoding: The text encoding of the requests.
+        verbose: Whether the requests are logged.
+        allow_none: Whether ``None`` may be sent.
+        use_datetime: Whether dates are decoded as ``datetime`` objects.
+        use_builtin_types: Whether binary and date values use builtin types.
+        headers: Extra HTTP headers sent with every request.
+        context: The SSL context used for an ``https`` URI.
+    """
+    _require_name(uri, "uri")
+    if transport is not None and not isinstance(transport, Transport):
+        raise TypeError(f"transport must be a Transport or None, got {type(transport).__name__}")
+    if encoding is not None and not isinstance(encoding, str):
+        raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
+    _require_bool(verbose, "verbose")
+    _require_bool(allow_none, "allow_none")
+    _require_bool(use_datetime, "use_datetime")
+    _require_bool(use_builtin_types, "use_builtin_types")
+    if not isinstance(headers, (list, tuple)):
+        raise TypeError(f"headers must be a list or tuple, got {type(headers).__name__}")
+    return _client.ServerProxy(
+        uri,
+        transport=transport,
+        encoding=encoding,
+        verbose=verbose,
+        allow_none=allow_none,
+        use_datetime=use_datetime,
+        use_builtin_types=use_builtin_types,
+        headers=tuple(headers),
+        context=context,
+    )
+
+
+def create_dispatcher(
+    allow_none: bool = False,
+    encoding: str | None = None,
+    use_builtin_types: bool = False,
+) -> SimpleXMLRPCDispatcher:
+    """Create a dispatcher that maps remote calls onto local callables.
+
+    The dispatcher is a plain mixin and does not open a socket, so it can be
+    exercised without a server.
+
+    Args:
+        allow_none: Whether ``None`` may be sent.
+        encoding: The text encoding of the responses.
+        use_builtin_types: Whether binary and date values use builtin types.
+    """
+    _require_bool(allow_none, "allow_none")
+    if encoding is not None and not isinstance(encoding, str):
+        raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
+    _require_bool(use_builtin_types, "use_builtin_types")
+    return _server.SimpleXMLRPCDispatcher(
+        allow_none=allow_none,
+        encoding=encoding,
+        use_builtin_types=use_builtin_types,
+    )
+
+
+def _require_dispatcher(dispatcher: object) -> SimpleXMLRPCDispatcher:
+    """Return *dispatcher* when it is a dispatcher of the standard library."""
+    if not isinstance(dispatcher, SimpleXMLRPCDispatcher):
+        raise TypeError(
+            f"dispatcher must be a SimpleXMLRPCDispatcher, got {type(dispatcher).__name__}"
+        )
+    return dispatcher
+
+
+def register_function(
+    dispatcher: SimpleXMLRPCDispatcher,
+    function: Any = None,
+    name: str | None = None,
+) -> None:
+    """Register a callable so that it can be called remotely.
+
+    Args:
+        dispatcher: The dispatcher the function is registered with.
+        function: The callable to register.
+        name: The name the function is registered under.
+    """
+    _require_dispatcher(dispatcher)
+    if function is not None and not callable(function):
+        raise TypeError(f"function must be callable or None, got {type(function).__name__}")
+    if name is not None:
+        _require_name(name, "name")
+    dispatcher.register_function(function, name)
+
+
+def register_instance(
+    dispatcher: SimpleXMLRPCDispatcher,
+    instance: Any,
+    allow_dotted_names: bool = False,
+) -> None:
+    """Register an object so that its methods can be called remotely.
+
+    Args:
+        dispatcher: The dispatcher the instance is registered with.
+        instance: The object to register.
+        allow_dotted_names: Whether dotted method names are allowed.
+    """
+    _require_dispatcher(dispatcher)
+    if instance is None:
+        raise ValueError("instance must not be None")
+    _require_bool(allow_dotted_names, "allow_dotted_names")
+    dispatcher.register_instance(instance, allow_dotted_names)
+
+
+def register_introspection_functions(dispatcher: SimpleXMLRPCDispatcher) -> None:
+    """Register the ``system.*`` introspection methods with a dispatcher."""
+    _require_dispatcher(dispatcher)
+    dispatcher.register_introspection_functions()
+
+
+def register_multicall_functions(dispatcher: SimpleXMLRPCDispatcher) -> None:
+    """Register the ``system.multicall`` method with a dispatcher."""
+    _require_dispatcher(dispatcher)
+    dispatcher.register_multicall_functions()
+
+
+def resolve_dotted_attribute(obj: Any, attr: str, allow_dotted_names: bool = True) -> Any:
+    """Resolve a possibly dotted attribute path on *obj*.
+
+    Args:
+        obj: The object the attribute is resolved on.
+        attr: The attribute path.
+        allow_dotted_names: Whether dotted names are resolved step by step.
+
+    Returns:
+        The resolved attribute.
+    """
+    if obj is None:
+        raise ValueError("obj must not be None")
+    _require_name(attr, "attr")
+    _require_bool(allow_dotted_names, "allow_dotted_names")
+    return _server.resolve_dotted_attribute(obj, attr, allow_dotted_names)
+
+
+def list_public_methods(obj: Any) -> list[str]:
+    """Return the public methods of *obj*.
+
+    Args:
+        obj: The object to inspect.
+    """
+    if obj is None:
+        raise ValueError("obj must not be None")
+    return _server.list_public_methods(obj)
+
+
+def create_server(
+    addr: tuple[str, int],
+    request_handler: type[SimpleXMLRPCRequestHandler] = SimpleXMLRPCRequestHandler,
+    log_requests: bool = True,
+    allow_none: bool = False,
+    encoding: str | None = None,
+    bind_and_activate: bool = True,
+    use_builtin_types: bool = False,
+) -> SimpleXMLRPCServer:
+    """Create an XML-RPC server bound to *addr*.
+
+    The server binds its socket unless ``bind_and_activate`` is false, so the
+    caller stays in control of when the port is opened.
+
+    Args:
+        addr: The ``(host, port)`` address the server listens on.
+        request_handler: The request handler class.
+        log_requests: Whether requests are logged.
+        allow_none: Whether ``None`` may be sent.
+        encoding: The text encoding of the responses.
+        bind_and_activate: Whether the socket is bound immediately.
+        use_builtin_types: Whether binary and date values use builtin types.
+    """
+    if not isinstance(addr, tuple) or len(addr) != 2:
+        raise TypeError("addr must be a (host, port) tuple")
+    if not isinstance(addr[0], str):
+        raise TypeError(f"addr host must be a str, got {type(addr[0]).__name__}")
+    if not isinstance(addr[1], int) or isinstance(addr[1], bool):
+        raise TypeError(f"addr port must be an int, got {type(addr[1]).__name__}")
+    if not 0 <= addr[1] <= 65535:
+        raise ValueError(f"addr port must be between 0 and 65535, got {addr[1]}")
+    if not isinstance(request_handler, type) or not issubclass(
+        request_handler, SimpleXMLRPCRequestHandler
+    ):
+        raise TypeError("request_handler must be a SimpleXMLRPCRequestHandler subclass")
+    _require_bool(log_requests, "log_requests")
+    _require_bool(allow_none, "allow_none")
+    if encoding is not None and not isinstance(encoding, str):
+        raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
+    _require_bool(bind_and_activate, "bind_and_activate")
+    _require_bool(use_builtin_types, "use_builtin_types")
+    return _server.SimpleXMLRPCServer(
+        addr,
+        requestHandler=request_handler,
+        logRequests=log_requests,
+        allow_none=allow_none,
+        encoding=encoding,
+        bind_and_activate=bind_and_activate,
+        use_builtin_types=use_builtin_types,
+    )
+
+
+def create_multi_path_server(
+    addr: tuple[str, int],
+    paths: Any,
+    request_handler: type[SimpleXMLRPCRequestHandler] = SimpleXMLRPCRequestHandler,
+    log_requests: bool = True,
+    allow_none: bool = False,
+    encoding: str | None = None,
+    bind_and_activate: bool = True,
+    use_builtin_types: bool = False,
+) -> MultiPathXMLRPCServer:
+    """Create an XML-RPC server that dispatches on the request path.
+
+    Args:
+        addr: The ``(host, port)`` address the server listens on.
+        paths: A mapping of request paths onto dispatchers.
+        request_handler: The request handler class.
+        log_requests: Whether requests are logged.
+        allow_none: Whether ``None`` may be sent.
+        encoding: The text encoding of the responses.
+        bind_and_activate: Whether the socket is bound immediately.
+        use_builtin_types: Whether binary and date values use builtin types.
+    """
+    if not isinstance(addr, tuple) or len(addr) != 2:
+        raise TypeError("addr must be a (host, port) tuple")
+    if not isinstance(addr[0], str):
+        raise TypeError(f"addr host must be a str, got {type(addr[0]).__name__}")
+    if not isinstance(addr[1], int) or isinstance(addr[1], bool):
+        raise TypeError(f"addr port must be an int, got {type(addr[1]).__name__}")
+    if not 0 <= addr[1] <= 65535:
+        raise ValueError(f"addr port must be between 0 and 65535, got {addr[1]}")
+    if paths is None:
+        raise ValueError("paths must not be None")
+    if not isinstance(request_handler, type) or not issubclass(
+        request_handler, SimpleXMLRPCRequestHandler
+    ):
+        raise TypeError("request_handler must be a SimpleXMLRPCRequestHandler subclass")
+    _require_bool(log_requests, "log_requests")
+    _require_bool(allow_none, "allow_none")
+    if encoding is not None and not isinstance(encoding, str):
+        raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
+    _require_bool(bind_and_activate, "bind_and_activate")
+    _require_bool(use_builtin_types, "use_builtin_types")
+    return _server.MultiPathXMLRPCServer(
+        addr,
+        requestHandler=request_handler,
+        logRequests=log_requests,
+        allow_none=allow_none,
+        encoding=encoding,
+        bind_and_activate=bind_and_activate,
+        use_builtin_types=use_builtin_types,
+    )
+XMLRPC_UTILS
+
+# --- tests/test_xmlrpc_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_xmlrpc_utils.py" <<'TEST_XMLRPC_UTILS'
+import unittest
+from unittest.mock import patch
+
+import xmlrpc_utils
+from xmlrpc_utils import (
+    Binary,
+    DateTime,
+    Fault,
+    Marshaller,
+    ServerProxy,
+    SimpleXMLRPCDispatcher,
+    SimpleXMLRPCRequestHandler,
+    Transport,
+    build_request,
+    create_dispatcher,
+    create_marshaller,
+    create_multi_path_server,
+    create_proxy,
+    create_server,
+    create_transport,
+    dumps_value,
+    list_public_methods,
+    loads_value,
+    marshal_params,
+    parse_method_call,
+    parse_method_response,
+    register_function,
+    register_instance,
+    register_introspection_functions,
+    register_multicall_functions,
+    resolve_dotted_attribute,
+    unmarshal_params,
+)
+
+
+class Service:
+    """A small object used to exercise the instance registration."""
+
+    def ping(self):
+        return "pong"
+
+    def _private(self):
+        return "hidden"
+
+
+class TestXmlrpcUtils(unittest.TestCase):
+    def test_dumps_value(self):
+        document = dumps_value((1, 2), methodname="add")
+        self.assertIn("<methodName>add</methodName>", document)
+        params, methodname = loads_value(document)
+        self.assertEqual(params, (1, 2))
+        self.assertEqual(methodname, "add")
+
+    def test_dumps_value_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            dumps_value("not-a-list")
+        with self.assertRaises(TypeError):
+            dumps_value((1,), methodname=5)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            dumps_value((), methodname="")
+        with self.assertRaises(TypeError):
+            dumps_value((1,), methodresponse="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dumps_value((1,), encoding=5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dumps_value((1,), allow_none="yes")  # type: ignore[arg-type]
+
+    def test_dumps_value_response_requires_one_value(self):
+        with self.assertRaises(ValueError):
+            dumps_value((1, 2), methodresponse=True)
+        document = dumps_value((3,), methodresponse=True)
+        self.assertIn("<methodResponse>", document)
+
+    def test_loads_value_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            loads_value(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            loads_value(document=b"<methodCall/>", use_datetime="yes")  # type: ignore[arg-type]
+
+    def test_build_request(self):
+        document = build_request("add", (2, 3))
+        self.assertIn("<methodCall>", document)
+        methodname, params = parse_method_call(document)
+        self.assertEqual(methodname, "add")
+        self.assertEqual(params, (2, 3))
+
+    def test_build_request_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            build_request(5)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            build_request("")
+        with self.assertRaises(TypeError):
+            build_request("add", "nope")  # type: ignore[arg-type]
+
+    def test_parse_method_call(self):
+        methodname, params = parse_method_call(build_request("ping"))
+        self.assertEqual(methodname, "ping")
+        self.assertEqual(params, ())
+
+    def test_parse_method_call_rejects_a_response(self):
+        with self.assertRaises(ValueError):
+            parse_method_call(dumps_value((1,), methodresponse=True))
+
+    def test_parse_method_response(self):
+        document = dumps_value(("done",), methodresponse=True)
+        self.assertEqual(parse_method_response(document), ("done",))
+
+    def test_parse_method_response_rejects_a_call(self):
+        with self.assertRaises(ValueError):
+            parse_method_response(build_request("ping"))
+
+    def test_parse_method_response_raises_fault(self):
+        document = (
+            "<?xml version='1.0'?>\n"
+            "<methodResponse><fault><value><struct>"
+            "<member><name>faultCode</name><value><int>7</int></value></member>"
+            "<member><name>faultString</name><value><string>boom</string></value></member>"
+            "</struct></value></fault></methodResponse>"
+        )
+        with self.assertRaises(Fault) as caught:
+            parse_method_response(document)
+        self.assertEqual(caught.exception.faultCode, 7)
+        self.assertEqual(caught.exception.faultString, "boom")
+
+    def test_marshal_and_unmarshal_params(self):
+        document = marshal_params((1, "two", True))
+        self.assertIn("<params>", document)
+        self.assertEqual(unmarshal_params(document), (1, "two", True))
+
+    def test_marshal_params_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            marshal_params("nope")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            unmarshal_params(42)  # type: ignore[arg-type]
+
+    def test_create_marshaller(self):
+        marshaller = create_marshaller()
+        self.assertIsInstance(marshaller, Marshaller)
+        with self.assertRaises(TypeError):
+            create_marshaller(encoding=5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_marshaller(allow_none="yes")  # type: ignore[arg-type]
+
+    def test_create_transport(self):
+        transport = create_transport()
+        self.assertIsInstance(transport, Transport)
+        with self.assertRaises(TypeError):
+            create_transport(use_datetime="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_transport(headers="x")  # type: ignore[arg-type]
+
+    def test_create_proxy_does_not_connect(self):
+        proxy = create_proxy("http://localhost:1/RPC2")
+        self.assertIsInstance(proxy, ServerProxy)
+
+    def test_create_proxy_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            create_proxy(5)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            create_proxy("")
+        with self.assertRaises(TypeError):
+            create_proxy("http://localhost:1/RPC2", transport=object())  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_proxy("http://localhost:1/RPC2", verbose="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_proxy("http://localhost:1/RPC2", headers="x")  # type: ignore[arg-type]
+
+    def test_create_dispatcher(self):
+        dispatcher = create_dispatcher()
+        self.assertIsInstance(dispatcher, SimpleXMLRPCDispatcher)
+        with self.assertRaises(TypeError):
+            create_dispatcher(allow_none="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_dispatcher(encoding=5)  # type: ignore[arg-type]
+
+    def test_register_function(self):
+        dispatcher = create_dispatcher()
+        register_function(dispatcher, lambda value: value * 2, "double")
+        self.assertIn("double", dispatcher.system_listMethods())
+
+    def test_register_function_rejects_bad_arguments(self):
+        dispatcher = create_dispatcher()
+        with self.assertRaises(TypeError):
+            register_function(object(), lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            register_function(dispatcher, "not-callable")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            register_function(dispatcher, lambda: None, "")
+        with self.assertRaises(TypeError):
+            register_function(dispatcher, lambda: None, 5)  # type: ignore[arg-type]
+
+    def test_register_instance(self):
+        dispatcher = create_dispatcher()
+        register_instance(dispatcher, Service())
+        self.assertEqual(dispatcher.system_listMethods(), ["ping"])
+
+    def test_register_instance_rejects_bad_arguments(self):
+        dispatcher = create_dispatcher()
+        with self.assertRaises(TypeError):
+            register_instance(object(), Service())  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            register_instance(dispatcher, None)
+        with self.assertRaises(TypeError):
+            register_instance(dispatcher, Service(), allow_dotted_names="yes")  # type: ignore[arg-type]
+
+    def test_register_introspection_functions(self):
+        dispatcher = create_dispatcher()
+        register_introspection_functions(dispatcher)
+        methods = dispatcher.system_listMethods()
+        self.assertIn("system.listMethods", methods)
+        self.assertIn("system.methodHelp", methods)
+        self.assertIn("system.methodSignature", methods)
+
+    def test_register_multicall_functions(self):
+        dispatcher = create_dispatcher()
+        register_multicall_functions(dispatcher)
+        self.assertIn("system.multicall", dispatcher.system_listMethods())
+
+    def test_registration_helpers_reject_bad_dispatchers(self):
+        with self.assertRaises(TypeError):
+            register_introspection_functions(object())  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            register_multicall_functions(object())  # type: ignore[arg-type]
+
+    def test_resolve_dotted_attribute(self):
+        self.assertEqual(resolve_dotted_attribute(Service(), "ping").__name__, "ping")
+        with self.assertRaises(ValueError):
+            resolve_dotted_attribute(None, "ping")
+        with self.assertRaises(ValueError):
+            resolve_dotted_attribute(Service(), "")
+        with self.assertRaises(TypeError):
+            resolve_dotted_attribute(Service(), 5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            resolve_dotted_attribute(Service(), "ping", allow_dotted_names="yes")  # type: ignore[arg-type]
+
+    def test_list_public_methods(self):
+        self.assertEqual(list_public_methods(Service()), ["ping"])
+        with self.assertRaises(ValueError):
+            list_public_methods(None)
+
+    @patch("xmlrpc_utils._server.SimpleXMLRPCServer")
+    def test_create_server(self, mock_server):
+        server = create_server(("127.0.0.1", 0))
+        mock_server.assert_called_once()
+        self.assertIs(server, mock_server.return_value)
+        _, kwargs = mock_server.call_args
+        self.assertEqual(kwargs["logRequests"], True)
+        self.assertEqual(kwargs["bind_and_activate"], True)
+
+    def test_create_server_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            create_server("127.0.0.1:0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_server((1, 0))  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_server(("127.0.0.1", "0"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            create_server(("127.0.0.1", 70000))
+        with self.assertRaises(TypeError):
+            create_server(("127.0.0.1", 0), request_handler=object)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_server(("127.0.0.1", 0), log_requests="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_server(("127.0.0.1", 0), encoding=5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_server(("127.0.0.1", 0), bind_and_activate="yes")  # type: ignore[arg-type]
+
+    @patch("xmlrpc_utils._server.MultiPathXMLRPCServer")
+    def test_create_multi_path_server(self, mock_server):
+        paths = {"/": create_dispatcher()}
+        server = create_multi_path_server(("127.0.0.1", 0), paths)
+        mock_server.assert_called_once()
+        self.assertIs(server, mock_server.return_value)
+
+    def test_create_multi_path_server_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            create_multi_path_server("127.0.0.1:0", {})  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            create_multi_path_server(("127.0.0.1", 0), None)
+        with self.assertRaises(TypeError):
+            create_multi_path_server(("127.0.0.1", 0), {}, request_handler=object)  # type: ignore[arg-type]
+
+    def test_reexported_types(self):
+        self.assertTrue(issubclass(Fault, Exception))
+        self.assertEqual(Binary(b"x").data, b"x")
+        self.assertEqual(DateTime("20240101T00:00:00").value, "20240101T00:00:00")
+        self.assertTrue(issubclass(SimpleXMLRPCRequestHandler, object))
+        self.assertIsNotNone(xmlrpc_utils.__all__)
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(len(xmlrpc_utils.__all__), len(set(xmlrpc_utils.__all__)))
+        for name in xmlrpc_utils.__all__:
+            self.assertTrue(hasattr(xmlrpc_utils, name), name)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_XMLRPC_UTILS
 
 # --- smtplib_utils.py ---
 cat > "$OUTPUT_DIR/smtplib_utils.py" <<'SMTPLIB_UTILS'

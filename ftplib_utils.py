@@ -65,7 +65,15 @@ def create_ftp(
             raise TypeError("source_address must be a (host, port) tuple or None")
     if not isinstance(encoding, str):
         raise TypeError("encoding must be a str")
-    ftp = ftplib.FTP(host=host, user=user, passwd=passwd, acct=acct,              timeout=timeout, source_address=source_address, encoding=encoding)  # type: ignore[arg-type]
+    ftp = ftplib.FTP(
+        host=host,
+        user=user,
+        passwd=passwd,
+        acct=acct,
+        timeout=timeout,
+        source_address=source_address,
+        encoding=encoding,
+    )  # type: ignore[arg-type]
     return ftp
 
 
@@ -100,8 +108,16 @@ def create_ftp_tls(
             raise TypeError("source_address must be a (host, port) tuple or None")
     if not isinstance(encoding, str):
         raise TypeError("encoding must be a str")
-    ftp = ftplib.FTP_TLS(host=host, user=user, passwd=passwd, acct=acct,                  context=context, timeout=timeout, source_address=source_address,
-                  encoding=encoding)  # type: ignore[arg-type]
+    ftp = ftplib.FTP_TLS(
+        host=host,
+        user=user,
+        passwd=passwd,
+        acct=acct,
+        context=context,
+        timeout=timeout,
+        source_address=source_address,
+        encoding=encoding,
+    )  # type: ignore[arg-type]
     return ftp
 
 
