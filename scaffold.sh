@@ -675,6 +675,7 @@
 #   - pwd_utils.py — # Password database utilities wrapping the standard library pwd (getpwuid, getpwnam, getpwall)
 #   - grp_utils.py — # Group database utilities wrapping the standard library grp (getgrgid, getgrnam, getgrall)
 #   - termios_utils.py — # Terminal attribute utilities wrapping the standard library termios (get_attributes, set_attributes, make_raw, make_cbreak, get_window_size, set_window_size)
+#   - fcntl_utils.py — # File control utilities wrapping the standard library fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -686,6 +687,7 @@
 #   - tests/test_pwd_utils.py — # Tests for pwd_utils.py
 #   - tests/test_grp_utils.py — # Tests for grp_utils.py
 #   - tests/test_termios_utils.py — # Tests for termios_utils.py
+#   - tests/test_fcntl_utils.py — # Tests for fcntl_utils.py
 set -euo pipefail
 
 usage() {
@@ -4313,6 +4315,7 @@ py_modules = [
     "pwd_utils",
     "grp_utils",
     "termios_utils",
+    "fcntl_utils",
 ]
 
 PYPROJECT
@@ -26880,6 +26883,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pwd_utils.py` — password database utilities wrapping the standard library `pwd` module (getpwuid, getpwnam, getpwall) with input validation
 - `grp_utils.py` — group database utilities wrapping the standard library `grp` module (getgrgid, getgrnam, getgrall) with input validation
 - `termios_utils.py` — terminal attribute utilities wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation
+- `fcntl_utils.py` — file control utilities wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27089,6 +27093,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_pwd_utils.py` — unit tests for `pwd_utils.py`
 - `tests/test_grp_utils.py` — unit tests for `grp_utils.py`
 - `tests/test_termios_utils.py` — unit tests for `termios_utils.py`
+- `tests/test_fcntl_utils.py` — unit tests for `fcntl_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -28365,6 +28370,10 @@ xmlrpc_utils.py             # XML-RPC utilities wrapping stdlib xmlrpc (dumps_va
 syslog_utils.py             # System logging utilities wrapping stdlib syslog (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, facility_name)
 faulthandler_utils.py        # Fault handler utilities wrapping stdlib faulthandler (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister)
 resource_utils.py            # Resource usage utilities wrapping stdlib resource (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available)
+pwd_utils.py                 # Password database utilities wrapping stdlib pwd (getpwuid, getpwnam, getpwall)
+grp_utils.py                 # Group database utilities wrapping stdlib grp (getgrgid, getgrnam, getgrall)
+termios_utils.py             # Terminal attribute utilities wrapping stdlib termios (get_attributes, set_attributes, make_raw, make_cbreak, get_window_size, set_window_size)
+fcntl_utils.py               # File control utilities wrapping stdlib fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -28536,6 +28545,7 @@ test_weakref_utils.py       # Tests for weakref_utils.py
     test_pwd_utils.py            # Tests for pwd_utils.py
     test_grp_utils.py            # Tests for grp_utils.py
     test_termios_utils.py        # Tests for termios_utils.py
+    test_fcntl_utils.py          # Tests for fcntl_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -29495,6 +29505,12 @@ tests/test_termios_utils.py - Tests for termios_utils module
 
 The project includes terminal attribute utilities in `termios_utils.py` wrapping the standard library `termios` module: `get_attributes` reads the attributes of a terminal, `set_attributes` writes them back, `make_raw` builds a raw configuration, `make_cbreak` builds a cbreak configuration, `set_read_timeout` and `set_blocking` configure how a read waits for data, `get_window_size` and `set_window_size` read and write the size of the window, `drain` waits until the output was transmitted, `flush` discards the data the terminal has not processed yet, `pause_output` and `resume_output` suspend and resume the output, `send_break` sends a break, and `is_available` reports whether the interpreter ships the standard library module. The attributes are returned in an `Attributes` named tuple with the fields `iflag`, `oflag`, `cflag`, `lflag`, `ispeed`, `ospeed`, and `cc`, and the size of the window is returned in a `WindowSize` named tuple with the fields `rows`, `columns`, `x_pixels`, and `y_pixels`. The control character slots (`VINTR`, `VQUIT`, `VERASE`, `VKILL`, `VEOF`, `VTIME`, `VMIN`, and the rest) and the moments and queues of the standard library (`TCSANOW`, `TCSADRAIN`, `TCSAFLUSH`, `TCIFLUSH`, and `TCOFLUSH`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `termios` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_termios_utils.py`.
 
+tests/test_fcntl_utils.py - Tests for fcntl_utils module
+
+## File Control Utilities Module
+
+The project includes file control utilities in `fcntl_utils.py` wrapping the standard library `fcntl` module: `flock` places an advisory lock on a file, `unlock` releases it, `lockf` places an advisory lock on a region of a file, `control` performs the other control operations on a file descriptor, `ioctl` performs a device specific control operation, `get_descriptor_flags` and `set_descriptor_flags` read and write the flags of a file descriptor, `is_cloexec` reports whether a file descriptor is closed when the process executes a new program, `get_file_status_flags` and `set_file_status_flags` read and write the status flags of an open file, `duplicate_fd` copies a file descriptor, `file_lock` locks a file for the duration of a block of code, `lock_kind` and `lock_modes` translate the name of a lock mode into its operation, and `is_available` reports whether the interpreter ships the standard library module. The lock operations (`LOCK_SH`, `LOCK_EX`, `LOCK_NB`, and `LOCK_UN`), the record lock commands (`F_LOCK`, `F_TLOCK`, and `F_ULOCK`), and the control constants (`F_GETFD`, `F_SETFD`, `F_GETFL`, `F_SETFL`, `F_DUPFD`, `F_DUPFD_CLOEXEC`, and `FD_CLOEXEC`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `fcntl` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_fcntl_utils.py`.
+
 tests/test_opcode_utils.py - Tests for opcode_utils module
 
 ## Opcode Utilities Module
@@ -29531,6 +29547,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Add `fcntl_utils.py` wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation, plus unit tests in `tests/test_fcntl_utils.py`.
+- Synchronized `fcntl_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `termios_utils.py` wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation, plus unit tests in `tests/test_termios_utils.py`.
 - Synchronized `termios_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Added `dbm_utils.py` to the generated project — database utilities wrapping the standard library `dbm` module (`open_database`, `close`, `which_database`, `available_backends`, `read_record`, `write_record`, `delete_record`, `has_key`, `list_keys`, `sync_database`, `is_valid_flag`, `dbm_error`) with input validation, plus `tests/test_dbm_utils.py`.
@@ -72303,6 +72321,1030 @@ class TestTermiosUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_TERMIOS_UTILS
+
+# --- fcntl_utils.py ---
+cat > "$OUTPUT_DIR/fcntl_utils.py" <<'FCNTL_UTILS'
+"""File control utilities wrapping the standard library :mod:`fcntl` module.
+
+The :mod:`fcntl` module controls the behaviour of an open file descriptor.  A
+program places an advisory lock on a file with :func:`fcntl.flock` or with
+:func:`fcntl.lockf`, and it performs the other control operations with
+:func:`fcntl.fcntl` and :func:`fcntl.ioctl`.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure from the C layer.  It adds conveniences the standard
+library does not offer: the lock modes are addressed by name, the descriptor
+flags and the file status flags are read and written with dedicated helpers, a
+file descriptor is duplicated with a single call, and :func:`file_lock` locks a
+file for the duration of a block of code.
+
+.. note::
+
+   The :mod:`fcntl` module only exists on Unix-like platforms.  The import
+   below degrades gracefully: when the interpreter does not ship the module,
+   the helpers raise a :class:`RuntimeError` that names the missing module,
+   while the pure helpers keep working.
+
+The locks are advisory.  A program that does not ask for a lock ignores the
+locks of the other programs, and a lock is released as soon as the file
+descriptor is closed.
+"""
+
+from __future__ import annotations
+
+import os
+from contextlib import contextmanager
+from typing import Any, Dict, Iterator
+
+try:
+    import fcntl as _fcntl
+except ImportError:  # pragma: no cover - the module is Unix-only
+    _fcntl = None  # type: ignore[assignment]
+
+
+def _constant(name: str, fallback: int) -> int:
+    """Return the standard library constant *name*, or *fallback*.
+
+    Args:
+        name: The name of the constant in the standard library module.
+        fallback: The value to use when the interpreter does not provide the
+            constant.
+
+    Returns:
+        The value of the constant.
+    """
+    if _fcntl is None:
+        return fallback
+    value = getattr(_fcntl, name, fallback)
+    return value if isinstance(value, int) else fallback
+
+
+#: Acquire a shared lock.
+LOCK_SH: int = _constant("LOCK_SH", 1)
+#: Acquire an exclusive lock.
+LOCK_EX: int = _constant("LOCK_EX", 2)
+#: Do not block when the lock cannot be acquired.
+LOCK_NB: int = _constant("LOCK_NB", 4)
+#: Release a lock.
+LOCK_UN: int = _constant("LOCK_UN", 8)
+
+#: Read the flags of a file descriptor.
+F_GETFD: int = _constant("F_GETFD", 1)
+#: Write the flags of a file descriptor.
+F_SETFD: int = _constant("F_SETFD", 2)
+#: Read the status flags of an open file.
+F_GETFL: int = _constant("F_GETFL", 3)
+#: Write the status flags of an open file.
+F_SETFL: int = _constant("F_SETFL", 4)
+#: Duplicate a file descriptor.
+F_DUPFD: int = _constant("F_DUPFD", 0)
+#: Duplicate a file descriptor and mark the copy as close on exec.
+F_DUPFD_CLOEXEC: int = _constant("F_DUPFD_CLOEXEC", 1030)
+#: Close the file descriptor when the process executes a new program.
+FD_CLOEXEC: int = _constant("FD_CLOEXEC", 1)
+
+#: A read lock on a region of a file.
+F_RDLCK: int = _constant("F_RDLCK", 0)
+#: A write lock on a region of a file.
+F_WRLCK: int = _constant("F_WRLCK", 1)
+#: No lock on a region of a file.
+F_UNLCK: int = _constant("F_UNLCK", 2)
+#: Read the lock that blocks a region of a file.
+F_GETLK: int = _constant("F_GETLK", 5)
+#: Write a lock on a region of a file without blocking.
+F_SETLK: int = _constant("F_SETLK", 6)
+#: Write a lock on a region of a file and wait for it.
+F_SETLKW: int = _constant("F_SETLKW", 7)
+
+#: Take a write lock on a region of a file and wait for it.
+F_LOCK: int = 0
+#: Take a write lock on a region of a file without waiting for it.
+F_TLOCK: int = 1
+#: Release the lock on a region of a file.
+F_ULOCK: int = 2
+
+#: The names of the lock modes of :func:`lock_kind`.
+_LOCK_MODES: Dict[str, int] = {
+    "shared": LOCK_SH,
+    "exclusive": LOCK_EX,
+    "unlock": LOCK_UN,
+}
+
+
+__all__: list[str] = [
+    "F_DUPFD",
+    "F_DUPFD_CLOEXEC",
+    "F_GETFD",
+    "F_GETFL",
+    "F_GETLK",
+    "F_LOCK",
+    "F_RDLCK",
+    "F_SETFD",
+    "F_SETFL",
+    "F_SETLK",
+    "F_SETLKW",
+    "F_TLOCK",
+    "F_ULOCK",
+    "F_UNLCK",
+    "F_WRLCK",
+    "FD_CLOEXEC",
+    "LOCK_EX",
+    "LOCK_NB",
+    "LOCK_SH",
+    "LOCK_UN",
+    "control",
+    "duplicate_fd",
+    "file_lock",
+    "flock",
+    "get_descriptor_flags",
+    "get_file_status_flags",
+    "ioctl",
+    "is_available",
+    "is_cloexec",
+    "lock_kind",
+    "lock_modes",
+    "lockf",
+    "set_descriptor_flags",
+    "set_file_status_flags",
+    "unlock",
+]
+
+
+def _fcntl_module() -> Any:
+    """Return the standard library ``fcntl`` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+    """
+    if _fcntl is None:
+        raise RuntimeError("the standard library module 'fcntl' is not available")
+    return _fcntl
+
+
+def is_available() -> bool:
+    """Return ``True`` if the ``fcntl`` module is available."""
+    return _fcntl is not None
+
+
+def _validate_fd(fd: int) -> int:
+    """Return *fd* when it is a valid file descriptor.
+
+    Args:
+        fd: The file descriptor to validate.
+
+    Returns:
+        The validated file descriptor.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+    """
+    if isinstance(fd, bool) or not isinstance(fd, int):
+        raise TypeError(f"fd must be an int, got {type(fd).__name__}")
+    if fd < 0:
+        raise ValueError(f"fd must not be negative, got {fd}")
+    return fd
+
+
+def _validate_operation(operation: int) -> int:
+    """Return *operation* when it is a known lock operation.
+
+    Args:
+        operation: The lock operation to validate.
+
+    Returns:
+        The validated lock operation.
+
+    Raises:
+        TypeError: If *operation* is not an int.
+        ValueError: If *operation* is not a known lock operation.
+    """
+    if isinstance(operation, bool) or not isinstance(operation, int):
+        raise TypeError(f"operation must be an int, got {type(operation).__name__}")
+    known = LOCK_SH | LOCK_EX | LOCK_UN | LOCK_NB
+    if operation & ~known:
+        raise ValueError(f"operation has unknown bits, got {operation}")
+    modes = [mode for mode in (LOCK_SH, LOCK_EX, LOCK_UN) if operation & mode]
+    if len(modes) != 1:
+        raise ValueError(
+            "operation must be exactly one of LOCK_SH, LOCK_EX, and LOCK_UN, "
+            f"got {operation}"
+        )
+    return operation
+
+
+def _validate_command(command: int) -> int:
+    """Return *command* when it is a known record lock command.
+
+    Args:
+        command: The record lock command to validate.
+
+    Returns:
+        The validated record lock command.
+
+    Raises:
+        TypeError: If *command* is not an int.
+        ValueError: If *command* is not a known record lock command.
+    """
+    if isinstance(command, bool) or not isinstance(command, int):
+        raise TypeError(f"command must be an int, got {type(command).__name__}")
+    if command not in (F_LOCK, F_TLOCK, F_ULOCK):
+        raise ValueError(
+            f"command must be F_LOCK, F_TLOCK, or F_ULOCK, got {command}"
+        )
+    return command
+
+
+def _validate_offset(value: int, name: str) -> int:
+    """Return *value* when it is a usable offset.
+
+    Args:
+        value: The offset to validate.
+        name: The name of the argument, used in the error messages.
+
+    Returns:
+        The validated offset.
+
+    Raises:
+        TypeError: If *value* is not an int.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def _host_lockf_command(command: int) -> int:
+    """Return the command the host expects for a record lock command.
+
+    The standard library changed the commands of :func:`fcntl.lockf` in
+    Python 3.14.  The older interpreters expect the ``F_LOCK``,
+    ``F_TLOCK``, and ``F_ULOCK`` commands, while the newer ones expect the
+    ``LOCK_EX``, ``LOCK_EX | LOCK_NB``, and ``LOCK_UN`` commands of the
+    advisory locks.  The wrapper always speaks the older dialect and
+    translates it here.
+
+    Args:
+        command: The record lock command of the wrapper.
+
+    Returns:
+        The command the standard library of the host understands.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+    """
+    module = _fcntl_module()
+    if hasattr(module, "F_LOCK"):
+        return command
+    if command == F_LOCK:
+        return LOCK_EX
+    if command == F_TLOCK:
+        return LOCK_EX | LOCK_NB
+    return LOCK_UN
+
+
+def flock(fd: int, operation: int) -> None:
+    """Place an advisory lock on the file behind *fd*.
+
+    The lock is a whole file lock.  A shared lock lets the other programs
+    read the file, an exclusive lock keeps them out, and both are released
+    with :data:`LOCK_UN`.
+
+    Args:
+        fd: The file descriptor of the file to lock.
+        operation: The lock operation.  One of :data:`LOCK_SH`,
+            :data:`LOCK_EX`, or :data:`LOCK_UN`, optionally combined with
+            :data:`LOCK_NB` to avoid blocking.
+
+    Raises:
+        TypeError: If *fd* or *operation* has the wrong type.
+        ValueError: If *fd* is negative or *operation* is not a known lock
+            operation.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the lock cannot be acquired.
+    """
+    _validate_fd(fd)
+    _validate_operation(operation)
+    module = _fcntl_module()
+    module.flock(fd, operation)
+
+
+def unlock(fd: int) -> None:
+    """Release the advisory lock of the file behind *fd*.
+
+    Args:
+        fd: The file descriptor of the locked file.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the lock cannot be released.
+    """
+    flock(fd, LOCK_UN)
+
+
+def lockf(
+    fd: int,
+    command: int,
+    length: int = 0,
+    start: int = 0,
+    whence: int = os.SEEK_SET,
+) -> None:
+    """Place an advisory lock on a region of the file behind *fd*.
+
+    The lock is a record lock.  It covers the *length* bytes that begin at
+    *start*, relative to *whence*.  A length of zero covers the region up to
+    the end of the file.
+
+    Args:
+        fd: The file descriptor of the file to lock.
+        command: The lock command.  :data:`F_LOCK` takes a write lock and
+            waits for it, :data:`F_TLOCK` takes a write lock without waiting
+            for it, and :data:`F_ULOCK` releases the lock.
+        length: The number of bytes to lock.
+        start: The offset of the first byte of the locked region.
+        whence: The reference point of *start*.  One of :data:`os.SEEK_SET`,
+            :data:`os.SEEK_CUR`, or :data:`os.SEEK_END`.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *fd* is negative, *command* is not a known record lock
+            command, or *whence* is not a known reference point.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the lock cannot be acquired.
+    """
+    _validate_fd(fd)
+    _validate_command(command)
+    _validate_offset(length, "length")
+    _validate_offset(start, "start")
+    if isinstance(whence, bool) or not isinstance(whence, int):
+        raise TypeError(f"whence must be an int, got {type(whence).__name__}")
+    if whence not in (os.SEEK_SET, os.SEEK_CUR, os.SEEK_END):
+        raise ValueError(
+            "whence must be os.SEEK_SET, os.SEEK_CUR, or os.SEEK_END, "
+            f"got {whence}"
+        )
+    module = _fcntl_module()
+    module.lockf(fd, _host_lockf_command(command), length, start, whence)
+
+
+def control(fd: int, cmd: int, arg: int | bytes = 0) -> int | bytes:
+    """Perform the control operation *cmd* on the file behind *fd*.
+
+    The command and the argument depend on the platform.  The constants of
+    the standard library, such as :data:`F_GETFD` and :data:`F_SETFD`, name
+    the usual operations.
+
+    Args:
+        fd: The file descriptor to control.
+        cmd: The control operation to perform.
+        arg: The argument of the operation.  An integer for the operations
+            that take a number, and a byte string for the operations that
+            take a buffer.
+
+    Returns:
+        The result of the operation.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the operation fails.
+    """
+    _validate_fd(fd)
+    if isinstance(cmd, bool) or not isinstance(cmd, int):
+        raise TypeError(f"cmd must be an int, got {type(cmd).__name__}")
+    if isinstance(arg, bool) or not isinstance(arg, (int, bytes, bytearray)):
+        raise TypeError(f"arg must be an int or bytes, got {type(arg).__name__}")
+    module = _fcntl_module()
+    if isinstance(arg, bytearray):
+        arg = bytes(arg)
+    result: int | bytes = module.fcntl(fd, cmd, arg)
+    return result
+
+
+def ioctl(fd: int, request: int, arg: int = 0) -> int:
+    """Perform the device control operation *request* on the file behind *fd*.
+
+    Args:
+        fd: The file descriptor to control.
+        request: The device specific request to perform.
+        arg: The argument of the request.
+
+    Returns:
+        The result of the operation.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the operation fails.
+    """
+    _validate_fd(fd)
+    if isinstance(request, bool) or not isinstance(request, int):
+        raise TypeError(f"request must be an int, got {type(request).__name__}")
+    if isinstance(arg, bool) or not isinstance(arg, int):
+        raise TypeError(f"arg must be an int, got {type(arg).__name__}")
+    module = _fcntl_module()
+    return int(module.ioctl(fd, request, arg))
+
+
+def get_descriptor_flags(fd: int) -> int:
+    """Return the flags of the file descriptor *fd*.
+
+    Args:
+        fd: The file descriptor to read.
+
+    Returns:
+        The flags of the file descriptor, such as :data:`FD_CLOEXEC`.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the flags cannot be read.
+    """
+    _validate_fd(fd)
+    module = _fcntl_module()
+    return int(module.fcntl(fd, F_GETFD))
+
+
+def set_descriptor_flags(fd: int, flags: int) -> None:
+    """Write the flags of the file descriptor *fd*.
+
+    Args:
+        fd: The file descriptor to write.
+        flags: The flags to write, such as :data:`FD_CLOEXEC`.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the flags cannot be written.
+    """
+    _validate_fd(fd)
+    if isinstance(flags, bool) or not isinstance(flags, int):
+        raise TypeError(f"flags must be an int, got {type(flags).__name__}")
+    if flags < 0:
+        raise ValueError(f"flags must not be negative, got {flags}")
+    module = _fcntl_module()
+    module.fcntl(fd, F_SETFD, flags)
+
+
+def get_file_status_flags(fd: int) -> int:
+    """Return the status flags of the open file behind *fd*.
+
+    Args:
+        fd: The file descriptor of the open file.
+
+    Returns:
+        The status flags of the open file, such as ``os.O_APPEND``.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the flags cannot be read.
+    """
+    _validate_fd(fd)
+    module = _fcntl_module()
+    return int(module.fcntl(fd, F_GETFL))
+
+
+def set_file_status_flags(fd: int, flags: int) -> None:
+    """Write the status flags of the open file behind *fd*.
+
+    Args:
+        fd: The file descriptor of the open file.
+        flags: The status flags to write, such as ``os.O_APPEND``.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the flags cannot be written.
+    """
+    _validate_fd(fd)
+    if isinstance(flags, bool) or not isinstance(flags, int):
+        raise TypeError(f"flags must be an int, got {type(flags).__name__}")
+    if flags < 0:
+        raise ValueError(f"flags must not be negative, got {flags}")
+    module = _fcntl_module()
+    module.fcntl(fd, F_SETFL, flags)
+
+
+def duplicate_fd(fd: int, minimum: int = 0, inheritable: bool = False) -> int:
+    """Return a copy of the file descriptor *fd*.
+
+    Args:
+        fd: The file descriptor to copy.
+        minimum: The lowest file descriptor the copy may receive.
+        inheritable: Whether the copy stays open when the process executes a
+            new program.  The copy is close on exec by default.
+
+    Returns:
+        The new file descriptor.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *fd* or *minimum* is negative.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the file descriptor cannot be copied.
+    """
+    _validate_fd(fd)
+    _validate_offset(minimum, "minimum")
+    if minimum < 0:
+        raise ValueError(f"minimum must not be negative, got {minimum}")
+    if not isinstance(inheritable, bool):
+        raise TypeError(f"inheritable must be a bool, got {type(inheritable).__name__}")
+    module = _fcntl_module()
+    command = F_DUPFD if inheritable else F_DUPFD_CLOEXEC
+    return int(module.fcntl(fd, command, minimum))
+
+
+def is_cloexec(fd: int) -> bool:
+    """Return ``True`` if the file descriptor *fd* is close on exec.
+
+    Args:
+        fd: The file descriptor to read.
+
+    Returns:
+        ``True`` if the file descriptor is closed when the process executes a
+        new program.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the flags cannot be read.
+    """
+    return bool(get_descriptor_flags(fd) & FD_CLOEXEC)
+
+
+def lock_modes() -> Dict[str, int]:
+    """Return the lock modes of the wrapper, keyed by their name.
+
+    Returns:
+        A dictionary that maps the name of a lock mode to its operation,
+        such as ``"exclusive"`` to :data:`LOCK_EX`.
+    """
+    return dict(_LOCK_MODES)
+
+
+def lock_kind(name: str, blocking: bool = True) -> int:
+    """Return the lock operation of the named mode.
+
+    Args:
+        name: The name of the mode.  One of ``"shared"``, ``"exclusive"``,
+            or ``"unlock"``.
+        blocking: Whether the operation waits for the lock.  A non blocking
+            operation is combined with :data:`LOCK_NB`.
+
+    Returns:
+        The lock operation of the mode.
+
+    Raises:
+        TypeError: If *name* is not a str or *blocking* is not a bool.
+        ValueError: If *name* is not a known lock mode.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    if not isinstance(blocking, bool):
+        raise TypeError(f"blocking must be a bool, got {type(blocking).__name__}")
+    key = name.strip().lower()
+    if key not in _LOCK_MODES:
+        raise ValueError(
+            f"name must be one of {sorted(_LOCK_MODES)}, got {name!r}"
+        )
+    operation = _LOCK_MODES[key]
+    if not blocking:
+        operation |= LOCK_NB
+    return operation
+
+
+@contextmanager
+def file_lock(
+    path: str,
+    mode: str = "exclusive",
+    blocking: bool = True,
+    create: bool = True,
+) -> Iterator[int]:
+    """Lock the file at *path* for the duration of the block.
+
+    The file is opened, locked, and unlocked again when the block ends.  The
+    file descriptor is closed as well, which releases the lock.
+
+    Args:
+        path: The path of the file to lock.
+        mode: The name of the lock mode.  One of ``"shared"``,
+            ``"exclusive"``, or ``"unlock"``.
+        blocking: Whether the lock waits for the other programs.  A non
+            blocking lock raises an :class:`OSError` instead of waiting.
+        create: Whether the file is created when it does not exist.
+
+    Yields:
+        The file descriptor of the locked file.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *mode* is not a known lock mode.
+        RuntimeError: If the interpreter does not ship the ``fcntl`` module.
+        OSError: If the file cannot be opened or locked.
+    """
+    operation = lock_kind(mode, blocking)
+    if not isinstance(path, str):
+        raise TypeError(f"path must be a str, got {type(path).__name__}")
+    if not isinstance(create, bool):
+        raise TypeError(f"create must be a bool, got {type(create).__name__}")
+    flags = os.O_RDWR | (os.O_CREAT if create else 0)
+    fd = os.open(path, flags, 0o666)
+    try:
+        flock(fd, operation)
+        try:
+            yield fd
+        finally:
+            try:
+                unlock(fd)
+            except OSError:  # pragma: no cover - the descriptor is already closed
+                pass
+    finally:
+        os.close(fd)
+FCNTL_UTILS
+
+# --- tests/test_fcntl_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_fcntl_utils.py" <<'TEST_FCNTL_UTILS'
+"""Tests for fcntl_utils."""
+
+import os
+import tempfile
+import unittest
+from unittest.mock import Mock, patch
+
+import fcntl_utils
+from fcntl_utils import (
+    F_DUPFD,
+    F_DUPFD_CLOEXEC,
+    F_GETFD,
+    F_GETFL,
+    F_LOCK,
+    F_SETFD,
+    F_SETFL,
+    F_TLOCK,
+    F_ULOCK,
+    FD_CLOEXEC,
+    LOCK_EX,
+    LOCK_NB,
+    LOCK_SH,
+    LOCK_UN,
+    control,
+    duplicate_fd,
+    file_lock,
+    flock,
+    get_descriptor_flags,
+    get_file_status_flags,
+    ioctl,
+    is_available,
+    is_cloexec,
+    lock_kind,
+    lock_modes,
+    lockf,
+    set_descriptor_flags,
+    set_file_status_flags,
+    unlock,
+)
+
+
+class TestFcntlUtils(unittest.TestCase):
+    """Verify the file control helpers.
+
+    The tests lock files in a temporary directory that the test itself
+    creates, so no test ever locks a file of the system and no test ever
+    waits for a lock that another program holds.
+    """
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.directory.name, "lockfile")
+        self.fd = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
+
+    def tearDown(self):
+        try:
+            os.close(self.fd)
+        except OSError:  # pragma: no cover - the descriptor is already closed
+            pass
+        self.directory.cleanup()
+
+    def test_is_available(self):
+        self.assertIsInstance(is_available(), bool)
+
+    def test_constants_match_the_standard_library(self):
+        if not is_available():
+            self.skipTest("fcntl module not available")
+        import fcntl
+
+        self.assertEqual(fcntl_utils.LOCK_SH, fcntl.LOCK_SH)
+        self.assertEqual(fcntl_utils.LOCK_EX, fcntl.LOCK_EX)
+        self.assertEqual(fcntl_utils.LOCK_NB, fcntl.LOCK_NB)
+        self.assertEqual(fcntl_utils.LOCK_UN, fcntl.LOCK_UN)
+        self.assertEqual(fcntl_utils.F_GETFD, fcntl.F_GETFD)
+        self.assertEqual(fcntl_utils.F_SETFD, fcntl.F_SETFD)
+        self.assertEqual(fcntl_utils.F_GETFL, fcntl.F_GETFL)
+        self.assertEqual(fcntl_utils.F_SETFL, fcntl.F_SETFL)
+        self.assertEqual(fcntl_utils.F_DUPFD, fcntl.F_DUPFD)
+        self.assertEqual(fcntl_utils.F_DUPFD_CLOEXEC, fcntl.F_DUPFD_CLOEXEC)
+        self.assertEqual(fcntl_utils.FD_CLOEXEC, fcntl.FD_CLOEXEC)
+    def test_flock_locks_the_file(self):
+        other = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
+        try:
+            flock(self.fd, LOCK_EX)
+            with self.assertRaises(BlockingIOError):
+                flock(other, LOCK_EX | LOCK_NB)
+        finally:
+            os.close(other)
+
+    def test_flock_releases_the_lock(self):
+        other = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
+        try:
+            flock(self.fd, LOCK_EX)
+            unlock(self.fd)
+            flock(other, LOCK_EX | LOCK_NB)
+        finally:
+            os.close(other)
+
+    def test_flock_accepts_a_shared_lock(self):
+        other = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
+        try:
+            flock(self.fd, LOCK_SH)
+            flock(other, LOCK_SH | LOCK_NB)
+        finally:
+            os.close(other)
+
+    def test_flock_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            flock("0", LOCK_EX)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            flock(-1, LOCK_EX)
+        with self.assertRaises(TypeError):
+            flock(self.fd, "exclusive")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            flock(self.fd, 1 << 20)
+        with self.assertRaises(ValueError):
+            flock(self.fd, LOCK_SH | LOCK_EX)
+        with self.assertRaises(ValueError):
+            flock(self.fd, 0)
+
+    def test_unlock_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            unlock("0")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            unlock(-1)
+
+    def test_lockf_locks_and_releases_the_region(self):
+        lockf(self.fd, F_LOCK, 4, 0, os.SEEK_SET)
+        lockf(self.fd, F_ULOCK, 4, 0, os.SEEK_SET)
+
+    def test_lockf_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            lockf("0", F_LOCK)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            lockf(-1, F_LOCK)
+        with self.assertRaises(TypeError):
+            lockf(self.fd, "lock")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            lockf(self.fd, 99)
+        with self.assertRaises(TypeError):
+            lockf(self.fd, F_LOCK, "4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lockf(self.fd, F_LOCK, 4, "0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lockf(self.fd, F_LOCK, 4, 0, "set")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            lockf(self.fd, F_LOCK, 4, 0, 99)
+
+    def test_lockf_translates_the_commands_of_the_interpreter(self):
+        older = Mock(spec=["lockf", "F_LOCK"])
+        with patch("fcntl_utils._fcntl", older):
+            lockf(self.fd, F_LOCK)
+        older.lockf.assert_called_once_with(self.fd, F_LOCK, 0, 0, os.SEEK_SET)
+
+        newer = Mock(spec=["lockf"])
+        with patch("fcntl_utils._fcntl", newer):
+            lockf(self.fd, F_LOCK)
+            lockf(self.fd, F_TLOCK)
+            lockf(self.fd, F_ULOCK)
+        self.assertEqual(newer.lockf.call_count, 3)
+        self.assertEqual(newer.lockf.call_args_list[0].args[1], LOCK_EX)
+        self.assertEqual(newer.lockf.call_args_list[1].args[1], LOCK_EX | LOCK_NB)
+        self.assertEqual(newer.lockf.call_args_list[2].args[1], LOCK_UN)
+
+    def test_control_reads_the_flags_of_the_descriptor(self):
+        flags = control(self.fd, F_GETFD)
+        self.assertIsInstance(flags, int)
+        status = control(self.fd, F_GETFL)
+        self.assertIsInstance(status, int)
+
+    def test_control_writes_the_flags(self):
+        original = control(self.fd, F_GETFD)
+        try:
+            control(self.fd, F_SETFD, 0)
+            self.assertFalse(is_cloexec(self.fd))
+            control(self.fd, F_SETFD, FD_CLOEXEC)
+            self.assertTrue(is_cloexec(self.fd))
+        finally:
+            control(self.fd, F_SETFD, original)
+        status = control(self.fd, F_GETFL)
+        try:
+            control(self.fd, F_SETFL, status | os.O_APPEND)
+            self.assertTrue(control(self.fd, F_GETFL) & os.O_APPEND)
+        finally:
+            control(self.fd, F_SETFL, status)
+
+    def test_control_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            control("0", F_GETFD)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            control(-1, F_GETFD)
+        with self.assertRaises(TypeError):
+            control(self.fd, "get")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            control(self.fd, F_GETFD, 1.5)  # type: ignore[arg-type]
+
+    def test_ioctl_reports_an_unsupported_request(self):
+        with self.assertRaises(OSError):
+            ioctl(self.fd, 0x1234)
+
+    def test_ioctl_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            ioctl("0", 1)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            ioctl(-1, 1)
+        with self.assertRaises(TypeError):
+            ioctl(self.fd, "request")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ioctl(self.fd, 1, "arg")  # type: ignore[arg-type]
+
+    def test_descriptor_flags_round_trip(self):
+        original = get_descriptor_flags(self.fd)
+        try:
+            set_descriptor_flags(self.fd, 0)
+            self.assertFalse(is_cloexec(self.fd))
+            set_descriptor_flags(self.fd, FD_CLOEXEC)
+            self.assertTrue(is_cloexec(self.fd))
+        finally:
+            set_descriptor_flags(self.fd, original)
+
+    def test_descriptor_flags_validate_their_arguments(self):
+        with self.assertRaises(TypeError):
+            get_descriptor_flags("0")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            get_descriptor_flags(-1)
+        with self.assertRaises(TypeError):
+            set_descriptor_flags(self.fd, "flags")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            set_descriptor_flags(self.fd, -1)
+
+    def test_file_status_flags_round_trip(self):
+        original = get_file_status_flags(self.fd)
+        try:
+            set_file_status_flags(self.fd, original | os.O_APPEND)
+            self.assertTrue(get_file_status_flags(self.fd) & os.O_APPEND)
+        finally:
+            set_file_status_flags(self.fd, original)
+
+    def test_file_status_flags_validate_their_arguments(self):
+        with self.assertRaises(TypeError):
+            get_file_status_flags("0")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            get_file_status_flags(-1)
+        with self.assertRaises(TypeError):
+            set_file_status_flags(self.fd, 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            set_file_status_flags(self.fd, -1)
+
+    def test_duplicate_fd_copies_the_descriptor(self):
+        copy = duplicate_fd(self.fd)
+        try:
+            self.assertNotEqual(copy, self.fd)
+            self.assertTrue(is_cloexec(copy))
+        finally:
+            os.close(copy)
+
+    def test_duplicate_fd_uses_the_expected_command(self):
+        real = fcntl_utils._fcntl
+        module = Mock(spec=["fcntl"])
+        module.fcntl.side_effect = real.fcntl
+        with patch("fcntl_utils._fcntl", module):
+            copy = duplicate_fd(self.fd)
+            os.close(copy)
+            inheritable = duplicate_fd(self.fd, inheritable=True)
+            os.close(inheritable)
+        self.assertEqual(module.fcntl.call_args_list[0].args[1], F_DUPFD_CLOEXEC)
+        self.assertEqual(module.fcntl.call_args_list[1].args[1], F_DUPFD)
+
+    def test_duplicate_fd_can_keep_the_copy_inheritable(self):
+        copy = duplicate_fd(self.fd, inheritable=True)
+        try:
+            self.assertFalse(is_cloexec(copy))
+        finally:
+            os.close(copy)
+
+    def test_duplicate_fd_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            duplicate_fd("0")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            duplicate_fd(-1)
+        with self.assertRaises(TypeError):
+            duplicate_fd(self.fd, "0")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            duplicate_fd(self.fd, -1)
+        with self.assertRaises(TypeError):
+            duplicate_fd(self.fd, 0, "yes")  # type: ignore[arg-type]
+
+    def test_lock_modes_and_lock_kind(self):
+        modes = lock_modes()
+        self.assertEqual(modes["shared"], LOCK_SH)
+        self.assertEqual(modes["exclusive"], LOCK_EX)
+        self.assertEqual(modes["unlock"], LOCK_UN)
+        self.assertEqual(lock_kind("shared"), LOCK_SH)
+        self.assertEqual(lock_kind("EXCLUSIVE"), LOCK_EX)
+        self.assertEqual(lock_kind("unlock", blocking=False), LOCK_UN | LOCK_NB)
+
+    def test_lock_kind_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            lock_kind(1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lock_kind("shared", "yes")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            lock_kind("unknown")
+
+    def test_file_lock_holds_the_lock_for_the_block(self):
+        other = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
+        try:
+            with file_lock(self.path) as fd:
+                self.assertIsInstance(fd, int)
+                with self.assertRaises(BlockingIOError):
+                    flock(other, LOCK_EX | LOCK_NB)
+            flock(other, LOCK_EX | LOCK_NB)
+        finally:
+            os.close(other)
+
+    def test_file_lock_can_refuse_to_create_the_file(self):
+        missing = os.path.join(self.directory.name, "missing")
+        with self.assertRaises(FileNotFoundError):
+            with file_lock(missing, create=False):
+                pass
+
+    def test_file_lock_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            with file_lock(1):  # type: ignore[arg-type]
+                pass
+        with self.assertRaises(TypeError):
+            with file_lock(self.path, "exclusive", "yes"):  # type: ignore[arg-type]
+                pass
+        with self.assertRaises(TypeError):
+            with file_lock(self.path, "exclusive", True, "yes"):  # type: ignore[arg-type]
+                pass
+        with self.assertRaises(ValueError):
+            with file_lock(self.path, "unknown"):
+                pass
+
+    def test_helpers_report_a_missing_standard_library_module(self):
+        with patch("fcntl_utils._fcntl", None):
+            self.assertFalse(is_available())
+            with self.assertRaises(RuntimeError):
+                flock(self.fd, LOCK_EX)
+            with self.assertRaises(RuntimeError):
+                unlock(self.fd)
+            with self.assertRaises(RuntimeError):
+                lockf(self.fd, F_LOCK)
+            with self.assertRaises(RuntimeError):
+                control(self.fd, F_GETFD)
+            with self.assertRaises(RuntimeError):
+                ioctl(self.fd, 1)
+            with self.assertRaises(RuntimeError):
+                get_descriptor_flags(self.fd)
+            with self.assertRaises(RuntimeError):
+                set_descriptor_flags(self.fd, 0)
+            with self.assertRaises(RuntimeError):
+                get_file_status_flags(self.fd)
+            with self.assertRaises(RuntimeError):
+                set_file_status_flags(self.fd, 0)
+            with self.assertRaises(RuntimeError):
+                duplicate_fd(self.fd)
+            with self.assertRaises(RuntimeError):
+                file_lock(self.path).__enter__()
+
+    def test_all_names_are_exported(self):
+        self.assertIsNotNone(fcntl_utils.__all__)
+        self.assertEqual(len(fcntl_utils.__all__), len(set(fcntl_utils.__all__)))
+        for name in fcntl_utils.__all__:
+            self.assertTrue(hasattr(fcntl_utils, name), name)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_FCNTL_UTILS
 
 
 # --- substitute the project name in the templated documents ---

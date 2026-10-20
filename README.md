@@ -256,6 +256,7 @@ resource_utils.py            # Resource usage utilities wrapping stdlib resource
 pwd_utils.py                 # Password database utilities wrapping stdlib pwd (getpwuid, getpwnam, getpwall)
 grp_utils.py                 # Group database utilities wrapping stdlib grp (getgrgid, getgrnam, getgrall)
 termios_utils.py             # Terminal attribute utilities wrapping stdlib termios (get_attributes, set_attributes, make_raw, make_cbreak, get_window_size, set_window_size)
+fcntl_utils.py               # File control utilities wrapping stdlib fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -425,6 +426,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_pwd_utils.py            # Tests for pwd_utils.py
     test_grp_utils.py            # Tests for grp_utils.py
     test_termios_utils.py        # Tests for termios_utils.py
+    test_fcntl_utils.py          # Tests for fcntl_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -1436,3 +1438,7 @@ The project includes group database utilities in `grp_utils.py` wrapping the sta
 ## Termios Utilities Module
 
 The project includes terminal attribute utilities in `termios_utils.py` wrapping the standard library `termios` module: `get_attributes` reads the attributes of a terminal, `set_attributes` writes them back, `make_raw` builds a raw configuration, `make_cbreak` builds a cbreak configuration, `set_read_timeout` and `set_blocking` configure how a read waits for data, `get_window_size` and `set_window_size` read and write the size of the window, `drain` waits until the output was transmitted, `flush` discards the data the terminal has not processed yet, `pause_output` and `resume_output` suspend and resume the output, `send_break` sends a break, `control_character_names` returns the names of the control characters, `baud_rates` returns the standard baud rates, and `is_available` reports whether the interpreter ships the standard library module. The attributes are returned in an `Attributes` named tuple with the fields `iflag`, `oflag`, `cflag`, `lflag`, `ispeed`, `ospeed`, and `cc`, and the size of the window is returned in a `WindowSize` named tuple with the fields `rows`, `columns`, `x_pixels`, and `y_pixels`. The control character slots (`VINTR`, `VQUIT`, `VERASE`, `VKILL`, `VEOF`, `VTIME`, `VMIN`, and the rest) and the moments and queues of the standard library (`TCSANOW`, `TCSADRAIN`, `TCSAFLUSH`, `TCIFLUSH`, and `TCOFLUSH`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `termios` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_termios_utils.py`.
+
+## File Control Utilities Module
+
+The project includes file control utilities in `fcntl_utils.py` wrapping the standard library `fcntl` module: `flock` places an advisory lock on a file, `unlock` releases it, `lockf` places an advisory lock on a region of a file, `control` performs the other control operations on a file descriptor, `ioctl` performs a device specific control operation, `get_descriptor_flags` and `set_descriptor_flags` read and write the flags of a file descriptor, `is_cloexec` reports whether a file descriptor is closed when the process executes a new program, `get_file_status_flags` and `set_file_status_flags` read and write the status flags of an open file, `duplicate_fd` copies a file descriptor, `file_lock` locks a file for the duration of a block of code, `lock_kind` and `lock_modes` translate the name of a lock mode into its operation, and `is_available` reports whether the interpreter ships the standard library module. The lock operations (`LOCK_SH`, `LOCK_EX`, `LOCK_NB`, and `LOCK_UN`), the record lock commands (`F_LOCK`, `F_TLOCK`, and `F_ULOCK`), and the control constants (`F_GETFD`, `F_SETFD`, `F_GETFL`, `F_SETFL`, `F_DUPFD`, `F_DUPFD_CLOEXEC`, and `FD_CLOEXEC`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `fcntl` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_fcntl_utils.py`.
