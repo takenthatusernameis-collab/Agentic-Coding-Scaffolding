@@ -238,4 +238,5 @@ py_modules = [
     "symtable_utils",
     "imaplib_utils",
     "zipapp_utils",
+    "py_compile_utils",
 ]

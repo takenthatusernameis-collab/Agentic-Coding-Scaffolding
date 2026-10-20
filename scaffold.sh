@@ -294,8 +294,9 @@
 #   - tests/test_wave_utils.py — # Tests for wave_utils.py
 #   - uu_utils.py — # Uuencode utilities wrapping stdlib uu (uu_encode, uu_decode, encode_uu, decode_uu, parse_uu_header, is_uuencoded)
 #   - zipapp_utils.py — # Zipapp utilities wrapping stdlib zipapp (create_archive/create_zipapp, get_interpreter/get_zipapp_interpreter, is_zipapp_archive)
-#   - tests/test_uu_utils.py — # Tests for uu_utils.py
 #   - tests/test_zipapp_utils.py — # Tests for zipapp_utils.py
+#   - py_compile_utils.py — # Py_compile utilities wrapping stdlib py_compile (compile_file/py_compile_file, get_invalidation_mode, parse_invalidation_mode, is_pyc_file, main)
+#   - tests/test_py_compile_utils.py — # Tests for py_compile_utils.py
 #   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 #   - tests/test_contextlib_utils.py — # Tests for contextlib_utils.py
 
@@ -4242,9 +4243,10 @@ py_modules = [
     "circuit_breaker_utils",
     "deprecation_utils",
     "asyncio_utils",
-    "imaplib_utils",
-    "zipapp_utils",
-    "mailbox_utils",
+"imaplib_utils",
+     "zipapp_utils",
+     "py_compile_utils",
+     "mailbox_utils",
     "wave_utils",
     "mmap_utils",
     "profile_utils",
@@ -27197,6 +27199,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_uu_utils.py` — unit tests for `uu_utils.py`
 - `zipapp_utils.py` — zipapp utilities wrapping the standard library `zipapp` module (`create_archive`/`create_zipapp`, `get_interpreter`/`get_zipapp_interpreter`, `is_zipapp_archive`)
 - `tests/test_zipapp_utils.py` — unit tests for `zipapp_utils.py`
+- `py_compile_utils.py` — py_compile utilities wrapping the standard library `py_compile` module (`compile_file`/`py_compile_file`, `get_invalidation_mode`, `parse_invalidation_mode`, `is_pyc_file`, `main`) with input validation
+- `tests/test_py_compile_utils.py` — unit tests for `py_compile_utils.py`
 SCAFFOLD
 
 

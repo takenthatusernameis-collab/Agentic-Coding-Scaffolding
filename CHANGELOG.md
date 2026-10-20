@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Add `py_compile_utils.py` wrapping the standard library `py_compile` module (`compile_file`/`py_compile_file`, `get_invalidation_mode`, `parse_invalidation_mode`, `is_pyc_file`, `main`) with `PyCompileError` and `PycInvalidationMode` re-exports, plus unit tests in `tests/test_py_compile_utils.py`.
+- Synchronized `py_compile_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `uu_utils.py` wrapping the standard library `uu` module (`uu_encode`, `uu_decode`, `encode_uu`, `decode_uu`, `parse_uu_header`, `is_uuencoded`) with input validation, plus unit tests in `tests/test_uu_utils.py`.
 - Synchronized `uu_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Add `zipapp_utils.py` wrapping the standard library `zipapp` module (`create_archive`/`create_zipapp`, `get_interpreter`/`get_zipapp_interpreter`, `is_zipapp_archive`) with `ZipAppError` re-export, plus unit tests in `tests/test_zipapp_utils.py`.
