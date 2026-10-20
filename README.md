@@ -39,6 +39,7 @@ hello.py                     # Sample application entry point
 abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
 gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
+mailcap_utils.py            # Mailcap utilities wrapping stdlib mailcap
 pickle_utils.py              # Object serialization utilities wrapping stdlib pickle
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
@@ -212,6 +213,7 @@ profile_utils.py             # Profiling utilities wrapping stdlib profile (Prof
 pstats_utils.py              # Profiling statistics utilities wrapping stdlib pstats (Stats, SortKey, new_stats, load_stats, add_stats, print_stats, sort_stats, strip_dirs, reverse_order, dump_stats)
 select_utils.py              # I/O multiplexing utilities wrapping stdlib select (select, create_poller, poll_register, poll_poll, PIPE_BUF)
 imaplib_utils.py             # IMAP4 client utilities wrapping stdlib imaplib (create_imap4, create_imap4_ssl, create_imap4_stream, parse_capabilities, has_capability, parse_flags, parse_fetch_flags, format_flags, parse_internaldate, format_internaldate, int_to_ap)
+mailbox_utils.py             # Mailbox utilities wrapping stdlib mailbox (create_* factories)
 unittest_utils.py            # Unittest utilities wrapping stdlib unittest (TestCase, TestSuite, TestLoader, TextTestRunner, make_suite, run_tests, main)
 typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
@@ -229,6 +231,7 @@ argparse_utils.py           # Argument parsing utilities
 warnings_utils.py           # Utilities wrapping the standard library warnings module
 compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
 gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
+mailcap_utils.py            # Mailcap utilities wrapping stdlib mailcap
 ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
@@ -322,6 +325,7 @@ test_profile_utils.py        # Tests for profile_utils.py
 test_pstats_utils.py         # Tests for pstats_utils.py
  test_select_utils.py         # Tests for select_utils.py
  test_imaplib_utils.py        # Tests for imaplib_utils.py
+ test_mailbox_utils.py        # Tests for mailbox_utils.py
 
 mailbox_utils.py             # Mailbox utilities wrapping stdlib mailbox (create_* factories)
  test_mailbox_utils.py        # Tests for mailbox_utils.py
@@ -409,6 +413,7 @@ test_lzma_utils.py          # Tests for lzma_utils.py
     test_getopt_utils.py        # Tests for getopt_utils.py
     test_gettext_utils.py       # Tests for gettext_utils.py
     test_gzip_utils.py          # Tests for gzip_utils.py
+ test_mailcap_utils.py       # Tests for mailcap_utils.py
     test_inspect_utils.py       # Tests for inspect_utils.py
     test_netrc_utils.py         # Tests for netrc_utils.py
     test_numbers_utils.py       # Tests for numbers_utils.py
@@ -1119,6 +1124,10 @@ The project includes build configuration utilities in `sysconfig_utils.py` wrapp
 ## MIME Type Utilities Module
 
 The project includes MIME type utilities in `mimetypes_utils.py` wrapping the standard library `mimetypes` module: `guess_type` guesses the MIME type and content encoding of a file name or URL, `guess_extension` guesses the extension of a MIME type, `guess_all_extensions` returns every extension registered for a MIME type, `type_for_extension` returns the MIME type of an extension, `add_type` registers a custom extension for a MIME type, `init_database` initializes the MIME type database and reads extra `mime.types` files, `normalize_extension` lower cases an extension and adds the leading dot, `is_valid_mime_type` reports whether a value is a well formed `type/subtype` pair, `mime_category` returns the top level type of a MIME type, and `is_text_mime_type` reports whether a MIME type describes textual content. The module is tested in `tests/test_mimetypes_utils.py`.
+
+## Mailcap Utilities Module
+
+The project includes mailcap utilities in `mailcap_utils.py` wrapping the standard library `mailcap` module: `getcaps`, `list_mailcap_files`, `read_mailcap_file`, `parse_line`, `parse_field`, `find_match`, `lookup`, `subst`, and `find_param`. The module is tested in `tests/test_mailcap_utils.py`.
 
 ## Interactive Console Utilities Module
 

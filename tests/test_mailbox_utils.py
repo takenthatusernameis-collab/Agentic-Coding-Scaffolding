@@ -1,93 +1,115 @@
 """Tests for mailbox_utils."""
 
+from __future__ import annotations
+
+import email.message
 import mailbox
+import os
 import tempfile
 import unittest
-from pathlib import Path
 
-from mailbox_utils import (
-    Error,
-    ExternalClashError,
-    FormatError,
-    NoSuchMailboxError,
-    NotEmptyError,
-    create_babyl,
-    create_babyl_message,
-    create_mailbox,
-    create_maildir,
-    create_maildir_message,
-    create_mbox,
-    create_mbox_message,
-    create_mh,
-    create_mh_message,
-    create_mmdf,
-    create_mmdf_message,
-    is_external_clash_error,
-    is_format_error,
-    is_mailbox_error,
-    is_no_such_mailbox_error,
-    is_not_empty_error,
-)
+import mailbox_utils
 
 
-class TestMailboxBasics(unittest.TestCase):
-    def test_exceptions_and_classes(self):
-        self.assertIs(Error, mailbox.Error)
-        self.assertIs(ExternalClashError, mailbox.ExternalClashError)
-        self.assertIs(FormatError, mailbox.FormatError)
-        self.assertIs(NoSuchMailboxError, mailbox.NoSuchMailboxError)
-        self.assertIs(NotEmptyError, mailbox.NotEmptyError)
+class TestMailboxUtils(unittest.TestCase):
+    def test_exports(self) -> None:
+        self.assertTrue(hasattr(mailbox_utils, "mbox"))
+        self.assertTrue(hasattr(mailbox_utils, "Maildir"))
+        self.assertTrue(hasattr(mailbox_utils, "MH"))
+        self.assertTrue(hasattr(mailbox_utils, "Babyl"))
+        self.assertTrue(hasattr(mailbox_utils, "MMDF"))
 
-    def test_type_checks(self):
-        self.assertTrue(is_mailbox_error(FormatError()))
-        self.assertFalse(is_mailbox_error(ValueError()))
-        self.assertTrue(is_external_clash_error(ExternalClashError()))
-        self.assertTrue(is_format_error(FormatError()))
-        self.assertTrue(is_no_such_mailbox_error(NoSuchMailboxError()))
-        self.assertTrue(is_not_empty_error(NotEmptyError()))
-
-
-class TestMailboxFactories(unittest.TestCase):
-    def test_create_mailbox(self):
-        with tempfile.TemporaryDirectory() as td:
-            mbox = create_mailbox(Path(td) / "test.mbox")
-            self.assertIsInstance(mbox, mailbox.Mailbox)
-
-    def test_create_mbox(self):
-        with tempfile.TemporaryDirectory() as td:
-            mbox = create_mbox(Path(td) / "test.mbox")
+    def test_create_mbox_and_operations(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mbox")
+            mbox = mailbox_utils.create_mbox(path, create=True)
             self.assertIsInstance(mbox, mailbox.mbox)
+            msg = email.message.Message()
+            msg["From"] = "a@example.com"
+            msg["To"] = "b@example.com"
+            msg["Subject"] = "Hello"
+            msg.set_payload("Body\n")
+            key = mailbox_utils.add_message(mbox, msg)
+            self.assertTrue(isinstance(key, (str, int, bytes)))
+            keys = mailbox_utils.list_message_keys(mbox)
+            keys_str = [k if isinstance(k, str) else str(k) for k in keys]
+            key_str = key if isinstance(key, str) else str(key)
+            self.assertIn(key_str, keys_str)
+            got = mailbox_utils.get_message(mbox, key_str)
+            self.assertIsInstance(got, email.message.Message)
+            self.assertEqual(list(mailbox_utils.iter_messages(mbox))[0]["Subject"], "Hello")
+            mailbox_utils.remove_message(mbox, key_str)
+            self.assertEqual(len(mailbox_utils.list_message_keys(mbox)), 0)
+            mbox.close()
 
-    def test_create_maildir(self):
-        with tempfile.TemporaryDirectory() as td:
-            md = create_maildir(Path(td) / "testdir")
+    def test_create_maildir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "Maildir")
+            md = mailbox_utils.create_maildir(path, create=True)
             self.assertIsInstance(md, mailbox.Maildir)
+            md.close()
 
-    def test_create_mh(self):
-        with tempfile.TemporaryDirectory() as td:
-            mh = create_mh(Path(td) / "testmh")
+    def test_create_mh(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "MH")
+            mh = mailbox_utils.create_mh(path, create=True)
             self.assertIsInstance(mh, mailbox.MH)
+            mh.close()
 
-    def test_create_mmdf(self):
-        with tempfile.TemporaryDirectory() as td:
-            mmdf = create_mmdf(Path(td) / "test.mmdf")
-            self.assertIsInstance(mmdf, mailbox.MMDF)
-
-    def test_create_babyl(self):
-        with tempfile.TemporaryDirectory() as td:
-            babyl = create_babyl(Path(td) / "test.babyl")
+    def test_create_babyl(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "Babyl")
+            babyl = mailbox_utils.create_babyl(path, create=True)
             self.assertIsInstance(babyl, mailbox.Babyl)
+            babyl.close()
 
+    def test_create_mmdf(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mmdf")
+            mmdf = mailbox_utils.create_mmdf(path, create=True)
+            self.assertIsInstance(mmdf, mailbox.MMDF)
+            mmdf.close()
 
-class TestMailboxMessages(unittest.TestCase):
-    def test_create_messages(self):
-        self.assertIsInstance(create_mbox_message("Subject: hi\n\nbody\n"), mailbox.mboxMessage)
-        self.assertIsInstance(
-            create_maildir_message("Subject: hi\n\nbody\n"), mailbox.MaildirMessage
-        )
-        self.assertIsInstance(create_mh_message("Subject: hi\n\nbody\n"), mailbox.MHMessage)
-        self.assertIsInstance(create_mmdf_message("Subject: hi\n\nbody\n"), mailbox.MMDFMessage)
-        self.assertIsInstance(create_babyl_message("Subject: hi\n\nbody\n"), mailbox.BabylMessage)
+    def test_open_mailbox(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mbox")
+            mb = mailbox_utils.open_mailbox(path, factory=mailbox.mbox, create=True)
+            self.assertIsInstance(mb, mailbox.Mailbox)
+            mb.close()
+
+    def test_iter_message_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mbox")
+            mbox = mailbox_utils.create_mbox(path, create=True)
+            msg = email.message.Message()
+            msg.set_payload("hi")
+            key = mailbox_utils.add_message(mbox, msg)
+            keys = list(mailbox_utils.iter_message_keys(mbox))
+            keys_str = [k if isinstance(k, str) else str(k) for k in keys]
+            self.assertIn(key if isinstance(key, str) else str(key), keys_str)
+            mbox.close()
+
+    def test_lock_unlock(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mbox")
+            mbox = mailbox_utils.create_mbox(path, create=True)
+            mailbox_utils.lock_mailbox(mbox)
+            mailbox_utils.unlock_mailbox(mbox)
+            mbox.close()
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            mailbox_utils.create_mbox(123)  # type: ignore
+        with self.assertRaises(TypeError):
+            mailbox_utils.create_mbox("/tmp/x", create="yes")  # type: ignore
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mbox")
+            mbox = mailbox_utils.create_mbox(path, create=True)
+            with self.assertRaises(TypeError):
+                mailbox_utils.iter_messages("not_a_mailbox")  # type: ignore
+            with self.assertRaises(TypeError):
+                mailbox_utils.get_message(mbox, 123)  # type: ignore
+            mbox.close()
 
 
 if __name__ == "__main__":

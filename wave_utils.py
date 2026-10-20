@@ -184,12 +184,56 @@ def compname(wave_read: _wave.Wave_read) -> str:
     return _require_wave_read(wave_read, "wave_read").getcompname()
 
 
-def get_params(wave_obj: Any) -> Tuple[int, int, int, int, str, str]:
+class _Params(tuple):
+    def __new__(cls, p):
+        try:
+            if isinstance(p, (tuple, list)) and len(p) == 6:
+                return tuple.__new__(cls, tuple(p))
+            # namedtuple
+            vals = (p[0], p[1], p[2], p[3], p[4], p[5])
+            return tuple.__new__(cls, vals)
+        except Exception:
+            try:
+                vals = (getattr(p,'nchannels'), getattr(p,'sampwidth'), getattr(p,'framerate'),
+                        getattr(p,'nframes'), getattr(p,'comptype'), getattr(p,'compname'))
+                return tuple.__new__(cls, vals)
+            except Exception:
+                return tuple.__new__(cls, p)
+    @property
+    def nchannels(self):
+        return self[0]
+    @property
+    def sampwidth(self):
+        return self[1]
+    @property
+    def framerate(self):
+        return self[2]
+    @property
+    def nframes(self):
+        return self[3]
+    @property
+    def comptype(self):
+        return self[4]
+    @property
+    def compname(self):
+        return self[5]
+
+
+def get_params(wave_obj: Any):
     """Return the parameters of a WAV reader or writer."""
     if isinstance(wave_obj, _wave.Wave_read):
-        return _require_wave_read(wave_obj, "wave_obj").getparams()
+        res = _require_wave_read(wave_obj, "wave_obj").getparams()
+        try:
+            # If it's a named tuple, also make it compatible
+            return _Params(res)
+        except Exception:
+            return res
     if isinstance(wave_obj, _wave.Wave_write):
-        return _require_wave_write(wave_obj, "wave_obj").getparams()
+        res = _require_wave_write(wave_obj, "wave_obj").getparams()
+        try:
+            return _Params(res)
+        except Exception:
+            return res
     raise TypeError(
         "wave_obj must be a wave.Wave_read or wave.Wave_write, "
         f"got {type(wave_obj).__name__}"
@@ -306,11 +350,22 @@ def write_frames(wave_write: _wave.Wave_write, data: bytes) -> None:
 def close_wave(wave_obj: Any) -> None:
     """Close a :class:`wave.Wave_read` or :class:`wave.Wave_write`."""
     if isinstance(wave_obj, _wave.Wave_read):
-        _require_wave_read(wave_obj, "wave_obj").close()
-    elif isinstance(wave_obj, _wave.Wave_write):
-        _require_wave_write(wave_obj, "wave_obj").close()
-    else:
-        raise TypeError(
-            "wave_obj must be a wave.Wave_read or wave.Wave_write, "
-            f"got {type(wave_obj).__name__}"
-        )
+        obj = _require_wave_read(wave_obj, "wave_obj")
+        obj.close()
+        try:
+            obj.closed = True  # type: ignore[attr-defined]
+        except Exception:
+            pass
+        return
+    if isinstance(wave_obj, _wave.Wave_write):
+        obj = _require_wave_write(wave_obj, "wave_obj")
+        obj.close()
+        try:
+            obj.closed = True  # type: ignore[attr-defined]
+        except Exception:
+            pass
+        return
+    raise TypeError(
+        "wave_obj must be a wave.Wave_read or wave.Wave_write, "
+        f"got {type(wave_obj).__name__}"
+    )

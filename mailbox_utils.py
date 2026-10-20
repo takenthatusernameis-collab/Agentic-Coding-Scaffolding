@@ -1,189 +1,211 @@
-"""Mailbox utilities (wrapping :mod:`mailbox`).
-
-The :mod:`mailbox` module defines classes for accessing and manipulating
-on-disk mailboxes in various formats (mbox, Maildir, MH, MMDF, Babyl).
-This wrapper provides validated factory functions and helpers to create
-mailboxes and access related exceptions without performing disk I/O in the
-factory helpers themselves.
-"""
+"""Mailbox utilities (wrapping :mod:`mailbox`)."""
 
 from __future__ import annotations
 
 import mailbox as _mailbox
-from pathlib import Path
-from typing import Any, Callable, Optional, Union
+import os
+from email.message import Message
+from typing import Any, Iterator, List, Optional, Type, Union
+
 
 __all__ = [
     "Babyl",
-    "BabylMessage",
-    "Error",
-    "ExternalClashError",
-    "FormatError",
-    "MH",
-    "MHMessage",
-    "MMDF",
-    "MMDFMessage",
-    "Mailbox",
     "Maildir",
-    "MaildirMessage",
     "Message",
-    "NoSuchMailboxError",
-    "NotEmptyError",
+    "MH",
+    "mbox",
+    "MMDF",
+    "Mailbox",
+    "add_message",
     "create_babyl",
-    "create_babyl_message",
-    "create_mh",
-    "create_mh_message",
-    "create_mailbox",
     "create_maildir",
-    "create_maildir_message",
     "create_mbox",
-    "create_mbox_message",
+    "create_mh",
     "create_mmdf",
-    "create_mmdf_message",
-    "is_external_clash_error",
-    "is_format_error",
-    "is_mailbox_error",
-    "is_no_such_mailbox_error",
-    "is_not_empty_error",
+    "get_message",
+    "iter_message_keys",
+    "iter_messages",
+    "list_message_keys",
+    "lock_mailbox",
+    "open_mailbox",
+    "remove_message",
+    "unlock_mailbox",
 ]
 
 Babyl = _mailbox.Babyl
-BabylMessage = _mailbox.BabylMessage
-Error = _mailbox.Error
-ExternalClashError = _mailbox.ExternalClashError
-FormatError = _mailbox.FormatError
-MH = _mailbox.MH
-MHMessage = _mailbox.MHMessage
-MMDF = _mailbox.MMDF
-MMDFMessage = _mailbox.MMDFMessage
-Mailbox = _mailbox.Mailbox
 Maildir = _mailbox.Maildir
-MaildirMessage = _mailbox.MaildirMessage
-Message = _mailbox.Message
-NoSuchMailboxError = _mailbox.NoSuchMailboxError
-NotEmptyError = _mailbox.NotEmptyError
+mbox = _mailbox.mbox
+MH = _mailbox.MH
+MMDF = _mailbox.MMDF
+Mailbox = _mailbox.Mailbox
 
 
-def _path_to_str(path: Union[str, Path]) -> str:
-    if isinstance(path, Path):
-        return str(path)
-    if isinstance(path, str):
-        return path
-    raise TypeError(f"path must be a str or Path, got {type(path).__name__}")
+def _require_str(value: Any, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
 
 
-def create_mailbox(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.Mailbox:
-    """Create a mailbox instance."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.Mailbox(_path, create=create)  # type: ignore[abstract,arg-type]
-    return _mailbox.Mailbox(_path, factory=factory, create=create)  # type: ignore[abstract,arg-type]
+def _require_bool(value: Any, name: str) -> bool:
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
 
 
-def create_mbox(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.mbox:
-    """Create an mbox mailbox."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.mbox(_path, create=create)  # type: ignore[arg-type]
-    return _mailbox.mbox(_path, factory=factory, create=create)  # type: ignore[arg-type]
+def _require_path_exists(value: str, name: str) -> str:
+    if not os.path.lexists(value):
+        raise FileNotFoundError(f"{name} {value!r} does not exist")
+    return value
 
 
-def create_maildir(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.Maildir:
-    """Create a Maildir mailbox."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.Maildir(_path, create=create)  # type: ignore[arg-type]
-    return _mailbox.Maildir(_path, factory=factory, create=create)  # type: ignore[arg-type]
+def create_mbox(path: str, create: bool = True) -> _mailbox.mbox:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if create and not os.path.lexists(path):
+        parent = os.path.dirname(os.path.abspath(path)) or "."
+        os.makedirs(parent, exist_ok=True)
+        open(path, "a").close()
+    elif not create:
+        _require_path_exists(path, "path")
+    return _mailbox.mbox(path, create=create)
 
 
-def create_mh(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.MH:
-    """Create an MH mailbox."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.MH(_path, create=create)  # type: ignore[arg-type]
-    return _mailbox.MH(_path, factory=factory, create=create)  # type: ignore[arg-type]
+def create_maildir(path: str, create: bool = True) -> _mailbox.Maildir:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if create and not os.path.lexists(path):
+        os.makedirs(path, exist_ok=True)
+    elif not create:
+        _require_path_exists(path, "path")
+    return _mailbox.Maildir(path, create=create)
 
 
-def create_mmdf(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.MMDF:
-    """Create an MMDF mailbox."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.MMDF(_path, create=create)  # type: ignore[arg-type]
-    return _mailbox.MMDF(_path, factory=factory, create=create)  # type: ignore[arg-type]
+def create_mh(path: str, create: bool = True) -> _mailbox.MH:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if create and not os.path.lexists(path):
+        os.makedirs(path, exist_ok=True)
+    elif not create:
+        _require_path_exists(path, "path")
+    return _mailbox.MH(path, create=create)
 
 
-def create_babyl(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.Babyl:
-    """Create a Babyl mailbox."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.Babyl(_path, create=create)  # type: ignore[arg-type]
-    return _mailbox.Babyl(_path, factory=factory, create=create)  # type: ignore[arg-type]
+def create_babyl(path: str, create: bool = True) -> _mailbox.Babyl:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if create and not os.path.lexists(path):
+        parent = os.path.dirname(os.path.abspath(path)) or "."
+        os.makedirs(parent, exist_ok=True)
+        open(path, "a").close()
+    elif not create:
+        _require_path_exists(path, "path")
+    return _mailbox.Babyl(path, create=create)
 
 
-def create_mbox_message(message: Any) -> _mailbox.mboxMessage:
-    """Create an mbox message."""
-    return _mailbox.mboxMessage(message)
+def create_mmdf(path: str, create: bool = True) -> _mailbox.MMDF:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if create and not os.path.lexists(path):
+        parent = os.path.dirname(os.path.abspath(path)) or "."
+        os.makedirs(parent, exist_ok=True)
+        open(path, "a").close()
+    elif not create:
+        _require_path_exists(path, "path")
+    return _mailbox.MMDF(path, create=create)
 
 
-def create_maildir_message(message: Any) -> _mailbox.MaildirMessage:
-    """Create a Maildir message."""
-    return _mailbox.MaildirMessage(message)
+def open_mailbox(
+    path: str, factory: Optional[Type[Mailbox]] = None, create: bool = True
+) -> Mailbox:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if factory is not None:
+        if not isinstance(factory, type) or not issubclass(factory, Mailbox):
+            raise TypeError("factory must be a mailbox.Mailbox subclass")
+    if hasattr(_mailbox, "open"):
+        try:
+            return _mailbox.open(path, factory=factory, create=create)  # type: ignore[attr-defined]
+        except Exception:
+            pass
+    if factory is not None:
+        return factory(path, create=create)
+    if os.path.isdir(path):
+        return _mailbox.Maildir(path, create=create)
+    return _mailbox.mbox(path, create=create)
 
 
-def create_mh_message(message: Any) -> _mailbox.MHMessage:
-    """Create an MH message."""
-    return _mailbox.MHMessage(message)
+def iter_messages(mailbox_obj: Mailbox) -> Iterator[Message]:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    return iter(mailbox_obj)
 
 
-def create_mmdf_message(message: Any) -> _mailbox.MMDFMessage:
-    """Create an MMDF message."""
-    return _mailbox.MMDFMessage(message)
+def iter_message_keys(mailbox_obj: Mailbox) -> Iterator[str]:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    for k in mailbox_obj.keys():
+        yield k if isinstance(k, str) else str(k)
 
 
-def create_babyl_message(message: Any) -> _mailbox.BabylMessage:
-    """Create a Babyl message."""
-    return _mailbox.BabylMessage(message)
+def list_message_keys(mailbox_obj: Mailbox) -> List[str]:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    out = []
+    for k in mailbox_obj.keys():
+        out.append(k if isinstance(k, str) else str(k))
+    return out
 
 
-def is_mailbox_error(exc: BaseException) -> bool:
-    return isinstance(exc, Error)
+def get_message(mailbox_obj: Mailbox, key: str) -> Message:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    key = _require_str(key, "key")
+    try:
+        return mailbox_obj[key]
+    except Exception:
+        for k in mailbox_obj.keys():
+            kstr = k if isinstance(k, str) else str(k)
+            if kstr == key:
+                return mailbox_obj[k]
+        raise
 
 
-def is_external_clash_error(exc: BaseException) -> bool:
-    return isinstance(exc, ExternalClashError)
+def add_message(mailbox_obj: Mailbox, message: Union[Message, str, bytes]) -> str:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    result = mailbox_obj.add(message)
+    if isinstance(result, str):
+        return result
+    try:
+        if isinstance(result, bytes):
+            return result.decode()
+    except Exception:
+        pass
+    return str(result)
 
 
-def is_format_error(exc: BaseException) -> bool:
-    return isinstance(exc, FormatError)
+def remove_message(mailbox_obj: Mailbox, key: str) -> None:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    key = _require_str(key, "key")
+    try:
+        del mailbox_obj[key]
+    except Exception:
+        for k in list(mailbox_obj.keys()):
+            kstr = k if isinstance(k, str) else str(k)
+            if kstr == key:
+                del mailbox_obj[k]
+                return
+        raise
 
 
-def is_no_such_mailbox_error(exc: BaseException) -> bool:
-    return isinstance(exc, NoSuchMailboxError)
+def lock_mailbox(mailbox_obj: Mailbox) -> None:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    mailbox_obj.lock()
 
 
-def is_not_empty_error(exc: BaseException) -> bool:
-    return isinstance(exc, NotEmptyError)
+def unlock_mailbox(mailbox_obj: Mailbox) -> None:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    mailbox_obj.unlock()

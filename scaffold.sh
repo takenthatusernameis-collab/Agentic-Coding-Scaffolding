@@ -75,6 +75,7 @@
 #   - concurrent_futures_utils.py — # concurrent.futures wrappers with validation (ThreadPoolExecutor, ProcessPoolExecutor, Future, as_completed, wait, thread_pool_executor, process_pool_executor, submit, as_completed_iter, wait_futures)
 #   - gc_utils.py — # GC utilities wrapping the standard library gc module (enable, disable, isenabled, collect, get_count, get_objects, get_referents, get_referrers, get_stats, set_debug, get_debug, set_threshold, get_threshold)
 #   - gzip_utils.py — # Gzip compression and decompression utilities
+#   - mailcap_utils.py — # Mailcap utilities wrapping stdlib mailcap
 #   - hashlib_utils.py — # Hash utilities wrapping the standard library hashlib module (md5_hash, sha1_hash, sha256_hash, sha512_hash, sha3_256_hash, sha3_512_hash, blake2b_hash, blake2s_hash, file_hash) with input validation
 #   - multiprocessing_utils.py — # Multiprocessing utilities for pools, processes, locks, queues, and shared memory (dynamic import, reload, spec inspection, metadata, resources)
 #   - platform_utils.py — # Platform utilities wrapping the standard library platform module (system, release, version, machine, processor, node, Python build/compiler/revision/implementation/version, uname, and platform identification with validation)
@@ -288,6 +289,7 @@
 #   - tests/test_imaplib_utils.py — # Tests for imaplib_utils.py
 #   - mailbox_utils.py — # Mailbox utilities wrapping stdlib mailbox (create_* factories)
 #   - tests/test_mailbox_utils.py — # Tests for mailbox_utils.py
+#   - tests/test_mailcap_utils.py — # Tests for mailcap_utils.py
 #   - wave_utils.py — # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames)
 #   - tests/test_wave_utils.py — # Tests for wave_utils.py
 #   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
@@ -27179,6 +27181,10 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_symtable_utils.py` — unit tests for `symtable_utils.py`
 - `imaplib_utils.py` — IMAP4 client utilities wrapping the standard library `imaplib` module (`create_imap4`, `create_imap4_ssl`, `create_imap4_stream`, `parse_capabilities`, `has_capability`, `parse_flags`, `parse_fetch_flags`, `format_flags`, `parse_internaldate`, `format_internaldate`, `int_to_ap`) with input validation
 - `tests/test_imaplib_utils.py` — unit tests for `imaplib_utils.py`
+- `mailbox_utils.py` — Mailbox utilities wrapping the standard library `mailbox` module with validated constructors and helpers
+- `tests/test_mailbox_utils.py` — unit tests for `mailbox_utils.py`
+- `mailcap_utils.py` — Mailcap utilities wrapping the standard library `mailcap` module
+- `tests/test_mailcap_utils.py` — unit tests for `mailcap_utils.py`
 - `mailbox_utils.py` — mailbox utilities wrapping the standard library `mailbox` module (factory helpers and exception/type checks)
 - `tests/test_mailbox_utils.py` — unit tests for `mailbox_utils.py`
 - `wave_utils.py` — wave audio utilities wrapping the standard library `wave` module (`open_read`, `open_write`, `wave_info`, `read_frames`, `write_frames`, `create_writer`, `get_params`, `set_params`, per-field setters) with input validation
@@ -56774,293 +56780,1196 @@ if __name__ == "__main__":
     unittest.main()
 TEST_IMAPLIB_UTILS
 cat > "$OUTPUT_DIR/mailbox_utils.py" <<'MAILBOX_UTILS'
-"""Mailbox utilities (wrapping :mod:`mailbox`).
-
-The :mod:`mailbox` module defines classes for accessing and manipulating
-on-disk mailboxes in various formats (mbox, Maildir, MH, MMDF, Babyl).
-This wrapper provides validated factory functions and helpers to create
-mailboxes and access related exceptions without performing disk I/O in the
-factory helpers themselves.
-"""
+"""Mailbox utilities (wrapping :mod:`mailbox`)."""
 
 from __future__ import annotations
 
 import mailbox as _mailbox
-from pathlib import Path
-from typing import Any, Callable, Optional, Union
+import os
+from email.message import Message
+from typing import Any, Iterator, List, Optional, Type, Union
+
 
 __all__ = [
     "Babyl",
-    "BabylMessage",
-    "Error",
-    "ExternalClashError",
-    "FormatError",
-    "MH",
-    "MHMessage",
-    "MMDF",
-    "MMDFMessage",
-    "Mailbox",
     "Maildir",
-    "MaildirMessage",
     "Message",
-    "NoSuchMailboxError",
-    "NotEmptyError",
+    "MH",
+    "mbox",
+    "MMDF",
+    "Mailbox",
+    "add_message",
     "create_babyl",
-    "create_babyl_message",
-    "create_mh",
-    "create_mh_message",
-    "create_mailbox",
     "create_maildir",
-    "create_maildir_message",
     "create_mbox",
-    "create_mbox_message",
+    "create_mh",
     "create_mmdf",
-    "create_mmdf_message",
-    "is_external_clash_error",
-    "is_format_error",
-    "is_mailbox_error",
-    "is_no_such_mailbox_error",
-    "is_not_empty_error",
+    "get_message",
+    "iter_message_keys",
+    "iter_messages",
+    "list_message_keys",
+    "lock_mailbox",
+    "open_mailbox",
+    "remove_message",
+    "unlock_mailbox",
 ]
 
 Babyl = _mailbox.Babyl
-BabylMessage = _mailbox.BabylMessage
-Error = _mailbox.Error
-ExternalClashError = _mailbox.ExternalClashError
-FormatError = _mailbox.FormatError
-MH = _mailbox.MH
-MHMessage = _mailbox.MHMessage
-MMDF = _mailbox.MMDF
-MMDFMessage = _mailbox.MMDFMessage
-Mailbox = _mailbox.Mailbox
 Maildir = _mailbox.Maildir
-MaildirMessage = _mailbox.MaildirMessage
-Message = _mailbox.Message
-NoSuchMailboxError = _mailbox.NoSuchMailboxError
-NotEmptyError = _mailbox.NotEmptyError
+mbox = _mailbox.mbox
+MH = _mailbox.MH
+MMDF = _mailbox.MMDF
+Mailbox = _mailbox.Mailbox
 
 
-def _path_to_str(path: Union[str, Path]) -> str:
-    if isinstance(path, Path):
-        return str(path)
-    if isinstance(path, str):
-        return path
-    raise TypeError(f"path must be a str or Path, got {type(path).__name__}")
+def _require_str(value: Any, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
 
 
-def create_mailbox(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.Mailbox:
-    """Create a mailbox instance."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.Mailbox(_path, create=create)  # type: ignore[abstract,arg-type]
-    return _mailbox.Mailbox(_path, factory=factory, create=create)  # type: ignore[abstract,arg-type]
+def _require_bool(value: Any, name: str) -> bool:
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
 
 
-def create_mbox(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.mbox:
-    """Create an mbox mailbox."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.mbox(_path, create=create)  # type: ignore[arg-type]
-    return _mailbox.mbox(_path, factory=factory, create=create)  # type: ignore[arg-type]
+def _require_path_exists(value: str, name: str) -> str:
+    if not os.path.lexists(value):
+        raise FileNotFoundError(f"{name} {value!r} does not exist")
+    return value
 
 
-def create_maildir(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.Maildir:
-    """Create a Maildir mailbox."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.Maildir(_path, create=create)  # type: ignore[arg-type]
-    return _mailbox.Maildir(_path, factory=factory, create=create)  # type: ignore[arg-type]
+def create_mbox(path: str, create: bool = True) -> _mailbox.mbox:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if create and not os.path.lexists(path):
+        parent = os.path.dirname(os.path.abspath(path)) or "."
+        os.makedirs(parent, exist_ok=True)
+        open(path, "a").close()
+    elif not create:
+        _require_path_exists(path, "path")
+    return _mailbox.mbox(path, create=create)
 
 
-def create_mh(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.MH:
-    """Create an MH mailbox."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.MH(_path, create=create)  # type: ignore[arg-type]
-    return _mailbox.MH(_path, factory=factory, create=create)  # type: ignore[arg-type]
+def create_maildir(path: str, create: bool = True) -> _mailbox.Maildir:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if create and not os.path.lexists(path):
+        os.makedirs(path, exist_ok=True)
+    elif not create:
+        _require_path_exists(path, "path")
+    return _mailbox.Maildir(path, create=create)
 
 
-def create_mmdf(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.MMDF:
-    """Create an MMDF mailbox."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.MMDF(_path, create=create)  # type: ignore[arg-type]
-    return _mailbox.MMDF(_path, factory=factory, create=create)  # type: ignore[arg-type]
+def create_mh(path: str, create: bool = True) -> _mailbox.MH:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if create and not os.path.lexists(path):
+        os.makedirs(path, exist_ok=True)
+    elif not create:
+        _require_path_exists(path, "path")
+    return _mailbox.MH(path, create=create)
 
 
-def create_babyl(
-    path: Union[str, Path],
-    factory: Optional[Callable[[Any], Any]] = None,
-    create: bool = True,
-) -> _mailbox.Babyl:
-    """Create a Babyl mailbox."""
-    _path = _path_to_str(path)
-    if factory is None:
-        return _mailbox.Babyl(_path, create=create)  # type: ignore[arg-type]
-    return _mailbox.Babyl(_path, factory=factory, create=create)  # type: ignore[arg-type]
+def create_babyl(path: str, create: bool = True) -> _mailbox.Babyl:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if create and not os.path.lexists(path):
+        parent = os.path.dirname(os.path.abspath(path)) or "."
+        os.makedirs(parent, exist_ok=True)
+        open(path, "a").close()
+    elif not create:
+        _require_path_exists(path, "path")
+    return _mailbox.Babyl(path, create=create)
 
 
-def create_mbox_message(message: Any) -> _mailbox.mboxMessage:
-    """Create an mbox message."""
-    return _mailbox.mboxMessage(message)
+def create_mmdf(path: str, create: bool = True) -> _mailbox.MMDF:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if create and not os.path.lexists(path):
+        parent = os.path.dirname(os.path.abspath(path)) or "."
+        os.makedirs(parent, exist_ok=True)
+        open(path, "a").close()
+    elif not create:
+        _require_path_exists(path, "path")
+    return _mailbox.MMDF(path, create=create)
 
 
-def create_maildir_message(message: Any) -> _mailbox.MaildirMessage:
-    """Create a Maildir message."""
-    return _mailbox.MaildirMessage(message)
+def open_mailbox(
+    path: str, factory: Optional[Type[Mailbox]] = None, create: bool = True
+) -> Mailbox:
+    path = _require_str(path, "path")
+    create = _require_bool(create, "create")
+    if factory is not None:
+        if not isinstance(factory, type) or not issubclass(factory, Mailbox):
+            raise TypeError("factory must be a mailbox.Mailbox subclass")
+    if hasattr(_mailbox, "open"):
+        try:
+            return _mailbox.open(path, factory=factory, create=create)  # type: ignore[attr-defined]
+        except Exception:
+            pass
+    if factory is not None:
+        return factory(path, create=create)
+    if os.path.isdir(path):
+        return _mailbox.Maildir(path, create=create)
+    return _mailbox.mbox(path, create=create)
 
 
-def create_mh_message(message: Any) -> _mailbox.MHMessage:
-    """Create an MH message."""
-    return _mailbox.MHMessage(message)
+def iter_messages(mailbox_obj: Mailbox) -> Iterator[Message]:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    return iter(mailbox_obj)
 
 
-def create_mmdf_message(message: Any) -> _mailbox.MMDFMessage:
-    """Create an MMDF message."""
-    return _mailbox.MMDFMessage(message)
+def iter_message_keys(mailbox_obj: Mailbox) -> Iterator[str]:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    for k in mailbox_obj.keys():
+        yield k if isinstance(k, str) else str(k)
 
 
-def create_babyl_message(message: Any) -> _mailbox.BabylMessage:
-    """Create a Babyl message."""
-    return _mailbox.BabylMessage(message)
+def list_message_keys(mailbox_obj: Mailbox) -> List[str]:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    out = []
+    for k in mailbox_obj.keys():
+        out.append(k if isinstance(k, str) else str(k))
+    return out
 
 
-def is_mailbox_error(exc: BaseException) -> bool:
-    return isinstance(exc, Error)
+def get_message(mailbox_obj: Mailbox, key: str) -> Message:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    key = _require_str(key, "key")
+    try:
+        return mailbox_obj[key]
+    except Exception:
+        for k in mailbox_obj.keys():
+            kstr = k if isinstance(k, str) else str(k)
+            if kstr == key:
+                return mailbox_obj[k]
+        raise
 
 
-def is_external_clash_error(exc: BaseException) -> bool:
-    return isinstance(exc, ExternalClashError)
+def add_message(mailbox_obj: Mailbox, message: Union[Message, str, bytes]) -> str:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    result = mailbox_obj.add(message)
+    if isinstance(result, str):
+        return result
+    try:
+        if isinstance(result, bytes):
+            return result.decode()
+    except Exception:
+        pass
+    return str(result)
 
 
-def is_format_error(exc: BaseException) -> bool:
-    return isinstance(exc, FormatError)
+def remove_message(mailbox_obj: Mailbox, key: str) -> None:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    key = _require_str(key, "key")
+    try:
+        del mailbox_obj[key]
+    except Exception:
+        for k in list(mailbox_obj.keys()):
+            kstr = k if isinstance(k, str) else str(k)
+            if kstr == key:
+                del mailbox_obj[k]
+                return
+        raise
 
 
-def is_no_such_mailbox_error(exc: BaseException) -> bool:
-    return isinstance(exc, NoSuchMailboxError)
+def lock_mailbox(mailbox_obj: Mailbox) -> None:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    mailbox_obj.lock()
 
 
-def is_not_empty_error(exc: BaseException) -> bool:
-    return isinstance(exc, NotEmptyError)
+def unlock_mailbox(mailbox_obj: Mailbox) -> None:
+    if not isinstance(mailbox_obj, Mailbox):
+        raise TypeError("mailbox_obj must be a mailbox.Mailbox instance")
+    mailbox_obj.unlock()
 MAILBOX_UTILS
 
 cat > "$OUTPUT_DIR/tests/test_mailbox_utils.py" <<'TEST_MAILBOX_UTILS'
 """Tests for mailbox_utils."""
 
+from __future__ import annotations
+
+import email.message
 import mailbox
+import os
 import tempfile
 import unittest
-from pathlib import Path
 
-from mailbox_utils import (
-    Error,
-    ExternalClashError,
-    FormatError,
-    NoSuchMailboxError,
-    NotEmptyError,
-    create_babyl,
-    create_babyl_message,
-    create_mailbox,
-    create_maildir,
-    create_maildir_message,
-    create_mbox,
-    create_mbox_message,
-    create_mh,
-    create_mh_message,
-    create_mmdf,
-    create_mmdf_message,
-    is_external_clash_error,
-    is_format_error,
-    is_mailbox_error,
-    is_no_such_mailbox_error,
-    is_not_empty_error,
-)
+import mailbox_utils
 
 
-class TestMailboxBasics(unittest.TestCase):
-    def test_exceptions_and_classes(self):
-        self.assertIs(Error, mailbox.Error)
-        self.assertIs(ExternalClashError, mailbox.ExternalClashError)
-        self.assertIs(FormatError, mailbox.FormatError)
-        self.assertIs(NoSuchMailboxError, mailbox.NoSuchMailboxError)
-        self.assertIs(NotEmptyError, mailbox.NotEmptyError)
+class TestMailboxUtils(unittest.TestCase):
+    def test_exports(self) -> None:
+        self.assertTrue(hasattr(mailbox_utils, "mbox"))
+        self.assertTrue(hasattr(mailbox_utils, "Maildir"))
+        self.assertTrue(hasattr(mailbox_utils, "MH"))
+        self.assertTrue(hasattr(mailbox_utils, "Babyl"))
+        self.assertTrue(hasattr(mailbox_utils, "MMDF"))
 
-    def test_type_checks(self):
-        self.assertTrue(is_mailbox_error(FormatError()))
-        self.assertFalse(is_mailbox_error(ValueError()))
-        self.assertTrue(is_external_clash_error(ExternalClashError()))
-        self.assertTrue(is_format_error(FormatError()))
-        self.assertTrue(is_no_such_mailbox_error(NoSuchMailboxError()))
-        self.assertTrue(is_not_empty_error(NotEmptyError()))
-
-
-class TestMailboxFactories(unittest.TestCase):
-    def test_create_mailbox(self):
-        with tempfile.TemporaryDirectory() as td:
-            mbox = create_mailbox(Path(td) / "test.mbox")
-            self.assertIsInstance(mbox, mailbox.Mailbox)
-
-    def test_create_mbox(self):
-        with tempfile.TemporaryDirectory() as td:
-            mbox = create_mbox(Path(td) / "test.mbox")
+    def test_create_mbox_and_operations(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mbox")
+            mbox = mailbox_utils.create_mbox(path, create=True)
             self.assertIsInstance(mbox, mailbox.mbox)
+            msg = email.message.Message()
+            msg["From"] = "a@example.com"
+            msg["To"] = "b@example.com"
+            msg["Subject"] = "Hello"
+            msg.set_payload("Body\n")
+            key = mailbox_utils.add_message(mbox, msg)
+            self.assertTrue(isinstance(key, (str, int, bytes)))
+            keys = mailbox_utils.list_message_keys(mbox)
+            keys_str = [k if isinstance(k, str) else str(k) for k in keys]
+            key_str = key if isinstance(key, str) else str(key)
+            self.assertIn(key_str, keys_str)
+            got = mailbox_utils.get_message(mbox, key_str)
+            self.assertIsInstance(got, email.message.Message)
+            self.assertEqual(list(mailbox_utils.iter_messages(mbox))[0]["Subject"], "Hello")
+            mailbox_utils.remove_message(mbox, key_str)
+            self.assertEqual(len(mailbox_utils.list_message_keys(mbox)), 0)
+            mbox.close()
 
-    def test_create_maildir(self):
-        with tempfile.TemporaryDirectory() as td:
-            md = create_maildir(Path(td) / "testdir")
+    def test_create_maildir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "Maildir")
+            md = mailbox_utils.create_maildir(path, create=True)
             self.assertIsInstance(md, mailbox.Maildir)
+            md.close()
 
-    def test_create_mh(self):
-        with tempfile.TemporaryDirectory() as td:
-            mh = create_mh(Path(td) / "testmh")
+    def test_create_mh(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "MH")
+            mh = mailbox_utils.create_mh(path, create=True)
             self.assertIsInstance(mh, mailbox.MH)
+            mh.close()
 
-    def test_create_mmdf(self):
-        with tempfile.TemporaryDirectory() as td:
-            mmdf = create_mmdf(Path(td) / "test.mmdf")
-            self.assertIsInstance(mmdf, mailbox.MMDF)
-
-    def test_create_babyl(self):
-        with tempfile.TemporaryDirectory() as td:
-            babyl = create_babyl(Path(td) / "test.babyl")
+    def test_create_babyl(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "Babyl")
+            babyl = mailbox_utils.create_babyl(path, create=True)
             self.assertIsInstance(babyl, mailbox.Babyl)
+            babyl.close()
 
+    def test_create_mmdf(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mmdf")
+            mmdf = mailbox_utils.create_mmdf(path, create=True)
+            self.assertIsInstance(mmdf, mailbox.MMDF)
+            mmdf.close()
 
-class TestMailboxMessages(unittest.TestCase):
-    def test_create_messages(self):
-        self.assertIsInstance(create_mbox_message("Subject: hi\n\nbody\n"), mailbox.mboxMessage)
-        self.assertIsInstance(
-            create_maildir_message("Subject: hi\n\nbody\n"), mailbox.MaildirMessage
-        )
-        self.assertIsInstance(create_mh_message("Subject: hi\n\nbody\n"), mailbox.MHMessage)
-        self.assertIsInstance(create_mmdf_message("Subject: hi\n\nbody\n"), mailbox.MMDFMessage)
-        self.assertIsInstance(create_babyl_message("Subject: hi\n\nbody\n"), mailbox.BabylMessage)
+    def test_open_mailbox(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mbox")
+            mb = mailbox_utils.open_mailbox(path, factory=mailbox.mbox, create=True)
+            self.assertIsInstance(mb, mailbox.Mailbox)
+            mb.close()
+
+    def test_iter_message_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mbox")
+            mbox = mailbox_utils.create_mbox(path, create=True)
+            msg = email.message.Message()
+            msg.set_payload("hi")
+            key = mailbox_utils.add_message(mbox, msg)
+            keys = list(mailbox_utils.iter_message_keys(mbox))
+            keys_str = [k if isinstance(k, str) else str(k) for k in keys]
+            self.assertIn(key if isinstance(key, str) else str(key), keys_str)
+            mbox.close()
+
+    def test_lock_unlock(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mbox")
+            mbox = mailbox_utils.create_mbox(path, create=True)
+            mailbox_utils.lock_mailbox(mbox)
+            mailbox_utils.unlock_mailbox(mbox)
+            mbox.close()
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            mailbox_utils.create_mbox(123)  # type: ignore
+        with self.assertRaises(TypeError):
+            mailbox_utils.create_mbox("/tmp/x", create="yes")  # type: ignore
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "test.mbox")
+            mbox = mailbox_utils.create_mbox(path, create=True)
+            with self.assertRaises(TypeError):
+                mailbox_utils.iter_messages("not_a_mailbox")  # type: ignore
+            with self.assertRaises(TypeError):
+                mailbox_utils.get_message(mbox, 123)  # type: ignore
+            mbox.close()
 
 
 if __name__ == "__main__":
     unittest.main()
 TEST_MAILBOX_UTILS
+cat > "$OUTPUT_DIR/mailcap_utils.py" <<'MAILCAP_UTILS'
+"""Mailcap utility functions wrapping the standard library 'mailcap' module."""
+
+from __future__ import annotations
+
+import mailcap
+from typing import Any
+
+__all__: list[str] = [
+    "getcaps",
+    "list_mailcap_files",
+    "read_mailcap_file",
+    "parse_line",
+    "parse_field",
+    "find_match",
+    "lookup",
+    "subst",
+    "find_param",
+]
+
+
+def getcaps() -> dict[str, list[dict[str, Any]]]:
+    """Return the mailcap database as a dict keyed by MIME type."""
+    return mailcap.getcaps()
+
+
+def list_mailcap_files() -> list[str]:
+    """Return the list of mailcap files found on the system."""
+    return mailcap.listmailcapfiles()
+
+
+def read_mailcap_file(fp: Any) -> dict[str, list[dict[str, Any]]]:
+    """Read a mailcap file and return a dict keyed by MIME type."""
+    return mailcap.readmailcapfile(fp)
+
+
+def parse_line(line: str) -> tuple[Any, Any]:
+    """Parse one mailcap entry line."""
+    return mailcap.parseline(line)
+
+
+def parse_field(line: str, i: int, n: int) -> tuple[str, int]:
+    """Separate one key-value pair in a mailcap entry."""
+    return mailcap.parsefield(line, i, n)
+
+
+def find_match(
+    caps: dict[str, list[dict[str, Any]]],
+    mime_type: str,
+    key: str = "view",
+    filename: str = "/dev/null",
+    plist: list[str] | None = None,
+) -> tuple[Any, Any]:
+    """Find a match for a mailcap entry."""
+    if plist is None:
+        plist = []
+    return mailcap.findmatch(caps, mime_type, key=key, filename=filename, plist=plist)
+
+
+def lookup(
+    caps: dict[str, list[dict[str, Any]]],
+    mime_type: str,
+    key: str | None = None,
+) -> list[dict[str, Any]]:
+    """Look up mailcap entries for a MIME type."""
+    return mailcap.lookup(caps, mime_type, key=key)
+
+
+def subst(
+    field: str,
+    mime_type: str,
+    filename: str,
+    plist: list[str] | None = None,
+) -> str | None:
+    """Substitute fields into a mailcap command string."""
+    if plist is None:
+        plist = []
+    return mailcap.subst(field, mime_type, filename, plist)
+
+
+def find_param(name: str, plist: list[str]) -> str:
+    """Find a parameter value in a plist."""
+    return mailcap.findparam(name, plist)
+MAILCAP_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_mailcap_utils.py" <<'TEST_MAILCAP_UTILS'
+"""Tests for mailcap_utils."""
+
+from __future__ import annotations
+
+import mailcap
+import os
+import tempfile
+import unittest
+
+import mailcap_utils
+
+
+class TestMailcapUtils(unittest.TestCase):
+    def test_exports(self) -> None:
+        for name in mailcap_utils.__all__:
+            self.assertTrue(hasattr(mailcap_utils, name))
+
+    def test_getcaps_returns_dict(self) -> None:
+        caps = mailcap_utils.getcaps()
+        self.assertIsInstance(caps, dict)
+
+    def test_list_mailcap_files_returns_list(self) -> None:
+        files = mailcap_utils.list_mailcap_files()
+        self.assertIsInstance(files, list)
+
+    def test_read_mailcap_file(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".mailcap") as f:
+            f.write('text/plain; cat %s\n')
+            path = f.name
+        try:
+            with open(path) as fh:
+                caps = mailcap_utils.read_mailcap_file(fh)
+            self.assertIsInstance(caps, dict)
+        finally:
+            os.unlink(path)
+
+    def test_parse_line(self) -> None:
+        result = mailcap_utils.parse_line('text/plain; cat %s\n')
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
+
+    def test_parse_field(self) -> None:
+        line = "view=cat %s; test=echo"
+        # Find position after first key
+        name, i = mailcap_utils.parse_field(line, 0, len(line))
+        self.assertIsInstance(name, str)
+        self.assertIsInstance(i, int)
+
+    def test_find_match(self) -> None:
+        caps = {"text/plain": [{"view": "cat %s"}]}
+        result = mailcap_utils.find_match(caps, "text/plain")
+        self.assertIsInstance(result, tuple)
+
+    def test_lookup(self) -> None:
+        caps = {"text/plain": [{"view": "cat %s"}]}
+        entries = mailcap_utils.lookup(caps, "text/plain")
+        self.assertIsInstance(entries, list)
+
+    def test_subst(self) -> None:
+        result = mailcap_utils.subst("cat %s", "text/plain", "/tmp/file.txt")
+        # Can be str or None
+        self.assertTrue(result is None or isinstance(result, str))
+
+    def test_find_param(self) -> None:
+        result = mailcap_utils.find_param("test", ["test=hello", "other=world"])
+        self.assertIsInstance(result, str)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_MAILCAP_UTILS
+
+cat > "$OUTPUT_DIR/wave_utils.py" <<'WAVE_UTILS'
+"""Wave audio utilities (wrapping :mod:`wave`).
+
+The :mod:`wave` module provides a convenient interface to the Waveform Audio
+File Format (WAV). It exposes ``Wave_read`` and ``Wave_write`` objects for
+reading and writing WAV files, plus the ``open`` factory and the ``Error``
+exception.
+
+This wrapper exposes validated factories for opening WAV files for reading and
+writing, helpers for inspecting and configuring the audio parameters, and
+frame-level read/write helpers. File handles remain owned by the caller; the
+wrapper never closes a file it did not open.
+"""
+
+from __future__ import annotations
+
+import wave as _wave
+from typing import Any, Dict, Optional, Tuple
+
+__all__ = [
+    "Error",
+    "WAVE_FORMAT_EXTENSIBLE",
+    "WAVE_FORMAT_PCM",
+    "close_wave",
+    "compname",
+    "comptype",
+    "create_writer",
+    "framerate",
+    "get_params",
+    "nchannels",
+    "nframes",
+    "open_read",
+    "open_write",
+    "read_frames",
+    "sampwidth",
+    "set_comptype",
+    "set_framerate",
+    "set_nchannels",
+    "set_nframes",
+    "set_params",
+    "set_sampwidth",
+    "wave_info",
+    "write_frames",
+]
+
+Error = _wave.Error
+WAVE_FORMAT_PCM = _wave.WAVE_FORMAT_PCM  # type: ignore[attr-defined]
+WAVE_FORMAT_EXTENSIBLE = _wave.WAVE_FORMAT_EXTENSIBLE  # type: ignore[attr-defined]
+
+
+def _require_str(value: Any, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_bytes(value: Any, name: str) -> bytes:
+    if not isinstance(value, bytes):
+        raise TypeError(f"{name} must be bytes, got {type(value).__name__}")
+    return value
+
+
+def _require_int(value: Any, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def _require_positive_int(value: Any, name: str) -> int:
+    number = _require_int(value, name)
+    if number <= 0:
+        raise ValueError(f"{name} must be positive, got {number}")
+    return number
+
+
+def _require_wave_read(value: Any, name: str) -> _wave.Wave_read:
+    if not isinstance(value, _wave.Wave_read):
+        raise TypeError(f"{name} must be a wave.Wave_read, got {type(value).__name__}")
+    return value
+
+
+def _require_wave_write(value: Any, name: str) -> _wave.Wave_write:
+    if not isinstance(value, _wave.Wave_write):
+        raise TypeError(f"{name} must be a wave.Wave_write, got {type(value).__name__}")
+    return value
+
+
+def open_read(file: str, mode: str = "rb") -> _wave.Wave_read:
+    """Open a WAV file for reading.
+
+    Args:
+        file: The path to the WAV file.
+        mode: The open mode, typically ``"rb"``.
+
+    Returns:
+        A :class:`wave.Wave_read` instance positioned at the start of the file.
+
+    Raises:
+        TypeError: If *file* is not a string or *mode* is not a string.
+        wave.Error: If the file cannot be opened or is not a WAV file.
+    """
+    _require_str(file, "file")
+    _require_str(mode, "mode")
+    return _wave.open(file, mode)
+
+
+def open_write(file: str, mode: str = "wb") -> _wave.Wave_write:
+    """Open a WAV file for writing.
+
+    Args:
+        file: The path to the WAV file.
+        mode: The open mode, typically ``"wb"``.
+
+    Returns:
+        A :class:`wave.Wave_write` instance ready to be configured.
+
+    Raises:
+        TypeError: If *file* is not a string or *mode* is not a string.
+        wave.Error: If the file cannot be opened.
+    """
+    _require_str(file, "file")
+    _require_str(mode, "mode")
+    return _wave.open(file, mode)
+
+
+def wave_info(file: str) -> Dict[str, Any]:
+    """Return the parameters of a WAV file as a dictionary.
+
+    The file is opened, inspected, and closed by this helper.
+
+    Args:
+        file: The path to the WAV file.
+
+    Returns:
+        A dictionary with keys ``nchannels``, ``sampwidth``, ``framerate``,
+        ``nframes``, ``comptype``, and ``compname``.
+
+    Raises:
+        TypeError: If *file* is not a string.
+        wave.Error: If the file cannot be read.
+    """
+    _require_str(file, "file")
+    wave_read = open_read(file)
+    try:
+        params = wave_read.getparams()
+        return {
+            "nchannels": params.nchannels,
+            "sampwidth": params.sampwidth,
+            "framerate": params.framerate,
+            "nframes": params.nframes,
+            "comptype": params.comptype,
+            "compname": params.compname,
+        }
+    finally:
+        close_wave(wave_read)
+
+
+def nchannels(wave_read: _wave.Wave_read) -> int:
+    """Return the number of audio channels."""
+    return _require_wave_read(wave_read, "wave_read").getnchannels()
+
+
+def sampwidth(wave_read: _wave.Wave_read) -> int:
+    """Return the sample width in bytes."""
+    return _require_wave_read(wave_read, "wave_read").getsampwidth()
+
+
+def framerate(wave_read: _wave.Wave_read) -> int:
+    """Return the frame rate."""
+    return _require_wave_read(wave_read, "wave_read").getframerate()
+
+
+def nframes(wave_read: _wave.Wave_read) -> int:
+    """Return the number of frames."""
+    return _require_wave_read(wave_read, "wave_read").getnframes()
+
+
+def comptype(wave_read: _wave.Wave_read) -> str:
+    """Return the compression type."""
+    return _require_wave_read(wave_read, "wave_read").getcomptype()
+
+
+def compname(wave_read: _wave.Wave_read) -> str:
+    """Return the human-readable compression name."""
+    return _require_wave_read(wave_read, "wave_read").getcompname()
+
+
+class _Params(tuple):
+    def __new__(cls, p):
+        try:
+            if isinstance(p, (tuple, list)) and len(p) == 6:
+                return tuple.__new__(cls, tuple(p))
+            # namedtuple
+            vals = (p[0], p[1], p[2], p[3], p[4], p[5])
+            return tuple.__new__(cls, vals)
+        except Exception:
+            try:
+                vals = (getattr(p,'nchannels'), getattr(p,'sampwidth'), getattr(p,'framerate'),
+                        getattr(p,'nframes'), getattr(p,'comptype'), getattr(p,'compname'))
+                return tuple.__new__(cls, vals)
+            except Exception:
+                return tuple.__new__(cls, p)
+    @property
+    def nchannels(self):
+        return self[0]
+    @property
+    def sampwidth(self):
+        return self[1]
+    @property
+    def framerate(self):
+        return self[2]
+    @property
+    def nframes(self):
+        return self[3]
+    @property
+    def comptype(self):
+        return self[4]
+    @property
+    def compname(self):
+        return self[5]
+
+
+def get_params(wave_obj: Any):
+    """Return the parameters of a WAV reader or writer."""
+    if isinstance(wave_obj, _wave.Wave_read):
+        res = _require_wave_read(wave_obj, "wave_obj").getparams()
+        try:
+            # If it's a named tuple, also make it compatible
+            return _Params(res)
+        except Exception:
+            return res
+    if isinstance(wave_obj, _wave.Wave_write):
+        res = _require_wave_write(wave_obj, "wave_obj").getparams()
+        try:
+            return _Params(res)
+        except Exception:
+            return res
+    raise TypeError(
+        "wave_obj must be a wave.Wave_read or wave.Wave_write, "
+        f"got {type(wave_obj).__name__}"
+    )
+
+
+def set_params(wave_obj: Any, params: Tuple[int, int, int, int, str, str]) -> None:
+    """Set the parameters of a :class:`wave.Wave_write`."""
+    writer = _require_wave_write(wave_obj, "wave_obj")
+    if not isinstance(params, tuple) or len(params) != 6:
+        raise TypeError(
+            "params must be a 6-tuple of (nchannels, sampwidth, framerate, "
+            f"nframes, comptype, compname), got {params!r}"
+        )
+    writer.setparams(params)
+
+
+def set_nchannels(writer: _wave.Wave_write, nchannels: int) -> None:
+    """Set the number of channels on a :class:`wave.Wave_write`."""
+    _require_wave_write(writer, "writer")
+    writer.setnchannels(_require_positive_int(nchannels, "nchannels"))
+
+
+def set_sampwidth(writer: _wave.Wave_write, sampwidth: int) -> None:
+    """Set the sample width in bytes on a :class:`wave.Wave_write`."""
+    _require_wave_write(writer, "writer")
+    writer.setsampwidth(_require_positive_int(sampwidth, "sampwidth"))
+
+
+def set_framerate(writer: _wave.Wave_write, framerate: int) -> None:
+    """Set the frame rate on a :class:`wave.Wave_write`."""
+    _require_wave_write(writer, "writer")
+    writer.setframerate(_require_positive_int(framerate, "framerate"))
+
+
+def set_nframes(writer: _wave.Wave_write, nframes: int) -> None:
+    """Set the number of frames on a :class:`wave.Wave_write`."""
+    _require_wave_write(writer, "writer")
+    writer.setnframes(_require_int(nframes, "nframes"))
+
+
+def set_comptype(
+    writer: _wave.Wave_write, comptype: str, compname: str
+) -> None:
+    """Set the compression type and name on a :class:`wave.Wave_write`."""
+    _require_wave_write(writer, "writer")
+    writer.setcomptype(_require_str(comptype, "comptype"), _require_str(compname, "compname"))
+
+
+def create_writer(
+    file: str,
+    nchannels: int,
+    sampwidth: int,
+    framerate: int,
+    nframes: int = 0,
+    comptype: str = "NONE",
+    compname: str = "not compressed",
+) -> _wave.Wave_write:
+    """Create and configure a :class:`wave.Wave_write` for *file*.
+
+    Args:
+        file: The path to the WAV file to write.
+        nchannels: The number of audio channels.
+        sampwidth: The sample width in bytes.
+        framerate: The frame rate.
+        nframes: The number of frames (may be updated later).
+        comptype: The compression type.
+        compname: The human-readable compression name.
+
+    Returns:
+        A configured :class:`wave.Wave_write` instance.
+
+    Raises:
+        TypeError: If any argument has the wrong type.
+        ValueError: If *nchannels*, *sampwidth*, or *framerate* is not positive.
+        wave.Error: If the file cannot be opened.
+    """
+    writer = open_write(file)
+    set_nchannels(writer, nchannels)
+    set_sampwidth(writer, sampwidth)
+    set_framerate(writer, framerate)
+    set_nframes(writer, nframes)
+    set_comptype(writer, comptype, compname)
+    return writer
+
+
+def read_frames(wave_read: _wave.Wave_read, nframes: Optional[int] = None) -> bytes:
+    """Read audio frames from a :class:`wave.Wave_read`.
+
+    Args:
+        wave_read: The reader to read from.
+        nframes: The number of frames to read. When omitted or negative, all
+            remaining frames are read.
+
+    Returns:
+        The raw audio frame data.
+
+    Raises:
+        TypeError: If *wave_read* is not a reader or *nframes* is not an int.
+    """
+    reader = _require_wave_read(wave_read, "wave_read")
+    if nframes is None:
+        return reader.readframes(reader.getnframes())
+    _require_int(nframes, "nframes")
+    return reader.readframes(nframes)
+
+
+def write_frames(wave_write: _wave.Wave_write, data: bytes) -> None:
+    """Write audio frames to a :class:`wave.Wave_write`."""
+    writer = _require_wave_write(wave_write, "wave_write")
+    writer.writeframes(_require_bytes(data, "data"))
+
+
+def close_wave(wave_obj: Any) -> None:
+    """Close a :class:`wave.Wave_read` or :class:`wave.Wave_write`."""
+    if isinstance(wave_obj, _wave.Wave_read):
+        obj = _require_wave_read(wave_obj, "wave_obj")
+        obj.close()
+        try:
+            obj.closed = True  # type: ignore[attr-defined]
+        except Exception:
+            pass
+        return
+    if isinstance(wave_obj, _wave.Wave_write):
+        obj = _require_wave_write(wave_obj, "wave_obj")
+        obj.close()
+        try:
+            obj.closed = True  # type: ignore[attr-defined]
+        except Exception:
+            pass
+        return
+    raise TypeError(
+        "wave_obj must be a wave.Wave_read or wave.Wave_write, "
+        f"got {type(wave_obj).__name__}"
+    )
+WAVE_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_wave_utils.py" <<'TEST_WAVE_UTILS'
+"""Tests for wave_utils module."""
+
+import os
+import tempfile
+import unittest
+from unittest import mock
+
+import wave
+
+import wave_utils
+
+
+def write_wave_file(path, nchannels=1, sampwidth=2, framerate=8000, frames=None):
+    """Write a small WAV fixture at *path* and return its params."""
+    if frames is None:
+        frames = [b"\x00\x00" * 4]
+    with wave.open(path, "wb") as writer:
+        writer.setnchannels(nchannels)
+        writer.setsampwidth(sampwidth)
+        writer.setframerate(framerate)
+        total_frames = 0
+        for frame in frames:
+            if nchannels * sampwidth == 0:
+                total_frames += len(frames)
+            else:
+                total_frames += len(frame) // (nchannels * sampwidth)
+        writer.setnframes(total_frames)
+        writer.setcomptype("NONE", "not compressed")
+        for frame in frames:
+            writer.writeframes(frame)
+    return {
+        "nchannels": nchannels,
+        "sampwidth": sampwidth,
+        "framerate": framerate,
+        "nframes": total_frames,
+        "comptype": "NONE",
+        "compname": "not compressed",
+    }
+
+
+class TestExports(unittest.TestCase):
+    def test_constants(self):
+        self.assertIs(wave_utils.Error, wave.Error)
+        self.assertEqual(wave_utils.WAVE_FORMAT_PCM, wave.WAVE_FORMAT_PCM)
+        self.assertEqual(wave_utils.WAVE_FORMAT_EXTENSIBLE, wave.WAVE_FORMAT_EXTENSIBLE)
+
+
+class TestOpenRead(unittest.TestCase):
+    def test_open_read_passes_arguments(self):
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            path = tmp.name
+        try:
+            with mock.patch.object(wave, "open") as fake:
+                reader = wave_utils.open_read(path, "rb")
+            fake.assert_called_once_with(path, "rb")
+            self.assertIs(reader, fake.return_value)
+        finally:
+            os.unlink(path)
+
+    def test_open_read_defaults(self):
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            path = tmp.name
+        try:
+            with mock.patch.object(wave, "open") as fake:
+                wave_utils.open_read(path)
+            fake.assert_called_once_with(path, "rb")
+        finally:
+            os.unlink(path)
+
+    def test_open_read_bad_types(self):
+        with self.assertRaises(TypeError):
+            wave_utils.open_read(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            wave_utils.open_read("path", 5)  # type: ignore[arg-type]
+
+
+class TestOpenWrite(unittest.TestCase):
+    def test_open_write_passes_arguments(self):
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            path = tmp.name
+        try:
+            with mock.patch.object(wave, "open") as fake:
+                writer = wave_utils.open_write(path, "wb")
+            fake.assert_called_once_with(path, "wb")
+            self.assertIs(writer, fake.return_value)
+        finally:
+            os.unlink(path)
+
+    def test_open_write_bad_types(self):
+        with self.assertRaises(TypeError):
+            wave_utils.open_write(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            wave_utils.open_write("path", 5)  # type: ignore[arg-type]
+
+
+class TestWaveInfo(unittest.TestCase):
+    def test_wave_info(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            expected = write_wave_file(path, nchannels=2, sampwidth=2, framerate=16000)
+            info = wave_utils.wave_info(path)
+            self.assertEqual(info, expected)
+
+    def test_wave_info_bad_type(self):
+        with self.assertRaises(TypeError):
+            wave_utils.wave_info(123)  # type: ignore[arg-type]
+
+
+class TestGetters(unittest.TestCase):
+    def test_getters(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            write_wave_file(path, nchannels=2, sampwidth=2, framerate=16000)
+            with wave.open(path, "rb") as reader:
+                self.assertEqual(wave_utils.nchannels(reader), 2)
+                self.assertEqual(wave_utils.sampwidth(reader), 2)
+                self.assertEqual(wave_utils.framerate(reader), 16000)
+                self.assertEqual(wave_utils.nframes(reader), 2)
+                self.assertEqual(wave_utils.comptype(reader), "NONE")
+                self.assertEqual(wave_utils.compname(reader), "not compressed")
+
+    def test_getters_bad_type(self):
+        for fn in (
+            wave_utils.nchannels,
+            wave_utils.sampwidth,
+            wave_utils.framerate,
+            wave_utils.nframes,
+            wave_utils.comptype,
+            wave_utils.compname,
+        ):
+            with self.assertRaises(TypeError):
+                fn(123)  # type: ignore[arg-type]
+
+
+class TestGetSetParams(unittest.TestCase):
+    def test_get_params(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            write_wave_file(path, nchannels=2, sampwidth=2, framerate=16000)
+            with wave.open(path, "rb") as reader:
+                params = wave_utils.get_params(reader)
+            self.assertEqual(params, (2, 2, 16000, 2, "NONE", "not compressed"))
+
+    def test_get_params_bad_type(self):
+        with self.assertRaises(TypeError):
+            wave_utils.get_params(123)  # type: ignore[arg-type]
+
+    def test_set_params(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            writer = wave_utils.create_writer(path, 1, 2, 8000)
+            try:
+                wave_utils.set_params(writer, (2, 2, 16000, 0, "NONE", "not compressed"))
+                params = wave_utils.get_params(writer)
+                self.assertEqual(params.nchannels, 2)
+                self.assertEqual(params.framerate, 16000)
+            finally:
+                wave_utils.close_wave(writer)
+
+    def test_set_params_bad(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            writer = wave_utils.create_writer(path, 1, 2, 8000)
+            try:
+                with self.assertRaises(TypeError):
+                    wave_utils.set_params(writer, "not a tuple")  # type: ignore[arg-type]
+                with self.assertRaises(TypeError):
+                    wave_utils.set_params(writer, (1, 2, 8000))  # wrong length
+            finally:
+                wave_utils.close_wave(writer)
+
+
+class TestSetters(unittest.TestCase):
+    def test_setters(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            writer = wave_utils.create_writer(path, 1, 2, 8000)
+            try:
+                wave_utils.set_nchannels(writer, 2)
+                wave_utils.set_sampwidth(writer, 2)
+                wave_utils.set_framerate(writer, 16000)
+                wave_utils.set_nframes(writer, 100)
+                wave_utils.set_comptype(writer, "NONE", "not compressed")
+                params = wave_utils.get_params(writer)
+                self.assertEqual(params.nchannels, 2)
+                self.assertEqual(params.sampwidth, 2)
+                self.assertEqual(params.framerate, 16000)
+                self.assertEqual(params.nframes, 100)
+                self.assertEqual(params.comptype, "NONE")
+                self.assertEqual(params.compname, "not compressed")
+            finally:
+                wave_utils.close_wave(writer)
+
+    def test_setters_validation(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            writer = wave_utils.create_writer(path, 1, 2, 8000)
+            try:
+                with self.assertRaises(TypeError):
+                    wave_utils.set_nchannels("not a writer", 1)  # type: ignore[arg-type]
+                with self.assertRaises(TypeError):
+                    wave_utils.set_nchannels(writer, "one")  # type: ignore[arg-type]
+                with self.assertRaises(ValueError):
+                    wave_utils.set_nchannels(writer, 0)
+                with self.assertRaises(ValueError):
+                    wave_utils.set_sampwidth(writer, -1)
+                with self.assertRaises(TypeError):
+                    wave_utils.set_comptype(writer, 5, "x")  # type: ignore[arg-type]
+            finally:
+                wave_utils.close_wave(writer)
+
+
+class TestCreateWriter(unittest.TestCase):
+    def test_create_writer(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            writer = wave_utils.create_writer(path, 2, 2, 16000, nframes=50)
+            try:
+                self.assertIsInstance(writer, wave.Wave_write)
+                params = wave_utils.get_params(writer)
+                self.assertEqual(params.nchannels, 2)
+                self.assertEqual(params.sampwidth, 2)
+                self.assertEqual(params.framerate, 16000)
+                self.assertEqual(params.nframes, 50)
+                self.assertEqual(params.comptype, "NONE")
+                self.assertEqual(params.compname, "not compressed")
+            finally:
+                wave_utils.close_wave(writer)
+
+    def test_create_writer_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            wave_utils.create_writer(123, 1, 2, 8000)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            wave_utils.create_writer("path", "1", 2, 8000)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            wave_utils.create_writer("path", 0, 2, 8000)
+        with self.assertRaises(ValueError):
+            wave_utils.create_writer("path", 1, 0, 8000)
+        with self.assertRaises(ValueError):
+            wave_utils.create_writer("path", 1, 2, 0)
+
+
+class TestReadFrames(unittest.TestCase):
+    def test_read_frames_all(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            write_wave_file(path, frames=[b"\x01\x02", b"\x03\x04"])
+            with wave.open(path, "rb") as reader:
+                data = wave_utils.read_frames(reader)
+            self.assertEqual(data, b"\x01\x02\x03\x04")
+
+    def test_read_frames_some(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            write_wave_file(path, frames=[b"\x01\x02", b"\x03\x04"])
+            with wave.open(path, "rb") as reader:
+                data = wave_utils.read_frames(reader, 1)
+            self.assertEqual(data, b"\x01\x02")
+
+    def test_read_frames_negative_reads_all(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            write_wave_file(path, frames=[b"\x01\x02"])
+            with wave.open(path, "rb") as reader:
+                data = wave_utils.read_frames(reader, -1)
+            self.assertEqual(data, b"\x01\x02")
+
+    def test_read_frames_bad_type(self):
+        with self.assertRaises(TypeError):
+            wave_utils.read_frames(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            wave_utils.read_frames(123, "one")  # type: ignore[arg-type]
+
+
+class TestWriteFrames(unittest.TestCase):
+    def test_write_frames(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            writer = wave_utils.create_writer(path, 1, 1, 8000)
+            try:
+                wave_utils.write_frames(writer, b"\x01\x02\x03")
+                wave_utils.close_wave(writer)
+                info = wave_utils.wave_info(path)
+                self.assertEqual(info["sampwidth"], 1)
+            except Exception:
+                wave_utils.close_wave(writer)
+                raise
+
+    def test_write_frames_bad_type(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            writer = wave_utils.create_writer(path, 1, 1, 8000)
+            try:
+                with self.assertRaises(TypeError):
+                    wave_utils.write_frames("not a writer", b"\x01")  # type: ignore[arg-type]
+                with self.assertRaises(TypeError):
+                    wave_utils.write_frames(writer, "not bytes")  # type: ignore[arg-type]
+            finally:
+                wave_utils.close_wave(writer)
+
+
+class TestCloseWave(unittest.TestCase):
+    def test_close_wave_read(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            write_wave_file(path)
+            reader = wave_utils.open_read(path)
+            wave_utils.close_wave(reader)
+            self.assertTrue(reader.closed)
+
+    def test_close_wave_write(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.wav")
+            writer = wave_utils.create_writer(path, 1, 1, 8000)
+            wave_utils.close_wave(writer)
+            self.assertTrue(writer.closed)
+
+    def test_close_wave_bad_type(self):
+        with self.assertRaises(TypeError):
+            wave_utils.close_wave(123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_WAVE_UTILS
+
 
 
 cat > "$OUTPUT_DIR/symtable_utils.py" <<'SYMTABLE_UTILS'

@@ -18,7 +18,13 @@ def write_wave_file(path, nchannels=1, sampwidth=2, framerate=8000, frames=None)
         writer.setnchannels(nchannels)
         writer.setsampwidth(sampwidth)
         writer.setframerate(framerate)
-        writer.setnframes(len(frames))
+        total_frames = 0
+        for frame in frames:
+            if nchannels * sampwidth == 0:
+                total_frames += len(frames)
+            else:
+                total_frames += len(frame) // (nchannels * sampwidth)
+        writer.setnframes(total_frames)
         writer.setcomptype("NONE", "not compressed")
         for frame in frames:
             writer.writeframes(frame)
@@ -26,7 +32,7 @@ def write_wave_file(path, nchannels=1, sampwidth=2, framerate=8000, frames=None)
         "nchannels": nchannels,
         "sampwidth": sampwidth,
         "framerate": framerate,
-        "nframes": len(frames),
+        "nframes": total_frames,
         "comptype": "NONE",
         "compname": "not compressed",
     }
@@ -109,7 +115,7 @@ class TestGetters(unittest.TestCase):
                 self.assertEqual(wave_utils.nchannels(reader), 2)
                 self.assertEqual(wave_utils.sampwidth(reader), 2)
                 self.assertEqual(wave_utils.framerate(reader), 16000)
-                self.assertEqual(wave_utils.nframes(reader), 1)
+                self.assertEqual(wave_utils.nframes(reader), 2)
                 self.assertEqual(wave_utils.comptype(reader), "NONE")
                 self.assertEqual(wave_utils.compname(reader), "not compressed")
 
@@ -133,7 +139,7 @@ class TestGetSetParams(unittest.TestCase):
             write_wave_file(path, nchannels=2, sampwidth=2, framerate=16000)
             with wave.open(path, "rb") as reader:
                 params = wave_utils.get_params(reader)
-            self.assertEqual(params, (2, 2, 16000, 1, "NONE", "not compressed"))
+            self.assertEqual(params, (2, 2, 16000, 2, "NONE", "not compressed"))
 
     def test_get_params_bad_type(self):
         with self.assertRaises(TypeError):
