@@ -63,6 +63,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `resource_utils.py` — resource usage utilities wrapping the standard library `resource` module (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available) with input validation
 - `pwd_utils.py` — password database utilities wrapping the standard library `pwd` module (getpwuid, getpwnam, getpwall) with input validation
 - `grp_utils.py` — group database utilities wrapping the standard library `grp` module (getgrgid, getgrnam, getgrall) with input validation
+- `termios_utils.py` — terminal attribute utilities wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -271,6 +272,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_resource_utils.py` — unit tests for `resource_utils.py`
 - `tests/test_pwd_utils.py` — unit tests for `pwd_utils.py`
 - `tests/test_grp_utils.py` — unit tests for `grp_utils.py`
+- `tests/test_termios_utils.py` — unit tests for `termios_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`

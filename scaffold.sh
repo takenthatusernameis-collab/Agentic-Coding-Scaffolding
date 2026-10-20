@@ -674,6 +674,7 @@
 #   - resource_utils.py — # Resource usage utilities wrapping the standard library resource (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available)
 #   - pwd_utils.py — # Password database utilities wrapping the standard library pwd (getpwuid, getpwnam, getpwall)
 #   - grp_utils.py — # Group database utilities wrapping the standard library grp (getgrgid, getgrnam, getgrall)
+#   - termios_utils.py — # Terminal attribute utilities wrapping the standard library termios (get_attributes, set_attributes, make_raw, make_cbreak, get_window_size, set_window_size)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -684,6 +685,7 @@
 #   - tests/test_resource_utils.py — # Tests for resource_utils.py
 #   - tests/test_pwd_utils.py — # Tests for pwd_utils.py
 #   - tests/test_grp_utils.py — # Tests for grp_utils.py
+#   - tests/test_termios_utils.py — # Tests for termios_utils.py
 set -euo pipefail
 
 usage() {
@@ -4310,6 +4312,7 @@ py_modules = [
     "resource_utils",
     "pwd_utils",
     "grp_utils",
+    "termios_utils",
 ]
 
 PYPROJECT
@@ -26876,6 +26879,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `resource_utils.py` — resource usage utilities wrapping the standard library `resource` module (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available) with input validation
 - `pwd_utils.py` — password database utilities wrapping the standard library `pwd` module (getpwuid, getpwnam, getpwall) with input validation
 - `grp_utils.py` — group database utilities wrapping the standard library `grp` module (getgrgid, getgrnam, getgrall) with input validation
+- `termios_utils.py` — terminal attribute utilities wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27084,6 +27088,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_resource_utils.py` — unit tests for `resource_utils.py`
 - `tests/test_pwd_utils.py` — unit tests for `pwd_utils.py`
 - `tests/test_grp_utils.py` — unit tests for `grp_utils.py`
+- `tests/test_termios_utils.py` — unit tests for `termios_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -28148,6 +28153,7 @@ ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib as
 gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
 mailcap_utils.py            # Mailcap utilities wrapping stdlib mailcap
 pickle_utils.py              # Object serialization utilities wrapping stdlib pickle
+pickletools_utils.py         # Pickletools utilities wrapping stdlib pickletools
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
@@ -28220,6 +28226,7 @@ sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, 
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
 wave_utils.py              # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames, create_writer)
 uu_utils.py                # Uuencode utilities wrapping stdlib uu (uu_encode, uu_decode, encode_uu, decode_uu, parse_uu_header, is_uuencoded)
+zipapp_utils.py            # Zipapp utilities wrapping stdlib zipapp (create_archive/create_zipapp, get_interpreter/get_zipapp_interpreter, is_zipapp_archive)
 py_compile_utils.py        # Py_compile utilities wrapping stdlib py_compile (compile_file/py_compile_file, get_invalidation_mode, parse_invalidation_mode, is_pyc_file, main)
 compileall_utils.py         # Compileall utilities wrapping stdlib compileall (compile_file, compile_dir, compile_path, main, pyc_path)
 modulefinder_utils.py        # Modulefinder utilities wrapping stdlib modulefinder (load_script, find_dependencies, find_modules, missing_modules, missing_importers, module_path, is_package, report)
@@ -28278,6 +28285,7 @@ runpy_utils.py            # Python module execution utilities wrapping stdlib ru
 tarfile_utils.py          # Tar archive utilities wrapping stdlib tarfile (tarfile_open, tarfile_add, tarfile_list, tarfile_extract, tarfile_extractall, tarfile_create)
 types_utils.py            # Dynamic type creation utilities wrapping stdlib types (new_class, new_function, is_function, is_method, is_generator, is_coroutine, is_lambda, simple_namespace)
 zoneinfo_utils.py         # IANA timezone utilities wrapping stdlib zoneinfo (zoneinfo_get, zoneinfo_available_timezones)
+opcode_utils.py          # Opcode utilities wrapping stdlib opcode (stack_effect, opmap/opname helpers)
 marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
 importlib_utils.py         # importlib utilities
 atexit_utils.py            # atexit utilities for registering exit handlers
@@ -28402,6 +28410,7 @@ test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
   test_fileinput_utils.py     # Tests for fileinput_utils.py
   test_fractions_utils.py     # Tests for fractions_utils.py
   test_fnmatch_utils.py       # Tests for fnmatch_utils.py
+ftplib_utils.py            # Ftplib utilities wrapping stdlib ftplib (FTP, FTP_TLS, create_ftp, create_ftp_tls, connect_ftp, parse257, parse150, parse227, parse229)
   test_functools_utils.py     # Tests for functools_utils.py
   test_glob_utils.py          # Tests for glob_utils.py
   test_graphlib_utils.py      # Tests for graphlib_utils.py
@@ -28434,6 +28443,7 @@ test_markdown_utils.py      # Tests for markdown_utils.py
   test_os_utils.py            # Tests for os_utils.py
 test_path_utils.py          # Tests for path_utils.py
   test_pathlib_utils.py       # Tests for pathlib_utils.py
+poplib_utils.py            # Poplib utilities wrapping stdlib poplib (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
   test_pattern_utils.py       # Tests for pattern_utils.py
   test_pprint_utils.py        # Tests for pprint_utils.py
 test_reprlib_utils.py       # Tests for reprlib_utils.py
@@ -28453,6 +28463,7 @@ mailbox_utils.py             # Mailbox utilities wrapping stdlib mailbox (create
 test_unittest_utils.py       # Tests for unittest_utils.py
 test_typing_utils.py        # Tests for typing_utils.py
 test_pickle_utils.py        # Tests for pickle_utils.py
+        test_pickletools_utils.py # Tests for pickletools_utils.py
   test_plistlib_utils.py      # Tests for plistlib_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
   test_py_compile_utils.py    # Tests for py_compile_utils.py
@@ -28522,6 +28533,9 @@ test_weakref_utils.py       # Tests for weakref_utils.py
     test_syslog_utils.py        # Tests for syslog_utils.py
     test_faulthandler_utils.py   # Tests for faulthandler_utils.py
     test_resource_utils.py       # Tests for resource_utils.py
+    test_pwd_utils.py            # Tests for pwd_utils.py
+    test_grp_utils.py            # Tests for grp_utils.py
+    test_termios_utils.py        # Tests for termios_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -28572,6 +28586,7 @@ test_lzma_utils.py          # Tests for lzma_utils.py
     test_runpy_utils.py         # Tests for runpy_utils.py
     test_types_utils.py         # Tests for types_utils.py
     test_zoneinfo_utils.py      # Tests for zoneinfo_utils.py
+    test_opcode_utils.py       # Tests for opcode_utils.py
      ```
 ## Getting Started
 
@@ -29462,6 +29477,42 @@ tests/test_resource_utils.py - Tests for resource_utils module
 
 The project includes resource usage utilities in `resource_utils.py` wrapping the standard library `resource` module: `get_rlimit` reads the soft and the hard limit of a resource for the running process, `set_rlimit` sets the limits of a resource for the running process, `prlimit` reads or sets the limits of another process, `get_rusage` reports the resource usage of a process, `get_page_size` returns the size of a memory page, `limit_names` returns the limit constants of the host platform, `limit_value` and `limit_name` translate a limit between its name and its value, `usage_names` returns the usage constants, `usage_as_dict` turns a usage record into a dictionary, and `is_available` reports whether the interpreter ships the standard library module. The limits are returned in a `Limit` named tuple with a `soft` and a `hard` field, the usage is returned in a `Usage` named tuple with the same fields on every platform, and every limit can be addressed by its name such as `"RLIMIT_NOFILE"`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `resource` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers that talk to the operating system raise a `RuntimeError` elsewhere, and `prlimit` is only available on Linux. The module is tested in `tests/test_resource_utils.py`.
 
+tests/test_pwd_utils.py - Tests for pwd_utils module
+
+## Password Database Utilities Module
+
+The project includes password database utilities in `pwd_utils.py` wrapping the standard library `pwd` module: `getpwuid` looks up a user by numeric identifier, `getpwnam` looks up a user by name, `getpwall` returns every entry in the password database, and `is_available` reports whether the interpreter ships the standard library module. Records are returned as `Passwd` named tuples with the fields `name`, `passwd`, `uid`, `gid`, `gecos`, `dir`, and `shell`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments, while lookups for missing entries raise `KeyError`. The `pwd` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_pwd_utils.py`.
+
+tests/test_grp_utils.py - Tests for grp_utils module
+
+## Group Database Utilities Module
+
+The project includes group database utilities in `grp_utils.py` wrapping the standard library `grp` module: `getgrgid` looks up a group by numeric identifier, `getgrnam` looks up a group by name, `getgrall` returns every entry in the group database, and `is_available` reports whether the interpreter ships the standard library module. Records are returned as `Group` named tuples with the fields `name`, `passwd`, `gid`, and `mem`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments, while lookups for missing entries raise `KeyError`. The `grp` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_grp_utils.py`.
+
+tests/test_termios_utils.py - Tests for termios_utils module
+
+## Termios Utilities Module
+
+The project includes terminal attribute utilities in `termios_utils.py` wrapping the standard library `termios` module: `get_attributes` reads the attributes of a terminal, `set_attributes` writes them back, `make_raw` builds a raw configuration, `make_cbreak` builds a cbreak configuration, `set_read_timeout` and `set_blocking` configure how a read waits for data, `get_window_size` and `set_window_size` read and write the size of the window, `drain` waits until the output was transmitted, `flush` discards the data the terminal has not processed yet, `pause_output` and `resume_output` suspend and resume the output, `send_break` sends a break, and `is_available` reports whether the interpreter ships the standard library module. The attributes are returned in an `Attributes` named tuple with the fields `iflag`, `oflag`, `cflag`, `lflag`, `ispeed`, `ospeed`, and `cc`, and the size of the window is returned in a `WindowSize` named tuple with the fields `rows`, `columns`, `x_pixels`, and `y_pixels`. The control character slots (`VINTR`, `VQUIT`, `VERASE`, `VKILL`, `VEOF`, `VTIME`, `VMIN`, and the rest) and the moments and queues of the standard library (`TCSANOW`, `TCSADRAIN`, `TCSAFLUSH`, `TCIFLUSH`, and `TCOFLUSH`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `termios` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_termios_utils.py`.
+
+tests/test_opcode_utils.py - Tests for opcode_utils module
+
+## Opcode Utilities Module
+
+The project includes opcode utilities in `opcode_utils.py` wrapping the standard library `opcode` module, exposing helpers for stack effects and opcode classification. The module is tested in `tests/test_opcode_utils.py`.
+
+tests/test_pickletools_utils.py - Tests for pickletools_utils module
+
+## Pickletools Utilities Module
+
+The project includes pickletools utilities in `pickletools_utils.py` wrapping the standard library `pickletools` module: `dis`, `genops`, `optimize`, `get_opcode_info`, `list_opcodes`, `is_opcode`, `get_pickle_size`, `decode_long`, `encode_long`. The module is tested in `tests/test_pickletools_utils.py`.
+
+tests/test_zipapp_utils.py - Tests for zipapp_utils module
+
+## Zipapp Utilities Module
+
+The project includes zipapp utilities in `zipapp_utils.py` wrapping the standard library `zipapp` module: `create_archive` / `create_zipapp` create a Python executable archive from source directories or archives, optionally with a custom interpreter and main module; `get_interpreter` / `get_zipapp_interpreter` extract the shebang interpreter from an archive; `is_zipapp_archive` detects whether a file is a zipapp archive. The module re-exports `zipapp.ZipAppError` as `ZipAppError`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments where appropriate. The module is tested in `tests/test_zipapp_utils.py`.
+
 ## Hello Module
 
 The project includes a sample application entry point in `hello.py`: `main` prints a greeting for the given name and defaults to `"World"`, and running the module directly greets the name given on the command line. The module is tested in `tests/test_hello.py`.
@@ -29480,6 +29531,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Add `termios_utils.py` wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation, plus unit tests in `tests/test_termios_utils.py`.
+- Synchronized `termios_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Added `dbm_utils.py` to the generated project — database utilities wrapping the standard library `dbm` module (`open_database`, `close`, `which_database`, `available_backends`, `read_record`, `write_record`, `delete_record`, `has_key`, `list_keys`, `sync_database`, `is_valid_flag`, `dbm_error`) with input validation, plus `tests/test_dbm_utils.py`.
+- Added `tracemalloc_utils.py` to the generated project — tracemalloc memory tracing utilities wrapping the standard library `tracemalloc` module (`is_tracing`, `get_traced_memory`, `get_traceback_limit`, `start`, `stop`, `clear_traces`), plus `tests/test_tracemalloc_utils.py`.
+- `tty_utils.py` — tty utilities wrapping stdlib tty with tests
+- `tests/test_tty_utils.py` — unit tests for `tty_utils.py`
+- `asyncio_utils.py` — utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for)
+- `tests/test_asyncio_utils.py` — unit tests for `asyncio_utils.py`
+- `mmap_utils.py` — utilities wrapping the standard library `mmap` module with tests
+- `tests/test_mmap_utils.py` — unit tests for `mmap_utils.py`
+- Repaired the README template embedded in `scaffold.sh`, which did not document the `pwd_utils`, `grp_utils`, `opcode_utils`, `pickletools_utils`, and `zipapp_utils` modules or their tests.
+- Repaired the changelog template embedded in `scaffold.sh`, which did not mention the `dbm_utils`, `tracemalloc_utils`, and `tty_utils` modules or the tests of the `asyncio_utils`, `dbm_utils`, `mmap_utils`, `tracemalloc_utils`, and `tty_utils` modules.
+- Strengthened `tests/test_scaffold_sync.py` with checks that the README and the changelog templates embedded in `scaffold.sh` document every module and every test the scaffold generates, so a generated project never ships a module it does not describe.
 - Add `resource_utils.py` wrapping the standard library `resource` module (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available) with input validation, plus unit tests in `tests/test_resource_utils.py`.
 - Add `pwd_utils.py` wrapping the standard library `pwd` module (getpwuid, getpwnam, getpwall) with input validation, plus unit tests in `tests/test_pwd_utils.py`.
 - Add `grp_utils.py` wrapping the standard library `grp` module (getgrgid, getgrnam, getgrall) with input validation, plus unit tests in `tests/test_grp_utils.py`.
@@ -71223,6 +71287,1022 @@ class TestGrpUtils(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 getgrall()
 TEST_GRP_UTILS
+
+# --- termios_utils.py ---
+cat > "$OUTPUT_DIR/termios_utils.py" <<'TERMIOS_UTILS'
+"""Terminal attribute utilities wrapping the standard library :mod:`termios` module.
+
+The :mod:`termios` module controls a terminal of a Unix-like operating system.
+A program reads the attributes of a terminal with :func:`termios.tcgetattr`,
+writes them back with :func:`termios.tcsetattr`, and flushes, drains, or
+interrupts the output queue of the terminal with :func:`termios.tcflush`,
+:func:`termios.tcdrain`, and :func:`termios.tcflow`.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure from the C layer.  It returns the attributes of a terminal
+as an :class:`Attributes` named tuple with stable field names, and it adds
+helpers that build a raw or a cbreak configuration, that configure the read
+timeout of a terminal, and that read and write the size of the window.
+
+.. note::
+
+   The :mod:`termios` module only exists on Unix-like platforms.  The import
+   below degrades gracefully: when the interpreter does not ship the module,
+   the helpers that talk to the operating system raise a :class:`RuntimeError`
+   that names the missing module, while the pure helpers keep working.
+
+The helpers never change the attributes of a terminal on their own.  The
+attributes are only written when the caller asks for it with
+:func:`set_attributes`.
+"""
+
+from __future__ import annotations
+
+import math
+import os
+import struct
+from typing import Any, Dict, List, NamedTuple, Sequence
+
+try:
+    import termios as _termios
+except ImportError:  # pragma: no cover - the module is Unix-only
+    _termios = None  # type: ignore[assignment]
+
+try:
+    import tty as _tty
+except ImportError:  # pragma: no cover - the module is Unix-only
+    _tty = None  # type: ignore[assignment]
+
+try:
+    import fcntl as _fcntl
+except ImportError:  # pragma: no cover - the module is Unix-only
+    _fcntl = None  # type: ignore[assignment]
+
+
+class Attributes(NamedTuple):
+    """The attributes of a terminal.
+
+    The standard library returns a list of seven values whose meaning depends
+    on the platform.  This named tuple always has the same fields.
+
+    Attributes:
+        iflag: The input modes of the terminal.
+        oflag: The output modes of the terminal.
+        cflag: The control modes of the terminal.
+        lflag: The local modes of the terminal.
+        ispeed: The input speed of the terminal.
+        ospeed: The output speed of the terminal.
+        cc: The control characters of the terminal, one entry per slot.
+    """
+
+    iflag: int
+    oflag: int
+    cflag: int
+    lflag: int
+    ispeed: int
+    ospeed: int
+    cc: List[int]
+
+
+class WindowSize(NamedTuple):
+    """The size of the window of a terminal.
+
+    Attributes:
+        rows: The number of rows of the window.
+        columns: The number of columns of the window.
+        x_pixels: The width of the window in pixels, or zero when unknown.
+        y_pixels: The height of the window in pixels, or zero when unknown.
+    """
+
+    rows: int
+    columns: int
+    x_pixels: int
+    y_pixels: int
+
+
+__all__: list[str] = [
+    "Attributes",
+    "ECHO",
+    "ISIG",
+    "TCIFLUSH",
+    "TCIOFF",
+    "TCION",
+    "TCOFLUSH",
+    "TCSADRAIN",
+    "TCSAFLUSH",
+    "TCSANOW",
+    "VDISCARD",
+    "VEOF",
+    "VEOL",
+    "VEOL2",
+    "VERASE",
+    "VINTR",
+    "VKILL",
+    "VLNEXT",
+    "VMIN",
+    "VQUIT",
+    "VREPRINT",
+    "VSTART",
+    "VSTOP",
+    "VSUSP",
+    "VSWTC",
+    "VTIME",
+    "VWERASE",
+    "WindowSize",
+    "baud_rates",
+    "control_character_names",
+    "drain",
+    "flush",
+    "get_attributes",
+    "get_window_size",
+    "is_available",
+    "make_cbreak",
+    "make_raw",
+    "pause_output",
+    "resume_output",
+    "send_break",
+    "set_attributes",
+    "set_blocking",
+    "set_read_timeout",
+    "set_window_size",
+]
+
+
+def _constant(name: str, fallback: int) -> int:
+    """Return the standard library constant *name*, or *fallback*.
+
+    Args:
+        name: The name of the constant in the standard library module.
+        fallback: The value to use when the interpreter does not provide the
+            constant.
+
+    Returns:
+        The value of the constant.
+    """
+    if _termios is None:
+        return fallback
+    value = getattr(_termios, name, fallback)
+    return value if isinstance(value, int) else fallback
+
+
+#: Apply the change immediately.
+TCSANOW: int = _constant("TCSANOW", 0)
+#: Apply the change after the output of the terminal has been transmitted.
+TCSADRAIN: int = _constant("TCSADRAIN", 1)
+#: Apply the change after the output of the terminal has been transmitted
+#: and discard the output that is still queued.
+TCSAFLUSH: int = _constant("TCSAFLUSH", 2)
+#: Discard the data that has been received but not read yet.
+TCIFLUSH: int = _constant("TCIFLUSH", 0)
+#: Discard the data that has been written but not transmitted yet.
+TCOFLUSH: int = _constant("TCOFLUSH", 1)
+#: Suspend the output of the terminal.
+TCIOFF: int = _constant("TCIOFF", 0)
+#: Resume the output of the terminal.
+TCION: int = _constant("TCION", 1)
+
+#: The local mode that echoes the typed characters.
+ECHO: int = _constant("ECHO", 0o10)
+#: The local mode that interprets the signal characters.
+ISIG: int = _constant("ISIG", 0o1)
+#: The slot of the character that interrupts the program.
+VINTR: int = _constant("VINTR", 0)
+#: The slot of the character that quits the program.
+VQUIT: int = _constant("VQUIT", 1)
+#: The slot of the character that erases the last character.
+VERASE: int = _constant("VERASE", 2)
+#: The slot of the character that erases the whole line.
+VKILL: int = _constant("VKILL", 3)
+#: The slot of the character that ends the input.
+VEOF: int = _constant("VEOF", 4)
+#: The slot of the read timeout of the terminal.
+VTIME: int = _constant("VTIME", 5)
+#: The slot of the minimum number of bytes a read waits for.
+VMIN: int = _constant("VMIN", 6)
+#: The slot of the character that switches the terminal.
+VSWTC: int = _constant("VSWTC", 7)
+#: The slot of the character that starts the output.
+VSTART: int = _constant("VSTART", 8)
+#: The slot of the character that stops the output.
+VSTOP: int = _constant("VSTOP", 9)
+#: The slot of the character that suspends the program.
+VSUSP: int = _constant("VSUSP", 10)
+#: The slot of the additional end of line character.
+VEOL: int = _constant("VEOL", 11)
+#: The slot of the character that redraws the line.
+VREPRINT: int = _constant("VREPRINT", 12)
+#: The slot of the character that discards the typed characters.
+VDISCARD: int = _constant("VDISCARD", 13)
+#: The slot of the character that erases the whole line.
+VWERASE: int = _constant("VWERASE", 14)
+#: The slot of the character of the next line.
+VLNEXT: int = _constant("VLNEXT", 15)
+#: The slot of the second additional end of line character.
+VEOL2: int = _constant("VEOL2", 16)
+
+#: The names of the control characters, in the order of their slots.
+_CONTROL_CHARACTERS: tuple[tuple[str, int], ...] = (
+    ("VINTR", VINTR),
+    ("VQUIT", VQUIT),
+    ("VERASE", VERASE),
+    ("VKILL", VKILL),
+    ("VEOF", VEOF),
+    ("VTIME", VTIME),
+    ("VMIN", VMIN),
+    ("VSWTC", VSWTC),
+    ("VSTART", VSTART),
+    ("VSTOP", VSTOP),
+    ("VSUSP", VSUSP),
+    ("VEOL", VEOL),
+    ("VREPRINT", VREPRINT),
+    ("VDISCARD", VDISCARD),
+    ("VWERASE", VWERASE),
+    ("VLNEXT", VLNEXT),
+    ("VEOL2", VEOL2),
+)
+
+#: The names of the standard baud rates.
+_BAUD_NAMES: tuple[str, ...] = (
+    "B0",
+    "B50",
+    "B75",
+    "B110",
+    "B134",
+    "B150",
+    "B200",
+    "B300",
+    "B600",
+    "B1200",
+    "B1800",
+    "B2400",
+    "B4800",
+    "B9600",
+    "B19200",
+    "B38400",
+    "B57600",
+    "B115200",
+    "B230400",
+    "B460800",
+    "B500000",
+    "B576000",
+    "B921600",
+    "B1000000",
+    "B1152000",
+    "B1500000",
+    "B2000000",
+    "B2500000",
+    "B3000000",
+    "B3500000",
+    "B4000000",
+)
+
+
+def _termios_module() -> Any:
+    """Return the standard library ``termios`` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``termios`` module.
+    """
+    if _termios is None:
+        raise RuntimeError("the standard library module 'termios' is not available")
+    return _termios
+
+
+def _tty_module() -> Any:
+    """Return the standard library ``tty`` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``tty`` module.
+    """
+    if _tty is None:
+        raise RuntimeError("the standard library module 'tty' is not available")
+    return _tty
+
+
+def is_available() -> bool:
+    """Return ``True`` if the ``termios`` module is available."""
+    return _termios is not None
+
+
+def _validate_fd(fd: int) -> int:
+    """Return *fd* when it is a valid file descriptor.
+
+    Args:
+        fd: The file descriptor to validate.
+
+    Returns:
+        The validated file descriptor.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+    """
+    if isinstance(fd, bool) or not isinstance(fd, int):
+        raise TypeError(f"fd must be an int, got {type(fd).__name__}")
+    if fd < 0:
+        raise ValueError(f"fd must not be negative, got {fd}")
+    return fd
+
+
+def _validate_attributes(attributes: Attributes) -> Attributes:
+    """Return *attributes* when it holds usable terminal attributes.
+
+    Args:
+        attributes: The attributes to validate.
+
+    Returns:
+        The validated attributes.
+
+    Raises:
+        TypeError: If *attributes* is not an :class:`Attributes` instance.
+        ValueError: If a mode of the attributes is negative.
+    """
+    if not isinstance(attributes, Attributes):
+        raise TypeError(
+            f"attributes must be an Attributes instance, got {type(attributes).__name__}"
+        )
+    for name in ("iflag", "oflag", "cflag", "lflag", "ispeed", "ospeed"):
+        value = getattr(attributes, name)
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError(f"the {name} of the attributes must be an int")
+        if value < 0:
+            raise ValueError(f"the {name} of the attributes must not be negative, got {value}")
+    if not isinstance(attributes.cc, (list, tuple)):
+        raise TypeError("the cc of the attributes must be a list of ints")
+    for value in attributes.cc:
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError("the cc of the attributes must be a list of ints")
+        if not 0 <= value <= 255:
+            raise ValueError(f"the cc of the attributes must hold bytes, got {value}")
+    return attributes
+
+
+def _attributes_to_mode(attributes: Attributes) -> List[Any]:
+    """Return the mode list the standard library expects."""
+    return [
+        attributes.iflag,
+        attributes.oflag,
+        attributes.cflag,
+        attributes.lflag,
+        attributes.ispeed,
+        attributes.ospeed,
+        _control_characters_to_bytes(attributes.cc),
+    ]
+
+
+def _control_characters_to_bytes(characters: Sequence[int]) -> List[bytes]:
+    """Return the control characters as the byte objects the standard library expects.
+
+    The standard library reports one byte object per control character and
+    expects one byte object per control character as well, so the list is
+    padded to the number of slots the platform provides.
+    """
+    count = max(len(characters), VEOL2 + 1)
+    if _termios is not None:
+        count = max(count, int(getattr(_termios, "NCCS", count)))
+    values = list(characters[:count])
+    while len(values) < count:
+        values.append(0)
+    return [bytes([value]) for value in values]
+
+
+def _mode_to_attributes(mode: Sequence[Any]) -> Attributes:
+    """Return the attributes of a mode list of the standard library."""
+    return Attributes(
+        iflag=int(mode[0]),
+        oflag=int(mode[1]),
+        cflag=int(mode[2]),
+        lflag=int(mode[3]),
+        ispeed=int(mode[4]),
+        ospeed=int(mode[5]),
+        cc=[
+            value[0] if isinstance(value, (bytes, bytearray)) else int(value)
+            for value in mode[6]
+        ],
+    )
+
+
+def _with_control_characters(
+    attributes: Attributes,
+    changes: Dict[int, int],
+) -> Attributes:
+    """Return the attributes with the given control characters replaced."""
+    characters: List[int] = list(attributes.cc)
+    for index, value in changes.items():
+        while len(characters) <= index:
+            characters.append(0)
+        characters[index] = value
+    return attributes._replace(cc=characters)
+
+
+def get_attributes(fd: int) -> Attributes:
+    """Return the attributes of the terminal behind *fd*.
+
+    Args:
+        fd: The file descriptor of the terminal.
+
+    Returns:
+        The :class:`Attributes` of the terminal.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``termios`` module.
+        termios.error: If the file descriptor is not a terminal.
+    """
+    _validate_fd(fd)
+    module = _termios_module()
+    return _mode_to_attributes(module.tcgetattr(fd))
+
+
+def set_attributes(fd: int, attributes: Attributes, when: int = TCSANOW) -> None:
+    """Write *attributes* to the terminal behind *fd*.
+
+    Args:
+        fd: The file descriptor of the terminal.
+        attributes: The attributes to write.
+        when: When the change is applied.  One of :data:`TCSANOW`,
+            :data:`TCSADRAIN`, or :data:`TCSAFLUSH`.
+
+    Raises:
+        TypeError: If *fd*, *attributes*, or *when* has the wrong type.
+        ValueError: If *fd* is negative or *when* is not a known moment.
+        RuntimeError: If the interpreter does not ship the ``termios`` module.
+        termios.error: If the file descriptor is not a terminal.
+    """
+    _validate_fd(fd)
+    _validate_attributes(attributes)
+    if isinstance(when, bool) or not isinstance(when, int):
+        raise TypeError(f"when must be an int, got {type(when).__name__}")
+    if when not in (TCSANOW, TCSADRAIN, TCSAFLUSH):
+        raise ValueError(
+            f"when must be TCSANOW, TCSADRAIN, or TCSAFLUSH, got {when}"
+        )
+    module = _termios_module()
+    module.tcsetattr(fd, when, _attributes_to_mode(attributes))
+
+
+def make_raw(attributes: Attributes) -> Attributes:
+    """Return the raw configuration of *attributes*.
+
+    A raw terminal does not echo the typed characters, does not translate the
+    line endings, and does not interpret the control characters.
+
+    Args:
+        attributes: The attributes to build the raw configuration from.
+
+    Returns:
+        The raw :class:`Attributes`.
+
+    Raises:
+        TypeError: If *attributes* has the wrong type.
+        ValueError: If a mode of the attributes is negative.
+        RuntimeError: If the interpreter does not ship the ``tty`` module.
+    """
+    _validate_attributes(attributes)
+    module = _tty_module()
+    mode = _attributes_to_mode(attributes)
+    module.cfmakeraw(mode)
+    return _mode_to_attributes(mode)
+
+
+def make_cbreak(attributes: Attributes) -> Attributes:
+    """Return the cbreak configuration of *attributes*.
+
+    A cbreak terminal does not echo the typed characters, but it still
+    interprets the control characters line by line.
+
+    Args:
+        attributes: The attributes to build the cbreak configuration from.
+
+    Returns:
+        The cbreak :class:`Attributes`.
+
+    Raises:
+        TypeError: If *attributes* has the wrong type.
+        ValueError: If a mode of the attributes is negative.
+        RuntimeError: If the interpreter does not ship the ``tty`` module or
+            if it does not provide ``cfmakecbreak``.
+    """
+    _validate_attributes(attributes)
+    module = _tty_module()
+    maker = getattr(module, "cfmakecbreak", None)
+    if maker is None:
+        raise RuntimeError(
+            "the standard library module 'tty' does not provide cfmakecbreak"
+        )
+    mode = _attributes_to_mode(attributes)
+    maker(mode)
+    return _mode_to_attributes(mode)
+
+
+def set_read_timeout(attributes: Attributes, timeout: float) -> Attributes:
+    """Return the attributes that read with a timeout of *timeout* seconds.
+
+    A read waits at most *timeout* seconds for the data to arrive, and it
+    returns an empty result when the timeout expires.
+
+    Args:
+        attributes: The attributes to build the configuration from.
+        timeout: The timeout of a read in seconds.
+
+    Returns:
+        The :class:`Attributes` with the new timeout.
+
+    Raises:
+        TypeError: If *attributes* or *timeout* has the wrong type.
+        ValueError: If the timeout is negative or not a finite number.
+    """
+    _validate_attributes(attributes)
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+        raise TypeError(f"timeout must be a number, got {type(timeout).__name__}")
+    if math.isnan(timeout) or math.isinf(timeout):
+        raise ValueError(f"timeout must be a finite number, got {timeout}")
+    if timeout < 0:
+        raise ValueError(f"timeout must not be negative, got {timeout}")
+    tenths = int(math.ceil(timeout * 10))
+    return _with_control_characters(attributes, {VMIN: 0, VTIME: tenths})
+
+
+def set_blocking(attributes: Attributes) -> Attributes:
+    """Return the attributes that read in blocking mode.
+
+    Args:
+        attributes: The attributes to build the configuration from.
+
+    Returns:
+        The :class:`Attributes` that wait for at least one byte.
+
+    Raises:
+        TypeError: If *attributes* has the wrong type.
+        ValueError: If a mode of the attributes is negative.
+    """
+    _validate_attributes(attributes)
+    return _with_control_characters(attributes, {VMIN: 1, VTIME: 0})
+
+
+def get_window_size(fd: int) -> WindowSize:
+    """Return the size of the window of the terminal behind *fd*.
+
+    Args:
+        fd: The file descriptor of the terminal.
+
+    Returns:
+        The :class:`WindowSize` of the terminal.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        OSError: If the file descriptor is not a terminal.
+    """
+    _validate_fd(fd)
+    size = os.get_terminal_size(fd)
+    return WindowSize(
+        rows=int(size.lines),
+        columns=int(size.columns),
+        x_pixels=0,
+        y_pixels=0,
+    )
+
+
+def set_window_size(
+    fd: int,
+    rows: int,
+    columns: int,
+    x_pixels: int = 0,
+    y_pixels: int = 0,
+) -> None:
+    """Set the size of the window of the terminal behind *fd*.
+
+    Args:
+        fd: The file descriptor of the terminal.
+        rows: The number of rows of the window.
+        columns: The number of columns of the window.
+        x_pixels: The width of the window in pixels.
+        y_pixels: The height of the window in pixels.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If a size is negative.
+        RuntimeError: If the interpreter does not ship the ``termios`` or the
+            ``fcntl`` module, or if the platform does not provide
+            ``TIOCSWINSZ``.
+        OSError: If the file descriptor is not a terminal.
+    """
+    _validate_fd(fd)
+    for name, value in (
+        ("rows", rows),
+        ("columns", columns),
+        ("x_pixels", x_pixels),
+        ("y_pixels", y_pixels),
+    ):
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+        if value < 0:
+            raise ValueError(f"{name} must not be negative, got {value}")
+    module = _termios_module()
+    request = getattr(module, "TIOCSWINSZ", None)
+    if request is None:
+        raise RuntimeError(
+            "the standard library module 'termios' does not provide TIOCSWINSZ"
+        )
+    if _fcntl is None:
+        raise RuntimeError("the standard library module 'fcntl' is not available")
+    _fcntl.ioctl(fd, request, struct.pack("HHHH", rows, columns, x_pixels, y_pixels))
+
+
+def drain(fd: int) -> None:
+    """Wait until everything that was written to the terminal was transmitted.
+
+    Args:
+        fd: The file descriptor of the terminal.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``termios`` module.
+        termios.error: If the file descriptor is not a terminal.
+    """
+    _validate_fd(fd)
+    module = _termios_module()
+    module.tcdrain(fd)
+
+
+def flush(fd: int, queue: int = TCIFLUSH) -> None:
+    """Discard the data that the terminal has not processed yet.
+
+    Args:
+        fd: The file descriptor of the terminal.
+        queue: The queue to discard.  :data:`TCIFLUSH` discards the data
+            that has been received but not read yet, and :data:`TCOFLUSH`
+            discards the data that has been written but not transmitted yet.
+
+    Raises:
+        TypeError: If *fd* or *queue* has the wrong type.
+        ValueError: If *fd* is negative or *queue* is not a known queue.
+        RuntimeError: If the interpreter does not ship the ``termios`` module.
+        termios.error: If the file descriptor is not a terminal.
+    """
+    _validate_fd(fd)
+    if isinstance(queue, bool) or not isinstance(queue, int):
+        raise TypeError(f"queue must be an int, got {type(queue).__name__}")
+    if queue not in (TCIFLUSH, TCOFLUSH):
+        raise ValueError(f"queue must be TCIFLUSH or TCOFLUSH, got {queue}")
+    module = _termios_module()
+    module.tcflush(fd, queue)
+
+
+def pause_output(fd: int) -> None:
+    """Suspend the output of the terminal.
+
+    Args:
+        fd: The file descriptor of the terminal.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``termios`` module.
+        termios.error: If the file descriptor is not a terminal.
+    """
+    _validate_fd(fd)
+    module = _termios_module()
+    module.tcflow(fd, TCIOFF)
+
+
+def resume_output(fd: int) -> None:
+    """Resume the output of the terminal.
+
+    Args:
+        fd: The file descriptor of the terminal.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``termios`` module.
+        termios.error: If the file descriptor is not a terminal.
+    """
+    _validate_fd(fd)
+    module = _termios_module()
+    module.tcflow(fd, TCION)
+
+
+def send_break(fd: int, duration: int = 0) -> None:
+    """Send a break to the terminal.
+
+    Args:
+        fd: The file descriptor of the terminal.
+        duration: The duration of the break in tenths of a second.  A duration
+            of zero sends a break that lasts at least a fraction of a second.
+
+    Raises:
+        TypeError: If *fd* or *duration* has the wrong type.
+        ValueError: If *fd* or *duration* is negative.
+        RuntimeError: If the interpreter does not ship the ``termios`` module.
+        termios.error: If the file descriptor is not a terminal.
+    """
+    _validate_fd(fd)
+    if isinstance(duration, bool) or not isinstance(duration, int):
+        raise TypeError(f"duration must be an int, got {type(duration).__name__}")
+    if duration < 0:
+        raise ValueError(f"duration must not be negative, got {duration}")
+    module = _termios_module()
+    module.tcsendbreak(fd, duration)
+
+
+def control_character_names() -> Dict[int, str]:
+    """Return the names of the control characters, keyed by their slot.
+
+    Returns:
+        A dictionary that maps the slot of a control character to its name,
+        such as ``0`` to ``"VINTR"``.
+    """
+    return {index: name for name, index in _CONTROL_CHARACTERS}
+
+
+def baud_rates() -> Dict[str, int]:
+    """Return the standard baud rates, keyed by their name.
+
+    Returns:
+        A dictionary that maps the name of a baud rate to the number of bits
+        per second, such as ``"B9600"`` to ``9600``.
+    """
+    return {name: int(name[1:]) for name in _BAUD_NAMES}
+TERMIOS_UTILS
+
+# --- tests/test_termios_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_termios_utils.py" <<'TEST_TERMIOS_UTILS'
+"""Tests for termios_utils."""
+
+import os
+import unittest
+from unittest.mock import patch
+
+import termios_utils
+from termios_utils import (
+    Attributes,
+    WindowSize,
+    baud_rates,
+    control_character_names,
+    drain,
+    flush,
+    get_attributes,
+    get_window_size,
+    is_available,
+    make_cbreak,
+    make_raw,
+    pause_output,
+    resume_output,
+    send_break,
+    set_attributes,
+    set_blocking,
+    set_read_timeout,
+    set_window_size,
+)
+
+
+class TestTermiosUtils(unittest.TestCase):
+    """Verify the terminal attribute helpers.
+
+    The tests work on a pseudo terminal that the test itself opens, so no
+    test ever changes the terminal of the process that runs the suite.
+    """
+
+    def setUp(self):
+        self.master_fd = None
+        self.slave_fd = None
+        if not is_available():
+            return
+        try:
+            self.master_fd, self.slave_fd = os.openpty()
+        except OSError:  # pragma: no cover - the platform has no pseudo terminals
+            self.skipTest("the platform does not provide pseudo terminals")
+
+    def tearDown(self):
+        for fd in (self.slave_fd, self.master_fd):
+            if fd is not None:
+                try:
+                    os.close(fd)
+                except OSError:  # pragma: no cover - the descriptor is already closed
+                    pass
+
+    def test_is_available(self):
+        self.assertIsInstance(is_available(), bool)
+
+    def test_constants_match_the_standard_library(self):
+        if not is_available():
+            self.skipTest("termios module not available")
+        import termios
+
+        self.assertEqual(termios_utils.TCSANOW, termios.TCSANOW)
+        self.assertEqual(termios_utils.TCSADRAIN, termios.TCSADRAIN)
+        self.assertEqual(termios_utils.TCSAFLUSH, termios.TCSAFLUSH)
+        self.assertEqual(termios_utils.TCIFLUSH, termios.TCIFLUSH)
+        self.assertEqual(termios_utils.TCOFLUSH, termios.TCOFLUSH)
+        self.assertEqual(termios_utils.VMIN, termios.VMIN)
+        self.assertEqual(termios_utils.VTIME, termios.VTIME)
+        self.assertEqual(termios_utils.VINTR, termios.VINTR)
+
+    def test_get_attributes_reads_the_terminal(self):
+        attributes = get_attributes(self.slave_fd)
+        self.assertIsInstance(attributes, Attributes)
+        self.assertIsInstance(attributes.iflag, int)
+        self.assertIsInstance(attributes.oflag, int)
+        self.assertIsInstance(attributes.cflag, int)
+        self.assertIsInstance(attributes.lflag, int)
+        self.assertIsInstance(attributes.ispeed, int)
+        self.assertIsInstance(attributes.ospeed, int)
+        self.assertIsInstance(attributes.cc, list)
+        iflag, oflag, cflag, lflag, ispeed, ospeed, cc = attributes
+        self.assertEqual(iflag, attributes.iflag)
+        self.assertEqual(cc, attributes.cc)
+
+    def test_get_attributes_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            get_attributes("0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_attributes(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            get_attributes(-1)
+
+    def test_set_attributes_writes_the_terminal(self):
+        attributes = get_attributes(self.slave_fd)
+        raw = make_raw(attributes)
+        set_attributes(self.slave_fd, raw)
+        self.assertEqual(get_attributes(self.slave_fd), raw)
+
+    def test_set_attributes_validates_its_arguments(self):
+        attributes = get_attributes(self.slave_fd)
+        with self.assertRaises(TypeError):
+            set_attributes("0", attributes)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            set_attributes(-1, attributes)
+        with self.assertRaises(TypeError):
+            set_attributes(self.slave_fd, "raw")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            set_attributes(self.slave_fd, attributes, "now")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            set_attributes(self.slave_fd, attributes, 99)
+
+    def test_set_attributes_accepts_every_known_moment(self):
+        attributes = get_attributes(self.slave_fd)
+        for when in (
+            termios_utils.TCSANOW,
+            termios_utils.TCSADRAIN,
+            termios_utils.TCSAFLUSH,
+        ):
+            with self.subTest(when=when):
+                set_attributes(self.slave_fd, attributes, when)
+
+    def test_make_raw_removes_the_echo(self):
+        attributes = get_attributes(self.slave_fd)
+        raw = make_raw(attributes)
+        self.assertIsInstance(raw, Attributes)
+        self.assertEqual(raw.lflag & termios_utils.ECHO, 0)
+
+    def test_make_raw_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            make_raw("raw")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            make_raw(Attributes(-1, 0, 0, 0, 0, 0, []))
+
+    def test_make_cbreak_keeps_the_signals(self):
+        attributes = get_attributes(self.slave_fd)
+        cbreak = make_cbreak(attributes)
+        self.assertIsInstance(cbreak, Attributes)
+        self.assertEqual(
+            cbreak.lflag & termios_utils.ISIG,
+            attributes.lflag & termios_utils.ISIG,
+        )
+
+    def test_make_cbreak_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            make_cbreak(None)  # type: ignore[arg-type]
+
+    def test_set_read_timeout_configures_the_terminal(self):
+        attributes = get_attributes(self.slave_fd)
+        timed = set_read_timeout(attributes, 1.5)
+        self.assertEqual(timed.cc[termios_utils.VMIN], 0)
+        self.assertEqual(timed.cc[termios_utils.VTIME], 15)
+
+    def test_set_read_timeout_validates_its_arguments(self):
+        attributes = get_attributes(self.slave_fd)
+        with self.assertRaises(TypeError):
+            set_read_timeout(attributes, "1")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            set_read_timeout(attributes, -1)
+        with self.assertRaises(ValueError):
+            set_read_timeout(attributes, float("inf"))
+
+    def test_set_blocking_configures_the_terminal(self):
+        attributes = get_attributes(self.slave_fd)
+        blocking = set_blocking(attributes)
+        self.assertEqual(blocking.cc[termios_utils.VMIN], 1)
+        self.assertEqual(blocking.cc[termios_utils.VTIME], 0)
+
+    def test_set_blocking_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            set_blocking(3)  # type: ignore[arg-type]
+
+    def test_get_window_size_reads_the_terminal(self):
+        size = get_window_size(self.slave_fd)
+        self.assertIsInstance(size, WindowSize)
+        self.assertGreaterEqual(size.rows, 0)
+        self.assertGreaterEqual(size.columns, 0)
+
+    def test_get_window_size_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            get_window_size("0")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            get_window_size(-1)
+
+    def test_set_window_size_writes_the_terminal(self):
+        set_window_size(self.slave_fd, 40, 120)
+        size = get_window_size(self.slave_fd)
+        self.assertEqual(size.rows, 40)
+        self.assertEqual(size.columns, 120)
+
+    def test_set_window_size_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            set_window_size(self.slave_fd, "40", 120)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            set_window_size(self.slave_fd, -1, 120)
+        with self.assertRaises(ValueError):
+            set_window_size(self.slave_fd, 40, -1)
+
+    def test_drain_flush_and_break_work_on_a_terminal(self):
+        drain(self.slave_fd)
+        flush(self.slave_fd, termios_utils.TCIFLUSH)
+        flush(self.slave_fd, termios_utils.TCOFLUSH)
+        send_break(self.slave_fd)
+        pause_output(self.slave_fd)
+        resume_output(self.slave_fd)
+
+    def test_drain_and_friends_validate_their_arguments(self):
+        with self.assertRaises(TypeError):
+            drain("0")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            drain(-1)
+        with self.assertRaises(TypeError):
+            flush(self.slave_fd, "input")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            flush(self.slave_fd, 99)
+        with self.assertRaises(TypeError):
+            send_break(self.slave_fd, 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            send_break(self.slave_fd, -1)
+        with self.assertRaises(TypeError):
+            pause_output(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            resume_output(None)  # type: ignore[arg-type]
+
+    def test_control_character_names(self):
+        names = control_character_names()
+        self.assertTrue(names)
+        self.assertEqual(names[termios_utils.VINTR], "VINTR")
+        self.assertEqual(names[termios_utils.VMIN], "VMIN")
+        self.assertNotIn("VINTR", names)
+
+    def test_baud_rates(self):
+        rates = baud_rates()
+        self.assertEqual(rates["B9600"], 9600)
+        self.assertEqual(rates["B115200"], 115200)
+        self.assertEqual(rates["B0"], 0)
+
+    def test_helpers_report_a_missing_standard_library_module(self):
+        with patch("termios_utils._termios", None), patch("termios_utils._tty", None):
+            with self.assertRaises(RuntimeError):
+                get_attributes(self.slave_fd)
+            with self.assertRaises(RuntimeError):
+                set_attributes(self.slave_fd, Attributes(0, 0, 0, 0, 0, 0, []))
+            with self.assertRaises(RuntimeError):
+                make_raw(Attributes(0, 0, 0, 0, 0, 0, []))
+            with self.assertRaises(RuntimeError):
+                make_cbreak(Attributes(0, 0, 0, 0, 0, 0, []))
+            with self.assertRaises(RuntimeError):
+                drain(self.slave_fd)
+            with self.assertRaises(RuntimeError):
+                flush(self.slave_fd)
+            with self.assertRaises(RuntimeError):
+                pause_output(self.slave_fd)
+            with self.assertRaises(RuntimeError):
+                resume_output(self.slave_fd)
+            with self.assertRaises(RuntimeError):
+                send_break(self.slave_fd)
+            with self.assertRaises(RuntimeError):
+                set_window_size(self.slave_fd, 24, 80)
+            self.assertFalse(is_available())
+
+    def test_all_names_are_exported(self):
+        self.assertIsNotNone(termios_utils.__all__)
+        self.assertEqual(len(termios_utils.__all__), len(set(termios_utils.__all__)))
+        for name in termios_utils.__all__:
+            self.assertTrue(hasattr(termios_utils, name), name)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_TERMIOS_UTILS
 
 
 # --- substitute the project name in the templated documents ---

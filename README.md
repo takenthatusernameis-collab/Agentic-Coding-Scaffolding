@@ -255,6 +255,7 @@ faulthandler_utils.py        # Fault handler utilities wrapping stdlib faulthand
 resource_utils.py            # Resource usage utilities wrapping stdlib resource (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available)
 pwd_utils.py                 # Password database utilities wrapping stdlib pwd (getpwuid, getpwnam, getpwall)
 grp_utils.py                 # Group database utilities wrapping stdlib grp (getgrgid, getgrnam, getgrall)
+termios_utils.py             # Terminal attribute utilities wrapping stdlib termios (get_attributes, set_attributes, make_raw, make_cbreak, get_window_size, set_window_size)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -423,6 +424,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_resource_utils.py       # Tests for resource_utils.py
     test_pwd_utils.py            # Tests for pwd_utils.py
     test_grp_utils.py            # Tests for grp_utils.py
+    test_termios_utils.py        # Tests for termios_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -1430,3 +1432,7 @@ The project includes password database utilities in `pwd_utils.py` wrapping the 
 ## Group Database Utilities Module
 
 The project includes group database utilities in `grp_utils.py` wrapping the standard library `grp` module: `getgrgid` looks up a group by numeric identifier, `getgrnam` looks up a group by name, `getgrall` returns every entry in the group database, and `is_available` reports whether the interpreter ships the standard library module. Records are returned as `Group` named tuples with the fields `name`, `passwd`, `gid`, and `mem`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments, while lookups for missing entries raise `KeyError`. The `grp` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_grp_utils.py`.
+
+## Termios Utilities Module
+
+The project includes terminal attribute utilities in `termios_utils.py` wrapping the standard library `termios` module: `get_attributes` reads the attributes of a terminal, `set_attributes` writes them back, `make_raw` builds a raw configuration, `make_cbreak` builds a cbreak configuration, `set_read_timeout` and `set_blocking` configure how a read waits for data, `get_window_size` and `set_window_size` read and write the size of the window, `drain` waits until the output was transmitted, `flush` discards the data the terminal has not processed yet, `pause_output` and `resume_output` suspend and resume the output, `send_break` sends a break, `control_character_names` returns the names of the control characters, `baud_rates` returns the standard baud rates, and `is_available` reports whether the interpreter ships the standard library module. The attributes are returned in an `Attributes` named tuple with the fields `iflag`, `oflag`, `cflag`, `lflag`, `ispeed`, `ospeed`, and `cc`, and the size of the window is returned in a `WindowSize` named tuple with the fields `rows`, `columns`, `x_pixels`, and `y_pixels`. The control character slots (`VINTR`, `VQUIT`, `VERASE`, `VKILL`, `VEOF`, `VTIME`, `VMIN`, and the rest) and the moments and queues of the standard library (`TCSANOW`, `TCSADRAIN`, `TCSAFLUSH`, `TCIFLUSH`, and `TCOFLUSH`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `termios` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_termios_utils.py`.

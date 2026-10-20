@@ -91,6 +91,12 @@ class TestScaffoldSync(unittest.TestCase):
         cls.changelog_text = CHANGELOG.read_text()
         cls.scaffold_test_text = SCAFFOLD_TESTS.read_text()
 
+    @classmethod
+    def embedded_text(cls, path: str) -> str:
+        """Return the body of the embedded *path* of the generator."""
+        bodies = cls.bodies.get(path, [])
+        return bodies[0] if bodies else ""
+
     def test_modules_are_discovered(self) -> None:
         self.assertGreater(len(self.modules), 0)
 
@@ -215,6 +221,54 @@ class TestScaffoldSync(unittest.TestCase):
                     f'"tests/test_{name}.py"',
                     self.scaffold_test_text,
                     f"tests/test_scaffold.py does not assert tests/test_{name}.py",
+                )
+
+    def test_the_embedded_readme_documents_every_module(self) -> None:
+        readme = self.embedded_text("README.md")
+        self.assertTrue(readme, "scaffold.sh does not embed a README.md template")
+        for name in self.modules:
+            with self.subTest(module=name):
+                self.assertIn(
+                    f"{name}.py",
+                    readme,
+                    f"the embedded README.md does not mention {name}.py",
+                )
+                self.assertIn(
+                    f"tests/test_{name}.py",
+                    readme,
+                    f"the embedded README.md does not mention tests/test_{name}.py",
+                )
+
+    def test_the_embedded_changelog_documents_every_module(self) -> None:
+        changelog = self.embedded_text("CHANGELOG.md")
+        self.assertTrue(changelog, "scaffold.sh does not embed a CHANGELOG.md template")
+        for name in self.modules:
+            with self.subTest(module=name):
+                self.assertIn(
+                    f"{name}.py",
+                    changelog,
+                    f"the embedded CHANGELOG.md does not mention {name}.py",
+                )
+                self.assertIn(
+                    f"tests/test_{name}.py",
+                    changelog,
+                    f"the embedded CHANGELOG.md does not mention tests/test_{name}.py",
+                )
+
+    def test_the_embedded_command_document_lists_every_module(self) -> None:
+        document = self.embedded_text(".kilo/command/scaffold-project.md")
+        self.assertTrue(document, "scaffold.sh does not embed the command document")
+        for name in self.modules:
+            with self.subTest(module=name):
+                self.assertIn(
+                    f"- `{name}.py` —",
+                    document,
+                    f"the embedded command document does not list {name}.py",
+                )
+                self.assertIn(
+                    f"- `tests/test_{name}.py` —",
+                    document,
+                    f"the embedded command document does not list tests/test_{name}.py",
                 )
 
     def test_generated_project_has_no_unexpected_files(self) -> None:

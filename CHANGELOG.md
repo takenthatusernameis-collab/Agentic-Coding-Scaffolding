@@ -1,5 +1,10 @@
 ## Unreleased
 
+- Add `termios_utils.py` wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation, plus unit tests in `tests/test_termios_utils.py`.
+- Synchronized `termios_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired the README template embedded in `scaffold.sh`, which did not document the `pwd_utils`, `grp_utils`, `opcode_utils`, `pickletools_utils`, and `zipapp_utils` modules or their tests.
+- Repaired the changelog template embedded in `scaffold.sh`, which did not mention the `dbm_utils`, `tracemalloc_utils`, and `tty_utils` modules or the tests of the `asyncio_utils`, `dbm_utils`, `mmap_utils`, `tracemalloc_utils`, and `tty_utils` modules.
+- Strengthened `tests/test_scaffold_sync.py` with checks that the README and the changelog templates embedded in `scaffold.sh` document every module and every test the scaffold generates, so a generated project never ships a module it does not describe.
 - Add `resource_utils.py` wrapping the standard library `resource` module (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available) with input validation, plus unit tests in `tests/test_resource_utils.py`.
 - Add `pwd_utils.py` wrapping the standard library `pwd` module (getpwuid, getpwnam, getpwall) with input validation, plus unit tests in `tests/test_pwd_utils.py`.
 - Add `grp_utils.py` wrapping the standard library `grp` module (getgrgid, getgrnam, getgrall) with input validation, plus unit tests in `tests/test_grp_utils.py`.
