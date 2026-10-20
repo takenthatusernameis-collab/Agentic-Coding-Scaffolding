@@ -80,6 +80,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
+- `mmap_utils.py` — utilities wrapping the standard library mmap module
 - `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping stdlib stat and os.stat
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 - `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
@@ -105,6 +106,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `timing_utils.py` — performance measurement helpers
 - `timeit_utils.py` — wrapper for stdlib timeit
 - `async_utils.py` — asynchronous utility functions
+- `asyncio_utils.py` — utilities wrapping the standard library asyncio module
 - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
 - `call_once_utils.py` — call-once execution utilities ensuring a function runs only a single time
@@ -125,6 +127,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `tests/test_stats.py` — unit tests for `stats.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
+- `tests/test_mmap_utils.py` — unit tests for `mmap_utils.py`
 - `tests/test_stat_utils.py` — unit tests for `stat_utils.py`
 - `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
 - `tests/test_string_utils.py` — unit tests for `string_utils.py`
@@ -257,6 +260,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_lzma_utils.py` — unit tests for `lzma_utils.py`
 - `tests/test_gc_utils.py` — unit tests for `gc_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
+- `tests/test_asyncio_utils.py` — unit tests for `asyncio_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
 - `tests/test_call_once_utils.py` — unit tests for `call_once_utils.py`

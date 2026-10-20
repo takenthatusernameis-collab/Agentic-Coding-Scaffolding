@@ -141,6 +141,8 @@
 
 #   - async_utils.py — # Asynchronous utility functions
 
+#   - asyncio_utils.py — # Utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for, current_task, all_tasks, iscoroutinefunction, iscoroutine, Event, Lock, Queue, Semaphore)
+
 #   - bit_utils.py — # Bitwise utility functions for working with binary representations
 
 #   - concurrent_utils.py — # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
@@ -338,6 +340,8 @@
 #   - test_importlib_utils.py — # Tests for importlib_utils.py
 #   - test_zipfile_utils.py — # Tests for zipfile_utils.py
 #   - test_async_utils.py — # Tests for async_utils.py
+
+#   - tests/test_asyncio_utils.py — # Tests for asyncio_utils.py
 
 #   - test_array_utils.py — # Tests for array_utils.py
 #   - test_base64_utils.py — # Tests for base64_utils.py
@@ -606,6 +610,9 @@
 #   - test_warnings_utils.py — # Tests for warnings_utils.py
 
 #   - test_xml_utils.py — # Tests for xml_utils.py
+#   - mmap_utils.py — # Utilities wrapping the standard library mmap module (create_anonymous, create_file_mmap, access_read, access_write, access_copy, pagesize, allocation_granularity, constants, is_mmap, write_bytes, read_bytes, find_bytes, close_mmap)
+
+#   - tests/test_mmap_utils.py — # Tests for mmap_utils.py
 set -euo pipefail
 
 usage() {
@@ -679,6 +686,635 @@ fi
 mkdir -p "$OUTPUT_DIR"/{.github/workflows,.kilo/agent,.kilo/command,.kilo/skill,tests}
 
 # --- .github/workflows/main.yml ---
+
+cat > "$OUTPUT_DIR/asyncio_utils.py" <<'ASYNCIO_UTILS'
+"""Utilities wrapping the standard library ``asyncio`` module.
+
+This module provides convenient helpers for running and composing
+asynchronous programs using :mod:`asyncio`, including :func:`run`,
+:func:`create_task`, :func:`gather`, :func:`sleep`, :func:`to_thread`,
+and :func:`wait_for`, together with re-exports of the :class:`Event`,
+:class:`Lock`, :class:`Queue`, and :class:`Semaphore` primitives.
+"""
+
+from __future__ import annotations
+
+import asyncio as _asyncio
+from typing import Any, Callable, Coroutine, Iterable, Optional, TypeVar
+
+__all__: list[str] = [
+    "all_tasks",
+    "create_task",
+    "current_task",
+    "Event",
+    "gather",
+    "get_event_loop",
+    "get_running_loop",
+    "iscoroutine",
+    "iscoroutinefunction",
+    "Lock",
+    "Queue",
+    "run",
+    "Semaphore",
+    "sleep",
+    "to_thread",
+    "wait_for",
+]
+
+T = TypeVar("T")
+
+
+def run(coro: Coroutine[Any, Any, T]) -> T:
+    """Run *coro* and return its result.
+
+    Args:
+        coro: The coroutine to run.
+
+    Returns:
+        The result returned by *coro*.
+    """
+    return _asyncio.run(coro)
+
+
+def create_task(coro: Coroutine[Any, Any, T]) -> _asyncio.Task:
+    """Schedule *coro* as a :class:`~asyncio.Task`.
+
+    Args:
+        coro: The coroutine to schedule.
+
+    Returns:
+        The scheduled :class:`~asyncio.Task`.
+    """
+    return _asyncio.create_task(coro)
+
+
+async def gather(*coros: Coroutine[Any, Any, Any]) -> list[Any]:
+    """Run *coros* concurrently and return their results in order.
+
+    Args:
+        *coros: Coroutines to run concurrently.
+
+    Returns:
+        List of results in the same order as *coros*.
+    """
+    return await _asyncio.gather(*coros)
+
+
+async def sleep(seconds: float) -> None:
+    """Sleep for *seconds* without blocking the event loop.
+
+    Args:
+        seconds: Number of seconds to sleep.
+    """
+    await _asyncio.sleep(seconds)
+
+
+async def to_thread(
+    func: Callable[..., T], /, *args: Any, **kwargs: Any
+) -> T:
+    """Run *func* in a worker thread and return its result.
+
+    Args:
+        func: The blocking function to run.
+        *args: Positional arguments for *func*.
+        **kwargs: Keyword arguments for *func*.
+
+    Returns:
+        The result returned by *func*.
+    """
+    return await _asyncio.to_thread(func, *args, **kwargs)
+
+
+async def wait_for(
+    coro: Coroutine[Any, Any, T], timeout: Optional[float] = None
+) -> T:
+    """Wait for *coro* with an optional *timeout*.
+
+    Args:
+        coro: The coroutine to wait for.
+        timeout: Maximum seconds to wait, or ``None`` to wait forever.
+
+    Returns:
+        The result returned by *coro*.
+
+    Raises:
+        asyncio.TimeoutError: If *timeout* is reached.
+    """
+    return await _asyncio.wait_for(coro, timeout=timeout)
+
+
+def current_task() -> Optional[_asyncio.Task]:
+    """Return the currently running :class:`~asyncio.Task`, or ``None``."""
+    return _asyncio.current_task()
+
+
+def all_tasks() -> Iterable[_asyncio.Task]:
+    """Return all :class:`~asyncio.Task` instances known to the loop."""
+    return _asyncio.all_tasks()
+
+
+def iscoroutinefunction(obj: Any) -> bool:
+    """Return ``True`` if *obj* is a coroutine function."""
+    return _asyncio.iscoroutinefunction(obj)
+
+
+def iscoroutine(obj: Any) -> bool:
+    """Return ``True`` if *obj* is a coroutine."""
+    return _asyncio.iscoroutine(obj)
+
+
+Event = _asyncio.Event
+Lock = _asyncio.Lock
+Queue = _asyncio.Queue
+Semaphore = _asyncio.Semaphore
+
+
+def get_event_loop() -> _asyncio.AbstractEventLoop:
+    """Return the running event loop, creating one if none is running.
+
+    Returns:
+        The running event loop, or a newly created event loop.
+    """
+    try:
+        return _asyncio.get_running_loop()
+    except RuntimeError:
+        return _asyncio.new_event_loop()
+
+
+def get_running_loop() -> _asyncio.AbstractEventLoop:
+    """Return the running event loop.
+
+    Returns:
+        The currently running event loop.
+
+    Raises:
+        RuntimeError: If there is no running event loop.
+    """
+    return _asyncio.get_running_loop()
+ASYNCIO_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_asyncio_utils.py" <<'TEST_ASYNCIO_UTILS'
+"""Tests for asyncio_utils module."""
+
+import asyncio
+import unittest
+
+from asyncio_utils import (
+    Event,
+    Lock,
+    Queue,
+    Semaphore,
+    all_tasks,
+    create_task,
+    current_task,
+    gather,
+    get_event_loop,
+    get_running_loop,
+    iscoroutine,
+    iscoroutinefunction,
+    run,
+    sleep,
+    to_thread,
+    wait_for,
+)
+
+
+class TestRun(unittest.TestCase):
+    def test_run_coroutine_returns_result(self):
+        async def get_value():
+            return 42
+
+        self.assertEqual(run(get_value()), 42)
+
+
+class TestCreateTask(unittest.IsolatedAsyncioTestCase):
+    async def test_create_task_returns_result(self):
+        async def get_value():
+            return 7
+
+        task = create_task(get_value())
+        self.assertIsInstance(task, asyncio.Task)
+        self.assertEqual(await task, 7)
+
+
+class TestGather(unittest.IsolatedAsyncioTestCase):
+    async def test_gather_returns_results_in_order(self):
+        async def value(n):
+            return n
+
+        results = await gather(value(1), value(2), value(3))
+        self.assertEqual(results, [1, 2, 3])
+
+
+class TestSleep(unittest.IsolatedAsyncioTestCase):
+    async def test_sleep_returns_none(self):
+        self.assertIsNone(await sleep(0))
+
+
+class TestToThread(unittest.IsolatedAsyncioTestCase):
+    async def test_to_thread_runs_function(self):
+        def add(a, b):
+            return a + b
+
+        result = await to_thread(add, 2, 3)
+        self.assertEqual(result, 5)
+
+
+class TestWaitFor(unittest.IsolatedAsyncioTestCase):
+    async def test_wait_for_returns_result(self):
+        async def get_value():
+            return 9
+
+        self.assertEqual(await wait_for(get_value(), timeout=10), 9)
+
+    async def test_wait_for_times_out(self):
+        async def never():
+            await asyncio.Event().wait()
+
+        with self.assertRaises(asyncio.TimeoutError):
+            await wait_for(never(), timeout=0.01)
+
+
+class TestPrimitives(unittest.TestCase):
+    def test_event_lock_queue_semaphore(self):
+        self.assertIsInstance(Event(), asyncio.Event)
+        self.assertIsInstance(Lock(), asyncio.Lock)
+        self.assertIsInstance(Queue(), asyncio.Queue)
+        self.assertIsInstance(Semaphore(), asyncio.Semaphore)
+
+
+class TestIntrospection(unittest.TestCase):
+    def test_iscoroutinefunction_and_iscoroutine(self):
+        async def foo():
+            return 1
+
+        self.assertTrue(iscoroutinefunction(foo))
+        self.assertTrue(iscoroutine(foo()))
+        self.assertFalse(iscoroutinefunction(len))
+        self.assertFalse(iscoroutine(1))
+
+
+class TestTasks(unittest.IsolatedAsyncioTestCase):
+    async def test_current_task(self):
+        task = current_task()
+        self.assertIsInstance(task, asyncio.Task)
+
+    async def test_all_tasks(self):
+        tasks = list(all_tasks())
+        self.assertIsInstance(tasks, list)
+
+
+class TestLoops(unittest.IsolatedAsyncioTestCase):
+    async def test_get_running_loop(self):
+        loop = get_running_loop()
+        self.assertIsInstance(loop, asyncio.AbstractEventLoop)
+
+    def test_get_event_loop(self):
+        loop = get_event_loop()
+        self.assertIsInstance(loop, asyncio.AbstractEventLoop)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_ASYNCIO_UTILS
+
+cat > "$OUTPUT_DIR/mmap_utils.py" <<'MMAP_UTILS'
+"""Utilities wrapping the standard library ``mmap`` module."""
+
+from __future__ import annotations
+
+import mmap as _mmap
+import os as _os
+from typing import Any, Optional
+
+__all__ = [
+    "ACCESS_READ",
+    "ACCESS_WRITE",
+    "ACCESS_COPY",
+    "PAGESIZE",
+    "ALLOCATIONGRANULARITY",
+    "create_anonymous",
+    "create_file_mmap",
+    "access_read",
+    "access_write",
+    "access_copy",
+    "pagesize",
+    "allocation_granularity",
+    "constants",
+    "is_mmap",
+    "write_bytes",
+    "read_bytes",
+    "find_bytes",
+    "close_mmap",
+]
+
+
+def access_read() -> int:
+    """Return the :mod:`mmap` read-only access flag."""
+    return _mmap.ACCESS_READ
+
+
+def access_write() -> int:
+    """Return the :mod:`mmap` write access flag."""
+    return _mmap.ACCESS_WRITE
+
+
+def access_copy() -> int:
+    """Return the :mod:`mmap` copy-on-write access flag."""
+    return _mmap.ACCESS_COPY
+
+
+def pagesize() -> int:
+    """Return the memory-mapping page size in bytes."""
+    return _mmap.PAGESIZE
+
+
+def allocation_granularity() -> int:
+    """Return the memory-mapping allocation granularity in bytes."""
+    return _mmap.ALLOCATIONGRANULARITY
+
+
+def constants() -> dict[str, int]:
+    """Return the :mod:`mmap` constants as a dictionary."""
+    return {
+        "PAGESIZE": _mmap.PAGESIZE,
+        "ALLOCATIONGRANULARITY": _mmap.ALLOCATIONGRANULARITY,
+        "ACCESS_READ": _mmap.ACCESS_READ,
+        "ACCESS_WRITE": _mmap.ACCESS_WRITE,
+        "ACCESS_COPY": _mmap.ACCESS_COPY,
+    }
+
+
+ACCESS_READ = _mmap.ACCESS_READ
+ACCESS_WRITE = _mmap.ACCESS_WRITE
+ACCESS_COPY = _mmap.ACCESS_COPY
+PAGESIZE = _mmap.PAGESIZE
+ALLOCATIONGRANULARITY = _mmap.ALLOCATIONGRANULARITY
+
+
+def create_anonymous(length: int) -> _mmap.mmap:
+    """Create an anonymous, zero-initialized memory-mapped region.
+
+    Args:
+        length: Size of the region in bytes. Must be positive.
+
+    Returns:
+        An :class:`mmap.mmap` instance backed by anonymous memory.
+
+    Raises:
+        TypeError: If *length* is not an int.
+        ValueError: If *length* is not positive.
+    """
+    if not isinstance(length, int) or isinstance(length, bool):
+        raise TypeError("length must be an int")
+    if length <= 0:
+        raise ValueError("length must be positive")
+    return _mmap.mmap(-1, length)
+
+
+def create_file_mmap(
+    filename: str,
+    length: int,
+    access: int = ACCESS_WRITE,
+    offset: int = 0,
+) -> _mmap.mmap:
+    """Create a memory-mapped file backed by *filename*.
+
+    Args:
+        filename: Path to the file to map.
+        length: Size of the mapping in bytes.
+        access: One of :data:`ACCESS_READ`, :data:`ACCESS_WRITE`, or
+            :data:`ACCESS_COPY`. Defaults to :data:`ACCESS_WRITE`.
+        offset: File offset at which to start the mapping.
+
+    Returns:
+        An :class:`mmap.mmap` instance backed by *filename*.
+
+    Raises:
+        TypeError: If arguments have invalid types.
+        ValueError: If *length* is not positive or *offset* is negative.
+        OSError: If the file cannot be opened or mapped.
+    """
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a str")
+    if not isinstance(length, int) or isinstance(length, bool):
+        raise TypeError("length must be an int")
+    if length <= 0:
+        raise ValueError("length must be positive")
+    if not isinstance(offset, int) or isinstance(offset, bool):
+        raise TypeError("offset must be an int")
+    if offset < 0:
+        raise ValueError("offset must be non-negative")
+    fd = _os.open(filename, _os.O_RDWR | _os.O_CREAT, 0o644)
+    try:
+        if _os.fstat(fd).st_size < length:
+            _os.ftruncate(fd, length)
+        return _mmap.mmap(fd, length, access=access, offset=offset)
+    except Exception:
+        _os.close(fd)
+        raise
+
+
+def is_mmap(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an :class:`mmap.mmap` instance."""
+    return isinstance(obj, _mmap.mmap)
+
+
+def write_bytes(mmap_obj: _mmap.mmap, data: bytes, offset: int = 0) -> None:
+    """Write *data* into *mmap_obj* beginning at *offset*.
+
+    Args:
+        mmap_obj: The memory-mapped region to write into.
+        data: The bytes to write.
+        offset: The byte offset at which to start writing.
+
+    Raises:
+        TypeError: If *mmap_obj* is not an mmap or *data* is not bytes-like.
+    """
+    if not isinstance(mmap_obj, _mmap.mmap):
+        raise TypeError("mmap_obj must be an mmap.mmap instance")
+    if not isinstance(data, (bytes, bytearray, memoryview)):
+        raise TypeError("data must be bytes-like")
+    mmap_obj[offset : offset + len(data)] = data
+
+
+def read_bytes(mmap_obj: _mmap.mmap, length: int, offset: int = 0) -> bytes:
+    """Read *length* bytes from *mmap_obj* beginning at *offset*.
+
+    Args:
+        mmap_obj: The memory-mapped region to read from.
+        length: Number of bytes to read.
+        offset: The byte offset at which to start reading.
+
+    Returns:
+        The bytes read from the region.
+
+    Raises:
+        TypeError: If *mmap_obj* is not an mmap.
+    """
+    if not isinstance(mmap_obj, _mmap.mmap):
+        raise TypeError("mmap_obj must be an mmap.mmap instance")
+    return bytes(mmap_obj[offset : offset + length])
+
+
+def find_bytes(
+    mmap_obj: _mmap.mmap,
+    sub: bytes,
+    start: int = 0,
+    stop: Optional[int] = None,
+) -> int:
+    """Return the lowest index in *mmap_obj* where *sub* is found.
+
+    Args:
+        mmap_obj: The memory-mapped region to search.
+        sub: The byte subsequence to find.
+        start: The index at which to start the search.
+        stop: The index at which to end the search (exclusive).
+
+    Returns:
+        The index of the first occurrence, or ``-1`` if not found.
+
+    Raises:
+        TypeError: If *mmap_obj* is not an mmap.
+    """
+    if not isinstance(mmap_obj, _mmap.mmap):
+        raise TypeError("mmap_obj must be an mmap.mmap instance")
+    return mmap_obj.find(sub, start, stop if stop is not None else len(mmap_obj))
+
+
+def close_mmap(mmap_obj: _mmap.mmap) -> None:
+    """Close *mmap_obj*, releasing the underlying memory mapping."""
+    if not isinstance(mmap_obj, _mmap.mmap):
+        raise TypeError("mmap_obj must be an mmap.mmap instance")
+    mmap_obj.close()
+MMAP_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_mmap_utils.py" <<'TEST_MMAP_UTILS'
+import mmap
+import os
+import tempfile
+import unittest
+
+from mmap_utils import (
+    ACCESS_READ,
+    ACCESS_WRITE,
+    ACCESS_COPY,
+    ALLOCATIONGRANULARITY,
+    PAGESIZE,
+    access_copy,
+    access_read,
+    access_write,
+    allocation_granularity,
+    close_mmap,
+    constants,
+    create_anonymous,
+    create_file_mmap,
+    find_bytes,
+    is_mmap,
+    pagesize,
+    read_bytes,
+    write_bytes,
+)
+
+
+class TestMmapUtils(unittest.TestCase):
+    def test_access_constants_match_mmap(self):
+        self.assertEqual(access_read(), mmap.ACCESS_READ)
+        self.assertEqual(access_write(), mmap.ACCESS_WRITE)
+        self.assertEqual(access_copy(), mmap.ACCESS_COPY)
+        self.assertEqual(ACCESS_READ, mmap.ACCESS_READ)
+        self.assertEqual(ACCESS_WRITE, mmap.ACCESS_WRITE)
+        self.assertEqual(ACCESS_COPY, mmap.ACCESS_COPY)
+
+    def test_pagesize_and_granularity_positive(self):
+        self.assertIsInstance(pagesize(), int)
+        self.assertGreater(pagesize(), 0)
+        self.assertEqual(pagesize(), PAGESIZE)
+        self.assertIsInstance(allocation_granularity(), int)
+        self.assertGreater(allocation_granularity(), 0)
+        self.assertEqual(allocation_granularity(), ALLOCATIONGRANULARITY)
+
+    def test_constants_dict(self):
+        result = constants()
+        self.assertEqual(
+            result,
+            {
+                "PAGESIZE": pagesize(),
+                "ALLOCATIONGRANULARITY": allocation_granularity(),
+                "ACCESS_READ": access_read(),
+                "ACCESS_WRITE": access_write(),
+                "ACCESS_COPY": access_copy(),
+            },
+        )
+
+    def test_create_anonymous_read_write(self):
+        region = create_anonymous(64)
+        try:
+            self.assertTrue(is_mmap(region))
+            write_bytes(region, b"hello mmap")
+            self.assertEqual(read_bytes(region, 5), b"hello")
+            self.assertEqual(read_bytes(region, 10, 0), b"hello mmap")
+        finally:
+            close_mmap(region)
+        # A closed mmap remains an mmap instance; operations on it fail.
+        with self.assertRaises(ValueError):
+            region.read(1)
+
+    def test_create_file_mmap_roundtrip(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "mmap_test.bin")
+            region = create_file_mmap(path, 64)
+            try:
+                write_bytes(region, b"persistent mmap data")
+                self.assertEqual(read_bytes(region, 20, 0), b"persistent mmap data")
+            finally:
+                close_mmap(region)
+
+    def test_find_bytes_found_and_missing(self):
+        region = create_anonymous(32)
+        try:
+            write_bytes(region, b"abcdefabcdef")
+            self.assertEqual(find_bytes(region, b"def"), 3)
+            self.assertEqual(find_bytes(region, b"def", start=4), 9)
+            self.assertEqual(find_bytes(region, b"xyz"), -1)
+        finally:
+            close_mmap(region)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            create_anonymous("not an int")
+        with self.assertRaises(TypeError):
+            create_anonymous(True)
+        with self.assertRaises(ValueError):
+            create_anonymous(0)
+        with self.assertRaises(ValueError):
+            create_anonymous(-3)
+        with self.assertRaises(TypeError):
+            write_bytes("not an mmap", b"data")
+        with self.assertRaises(TypeError):
+            write_bytes(create_anonymous(16), "not bytes")
+        with self.assertRaises(TypeError):
+            read_bytes("not an mmap", 4)
+        with self.assertRaises(TypeError):
+            find_bytes("not an mmap", b"x")
+        with self.assertRaises(TypeError):
+            close_mmap("not an mmap")
+        self.assertFalse(is_mmap(None))
+        self.assertFalse(is_mmap(42))
+
+    def test_create_file_mmap_invalid_arguments(self):
+        with self.assertRaises(TypeError):
+            create_file_mmap(123, 16)
+        with self.assertRaises(ValueError):
+            create_file_mmap(__file__, 0)
+        with self.assertRaises(ValueError):
+            create_file_mmap(__file__, 16, offset=-1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_MMAP_UTILS
+
 cat > "$OUTPUT_DIR/.github/workflows/main.yml" <<'WORKFLOW'
 name: Kilo General Agent Loop
 

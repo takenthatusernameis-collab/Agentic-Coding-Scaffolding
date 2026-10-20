@@ -289,8 +289,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `weakref_utils.py` with weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`).
 - `time_utils.py` — time utility functions for working with timestamps and durations (`now_epoch`, `now_iso`, `epoch_to_iso`, `iso_to_epoch`)
 - `timeit_utils.py` — wrapper for stdlib timeit (timeit, repeat, default_timer, Timer)
+- `asyncio_utils.py` — utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for)
+- `tests/test_asyncio_utils.py` — unit tests for `asyncio_utils.py`
 - `tests/test_time_utils.py` — unit tests for `time_utils.py`
 - Added `time_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
+- Added `asyncio_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
 
 - `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`) using the standard library `decimal` module with input validation
 - `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`
@@ -411,6 +414,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers (`count_set_bits`, `is_power_of_two`, `next_power_of_two`, `prev_power_of_two`, `reverse_bits`, `rotate_left`, `rotate_right`, `get_bit`, `set_bit`, `clear_bit`, `toggle_bit`, `is_even`, `is_odd`) with input validation
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
+- `mmap_utils.py` — utilities wrapping the standard library `mmap` module with tests
+- `tests/test_mmap_utils.py` — unit tests for `mmap_utils.py`
 - Added `bit_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, and `scaffold.sh` heredocs for the module and its tests
 - `operator_utils.py` — operator utilities (`identity`, `negate`, `add`, `subtract`, `multiply`, `divide`, `power`, `modulo`, `clamp`, `between`) for common functional operations
 - `tests/test_operator_utils.py` — unit tests for `operator_utils.py`

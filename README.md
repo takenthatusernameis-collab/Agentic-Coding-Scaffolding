@@ -45,6 +45,7 @@ strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions
+mmap_utils.py               # Utilities wrapping the standard library mmap module
 data_utils.py                # Data utility functions
 dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
 datetime_utils.py           # Date and time utility functions
@@ -69,6 +70,7 @@ itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatte
 timing_utils.py           # Performance measurement helpers
 timeit_utils.py           # Wrapper for stdlib timeit
 async_utils.py            # Asynchronous utility functions
+asyncio_utils.py     # Utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for)
 bit_utils.py              # Bitwise utility functions for working with binary representations
 call_once_utils.py        # Call-once execution utilities (call_once decorator)
 concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
@@ -220,6 +222,7 @@ tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
   test_async_utils.py         # Tests for async_utils.py
+  test_asyncio_utils.py   # Tests for asyncio_utils.py
   test_array_utils.py        # Tests for array_utils.py
   test_base64_utils.py        # Tests for base64_utils.py
   test_binascii_utils.py      # Tests for binascii_utils.py
@@ -284,6 +287,7 @@ test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
 test_markdown_utils.py      # Tests for markdown_utils.py
    test_marshal_utils.py       # Tests for marshal_utils.py
    test_math_utils.py          # Tests for math_utils.py
+  test_mmap_utils.py   # Tests for mmap_utils.py
   test_networking_utils.py    # Tests for networking_utils.py
   test_number_utils.py        # Tests for number_utils.py
   test_operator_utils.py      # Tests for operator_utils.py
@@ -1179,3 +1183,11 @@ The project includes utilities wrapping the standard library `unittest` module i
 ## Timeit Utilities Module
 
 The project includes timeit utilities in `timeit_utils.py` wrapping the standard library `timeit` module: `timeit`, `repeat`, `default_timer`, and `Timer`. The module is tested in `tests/test_timeit_utils.py`.
+
+## Mmap Utilities Module
+
+The project includes utilities wrapping the standard library `mmap` module in `mmap_utils.py`: `create_anonymous`, `create_file_mmap`, `access_read`, `access_write`, `access_copy`, `pagesize`, `allocation_granularity`, `constants`, `is_mmap`, `write_bytes`, `read_bytes`, `find_bytes`, and `close_mmap`. The module is tested in `tests/test_mmap_utils.py`.
+
+## Asyncio Utilities Module
+
+The project includes utilities wrapping the standard library `asyncio` module in `asyncio_utils.py`: `run`, `create_task`, `gather`, `sleep`, `to_thread`, `wait_for`, `current_task`, `all_tasks`, `iscoroutinefunction`, `iscoroutine`, `get_event_loop`, and `get_running_loop`, along with re-exports of `Event`, `Lock`, `Queue`, and `Semaphore`. The module is tested in `tests/test_asyncio_utils.py`.
