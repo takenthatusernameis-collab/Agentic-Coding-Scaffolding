@@ -169,6 +169,7 @@ runpy_utils.py            # Python module execution utilities wrapping stdlib ru
 tarfile_utils.py          # Tar archive utilities wrapping stdlib tarfile (tarfile_open, tarfile_add, tarfile_list, tarfile_extract, tarfile_extractall, tarfile_create)
 types_utils.py            # Dynamic type creation utilities wrapping stdlib types (new_class, new_function, is_function, is_method, is_generator, is_coroutine, is_lambda, simple_namespace)
 zoneinfo_utils.py         # IANA timezone utilities wrapping stdlib zoneinfo (zoneinfo_get, zoneinfo_available_timezones)
+opcode_utils.py          # Opcode utilities wrapping stdlib opcode (stack_effect, opmap/opname helpers)
 marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
 importlib_utils.py         # importlib utilities
 atexit_utils.py            # atexit utilities for registering exit handlers
@@ -449,6 +450,7 @@ test_lzma_utils.py          # Tests for lzma_utils.py
     test_runpy_utils.py         # Tests for runpy_utils.py
     test_types_utils.py         # Tests for types_utils.py
     test_zoneinfo_utils.py      # Tests for zoneinfo_utils.py
+    test_opcode_utils.py       # Tests for opcode_utils.py
      ```
 
 ## How It Works
@@ -1170,6 +1172,8 @@ The project includes dynamic type utilities in `types_utils.py` wrapping the sta
 ## Zoneinfo Utilities Module
 
 The project includes IANA timezone utilities in `zoneinfo_utils.py` wrapping the standard library `zoneinfo` module: `zoneinfo_get` returns a `ZoneInfo` for an IANA key and `zoneinfo_available_timezones` returns the set of available keys. The module is tested in `tests/test_zoneinfo_utils.py`.
+
+The project includes opcode utilities in `opcode_utils.py` wrapping the standard library `opcode` module, exposing helpers for stack effects and opcode classification. The module is tested in `tests/test_opcode_utils.py`.
 
 ## Array Utilities Module
 

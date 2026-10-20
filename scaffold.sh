@@ -72,6 +72,7 @@
 #   - tarfile_utils.py — # Tar archive utilities wrapping stdlib tarfile (tarfile_open, tarfile_add, tarfile_list, tarfile_extract, tarfile_extractall, tarfile_create)
 #   - types_utils.py — # Dynamic type creation utilities wrapping stdlib types (new_class, new_function, is_function, is_method, is_generator, is_coroutine, is_lambda, simple_namespace)
 #   - zoneinfo_utils.py — # IANA timezone utilities wrapping stdlib zoneinfo (zoneinfo_get, zoneinfo_available_timezones)
+#   - opcode_utils.py — # Opcode utilities wrapping stdlib opcode (stack_effect, opmap/opname helpers)
 #   - atexit_utils.py — # Atexit utilities for registering and managing exit handlers (register, unregister, clear, get_registered, run_exit_handlers, add, remove)
 #   - concurrent_futures_utils.py — # concurrent.futures wrappers with validation (ThreadPoolExecutor, ProcessPoolExecutor, Future, as_completed, wait, thread_pool_executor, process_pool_executor, submit, as_completed_iter, wait_futures)
 #   - gc_utils.py — # GC utilities wrapping the standard library gc module (enable, disable, isenabled, collect, get_count, get_objects, get_referents, get_referrers, get_stats, set_debug, get_debug, set_threshold, get_threshold)
@@ -537,6 +538,7 @@
 #   - test_tarfile_utils.py — # Tests for tarfile_utils.py
 #   - test_types_utils.py — # Tests for types_utils.py
 #   - test_zoneinfo_utils.py — # Tests for zoneinfo_utils.py
+#   - test_opcode_utils.py — # Tests for opcode_utils.py
 #   - test_atexit_utils.py — # Tests for atexit_utils.py
 #   - test_binascii_utils.py — # Tests for binascii_utils.py
 #   - test_bz2_utils.py — # Tests for bz2_utils.py
@@ -26822,6 +26824,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tarfile_utils.py` — tar archive utilities wrapping the standard library `tarfile` module (`tarfile_open`, `tarfile_add`, `tarfile_list`, `tarfile_extract`, `tarfile_extractall`, `tarfile_create`) with input validation
 - `types_utils.py` — dynamic type creation utilities wrapping the standard library `types` module (`new_class`, `new_function`, `is_function`, `is_method`, `is_generator`, `is_coroutine`, `is_lambda`, `simple_namespace`) with input validation
 - `zoneinfo_utils.py` — IANA timezone utilities wrapping the standard library `zoneinfo` module (`zoneinfo_get`, `zoneinfo_available_timezones`) with input validation
+- `opcode_utils.py` — Opcode utilities wrapping the standard library `opcode` module (stack effect computation and opcode classification helpers)
 - `array_utils.py` — array utilities wrapping the standard library `array` module (`array_create`, `array_fromlist`, `array_tolist`, `array_append`, `array_extend`, `array_insert`, `array_pop`, `array_remove`, `array_reverse`, `array_buffer_info`, `array_byteswap`, `array_count`, `array_index`) with input validation
 - `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
 - `cmath_utils.py` — complex mathematics utilities wrapping the standard library `cmath` module (`phase`, `polar`, `rect`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `isfinite`, `isinf`, `isnan`, `isclose`)
@@ -27017,6 +27020,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
 - `tests/test_types_utils.py` — unit tests for `types_utils.py`
 - `tests/test_zoneinfo_utils.py` — unit tests for `zoneinfo_utils.py`
+- `tests/test_opcode_utils.py` — unit tests for `opcode_utils.py`
 - `tests/test_array_utils.py` — unit tests for `array_utils.py`
 - `tests/test_calendar_utils.py` — unit tests for `calendar_utils.py`
 - `tests/test_cmath_utils.py` — unit tests for `cmath_utils.py`
@@ -29467,6 +29471,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `types_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `zoneinfo_utils.py` to the generated project — IANA timezone utilities wrapping the standard library `zoneinfo` module (`zoneinfo_get`, `zoneinfo_available_timezones`) with input validation, plus `tests/test_zoneinfo_utils.py`.
+- Added `opcode_utils.py` to the generated project — opcode utilities wrapping the standard library `opcode` module (stack effect computation and opcode classification helpers), plus `tests/test_opcode_utils.py`.
 - Synchronized `zoneinfo_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 
@@ -53333,6 +53338,90 @@ def zoneinfo_available_timezones() -> set[str]:
     return set(available_timezones())
 ZONEINFO_UTILS
 
+cat > "$OUTPUT_DIR/opcode_utils.py" <<'OPCODE_UTILS'
+"""Opcode utility functions for working with Python bytecode."""
+
+from __future__ import annotations
+
+import opcode
+from typing import Any
+
+__all__: list[str] = [
+    "stack_effect",
+    "get_opmap",
+    "get_opname",
+    "is_compare",
+    "is_const",
+    "is_free",
+    "is_jump_abs",
+    "is_jump_rel",
+    "is_local",
+    "is_name",
+    "get_cmp_op",
+    "has_argument",
+]
+
+
+def stack_effect(opcode_val: int, oparg: int | None = None, *, jump: bool | None = None) -> int:
+    """Compute the stack effect of a bytecode operation."""
+    return opcode.stack_effect(opcode_val, oparg, jump=jump)
+
+
+def get_opmap() -> dict[str, int]:
+    """Return the mapping of opcode names to byte values."""
+    return dict(opcode.opmap)
+
+
+def get_opname() -> list[str]:
+    """Return the list of opcode names by byte value."""
+    return list(opcode.opname)
+
+
+def is_compare(opcode_val: int) -> bool:
+    """Return True if the opcode is a comparison operator."""
+    return opcode_val in opcode.hascompare
+
+
+def is_const(opcode_val: int) -> bool:
+    """Return True if the opcode takes a constant."""
+    return opcode_val in opcode.hasconst
+
+
+def is_free(opcode_val: int) -> bool:
+    """Return True if the opcode takes a free variable."""
+    return opcode_val in opcode.hasfree
+
+
+def is_jump_abs(opcode_val: int) -> bool:
+    """Return True if the opcode has an absolute jump."""
+    return opcode_val in opcode.hasjabs
+
+
+def is_jump_rel(opcode_val: int) -> bool:
+    """Return True if the opcode has a relative jump."""
+    return opcode_val in opcode.hasjrel
+
+
+def is_local(opcode_val: int) -> bool:
+    """Return True if the opcode takes a local variable."""
+    return opcode_val in opcode.haslocal
+
+
+def is_name(opcode_val: int) -> bool:
+    """Return True if the opcode takes a name."""
+    return opcode_val in opcode.hasname
+
+
+def get_cmp_op() -> tuple[str, ...]:
+    """Return the comparison operator names."""
+    return tuple(opcode.cmp_op)
+
+
+def has_argument(opcode_val: int) -> bool:
+    """Return True if the opcode has an argument."""
+    return opcode_val in opcode.hasarg
+OPCODE_UTILS
+
 # --- pickletools_utils.py ---
 cat > "$OUTPUT_DIR/pickletools_utils.py" <<'PICKLETOOLS_UTILS'
 """Pickletools utility functions.
@@ -53822,6 +53911,81 @@ class TestZoneinfoAvailableTimezones(unittest.TestCase):
         self.assertIsInstance(tzs, set)
         self.assertIn("UTC", tzs)
 TEST_ZONEINFO_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_opcode_utils.py" <<'TEST_OPCODE_UTILS'
+"""Tests for opcode_utils."""
+
+from opcode_utils import (
+    get_cmp_op,
+    get_opmap,
+    get_opname,
+    has_argument,
+    is_compare,
+    is_const,
+    is_free,
+    is_jump_abs,
+    is_jump_rel,
+    is_local,
+    is_name,
+    stack_effect,
+)
+
+
+def test_stack_effect():
+    assert stack_effect(1)  # POP_TOP has effect -1
+    assert isinstance(stack_effect(1), int)
+
+
+def test_get_opmap():
+    opmap = get_opmap()
+    assert isinstance(opmap, dict)
+    assert len(opmap) > 0
+
+
+def test_get_opname():
+    opname = get_opname()
+    assert isinstance(opname, list)
+    assert len(opname) > 0
+
+
+def test_is_compare():
+    cmp_op = get_cmp_op()
+    assert isinstance(is_compare(107), bool)
+
+
+def test_is_const():
+    assert isinstance(is_const(100), bool)
+
+
+def test_is_free():
+    assert isinstance(is_free(135), bool)
+
+
+def test_is_jump_abs():
+    assert isinstance(is_jump_abs(93), bool)
+
+
+def test_is_jump_rel():
+    assert isinstance(is_jump_rel(110), bool)
+
+
+def test_is_local():
+    assert isinstance(is_local(124), bool)
+
+
+def test_is_name():
+    assert isinstance(is_name(90), bool)
+
+
+def test_get_cmp_op():
+    cmp_op = get_cmp_op()
+    assert isinstance(cmp_op, tuple)
+    assert len(cmp_op) > 0
+
+
+def test_has_argument():
+    assert isinstance(has_argument(90), bool)
+TEST_OPCODE_UTILS
 
 # --- tracemalloc_utils.py ---
 cat > "$OUTPUT_DIR/tracemalloc_utils.py" <<'TRACEMALLOC_UTILS'

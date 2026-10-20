@@ -60,6 +60,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tarfile_utils.py` — tar archive utilities wrapping the standard library `tarfile` module (`tarfile_open`, `tarfile_add`, `tarfile_list`, `tarfile_extract`, `tarfile_extractall`, `tarfile_create`) with input validation
 - `types_utils.py` — dynamic type creation utilities wrapping the standard library `types` module (`new_class`, `new_function`, `is_function`, `is_method`, `is_generator`, `is_coroutine`, `is_lambda`, `simple_namespace`) with input validation
 - `zoneinfo_utils.py` — IANA timezone utilities wrapping the standard library `zoneinfo` module (`zoneinfo_get`, `zoneinfo_available_timezones`) with input validation
+- `opcode_utils.py` — Opcode utilities wrapping the standard library `opcode` module (stack effect computation and opcode classification helpers)
 - `array_utils.py` — array utilities wrapping the standard library `array` module (`array_create`, `array_fromlist`, `array_tolist`, `array_append`, `array_extend`, `array_insert`, `array_pop`, `array_remove`, `array_reverse`, `array_buffer_info`, `array_byteswap`, `array_count`, `array_index`) with input validation
 - `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
 - `cmath_utils.py` — complex mathematics utilities wrapping the standard library `cmath` module (`phase`, `polar`, `rect`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `isfinite`, `isinf`, `isnan`, `isclose`)
@@ -255,6 +256,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
 - `tests/test_types_utils.py` — unit tests for `types_utils.py`
 - `tests/test_zoneinfo_utils.py` — unit tests for `zoneinfo_utils.py`
+- `tests/test_opcode_utils.py` — unit tests for `opcode_utils.py`
 - `tests/test_array_utils.py` — unit tests for `array_utils.py`
 - `tests/test_calendar_utils.py` — unit tests for `calendar_utils.py`
 - `tests/test_cmath_utils.py` — unit tests for `cmath_utils.py`

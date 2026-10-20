@@ -226,6 +226,7 @@ py_modules = [
     "uu_utils",
     "pickletools_utils",
     "zoneinfo_utils",
+    "opcode_utils",
     "cmd_utils",
     "this_utils",
     "tokenize_utils",
