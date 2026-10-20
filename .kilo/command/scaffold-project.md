@@ -23,6 +23,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`) with input validation
 - `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
+- `pickletools_utils.py` — pickletools utilities wrapping the standard library `pickletools` module (`dis`, `genops`, `optimize`, `get_opcode_info`, `list_opcodes`, `is_opcode`, `get_pickle_size`, `decode_long`, `encode_long`)
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
 - `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation
 - `unicodedata_utils.py` — unicode character database utilities wrapping the standard library `unicodedata` module (`unicodedata_lookup`, `unicodedata_name`, `unicodedata_normalize`, `unicodedata_category`, `unicodedata_bidirectional`, `unicodedata_combining`, `unicodedata_east_asian_width`, `unicodedata_mirrored`, `unicodedata_decimal`, `unicodedata_digit`, `unicodedata_numeric`) with input validation
@@ -216,6 +217,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
+- `tests/test_pickletools_utils.py` — unit tests for `pickletools_utils.py`
+- `tests/test_pickletools_utils.py` — unit tests for `pickletools_utils.py`
 - `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
 - `tests/test_pkgutil_utils.py` — unit tests for `pkgutil_utils.py`
 - `tests/test_unicodedata_utils.py` — unit tests for `unicodedata_utils.py`

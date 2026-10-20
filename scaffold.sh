@@ -26,6 +26,7 @@
 #   - abc_utils.py — # Abstract base class utilities wrapping stdlib abc (ABC, ABCMeta, abstractmethod, abstractclassmethod, abstractstaticmethod, abstractproperty, get_cache_token, update_abstractmethods)
 #   - ast_utils.py — # Abstract syntax tree utilities wrapping stdlib ast (parse, unparse, dump, literal_eval, get_docstring, walk, iter_fields, iter_child_nodes, find_all, fix_missing_locations, increment_lineno, copy_location, node_to_string)
 #   - pickle_utils.py — # Object serialization utilities wrapping stdlib pickle (dump, dumps, load, loads, pickler, unpickler, is_valid_protocol, validate_protocol)
+#   - pickletools_utils.py — # Pickletools utilities wrapping stdlib pickletools (dis, genops, optimize, get_opcode_info, list_opcodes, is_opcode, get_pickle_size, decode_long, encode_long)
 #   - marshal_utils.py — # Object serialization utilities wrapping stdlib marshal (dumps, loads, dump, load, get_version)
 #   - importlib_utils.py — # importlib utilities (dynamic import, reload, spec, metadata, resources)
 #   - zipfile_utils.py — # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
@@ -366,6 +367,7 @@
 #   - test_abc_utils.py — # Tests for abc_utils.py
 #   - test_ast_utils.py — # Tests for ast_utils.py
 #   - test_pickle_utils.py — # Tests for pickle_utils.py
+#   - test_pickletools_utils.py — # Tests for pickletools_utils.py
 #   - test_marshal_utils.py — # Tests for marshal_utils.py
 #   - test_importlib_utils.py — # Tests for importlib_utils.py
 #   - test_zipfile_utils.py — # Tests for zipfile_utils.py
@@ -26777,6 +26779,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`) with input validation
 - `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
+- `pickletools_utils.py` — pickletools utilities wrapping the standard library `pickletools` module (`dis`, `genops`, `optimize`, `get_opcode_info`, `list_opcodes`, `is_opcode`, `get_pickle_size`, `decode_long`, `encode_long`)
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
 - `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation
 - `unicodedata_utils.py` — unicode character database utilities wrapping the standard library `unicodedata` module (`unicodedata_lookup`, `unicodedata_name`, `unicodedata_normalize`, `unicodedata_category`, `unicodedata_bidirectional`, `unicodedata_combining`, `unicodedata_east_asian_width`, `unicodedata_mirrored`, `unicodedata_decimal`, `unicodedata_digit`, `unicodedata_numeric`) with input validation
@@ -26970,6 +26973,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
+- `tests/test_pickletools_utils.py` — unit tests for `pickletools_utils.py`
+- `tests/test_pickletools_utils.py` — unit tests for `pickletools_utils.py`
 - `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
 - `tests/test_pkgutil_utils.py` — unit tests for `pkgutil_utils.py`
 - `tests/test_unicodedata_utils.py` — unit tests for `unicodedata_utils.py`
@@ -53282,6 +53287,191 @@ def zoneinfo_available_timezones() -> set[str]:
     """Return the set of available IANA timezone keys."""
     return set(available_timezones())
 ZONEINFO_UTILS
+
+# --- pickletools_utils.py ---
+cat > "$OUTPUT_DIR/pickletools_utils.py" <<'PICKLETOOLS_UTILS'
+"""Pickletools utility functions."""
+
+import io
+import pickle
+import pickletools
+from typing import Any, IO
+
+
+def dis(pickle_data: bytes | bytearray | IO[bytes], out: IO[str] | None = None,
+        memo: dict[Any, Any] | None = None, indentlevel: int = 4,
+        annotate: int = 0) -> None:
+    """Disassemble a pickle and output the symbolic disassembly."""
+    pickletools.dis(pickle_data, out=out, memo=memo, indentlevel=indentlevel, annotate=annotate)
+
+
+def genops(pickle_data: bytes | bytearray | IO[bytes]) -> Any:
+    """Generate all the opcode proto-objects in pickle."""
+    return pickletools.genops(pickle_data)
+
+
+def optimize(pickle_data: bytes) -> bytes:
+    """Return an optimized version of the pickle."""
+    return pickletools.optimize(pickle_data)
+
+
+def get_opcode_info(opcode_name: str) -> Any:
+    """Return information about a pickle opcode."""
+    for op in pickletools.opcodes:
+        if op.name == opcode_name:
+            return op
+    raise KeyError(opcode_name)
+
+
+def list_opcodes() -> list[str]:
+    """Return a list of all opcode names."""
+    return [op.name for op in pickletools.opcodes]
+
+
+def is_opcode(name: str) -> bool:
+    """Check if a name is a valid pickle opcode."""
+    return any(op.name == name for op in pickletools.opcodes)
+
+
+def get_pickle_size(pickle_data: bytes) -> int:
+    """Get the size of a pickle in bytes."""
+    return len(pickle_data)
+
+
+def decode_long(data: bytes) -> int:
+    """Decode a long integer from a bytes object."""
+    return pickletools.decode_long(data)
+
+
+def encode_long(x: int) -> bytes:
+    """Encode a long integer as a bytes object."""
+    if hasattr(pickletools, 'encode_long'):
+        return pickletools.encode_long(x)
+    # Fallback: use pickle's encoding
+    f = io.BytesIO()
+    p = pickle._Pickler(f, protocol=2)
+    p.dump(x)
+    return f.getvalue()
+
+
+def __getattr__(name: str) -> Any:
+    """Delegate unknown attributes to the pickletools module."""
+    return getattr(pickletools, name)
+PICKLETOOLS_UTILS
+
+# --- tests/test_pickletools_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_pickletools_utils.py" <<'TEST_PICKLETOOLS_UTILS'
+"""Tests for pickletools_utils module."""
+
+import io
+import pickle
+import pickletools
+import unittest
+
+from pickletools_utils import (
+    decode_long,
+    dis,
+    encode_long,
+    genops,
+    get_opcode_info,
+    get_pickle_size,
+    is_opcode,
+    list_opcodes,
+    optimize,
+)
+
+
+class TestPickletoolsDis(unittest.TestCase):
+    def test_dis_basic(self) -> None:
+        data = pickle.dumps({"hello": "world"})
+        output = io.StringIO()
+        dis(data, output=output)
+        result = output.getvalue()
+        self.assertIn("proto", result.lower() or result)
+
+    def test_dis_with_memo(self) -> None:
+        data = pickle.dumps([1, 2, 3])
+        output = io.StringIO()
+        dis(data, memo={}, output=output)
+        self.assertGreater(len(output.getvalue()), 0)
+
+    def test_dis_with_compact(self) -> None:
+        data = pickle.dumps("test")
+        output = io.StringIO()
+        dis(data, output=output, compact=True)
+        self.assertGreater(len(output.getvalue()), 0)
+
+
+class TestPickletoolsGenops(unittest.TestCase):
+    def test_genops_basic(self) -> None:
+        data = pickle.dumps(42)
+        ops = list(genops(data))
+        self.assertGreater(len(ops), 0)
+
+    def test_genops_returns_opcodes(self) -> None:
+        data = pickle.dumps("hello")
+        ops = list(genops(data))
+        # Each op is a tuple
+        self.assertIsInstance(ops[0], tuple)
+
+
+class TestPickletoolsOptimize(unittest.TestCase):
+    def test_optimize_basic(self) -> None:
+        data = pickle.dumps([1, 2, 3, 4, 5])
+        optimized = optimize(data)
+        self.assertIsInstance(optimized, bytes)
+        # Optimized should be valid
+        self.assertEqual(pickle.loads(optimized), [1, 2, 3, 4, 5])
+
+    def test_optimize_preserves_data(self) -> None:
+        original = {"a": 1, "b": [2, 3]}
+        data = pickle.dumps(original)
+        optimized = optimize(data)
+        self.assertEqual(pickle.loads(optimized), original)
+
+
+class TestPickletoolsOpcodes(unittest.TestCase):
+    def test_list_opcodes(self) -> None:
+        opcodes = list_opcodes()
+        self.assertIsInstance(opcodes, list)
+        self.assertGreater(len(opcodes), 0)
+        self.assertIn("PROTO", opcodes)
+
+    def test_is_opcode_valid(self) -> None:
+        self.assertTrue(is_opcode("PROTO"))
+        self.assertTrue(is_opcode("STOP"))
+
+    def test_is_opcode_invalid(self) -> None:
+        self.assertFalse(is_opcode("NOT_AN_OPCODE"))
+
+    def test_get_opcode_info(self) -> None:
+        info = get_opcode_info("STOP")
+        self.assertIsInstance(info, tuple)
+
+
+class TestPickletoolsUtils(unittest.TestCase):
+    def test_get_pickle_size(self) -> None:
+        data = pickle.dumps({"test": 123})
+        size = get_pickle_size(data)
+        self.assertEqual(size, len(data))
+
+    def test_encode_decode_long(self) -> None:
+        num = 123456789
+        encoded = encode_long(num)
+        self.assertIsInstance(encoded, bytes)
+        decoded = decode_long(encoded)
+        self.assertEqual(decoded, num)
+
+    def test_encode_decode_long_negative(self) -> None:
+        num = -42
+        encoded = encode_long(num)
+        decoded = decode_long(encoded)
+        self.assertEqual(decoded, num)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_PICKLETOOLS_UTILS
 
 # --- tests/test_zoneinfo_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_zoneinfo_utils.py" <<'TEST_ZONEINFO_UTILS'

@@ -41,6 +41,7 @@ ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib as
 gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
 mailcap_utils.py            # Mailcap utilities wrapping stdlib mailcap
 pickle_utils.py              # Object serialization utilities wrapping stdlib pickle
+pickletools_utils.py         # Pickletools utilities wrapping stdlib pickletools
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
@@ -336,6 +337,7 @@ mailbox_utils.py             # Mailbox utilities wrapping stdlib mailbox (create
 test_unittest_utils.py       # Tests for unittest_utils.py
 test_typing_utils.py        # Tests for typing_utils.py
 test_pickle_utils.py        # Tests for pickle_utils.py
+        test_pickletools_utils.py # Tests for pickletools_utils.py
   test_plistlib_utils.py      # Tests for plistlib_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
@@ -479,6 +481,10 @@ The project includes abstract syntax tree utilities in `ast_utils.py` wrapping t
 ## Pickle Utilities Module
 
 The project includes object serialization utilities in `pickle_utils.py` wrapping the standard library `pickle` module: `dump` and `dumps` serialize objects to a binary file and bytes respectively, `load` and `loads` deserialize objects from a binary file and bytes, `pickler` and `unpickler` return streaming :class:`pickle.Pickler` and :class:`pickle.Unpickler` instances, `is_valid_protocol` reports whether a protocol number is supported, and `validate_protocol` normalizes a protocol argument (defaulting to the highest protocol) and raises `TypeError` for non-ints and `ValueError` for unsupported values. The module is tested in `tests/test_pickle_utils.py`.
+
+## Pickletools Utilities Module
+
+The project includes pickletools utilities in `pickletools_utils.py` wrapping the standard library `pickletools` module: `dis`, `genops`, `optimize`, `get_opcode_info`, `list_opcodes`, `is_opcode`, `get_pickle_size`, `decode_long`, `encode_long`. The module is tested in `tests/test_pickletools_utils.py`.
 
 ## Calculator Module
 

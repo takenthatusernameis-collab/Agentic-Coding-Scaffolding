@@ -224,6 +224,7 @@ py_modules = [
     "types_utils",
     "zlib_utils",
     "uu_utils",
+    "pickletools_utils",
     "zoneinfo_utils",
     "cmd_utils",
     "this_utils",
