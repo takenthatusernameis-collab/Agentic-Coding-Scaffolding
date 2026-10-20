@@ -27,6 +27,12 @@ HEREDOC = re.compile(
     re.S,
 )
 
+PYPROJECT_HEREDOC = re.compile(
+    r"cat > \"\$OUTPUT_DIR/pyproject\.toml\" <<(?P<delim>[A-Z0-9_]+)\n"
+    r"(?P<body>.*?)\n(?P=delim)\n",
+    re.S,
+)
+
 
 def module_names() -> list[str]:
     """Return the repository's stdlib wrapper module stems."""
@@ -52,6 +58,12 @@ def header_comment(scaffold_text: str) -> str:
         if line and not line.startswith("#"):
             return "\n".join(lines[:index])
     return "\n".join(lines)
+
+
+def embedded_pyproject(scaffold_text: str) -> str:
+    """Return the body of the ``pyproject.toml`` template of the generator."""
+    match = PYPROJECT_HEREDOC.search(scaffold_text)
+    return match.group("body") if match else ""
 
 
 class TestScaffoldSync(unittest.TestCase):
@@ -97,6 +109,17 @@ class TestScaffoldSync(unittest.TestCase):
                     f'"{name}"',
                     self.pyproject_text,
                     f"{name} is not registered in pyproject.toml py_modules",
+                )
+
+    def test_every_module_is_registered_in_the_embedded_pyproject(self) -> None:
+        pyproject = embedded_pyproject(self.scaffold_text)
+        self.assertTrue(pyproject, "scaffold.sh does not embed a pyproject.toml template")
+        for name in self.modules:
+            with self.subTest(module=name):
+                self.assertIn(
+                    f'"{name}"',
+                    pyproject,
+                    f"{name} is not registered in the embedded pyproject.toml py_modules",
                 )
 
     def test_scaffold_generates_every_module_and_test(self) -> None:

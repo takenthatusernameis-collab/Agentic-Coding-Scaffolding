@@ -250,6 +250,7 @@ terminal_utils.py          # Terminal output utilities (ANSI color, progress bar
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
 webbrowser_utils.py         # Web browser utilities wrapping stdlib webbrowser (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers)
 xmlrpc_utils.py             # XML-RPC utilities wrapping stdlib xmlrpc (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, create_proxy, create_server)
+syslog_utils.py             # System logging utilities wrapping stdlib syslog (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, facility_name)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -413,6 +414,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
     test_xml_utils.py           # Tests for xml_utils.py
     test_xmlrpc_utils.py        # Tests for xmlrpc_utils.py
+    test_syslog_utils.py        # Tests for syslog_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -1391,3 +1393,10 @@ tests/test_xmlrpc_utils.py - Tests for xmlrpc_utils module
 ## Xmlrpc Utilities Module
 
 The project includes XML-RPC utilities in `xmlrpc_utils.py` wrapping the standard library `xmlrpc` package: `dumps_value` encodes arguments into a request or response document, `loads_value` decodes a document into its arguments and method name, `build_request` builds a method call document, `parse_method_call` parses a method call, `parse_method_response` parses a method response and raises `Fault` for a fault, `marshal_params` and `unmarshal_params` encode and decode a bare `<params>` document, `create_marshaller` and `create_transport` build the standard library encoding and transport objects, `create_proxy` builds a lazy client proxy, `create_dispatcher` builds a dispatcher that maps remote calls onto local callables, `register_function`, `register_instance`, `register_introspection_functions` and `register_multicall_functions` populate a dispatcher, `resolve_dotted_attribute` and `list_public_methods` inspect the objects a dispatcher exposes, and `create_server` and `create_multi_path_server` build the standard library servers. `Fault`, `ProtocolError`, `ResponseError`, `Binary`, `DateTime`, `Marshaller`, `Unmarshaller`, `Transport`, `ServerProxy`, `MultiCall`, `SimpleXMLRPCServer`, `MultiPathXMLRPCServer`, `SimpleXMLRPCDispatcher`, and the standard library request handlers are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The encoding helpers are pure computation and the connection helpers only build objects, so the module never opens a connection on its own. The module is tested in `tests/test_xmlrpc_utils.py`.
+
+
+tests/test_syslog_utils.py - Tests for syslog_utils module
+
+## Syslog Utilities Module
+
+The project includes system logging utilities in `syslog_utils.py` wrapping the standard library `syslog` module: `open_log` opens the system logger for the program, `log_message` sends a message with a given severity, `close_log` closes the log again, `set_log_mask` restricts the severities that are recorded and returns the previous mask, `log_mask` computes the mask of a single severity, `log_upto` computes the mask of every severity up to and including a given one, `priority_name` and `facility_name` turn the numeric severities and facilities into names, `priority_names`, `facility_names` and `option_names` return the known constants, and `is_available` reports whether the interpreter ships the standard library module. The severity constants (`LOG_EMERG`, `LOG_ALERT`, `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`, `LOG_NOTICE`, `LOG_INFO`, `LOG_DEBUG`), the facility constants (`LOG_KERN` up to `LOG_LOCAL7`) and the option flags (`LOG_PID`, `LOG_CONS`, `LOG_ODELAY`, `LOG_NDELAY`, `LOG_NOWAIT`, `LOG_PERROR`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `syslog` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers that talk to the system logger raise a `RuntimeError` elsewhere. The module is tested in `tests/test_syslog_utils.py`.

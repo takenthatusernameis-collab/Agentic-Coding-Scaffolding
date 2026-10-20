@@ -669,11 +669,13 @@
 #   - poplib_utils.py — # Poplib utilities wrapping the standard library poplib (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
 #   - webbrowser_utils.py — # Web browser utilities wrapping the standard library webbrowser (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers)
 #   - xmlrpc_utils.py — # XML-RPC utilities wrapping the standard library xmlrpc (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, create_proxy, create_server)
+#   - syslog_utils.py — # System logging utilities wrapping the standard library syslog (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, facility_name)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
 #   - tests/test_webbrowser_utils.py — # Tests for webbrowser_utils.py
 #   - tests/test_xmlrpc_utils.py — # Tests for xmlrpc_utils.py
+#   - tests/test_syslog_utils.py — # Tests for syslog_utils.py
 set -euo pipefail
 
 usage() {
@@ -4295,6 +4297,7 @@ py_modules = [
     "opcode_utils",
     "webbrowser_utils",
     "xmlrpc_utils",
+    "syslog_utils",
 ]
 
 PYPROJECT
@@ -26856,6 +26859,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `poplib_utils.py` — poplib utilities wrapping the standard library `poplib` module (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
 - `webbrowser_utils.py` — web browser utilities wrapping the standard library `webbrowser` module (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers) with input validation
 - `xmlrpc_utils.py` — XML-RPC utilities wrapping the standard library `xmlrpc` package (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, marshal_params, unmarshal_params, create_marshaller, create_transport, create_proxy, create_dispatcher, register_function, register_instance, register_introspection_functions, register_multicall_functions, resolve_dotted_attribute, list_public_methods, create_server, create_multi_path_server) with input validation
+- `syslog_utils.py` — system logging utilities wrapping the standard library `syslog` module (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, priority_names, facility_name, facility_names, option_names, is_available) with input validation
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27059,6 +27063,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_poplib_utils.py` — unit tests for `poplib_utils.py`
 - `tests/test_webbrowser_utils.py` — unit tests for `webbrowser_utils.py`
 - `tests/test_xmlrpc_utils.py` — unit tests for `xmlrpc_utils.py`
+- `tests/test_syslog_utils.py` — unit tests for `syslog_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -28329,6 +28334,7 @@ terminal_utils.py          # Terminal output utilities (ANSI color, progress bar
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
 webbrowser_utils.py         # Web browser utilities wrapping stdlib webbrowser (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers)
 xmlrpc_utils.py             # XML-RPC utilities wrapping stdlib xmlrpc (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, create_proxy, create_server)
+syslog_utils.py             # System logging utilities wrapping stdlib syslog (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, facility_name)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -28491,6 +28497,7 @@ test_weakref_utils.py       # Tests for weakref_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
     test_xml_utils.py           # Tests for xml_utils.py
     test_xmlrpc_utils.py        # Tests for xmlrpc_utils.py
+    test_syslog_utils.py        # Tests for syslog_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -29416,6 +29423,10 @@ The project includes web browser utilities in `webbrowser_utils.py` wrapping the
 
 The project includes XML-RPC utilities in `xmlrpc_utils.py` wrapping the standard library `xmlrpc` package: `dumps_value` encodes arguments into a request or response document, `loads_value` decodes a document into its arguments and method name, `build_request` builds a method call document, `parse_method_call` parses a method call, `parse_method_response` parses a method response and raises `Fault` for a fault, `marshal_params` and `unmarshal_params` encode and decode a bare `<params>` document, `create_marshaller` and `create_transport` build the standard library encoding and transport objects, `create_proxy` builds a lazy client proxy, `create_dispatcher` builds a dispatcher that maps remote calls onto local callables, `register_function`, `register_instance`, `register_introspection_functions` and `register_multicall_functions` populate a dispatcher, `resolve_dotted_attribute` and `list_public_methods` inspect the objects a dispatcher exposes, and `create_server` and `create_multi_path_server` build the standard library servers. `Fault`, `ProtocolError`, `ResponseError`, `Binary`, `DateTime`, `Marshaller`, `Unmarshaller`, `Transport`, `ServerProxy`, `MultiCall`, `SimpleXMLRPCServer`, `MultiPathXMLRPCServer`, `SimpleXMLRPCDispatcher`, and the standard library request handlers are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The encoding helpers are pure computation and the connection helpers only build objects, so the module never opens a connection on its own. The module is tested in `tests/test_xmlrpc_utils.py`.
 
+## Syslog Utilities Module
+
+The project includes system logging utilities in `syslog_utils.py` wrapping the standard library `syslog` module: `open_log` opens the system logger for the program, `log_message` sends a message with a given severity, `close_log` closes the log again, `set_log_mask` restricts the severities that are recorded and returns the previous mask, `log_mask` computes the mask of a single severity, `log_upto` computes the mask of every severity up to and including a given one, `priority_name` and `facility_name` turn the numeric severities and facilities into names, `priority_names`, `facility_names` and `option_names` return the known constants, and `is_available` reports whether the interpreter ships the standard library module. The severity constants (`LOG_EMERG`, `LOG_ALERT`, `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`, `LOG_NOTICE`, `LOG_INFO`, `LOG_DEBUG`), the facility constants (`LOG_KERN` up to `LOG_LOCAL7`) and the option flags (`LOG_PID`, `LOG_CONS`, `LOG_ODELAY`, `LOG_NDELAY`, `LOG_NOWAIT`, `LOG_PERROR`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `syslog` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers that talk to the system logger raise a `RuntimeError` elsewhere. The module is tested in `tests/test_syslog_utils.py`.
+
 ## Hello Module
 
 The project includes a sample application entry point in `hello.py`: `main` prints a greeting for the given name and defaults to `"World"`, and running the module directly greets the name given on the command line. The module is tested in `tests/test_hello.py`.
@@ -29434,6 +29445,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Add `syslog_utils.py` wrapping the standard library `syslog` module (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, priority_names, facility_name, facility_names, option_names, is_available) with input validation, plus unit tests in `tests/test_syslog_utils.py`.
+- Synchronized `syslog_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `webbrowser_utils.py` wrapping the standard library `webbrowser` module (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers, Error) with input validation, plus unit tests in `tests/test_webbrowser_utils.py`.
 - Synchronized `webbrowser_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `xmlrpc_utils.py` wrapping the standard library `xmlrpc` package (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, marshal_params, unmarshal_params, create_marshaller, create_transport, create_proxy, create_dispatcher, register_function, register_instance, register_introspection_functions, register_multicall_functions, resolve_dotted_attribute, list_public_methods, create_server, create_multi_path_server) with input validation, plus unit tests in `tests/test_xmlrpc_utils.py`.
@@ -67044,6 +67057,638 @@ class TestXmlrpcUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_XMLRPC_UTILS
+
+# --- syslog_utils.py ---
+cat > "$OUTPUT_DIR/syslog_utils.py" <<'SYSLOG_UTILS'
+"""System logging utilities wrapping the standard library :mod:`syslog` module.
+
+The :mod:`syslog` module forwards messages to the system logger of a Unix-like
+operating system.  A program opens the log once with :func:`syslog.openlog`,
+writes messages with :func:`syslog.syslog`, restricts the severities that are
+recorded with :func:`syslog.setlogmask`, and closes the log again with
+:func:`syslog.closelog`.
+
+This wrapper validates every argument before the standard library is reached, so
+a caller gets a clear ``TypeError`` or ``ValueError`` instead of a message that
+is silently dropped.  It also adds small helpers that turn the numeric
+priorities and facilities into names and that compute the priority masks
+without asking the system logger.
+
+.. note::
+
+   The :mod:`syslog` module only exists on Unix-like platforms.  The import
+   below degrades gracefully: when the interpreter does not ship the module,
+   the helpers that talk to the system logger raise a :class:`RuntimeError`
+   that names the missing module, while the pure helpers keep working.
+
+The helpers never write to the system log on their own.  A message is only
+sent when the caller asks for it with :func:`log_message`, and the caller
+decides when the log is opened and closed.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Dict, Optional
+
+__all__: list[str] = [
+    "LOG_ALERT",
+    "LOG_AUTH",
+    "LOG_AUTHPRIV",
+    "LOG_CONS",
+    "LOG_CRIT",
+    "LOG_CRON",
+    "LOG_DAEMON",
+    "LOG_DEBUG",
+    "LOG_EMERG",
+    "LOG_ERR",
+    "LOG_FTP",
+    "LOG_INFO",
+    "LOG_KERN",
+    "LOG_LOCAL0",
+    "LOG_LOCAL1",
+    "LOG_LOCAL2",
+    "LOG_LOCAL3",
+    "LOG_LOCAL4",
+    "LOG_LOCAL5",
+    "LOG_LOCAL6",
+    "LOG_LOCAL7",
+    "LOG_LPR",
+    "LOG_MAIL",
+    "LOG_MASK",
+    "LOG_NDELAY",
+    "LOG_NEWS",
+    "LOG_NOTICE",
+    "LOG_NOWAIT",
+    "LOG_ODELAY",
+    "LOG_PERROR",
+    "LOG_PID",
+    "LOG_SYSLOG",
+    "LOG_UPTO",
+    "LOG_USER",
+    "LOG_UUCP",
+    "LOG_WARNING",
+    "close_log",
+    "facility_name",
+    "facility_names",
+    "is_available",
+    "log_mask",
+    "log_message",
+    "log_upto",
+    "open_log",
+    "option_names",
+    "priority_name",
+    "priority_names",
+    "set_log_mask",
+]
+
+try:
+    import syslog as _syslog
+except ImportError:  # pragma: no cover - the module is Unix-only
+    _syslog = None  # type: ignore[assignment]
+
+
+def _constant(name: str, fallback: int) -> int:
+    """Return the standard library constant *name*, or *fallback*.
+
+    The option flags and a few facilities are defined by the C library of the
+    host, so the standard library values win over the POSIX defaults whenever
+    the interpreter ships the :mod:`syslog` module.
+    """
+    if _syslog is None:
+        return fallback
+    value = getattr(_syslog, name, fallback)
+    return value if isinstance(value, int) else fallback
+
+
+def _syslog_module() -> Any:
+    """Return the standard library ``syslog`` module.
+
+    Returns:
+        The imported :mod:`syslog` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``syslog`` module.
+    """
+    if _syslog is None:  # pragma: no cover - the module is Unix-only
+        raise RuntimeError(
+            "the standard library 'syslog' module is not available on this platform; "
+            "it is only shipped on Unix-like systems"
+        )
+    return _syslog
+
+
+# Severities, from the most to the least urgent.
+LOG_EMERG = _constant("LOG_EMERG", 0)
+LOG_ALERT = _constant("LOG_ALERT", 1)
+LOG_CRIT = _constant("LOG_CRIT", 2)
+LOG_ERR = _constant("LOG_ERR", 3)
+LOG_WARNING = _constant("LOG_WARNING", 4)
+LOG_NOTICE = _constant("LOG_NOTICE", 5)
+LOG_INFO = _constant("LOG_INFO", 6)
+LOG_DEBUG = _constant("LOG_DEBUG", 7)
+
+# Facilities, the part of the priority that names the logging subsystem.
+LOG_KERN = _constant("LOG_KERN", 0)
+LOG_USER = _constant("LOG_USER", 8)
+LOG_MAIL = _constant("LOG_MAIL", 16)
+LOG_DAEMON = _constant("LOG_DAEMON", 24)
+LOG_AUTH = _constant("LOG_AUTH", 32)
+LOG_SYSLOG = _constant("LOG_SYSLOG", 40)
+LOG_LPR = _constant("LOG_LPR", 48)
+LOG_NEWS = _constant("LOG_NEWS", 56)
+LOG_UUCP = _constant("LOG_UUCP", 64)
+LOG_CRON = _constant("LOG_CRON", 72)
+LOG_AUTHPRIV = _constant("LOG_AUTHPRIV", 80)
+LOG_FTP = _constant("LOG_FTP", 88)
+LOG_LOCAL0 = _constant("LOG_LOCAL0", 128)
+LOG_LOCAL1 = _constant("LOG_LOCAL1", 136)
+LOG_LOCAL2 = _constant("LOG_LOCAL2", 144)
+LOG_LOCAL3 = _constant("LOG_LOCAL3", 152)
+LOG_LOCAL4 = _constant("LOG_LOCAL4", 160)
+LOG_LOCAL5 = _constant("LOG_LOCAL5", 168)
+LOG_LOCAL6 = _constant("LOG_LOCAL6", 176)
+LOG_LOCAL7 = _constant("LOG_LOCAL7", 184)
+
+# Options that change how the system logger is reached.
+LOG_PID = _constant("LOG_PID", 1)
+LOG_CONS = _constant("LOG_CONS", 2)
+LOG_ODELAY = _constant("LOG_ODELAY", 4)
+LOG_NDELAY = _constant("LOG_NDELAY", 8)
+LOG_NOWAIT = _constant("LOG_NOWAIT", 16)
+LOG_PERROR = _constant("LOG_PERROR", 32)
+
+_PRIORITY_NAMES: Dict[str, int] = {
+    "LOG_EMERG": LOG_EMERG,
+    "LOG_ALERT": LOG_ALERT,
+    "LOG_CRIT": LOG_CRIT,
+    "LOG_ERR": LOG_ERR,
+    "LOG_WARNING": LOG_WARNING,
+    "LOG_NOTICE": LOG_NOTICE,
+    "LOG_INFO": LOG_INFO,
+    "LOG_DEBUG": LOG_DEBUG,
+}
+
+_FACILITY_NAMES: Dict[str, int] = {
+    "LOG_KERN": LOG_KERN,
+    "LOG_USER": LOG_USER,
+    "LOG_MAIL": LOG_MAIL,
+    "LOG_DAEMON": LOG_DAEMON,
+    "LOG_AUTH": LOG_AUTH,
+    "LOG_SYSLOG": LOG_SYSLOG,
+    "LOG_LPR": LOG_LPR,
+    "LOG_NEWS": LOG_NEWS,
+    "LOG_UUCP": LOG_UUCP,
+    "LOG_CRON": LOG_CRON,
+    "LOG_AUTHPRIV": LOG_AUTHPRIV,
+    "LOG_FTP": LOG_FTP,
+    "LOG_LOCAL0": LOG_LOCAL0,
+    "LOG_LOCAL1": LOG_LOCAL1,
+    "LOG_LOCAL2": LOG_LOCAL2,
+    "LOG_LOCAL3": LOG_LOCAL3,
+    "LOG_LOCAL4": LOG_LOCAL4,
+    "LOG_LOCAL5": LOG_LOCAL5,
+    "LOG_LOCAL6": LOG_LOCAL6,
+    "LOG_LOCAL7": LOG_LOCAL7,
+}
+
+_OPTION_NAMES: Dict[str, int] = {
+    "LOG_PID": LOG_PID,
+    "LOG_CONS": LOG_CONS,
+    "LOG_ODELAY": LOG_ODELAY,
+    "LOG_NDELAY": LOG_NDELAY,
+    "LOG_NOWAIT": LOG_NOWAIT,
+    "LOG_PERROR": LOG_PERROR,
+}
+
+
+def _require_priority(priority: Any) -> int:
+    """Return *priority* when it names one of the eight severities."""
+    if isinstance(priority, bool) or not isinstance(priority, int):
+        raise TypeError(f"priority must be an int, got {type(priority).__name__}")
+    if not LOG_EMERG <= priority <= LOG_DEBUG:
+        raise ValueError(f"priority must be between {LOG_EMERG} and {LOG_DEBUG}, got {priority}")
+    return priority
+
+
+def _require_facility(facility: Any) -> int:
+    """Return *facility* when it names one of the known facilities."""
+    if isinstance(facility, bool) or not isinstance(facility, int):
+        raise TypeError(f"facility must be an int, got {type(facility).__name__}")
+    if facility not in _FACILITY_NAMES.values():
+        raise ValueError(f"unknown facility: {facility}")
+    return facility
+
+
+def _require_option(logoption: Any) -> int:
+    """Return *logoption* when it only combines the known option flags."""
+    if isinstance(logoption, bool) or not isinstance(logoption, int):
+        raise TypeError(f"logoption must be an int, got {type(logoption).__name__}")
+    if logoption < 0:
+        raise ValueError(f"logoption must not be negative, got {logoption}")
+    known = 0
+    for value in _OPTION_NAMES.values():
+        known |= value
+    if logoption & ~known:
+        raise ValueError(f"unknown logoption flags: {logoption}")
+    return logoption
+
+
+def is_available() -> bool:
+    """Return ``True`` when the interpreter ships the standard library module."""
+    return _syslog is not None
+
+
+def open_log(
+    ident: Optional[str] = None,
+    logoption: int = 0,
+    facility: int = LOG_USER,
+) -> None:
+    """Open the system log for the program.
+
+    Args:
+        ident: The identification tag prepended to every message.  When
+            omitted, the standard library uses the name of the running
+            program.
+        logoption: A combination of the option flags, such as :data:`LOG_PID`
+            or :data:`LOG_PERROR`.
+        facility: The facility the messages are recorded under, such as
+            :data:`LOG_USER` or :data:`LOG_LOCAL0`.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If an argument has an unusable value.
+        RuntimeError: If the interpreter does not ship the ``syslog`` module.
+    """
+    if ident is not None and not isinstance(ident, str):
+        raise TypeError(f"ident must be a str or None, got {type(ident).__name__}")
+    if ident is not None and not ident:
+        raise ValueError("ident must not be empty")
+    _require_option(logoption)
+    _require_facility(facility)
+    _syslog_module().openlog(ident, logoption, facility)
+
+
+def log_message(message: str, priority: int = LOG_INFO) -> None:
+    """Send *message* to the system logger.
+
+    Args:
+        message: The text of the message.
+        priority: The severity of the message, such as :data:`LOG_INFO`.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If an argument has an unusable value.
+        RuntimeError: If the interpreter does not ship the ``syslog`` module.
+    """
+    if not isinstance(message, str):
+        raise TypeError(f"message must be a str, got {type(message).__name__}")
+    if not message:
+        raise ValueError("message must not be empty")
+    _require_priority(priority)
+    module = _syslog_module()
+    try:
+        module.syslog(priority, message)
+    except TypeError:
+        # Interpreters that take the message first are supported as well.
+        module.syslog(message, priority)
+
+
+def close_log() -> None:
+    """Close the system log.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``syslog`` module.
+    """
+    _syslog_module().closelog()
+
+
+def set_log_mask(mask: int) -> int:
+    """Restrict the severities that are recorded.
+
+    Args:
+        mask: A combination of the priority masks, such as
+            :func:`log_mask` or :func:`log_upto` produce.
+
+    Returns:
+        The mask that was active before the call.
+
+    Raises:
+        TypeError: If *mask* is not an int.
+        ValueError: If *mask* is negative.
+        RuntimeError: If the interpreter does not ship the ``syslog`` module.
+    """
+    if isinstance(mask, bool) or not isinstance(mask, int):
+        raise TypeError(f"mask must be an int, got {type(mask).__name__}")
+    if mask < 0:
+        raise ValueError(f"mask must not be negative, got {mask}")
+    return int(_syslog_module().setlogmask(mask))
+
+
+def log_mask(priority: int) -> int:
+    """Return the mask that selects a single *priority*.
+
+    Args:
+        priority: The severity, such as :data:`LOG_WARNING`.
+
+    Returns:
+        The mask of the priority.
+
+    Raises:
+        TypeError: If *priority* is not an int.
+        ValueError: If *priority* does not name a severity.
+    """
+    level = _require_priority(priority)
+    return 1 << level
+
+
+def log_upto(priority: int) -> int:
+    """Return the mask that selects every severity up to *priority*.
+
+    Args:
+        priority: The most verbose severity that is recorded, such as
+            :data:`LOG_WARNING`.
+
+    Returns:
+        The mask of the priority and of every severity before it.
+
+    Raises:
+        TypeError: If *priority* is not an int.
+        ValueError: If *priority* does not name a severity.
+    """
+    level = _require_priority(priority)
+    return (1 << (level + 1)) - 1
+
+
+def priority_name(priority: int) -> str:
+    """Return the name of *priority*.
+
+    Args:
+        priority: The severity, such as :data:`LOG_INFO`.
+
+    Returns:
+        The name of the severity, such as ``"LOG_INFO"``.
+
+    Raises:
+        TypeError: If *priority* is not an int.
+        ValueError: If *priority* does not name a severity.
+    """
+    level = _require_priority(priority)
+    for name, value in _PRIORITY_NAMES.items():
+        if value == level:
+            return name
+    raise ValueError(f"unknown priority: {priority}")
+
+
+def priority_names() -> Dict[str, int]:
+    """Return the severity names mapped to their values."""
+    return dict(_PRIORITY_NAMES)
+
+
+def facility_name(facility: int) -> str:
+    """Return the name of *facility*.
+
+    Args:
+        facility: The facility, such as :data:`LOG_LOCAL0`.
+
+    Returns:
+        The name of the facility, such as ``"LOG_LOCAL0"``.
+
+    Raises:
+        TypeError: If *facility* is not an int.
+        ValueError: If *facility* does not name a facility.
+    """
+    value = _require_facility(facility)
+    for name, candidate in _FACILITY_NAMES.items():
+        if candidate == value:
+            return name
+    raise ValueError(f"unknown facility: {facility}")
+
+
+def facility_names() -> Dict[str, int]:
+    """Return the facility names mapped to their values."""
+    return dict(_FACILITY_NAMES)
+
+
+def option_names() -> Dict[str, int]:
+    """Return the option flag names mapped to their values."""
+    return dict(_OPTION_NAMES)
+
+
+#: Alias of :func:`log_mask`, mirroring the standard library name.
+LOG_MASK = log_mask
+
+#: Alias of :func:`log_upto`, mirroring the standard library name.
+LOG_UPTO = log_upto
+SYSLOG_UTILS
+
+# --- tests/test_syslog_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_syslog_utils.py" <<'TEST_SYSLOG_UTILS'
+import unittest
+from unittest.mock import patch
+
+import syslog_utils
+from syslog_utils import (
+    LOG_ALERT,
+    LOG_CRIT,
+    LOG_DEBUG,
+    LOG_EMERG,
+    LOG_ERR,
+    LOG_INFO,
+    LOG_LOCAL0,
+    LOG_NOTICE,
+    LOG_PERROR,
+    LOG_PID,
+    LOG_UPTO,
+    LOG_USER,
+    LOG_WARNING,
+    close_log,
+    facility_name,
+    facility_names,
+    is_available,
+    log_mask,
+    log_message,
+    log_upto,
+    open_log,
+    option_names,
+    priority_name,
+    priority_names,
+    set_log_mask,
+)
+
+
+class TestSyslogUtils(unittest.TestCase):
+    def test_is_available(self):
+        self.assertIsInstance(is_available(), bool)
+
+    def test_constants_match_the_standard_library(self):
+        self.assertEqual(LOG_EMERG, 0)
+        self.assertEqual(LOG_ALERT, 1)
+        self.assertEqual(LOG_CRIT, 2)
+        self.assertEqual(LOG_ERR, 3)
+        self.assertEqual(LOG_WARNING, 4)
+        self.assertEqual(LOG_NOTICE, 5)
+        self.assertEqual(LOG_INFO, 6)
+        self.assertEqual(LOG_DEBUG, 7)
+        self.assertEqual(LOG_USER, 8)
+        self.assertEqual(LOG_LOCAL0, 128)
+
+    @patch("syslog_utils._syslog.openlog")
+    def test_open_log(self, mock_openlog):
+        open_log("myapp", LOG_PID, LOG_USER)
+        mock_openlog.assert_called_once_with("myapp", LOG_PID, LOG_USER)
+
+    @patch("syslog_utils._syslog.openlog")
+    def test_open_log_defaults(self, mock_openlog):
+        open_log()
+        mock_openlog.assert_called_once_with(None, 0, LOG_USER)
+
+    @patch("syslog_utils._syslog.openlog")
+    def test_open_log_rejects_unknown_facility(self, mock_openlog):
+        with self.assertRaises(ValueError):
+            open_log("myapp", 0, 3)
+        mock_openlog.assert_not_called()
+
+    @patch("syslog_utils._syslog.openlog")
+    def test_open_log_rejects_unknown_options(self, mock_openlog):
+        with self.assertRaises(ValueError):
+            open_log("myapp", 1 << 20, LOG_USER)
+        mock_openlog.assert_not_called()
+
+    def test_open_log_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            open_log(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            open_log("")
+        with self.assertRaises(TypeError):
+            open_log("myapp", "pid")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            open_log("myapp", -1, LOG_USER)
+        with self.assertRaises(TypeError):
+            open_log("myapp", 0, "user")  # type: ignore[arg-type]
+
+    @patch("syslog_utils._syslog.syslog")
+    def test_log_message(self, mock_syslog):
+        log_message("hello", LOG_WARNING)
+        mock_syslog.assert_called_once_with(LOG_WARNING, "hello")
+
+    @patch("syslog_utils._syslog.syslog")
+    def test_log_message_defaults_to_info(self, mock_syslog):
+        log_message("hello")
+        mock_syslog.assert_called_once_with(LOG_INFO, "hello")
+
+    @patch("syslog_utils._syslog.syslog")
+    def test_log_message_supports_the_message_first_signature(self, mock_syslog):
+        calls = []
+
+        def fake_syslog(*args):
+            calls.append(args)
+            if len(args) == 2 and isinstance(args[0], int):
+                raise TypeError("argument 'message': 'int' object cannot be converted")
+
+        mock_syslog.side_effect = fake_syslog
+        log_message("hello", LOG_ERR)
+        self.assertEqual(calls, [(LOG_ERR, "hello"), ("hello", LOG_ERR)])
+
+    def test_log_message_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            log_message(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            log_message("")
+        with self.assertRaises(TypeError):
+            log_message("hello", "info")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            log_message("hello", 42)
+
+    @patch("syslog_utils._syslog.closelog")
+    def test_close_log(self, mock_closelog):
+        close_log()
+        mock_closelog.assert_called_once_with()
+
+    @patch("syslog_utils._syslog.setlogmask", return_value=255)
+    def test_set_log_mask(self, mock_setlogmask):
+        self.assertEqual(set_log_mask(log_upto(LOG_WARNING)), 255)
+        mock_setlogmask.assert_called_once_with(log_upto(LOG_WARNING))
+
+    def test_set_log_mask_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            set_log_mask("all")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            set_log_mask(-1)
+
+    def test_log_mask(self):
+        self.assertEqual(log_mask(LOG_EMERG), 1)
+        self.assertEqual(log_mask(LOG_ERR), 8)
+        self.assertEqual(log_mask(LOG_DEBUG), 128)
+
+    def test_log_upto(self):
+        self.assertEqual(log_upto(LOG_EMERG), 1)
+        self.assertEqual(log_upto(LOG_WARNING), 31)
+        self.assertEqual(log_upto(LOG_DEBUG), 255)
+        self.assertEqual(LOG_UPTO(LOG_WARNING), log_upto(LOG_WARNING))
+
+    def test_mask_helpers_validate_their_arguments(self):
+        with self.assertRaises(TypeError):
+            log_mask("info")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            log_mask(42)
+        with self.assertRaises(TypeError):
+            log_upto("info")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            log_upto(42)
+
+    def test_priority_name(self):
+        self.assertEqual(priority_name(LOG_INFO), "LOG_INFO")
+        self.assertEqual(priority_name(LOG_DEBUG), "LOG_DEBUG")
+
+    def test_priority_name_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            priority_name("info")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            priority_name(42)
+
+    def test_facility_name(self):
+        self.assertEqual(facility_name(LOG_USER), "LOG_USER")
+        self.assertEqual(facility_name(LOG_LOCAL0), "LOG_LOCAL0")
+
+    def test_facility_name_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            facility_name("user")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            facility_name(3)
+
+    def test_name_tables(self):
+        priorities = priority_names()
+        facilities = facility_names()
+        options = option_names()
+        self.assertEqual(priorities["LOG_INFO"], LOG_INFO)
+        self.assertEqual(facilities["LOG_USER"], LOG_USER)
+        self.assertEqual(options["LOG_PID"], LOG_PID)
+        self.assertEqual(options["LOG_PERROR"], LOG_PERROR)
+        priorities["LOG_INFO"] = 99
+        self.assertEqual(priority_names()["LOG_INFO"], LOG_INFO)
+
+    def test_helpers_report_a_missing_standard_library_module(self):
+        with patch("syslog_utils._syslog", None):
+            with self.assertRaises(RuntimeError):
+                open_log("myapp")
+            with self.assertRaises(RuntimeError):
+                log_message("hello")
+            with self.assertRaises(RuntimeError):
+                close_log()
+            with self.assertRaises(RuntimeError):
+                set_log_mask(0)
+            self.assertFalse(is_available())
+
+    def test_all_names_are_exported(self):
+        self.assertIsNotNone(syslog_utils.__all__)
+        self.assertEqual(len(syslog_utils.__all__), len(set(syslog_utils.__all__)))
+        for name in syslog_utils.__all__:
+            self.assertTrue(hasattr(syslog_utils, name), name)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_SYSLOG_UTILS
 
 # --- smtplib_utils.py ---
 cat > "$OUTPUT_DIR/smtplib_utils.py" <<'SMTPLIB_UTILS'

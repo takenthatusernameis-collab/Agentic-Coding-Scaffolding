@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add `syslog_utils.py` wrapping the standard library `syslog` module (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, priority_names, facility_name, facility_names, option_names, is_available) with input validation, plus unit tests in `tests/test_syslog_utils.py`.
+- Synchronized `syslog_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Strengthened `tests/test_scaffold_sync.py` with a check that the `pyproject.toml` template embedded in `scaffold.sh` registers every module the scaffold generates, so a generated project never ships a module it does not declare.
 - Add `webbrowser_utils.py` wrapping the standard library `webbrowser` module (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers, Error) with input validation, plus unit tests in `tests/test_webbrowser_utils.py`.
 - Synchronized `webbrowser_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `xmlrpc_utils.py` wrapping the standard library `xmlrpc` package (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, marshal_params, unmarshal_params, create_marshaller, create_transport, create_proxy, create_dispatcher, register_function, register_instance, register_introspection_functions, register_multicall_functions, resolve_dotted_attribute, list_public_methods, create_server, create_multi_path_server) with input validation, plus unit tests in `tests/test_xmlrpc_utils.py`.
