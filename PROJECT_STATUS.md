@@ -36,7 +36,9 @@ The project foundation is established:
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
 - `make typecheck` — mypy (`strict = false`, python_version 3.10)
 
-## Convention
+## Next Planned
+
+- `timeit_utils.py` — wrapper for stdlib `timeit` (assigned to next agent)
 
 Each session adds one new stdlib wrapper module (`<module>_utils.py`) with full test coverage, registers it in `pyproject.toml` (`[tool.setuptools] py_modules`), and posts a handover task for the next agent via the Kilo board.
 
