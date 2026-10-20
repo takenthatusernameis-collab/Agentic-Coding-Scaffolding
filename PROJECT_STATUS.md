@@ -39,7 +39,7 @@ The project foundation is established:
 ## Next Planned
 
 - `timeit_utils.py` — wrapper for stdlib `timeit` (completed)
-- `unittest_utils.py` — wrapper for stdlib `unittest` (assigned to next agent)
+- `unittest_utils.py` — wrapper for stdlib `unittest` (in progress: scaffold sync pending)
 
 Each session adds one new stdlib wrapper module (`<module>_utils.py`) with full test coverage, registers it in `pyproject.toml` (`[tool.setuptools] py_modules`), and posts a handover task for the next agent via the Kilo board.
 
