@@ -321,6 +321,9 @@ test_profile_utils.py        # Tests for profile_utils.py
 test_pstats_utils.py         # Tests for pstats_utils.py
  test_select_utils.py         # Tests for select_utils.py
  test_imaplib_utils.py        # Tests for imaplib_utils.py
+
+mailbox_utils.py             # Mailbox utilities wrapping stdlib mailbox (create_* factories)
+ test_mailbox_utils.py        # Tests for mailbox_utils.py
 test_unittest_utils.py       # Tests for unittest_utils.py
 test_typing_utils.py        # Tests for typing_utils.py
 test_pickle_utils.py        # Tests for pickle_utils.py
@@ -1265,5 +1268,9 @@ The project includes a sample application entry point in `hello.py`: `main` prin
 
 
 ## Imaplib Utilities Module
+## Mailbox Utilities Module
+
+The project includes mailbox utilities in `mailbox_utils.py` wrapping the standard library `mailbox` module: factory helpers for mbox/Maildir/MH/MMDF/Babyl mailboxes and message objects, plus exception type checks. The module is tested in `tests/test_mailbox_utils.py`.
+
 
 The project includes IMAP4 client utilities in `imaplib_utils.py` wrapping the standard library `imaplib` module: `create_imap4` builds an `IMAP4` client, `create_imap4_ssl` builds an `IMAP4_SSL` client, `create_imap4_stream` builds an `IMAP4_stream` client for a local command, `parse_capabilities` reads the capability names a server advertises, `has_capability` reports whether a capability is advertised, `parse_flags` reads the flags of a `FLAGS` response, `parse_fetch_flags` extracts the flags from a `FETCH` response, `format_flags` renders flags in the wire format, `parse_internaldate` reads an `INTERNALDATE` value, `format_internaldate` renders a timestamp as an `INTERNALDATE` value, and `int_to_ap` converts an integer into its `A`-`P` digit representation. `IMAP4`, `IMAP4_SSL`, `IMAP4_stream`, `IMAP4Error`, `IMAP4AbortError`, `IMAP4ReadOnlyError`, `CRLF`, `IMAP4_PORT`, and `IMAP4_SSL_PORT` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_imaplib_utils.py`.

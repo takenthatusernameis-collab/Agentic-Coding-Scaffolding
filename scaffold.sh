@@ -286,6 +286,8 @@
 #   - tests/test_select_utils.py — # Tests for select_utils.py
 #   - imaplib_utils.py — # IMAP4 client utilities wrapping the standard library imaplib module (create_imap4, create_imap4_ssl, create_imap4_stream, parse_capabilities, has_capability, parse_flags, parse_fetch_flags, format_flags, parse_internaldate, format_internaldate, int_to_ap)
 #   - tests/test_imaplib_utils.py — # Tests for imaplib_utils.py
+#   - mailbox_utils.py — # Mailbox utilities wrapping stdlib mailbox (create_* factories)
+#   - tests/test_mailbox_utils.py — # Tests for mailbox_utils.py
 #   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 #   - tests/test_contextlib_utils.py — # Tests for contextlib_utils.py
 
@@ -4233,6 +4235,7 @@ py_modules = [
     "deprecation_utils",
     "asyncio_utils",
     "imaplib_utils",
+    "mailbox_utils",
     "mmap_utils",
     "profile_utils",
     "pstats_utils",
@@ -27173,6 +27176,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_symtable_utils.py` — unit tests for `symtable_utils.py`
 - `imaplib_utils.py` — IMAP4 client utilities wrapping the standard library `imaplib` module (`create_imap4`, `create_imap4_ssl`, `create_imap4_stream`, `parse_capabilities`, `has_capability`, `parse_flags`, `parse_fetch_flags`, `format_flags`, `parse_internaldate`, `format_internaldate`, `int_to_ap`) with input validation
 - `tests/test_imaplib_utils.py` — unit tests for `imaplib_utils.py`
+- `mailbox_utils.py` — mailbox utilities wrapping the standard library `mailbox` module (factory helpers and exception/type checks)
+- `tests/test_mailbox_utils.py` — unit tests for `mailbox_utils.py`
 SCAFFOLD
 
 
@@ -29211,7 +29216,12 @@ The project includes symbol table utilities in `symtable_utils.py` wrapping the 
 
 ## Imaplib Utilities Module
 
-The project includes IMAP4 client utilities in `imaplib_utils.py` wrapping the standard library `imaplib` module: `create_imap4` builds an `IMAP4` client, `create_imap4_ssl` builds an `IMAP4_SSL` client, `create_imap4_stream` builds an `IMAP4_stream` client for a local command, `parse_capabilities` reads the capability names a server advertises, `has_capability` reports whether a capability is advertised, `parse_flags` reads the flags of a `FLAGS` response, `parse_fetch_flags` extracts the flags from a `FETCH` response, `format_flags` renders flags in the wire format, `parse_internaldate` reads an `INTERNALDATE` value, `format_internaldate` renders a timestamp as an `INTERNALDATE` value, and `int_to_ap` converts an integer into its `A`-`P` digit representation. `IMAP4`, `IMAP4_SSL`, `IMAP4_stream`, `IMAP4Error`, `IMAP4AbortError`, `IMAP4ReadOnlyError`, `CRLF`, `IMAP4_PORT`, and `IMAP4_SSL_PORT` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_imaplib_utils.py`.
+The project includes IMAP4 client utilities
+
+## Mailbox Utilities Module
+
+The project includes mailbox utilities in `mailbox_utils.py` wrapping the standard library `mailbox` module: factory helpers for mbox/Maildir/MH/MMDF/Babyl mailboxes and message objects, plus exception type checks. The module is tested in `tests/test_mailbox_utils.py`.
+ in `imaplib_utils.py` wrapping the standard library `imaplib` module: `create_imap4` builds an `IMAP4` client, `create_imap4_ssl` builds an `IMAP4_SSL` client, `create_imap4_stream` builds an `IMAP4_stream` client for a local command, `parse_capabilities` reads the capability names a server advertises, `has_capability` reports whether a capability is advertised, `parse_flags` reads the flags of a `FLAGS` response, `parse_fetch_flags` extracts the flags from a `FETCH` response, `format_flags` renders flags in the wire format, `parse_internaldate` reads an `INTERNALDATE` value, `format_internaldate` renders a timestamp as an `INTERNALDATE` value, and `int_to_ap` converts an integer into its `A`-`P` digit representation. `IMAP4`, `IMAP4_SSL`, `IMAP4_stream`, `IMAP4Error`, `IMAP4AbortError`, `IMAP4ReadOnlyError`, `CRLF`, `IMAP4_PORT`, and `IMAP4_SSL_PORT` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_imaplib_utils.py`.
 
 ## Hello Module
 
@@ -29233,6 +29243,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - Moved the scaffold summary and smoke test to the end of `scaffold.sh`: both used to run in the middle of the generator, so the "Created files" listing missed every module written after that point and the smoke test only discovered the tests written up to that point. The smoke test now also runs after the project name has been substituted into the templated documents.
 - Registered `asyncio_utils`, `imaplib_utils`, `mmap_utils`, `profile_utils`, `pstats_utils`, `timeit_utils`, and `unittest_utils` in the `pyproject.toml` template embedded in `scaffold.sh`, so a generated project declares every module it ships.
+- Add `mailbox_utils.py` wrapping the standard library `mailbox` module (factory helpers for mbox/Maildir/MH/MMDF/Babyl, message factories, and exception type checks) with unit tests in `tests/test_mailbox_utils.py`.
 - Added `imaplib_utils.py` to the generated project — IMAP4 client utilities wrapping the standard library `imaplib` module (`create_imap4`, `create_imap4_ssl`, `create_imap4_stream`, `parse_capabilities`, `has_capability`, `parse_flags`, `parse_fetch_flags`, `format_flags`, `parse_internaldate`, `format_internaldate`, `int_to_ap`) with input validation, plus `tests/test_imaplib_utils.py`.
 - Synchronized `imaplib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
@@ -56757,6 +56768,295 @@ class TestIntToAp(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_IMAPLIB_UTILS
+cat > "$OUTPUT_DIR/mailbox_utils.py" <<'MAILBOX_UTILS'
+"""Mailbox utilities (wrapping :mod:`mailbox`).
+
+The :mod:`mailbox` module defines classes for accessing and manipulating
+on-disk mailboxes in various formats (mbox, Maildir, MH, MMDF, Babyl).
+This wrapper provides validated factory functions and helpers to create
+mailboxes and access related exceptions without performing disk I/O in the
+factory helpers themselves.
+"""
+
+from __future__ import annotations
+
+import mailbox as _mailbox
+from pathlib import Path
+from typing import Any, Callable, Optional, Union
+
+__all__ = [
+    "Babyl",
+    "BabylMessage",
+    "Error",
+    "ExternalClashError",
+    "FormatError",
+    "MH",
+    "MHMessage",
+    "MMDF",
+    "MMDFMessage",
+    "Mailbox",
+    "Maildir",
+    "MaildirMessage",
+    "Message",
+    "NoSuchMailboxError",
+    "NotEmptyError",
+    "create_babyl",
+    "create_babyl_message",
+    "create_mh",
+    "create_mh_message",
+    "create_mailbox",
+    "create_maildir",
+    "create_maildir_message",
+    "create_mbox",
+    "create_mbox_message",
+    "create_mmdf",
+    "create_mmdf_message",
+    "is_external_clash_error",
+    "is_format_error",
+    "is_mailbox_error",
+    "is_no_such_mailbox_error",
+    "is_not_empty_error",
+]
+
+Babyl = _mailbox.Babyl
+BabylMessage = _mailbox.BabylMessage
+Error = _mailbox.Error
+ExternalClashError = _mailbox.ExternalClashError
+FormatError = _mailbox.FormatError
+MH = _mailbox.MH
+MHMessage = _mailbox.MHMessage
+MMDF = _mailbox.MMDF
+MMDFMessage = _mailbox.MMDFMessage
+Mailbox = _mailbox.Mailbox
+Maildir = _mailbox.Maildir
+MaildirMessage = _mailbox.MaildirMessage
+Message = _mailbox.Message
+NoSuchMailboxError = _mailbox.NoSuchMailboxError
+NotEmptyError = _mailbox.NotEmptyError
+
+
+def _path_to_str(path: Union[str, Path]) -> str:
+    if isinstance(path, Path):
+        return str(path)
+    if isinstance(path, str):
+        return path
+    raise TypeError(f"path must be a str or Path, got {type(path).__name__}")
+
+
+def create_mailbox(
+    path: Union[str, Path],
+    factory: Optional[Callable[[Any], Any]] = None,
+    create: bool = True,
+) -> _mailbox.Mailbox:
+    """Create a mailbox instance."""
+    _path = _path_to_str(path)
+    if factory is None:
+        return _mailbox.Mailbox(_path, create=create)  # type: ignore[abstract,arg-type]
+    return _mailbox.Mailbox(_path, factory=factory, create=create)  # type: ignore[abstract,arg-type]
+
+
+def create_mbox(
+    path: Union[str, Path],
+    factory: Optional[Callable[[Any], Any]] = None,
+    create: bool = True,
+) -> _mailbox.mbox:
+    """Create an mbox mailbox."""
+    _path = _path_to_str(path)
+    if factory is None:
+        return _mailbox.mbox(_path, create=create)  # type: ignore[arg-type]
+    return _mailbox.mbox(_path, factory=factory, create=create)  # type: ignore[arg-type]
+
+
+def create_maildir(
+    path: Union[str, Path],
+    factory: Optional[Callable[[Any], Any]] = None,
+    create: bool = True,
+) -> _mailbox.Maildir:
+    """Create a Maildir mailbox."""
+    _path = _path_to_str(path)
+    if factory is None:
+        return _mailbox.Maildir(_path, create=create)  # type: ignore[arg-type]
+    return _mailbox.Maildir(_path, factory=factory, create=create)  # type: ignore[arg-type]
+
+
+def create_mh(
+    path: Union[str, Path],
+    factory: Optional[Callable[[Any], Any]] = None,
+    create: bool = True,
+) -> _mailbox.MH:
+    """Create an MH mailbox."""
+    _path = _path_to_str(path)
+    if factory is None:
+        return _mailbox.MH(_path, create=create)  # type: ignore[arg-type]
+    return _mailbox.MH(_path, factory=factory, create=create)  # type: ignore[arg-type]
+
+
+def create_mmdf(
+    path: Union[str, Path],
+    factory: Optional[Callable[[Any], Any]] = None,
+    create: bool = True,
+) -> _mailbox.MMDF:
+    """Create an MMDF mailbox."""
+    _path = _path_to_str(path)
+    if factory is None:
+        return _mailbox.MMDF(_path, create=create)  # type: ignore[arg-type]
+    return _mailbox.MMDF(_path, factory=factory, create=create)  # type: ignore[arg-type]
+
+
+def create_babyl(
+    path: Union[str, Path],
+    factory: Optional[Callable[[Any], Any]] = None,
+    create: bool = True,
+) -> _mailbox.Babyl:
+    """Create a Babyl mailbox."""
+    _path = _path_to_str(path)
+    if factory is None:
+        return _mailbox.Babyl(_path, create=create)  # type: ignore[arg-type]
+    return _mailbox.Babyl(_path, factory=factory, create=create)  # type: ignore[arg-type]
+
+
+def create_mbox_message(message: Any) -> _mailbox.mboxMessage:
+    """Create an mbox message."""
+    return _mailbox.mboxMessage(message)
+
+
+def create_maildir_message(message: Any) -> _mailbox.MaildirMessage:
+    """Create a Maildir message."""
+    return _mailbox.MaildirMessage(message)
+
+
+def create_mh_message(message: Any) -> _mailbox.MHMessage:
+    """Create an MH message."""
+    return _mailbox.MHMessage(message)
+
+
+def create_mmdf_message(message: Any) -> _mailbox.MMDFMessage:
+    """Create an MMDF message."""
+    return _mailbox.MMDFMessage(message)
+
+
+def create_babyl_message(message: Any) -> _mailbox.BabylMessage:
+    """Create a Babyl message."""
+    return _mailbox.BabylMessage(message)
+
+
+def is_mailbox_error(exc: BaseException) -> bool:
+    return isinstance(exc, Error)
+
+
+def is_external_clash_error(exc: BaseException) -> bool:
+    return isinstance(exc, ExternalClashError)
+
+
+def is_format_error(exc: BaseException) -> bool:
+    return isinstance(exc, FormatError)
+
+
+def is_no_such_mailbox_error(exc: BaseException) -> bool:
+    return isinstance(exc, NoSuchMailboxError)
+
+
+def is_not_empty_error(exc: BaseException) -> bool:
+    return isinstance(exc, NotEmptyError)
+MAILBOX_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_mailbox_utils.py" <<'TEST_MAILBOX_UTILS'
+"""Tests for mailbox_utils."""
+
+import mailbox
+import tempfile
+import unittest
+from pathlib import Path
+
+from mailbox_utils import (
+    Error,
+    ExternalClashError,
+    FormatError,
+    NoSuchMailboxError,
+    NotEmptyError,
+    create_babyl,
+    create_babyl_message,
+    create_mailbox,
+    create_maildir,
+    create_maildir_message,
+    create_mbox,
+    create_mbox_message,
+    create_mh,
+    create_mh_message,
+    create_mmdf,
+    create_mmdf_message,
+    is_external_clash_error,
+    is_format_error,
+    is_mailbox_error,
+    is_no_such_mailbox_error,
+    is_not_empty_error,
+)
+
+
+class TestMailboxBasics(unittest.TestCase):
+    def test_exceptions_and_classes(self):
+        self.assertIs(Error, mailbox.Error)
+        self.assertIs(ExternalClashError, mailbox.ExternalClashError)
+        self.assertIs(FormatError, mailbox.FormatError)
+        self.assertIs(NoSuchMailboxError, mailbox.NoSuchMailboxError)
+        self.assertIs(NotEmptyError, mailbox.NotEmptyError)
+
+    def test_type_checks(self):
+        self.assertTrue(is_mailbox_error(FormatError()))
+        self.assertFalse(is_mailbox_error(ValueError()))
+        self.assertTrue(is_external_clash_error(ExternalClashError()))
+        self.assertTrue(is_format_error(FormatError()))
+        self.assertTrue(is_no_such_mailbox_error(NoSuchMailboxError()))
+        self.assertTrue(is_not_empty_error(NotEmptyError()))
+
+
+class TestMailboxFactories(unittest.TestCase):
+    def test_create_mailbox(self):
+        with tempfile.TemporaryDirectory() as td:
+            mbox = create_mailbox(Path(td) / "test.mbox")
+            self.assertIsInstance(mbox, mailbox.Mailbox)
+
+    def test_create_mbox(self):
+        with tempfile.TemporaryDirectory() as td:
+            mbox = create_mbox(Path(td) / "test.mbox")
+            self.assertIsInstance(mbox, mailbox.mbox)
+
+    def test_create_maildir(self):
+        with tempfile.TemporaryDirectory() as td:
+            md = create_maildir(Path(td) / "testdir")
+            self.assertIsInstance(md, mailbox.Maildir)
+
+    def test_create_mh(self):
+        with tempfile.TemporaryDirectory() as td:
+            mh = create_mh(Path(td) / "testmh")
+            self.assertIsInstance(mh, mailbox.MH)
+
+    def test_create_mmdf(self):
+        with tempfile.TemporaryDirectory() as td:
+            mmdf = create_mmdf(Path(td) / "test.mmdf")
+            self.assertIsInstance(mmdf, mailbox.MMDF)
+
+    def test_create_babyl(self):
+        with tempfile.TemporaryDirectory() as td:
+            babyl = create_babyl(Path(td) / "test.babyl")
+            self.assertIsInstance(babyl, mailbox.Babyl)
+
+
+class TestMailboxMessages(unittest.TestCase):
+    def test_create_messages(self):
+        self.assertIsInstance(create_mbox_message("Subject: hi\n\nbody\n"), mailbox.mboxMessage)
+        self.assertIsInstance(
+            create_maildir_message("Subject: hi\n\nbody\n"), mailbox.MaildirMessage
+        )
+        self.assertIsInstance(create_mh_message("Subject: hi\n\nbody\n"), mailbox.MHMessage)
+        self.assertIsInstance(create_mmdf_message("Subject: hi\n\nbody\n"), mailbox.MMDFMessage)
+        self.assertIsInstance(create_babyl_message("Subject: hi\n\nbody\n"), mailbox.BabylMessage)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_MAILBOX_UTILS
+
 
 cat > "$OUTPUT_DIR/symtable_utils.py" <<'SYMTABLE_UTILS'
 """Symbol table utilities (wrapping :mod:`symtable`).

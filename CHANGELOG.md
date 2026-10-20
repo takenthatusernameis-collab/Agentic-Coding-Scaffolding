@@ -1,3 +1,7 @@
+## Unreleased
+
+- Add `mailbox_utils.py` wrapping the standard library `mailbox` module (factory helpers for mbox/Maildir/MH/MMDF/Babyl, message factories, and exception type checks) with unit tests in `tests/test_mailbox_utils.py`.
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

@@ -439,3 +439,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_symtable_utils.py` — unit tests for `symtable_utils.py`
 - `imaplib_utils.py` — IMAP4 client utilities wrapping the standard library `imaplib` module (`create_imap4`, `create_imap4_ssl`, `create_imap4_stream`, `parse_capabilities`, `has_capability`, `parse_flags`, `parse_fetch_flags`, `format_flags`, `parse_internaldate`, `format_internaldate`, `int_to_ap`) with input validation
 - `tests/test_imaplib_utils.py` — unit tests for `imaplib_utils.py`
+- `mailbox_utils.py` — mailbox utilities wrapping the standard library `mailbox` module (factory helpers and exception/type checks)
+- `tests/test_mailbox_utils.py` — unit tests for `mailbox_utils.py`
