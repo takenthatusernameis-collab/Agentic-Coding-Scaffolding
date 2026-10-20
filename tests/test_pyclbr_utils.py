@@ -145,7 +145,8 @@ class TestFindFunction(unittest.TestCase):
         self.assertEqual(func.name, "sprocket")
 
     def test_find_function_returns_none_for_unknown_names(self) -> None:
-        self.assertIsNone(pyclbr_utils.find_function(_read_fixture(read_module_ex), "NoSuchFunction"))
+        result = _read_fixture(read_module_ex)
+        self.assertIsNone(pyclbr_utils.find_function(result, "NoSuchFunction"))
 
     def test_find_function_ignores_classes(self) -> None:
         result = _read_fixture(read_module_ex)

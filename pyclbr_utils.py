@@ -15,7 +15,7 @@ checks the types of its arguments before the standard library is reached.
 from __future__ import annotations
 
 import pyclbr
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence
 
 __all__: List[str] = [
     "Class",
@@ -130,7 +130,7 @@ def read_module(
 
 def read_module_ex(
     module_name: str, path: Optional[Sequence[str]] = None
-) -> Dict[str, Union[Class, Function]]:
+) -> Dict[str, Any]:
     """Return the classes and functions defined in *module_name*.
 
     Like :func:`read_module`, but the result also contains the top-level
@@ -142,7 +142,9 @@ def read_module_ex(
 
     Returns:
         A dictionary mapping class and function names to :class:`Class` or
-        :class:`Function` instances.
+        :class:`Function` instances.  A package also contributes a ``__path__``
+        entry whose value is a list of strings, so the mapping is typed
+        loosely.
 
     Raises:
         TypeError: If an argument has the wrong type.

@@ -27228,6 +27228,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_zipapp_utils.py` — unit tests for `zipapp_utils.py`
 - `py_compile_utils.py` — py_compile utilities wrapping the standard library `py_compile` module (`compile_file`/`py_compile_file`, `get_invalidation_mode`, `parse_invalidation_mode`, `is_pyc_file`, `main`) with input validation
 - `tests/test_py_compile_utils.py` — unit tests for `py_compile_utils.py`
+- `pyclbr_utils.py` — pyclbr utilities wrapping the standard library `pyclbr` module (`read_module`, `read_module_ex`, `class_names`, `function_names`, `find_class`, `find_function`, `has_class`, `has_function`, `is_class`, `is_function`) with input validation
+- `tests/test_pyclbr_utils.py` — unit tests for `pyclbr_utils.py`
 - `compileall_utils.py` — compileall utilities wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation
 - `tests/test_compileall_utils.py` — unit tests for `compileall_utils.py`
 - `modulefinder_utils.py` — modulefinder utilities wrapping the standard library `modulefinder` module (`load_script`, `find_dependencies`, `find_modules`, `missing_modules`, `missing_importers`, `module_path`, `is_package`, `report`) with input validation
@@ -29359,6 +29361,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Completed the `pyclbr_utils.py` handover: the module and its test existed and were registered in `pyproject.toml`, but `scaffold.sh` never embedded either of them, so `tests/test_scaffold_sync.py` failed and a scaffolded project was missing the module entirely. Both heredocs are now part of the generator.
+- Repaired the pre-existing `mypy` failure in `pyclbr_utils.py` (the `read_module_ex` return annotation claimed `Dict[str, Class | Function]`, but the standard library also returns a `__path__` entry whose value is a list of strings) and the pre-existing `ruff` failure (the now-unused `Union` import).
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships `pyclbr_utils.py` and `tests/test_pyclbr_utils.py`, and its 3307 tests, ruff, and mypy all pass.
 - Add `pyclbr_utils.py` wrapping the standard library `pyclbr` module (`read_module`, `read_module_ex`, `class_names`, `function_names`, `find_class`, `find_function`, `has_class`, `has_function`, `is_class`, `is_function`) with input validation, plus unit tests in `tests/test_pyclbr_utils.py`.
 - Synchronized `pyclbr_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `optparse_utils.py` wrapping the standard library `optparse` module (`make_parser`, `add_option`, `add_flag`, `add_count_option`, `add_option_group`, `parse_args`, `get_option`, `has_option`, `remove_option`, `get_default_values`, `set_defaults`, `get_usage`, `format_usage`, `format_help`, `format_option_help`, `get_prog_name`, `dest_for`, `string_type`, `int_type`, `float_type`, `choice_type`, `values_to_dict`) with input validation, plus unit tests in `tests/test_optparse_utils.py`.
@@ -63218,6 +63223,511 @@ class TestCompileallUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_COMPILEALL_UTILS
+
+# --- pyclbr_utils.py ---
+cat > "$OUTPUT_DIR/pyclbr_utils.py" <<'PYCLBR_UTILS'
+"""Class and function browser utilities wrapping the standard library :mod:`pyclbr`.
+
+The :mod:`pyclbr` module reads a Python source file and reports the classes
+and functions it defines without importing or executing the source.  The
+analysis is therefore purely static: the module under inspection is never
+loaded, so this wrapper is safe to run against untrusted or partially written
+modules and never opens a network connection or spawns a process.
+
+This wrapper re-exports the standard library :class:`pyclbr.Class` and
+:class:`pyclbr.Function` objects and adds validated helpers around
+:func:`pyclbr.readmodule` and :func:`pyclbr.readmodule_ex`.  Every helper
+checks the types of its arguments before the standard library is reached.
+"""
+
+from __future__ import annotations
+
+import pyclbr
+from typing import Any, Dict, List, Optional, Sequence
+
+__all__: List[str] = [
+    "Class",
+    "Function",
+    "class_names",
+    "find_class",
+    "find_function",
+    "function_names",
+    "has_class",
+    "has_function",
+    "is_class",
+    "is_function",
+    "read_module",
+    "read_module_ex",
+]
+
+#: The standard library class descriptor, re-exported for convenience.
+Class = pyclbr.Class
+
+#: The standard library function descriptor, re-exported for convenience.
+Function = pyclbr.Function
+
+
+def _require_str(name: str, value: Any) -> str:
+    """Return *value* when it is a string.
+
+    Args:
+        name: The name of the argument, used in the error message.
+        value: The value to check.
+
+    Returns:
+        The validated string.
+
+    Raises:
+        TypeError: If *value* is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_path(path: Any) -> Optional[Sequence[str]]:
+    """Return *path* as a sequence of strings, or ``None`` when unset.
+
+    Args:
+        path: The search path to validate.
+
+    Returns:
+        The validated path, or ``None``.
+
+    Raises:
+        TypeError: If *path* is a string or contains a non-string entry.
+    """
+    if path is None:
+        return None
+    if isinstance(path, (str, bytes)):
+        raise TypeError("path must be a sequence of strings, not a single string")
+    try:
+        entries = list(path)
+    except TypeError as exc:
+        raise TypeError(
+            f"path must be a sequence of strings, got {type(path).__name__}"
+        ) from exc
+    for entry in entries:
+        if not isinstance(entry, str):
+            raise TypeError(f"path entries must be str, got {type(entry).__name__}")
+    return entries
+
+
+def _require_module_dict(result: Any) -> Dict[str, Any]:
+    """Return *result* when it is a mapping of names to browser objects.
+
+    Args:
+        result: The value returned by :func:`read_module` or
+            :func:`read_module_ex`.
+
+    Returns:
+        The validated mapping.
+
+    Raises:
+        TypeError: If *result* is not a mapping.
+    """
+    if not isinstance(result, dict):
+        raise TypeError(f"result must be a dict, got {type(result).__name__}")
+    return result
+
+
+def read_module(
+    module_name: str, path: Optional[Sequence[str]] = None
+) -> Dict[str, Class]:
+    """Return the classes defined in *module_name*.
+
+    The source of *module_name* is read statically — it is never imported or
+    executed — so this helper is safe to run against untrusted or partially
+    written modules.
+
+    Args:
+        module_name: The name of the module to read.
+        path: An optional list of directories searched before ``sys.path``.
+
+    Returns:
+        A dictionary mapping class names to :class:`Class` instances.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ModuleNotFoundError: If the module cannot be found on the search path.
+    """
+    _require_str("module_name", module_name)
+    search_path = _require_path(path)
+    return pyclbr.readmodule(module_name, search_path)
+
+
+def read_module_ex(
+    module_name: str, path: Optional[Sequence[str]] = None
+) -> Dict[str, Any]:
+    """Return the classes and functions defined in *module_name*.
+
+    Like :func:`read_module`, but the result also contains the top-level
+    functions of the module.
+
+    Args:
+        module_name: The name of the module to read.
+        path: An optional list of directories searched before ``sys.path``.
+
+    Returns:
+        A dictionary mapping class and function names to :class:`Class` or
+        :class:`Function` instances.  A package also contributes a ``__path__``
+        entry whose value is a list of strings, so the mapping is typed
+        loosely.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ModuleNotFoundError: If the module cannot be found on the search path.
+    """
+    _require_str("module_name", module_name)
+    search_path = _require_path(path)
+    return pyclbr.readmodule_ex(module_name, search_path)
+
+
+def class_names(result: Dict[str, Any]) -> List[str]:
+    """Return the names of the classes in *result*, sorted.
+
+    Args:
+        result: A mapping as returned by :func:`read_module` or
+            :func:`read_module_ex`.
+
+    Returns:
+        The sorted names of the classes described by *result*.
+
+    Raises:
+        TypeError: If *result* is not a mapping.
+    """
+    target = _require_module_dict(result)
+    return sorted(
+        name for name, value in target.items() if isinstance(value, Class)
+    )
+
+
+def function_names(result: Dict[str, Any]) -> List[str]:
+    """Return the names of the functions in *result*, sorted.
+
+    Args:
+        result: A mapping as returned by :func:`read_module` or
+            :func:`read_module_ex`.
+
+    Returns:
+        The sorted names of the functions described by *result*.
+
+    Raises:
+        TypeError: If *result* is not a mapping.
+    """
+    target = _require_module_dict(result)
+    return sorted(
+        name for name, value in target.items() if isinstance(value, Function)
+    )
+
+
+def find_class(result: Dict[str, Any], name: str) -> Optional[Class]:
+    """Return the class named *name* in *result*, or ``None`` when absent.
+
+    Args:
+        result: A mapping as returned by :func:`read_module` or
+            :func:`read_module_ex`.
+        name: The name of the class to find.
+
+    Returns:
+        The class descriptor, or ``None`` when *result* has no such class.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+    """
+    target = _require_module_dict(result)
+    _require_str("name", name)
+    value = target.get(name)
+    return value if isinstance(value, Class) else None
+
+
+def find_function(result: Dict[str, Any], name: str) -> Optional[Function]:
+    """Return the function named *name* in *result*, or ``None`` when absent.
+
+    Args:
+        result: A mapping as returned by :func:`read_module` or
+            :func:`read_module_ex`.
+        name: The name of the function to find.
+
+    Returns:
+        The function descriptor, or ``None`` when *result* has no such
+        function.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+    """
+    target = _require_module_dict(result)
+    _require_str("name", name)
+    value = target.get(name)
+    return value if isinstance(value, Function) else None
+
+
+def has_class(result: Dict[str, Any], name: str) -> bool:
+    """Report whether *result* describes a class named *name*.
+
+    Args:
+        result: A mapping as returned by :func:`read_module` or
+            :func:`read_module_ex`.
+        name: The name of the class to check.
+
+    Returns:
+        ``True`` when *result* contains a class named *name*.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+    """
+    return find_class(result, name) is not None
+
+
+def has_function(result: Dict[str, Any], name: str) -> bool:
+    """Report whether *result* describes a function named *name*.
+
+    Args:
+        result: A mapping as returned by :func:`read_module` or
+            :func:`read_module_ex`.
+        name: The name of the function to check.
+
+    Returns:
+        ``True`` when *result* contains a function named *name*.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+    """
+    return find_function(result, name) is not None
+
+
+def is_class(value: Any) -> bool:
+    """Report whether *value* is a :class:`Class` descriptor.
+
+    Args:
+        value: The object to check.
+
+    Returns:
+        ``True`` when *value* is a :class:`Class`.
+    """
+    return isinstance(value, Class)
+
+
+def is_function(value: Any) -> bool:
+    """Report whether *value* is a :class:`Function` descriptor.
+
+    Args:
+        value: The object to check.
+
+    Returns:
+        ``True`` when *value* is a :class:`Function`.
+    """
+    return isinstance(value, Function)
+PYCLBR_UTILS
+
+# --- tests/test_pyclbr_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_pyclbr_utils.py" <<'TEST_PYCLBR_UTILS'
+"""Unit tests for pyclbr_utils module."""
+
+import shutil
+import tempfile
+import unittest
+from pathlib import Path
+
+import pyclbr_utils
+from pyclbr_utils import Class, Function, read_module, read_module_ex
+
+_FIXTURE_SOURCE = '''\
+class Widget:
+    """A sample class."""
+
+    def gadget(self, value):
+        return value
+
+
+def sprocket(x, y):
+    """A sample function."""
+    return x + y
+'''
+
+
+def _read_fixture(read, name: str = "fixture_module"):
+    """Write the fixture source into a temp directory and read it back.
+
+    Reading a private fixture keeps the suite hermetic and deterministic: the
+    module under inspection is never imported, and the result does not depend
+    on pyclbr's own source or its module-level cache.
+    """
+    tmpdir = tempfile.mkdtemp(prefix="pyclbr-test-")
+    try:
+        path = Path(tmpdir) / f"{name}.py"
+        path.write_text(_FIXTURE_SOURCE)
+        return read(name, path=[tmpdir])
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+class TestReadModule(unittest.TestCase):
+    """Exercise reading the classes of a module."""
+
+    def test_read_module_returns_a_mapping(self) -> None:
+        result = _read_fixture(read_module)
+        self.assertIsInstance(result, dict)
+
+    def test_read_module_returns_the_fixture_class(self) -> None:
+        result = _read_fixture(read_module)
+        self.assertIsInstance(result["Widget"], Class)
+
+    def test_read_module_unknown_module_raises(self) -> None:
+        with self.assertRaises(ModuleNotFoundError):
+            read_module("no_such_module_xyz")
+
+    def test_read_module_rejects_invalid_arguments(self) -> None:
+        with self.assertRaises(TypeError):
+            read_module(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            read_module("fixture_module", path="not-a-sequence")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            read_module("fixture_module", path=[42])  # type: ignore[list-item]
+
+
+class TestReadModuleEx(unittest.TestCase):
+    """Exercise reading the classes and functions of a module."""
+
+    def test_read_module_ex_returns_classes_and_functions(self) -> None:
+        result = _read_fixture(read_module_ex)
+        self.assertIsInstance(result["Widget"], Class)
+        self.assertIsInstance(result["sprocket"], Function)
+
+    def test_read_module_ex_rejects_invalid_arguments(self) -> None:
+        with self.assertRaises(TypeError):
+            read_module_ex(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            read_module_ex("fixture_module", path=[1, 2])  # type: ignore[list-item]
+
+
+class TestClassNames(unittest.TestCase):
+    """Exercise the class name helper."""
+
+    def test_class_names_returns_the_class_names(self) -> None:
+        self.assertEqual(pyclbr_utils.class_names(_read_fixture(read_module_ex)), ["Widget"])
+
+    def test_class_names_excludes_functions(self) -> None:
+        result = _read_fixture(read_module_ex)
+        self.assertNotIn("sprocket", pyclbr_utils.class_names(result))
+
+    def test_class_names_returns_sorted_strings(self) -> None:
+        names = pyclbr_utils.class_names(_read_fixture(read_module_ex))
+        self.assertEqual(names, sorted(names))
+        self.assertTrue(all(isinstance(name, str) for name in names))
+
+    def test_class_names_rejects_invalid_arguments(self) -> None:
+        with self.assertRaises(TypeError):
+            pyclbr_utils.class_names("not-a-dict")  # type: ignore[arg-type]
+
+
+class TestFunctionNames(unittest.TestCase):
+    """Exercise the function name helper."""
+
+    def test_function_names_returns_the_function_names(self) -> None:
+        names = pyclbr_utils.function_names(_read_fixture(read_module_ex))
+        self.assertIn("sprocket", names)
+        self.assertEqual(names, sorted(names))
+
+    def test_function_names_excludes_classes(self) -> None:
+        result = _read_fixture(read_module_ex)
+        self.assertNotIn("Widget", pyclbr_utils.function_names(result))
+
+    def test_function_names_rejects_invalid_arguments(self) -> None:
+        with self.assertRaises(TypeError):
+            pyclbr_utils.function_names(42)  # type: ignore[arg-type]
+
+
+class TestFindClass(unittest.TestCase):
+    """Exercise the class lookup helper."""
+
+    def test_find_class_returns_the_class(self) -> None:
+        cls = pyclbr_utils.find_class(_read_fixture(read_module_ex), "Widget")
+        assert cls is not None
+        self.assertEqual(cls.name, "Widget")
+
+    def test_find_class_returns_none_for_unknown_names(self) -> None:
+        self.assertIsNone(pyclbr_utils.find_class(_read_fixture(read_module_ex), "NoSuchClass"))
+
+    def test_find_class_ignores_functions(self) -> None:
+        result = _read_fixture(read_module_ex)
+        self.assertIsNone(pyclbr_utils.find_class(result, "sprocket"))
+
+    def test_find_class_rejects_invalid_arguments(self) -> None:
+        with self.assertRaises(TypeError):
+            pyclbr_utils.find_class("not-a-dict", "Widget")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            pyclbr_utils.find_class(_read_fixture(read_module_ex), 42)  # type: ignore[arg-type]
+
+
+class TestFindFunction(unittest.TestCase):
+    """Exercise the function lookup helper."""
+
+    def test_find_function_returns_the_function(self) -> None:
+        func = pyclbr_utils.find_function(_read_fixture(read_module_ex), "sprocket")
+        assert func is not None
+        self.assertEqual(func.name, "sprocket")
+
+    def test_find_function_returns_none_for_unknown_names(self) -> None:
+        result = _read_fixture(read_module_ex)
+        self.assertIsNone(pyclbr_utils.find_function(result, "NoSuchFunction"))
+
+    def test_find_function_ignores_classes(self) -> None:
+        result = _read_fixture(read_module_ex)
+        self.assertIsNone(pyclbr_utils.find_function(result, "Widget"))
+
+    def test_find_function_rejects_invalid_arguments(self) -> None:
+        with self.assertRaises(TypeError):
+            pyclbr_utils.find_function(None, "sprocket")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            pyclbr_utils.find_function(_read_fixture(read_module_ex), 42)  # type: ignore[arg-type]
+
+
+class TestHasClassAndFunction(unittest.TestCase):
+    """Exercise the membership helpers."""
+
+    def test_has_class_reports_known_and_unknown_classes(self) -> None:
+        result = _read_fixture(read_module_ex)
+        self.assertTrue(pyclbr_utils.has_class(result, "Widget"))
+        self.assertFalse(pyclbr_utils.has_class(result, "sprocket"))
+
+    def test_has_function_reports_known_and_unknown_functions(self) -> None:
+        result = _read_fixture(read_module_ex)
+        self.assertTrue(pyclbr_utils.has_function(result, "sprocket"))
+        self.assertFalse(pyclbr_utils.has_function(result, "NoSuchFunction"))
+
+
+class TestIsClassAndFunction(unittest.TestCase):
+    """Exercise the type predicates."""
+
+    def test_is_class_recognises_class_descriptors(self) -> None:
+        result = _read_fixture(read_module_ex)
+        self.assertTrue(pyclbr_utils.is_class(result["Widget"]))
+        self.assertFalse(pyclbr_utils.is_class(result["sprocket"]))
+
+    def test_is_function_recognises_function_descriptors(self) -> None:
+        result = _read_fixture(read_module_ex)
+        self.assertTrue(pyclbr_utils.is_function(result["sprocket"]))
+        self.assertFalse(pyclbr_utils.is_function(result["Widget"]))
+
+    def test_predicates_handle_plain_objects(self) -> None:
+        self.assertFalse(pyclbr_utils.is_class(42))
+        self.assertFalse(pyclbr_utils.is_function("not a function"))
+
+
+class TestReexports(unittest.TestCase):
+    """Exercise the standard library re-exports."""
+
+    def test_class_and_function_are_the_stdlib_objects(self) -> None:
+        import pyclbr
+
+        self.assertIs(pyclbr_utils.Class, pyclbr.Class)
+        self.assertIs(pyclbr_utils.Function, pyclbr.Function)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_PYCLBR_UTILS
 
 # --- rlcompleter_utils.py ---
 cat > "$OUTPUT_DIR/rlcompleter_utils.py" <<'RLCOMPLETER_UTILS'

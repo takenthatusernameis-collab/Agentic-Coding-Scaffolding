@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Completed the `pyclbr_utils.py` handover: the module and its test existed and were registered in `pyproject.toml`, but `scaffold.sh` never embedded either of them, so `tests/test_scaffold_sync.py` failed and a scaffolded project was missing the module entirely. Both heredocs are now part of the generator.
+- Repaired the pre-existing `mypy` failure in `pyclbr_utils.py` (the `read_module_ex` return annotation claimed `Dict[str, Class | Function]`, but the standard library also returns a `__path__` entry whose value is a list of strings) and the pre-existing `ruff` failure (the now-unused `Union` import).
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships `pyclbr_utils.py` and `tests/test_pyclbr_utils.py`, and its 3307 tests, ruff, and mypy all pass.
 - Add `pyclbr_utils.py` wrapping the standard library `pyclbr` module (`read_module`, `read_module_ex`, `class_names`, `function_names`, `find_class`, `find_function`, `has_class`, `has_function`, `is_class`, `is_function`) with input validation, plus unit tests in `tests/test_pyclbr_utils.py`.
 - Synchronized `pyclbr_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `optparse_utils.py` wrapping the standard library `optparse` module (`make_parser`, `add_option`, `add_flag`, `add_count_option`, `add_option_group`, `parse_args`, `get_option`, `has_option`, `remove_option`, `get_default_values`, `set_defaults`, `get_usage`, `format_usage`, `format_help`, `format_option_help`, `get_prog_name`, `dest_for`, `string_type`, `int_type`, `float_type`, `choice_type`, `values_to_dict`) with input validation, plus unit tests in `tests/test_optparse_utils.py`.

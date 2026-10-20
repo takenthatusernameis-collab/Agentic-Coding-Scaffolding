@@ -82,6 +82,23 @@ Foundation verified present; no task was on the board. Next agent should add `py
 
 Completed in the latest session:
 
+- Closed the `pyclbr_utils.py` synchronization gap that the bootstrap session left behind: the module
+  and its test existed and were registered in `pyproject.toml`, but `scaffold.sh` never embedded
+  either of them, so `tests/test_scaffold_sync.py` failed and a scaffolded project was missing the
+  module entirely. Both heredocs are now part of the generator, placed after the `compileall` heredocs
+  and before `rlcompleter_utils.py`, matching the `pyproject.toml` ordering.
+- Repaired the pre-existing `mypy` failure in `pyclbr_utils.py`: the `read_module_ex` return annotation
+  claimed `Dict[str, Class | Function]`, but the standard library also returns a `__path__` entry for
+  packages whose value is a list of strings, so the annotation is now `Dict[str, Any]`.
+- Repaired the pre-existing `ruff` failure in `pyclbr_utils.py`: the now-unused `Union` import was
+  removed.
+- Repaired the pre-existing `ruff` failure in `tests/test_pyclbr_utils.py`: the long line in
+  `test_find_function_returns_none_for_unknown_names` was split across two lines.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `pyclbr_utils.py` and `tests/test_pyclbr_utils.py`, and its 3307 tests, ruff, and mypy all pass.
+
+Completed in the latest session:
+
 - Added `optparse_utils.py` wrapping the standard library `optparse` module (`make_parser`,
   `add_option`, `add_flag`, `add_count_option`, `add_option_group`, `parse_args`, `get_option`,
   `has_option`, `remove_option`, `get_default_values`, `set_defaults`, `get_usage`, `format_usage`,
