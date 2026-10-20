@@ -423,3 +423,5 @@ scaffold-project my-cool-tool ./out --no-test
 
 - `trace_utils.py` — execution tracing utilities wrapping the standard library `trace` module (`new_tracer`, `run_traced`, `run_script_traced`, `counted_lines`, `line_counts`, `called_functions`, `call_relationships`, `is_ignored_filename`, `merge_results`, `write_coverage_report`, `summarize_coverage`, `format_coverage_summary`, `clear_counts`) with input validation
 - `tests/test_trace_utils.py` — unit tests for `trace_utils.py`
+- `profile_utils.py` — profiling utilities wrapping stdlib profile
+- `tests/test_profile_utils.py` — tests

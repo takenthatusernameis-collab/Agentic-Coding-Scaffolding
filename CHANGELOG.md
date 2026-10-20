@@ -742,3 +742,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `tty_utils.py` — tty utilities wrapping stdlib tty with tests
 - `tests/test_tty_utils.py` — unit tests for `tty_utils.py`
+profile_utils.py
+tests/test_profile_utils.py

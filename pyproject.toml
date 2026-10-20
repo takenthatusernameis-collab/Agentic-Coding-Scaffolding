@@ -151,7 +151,7 @@ py_modules = [
     "binascii_utils",
     "bisect_utils",
     "trace_utils",
-    "bz2_utils",
+    "profile_utils",    "bz2_utils",
     "contextlib_utils",
     "contextvars_utils",
     "netrc_utils",
