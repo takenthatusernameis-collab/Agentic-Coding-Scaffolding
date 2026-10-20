@@ -447,3 +447,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_wave_utils.py` — unit tests for `wave_utils.py`
 - `uu_utils.py` — uuencode utilities wrapping the standard library `uu` module (`uu_encode`, `uu_decode`, `encode_uu`, `decode_uu`, `parse_uu_header`, `is_uuencoded`) with input validation
 - `tests/test_uu_utils.py` — unit tests for `uu_utils.py`
+- `zipapp_utils.py` — zipapp utilities wrapping the standard library `zipapp` module (`create_archive`/`create_zipapp`, `get_interpreter`/`get_zipapp_interpreter`, `is_zipapp_archive`)
+- `tests/test_zipapp_utils.py` — unit tests for `zipapp_utils.py`

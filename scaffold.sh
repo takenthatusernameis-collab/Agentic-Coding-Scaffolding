@@ -293,7 +293,9 @@
 #   - wave_utils.py — # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames)
 #   - tests/test_wave_utils.py — # Tests for wave_utils.py
 #   - uu_utils.py — # Uuencode utilities wrapping stdlib uu (uu_encode, uu_decode, encode_uu, decode_uu, parse_uu_header, is_uuencoded)
+#   - zipapp_utils.py — # Zipapp utilities wrapping stdlib zipapp (create_archive/create_zipapp, get_interpreter/get_zipapp_interpreter, is_zipapp_archive)
 #   - tests/test_uu_utils.py — # Tests for uu_utils.py
+#   - tests/test_zipapp_utils.py — # Tests for zipapp_utils.py
 #   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 #   - tests/test_contextlib_utils.py — # Tests for contextlib_utils.py
 
@@ -4241,6 +4243,7 @@ py_modules = [
     "deprecation_utils",
     "asyncio_utils",
     "imaplib_utils",
+    "zipapp_utils",
     "mailbox_utils",
     "wave_utils",
     "mmap_utils",
@@ -27192,6 +27195,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_wave_utils.py` — unit tests for `wave_utils.py`
 - `uu_utils.py` — uuencode utilities wrapping the standard library `uu` module (`uu_encode`, `uu_decode`, `encode_uu`, `decode_uu`, `parse_uu_header`, `is_uuencoded`) with input validation
 - `tests/test_uu_utils.py` — unit tests for `uu_utils.py`
+- `zipapp_utils.py` — zipapp utilities wrapping the standard library `zipapp` module (`create_archive`/`create_zipapp`, `get_interpreter`/`get_zipapp_interpreter`, `is_zipapp_archive`)
+- `tests/test_zipapp_utils.py` — unit tests for `zipapp_utils.py`
 SCAFFOLD
 
 
@@ -29283,6 +29288,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved the scaffold summary and smoke test to the end of `scaffold.sh`: both used to run in the middle of the generator, so the "Created files" listing missed every module written after that point and the smoke test only discovered the tests written up to that point. The smoke test now also runs after the project name has been substituted into the templated documents.
 - Registered `asyncio_utils`, `imaplib_utils`, `mmap_utils`, `profile_utils`, `pstats_utils`, `timeit_utils`, and `unittest_utils` in the `pyproject.toml` template embedded in `scaffold.sh`, so a generated project declares every module it ships.
 - Add `uu_utils.py` wrapping the standard library `uu` module (`uu_encode`, `uu_decode`, `encode_uu`, `decode_uu`, `parse_uu_header`, `is_uuencoded`) with input validation, plus unit tests in `tests/test_uu_utils.py`.
+- Add `zipapp_utils.py` wrapping the standard library `zipapp` module (`create_archive`/`create_zipapp`, `get_interpreter`/`get_zipapp_interpreter`, `is_zipapp_archive`) with `ZipAppError` re-export, plus unit tests in `tests/test_zipapp_utils.py`.
 - Add `wave_utils.py` wrapping the standard library `wave` module (`open_read`, `open_write`, `wave_info`, `read_frames`, `write_frames`, `create_writer`, `get_params`, `set_params`, and per-field parameter setters) with input validation, plus unit tests in `tests/test_wave_utils.py`.
 - Add `mailcap_utils.py` wrapping the standard library `mailcap` module with mailcap helpers, plus unit tests in `tests/test_mailcap_utils.py`.
 - Add `mailbox_utils.py` wrapping the standard library `mailbox` module (factory helpers for mbox/Maildir/MH/MMDF/Babyl, message factories, and exception type checks) with unit tests in `tests/test_mailbox_utils.py`.
@@ -59372,6 +59378,151 @@ class TestUuUnavailable(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_UU_UTILS
+
+# --- zipapp_utils.py ---
+cat > "$OUTPUT_DIR/zipapp_utils.py" <<'ZIPAPP_UTILS'
+"""Zipapp utility functions."""
+
+from __future__ import annotations
+
+import zipapp
+from pathlib import Path
+from typing import Callable, Optional, Union
+
+__all__ = [
+    "ZipAppError",
+    "create_archive",
+    "get_interpreter",
+    "create_zipapp",
+    "get_zipapp_interpreter",
+    "is_zipapp_archive",
+]
+
+
+# Re-export exception
+ZipAppError = zipapp.ZipAppError
+
+PathLikeOrStr = Union[str, Path]
+
+
+def create_archive(
+    source: Union[str, Path],
+    target: Optional[Union[str, Path]] = None,
+    interpreter: Optional[str] = None,
+    main: Optional[str] = None,
+    filter: Optional[Callable[[Path], bool]] = None,
+    compressed: bool = False,
+) -> None:
+    """Create an application archive from source."""
+    return zipapp.create_archive(
+        source=source,
+        target=target,
+        interpreter=interpreter,
+        main=main,
+        filter=filter,
+        compressed=compressed,
+    )
+
+
+# Aliases for convenience
+create_zipapp = create_archive
+
+
+def get_interpreter(archive: Union[str, Path]) -> Optional[str]:
+    """Get the interpreter from an application archive."""
+    return zipapp.get_interpreter(archive)
+
+
+get_zipapp_interpreter = get_interpreter
+
+
+def is_zipapp_archive(path: str) -> bool:
+    """Check if a file is a zipapp archive (has shebang or is a zip)."""
+    try:
+        with open(path, "rb") as f:
+            header = f.read(2)
+        # Zip files start with PK\x03\x04
+        if header == b"PK":
+            return True
+        # Could also be a Python script with shebang
+        with open(path, "rb") as f:
+            first_line = f.readline()
+        if first_line.startswith(b"#!"):
+            # Might be a zipapp with shebang
+            try:
+                interp = get_interpreter(path)
+                if interp is not None:
+                    return True
+            except Exception:
+                pass
+        return False
+    except Exception:
+        return False
+ZIPAPP_UTILS
+
+# --- tests/test_zipapp_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_zipapp_utils.py" <<'TEST_ZIPAPP_UTILS'
+"""Tests for zipapp utility functions."""
+
+import os
+import tempfile
+import zipfile
+from unittest import TestCase
+
+import zipapp_utils
+
+
+class TestZipappUtils(TestCase):
+    def test_zipapp_error_exists(self):
+        self.assertTrue(hasattr(zipapp_utils, "ZipAppError"))
+        self.assertTrue(issubclass(zipapp_utils.ZipAppError, Exception))
+
+    def test_create_archive_and_get_interpreter(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create a simple source directory
+            src = os.path.join(tmpdir, "src")
+            os.makedirs(src)
+            with open(os.path.join(src, "__main__.py"), "w") as f:
+                f.write("print('hello')\n")
+
+            target = os.path.join(tmpdir, "app.pyz")
+            zipapp_utils.create_archive(src, target)
+            self.assertTrue(os.path.exists(target))
+
+            # Get interpreter
+            interp = zipapp_utils.get_interpreter(target)
+            # Should return something like sys.executable or None depending
+            self.assertIsInstance(interp, (str, type(None)))
+
+    def test_create_zipapp_alias(self):
+        self.assertEqual(zipapp_utils.create_zipapp, zipapp_utils.create_archive)
+
+    def test_get_zipapp_interpreter_alias(self):
+        self.assertEqual(zipapp_utils.get_zipapp_interpreter, zipapp_utils.get_interpreter)
+
+    def test_is_zipapp_archive(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create a zipapp
+            src = os.path.join(tmpdir, "src")
+            os.makedirs(src)
+            with open(os.path.join(src, "__main__.py"), "w") as f:
+                f.write("print('hi')\n")
+            target = os.path.join(tmpdir, "app.pyz")
+            zipapp_utils.create_archive(src, target)
+            self.assertTrue(zipapp_utils.is_zipapp_archive(target))
+
+            # Create a regular zip
+            zpath = os.path.join(tmpdir, "notapp.zip")
+            with zipfile.ZipFile(zpath, "w") as z:
+                z.writestr("test.txt", "hello")
+            self.assertTrue(zipapp_utils.is_zipapp_archive(zpath))
+
+            # Create a regular file
+            fpath = os.path.join(tmpdir, "test.txt")
+            with open(fpath, "w") as f:
+                f.write("hello")
+            self.assertFalse(zipapp_utils.is_zipapp_archive(fpath))
+TEST_ZIPAPP_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
