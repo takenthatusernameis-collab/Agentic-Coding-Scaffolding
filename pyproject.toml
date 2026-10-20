@@ -75,6 +75,8 @@ py_modules = [
     "fnmatch_utils",
     "url_utils",
     "random_utils",
+    "tempfile_utils",
+    "re_utils",
     "secrets_utils",
     "validation_utils",
     "crypto_utils",

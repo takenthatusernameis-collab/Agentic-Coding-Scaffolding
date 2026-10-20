@@ -109,6 +109,10 @@
 
 #   - random_utils.py — # Random number generation and sampling utilities
 
+#   - re_utils.py — # Regular expression utilities (compile, match, search, replace, split, escape)
+#   - tempfile_utils.py — # Temporary file and directory management utilities
+#   - traceback_utils.py — # Traceback utilities wrapping stdlib traceback (format_exception, format_exception_only, extract_stack, format_stack, format_exc)
+
 #   - validation_utils.py — # Input validation utilities
 
 #   - crypto_utils.py — # Cryptographic utilities
@@ -611,7 +615,9 @@
 
 #   - test_argparse_utils.py — # Tests for argparse_utils.py
 
-#   - test_warnings_utils.py — # Tests for warnings_utils.py
+#   - tests/test_re_utils.py — # Tests for re_utils.py
+#   - tests/test_tempfile_utils.py — # Tests for tempfile_utils.py
+#   - tests/test_warnings_utils.py — # Tests for warnings_utils.py
 
 #   - test_xml_utils.py — # Tests for xml_utils.py
 #   - mmap_utils.py — # Utilities wrapping the standard library mmap module (create_anonymous, create_file_mmap, access_read, access_write, access_copy, pagesize, allocation_granularity, constants, is_mmap, write_bytes, read_bytes, find_bytes, close_mmap)
@@ -2362,7 +2368,7 @@ collected statistics, and render them as readable reports.
 from __future__ import annotations
 
 import profile as _profile
-from typing import Any, Callable, Optional, TextIO
+from typing import Any, Optional
 
 __all__ = [
     "new_profiler",
@@ -4055,6 +4061,8 @@ py_modules = [
     "file_utils",
     "url_utils",
     "random_utils",
+    "re_utils",
+    "tempfile_utils",
     "secrets_utils",
     "validation_utils",
     "crypto_utils",
@@ -12037,6 +12045,302 @@ if __name__ == "__main__":
     unittest.main()
 TESTURLUTILS
 # --- random_utils.py ---
+# --- re_utils.py ---
+cat > "$OUTPUT_DIR/re_utils.py" <<'REUTILS'
+"""Regular expression utility functions wrapping the :mod:`re` module.
+
+Provides convenient helpers for common regex operations with type validation.
+"""
+
+import re
+from typing import Callable, List, Optional, Tuple, Union
+
+
+def find_all(pattern: Union[str, re.Pattern], text: str) -> List[str]:
+    """Find all non-overlapping matches of a pattern in text."""
+    if isinstance(pattern, str):
+        compiled = re.compile(pattern)
+    elif isinstance(pattern, re.Pattern):
+        compiled = pattern
+    else:
+        raise TypeError("pattern must be str or re.Pattern")
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return compiled.findall(text)
+
+
+def find_matches(pattern: Union[str, re.Pattern], text: str) -> List[re.Match]:
+    """Find all matches returning Match objects."""
+    if isinstance(pattern, str):
+        compiled = re.compile(pattern)
+    elif isinstance(pattern, re.Pattern):
+        compiled = pattern
+    else:
+        raise TypeError("pattern must be str or re.Pattern")
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return list(compiled.finditer(text))
+
+
+def search(pattern: Union[str, re.Pattern], text: str) -> Optional[re.Match]:
+    """Search for a pattern in text."""
+    if isinstance(pattern, str):
+        compiled = re.compile(pattern)
+    elif isinstance(pattern, re.Pattern):
+        compiled = pattern
+    else:
+        raise TypeError("pattern must be str or re.Pattern")
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return compiled.search(text)
+
+
+def match(pattern: Union[str, re.Pattern], text: str) -> Optional[re.Match]:
+    """Match pattern at beginning of text."""
+    if isinstance(pattern, str):
+        compiled = re.compile(pattern)
+    elif isinstance(pattern, re.Pattern):
+        compiled = pattern
+    else:
+        raise TypeError("pattern must be str or re.Pattern")
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return compiled.match(text)
+
+
+def full_match(pattern: Union[str, re.Pattern], text: str) -> Optional[re.Match]:
+    """Match pattern against entire text."""
+    if isinstance(pattern, str):
+        compiled = re.compile(pattern)
+    elif isinstance(pattern, re.Pattern):
+        compiled = pattern
+    else:
+        raise TypeError("pattern must be str or re.Pattern")
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return compiled.fullmatch(text)
+
+
+def split(
+    pattern: Union[str, re.Pattern], text: str, maxsplit: int = 0
+) -> List[str]:
+    """Split text by pattern."""
+    if isinstance(pattern, str):
+        compiled = re.compile(pattern)
+    elif isinstance(pattern, re.Pattern):
+        compiled = pattern
+    else:
+        raise TypeError("pattern must be str or re.Pattern")
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    if not isinstance(maxsplit, int) or isinstance(maxsplit, bool):
+        raise TypeError("maxsplit must be an integer")
+    return compiled.split(text, maxsplit=maxsplit)
+
+
+def sub(
+    pattern: Union[str, re.Pattern],
+    repl: Union[str, Callable],
+    text: str,
+    count: int = 0,
+) -> str:
+    """Substitute pattern in text."""
+    if isinstance(pattern, str):
+        compiled = re.compile(pattern)
+    elif isinstance(pattern, re.Pattern):
+        compiled = pattern
+    else:
+        raise TypeError("pattern must be str or re.Pattern")
+    if not (isinstance(repl, str) or callable(repl)):
+        raise TypeError("repl must be str or callable")
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    if not isinstance(count, int) or isinstance(count, bool):
+        raise TypeError("count must be an integer")
+    return compiled.sub(repl, text, count=count)
+
+
+def subn(
+    pattern: Union[str, re.Pattern],
+    repl: Union[str, Callable],
+    text: str,
+    count: int = 0,
+) -> Tuple[str, int]:
+    """Substitute pattern returning (new_text, number_of_subs)."""
+    if isinstance(pattern, str):
+        compiled = re.compile(pattern)
+    elif isinstance(pattern, re.Pattern):
+        compiled = pattern
+    else:
+        raise TypeError("pattern must be str or re.Pattern")
+    if not (isinstance(repl, str) or callable(repl)):
+        raise TypeError("repl must be str or callable")
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    if not isinstance(count, int) or isinstance(count, bool):
+        raise TypeError("count must be an integer")
+    return compiled.subn(repl, text, count=count)
+
+
+def compile_regex(pattern: str, flags: int = 0) -> re.Pattern:
+    """Compile a regex pattern."""
+    if not isinstance(pattern, str):
+        raise TypeError("pattern must be a string")
+    if not isinstance(flags, int) or isinstance(flags, bool):
+        raise TypeError("flags must be an integer")
+    return re.compile(pattern, flags=flags)
+
+
+def escape(string: str) -> str:
+    """Escape regex special characters in string."""
+    if not isinstance(string, str):
+        raise TypeError("string must be a string")
+    return re.escape(string)
+REUTILS
+# --- tempfile_utils.py ---
+cat > "$OUTPUT_DIR/tempfile_utils.py" <<'TEMPFILEUTILS'
+"""Utilities for working with temporary files and directories
+(wrapping :mod:`tempfile`)."""
+
+import tempfile
+from typing import Any, Optional
+
+
+def get_tempdir() -> str:
+    """Return the name of the directory used for temporary files."""
+    return tempfile.gettempdir()
+
+
+def gettempprefix() -> str:
+    """Return the prefix for temporary file names."""
+    return tempfile.gettempprefix()
+
+
+def mkstemp(suffix: str = "", prefix: str = None, dir: str = None) -> tuple:
+    """Create a temporary file and return (fd, name)."""
+    if suffix is not None and not isinstance(suffix, str):
+        raise TypeError("suffix must be a string")
+    if prefix is not None and not isinstance(prefix, str):
+        raise TypeError("prefix must be a string")
+    if dir is not None and not isinstance(dir, str):
+        raise TypeError("dir must be a string")
+    return tempfile.mkstemp(suffix=suffix, prefix=prefix, dir=dir)
+
+
+def mkdtemp(suffix: str = "", prefix: str = None, dir: str = None) -> str:
+    """Create a temporary directory."""
+    if suffix is not None and not isinstance(suffix, str):
+        raise TypeError("suffix must be a string")
+    if prefix is not None and not isinstance(prefix, str):
+        raise TypeError("prefix must be a string")
+    if dir is not None and not isinstance(dir, str):
+        raise TypeError("dir must be a string")
+    return tempfile.mkdtemp(suffix=suffix, prefix=prefix, dir=dir)
+
+
+def NamedTemporaryFile(
+    mode: str = "w+b",
+    buffering: int = -1,
+    encoding: Optional[str] = None,
+    newline: Optional[str] = None,
+    suffix: str = "",
+    prefix: str = None,
+    dir: str = None,
+    delete: bool = True,
+    **kwargs,
+) -> Any:
+    """Return a file-like object for a temporary file."""
+    if not isinstance(mode, str):
+        raise TypeError("mode must be a string")
+    if not isinstance(buffering, int) or isinstance(buffering, bool):
+        raise TypeError("buffering must be an integer")
+    if encoding is not None and not isinstance(encoding, str):
+        raise TypeError("encoding must be a string or None")
+    if newline is not None and not isinstance(newline, str):
+        raise TypeError("newline must be a string or None")
+    if suffix is not None and not isinstance(suffix, str):
+        raise TypeError("suffix must be a string")
+    if prefix is not None and not isinstance(prefix, str):
+        raise TypeError("prefix must be a string")
+    if dir is not None and not isinstance(dir, str):
+        raise TypeError("dir must be a string")
+    if not isinstance(delete, bool):
+        raise TypeError("delete must be a bool")
+    return tempfile.NamedTemporaryFile(
+        mode=mode,
+        buffering=buffering,
+        encoding=encoding,
+        newline=newline,
+        suffix=suffix,
+        prefix=prefix,
+        dir=dir,
+        delete=delete,
+        **kwargs,
+    )
+
+
+def TemporaryDirectory(
+    suffix: str = "",
+    prefix: str = None,
+    dir: str = None,
+    ignore_cleanup_errors: bool = False,
+) -> Any:
+    """Return a context manager for a temporary directory."""
+    if suffix is not None and not isinstance(suffix, str):
+        raise TypeError("suffix must be a string")
+    if prefix is not None and not isinstance(prefix, str):
+        raise TypeError("prefix must be a string")
+    if dir is not None and not isinstance(dir, str):
+        raise TypeError("dir must be a string")
+    if not isinstance(ignore_cleanup_errors, bool):
+        raise TypeError("ignore_cleanup_errors must be a bool")
+    return tempfile.TemporaryDirectory(
+        suffix=suffix,
+        prefix=prefix,
+        dir=dir,
+        ignore_cleanup_errors=ignore_cleanup_errors,
+    )
+
+
+def SpooledTemporaryFile(
+    max_size: int = 0,
+    mode: str = "w+b",
+    buffering: int = -1,
+    encoding: Optional[str] = None,
+    newline: Optional[str] = None,
+    suffix: str = "",
+    prefix: str = None,
+    dir: str = None,
+) -> Any:
+    """Return a spooled temporary file."""
+    if not isinstance(max_size, int) or isinstance(max_size, bool):
+        raise TypeError("max_size must be an integer")
+    if not isinstance(mode, str):
+        raise TypeError("mode must be a string")
+    if not isinstance(buffering, int) or isinstance(buffering, bool):
+        raise TypeError("buffering must be an integer")
+    if encoding is not None and not isinstance(encoding, str):
+        raise TypeError("encoding must be a string or None")
+    if newline is not None and not isinstance(newline, str):
+        raise TypeError("newline must be a string or None")
+    if suffix is not None and not isinstance(suffix, str):
+        raise TypeError("suffix must be a string")
+    if prefix is not None and not isinstance(prefix, str):
+        raise TypeError("prefix must be a string")
+    if dir is not None and not isinstance(dir, str):
+        raise TypeError("dir must be a string")
+    return tempfile.SpooledTemporaryFile(
+        max_size=max_size,
+        mode=mode,
+        buffering=buffering,
+        encoding=encoding,
+        newline=newline,
+        suffix=suffix,
+        prefix=prefix,
+        dir=dir,
+    )
+TEMPFILEUTILS
+
 cat > "$OUTPUT_DIR/random_utils.py" <<'RANDUTILS'
 """Random number generation and sampling utilities."""
 
@@ -12242,6 +12546,242 @@ __all__: List[str] = [
 ]
 RANDUTILS
 # --- tests/test_random_utils.py ---
+# --- tests/test_re_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_re_utils.py" <<'TESTREUTILS'
+"""Tests for re_utils module."""
+
+import re
+import unittest
+
+from re_utils import (
+    compile_regex,
+    escape,
+    find_all,
+    find_matches,
+    full_match,
+    match,
+    search,
+    split,
+    sub,
+    subn,
+)
+
+
+class TestFindAll(unittest.TestCase):
+    def test_find_all_basic(self):
+        result = find_all(r"\d+", "hello 123 world 456")
+        self.assertEqual(result, ["123", "456"])
+
+    def test_find_all_with_pattern_object(self):
+        pattern = re.compile(r"[a-z]+")
+        result = find_all(pattern, "Hello World")
+        self.assertEqual(result, ["ello", "orld"])
+
+    def test_find_all_invalid_pattern(self):
+        with self.assertRaises(TypeError):
+            find_all(123, "text")
+
+    def test_find_all_invalid_text(self):
+        with self.assertRaises(TypeError):
+            find_all(r"\d+", 123)
+
+
+class TestFindMatches(unittest.TestCase):
+    def test_find_matches_basic(self):
+        matches = find_matches(r"\d+", "a1b22c333")
+        self.assertEqual(len(matches), 3)
+        self.assertEqual([m.group() for m in matches], ["1", "22", "333"])
+
+    def test_find_matches_with_pattern_object(self):
+        matches = find_matches(re.compile(r"\w+"), "hello world")
+        self.assertEqual(len(matches), 2)
+
+
+class TestSearch(unittest.TestCase):
+    def test_search_found(self):
+        result = search(r"world", "hello world")
+        self.assertIsInstance(result, re.Match)
+        self.assertEqual(result.group(), "world")
+
+    def test_search_not_found(self):
+        result = search(r"xyz", "hello world")
+        self.assertIsNone(result)
+
+
+class TestMatch(unittest.TestCase):
+    def test_match_at_start(self):
+        result = match(r"hello", "hello world")
+        self.assertIsInstance(result, re.Match)
+
+    def test_match_not_at_start(self):
+        result = match(r"world", "hello world")
+        self.assertIsNone(result)
+
+
+class TestFullMatch(unittest.TestCase):
+    def test_full_match(self):
+        result = full_match(r"\d+", "12345")
+        self.assertIsInstance(result, re.Match)
+
+    def test_full_match_partial(self):
+        result = full_match(r"\d+", "123abc")
+        self.assertIsNone(result)
+
+
+class TestSplit(unittest.TestCase):
+    def test_split_basic(self):
+        result = split(r"\s+", "hello   world\tfoo")
+        self.assertEqual(result, ["hello", "world", "foo"])
+
+    def test_split_with_maxsplit(self):
+        result = split(r"\s+", "a b c d", maxsplit=2)
+        self.assertEqual(result, ["a", "b", "c d"])
+
+    def test_split_invalid_maxsplit(self):
+        with self.assertRaises(TypeError):
+            split(r"\s+", "a b", maxsplit="2")
+
+    def test_split_bool_maxsplit(self):
+        with self.assertRaises(TypeError):
+            split(r"\s+", "a b", maxsplit=True)
+
+
+class TestSub(unittest.TestCase):
+    def test_sub_basic(self):
+        result = sub(r"\d+", "X", "a1b22c333")
+        self.assertEqual(result, "aXbXcX")
+
+    def test_sub_with_count(self):
+        result = sub(r"\d+", "X", "a1b22c333", count=2)
+        self.assertEqual(result, "aXbXc333")
+
+    def test_sub_with_callable(self):
+        result = sub(r"\d+", lambda m: str(int(m.group()) * 2), "a1b2")
+        self.assertEqual(result, "a2b4")
+
+
+class TestSubn(unittest.TestCase):
+    def test_subn_basic(self):
+        result, count = subn(r"\d+", "X", "a1b22c")
+        self.assertEqual(result, "aXbXc")
+        self.assertEqual(count, 2)
+
+
+class TestCompileRegex(unittest.TestCase):
+    def test_compile_regex_basic(self):
+        pattern = compile_regex(r"\d+")
+        self.assertIsInstance(pattern, re.Pattern)
+
+    def test_compile_regex_with_flags(self):
+        pattern = compile_regex(r"hello", flags=re.IGNORECASE)
+        self.assertTrue(pattern.match("HELLO"))
+
+
+class TestEscape(unittest.TestCase):
+    def test_escape_special_chars(self):
+        result = escape("hello.world[test]")
+        self.assertEqual(result, r"hello\.world\[test\]")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTREUTILS
+# --- tests/test_tempfile_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_tempfile_utils.py" <<'TESTTEMPFILEUTILS'
+"""Tests for tempfile_utils module."""
+
+import os
+import unittest
+
+from tempfile_utils import (
+    NamedTemporaryFile,
+    SpooledTemporaryFile,
+    TemporaryDirectory,
+    get_tempdir,
+    gettempprefix,
+    mkdtemp,
+    mkstemp,
+)
+
+
+class TestGetTempdir(unittest.TestCase):
+    def test_get_tempdir_returns_string(self):
+        result = get_tempdir()
+        self.assertIsInstance(result, str)
+        self.assertTrue(len(result) > 0)
+
+
+class TestGettempprefix(unittest.TestCase):
+    def test_gettempprefix_returns_string(self):
+        result = gettempprefix()
+        self.assertIsInstance(result, str)
+
+
+class TestMkstemp(unittest.TestCase):
+    def test_mkstemp_creates_file(self):
+        fd, path = mkstemp(suffix=".txt", prefix="test_")
+        try:
+            self.assertTrue(os.path.exists(path))
+            os.close(fd)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_mkstemp_type_errors(self):
+        with self.assertRaises(TypeError):
+            mkstemp(suffix=123)
+        with self.assertRaises(TypeError):
+            mkstemp(prefix=123)
+        with self.assertRaises(TypeError):
+            mkstemp(dir=123)
+
+
+class TestMkdtemp(unittest.TestCase):
+    def test_mkdtemp_creates_directory(self):
+        path = mkdtemp(suffix="_test", prefix="tmp_")
+        try:
+            self.assertTrue(os.path.isdir(path))
+        finally:
+            if os.path.exists(path):
+                os.rmdir(path)
+
+    def test_mkdtemp_type_errors(self):
+        with self.assertRaises(TypeError):
+            mkdtemp(suffix=123)
+
+
+class TestNamedTemporaryFile(unittest.TestCase):
+    def test_named_temporary_file_basic(self):
+        with NamedTemporaryFile(mode="w", delete=True) as f:
+            f.write("hello")
+            f.flush()
+            self.assertTrue(os.path.exists(f.name))
+
+    def test_named_temporary_file_type_errors(self):
+        with self.assertRaises(TypeError):
+            NamedTemporaryFile(mode=123)
+        with self.assertRaises(TypeError):
+            NamedTemporaryFile(delete="yes")
+
+
+class TestTemporaryDirectory(unittest.TestCase):
+    def test_temporary_directory_basic(self):
+        with TemporaryDirectory() as d:
+            self.assertTrue(os.path.isdir(d))
+
+
+class TestSpooledTemporaryFile(unittest.TestCase):
+    def test_spooled_temporary_file_basic(self):
+        with SpooledTemporaryFile(mode="w+b") as f:
+            f.write(b"hello")
+            f.seek(0)
+            self.assertEqual(f.read(), b"hello")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTEMPFILEUTILS
+
 cat > "$OUTPUT_DIR/tests/test_random_utils.py" <<'TESTRANDUTILS'
 """Tests for random_utils module."""
 
@@ -26267,6 +26807,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `uuid_utils.py` — UUID utility functions for generating and validating UUIDs
 - `prompt_utils.py` — Prompt utility functions for working with text prompts
 - `random_utils.py` — random number generation and sampling utilities
+- `re_utils.py` — regular expression utilities
+- `tempfile_utils.py` — temporary file and directory utilities
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
 - `list_utils.py` — advanced list manipulation utilities
@@ -26373,6 +26915,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `tests/test_random_utils.py` — unit tests for `random_utils.py`
+- `tests/test_re_utils.py` — unit tests for `re_utils.py`
+- `tests/test_tempfile_utils.py` — unit tests for `tempfile_utils.py`
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
 - `tests/test_list_utils.py` — unit tests for `list_utils.py`
@@ -37942,121 +38486,206 @@ if __name__ == "__main__":
 TESTTYPINGUTILS
 # --- traceback_utils.py ---
 cat > "$OUTPUT_DIR/traceback_utils.py" <<'TRACEBACK_UTILS'
-"""Utilities for traceback (wrapping :mod:`traceback`)."""
+"""Utilities for extracting and formatting tracebacks (wrapping :mod:`traceback`)."""
 
-import traceback as _traceback
-
-
-def format_exception(exc):
-    """Format an exception as a list of strings.
-
-    Args:
-        exc: The exception instance to format.
-
-    Returns:
-        A list of strings, each ending in a newline.
-    """
-    return _traceback.format_exception(exc)
+import traceback
+from types import TracebackType
+from typing import Any, List, Optional, Type
 
 
-def format_exception_only(exc_type, exc_value=None):
-    """Format the exception part of a traceback.
-
-    Args:
-        exc_type: The exception class.
-        exc_value: The exception instance (optional).
-
-    Returns:
-        A list of strings, each ending in a newline.
-    """
-    return _traceback.format_exception_only(exc_type, exc_value)
-
-
-def extract_stack():
-    """Extract the raw stack trace from the current point.
-
-    Returns:
-        A list of :class:`traceback.FrameSummary` objects.
-    """
-    return _traceback.extract_stack()
+def format_exception(etype_or_exc: Any, value: Any = None,
+                    tb: Any = None, *args, **kwargs) -> List[str]:
+    """Format a stack trace and the exception information."""
+    if value is None and isinstance(etype_or_exc, BaseException):
+        exc = etype_or_exc
+        return traceback.format_exception(type(exc), exc, exc.__traceback__, *args, **kwargs)
+    etype = etype_or_exc
+    if not isinstance(etype, type) or not issubclass(etype, BaseException):
+        raise TypeError("etype must be an exception type")
+    if not isinstance(value, BaseException):
+        raise TypeError("value must be an exception instance")
+    if tb is not None and not isinstance(tb, TracebackType):
+        raise TypeError("tb must be a traceback")
+    return traceback.format_exception(etype, value, tb, *args, **kwargs)
 
 
-def format_stack():
-    """Format the current stack trace.
+def format_exception_only(etype: Type[BaseException], value: BaseException) -> List[str]:
+    """Format the exception part of a traceback."""
+    if not isinstance(etype, type) or not issubclass(etype, BaseException):
+        raise TypeError("etype must be an exception type")
+    if not isinstance(value, BaseException):
+        raise TypeError("value must be an exception instance")
+    return traceback.format_exception_only(etype, value)
 
-    Returns:
-        A list of strings ready for printing.
-    """
-    return _traceback.format_stack()
+
+def format_tb(tb: TracebackType = None, limit: Optional[int] = None) -> List[str]:
+    """Format a traceback object."""
+    if tb is not None and not isinstance(tb, TracebackType):
+        raise TypeError("tb must be a traceback")
+    return traceback.format_tb(tb, limit=limit)
 
 
-def format_exc():
-    """Format the current exception as a string.
+def format_stack(f=None, limit: Optional[int] = None) -> List[str]:
+    """Format a stack trace."""
+    return traceback.format_stack(f, limit=limit)
 
-    Returns:
-        A string containing the exception information, or an empty string
-        if no exception is being handled.
-    """
-    try:
-        result = _traceback.format_exc()
-        if result == "NoneType: None\n":
-            return ""
-        return result
-    except Exception:
-        return _traceback.format_exc()
+
+def format_exc(limit: Optional[int] = None, chain: bool = True) -> str:
+    """Format the current exception as a string."""
+    if limit is not None and (not isinstance(limit, int) or isinstance(limit, bool)):
+        raise TypeError("limit must be an integer or None")
+    if not isinstance(chain, bool):
+        raise TypeError("chain must be a bool")
+    result = traceback.format_exc(limit=limit, chain=chain)
+    if result == 'NoneType: None\n':
+        return ''
+    return result
+
+
+def extract_tb(tb: TracebackType, limit: Optional[int] = None) -> List[Any]:
+    """Extract traceback information."""
+    if not isinstance(tb, TracebackType):
+        raise TypeError("tb must be a traceback")
+    if limit is not None and (not isinstance(limit, int) or isinstance(limit, bool)):
+        raise TypeError("limit must be an integer or None")
+    return traceback.extract_tb(tb, limit=limit)
+
+
+def extract_stack(f=None, limit: Optional[int] = None) -> List[Any]:
+    """Extract stack information."""
+    if limit is not None and (not isinstance(limit, int) or isinstance(limit, bool)):
+        raise TypeError("limit must be an integer or None")
+    return traceback.extract_stack(f, limit=limit)
+
+
+def print_exception(etype_or_exc: Any, value: Any = None, tb: Any = None,
+                    limit: Optional[int] = None, file=None, **kwargs) -> None:
+    """Print exception information and stack trace."""
+    if value is None and isinstance(etype_or_exc, BaseException):
+        exc = etype_or_exc
+        traceback.print_exception(type(exc), exc, exc.__traceback__,
+                                 limit=limit, file=file, **kwargs)
+        return
+    etype = etype_or_exc
+    if not isinstance(etype, type) or not issubclass(etype, BaseException):
+        raise TypeError("etype must be an exception type")
+    if not isinstance(value, BaseException):
+        raise TypeError("value must be an exception instance")
+    if tb is not None and not isinstance(tb, TracebackType):
+        raise TypeError("tb must be a traceback")
+    if limit is not None and (not isinstance(limit, int) or isinstance(limit, bool)):
+        raise TypeError("limit must be an integer or None")
+    traceback.print_exception(etype, value, tb, limit=limit, file=file, **kwargs)
+
+
+def print_tb(tb: TracebackType = None, limit: Optional[int] = None, file=None) -> None:
+    """Print a traceback."""
+    if tb is not None and not isinstance(tb, TracebackType):
+        raise TypeError("tb must be a traceback")
+    if limit is not None and (not isinstance(limit, int) or isinstance(limit, bool)):
+        raise TypeError("limit must be an integer or None")
+    traceback.print_tb(tb, limit=limit, file=file)
+
+
+def print_stack(f=None, limit: Optional[int] = None, file=None) -> None:
+    """Print a stack trace."""
+    if limit is not None and (not isinstance(limit, int) or isinstance(limit, bool)):
+        raise TypeError("limit must be an integer or None")
+    traceback.print_stack(f, limit=limit, file=file)
+
+
+def clear_frames(tb: TracebackType) -> None:
+    """Clear local variables in a traceback."""
+    if not isinstance(tb, TracebackType):
+        raise TypeError("tb must be a traceback")
+    traceback.clear_frames(tb)
 TRACEBACK_UTILS
 # --- tests/test_traceback_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_traceback_utils.py" <<'TESTTRACEBACKUTILS'
+"""Tests for traceback_utils module."""
+
+import sys
 import unittest
 
-from traceback_utils import (
-    extract_stack,
-    format_exc,
-    format_exception,
-    format_exception_only,
-    format_stack,
-)
+import traceback_utils
 
 
-class TestTracebackUtils(unittest.TestCase):
-    def test_format_exception_only(self):
-        result = format_exception_only(ValueError, ValueError("something went wrong"))
-        self.assertIsInstance(result, list)
-        self.assertTrue(all(isinstance(line, str) for line in result))
-        self.assertTrue(any("something went wrong" in line for line in result))
-
+class TestFormatException(unittest.TestCase):
     def test_format_exception(self):
         try:
-            raise ValueError("boom")
-        except ValueError as exc:
-            result = format_exception(exc)
+            raise ValueError("test error")
+        except ValueError:
+            etype, value, tb = sys.exc_info()
+            result = traceback_utils.format_exception(etype, value, tb)
+            self.assertIsInstance(result, list)
+            self.assertTrue(any("ValueError" in line for line in result))
+
+    def test_format_exception_type_error(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.format_exception("bad", ValueError("x"), None)
+
+    def test_format_exception_only(self):
+        result = traceback_utils.format_exception_only(ValueError, ValueError("test"))
         self.assertIsInstance(result, list)
-        self.assertTrue(any("boom" in line for line in result))
+        self.assertTrue(any("ValueError" in line for line in result))
 
-    def test_extract_stack(self):
-        result = extract_stack()
-        self.assertIsInstance(result, list)
-        self.assertGreaterEqual(len(result), 1)
 
-    def test_format_stack(self):
-        result = format_stack()
-        self.assertIsInstance(result, list)
-        self.assertGreaterEqual(len(result), 1)
-        self.assertTrue(all(isinstance(line, str) for line in result))
-
-    def test_format_exc_no_exception(self):
-        result = format_exc()
-        self.assertIsInstance(result, str)
-        self.assertEqual(result, "")
-
-    def test_format_exc_with_exception(self):
+class TestFormatTb(unittest.TestCase):
+    def test_format_tb(self):
         try:
-            raise RuntimeError("traceback test")
+            raise RuntimeError("oops")
         except RuntimeError:
-            result = format_exc()
-        self.assertIsInstance(result, str)
-        self.assertIn("RuntimeError", result)
-        self.assertIn("traceback test", result)
+            _, _, tb = sys.exc_info()
+            result = traceback_utils.format_tb(tb)
+            self.assertIsInstance(result, list)
+
+
+class TestExtractTb(unittest.TestCase):
+    def test_extract_tb(self):
+        try:
+            raise KeyError("missing")
+        except KeyError:
+            _, _, tb = sys.exc_info()
+            result = traceback_utils.extract_tb(tb)
+            self.assertIsInstance(result, list)
+
+    def test_extract_tb_with_limit(self):
+        try:
+            def f1(): raise IndexError()
+            def f2(): f1()
+            f2()
+        except IndexError:
+            _, _, tb = sys.exc_info()
+            result = traceback_utils.extract_tb(tb, limit=1)
+            self.assertIsInstance(result, list)
+
+
+class TestPrintFunctions(unittest.TestCase):
+    def test_print_tb(self):
+        try:
+            raise OSError("fail")
+        except OSError:
+            _, _, tb = sys.exc_info()
+            traceback_utils.print_tb(tb)
+
+    def test_print_stack(self):
+        traceback_utils.print_stack()
+
+    def test_print_exception(self):
+        try:
+            raise TypeError("bad")
+        except TypeError:
+            etype, value, tb = sys.exc_info()
+            traceback_utils.print_exception(etype, value, tb)
+
+
+class TestClearFrames(unittest.TestCase):
+    def test_clear_frames(self):
+        try:
+            raise AttributeError("x")
+        except AttributeError:
+            _, _, tb = sys.exc_info()
+            traceback_utils.clear_frames(tb)
 
 
 if __name__ == "__main__":
@@ -42839,51 +43468,115 @@ ARGPARSE_UTILS
 
 # --- warnings_utils.py ---
 cat > "$OUTPUT_DIR/warnings_utils.py" <<'WARNINGS_UTILS'
-"""Utilities wrapping the standard library ``warnings`` module."""
+"""Utilities for warning control (wrapping :mod:`warnings`)."""
 
 import warnings
-from contextlib import contextmanager
-from typing import Iterator, Literal, Optional, Type
+from typing import Type, Union
 
 
-def warn(message: str, category: Type[Warning] = UserWarning, stacklevel: int = 1) -> None:
-    if not isinstance(message, str):
-        raise TypeError("message must be str")
+def warn(
+    message: Union[Warning, str], category: Type[Warning] = UserWarning,
+    stacklevel: int = 1,
+) -> None:
+    """Issue a warning."""
+    if not isinstance(message, (str, Warning)):
+        raise TypeError("message must be str or Warning instance")
+    if not isinstance(category, type) or not issubclass(category, Warning):
+        raise TypeError("category must be a Warning subclass")
+    if not isinstance(stacklevel, int) or isinstance(stacklevel, bool):
+        raise TypeError("stacklevel must be an integer")
     warnings.warn(message, category=category, stacklevel=stacklevel)
 
 
-def simplefilter(action: str, category: Type[Warning] = Warning) -> None:
-    if action not in {"error", "ignore", "always", "default", "module", "once"}:
-        raise ValueError("invalid action")
-    warnings.simplefilter(action, category=category)  # type: ignore[arg-type]
-
-
-@contextmanager
-def catch_warnings(record: bool = False) -> Iterator[Optional[list]]:
-    with warnings.catch_warnings(record=record) as w:
-        yield w
+def simplefilter(
+    action: str, category: Type[Warning] = Warning,
+    lineno: int = 0, append: bool = False,
+) -> None:
+    """Insert a simple entry into the list of warnings filters."""
+    if not isinstance(action, str):
+        raise TypeError("action must be a string")
+    if action not in ("error", "ignore", "always", "default", "module", "once"):
+        raise ValueError("invalid action: {!r}".format(action))
+    if not isinstance(category, type) or not issubclass(category, Warning):
+        raise TypeError("category must be a Warning subclass")
+    if not isinstance(lineno, int) or isinstance(lineno, bool):
+        raise TypeError("lineno must be an integer")
+    if not isinstance(append, bool):
+        raise TypeError("append must be a bool")
+    warnings.simplefilter(action, category=category, lineno=lineno, append=append)
 
 
 def filterwarnings(
-    action: Literal["default", "error", "ignore", "always", "all", "module", "once"],
-    message: str = "",
-    category: Type[Warning] = Warning,
-    module: str = "",
-    lineno: int = 0,
-    append: bool = False,
+    action: str, message: str = "", category: Type[Warning] = Warning,
+    module: str = "", lineno: int = 0, append: bool = False,
 ) -> None:
+    """Insert an entry into the list of warnings filters."""
+    if not isinstance(action, str):
+        raise TypeError("action must be a string")
+    if action not in ("error", "ignore", "always", "default", "module", "once"):
+        raise ValueError("invalid action: {!r}".format(action))
+    if not isinstance(message, str):
+        raise TypeError("message must be a string")
+    if not isinstance(category, type) or not issubclass(category, Warning):
+        raise TypeError("category must be a Warning subclass")
+    if not isinstance(module, str):
+        raise TypeError("module must be a string")
+    if not isinstance(lineno, int) or isinstance(lineno, bool):
+        raise TypeError("lineno must be an integer")
+    if not isinstance(append, bool):
+        raise TypeError("append must be a bool")
     warnings.filterwarnings(
-        action,
-        message=message,
-        category=category,
-        module=module,  # type: ignore[arg-type]
-        lineno=lineno,
-        append=append,
+        action, message=message, category=category,
+        module=module, lineno=lineno, append=append,
     )
 
 
 def resetwarnings() -> None:
+    """Clear the warnings filter."""
     warnings.resetwarnings()
+
+
+def catch_warnings(record: bool = False, module=None):
+    """Return a context manager that copies and restores the warnings filter."""
+    if not isinstance(record, bool):
+        raise TypeError("record must be a bool")
+    return warnings.catch_warnings(record=record, module=module)
+
+
+def showwarning(
+    message: Warning, category: Type[Warning], filename: str, lineno: int,
+    file=None, line: str = None,
+) -> None:
+    """Call showwarning with arguments."""
+    if not isinstance(message, Warning):
+        raise TypeError("message must be a Warning instance")
+    if not isinstance(category, type) or not issubclass(category, Warning):
+        raise TypeError("category must be a Warning subclass")
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a string")
+    if not isinstance(lineno, int) or isinstance(lineno, bool):
+        raise TypeError("lineno must be an integer")
+    if line is not None and not isinstance(line, str):
+        raise TypeError("line must be a string or None")
+    warnings.showwarning(message, category, filename, lineno, file=file, line=line)
+
+
+def formatwarning(
+    message: Warning, category: Type[Warning], filename: str, lineno: int,
+    line: str = None,
+) -> str:
+    """Format a warning the standard way."""
+    if not isinstance(message, Warning):
+        raise TypeError("message must be a Warning instance")
+    if not isinstance(category, type) or not issubclass(category, Warning):
+        raise TypeError("category must be a Warning subclass")
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a string")
+    if not isinstance(lineno, int) or isinstance(lineno, bool):
+        raise TypeError("lineno must be an integer")
+    if line is not None and not isinstance(line, str):
+        raise TypeError("line must be a string or None")
+    return warnings.formatwarning(message, category, filename, lineno, line=line)
 WARNINGS_UTILS
 
 # --- tests/test_fractions_utils.py ---
@@ -43266,46 +43959,78 @@ ARGPARSETESTS
 
 # --- tests/test_warnings_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_warnings_utils.py" <<'WARNINGSTESTS'
+"""Tests for warnings_utils module."""
+
+import unittest
 import warnings
 
 import warnings_utils
 
 
-def test_warn_emits():
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
-        warnings_utils.warn("hello")
-        assert len(w) == 1
-        assert str(w[0].message) == "hello"
+class TestWarn(unittest.TestCase):
+    def test_warn_issues_warning(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            warnings_utils.warn("test message", category=DeprecationWarning)
+            self.assertEqual(len(w), 1)
+            self.assertIsInstance(w[0].category, type)
+            self.assertTrue(issubclass(w[0].category, DeprecationWarning))
+
+    def test_warn_type_error(self):
+        with self.assertRaises(TypeError):
+            warnings_utils.warn(123)
+        with self.assertRaises(TypeError):
+            warnings_utils.warn("msg", category=str)
+        with self.assertRaises(TypeError):
+            warnings_utils.warn("msg", stacklevel="1")
 
 
-def test_warn_type_error():
-    try:
-        warnings_utils.warn(123)
-    except TypeError:
-        pass
-    else:
-        raise AssertionError("expected TypeError")
+class TestSimpleFilter(unittest.TestCase):
+    def test_simplefilter(self):
+        warnings_utils.simplefilter("ignore", category=RuntimeWarning)
+        warnings_utils.simplefilter("always", append=True)
+
+    def test_simplefilter_type_errors(self):
+        with self.assertRaises(TypeError):
+            warnings_utils.simplefilter(123)
+        with self.assertRaises(TypeError):
+            warnings_utils.simplefilter("ignore", append="yes")
 
 
-def test_simplefilter_invalid():
-    try:
-        warnings_utils.simplefilter("bogus")
-    except ValueError:
-        pass
-    else:
-        raise AssertionError("expected ValueError")
+class TestFilterwarnings(unittest.TestCase):
+    def test_filterwarnings(self):
+        warnings_utils.filterwarnings("ignore", message="test", category=UserWarning)
+        warnings_utils.filterwarnings("default", module="test_module")
 
 
-def test_catch_warnings_context():
-    with warnings_utils.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
-        warnings.warn("x")
-        assert len(w) == 1
+class TestResetwarnings(unittest.TestCase):
+    def test_resetwarnings(self):
+        warnings_utils.simplefilter("ignore")
+        warnings_utils.resetwarnings()
 
 
-def test_resetwarnings():
-    warnings_utils.resetwarnings()
+class TestCatchWarnings(unittest.TestCase):
+    def test_catch_warnings(self):
+        with warnings_utils.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            warnings.warn("hello")
+            self.assertTrue(len(w) >= 1)
+
+
+class TestShowAndFormat(unittest.TestCase):
+    def test_formatwarning(self):
+        w = DeprecationWarning("old")
+        result = warnings_utils.formatwarning(w, DeprecationWarning, "test.py", 10)
+        self.assertIsInstance(result, str)
+        self.assertIn("DeprecationWarning", result)
+
+    def test_showwarning(self):
+        w = UserWarning("note")
+        warnings_utils.showwarning(w, UserWarning, "test.py", 5)
+
+
+if __name__ == "__main__":
+    unittest.main()
 WARNINGSTESTS
 
 # --- copy_utils.py ---

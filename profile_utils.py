@@ -9,7 +9,7 @@ collected statistics, and render them as readable reports.
 from __future__ import annotations
 
 import profile as _profile
-from typing import Any, Callable, Optional, TextIO
+from typing import Any, Optional
 
 __all__ = [
     "new_profiler",

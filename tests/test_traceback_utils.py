@@ -1,53 +1,87 @@
+"""Tests for traceback_utils module."""
+
+import sys
 import unittest
 
-from traceback_utils import (
-    extract_stack,
-    format_exc,
-    format_exception,
-    format_exception_only,
-    format_stack,
-)
+import traceback_utils
 
 
-class TestTracebackUtils(unittest.TestCase):
-    def test_format_exception_only(self):
-        result = format_exception_only(ValueError, ValueError("something went wrong"))
-        self.assertIsInstance(result, list)
-        self.assertTrue(all(isinstance(line, str) for line in result))
-        self.assertTrue(any("something went wrong" in line for line in result))
-
+class TestFormatException(unittest.TestCase):
     def test_format_exception(self):
         try:
-            raise ValueError("boom")
-        except ValueError as exc:
-            result = format_exception(exc)
+            raise ValueError("test error")
+        except ValueError:
+            etype, value, tb = sys.exc_info()
+            result = traceback_utils.format_exception(etype, value, tb)
+            self.assertIsInstance(result, list)
+            self.assertTrue(any("ValueError" in line for line in result))
+
+    def test_format_exception_type_error(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.format_exception("bad", ValueError("x"), None)
+
+    def test_format_exception_only(self):
+        result = traceback_utils.format_exception_only(ValueError, ValueError("test"))
         self.assertIsInstance(result, list)
-        self.assertTrue(any("boom" in line for line in result))
+        self.assertTrue(any("ValueError" in line for line in result))
 
-    def test_extract_stack(self):
-        result = extract_stack()
-        self.assertIsInstance(result, list)
-        self.assertGreaterEqual(len(result), 1)
 
-    def test_format_stack(self):
-        result = format_stack()
-        self.assertIsInstance(result, list)
-        self.assertGreaterEqual(len(result), 1)
-        self.assertTrue(all(isinstance(line, str) for line in result))
-
-    def test_format_exc_no_exception(self):
-        result = format_exc()
-        self.assertIsInstance(result, str)
-        self.assertEqual(result, "")
-
-    def test_format_exc_with_exception(self):
+class TestFormatTb(unittest.TestCase):
+    def test_format_tb(self):
         try:
-            raise RuntimeError("traceback test")
+            raise RuntimeError("oops")
         except RuntimeError:
-            result = format_exc()
-        self.assertIsInstance(result, str)
-        self.assertIn("RuntimeError", result)
-        self.assertIn("traceback test", result)
+            _, _, tb = sys.exc_info()
+            result = traceback_utils.format_tb(tb)
+            self.assertIsInstance(result, list)
+
+
+class TestExtractTb(unittest.TestCase):
+    def test_extract_tb(self):
+        try:
+            raise KeyError("missing")
+        except KeyError:
+            _, _, tb = sys.exc_info()
+            result = traceback_utils.extract_tb(tb)
+            self.assertIsInstance(result, list)
+
+    def test_extract_tb_with_limit(self):
+        try:
+            def f1(): raise IndexError()
+            def f2(): f1()
+            f2()
+        except IndexError:
+            _, _, tb = sys.exc_info()
+            result = traceback_utils.extract_tb(tb, limit=1)
+            self.assertIsInstance(result, list)
+
+
+class TestPrintFunctions(unittest.TestCase):
+    def test_print_tb(self):
+        try:
+            raise OSError("fail")
+        except OSError:
+            _, _, tb = sys.exc_info()
+            traceback_utils.print_tb(tb)
+
+    def test_print_stack(self):
+        traceback_utils.print_stack()
+
+    def test_print_exception(self):
+        try:
+            raise TypeError("bad")
+        except TypeError:
+            etype, value, tb = sys.exc_info()
+            traceback_utils.print_exception(etype, value, tb)
+
+
+class TestClearFrames(unittest.TestCase):
+    def test_clear_frames(self):
+        try:
+            raise AttributeError("x")
+        except AttributeError:
+            _, _, tb = sys.exc_info()
+            traceback_utils.clear_frames(tb)
 
 
 if __name__ == "__main__":

@@ -58,6 +58,10 @@ url_utils.py                # URL and web utility functions
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
 prompt_utils.py             # Prompt utility functions for working with text prompts
 random_utils.py             # Random number generation and sampling utilities
+re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
+tempfile_utils.py           # Temporary file and directory management utilities (mkstemp, mkdtemp, NamedTemporaryFile, TemporaryDirectory)
+traceback_utils.py          # Traceback utilities
+warnings_utils.py           # Warnings utilities
 validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 list_utils.py              # Advanced list manipulation utilities
@@ -314,6 +318,10 @@ test_pickle_utils.py        # Tests for pickle_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
   test_queue_utils.py         # Tests for queue_utils.py
   test_random_utils.py        # Tests for random_utils.py
+  test_re_utils.py            # Tests for re_utils.py
+  test_tempfile_utils.py      # Tests for tempfile_utils.py
+  test_traceback_utils.py     # Tests for traceback_utils.py
+  test_warnings_utils.py      # Tests for warnings_utils.py
   test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
   test_regex_utils.py         # Tests for regex_utils.py
 test_retry_utils.py         # Tests for retry_utils.py

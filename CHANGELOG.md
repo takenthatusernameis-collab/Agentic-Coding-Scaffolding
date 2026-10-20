@@ -543,7 +543,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `weakref_utils.py` with weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`).
 - `random_utils.py` — random number generation and sampling utilities with `random_int`, `random_choice`, `random_sample`, `random_shuffle`, `weighted_choice`, `random_uniform`, and `random_gaussian` functions, each accepting an optional `seed` for reproducible results
+- `re_utils.py` — regular expression utilities wrapping `re`
+- `tempfile_utils.py` — temporary file and directory utilities wrapping `tempfile`
 - `tests/test_random_utils.py` — unit tests for `random_utils.py`
+- `tests/test_re_utils.py` — unit tests for `re_utils.py`
+- `tests/test_tempfile_utils.py` — unit tests for `tempfile_utils.py`
 - `validation_utils.py` — input validation module with `is_email`, `is_numeric`, `is_integer`, `is_alphanumeric`, `is_boolean_string`, `is_none_or_empty`, `min_length`, `max_length`, `matches_regex`, and `is_valid_hostname` functions
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `crypto_utils.py` — cryptographic utilities with `hash_string`, `generate_token`, `base64_encode`, and `base64_decode` functions
