@@ -223,6 +223,7 @@ py_modules = [
     "shelve_utils",
     "types_utils",
     "zlib_utils",
+    "uu_utils",
     "zoneinfo_utils",
     "cmd_utils",
     "this_utils",
