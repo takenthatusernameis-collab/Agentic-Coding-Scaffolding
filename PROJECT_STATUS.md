@@ -1,8 +1,29 @@
-## Latest Session (2026-10-20) — syslog_utils added
+## Latest Session (2026-10-20) — resource_utils added
 
 The board held no task, so this session added the standard library wrapper module that the previous session had planned.
 
 Completed in the latest session:
+
+- Added `resource_utils.py` wrapping the standard library `resource` module (`get_rlimit`, `set_rlimit`, `prlimit`, `get_rusage`, `get_page_size`, `limit_names`, `limit_value`, `limit_name`, `usage_names`, `usage_as_dict`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_resource_utils.py`. The `Limit` and `Usage` named tuples and the `RLIM_INFINITY`, `RUSAGE_SELF`, `RUSAGE_CHILDREN`, and `RUSAGE_THREAD` constants are re-exported, and the `RLIMIT_*` constants of the host platform are re-exported as well.
+- The wrapper adds three conveniences the standard library does not offer: every limit can be addressed by its name such as `"RLIMIT_NOFILE"`, the limits are returned in a `Limit` named tuple with a `soft` and a `hard` field, and the usage is returned in a `Usage` named tuple with the same fields on every platform, because the record of the standard library differs between the supported systems.
+- The `resource` module only exists on Unix-like platforms, so the import degrades gracefully: the helpers that talk to the operating system raise a `RuntimeError` that names the missing module, while the pure helpers keep working. This is the pattern `syslog_utils.py` uses for the Unix-only `syslog` module. The `prlimit` helper is only provided by the Linux systems, so it reports a `RuntimeError` elsewhere.
+- The test suite stays hermetic and never lowers a limit of the running process. The tests only read the limits of the calling process, the write is exercised with `unittest.mock.patch("resource_utils._resource.setrlimit")`, and the missing-module case is exercised by patching `resource_utils._resource` with `None`.
+- The standard library changed the signature of `resource.prlimit` in Python 3.12, where the limits argument became optional, so the wrapper falls back to `resource.getrlimit` when it reads the limits of the calling process on an older interpreter.
+- Synchronized the new module across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh` header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README tree and module sections, the embedded CHANGELOG, the README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships `resource_utils.py` and `tests/test_resource_utils.py`, its 3786 tests, ruff, and mypy all pass, and a second generation project scaffolds correctly as well.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are `termios`, `fcntl`, `grp`, `pwd`, `pty`, `encodings`, `tabnanny`, `zipimport`, `pdb`, `bdb`, `curses`, `stringprep`, and the modules that Python 3.13 removed (`nntplib`, `pipes`, `sndhdr`, `cgitb`, `chunk`). A natural next candidate is `pwd_utils.py` wrapping the standard library `pwd` module: `getpwuid` and `getpwnam` read the password database, they are small and easy to validate, and the lookup never changes anything, so the test suite stays hermetic. Like `syslog` and `resource`, the `pwd` module is Unix-only, so the import has to degrade gracefully and raise a `RuntimeError` on the platforms that do not ship it. The `grp_utils.py` module, which wraps `getgrgid`, `getgrnam`, and `getgroups`, is the natural companion.
+- Keep every new wrapper hermetic: the test suite must never open a network connection, write to a system service, or block on a subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with `unittest.mock.patch` instead of real servers. `smtplib_utils.py` follows it: the tests replay scripted server replies through a fake socket and never touch the network. `xmlrpc_utils.py` follows it as well: the server helpers are patched and the encoding helpers only compare strings. `syslog_utils.py` follows it too: every call into the system logger is patched. `resource_utils.py` follows it as well: the tests only read the limits of the running process and patch the write. The same rule applies to the compiler wrappers: `compileall_utils.py` narrows `sys.path` with `unittest.mock.patch` so the suite never byte-compiles the interpreter's own import path. `modulefinder_utils.py` follows the rule as well: the analysis is static, so the analysed script is never imported or executed, and the tests restrict the search path to a temporary directory so the suite never scans the whole import path. `optparse_utils.py` follows it too: the parser never touches the network, and the tests parse command lines from lists instead of `sys.argv`, except for one test that patches `sys.argv` with `unittest.mock.patch`. `xdrlib_utils.py` follows it as well: the XDR encoding is pure computation, so the tests only compare byte strings.
+- Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new module must not reintroduce any drift.
+- Consider strengthening `tests/test_scaffold_sync.py` further: it now checks that the embedded `pyproject.toml` registers every module, but it does not check that the embedded README template documents every module and every test the scaffold generates.
+
+## Previous Session (2026-10-20) — syslog_utils added
+
+The board held no task, so this session added the standard library wrapper module that the previous session had planned.
+
+Completed in that session:
 
 - Added `syslog_utils.py` wrapping the standard library `syslog` module (`open_log`, `log_message`, `close_log`, `set_log_mask`, `log_mask`, `log_upto`, `priority_name`, `priority_names`, `facility_name`, `facility_names`, `option_names`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_syslog_utils.py`. The severity constants (`LOG_EMERG` up to `LOG_DEBUG`), the facility constants (`LOG_KERN` up to `LOG_LOCAL7`), the option flags (`LOG_PID`, `LOG_CONS`, `LOG_ODELAY`, `LOG_NDELAY`, `LOG_NOWAIT`, `LOG_PERROR`), and the `LOG_MASK` and `LOG_UPTO` mask helpers are re-exported.
 - The wrapper reads the constants from the standard library when the interpreter ships it, so the platform values of the option flags and of the facilities the C library redefines (`LOG_SYSLOG`, `LOG_NEWS`, `LOG_UUCP`, `LOG_CRON`) are always correct, and it falls back to the POSIX values when it does not.
@@ -12,13 +33,6 @@ Completed in the latest session:
 - Synchronized the new module across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh` header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README tree and module sections, the embedded CHANGELOG, the README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
 - Strengthened `tests/test_scaffold_sync.py` with a check that the `pyproject.toml` template embedded in `scaffold.sh` registers every module, which is how the `mailcap_utils`, `pickletools_utils`, and `opcode_utils` entries went missing in an earlier session.
 - Verified that a scaffolded project is still a faithful copy: the generated tree ships `syslog_utils.py` and `tests/test_syslog_utils.py`, its 3494 tests, ruff, and mypy all pass, and a second generation project scaffolds correctly as well.
-
-Next Planned:
-
-- Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`, `encodings`, `tabnanny`, `zipimport`, `pdb`, `bdb`, `curses`, `stringprep`, and the modules that Python 3.13 removed (`nntplib`, `pipes`, `sndhdr`, `cgitb`, `chunk`). A natural next candidate is `resource_utils.py` wrapping the standard library `resource` module: `getrusage`, `getrlimit`, `setrlimit`, `prlimit`, and `getpagesize` are small and easy to validate. Like `syslog`, `resource` is a Unix-only module, so the import has to degrade gracefully and raise a `RuntimeError` on the platforms that do not ship it. The tests must only read the limits of the running process and must never lower them.
-- Keep every new wrapper hermetic: the test suite must never open a network connection, write to a system service, or block on a subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with `unittest.mock.patch` instead of real servers. `smtplib_utils.py` follows it: the tests replay scripted server replies through a fake socket and never touch the network. `xmlrpc_utils.py` follows it as well: the server helpers are patched and the encoding helpers only compare strings. `syslog_utils.py` follows it too: every call into the system logger is patched. The same rule applies to the compiler wrappers: `compileall_utils.py` narrows `sys.path` with `unittest.mock.patch` so the suite never byte-compiles the interpreter's own import path. `modulefinder_utils.py` follows the rule as well: the analysis is static, so the analysed script is never imported or executed, and the tests restrict the search path to a temporary directory so the suite never scans the whole import path. `optparse_utils.py` follows it too: the parser never touches the network, and the tests parse command lines from lists instead of `sys.argv`, except for one test that patches `sys.argv` with `unittest.mock.patch`. `xdrlib_utils.py` follows it as well: the XDR encoding is pure computation, so the tests only compare byte strings.
-- Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new module must not reintroduce any drift.
-- Consider strengthening `tests/test_scaffold_sync.py` further: it now checks that the embedded `pyproject.toml` registers every module, but it does not check that the embedded README template documents every module and every test the scaffold generates.
 
 ## Previous Session (2026-10-20) — webbrowser synchronized, xmlrpc added
 
@@ -85,7 +99,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 3822 tests across all wrapper modules (1966 subtests)
+- 3861 tests across all wrapper modules (1984 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -96,14 +110,14 @@ The project foundation is established:
   asserted in `tests/test_scaffold.py`; the `pyproject.toml` template embedded in `scaffold.sh` has to
   register every module as well
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 3494 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 3786 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 430 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 434 source files
 
 ## Keeping the Scaffold Synchronized
 

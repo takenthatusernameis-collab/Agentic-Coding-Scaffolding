@@ -252,6 +252,7 @@ webbrowser_utils.py         # Web browser utilities wrapping stdlib webbrowser (
 xmlrpc_utils.py             # XML-RPC utilities wrapping stdlib xmlrpc (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, create_proxy, create_server)
 syslog_utils.py             # System logging utilities wrapping stdlib syslog (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, facility_name)
 faulthandler_utils.py        # Fault handler utilities wrapping stdlib faulthandler (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister)
+resource_utils.py            # Resource usage utilities wrapping stdlib resource (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -417,6 +418,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_xmlrpc_utils.py        # Tests for xmlrpc_utils.py
     test_syslog_utils.py        # Tests for syslog_utils.py
     test_faulthandler_utils.py   # Tests for faulthandler_utils.py
+    test_resource_utils.py       # Tests for resource_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -1409,3 +1411,10 @@ tests/test_faulthandler_utils.py - Tests for faulthandler_utils module
 ## Faulthandler Utilities Module
 
 The project includes fault handler utilities in `faulthandler_utils.py` wrapping the standard library `faulthandler` module: `enable` enables the fault handler with optional file and thread dumping, `disable` disables it, `is_enabled` reports whether it is enabled, `dump_traceback` dumps the current tracebacks of all threads to a file, `dump_traceback_later` schedules a traceback dump after a timeout with optional repetition or exit, `cancel_dump_traceback_later` cancels the scheduled dump, `register` registers a signal handler for dumping tracebacks, `unregister` unregisters a signal handler, and `is_available` reports whether the interpreter ships the standard library module. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The file argument accepts the standard error stream, a file descriptor, or a writable file object, and the import degrades gracefully so that the helpers raise a `RuntimeError` when the interpreter does not ship the `faulthandler` module. The module is tested in `tests/test_faulthandler_utils.py`.
+
+
+tests/test_resource_utils.py - Tests for resource_utils module
+
+## Resource Utilities Module
+
+The project includes resource usage utilities in `resource_utils.py` wrapping the standard library `resource` module: `get_rlimit` reads the soft and the hard limit of a resource for the running process, `set_rlimit` sets the limits of a resource for the running process, `prlimit` reads or sets the limits of another process, `get_rusage` reports the resource usage of a process, `get_page_size` returns the size of a memory page, `limit_names` returns the limit constants of the host platform, `limit_value` and `limit_name` translate a limit between its name and its value, `usage_names` returns the usage constants, `usage_as_dict` turns a usage record into a dictionary, and `is_available` reports whether the interpreter ships the standard library module. The limits are returned in a `Limit` named tuple with a `soft` and a `hard` field, the usage is returned in a `Usage` named tuple with the same fields on every platform, and every limit can be addressed by its name such as `"RLIMIT_NOFILE"`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `resource` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers that talk to the operating system raise a `RuntimeError` elsewhere, and `prlimit` is only available on Linux. The module is tested in `tests/test_resource_utils.py`.

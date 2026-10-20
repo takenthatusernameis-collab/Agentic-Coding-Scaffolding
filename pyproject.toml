@@ -254,4 +254,5 @@ py_modules = [
     "xmlrpc_utils",
     "syslog_utils",
     "faulthandler_utils",
+    "resource_utils",
 ]

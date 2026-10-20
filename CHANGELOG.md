@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Add `resource_utils.py` wrapping the standard library `resource` module (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available) with input validation, plus unit tests in `tests/test_resource_utils.py`.
+- Synchronized `resource_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `syslog_utils.py` wrapping the standard library `syslog` module (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, priority_names, facility_name, facility_names, option_names, is_available) with input validation, plus unit tests in `tests/test_syslog_utils.py`.
 - Synchronized `syslog_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `faulthandler_utils.py` wrapping the standard library `faulthandler` module (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister, is_available) with input validation, plus unit tests in `tests/test_faulthandler_utils.py`.
