@@ -262,4 +262,5 @@ py_modules = [
     "pty_utils",
     "stringprep_utils",
     "tabnanny_utils",
+    "encodings_utils",
 ]

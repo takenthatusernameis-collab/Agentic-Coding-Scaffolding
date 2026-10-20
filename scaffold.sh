@@ -679,6 +679,7 @@
 #   - pty_utils.py — # Pseudo-terminal utilities wrapping the standard library pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
 #   - stringprep_utils.py — # String preparation utilities wrapping the standard library stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
 #   - tabnanny_utils.py — # Tabnanny utilities wrapping the standard library tabnanny (check, process_tokens, NannyNag)
+#   - encodings_utils.py — # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -694,6 +695,7 @@
 #   - tests/test_pty_utils.py — # Tests for pty_utils.py
 #   - tests/test_stringprep_utils.py — # Tests for stringprep_utils.py
 #   - tests/test_tabnanny_utils.py — # Tests for tabnanny_utils.py
+#   - tests/test_encodings_utils.py — # Tests for encodings_utils.py
 set -euo pipefail
 
 usage() {
@@ -4325,8 +4327,8 @@ py_modules = [
     "pty_utils",
     "stringprep_utils",
     "tabnanny_utils",
+    "encodings_utils",
 ]
-
 PYPROJECT
 
 # --- hello.py ---
@@ -26896,6 +26898,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pty_utils.py` — pseudo-terminal utilities wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation, a `ForkResult` named tuple, and re-exported constants
 - `stringprep_utils.py` — string preparation utilities wrapping the standard library `stringprep` module (table_names, map_table_names, in_table, map_table, is_unassigned, is_mapped_to_nothing, is_prohibited, is_allowed, is_bidi_allowed, map_text, find_problems, is_preparable) with input validation and read-only table mappings
 - `tabnanny_utils.py` — tabnanny utilities wrapping the standard library `tabnanny` module (check, process_tokens, NannyNag) with input validation
+- `encodings_utils.py` — encoding name utilities wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27109,6 +27112,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_pty_utils.py` — unit tests for `pty_utils.py`
 - `tests/test_stringprep_utils.py` — unit tests for `stringprep_utils.py`
 - `tests/test_tabnanny_utils.py` — unit tests for `tabnanny_utils.py`
+- `tests/test_encodings_utils.py` — unit tests for `encodings_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -28392,6 +28396,7 @@ fcntl_utils.py               # File control utilities wrapping stdlib fcntl (flo
 pty_utils.py                 # Pseudo-terminal utilities wrapping stdlib pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
 stringprep_utils.py          # String preparation utilities wrapping stdlib stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
 tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (check, process_tokens, NannyNag)
+encodings_utils.py           # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -29552,6 +29557,10 @@ tests/test_tabnanny_utils.py - Tests for tabnanny_utils module
 
 The project includes tabnanny utilities in `tabnanny_utils.py` wrapping the standard library `tabnanny` module: `check` scans a file or a directory for ambiguous indentation and raises :class:`NannyNag` when it finds a mix of tabs and spaces, and `process_tokens` processes a stream of tokens and raises :class:`NannyNag` on ambiguous indentation. :class:`NannyNag` is re-exported from the standard library and carries the offending line number, message, and source line. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_tabnanny_utils.py`.
 
+## Encodings Utilities Module
+
+The project includes encoding name utilities in `encodings_utils.py` wrapping the standard library `encodings` module: `normalize_encoding` returns the canonical form of an encoding name, `is_known_encoding` reports whether a name is a known alias or canonical name, `is_alias` reports whether a name is an alias, `encoding_aliases` lists the aliases of an encoding, `all_aliases` exposes the read-only alias mapping, and `all_encodings` lists every canonical encoding name. The alias mapping is exposed as the read-only mapping `ALIASES`. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_encodings_utils.py`.
+
 tests/test_opcode_utils.py - Tests for opcode_utils module
 
 ## Opcode Utilities Module
@@ -29588,6 +29597,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Add `encodings_utils.py` wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping, plus unit tests in `tests/test_encodings_utils.py`.
+- Synchronized `encodings_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `fcntl_utils.py` wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation, plus unit tests in `tests/test_fcntl_utils.py`.
 - Synchronized `fcntl_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `pty_utils.py` wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation, a `ForkResult` named tuple, and re-exported constants, plus unit tests in `tests/test_pty_utils.py`.
@@ -74444,6 +74455,254 @@ if __name__ == "__main__":
     unittest.main()
 TEST_TABNANNY_UTILS
 
+cat > "$OUTPUT_DIR/encodings_utils.py" <<'ENCODINGS_UTILS'
+"""Encoding name utilities wrapping the standard library :mod:`encodings` module.
+
+The :mod:`encodings` module is the registry of the codecs of the Python
+interpreter.  It maps encoding aliases such as ``"utf8"`` to their canonical
+names such as ``"utf_8"``, and it normalizes encoding names so that
+``"UTF-8"`` becomes ``"UTF_8"``.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` instead of an opaque failure.  It
+also adds the conveniences that the standard library leaves to the caller: the
+aliases are exposed as a read-only mapping, every canonical encoding is listed
+with :func:`all_encodings`, and the aliases of one encoding are listed with
+:func:`encoding_aliases`.
+
+The module is pure computation, so it works on every platform and never
+touches the file system, the network, or a process.
+"""
+
+from __future__ import annotations
+
+import encodings as _encodings
+import encodings.aliases as _aliases
+from types import MappingProxyType
+from typing import Mapping
+
+__all__: list[str] = [
+    "ALIASES",
+    "all_aliases",
+    "all_encodings",
+    "encoding_aliases",
+    "is_alias",
+    "is_known_encoding",
+    "normalize_encoding",
+]
+
+#: The read-only mapping of every encoding alias to its canonical name.
+ALIASES: Mapping[str, str] = MappingProxyType(dict(_aliases.aliases))
+
+
+def normalize_encoding(name: str) -> str:
+    """Return the canonical form of the encoding name *name*.
+
+    Args:
+        name: The encoding name to normalize, such as ``"UTF-8"``.
+
+    Returns:
+        The normalized encoding name, such as ``"utf_8"``.
+
+    Raises:
+        TypeError: If *name* is not a string.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    return _encodings.normalize_encoding(name)
+
+
+def is_known_encoding(name: str) -> bool:
+    """Report whether *name* is a known encoding alias or canonical name.
+
+    A name is known when it is an alias of the interpreter or when its
+    normalized form matches a canonical encoding name.  The comparison is
+    case-insensitive, so ``"UTF-8"`` and ``"utf_8"`` are both known.
+
+    Args:
+        name: The encoding name to check.
+
+    Returns:
+        ``True`` when *name* is an alias or a canonical encoding name.
+
+    Raises:
+        TypeError: If *name* is not a string.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    canonicals = set(ALIASES.values())
+    normalized = _encodings.normalize_encoding(name).lower()
+    return name in ALIASES or normalized in canonicals
+
+
+def is_alias(name: str) -> bool:
+    """Report whether *name* is an encoding alias rather than a canonical name.
+
+    Args:
+        name: The encoding name to check.
+
+    Returns:
+        ``True`` when *name* is an alias of another encoding.
+
+    Raises:
+        TypeError: If *name* is not a string.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    return name in ALIASES
+
+
+def encoding_aliases(name: str) -> tuple[str, ...]:
+    """Return the aliases of the encoding *name*.
+
+    The aliases are resolved to the canonical name of *name* first, so an
+    alias such as ``"utf8"`` yields the same result as its canonical name
+    ``"utf_8"``.  The returned aliases are sorted and include *name* itself
+    when it is an alias.
+
+    Args:
+        name: An encoding alias or canonical name.
+
+    Returns:
+        The sorted aliases of the encoding.
+
+    Raises:
+        TypeError: If *name* is not a string.
+        ValueError: If *name* is not a known encoding.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    if name in ALIASES:
+        canonical = ALIASES[name]
+    elif name in set(ALIASES.values()):
+        canonical = name
+    else:
+        raise ValueError(f"unknown encoding: {name}")
+    found = [alias for alias, target in ALIASES.items() if target == canonical]
+    return tuple(sorted(found))
+
+
+def all_aliases() -> Mapping[str, str]:
+    """Return the read-only mapping of every alias to its canonical name.
+
+    Returns:
+        The alias mapping of the interpreter.
+    """
+    return ALIASES
+
+
+def all_encodings() -> tuple[str, ...]:
+    """Return every canonical encoding name of the interpreter.
+
+    Returns:
+        The sorted canonical encoding names.
+    """
+    return tuple(sorted(set(ALIASES.values())))
+ENCODINGS_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_encodings_utils.py" <<'TEST_ENCODINGS_UTILS'
+"""Tests for encodings_utils."""
+
+import unittest
+
+import encodings_utils
+from encodings_utils import (
+    ALIASES,
+    all_aliases,
+    all_encodings,
+    encoding_aliases,
+    is_alias,
+    is_known_encoding,
+    normalize_encoding,
+)
+
+
+class TestEncodingsUtils(unittest.TestCase):
+    """Verify the encoding name helpers of the wrapper."""
+
+    def test_the_alias_mapping_is_read_only(self):
+        with self.assertRaises(TypeError):
+            ALIASES["no_such_alias"] = "utf_8"  # type: ignore[index]
+
+    def test_normalize_encoding(self):
+        self.assertEqual(normalize_encoding("UTF-8"), "UTF_8")
+        self.assertEqual(normalize_encoding("utf8"), "utf8")
+        self.assertEqual(normalize_encoding("latin-1"), "latin_1")
+        self.assertEqual(normalize_encoding("cp1252"), "cp1252")
+
+    def test_normalize_encoding_validates_its_argument(self):
+        with self.assertRaises(TypeError):
+            normalize_encoding(123)  # type: ignore[arg-type]
+
+    def test_is_known_encoding(self):
+        self.assertTrue(is_known_encoding("utf_8"))
+        self.assertTrue(is_known_encoding("utf8"))
+        self.assertTrue(is_known_encoding("ascii"))
+        self.assertFalse(is_known_encoding("no_such_encoding"))
+
+    def test_is_known_encoding_validates_its_argument(self):
+        with self.assertRaises(TypeError):
+            is_known_encoding(123)  # type: ignore[arg-type]
+
+    def test_is_alias(self):
+        self.assertTrue(is_alias("utf8"))
+        self.assertTrue(is_alias("latin1"))
+        self.assertFalse(is_alias("latin-1"))
+        self.assertFalse(is_alias("utf_8"))
+        self.assertFalse(is_alias("ascii"))
+        self.assertFalse(is_alias("no_such_encoding"))
+
+    def test_is_alias_validates_its_argument(self):
+        with self.assertRaises(TypeError):
+            is_alias(123)  # type: ignore[arg-type]
+
+    def test_encoding_aliases(self):
+        aliases = encoding_aliases("utf_8")
+        self.assertIn("utf8", aliases)
+        self.assertIn("u8", aliases)
+        self.assertIn("cp65001", aliases)
+        self.assertEqual(aliases, tuple(sorted(aliases)))
+        aliases = encoding_aliases("utf8")
+        self.assertEqual(aliases, encoding_aliases("utf_8"))
+
+    def test_encoding_aliases_validates_its_arguments(self):
+        with self.assertRaises(TypeError):
+            encoding_aliases(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            encoding_aliases("no_such_encoding")
+
+    def test_all_aliases_is_read_only(self):
+        aliases = all_aliases()
+        with self.assertRaises(TypeError):
+            aliases["no_such_alias"] = "utf_8"  # type: ignore[index]
+        self.assertIn("utf8", aliases)
+        self.assertEqual(aliases["utf8"], "utf_8")
+
+    def test_all_encodings(self):
+        encodings = all_encodings()
+        self.assertEqual(encodings, tuple(sorted(encodings)))
+        self.assertIn("utf_8", encodings)
+        self.assertIn("ascii", encodings)
+        self.assertEqual(len(encodings), len(set(encodings)))
+
+    def test_all_aliases_matches_all_encodings(self):
+        canonicals = set(all_encodings())
+        for alias, target in all_aliases().items():
+            self.assertIn(target, canonicals)
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertIsNotNone(encodings_utils.__all__)
+        self.assertEqual(
+            len(encodings_utils.__all__), len(set(encodings_utils.__all__))
+        )
+        self.assertEqual(encodings_utils.__all__, sorted(encodings_utils.__all__))
+        for name in encodings_utils.__all__:
+            self.assertTrue(hasattr(encodings_utils, name), name)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_ENCODINGS_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

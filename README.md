@@ -260,6 +260,7 @@ fcntl_utils.py               # File control utilities wrapping stdlib fcntl (flo
 pty_utils.py                 # Pseudo-terminal utilities wrapping stdlib pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
 stringprep_utils.py          # String preparation utilities wrapping stdlib stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
 tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (check, process_tokens, NannyNag)
+encodings_utils.py           # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -1460,3 +1461,7 @@ The project includes string preparation utilities in `stringprep_utils.py` wrapp
 ## Tabnanny Utilities Module
 
 The project includes tabnanny utilities in `tabnanny_utils.py` wrapping the standard library `tabnanny` module: `check` scans a file or a directory for ambiguous indentation and raises :class:`NannyNag` when it finds a mix of tabs and spaces, and `process_tokens` processes a stream of tokens and raises :class:`NannyNag` on ambiguous indentation. :class:`NannyNag` is re-exported from the standard library and carries the offending line number, message, and source line. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_tabnanny_utils.py`.
+
+## Encodings Utilities Module
+
+The project includes encoding name utilities in `encodings_utils.py` wrapping the standard library `encodings` module: `normalize_encoding` returns the canonical form of an encoding name, `is_known_encoding` reports whether a name is a known alias or canonical name, `is_alias` reports whether a name is an alias, `encoding_aliases` lists the aliases of an encoding, `all_aliases` exposes the read-only alias mapping, and `all_encodings` lists every canonical encoding name. The alias mapping is exposed as the read-only mapping `ALIASES`. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_encodings_utils.py`.

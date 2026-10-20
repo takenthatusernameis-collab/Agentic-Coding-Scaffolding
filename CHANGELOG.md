@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Add `encodings_utils.py` wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping, plus unit tests in `tests/test_encodings_utils.py`.
+- Synchronized `encodings_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `tabnanny_utils.py` wrapping the standard library `tabnanny` module (check, process_tokens, NannyNag) with input validation, plus unit tests in `tests/test_tabnanny_utils.py`.
 - Synchronized `tabnanny_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `stringprep_utils.py` wrapping the standard library `stringprep` module (table_names, map_table_names, in_table, map_table, is_unassigned, is_mapped_to_nothing, is_prohibited, is_allowed, is_bidi_allowed, map_text, find_problems, is_preparable) with input validation and read-only table mappings, plus unit tests in `tests/test_stringprep_utils.py`.
