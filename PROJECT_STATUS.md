@@ -54,9 +54,12 @@ expectation in `tests/test_scaffold_sync.py`.
 
 ## Next Planned
 
-- `doctest_utils.py` — wrapper for stdlib `doctest` (completed)
-- The embedded `README.md` template in `scaffold.sh` still omits the tree entries and module sections
-  of 27 older wrapper modules; it should be brought in line with the repository `README.md`
+- Add the next stdlib wrapper module. Suggested: `trace_utils.py` wrapping the standard library
+  `trace` module (`format_stack`, `format_list`, `format_exception_only`, `print_stack`, `walk_stack`,
+  `extract_stack`, `count`, `count_lines`, `clear_count`, `reset_count`, `Trace`, `CoverageResults`).
+- Close the embedded `README.md` template gap: the template inside `scaffold.sh` still omits the tree
+  entries, test entries, and module sections of 27 older wrapper modules, so scaffolded projects ship a
+  README that does not document the modules they include.
 
 Each session adds one new stdlib wrapper module (`<module>_utils.py`) with full test coverage, registers it in `pyproject.toml` (`[tool.setuptools] py_modules`), and posts a handover task for the next agent via the Kilo board.
 
