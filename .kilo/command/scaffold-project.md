@@ -102,6 +102,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `itertools_utils.py` — iteration helpers (`chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`) wrapping the standard library `itertools` module with input validation
 - `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
 - `timing_utils.py` — performance measurement helpers
+- `timeit_utils.py` — wrapper for stdlib timeit
 - `async_utils.py` — asynchronous utility functions
 - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
@@ -200,6 +201,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_memoize_utils.py` — unit tests for `memoize_utils.py`
 - `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
 - `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`

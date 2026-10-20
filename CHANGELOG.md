@@ -490,6 +490,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
 - `timing_utils.py` — performance measurement helpers with `timer` context manager, `elapsed_time` function, and `benchmark` decorator
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `timeit_utils.py` — wrapper for stdlib `timeit`
+- `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
 - `concurrent_utils.py` — concurrent execution utilities with `ThreadPool`, `ProcessPool`, `gather`, `run_async`, and `to_async` functions
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `priority_queue_utils.py` — heap-based priority queue implementation with `PriorityQueue` class and helper functions

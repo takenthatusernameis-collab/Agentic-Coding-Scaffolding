@@ -67,6 +67,7 @@ context_utils.py          # Context manager utilities for temporarily altering t
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
 timing_utils.py           # Performance measurement helpers
+timeit_utils.py           # Wrapper for stdlib timeit
 async_utils.py            # Asynchronous utility functions
 bit_utils.py              # Bitwise utility functions for working with binary representations
 call_once_utils.py        # Call-once execution utilities (call_once decorator)
@@ -336,6 +337,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_time_utils.py          # Tests for time_utils.py
   test_timezone_utils.py      # Tests for timezone_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
+  test_timeit_utils.py        # Tests for timeit_utils.py
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
   test_url_utils.py           # Tests for url_utils.py
@@ -550,6 +552,8 @@ The project includes a lightweight memoization utilities module in `memoize_util
 ## Timing Utilities Module
 
 The project includes a performance measurement utilities module in `timing_utils.py` with helpers for measuring and benchmarking code execution: `timer` is a context manager for timing code blocks, `elapsed_time` calculates elapsed time since a start time, and `benchmark` is a decorator that runs a function multiple times and reports average execution time. The module is tested in `tests/test_timing_utils.py`.
+
+The project includes a `timeit_utils.py` module wrapping the standard library `timeit` with `timeit`, `repeat`, `default_timer`, and `Timer`. The module is tested in `tests/test_timeit_utils.py`.
 
 ## Concurrent Utilities Module
 
