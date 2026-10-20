@@ -34,7 +34,7 @@ def create_pop3(host: str = "", port: int = POP3_PORT, timeout: float | None = N
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
     to = timeout if timeout is not None else None
-    return POP3(host, port, to)  # type: ignore[arg-type]
+    return poplib.POP3(host, port, to)  # type: ignore[arg-type]
 
 
 def create_pop3_ssl(
@@ -59,7 +59,7 @@ def create_pop3_ssl(
         raise TypeError("timeout must be a number or None")
     # keyfile/certfile are accepted for compatibility; Python 3.12 uses context
     to = timeout if timeout is not None else None
-    return POP3_SSL(host, port, context=context, timeout=to)  # type: ignore[arg-type]
+    return poplib.POP3_SSL(host, port, context=context, timeout=to)  # type: ignore[arg-type]
 
 
 def connect_pop3(
