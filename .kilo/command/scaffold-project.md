@@ -95,6 +95,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `prompt_utils.py` — Prompt utility functions for working with text prompts
 - `random_utils.py` — random number generation and sampling utilities
 - `re_utils.py` — regular expression utilities
+- `rlcompleter_utils.py` — interactive tab completion utilities wrapping the standard library `rlcompleter` module (`Completer`, `complete`) with input validation
 - `tempfile_utils.py` — temporary file and directory utilities
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
@@ -203,6 +204,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `tests/test_random_utils.py` — unit tests for `random_utils.py`
 - `tests/test_re_utils.py` — unit tests for `re_utils.py`
+- `tests/test_rlcompleter_utils.py` — unit tests for `rlcompleter_utils.py`
 - `tests/test_tempfile_utils.py` — unit tests for `tempfile_utils.py`
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`

@@ -115,6 +115,7 @@
 #   - random_utils.py — # Random number generation and sampling utilities
 
 #   - re_utils.py — # Regular expression utilities (compile, match, search, replace, split, escape)
+#   - rlcompleter_utils.py — # Interactive tab completion utilities wrapping stdlib rlcompleter (Completer, complete)
 #   - tempfile_utils.py — # Temporary file and directory management utilities
 #   - traceback_utils.py — # Traceback utilities wrapping stdlib traceback (format_exception, format_exception_only, extract_stack, format_stack, format_exc)
 
@@ -644,6 +645,7 @@
 #   - test_argparse_utils.py — # Tests for argparse_utils.py
 
 #   - tests/test_re_utils.py — # Tests for re_utils.py
+#   - tests/test_rlcompleter_utils.py — # Tests for rlcompleter_utils.py
 #   - tests/test_tempfile_utils.py — # Tests for tempfile_utils.py
 #   - tests/test_warnings_utils.py — # Tests for warnings_utils.py
 
@@ -4094,6 +4096,7 @@ py_modules = [
     "url_utils",
     "random_utils",
     "re_utils",
+    "rlcompleter_utils",
     "tempfile_utils",
     "secrets_utils",
     "validation_utils",
@@ -26859,6 +26862,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `prompt_utils.py` — Prompt utility functions for working with text prompts
 - `random_utils.py` — random number generation and sampling utilities
 - `re_utils.py` — regular expression utilities
+- `rlcompleter_utils.py` — interactive tab completion utilities wrapping the standard library `rlcompleter` module (`Completer`, `complete`) with input validation
 - `tempfile_utils.py` — temporary file and directory utilities
 - `validation_utils.py` — input validation utilities
 - `crypto_utils.py` — cryptographic utilities
@@ -26967,6 +26971,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `tests/test_random_utils.py` — unit tests for `random_utils.py`
 - `tests/test_re_utils.py` — unit tests for `re_utils.py`
+- `tests/test_rlcompleter_utils.py` — unit tests for `rlcompleter_utils.py`
 - `tests/test_tempfile_utils.py` — unit tests for `tempfile_utils.py`
 - `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
 - `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
@@ -28092,6 +28097,7 @@ uuid_utils.py               # UUID utility functions for generating and validati
 prompt_utils.py             # Prompt utility functions for working with text prompts
 random_utils.py             # Random number generation and sampling utilities
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
+rlcompleter_utils.py        # Interactive tab completion utilities wrapping stdlib rlcompleter (Completer, complete)
 tempfile_utils.py           # Temporary file and directory management utilities (mkstemp, mkdtemp, NamedTemporaryFile, TemporaryDirectory)
 traceback_utils.py          # Traceback utilities
 warnings_utils.py           # Warnings utilities
@@ -28778,6 +28784,10 @@ The project includes regular expression utilities in `regex_utils.py` for safe r
 ## Regular Expression Utilities Module (re_utils)
 
 The project includes regular expression utilities in `re_utils.py` wrapping the standard library `re` module: `find_all` returns all non-overlapping matches as strings, `find_matches` returns `re.Match` objects, `search` and `match` find patterns, `full_match` requires the entire string to match, `split` splits by pattern, `sub` and `subn` substitute matches with strings or callables, `compile_regex` compiles a regex pattern with optional flags, and `escape` escapes special characters. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_re_utils.py`.
+
+## Rlcompleter Utilities Module
+
+The project includes interactive tab completion utilities in `rlcompleter_utils.py` wrapping the standard library `rlcompleter` module: `Completer` wraps the standard library completer with input validation, and `complete` returns the *state*-th completion for *text* in a namespace. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_rlcompleter_utils.py`.
 
 ## Tree Utilities Module
 
@@ -29473,6 +29483,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `zoneinfo_utils.py` to the generated project — IANA timezone utilities wrapping the standard library `zoneinfo` module (`zoneinfo_get`, `zoneinfo_available_timezones`) with input validation, plus `tests/test_zoneinfo_utils.py`.
 - Added `opcode_utils.py` to the generated project — opcode utilities wrapping the standard library `opcode` module (stack effect computation and opcode classification helpers), plus `tests/test_opcode_utils.py`.
 - Synchronized `zoneinfo_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `rlcompleter_utils.py` to the generated project — interactive tab completion utilities wrapping the standard library `rlcompleter` module (`Completer`, `complete`) with input validation, plus `tests/test_rlcompleter_utils.py`.
+- Synchronized `rlcompleter_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 
 - Added `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation, plus `tests/test_pkgutil_utils.py`.
@@ -53360,6 +53372,12 @@ __all__: list[str] = [
     "has_argument",
 ]
 
+# The set of opcodes that take an argument was renamed in Python 3.12:
+# ``hasnargs`` (3.10-3.11) became ``hasarg`` (3.12+). Both hold the same set,
+# so pick the name that exists on the running interpreter. ``getattr`` is used
+# so the module imports and type-checks on every supported Python version.
+_HAS_ARGUMENT: list[int] = getattr(opcode, "hasarg", []) or getattr(opcode, "hasnargs", [])
+
 
 def stack_effect(opcode_val: int, oparg: int | None = None, *, jump: bool | None = None) -> int:
     """Compute the stack effect of a bytecode operation."""
@@ -53418,7 +53436,7 @@ def get_cmp_op() -> tuple[str, ...]:
 
 def has_argument(opcode_val: int) -> bool:
     """Return True if the opcode has an argument."""
-    return opcode_val in opcode.hasnargs
+    return opcode_val in _HAS_ARGUMENT
 OPCODE_UTILS
 
 # --- pickletools_utils.py ---
@@ -63190,6 +63208,88 @@ class TestCompileallUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_COMPILEALL_UTILS
+
+# --- rlcompleter_utils.py ---
+cat > "$OUTPUT_DIR/rlcompleter_utils.py" <<'RLCOMPLETER_UTILS'
+"""Utilities for interactive tab completion (wrapping :mod:`rlcompleter`)."""
+
+from __future__ import annotations
+
+import rlcompleter
+
+__all__: list[str] = ["Completer", "complete"]
+
+
+class Completer:
+    """Wrapper around :class:`rlcompleter.Completer`."""
+
+    def __init__(self, namespace: dict | None = None) -> None:
+        if namespace is not None and not isinstance(namespace, dict):
+            raise TypeError("namespace must be a dict or None")
+        self._completer = rlcompleter.Completer(namespace)
+
+    def complete(self, text: str, state: int) -> str | None:
+        if not isinstance(text, str):
+            raise TypeError("text must be a str")
+        if not isinstance(state, int) or isinstance(state, bool):
+            raise TypeError("state must be an int")
+        return self._completer.complete(text, state)
+
+
+def complete(text: str, state: int, namespace: dict | None = None) -> str | None:
+    """Return the *state*-th completion for *text*."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not isinstance(state, int) or isinstance(state, bool):
+        raise TypeError("state must be an int")
+    if namespace is not None and not isinstance(namespace, dict):
+        raise TypeError("namespace must be a dict or None")
+    return rlcompleter.Completer(namespace).complete(text, state)
+RLCOMPLETER_UTILS
+
+# --- tests/test_rlcompleter_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_rlcompleter_utils.py" <<'TEST_RLCOMPLETER_UTILS'
+import unittest
+
+from rlcompleter_utils import Completer, complete
+
+
+class TestRlcompleterUtils(unittest.TestCase):
+    def test_completer_complete(self):
+        c = Completer({"foo": 1, "foobar": 2})
+        result = c.complete("foo", 0)
+        self.assertIn(result, ("foo", "foobar"))
+
+    def test_completer_state_out_of_range(self):
+        c = Completer({"foo": 1})
+        c.complete("foo", 0)
+        self.assertIsNone(c.complete("foo", 5))
+
+    def test_completer_type_errors(self):
+        c = Completer()
+        with self.assertRaises(TypeError):
+            c.complete(1, 0)
+        with self.assertRaises(TypeError):
+            c.complete("foo", "0")
+        with self.assertRaises(TypeError):
+            Completer("not a dict")
+
+    def test_complete_function(self):
+        result = complete("pri", 0, {"print": print})
+        self.assertTrue(result.startswith("print"))
+
+    def test_complete_type_errors(self):
+        with self.assertRaises(TypeError):
+            complete(1, 0)
+        with self.assertRaises(TypeError):
+            complete("pri", "0")
+        with self.assertRaises(TypeError):
+            complete("pri", 0, "not a dict")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_RLCOMPLETER_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

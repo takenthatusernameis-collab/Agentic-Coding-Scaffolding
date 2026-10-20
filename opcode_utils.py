@@ -19,6 +19,12 @@ __all__: list[str] = [
     "has_argument",
 ]
 
+# The set of opcodes that take an argument was renamed in Python 3.12:
+# ``hasnargs`` (3.10-3.11) became ``hasarg`` (3.12+). Both hold the same set,
+# so pick the name that exists on the running interpreter. ``getattr`` is used
+# so the module imports and type-checks on every supported Python version.
+_HAS_ARGUMENT: list[int] = getattr(opcode, "hasarg", []) or getattr(opcode, "hasnargs", [])
+
 
 def stack_effect(opcode_val: int, oparg: int | None = None, *, jump: bool | None = None) -> int:
     """Compute the stack effect of a bytecode operation."""
@@ -77,4 +83,4 @@ def get_cmp_op() -> tuple[str, ...]:
 
 def has_argument(opcode_val: int) -> bool:
     """Return True if the opcode has an argument."""
-    return opcode_val in opcode.hasnargs
+    return opcode_val in _HAS_ARGUMENT

@@ -58,14 +58,12 @@ expectation in `tests/test_scaffold_sync.py`.
   `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
   `sndhdr` (removed in Python 3.13), `cgitb` (removed in Python 3.13), `smtplib`, `ftplib`, `poplib`,
   `webbrowser`, `xmlrpc`, `xdrlib`, `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`,
-  `opcode`, `rlcompleter`, `pyclbr`, and `encodings`. A natural next candidate is `opcode_utils.py`
-  wrapping the standard library `opcode` module: it is pure and hermetic, with no network, subprocess,
-  or interpreter-state dependencies. `rlcompleter` and `pyclbr` are equally hermetic alternatives;
-  `pyclbr` reads source files but never imports them, so the analysis stays static. Note that the
-  stack formatting helpers (`format_stack`, `format_list`, `format_exception_only`, `print_stack`,
-  `walk_stack`, `extract_stack`) live in the standard library `traceback` module and are already
-  wrapped by `traceback_utils.py`; the `trace` module itself only offers `Trace`, `CoverageResults`,
-  `PRAGMA_NOCOVER`, and `main`.
+  `pyclbr`, and `encodings`. A natural next candidate is `pyclbr_utils.py` wrapping the standard library
+  `pyclbr` module: it reads source files but never imports them, so the analysis stays static and the
+  test suite stays hermetic. Note that the stack formatting helpers (`format_stack`, `format_list`,
+  `format_exception_only`, `print_stack`, `walk_stack`, `extract_stack`) live in the standard library
+  `traceback` module and are already wrapped by `traceback_utils.py`; the `trace` module itself only
+  offers `Trace`, `CoverageResults`, `PRAGMA_NOCOVER`, and `main`.
 - Keep every new wrapper hermetic: the test suite must never open a network connection or block on a
   subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with
   `unittest.mock.patch` instead of real servers. The same rule applies to the compiler wrappers:

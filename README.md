@@ -61,6 +61,7 @@ uuid_utils.py               # UUID utility functions for generating and validati
 prompt_utils.py             # Prompt utility functions for working with text prompts
 random_utils.py             # Random number generation and sampling utilities
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
+rlcompleter_utils.py        # Interactive tab completion utilities wrapping stdlib rlcompleter (Completer, complete)
 tempfile_utils.py           # Temporary file and directory management utilities (mkstemp, mkdtemp, NamedTemporaryFile, TemporaryDirectory)
 traceback_utils.py          # Traceback utilities
 warnings_utils.py           # Warnings utilities
@@ -774,6 +775,10 @@ The project includes regular expression utilities in `regex_utils.py` for safe r
 ## Regular Expression Utilities Module (re_utils)
 
 The project includes regular expression utilities in `re_utils.py` wrapping the standard library `re` module: `find_all` returns all non-overlapping matches as strings, `find_matches` returns `re.Match` objects, `search` and `match` find patterns, `full_match` requires the entire string to match, `split` splits by pattern, `sub` and `subn` substitute matches with strings or callables, `compile_regex` compiles a regex pattern with optional flags, and `escape` escapes special characters. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_re_utils.py`.
+
+## Rlcompleter Utilities Module
+
+The project includes interactive tab completion utilities in `rlcompleter_utils.py` wrapping the standard library `rlcompleter` module: `Completer` wraps the standard library completer with input validation, and `complete` returns the *state*-th completion for *text* in a namespace. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_rlcompleter_utils.py`.
 
 ## Tree Utilities Module
 
