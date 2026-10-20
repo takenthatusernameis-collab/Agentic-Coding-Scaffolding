@@ -32,6 +32,7 @@
 #   - signal_utils.py — # Signal utilities wrapping stdlib signal (alarm, pause, register_handler, register_int_handler, register_term_handler, set_handler, get_handler, get_signal_name, is_valid_signal, signal_names, interrupt_handler, suspend_handler, unregister_handler, signal_info)
 #   - pkgutil_utils.py — # Package and module discovery utilities wrapping stdlib pkgutil (iter_modules, walk_packages, get_data, read_text, resolve_name, iter_importers, extend_path, find_spec)
 #   - unicodedata_utils.py — # Unicode character database utilities wrapping stdlib unicodedata (unicodedata_lookup, unicodedata_name, unicodedata_normalize, unicodedata_category, unicodedata_bidirectional, unicodedata_combining, unicodedata_east_asian_width, unicodedata_mirrored, unicodedata_decimal, unicodedata_digit, unicodedata_numeric)
+#   - unittest_utils.py — # Utilities wrapping the standard library unittest module (TestCase, TestSuite, TestLoader, TextTestRunner, main, make_suite, run_tests)
 #   - tomllib_utils.py — # TOML parsing utilities wrapping stdlib tomllib (read_toml, load_toml_string, is_valid_toml)
 #   - token_utils.py — # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 #   - sched_utils.py — # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
@@ -243,6 +244,7 @@
 #   - markdown_utils.py — # Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
 
 #   - time_utils.py — # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
+#   - timeit_utils.py — # Timeit utilities wrapping stdlib timeit (timeit, repeat, default_timer, Timer)
 
 #   - timezone_utils.py — # Time zone utilities (IANA lookups, conversion, formatting, DST) wrapping stdlib zoneinfo
 
@@ -536,6 +538,7 @@
 #   - test_token_utils.py — # Tests for token_utils.py
 #   - test_tomllib_utils.py — # Tests for tomllib_utils.py
 #   - test_unicodedata_utils.py — # Tests for unicodedata_utils.py
+#   - test_unittest_utils.py — # Tests for unittest_utils.py
 
 #   - test_shutil_utils.py — # Tests for shutil_utils.py
 
@@ -572,6 +575,7 @@
 #   - test_textwrap_utils.py — # Tests for textwrap_utils.py
 
 #   - test_time_utils.py — # Tests for time_utils.py
+#   - test_timeit_utils.py — # Tests for timeit_utils.py
 
 #   - test_timezone_utils.py — # Tests for timezone_utils.py
 
@@ -23796,6 +23800,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
 - `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation
 - `unicodedata_utils.py` — unicode character database utilities wrapping the standard library `unicodedata` module (`unicodedata_lookup`, `unicodedata_name`, `unicodedata_normalize`, `unicodedata_category`, `unicodedata_bidirectional`, `unicodedata_combining`, `unicodedata_east_asian_width`, `unicodedata_mirrored`, `unicodedata_decimal`, `unicodedata_digit`, `unicodedata_numeric`) with input validation
+- `unittest_utils.py` — unittest utilities (TestCase, TestSuite, make_suite, run_tests, main)
 - `tomllib_utils.py` — TOML parsing utilities wrapping the standard library `tomllib` module (`read_toml`, `load_toml_string`, `is_valid_toml`) with input validation
 - `token_utils.py` — python token constant utilities wrapping the standard library `token` module (`is_eof`, `is_nonterminal`, `is_terminal`, `tok_name`, `exact_token_types`, `n_tokens`, `nt_offset`) with input validation
 - `sched_utils.py` — scheduler utilities wrapping the standard library `sched` module (`scheduler`, `enter`, `enterabs`, `cancel`, `empty`, `run`, `queue`) with input validation
@@ -23814,9 +23819,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `this_utils.py` — Zen of Python utilities wrapping the standard library `this` module (`zen_of_python`, `translation_table`, `cipher_index`, `this`, `print_zen`) with input validation
 - `tokenize_utils.py` — source tokenization utilities wrapping the standard library `tokenize` module (`tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens, is_comment, is_string, is_number, is_name, is_keyword`) with input validation
 - `socket_utils.py` — low-level socket utilities wrapping the standard library `socket` module (`create_socket, create_tcp_socket, create_udp_socket, socket_address, resolve_address, connect_socket, create_connection, bind_socket, listen_socket, accept_connection, send_all, send_to, receive_bytes, receive_from, set_timeout, get_timeout, set_nonblocking, set_reuse_address, set_keepalive, shutdown_socket, close_socket, get_socket_name, get_peer_name, socket_family_name, socket_type_name, error_name, get_hostname, has_ipv6, is_ipv6_address`) with input validation
-- `sysconfig_utils.py` — build configuration utilities wrapping the standard library `sysconfig` module (`get_config_vars, get_config_var, has_config_var, list_config_var_names, get_paths, get_path, get_platform, get_python_version, get_default_scheme, get_preferred_scheme, get_scheme_names, is_python_build, get_config_h_filename, get_makefile_filename`) with input validation
+- `sysconfig_utils.py` — build configuration utilities wrapping the standard library `sysconfig` module (`get_config_vars`, `get_config_var`, `has_config_var`, `list_config_var_names`, `get_paths`, `get_path`, `get_platform`, `get_python_version`, `get_default_scheme`, `get_preferred_scheme`, `get_scheme_names`, `is_python_build`, `get_config_h_filename`, `get_makefile_filename`) with input validation
 - `mimetypes_utils.py` — MIME type detection utilities wrapping the standard library `mimetypes` module (`guess_type, guess_extension, guess_all_extensions, type_for_extension, add_type, init_database, normalize_extension, is_valid_mime_type, mime_category, is_text_mime_type`) with input validation
 - `code_utils.py` — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation
+- `codeop_utils.py` — utilities for compiling possibly-incomplete Python source wrapping the standard library `codeop` module (`compile_command`, `Compile`, `CommandCompiler`) with input validation
 - `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
 - `fileinput_utils.py` — file input iteration utilities wrapping the standard library `fileinput` module (`read_lines`, `count_lines`, `filenames`) with input validation
 - `fnmatch_utils.py` — filename pattern matching utilities wrapping the standard library `fnmatch` module (`match`, `match_case`, `filter_names`, `translate`) with input validation
@@ -23853,6 +23859,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
 - `data_utils.py` — data utility functions
 - `datetime_utils.py` — date and time utility functions
+- `dbm_utils.py` — database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
 - `file_utils.py` — file and path utility functions
 - `url_utils.py` — URL and web utility functions
 - `uuid_utils.py` — UUID utility functions for generating and validating UUIDs
@@ -23870,6 +23877,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `itertools_utils.py` — iteration helpers (`chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`) wrapping the standard library `itertools` module with input validation
 - `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
 - `timing_utils.py` — performance measurement helpers
+- `timeit_utils.py` — wrapper for stdlib timeit
 - `async_utils.py` — asynchronous utility functions
 - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
@@ -23945,11 +23953,14 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_reprlib_utils.py` — unit tests for `reprlib_utils.py`
 - `traceback_utils.py` — traceback utilities wrapping stdlib traceback (`format_exception`, `format_exception_only`, `extract_stack`, `format_stack`, `format_exc`)
 - `tests/test_traceback_utils.py` — unit tests for `traceback_utils.py`
+- `tracemalloc_utils.py` — tracemalloc memory tracing utilities wrapping stdlib tracemalloc (`is_tracing`, `get_traced_memory`, `get_traceback_limit`, `start`, `stop`, `clear_traces`)
+- `tests/test_tracemalloc_utils.py` — unit tests for `tracemalloc_utils.py`
 - `typing_utils.py` — typing utilities wrapping stdlib typing (`get_type_hints`, `get_origin`, `get_args`, `is_typeddict`) with re-exports of `overload`, `Final`, `Literal`, and `ClassVar`
 - `tests/test_typing_utils.py` — unit tests for `typing_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
+- `tests/test_dbm_utils.py` — unit tests for `dbm_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
 - `tests/test_url_utils.py` — unit tests for `url_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
@@ -23965,12 +23976,14 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_memoize_utils.py` — unit tests for `memoize_utils.py`
 - `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
 - `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
 - `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
 - `tests/test_pkgutil_utils.py` — unit tests for `pkgutil_utils.py`
 - `tests/test_unicodedata_utils.py` — unit tests for `unicodedata_utils.py`
+- `tests/test_unittest_utils.py` — unit tests for `unittest_utils.py`
 - `tests/test_tomllib_utils.py` — unit tests for `tomllib_utils.py`
 - `tests/test_token_utils.py` — unit tests for `token_utils.py`
 - `tests/test_sched_utils.py` — unit tests for `sched_utils.py`
@@ -23992,6 +24005,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_sysconfig_utils.py` — unit tests for `sysconfig_utils.py`
 - `tests/test_mimetypes_utils.py` — unit tests for `mimetypes_utils.py`
 - `tests/test_code_utils.py` — unit tests for `code_utils.py`
+- `tests/test_codeop_utils.py` — unit tests for `codeop_utils.py`
 - `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`
 - `tests/test_fileinput_utils.py` — unit tests for `fileinput_utils.py`
 - `tests/test_fnmatch_utils.py` — unit tests for `fnmatch_utils.py`
@@ -24170,7 +24184,12 @@ scaffold-project "My AI Project"
 scaffold-project my-cool-tool /tmp/projects/my-tool
 scaffold-project my-cool-tool ./out --no-test
 ```
+
+- `tty_utils.py` — tty utilities
+- `tests/test_tty_utils.py` — unit tests for tty_utils.py
 SCAFFOLD
+
+
 
 # --- .kilo/skill/scaffolding-helper.md ---
 cat > "$OUTPUT_DIR/.kilo/skill/scaffolding-helper.md" <<'SKILLSAMPLE'
@@ -38500,6 +38519,80 @@ class TestNsmallest(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTHEAPQUTILS
+# --- tests/test_markdown_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_markdown_utils.py" <<'TESTMARKDOWNUTILS'
+"""Tests for markdown_utils module."""
+
+import unittest
+
+from markdown_utils import (
+    count_words,
+    extract_code_blocks,
+    heading_level,
+    is_heading,
+    strip_markdown,
+)
+
+
+class TestExtractCodeBlocks(unittest.TestCase):
+    def test_extracts_single_block(self) -> None:
+        text = "intro\n```python\nprint('hi')\n```\noutro"
+        self.assertEqual(extract_code_blocks(text), ["print('hi')"])
+
+    def test_extracts_multiple_blocks(self) -> None:
+        text = "```js\na()\n```\n\n```py\nb()\n```"
+        self.assertEqual(extract_code_blocks(text), ["a()", "b()"])
+
+    def test_no_blocks(self) -> None:
+        self.assertEqual(extract_code_blocks("no code here"), [])
+
+    def test_language_tag_optional(self) -> None:
+        text = "```\nplain\n```"
+        self.assertEqual(extract_code_blocks(text), ["plain"])
+
+
+class TestStripMarkdown(unittest.TestCase):
+    def test_strips_bold(self) -> None:
+        self.assertEqual(strip_markdown("this is **bold** text"), "this is bold text")
+
+    def test_strips_italic(self) -> None:
+        self.assertEqual(strip_markdown("this is *italic* text"), "this is italic text")
+
+    def test_strips_inline_code(self) -> None:
+        self.assertEqual(strip_markdown("use `foo()` here"), "use foo() here")
+
+    def test_strips_heading(self) -> None:
+        self.assertEqual(strip_markdown("# Title"), "Title")
+
+    def test_strips_link(self) -> None:
+        self.assertEqual(strip_markdown("[label](http://example.com)"), "label")
+
+    def test_strips_blockquote(self) -> None:
+        self.assertEqual(strip_markdown("> quoted"), "quoted")
+
+
+class TestCountWords(unittest.TestCase):
+    def test_counts_words(self) -> None:
+        self.assertEqual(count_words("hello world foo"), 3)
+
+    def test_empty(self) -> None:
+        self.assertEqual(count_words(""), 0)
+
+
+class TestHeading(unittest.TestCase):
+    def test_is_heading(self) -> None:
+        self.assertTrue(is_heading("# Title"))
+        self.assertTrue(is_heading("## Sub"))
+        self.assertFalse(is_heading("not heading"))
+
+    def test_heading_level(self) -> None:
+        self.assertEqual(heading_level("# Title"), 1)
+        self.assertEqual(heading_level("### Deep"), 3)
+        self.assertEqual(heading_level("not heading"), 0)
+TESTMARKDOWNUTILS
+
+
+
 # --- markdown_utils.py ---
 cat > "$OUTPUT_DIR/markdown_utils.py" <<'MARKDOWNUTILS'
 """Markdown utility functions."""
@@ -39008,8 +39101,86 @@ def iso_to_epoch(value: str) -> Optional[int]:
         dt = dt.replace(tzinfo=timezone.utc)
     return int(dt.timestamp())
 TIMEUTILS
+
+
+# --- timeit_utils.py ---
+cat > "$OUTPUT_DIR/timeit_utils.py" <<'TIMEITUTILS'
+"""Utilities wrapping the standard library ``timeit`` module.
+
+This module provides convenient helpers for benchmarking small code snippets
+using :mod:`timeit`, including :func:`timeit`, :func:`repeat`,
+:func:`default_timer`, and the :class:`Timer` class.
+"""
+
+from __future__ import annotations
+
+import timeit as _timeit
+from typing import Any, Callable, Optional, Sequence
+
+__all__: list[str] = ["timeit", "repeat", "default_timer", "Timer"]
+
+
+def default_timer() -> float:
+    """Return the default timer used by :mod:`timeit`.
+
+    Returns:
+        Current time in seconds as a float.
+    """
+    return _timeit.default_timer()
+
+
+def timeit(
+    stmt: str = "pass",
+    setup: str = "pass",
+    timer: Callable[[], float] = default_timer,
+    number: int = 1000000,
+    globals: Optional[dict[str, Any]] = None,
+) -> float:
+    """Time execution of *stmt* and return the elapsed seconds.
+
+    Args:
+        stmt: Statement to time.
+        setup: Setup code run once before timing.
+        timer: Timer callable.
+        number: Number of executions.
+        globals: Optional globals dict.
+
+    Returns:
+        Elapsed time in seconds.
+    """
+    return _timeit.timeit(stmt, setup=setup, timer=timer, number=number, globals=globals)
+
+
+def repeat(
+    stmt: str = "pass",
+    setup: str = "pass",
+    timer: Callable[[], float] = default_timer,
+    repeat: int = 5,
+    number: int = 1000000,
+    globals: Optional[dict[str, Any]] = None,
+) -> list[float]:
+    """Repeat timing of *stmt* and return list of elapsed times.
+
+    Args:
+        stmt: Statement to time.
+        setup: Setup code run once before timing.
+        timer: Timer callable.
+        repeat: Number of repeats.
+        number: Executions per repeat.
+        globals: Optional globals dict.
+
+    Returns:
+        List of elapsed times.
+    """
+    return _timeit.repeat(
+        stmt, setup=setup, timer=timer, repeat=repeat, number=number, globals=globals
+    )
+
+
+Timer = _timeit.Timer
+TIMEITUTILS
 # --- timezone_utils.py ---
-cat > "$OUTPUT_DIR/timezone_utils.py" <<'TZUTILS'
+cat > "$OUTPUT_DIR/timezone_utils.py" <<'TIMEZONEUTILS'
 """Timezone utilities.
 
 This module provides utilities for working with time zones using the
@@ -39221,78 +39392,14 @@ def get_common_timezones() -> list[str]:
 def get_all_timezones() -> list[str]:
     """Return all known IANA time zone identifiers, sorted alphabetically."""
     return sorted(available_timezones())
-TZUTILS
-# --- tests/test_markdown_utils.py ---
-cat > "$OUTPUT_DIR/tests/test_markdown_utils.py" <<'TESTMARKDOWNUTILS'
-"""Tests for markdown_utils module."""
-
-import unittest
-
-from markdown_utils import (
-    count_words,
-    extract_code_blocks,
-    heading_level,
-    is_heading,
-    strip_markdown,
-)
+TIMEZONEUTILS
 
 
-class TestExtractCodeBlocks(unittest.TestCase):
-    def test_extracts_single_block(self) -> None:
-        text = "intro\n```python\nprint('hi')\n```\noutro"
-        self.assertEqual(extract_code_blocks(text), ["print('hi')"])
-
-    def test_extracts_multiple_blocks(self) -> None:
-        text = "```js\na()\n```\n\n```py\nb()\n```"
-        self.assertEqual(extract_code_blocks(text), ["a()", "b()"])
-
-    def test_no_blocks(self) -> None:
-        self.assertEqual(extract_code_blocks("no code here"), [])
-
-    def test_language_tag_optional(self) -> None:
-        text = "```\nplain\n```"
-        self.assertEqual(extract_code_blocks(text), ["plain"])
 
 
-class TestStripMarkdown(unittest.TestCase):
-    def test_strips_bold(self) -> None:
-        self.assertEqual(strip_markdown("this is **bold** text"), "this is bold text")
-
-    def test_strips_italic(self) -> None:
-        self.assertEqual(strip_markdown("this is *italic* text"), "this is italic text")
-
-    def test_strips_inline_code(self) -> None:
-        self.assertEqual(strip_markdown("use `foo()` here"), "use foo() here")
-
-    def test_strips_heading(self) -> None:
-        self.assertEqual(strip_markdown("# Title"), "Title")
-
-    def test_strips_link(self) -> None:
-        self.assertEqual(strip_markdown("[label](http://example.com)"), "label")
-
-    def test_strips_blockquote(self) -> None:
-        self.assertEqual(strip_markdown("> quoted"), "quoted")
 
 
-class TestCountWords(unittest.TestCase):
-    def test_counts_words(self) -> None:
-        self.assertEqual(count_words("hello world foo"), 3)
 
-    def test_empty(self) -> None:
-        self.assertEqual(count_words(""), 0)
-
-
-class TestHeading(unittest.TestCase):
-    def test_is_heading(self) -> None:
-        self.assertTrue(is_heading("# Title"))
-        self.assertTrue(is_heading("## Sub"))
-        self.assertFalse(is_heading("not heading"))
-
-    def test_heading_level(self) -> None:
-        self.assertEqual(heading_level("# Title"), 1)
-        self.assertEqual(heading_level("### Deep"), 3)
-        self.assertEqual(heading_level("not heading"), 0)
-TESTMARKDOWNUTILS
 
 # --- tests/test_time_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_time_utils.py" <<'TESTTIMEUTILS'
@@ -39322,6 +39429,56 @@ def test_epoch_roundtrip():
 def test_iso_to_epoch_invalid():
     assert time_utils.iso_to_epoch("not-a-date") is None
 TESTTIMEUTILS
+# --- tests/test_timeit_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_timeit_utils.py" <<'TESTTIMEITUTILS'
+"""Tests for timeit_utils module."""
+
+import unittest
+
+from timeit_utils import Timer, default_timer, repeat, timeit
+
+
+class TestDefaultTimer(unittest.TestCase):
+    def test_returns_float(self):
+        self.assertIsInstance(default_timer(), float)
+
+
+class TestTimeit(unittest.TestCase):
+    def test_basic(self):
+        result = timeit("pass", number=10)
+        self.assertIsInstance(result, float)
+        self.assertGreaterEqual(result, 0.0)
+
+    def test_with_globals(self):
+        result = timeit("x + 1", globals={"x": 5}, number=10)
+        self.assertIsInstance(result, float)
+
+
+class TestRepeat(unittest.TestCase):
+    def test_basic(self):
+        result = repeat("pass", number=10, repeat=3)
+        self.assertEqual(len(result), 3)
+        for r in result:
+            self.assertIsInstance(r, float)
+
+
+class TestTimer(unittest.TestCase):
+    def test_timer_instance(self):
+        t = Timer("pass")
+        result = t.timeit(number=10)
+        self.assertIsInstance(result, float)
+
+    def test_repeat(self):
+        t = Timer("pass")
+        result = t.repeat(repeat=2, number=10)
+        self.assertEqual(len(result), 2)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTTIMEITUTILS
+
+
 
 # --- tests/test_template_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_template_utils.py" <<'TESTTEMPLATEUTILS'
@@ -39726,6 +39883,10 @@ class TestCommonAndAllTimezones(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTTZUTILS
+
+
+
+
 
 # --- fractions_utils.py ---
 cat > "$OUTPUT_DIR/fractions_utils.py" <<'FRACTIONS_UTILS'
@@ -45910,6 +46071,49 @@ def unicodedata_numeric(char: str, default: float | None = None) -> float:
     return unicodedata.numeric(char, default)
 UNICODEDATA_UTILS
 
+
+# --- unittest_utils.py ---
+cat > "$OUTPUT_DIR/unittest_utils.py" <<'UNITTESTUTILS'
+"""Utilities wrapping the standard library ``unittest`` module."""
+
+from __future__ import annotations
+
+import unittest as _unittest
+from typing import Any, Type
+
+__all__ = [
+    "TestCase",
+    "TestSuite",
+    "TestLoader",
+    "TextTestRunner",
+    "main",
+    "make_suite",
+    "run_tests",
+    "defaultTestLoader",
+]
+
+TestCase = _unittest.TestCase
+TestSuite = _unittest.TestSuite
+TestLoader = _unittest.TestLoader
+TextTestRunner = _unittest.TextTestRunner
+defaultTestLoader = _unittest.defaultTestLoader
+
+
+def make_suite(test_class: Type[TestCase]) -> TestSuite:
+    loader = _unittest.TestLoader()
+    return loader.loadTestsFromTestCase(test_class)
+
+
+def run_tests(suite: Any, verbosity: int = 1) -> _unittest.TestResult:
+    runner = _unittest.TextTestRunner(verbosity=verbosity)
+    return runner.run(suite)
+
+
+def main(module=None, exit=True, verbosity=1) -> None:
+    _unittest.main(module=module, exit=exit, verbosity=verbosity)
+UNITTESTUTILS
+
+
 # --- tests/test_unicodedata_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_unicodedata_utils.py" <<'TEST_UNICODEDATA_UTILS'
 """Tests for unicodedata_utils."""
@@ -45972,6 +46176,30 @@ def test_unicodedata_digit():
 def test_unicodedata_numeric():
     assert unicodedata_numeric("\u00bd") == 0.5
 TEST_UNICODEDATA_UTILS
+# --- tests/test_unittest_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_unittest_utils.py" <<'TESTUNITTESTUTILS'
+import unittest
+
+from unittest_utils import TestCase, TestSuite, make_suite, run_tests
+
+
+class TestUnittestUtils(unittest.TestCase):
+    def test_make_suite_and_run(self):
+        class MyTests(TestCase):
+            def test_ok(self):
+                self.assertTrue(True)
+
+        suite = make_suite(MyTests)
+        result = run_tests(suite, verbosity=0)
+        self.assertTrue(result.wasSuccessful())
+        self.assertEqual(result.testsRun, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TESTUNITTESTUTILS
+
+
 
 # --- shelve_utils.py ---
 cat > "$OUTPUT_DIR/shelve_utils.py" <<'SHELVE_UTILS'

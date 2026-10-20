@@ -26,6 +26,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
 - `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation
 - `unicodedata_utils.py` — unicode character database utilities wrapping the standard library `unicodedata` module (`unicodedata_lookup`, `unicodedata_name`, `unicodedata_normalize`, `unicodedata_category`, `unicodedata_bidirectional`, `unicodedata_combining`, `unicodedata_east_asian_width`, `unicodedata_mirrored`, `unicodedata_decimal`, `unicodedata_digit`, `unicodedata_numeric`) with input validation
+- `unittest_utils.py` — unittest utilities (TestCase, TestSuite, make_suite, run_tests, main)
 - `tomllib_utils.py` — TOML parsing utilities wrapping the standard library `tomllib` module (`read_toml`, `load_toml_string`, `is_valid_toml`) with input validation
 - `token_utils.py` — python token constant utilities wrapping the standard library `token` module (`is_eof`, `is_nonterminal`, `is_terminal`, `tok_name`, `exact_token_types`, `n_tokens`, `nt_offset`) with input validation
 - `sched_utils.py` — scheduler utilities wrapping the standard library `sched` module (`scheduler`, `enter`, `enterabs`, `cancel`, `empty`, `run`, `queue`) with input validation
@@ -208,6 +209,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
 - `tests/test_pkgutil_utils.py` — unit tests for `pkgutil_utils.py`
 - `tests/test_unicodedata_utils.py` — unit tests for `unicodedata_utils.py`
+- `tests/test_unittest_utils.py` — unit tests for `unittest_utils.py`
 - `tests/test_tomllib_utils.py` — unit tests for `tomllib_utils.py`
 - `tests/test_token_utils.py` — unit tests for `token_utils.py`
 - `tests/test_sched_utils.py` — unit tests for `sched_utils.py`
@@ -408,3 +410,6 @@ scaffold-project "My AI Project"
 scaffold-project my-cool-tool /tmp/projects/my-tool
 scaffold-project my-cool-tool ./out --no-test
 ```
+
+- `tty_utils.py` — tty utilities
+- `tests/test_tty_utils.py` — unit tests for tty_utils.py

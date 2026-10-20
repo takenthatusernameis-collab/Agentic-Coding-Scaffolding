@@ -288,6 +288,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `weakref_utils.py` with weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`).
 - `time_utils.py` — time utility functions for working with timestamps and durations (`now_epoch`, `now_iso`, `epoch_to_iso`, `iso_to_epoch`)
+- `timeit_utils.py` — wrapper for stdlib timeit (timeit, repeat, default_timer, Timer)
 - `tests/test_time_utils.py` — unit tests for `time_utils.py`
 - Added `time_utils.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions
 
@@ -718,3 +719,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `platform_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, CHANGELOG, and `PROJECT_STATUS.md`.
 
 
+
+- `unittest_utils.py` — Utilities wrapping the standard library `unittest` module with tests
+- `tests/test_unittest_utils.py` — unit tests for `unittest_utils.py`
+
+- `tty_utils.py` — tty utilities wrapping stdlib tty with tests
+- `tests/test_tty_utils.py` — unit tests for `tty_utils.py`

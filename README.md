@@ -115,6 +115,7 @@ sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
 ssl_utils.py              # SSL/TLS utilities wrapping stdlib ssl
 pkgutil_utils.py          # Package and module discovery utilities wrapping stdlib pkgutil (iter_modules, walk_packages, get_data, read_text, resolve_name, iter_importers, extend_path, find_spec)
 unicodedata_utils.py      # Unicode character database utilities wrapping stdlib unicodedata (unicodedata_lookup, unicodedata_name, unicodedata_normalize, unicodedata_category, unicodedata_bidirectional, unicodedata_combining, unicodedata_east_asian_width, unicodedata_mirrored, unicodedata_decimal, unicodedata_digit, unicodedata_numeric)
+118:unittest_utils.py          # Utilities wrapping the standard library unittest module
 tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read_toml, load_toml_string, is_valid_toml)
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
@@ -385,6 +386,7 @@ test_lzma_utils.py          # Tests for lzma_utils.py
     test_token_utils.py         # Tests for token_utils.py
     test_tomllib_utils.py       # Tests for tomllib_utils.py
     test_unicodedata_utils.py   # Tests for unicodedata_utils.py
+388:     test_unittest_utils.py       # Tests for unittest_utils.py
     test_cmd_utils.py           # Tests for cmd_utils.py
     test_this_utils.py          # Tests for this_utils.py
     test_tokenize_utils.py      # Tests for tokenize_utils.py
@@ -1169,3 +1171,11 @@ The project includes subprocess utilities in `subprocess_utils.py` wrapping the 
 ## Weak Reference Utilities Module
 
 The project includes weak reference utilities in `weakref_utils.py` wrapping the standard library `weakref` module: `WeakRef` and `WeakMethod` are re-exported, `create_weakref` creates a weak reference to an object, `create_proxy` creates a transparent proxy, `get_object` resolves a reference to its target, `is_alive` reports whether the target still exists, and `create_finalizer` registers a callback for when the target is collected. The module is tested in `tests/test_weakref_utils.py`.
+
+## Unittest Utilities Module
+
+The project includes utilities wrapping the standard library `unittest` module in `unittest_utils.py`: `TestCase`, `TestSuite`, `TestLoader`, `TextTestRunner` are re-exported, along with `make_suite`, `run_tests`, `main`, and `defaultTestLoader`. The module is tested in `tests/test_unittest_utils.py`.
+
+## Timeit Utilities Module
+
+The project includes timeit utilities in `timeit_utils.py` wrapping the standard library `timeit` module: `timeit`, `repeat`, `default_timer`, and `Timer`. The module is tested in `tests/test_timeit_utils.py`.
