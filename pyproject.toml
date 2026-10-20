@@ -90,6 +90,7 @@ py_modules = [
     "circuit_breaker_utils",
     "timing_utils",
     "timeit_utils",
+    "unittest_utils",
     "async_utils",
     "argparse_utils",
     "concurrent_utils",
