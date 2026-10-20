@@ -23878,6 +23878,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
 - `timing_utils.py` — performance measurement helpers
 - `timeit_utils.py` — wrapper for stdlib timeit
+- `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
+- `unittest_utils.py` — wrapper for stdlib unittest
+- `tests/test_unittest_utils.py` — unit tests for `unittest_utils.py`
 - `async_utils.py` — asynchronous utility functions
 - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
@@ -23976,7 +23979,13 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_memoize_utils.py` — unit tests for `memoize_utils.py`
 - `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `timeit_utils.py` — wrapper for stdlib timeit
 - `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
+- `unittest_utils.py` — wrapper for stdlib unittest
+- `tests/test_unittest_utils.py` — unit tests for `unittest_utils.py`
+- `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
+- `unittest_utils.py` — wrapper for stdlib unittest
+- `tests/test_unittest_utils.py` — unit tests for `unittest_utils.py`
 - `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
@@ -26021,6 +26030,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
 - `timing_utils.py` — performance measurement helpers with `timer` context manager, `elapsed_time` function, and `benchmark` decorator
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
+- `timeit_utils.py` — wrapper for stdlib timeit
+- `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
+- `unittest_utils.py` — wrapper for stdlib unittest
+- `tests/test_unittest_utils.py` — unit tests for `unittest_utils.py`
 - `concurrent_utils.py` — concurrent execution utilities with `ThreadPool`, `ProcessPool`, `gather`, `run_async`, and `to_async` functions
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `priority_queue_utils.py` — heap-based priority queue implementation with `PriorityQueue` class and helper functions
