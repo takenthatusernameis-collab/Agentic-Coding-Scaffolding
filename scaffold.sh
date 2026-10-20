@@ -670,12 +670,14 @@
 #   - webbrowser_utils.py — # Web browser utilities wrapping the standard library webbrowser (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers)
 #   - xmlrpc_utils.py — # XML-RPC utilities wrapping the standard library xmlrpc (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, create_proxy, create_server)
 #   - syslog_utils.py — # System logging utilities wrapping the standard library syslog (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, facility_name)
+#   - faulthandler_utils.py — # Fault handler utilities wrapping the standard library faulthandler (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister, is_available)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
 #   - tests/test_webbrowser_utils.py — # Tests for webbrowser_utils.py
 #   - tests/test_xmlrpc_utils.py — # Tests for xmlrpc_utils.py
 #   - tests/test_syslog_utils.py — # Tests for syslog_utils.py
+#   - tests/test_faulthandler_utils.py — # Tests for faulthandler_utils.py
 set -euo pipefail
 
 usage() {
@@ -4298,6 +4300,7 @@ py_modules = [
     "webbrowser_utils",
     "xmlrpc_utils",
     "syslog_utils",
+    "faulthandler_utils",
 ]
 
 PYPROJECT
@@ -26860,6 +26863,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `webbrowser_utils.py` — web browser utilities wrapping the standard library `webbrowser` module (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers) with input validation
 - `xmlrpc_utils.py` — XML-RPC utilities wrapping the standard library `xmlrpc` package (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, marshal_params, unmarshal_params, create_marshaller, create_transport, create_proxy, create_dispatcher, register_function, register_instance, register_introspection_functions, register_multicall_functions, resolve_dotted_attribute, list_public_methods, create_server, create_multi_path_server) with input validation
 - `syslog_utils.py` — system logging utilities wrapping the standard library `syslog` module (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, priority_names, facility_name, facility_names, option_names, is_available) with input validation
+- `faulthandler_utils.py` — fault handler utilities wrapping the standard library `faulthandler` module (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister) with input validation
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27064,6 +27068,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_webbrowser_utils.py` — unit tests for `webbrowser_utils.py`
 - `tests/test_xmlrpc_utils.py` — unit tests for `xmlrpc_utils.py`
 - `tests/test_syslog_utils.py` — unit tests for `syslog_utils.py`
+- `tests/test_faulthandler_utils.py` — unit tests for `faulthandler_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -28335,6 +28340,7 @@ subprocess_utils.py         # Subprocess utilities (run_command, check_output, c
 webbrowser_utils.py         # Web browser utilities wrapping stdlib webbrowser (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers)
 xmlrpc_utils.py             # XML-RPC utilities wrapping stdlib xmlrpc (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, create_proxy, create_server)
 syslog_utils.py             # System logging utilities wrapping stdlib syslog (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, facility_name)
+faulthandler_utils.py        # Fault handler utilities wrapping stdlib faulthandler (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -28498,6 +28504,7 @@ test_weakref_utils.py       # Tests for weakref_utils.py
     test_xml_utils.py           # Tests for xml_utils.py
     test_xmlrpc_utils.py        # Tests for xmlrpc_utils.py
     test_syslog_utils.py        # Tests for syslog_utils.py
+    test_faulthandler_utils.py   # Tests for faulthandler_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -29427,6 +29434,10 @@ The project includes XML-RPC utilities in `xmlrpc_utils.py` wrapping the standar
 
 The project includes system logging utilities in `syslog_utils.py` wrapping the standard library `syslog` module: `open_log` opens the system logger for the program, `log_message` sends a message with a given severity, `close_log` closes the log again, `set_log_mask` restricts the severities that are recorded and returns the previous mask, `log_mask` computes the mask of a single severity, `log_upto` computes the mask of every severity up to and including a given one, `priority_name` and `facility_name` turn the numeric severities and facilities into names, `priority_names`, `facility_names` and `option_names` return the known constants, and `is_available` reports whether the interpreter ships the standard library module. The severity constants (`LOG_EMERG`, `LOG_ALERT`, `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`, `LOG_NOTICE`, `LOG_INFO`, `LOG_DEBUG`), the facility constants (`LOG_KERN` up to `LOG_LOCAL7`) and the option flags (`LOG_PID`, `LOG_CONS`, `LOG_ODELAY`, `LOG_NDELAY`, `LOG_NOWAIT`, `LOG_PERROR`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `syslog` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers that talk to the system logger raise a `RuntimeError` elsewhere. The module is tested in `tests/test_syslog_utils.py`.
 
+## Faulthandler Utilities Module
+
+The project includes fault handler utilities in `faulthandler_utils.py` wrapping the standard library `faulthandler` module: `enable` enables the fault handler with optional file and thread dumping, `disable` disables it, `is_enabled` reports whether it is enabled, `dump_traceback` dumps the current tracebacks of all threads to a file, `dump_traceback_later` schedules a traceback dump after a timeout with optional repetition or exit, `cancel_dump_traceback_later` cancels the scheduled dump, `register` registers a signal handler for dumping tracebacks, `unregister` unregisters a signal handler, and `is_available` reports whether the interpreter ships the standard library module. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The file argument accepts the standard error stream, a file descriptor, or a writable file object, and the import degrades gracefully so that the helpers raise a `RuntimeError` when the interpreter does not ship the `faulthandler` module. The module is tested in `tests/test_faulthandler_utils.py`.
+
 ## Hello Module
 
 The project includes a sample application entry point in `hello.py`: `main` prints a greeting for the given name and defaults to `"World"`, and running the module directly greets the name given on the command line. The module is tested in `tests/test_hello.py`.
@@ -29445,6 +29456,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Add `faulthandler_utils.py` wrapping the standard library `faulthandler` module (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister, is_available) with input validation, plus unit tests in `tests/test_faulthandler_utils.py`.
+- Synchronized `faulthandler_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `syslog_utils.py` wrapping the standard library `syslog` module (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, priority_names, facility_name, facility_names, option_names, is_available) with input validation, plus unit tests in `tests/test_syslog_utils.py`.
 - Synchronized `syslog_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `webbrowser_utils.py` wrapping the standard library `webbrowser` module (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers, Error) with input validation, plus unit tests in `tests/test_webbrowser_utils.py`.
@@ -67689,6 +67702,421 @@ class TestSyslogUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_SYSLOG_UTILS
+
+# --- faulthandler_utils.py ---
+cat > "$OUTPUT_DIR/faulthandler_utils.py" <<'FAULTHANDLER_UTILS'
+"""Fault handler utilities wrapping the standard library :mod:`faulthandler` module.
+
+The :mod:`faulthandler` module makes the interpreter dump the traceback of the
+running threads when the process dies from a fatal signal, when a watchdog
+timer fires, or when the program asks for it explicitly.  A program turns the
+handler on with :func:`faulthandler.enable`, arms a watchdog with
+:func:`faulthandler.dump_traceback_later`, and hooks a user signal with
+:func:`faulthandler.register`.
+
+This wrapper validates every argument before the standard library is reached, so
+a caller gets a clear ``TypeError`` or ``ValueError`` instead of an opaque
+failure from the C layer, and it exposes a small, stable set of helpers that
+behave the same way on every platform.
+
+.. note::
+
+   The :mod:`faulthandler` module is part of the standard library on every
+   platform, but it can be missing from a stripped-down interpreter.  The
+   import below degrades gracefully: when the interpreter does not ship the
+   module, the helpers raise a :class:`RuntimeError` that names the missing
+   module, while :func:`is_available` keeps working.
+
+The helpers never enable the fault handler behind the caller's back.  The
+handler is only installed when :func:`enable` is called, and a scheduled dump
+is only armed when :func:`dump_traceback_later` is called.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+__all__: list[str] = [
+    "cancel_dump_traceback_later",
+    "disable",
+    "dump_traceback",
+    "dump_traceback_later",
+    "enable",
+    "is_available",
+    "is_enabled",
+    "register",
+    "unregister",
+]
+
+try:
+    import faulthandler as _faulthandler
+except ImportError:  # pragma: no cover - the module is built into CPython
+    _faulthandler = None  # type: ignore[assignment]
+
+
+def _faulthandler_module() -> Any:
+    """Return the standard library ``faulthandler`` module.
+
+    Returns:
+        The imported :mod:`faulthandler` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``faulthandler`` module.
+    """
+    if _faulthandler is None:  # pragma: no cover - the module is built into CPython
+        raise RuntimeError(
+            "the standard library 'faulthandler' module is not available on this interpreter"
+        )
+    return _faulthandler
+
+
+def _validate_file(file: Any) -> None:
+    """Validate the *file* argument shared by the fault handler helpers.
+
+    The standard library accepts ``None``, an open file descriptor, or a
+    file object with a usable file descriptor.
+
+    Args:
+        file: The file the traceback is written to, or ``None`` for the
+            standard error stream.
+
+    Raises:
+        TypeError: If *file* is neither ``None``, a file descriptor, nor a
+            writable file object.
+        ValueError: If *file* is a negative file descriptor.
+    """
+    if file is None:
+        return
+    if isinstance(file, int) and not isinstance(file, bool):
+        if file < 0:
+            raise ValueError("file must be a valid file descriptor")
+        return
+    if not hasattr(file, "write") or not callable(file.write):
+        raise TypeError(
+            f"file must be a writable file object or None, got {type(file).__name__}"
+        )
+    fileno = getattr(file, "fileno", None)
+    if fileno is None:
+        return
+    try:
+        descriptor = fileno()
+    except (OSError, ValueError) as error:
+        raise TypeError(
+            f"file must have a usable file descriptor, got {type(file).__name__}"
+        ) from error
+    if not isinstance(descriptor, int) or descriptor < 0:
+        raise TypeError(f"file must have a usable file descriptor, got {type(file).__name__}")
+
+
+def _validate_flag(name: str, value: Any) -> None:
+    """Validate that the boolean flag *name* really is a boolean.
+
+    Args:
+        name: The name of the flag, used in the error message.
+        value: The value to validate.
+
+    Raises:
+        TypeError: If *value* is not a boolean.
+    """
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+
+
+def _validate_signum(signum: Any) -> None:
+    """Validate the signal number *signum*.
+
+    Args:
+        signum: The signal number to validate.
+
+    Raises:
+        TypeError: If *signum* is not an integer.
+    """
+    if not isinstance(signum, int) or isinstance(signum, bool):
+        raise TypeError(f"signum must be an int, got {type(signum).__name__}")
+
+
+def enable(file: Any = None, all_threads: bool = True) -> None:
+    """Enable the fault handler.
+
+    Args:
+        file: The file the traceback is written to.  ``None`` selects the
+            standard error stream.
+        all_threads: When true the traceback of every running thread is
+            dumped, otherwise only the thread that faulted is.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+    """
+    _validate_file(file)
+    _validate_flag("all_threads", all_threads)
+    _faulthandler_module().enable(file=file, all_threads=all_threads)
+
+
+def disable() -> None:
+    """Disable the fault handler.
+
+    The signal handlers installed by :func:`enable` and :func:`register` are
+    removed and the default handlers are restored.
+    """
+    _faulthandler_module().disable()
+
+
+def is_enabled() -> bool:
+    """Report whether the fault handler is enabled.
+
+    Returns:
+        True when the fault handler is installed, False otherwise.
+    """
+    return bool(_faulthandler_module().is_enabled())
+
+
+def dump_traceback(file: Any = None, all_threads: bool = True) -> None:
+    """Dump the traceback of the running threads.
+
+    Args:
+        file: The file the traceback is written to.  ``None`` selects the
+            standard error stream.
+        all_threads: When true the traceback of every running thread is
+            dumped, otherwise only the traceback of the calling thread is.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+    """
+    _validate_file(file)
+    _validate_flag("all_threads", all_threads)
+    _faulthandler_module().dump_traceback(file=file, all_threads=all_threads)
+
+
+def dump_traceback_later(
+    timeout: float,
+    repeat: bool = False,
+    file: Any = None,
+    exit: bool = False,
+) -> None:
+    """Arm a watchdog that dumps the traceback after *timeout* seconds.
+
+    Args:
+        timeout: The number of seconds to wait before the traceback is dumped.
+        repeat: When true the traceback is dumped every *timeout* seconds
+            instead of only once.
+        file: The file the traceback is written to.  ``None`` selects the
+            standard error stream.
+        exit: When true the process is killed after the traceback is dumped.
+            Terminating a process is not safe, so this is off by default.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *timeout* is negative.
+    """
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+        raise TypeError(f"timeout must be a number, got {type(timeout).__name__}")
+    if timeout < 0:
+        raise ValueError("timeout must be non-negative")
+    _validate_flag("repeat", repeat)
+    _validate_file(file)
+    _validate_flag("exit", exit)
+    _faulthandler_module().dump_traceback_later(timeout, repeat=repeat, file=file, exit=exit)
+
+
+def cancel_dump_traceback_later() -> None:
+    """Cancel the watchdog armed by :func:`dump_traceback_later`."""
+    _faulthandler_module().cancel_dump_traceback_later()
+
+
+def register(
+    signum: int,
+    file: Any = None,
+    all_threads: bool = True,
+    chain: bool = False,
+) -> Any:
+    """Register a signal handler that dumps the traceback.
+
+    Args:
+        signum: The signal to hook.
+        file: The file the traceback is written to.  ``None`` selects the
+            standard error stream.
+        all_threads: When true the traceback of every running thread is
+            dumped, otherwise only the thread that received the signal is.
+        chain: When true the previously installed handler still runs after
+            the traceback is dumped.
+
+    Returns:
+        The previously installed signal handler, or ``None`` when there was
+        none.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+    """
+    _validate_signum(signum)
+    _validate_file(file)
+    _validate_flag("all_threads", all_threads)
+    _validate_flag("chain", chain)
+    return _faulthandler_module().register(signum, file=file, all_threads=all_threads, chain=chain)
+
+
+def unregister(signum: int) -> None:
+    """Unregister the signal handler installed for *signum*.
+
+    Args:
+        signum: The signal whose handler is removed.
+
+    Raises:
+        TypeError: If *signum* is not an integer.
+    """
+    _validate_signum(signum)
+    _faulthandler_module().unregister(signum)
+
+
+def is_available() -> bool:
+    """Report whether the interpreter ships the :mod:`faulthandler` module.
+
+    Returns:
+        True when the standard library module is importable, False otherwise.
+    """
+    return _faulthandler is not None
+FAULTHANDLER_UTILS
+
+# --- tests/test_faulthandler_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_faulthandler_utils.py" <<'TEST_FAULTHANDLER_UTILS'
+import signal
+import tempfile
+import unittest
+
+import faulthandler_utils
+from faulthandler_utils import (
+    cancel_dump_traceback_later,
+    disable,
+    dump_traceback,
+    dump_traceback_later,
+    enable,
+    is_available,
+    is_enabled,
+    register,
+    unregister,
+)
+
+
+class TestFaulthandlerUtils(unittest.TestCase):
+    def setUp(self):
+        self._was_enabled = is_enabled()
+
+    def tearDown(self):
+        cancel_dump_traceback_later()
+        if self._was_enabled:
+            enable()
+        else:
+            disable()
+
+    def test_is_available(self):
+        self.assertIsInstance(is_available(), bool)
+        self.assertTrue(is_available())
+
+    def test_is_enabled_returns_bool(self):
+        self.assertIsInstance(is_enabled(), bool)
+
+    def test_enable_disable_roundtrip(self):
+        disable()
+        self.assertFalse(is_enabled())
+        enable()
+        self.assertTrue(is_enabled())
+
+    def test_enable_writes_to_the_given_file(self):
+        with tempfile.TemporaryFile(mode="w+b") as handle:
+            enable(file=handle, all_threads=False)
+            self.assertTrue(is_enabled())
+
+    def test_enable_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            enable(file="not-a-file")
+        with self.assertRaises(TypeError):
+            enable(file=[])
+        with self.assertRaises(ValueError):
+            enable(file=-1)
+        with self.assertRaises(TypeError):
+            enable(all_threads="yes")
+        with self.assertRaises(TypeError):
+            enable(all_threads=1)
+
+    def test_disable_returns_none(self):
+        self.assertIsNone(disable())
+        self.assertFalse(is_enabled())
+
+    def test_dump_traceback_writes_to_stream(self):
+        with tempfile.TemporaryFile(mode="w+b") as handle:
+            dump_traceback(file=handle, all_threads=False)
+            handle.flush()
+            handle.seek(0)
+            content = handle.read()
+        self.assertIsInstance(content, bytes)
+        self.assertIn(b"test_dump_traceback_writes_to_stream", content)
+
+    def test_dump_traceback_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            dump_traceback(file=[])
+        with self.assertRaises(TypeError):
+            dump_traceback(all_threads=1)
+
+    def test_file_descriptor_is_accepted(self):
+        with tempfile.TemporaryFile(mode="w+b") as handle:
+            dump_traceback(file=handle.fileno(), all_threads=False)
+            self.assertIsInstance(handle.fileno(), int)
+
+    def test_dump_traceback_later_arms_the_watchdog(self):
+        with tempfile.TemporaryFile(mode="w+b") as handle:
+            dump_traceback_later(3600.0, file=handle)
+            cancel_dump_traceback_later()
+
+    def test_dump_traceback_later_validation(self):
+        with self.assertRaises(TypeError):
+            dump_traceback_later("1.0")
+        with self.assertRaises(TypeError):
+            dump_traceback_later(True)
+        with self.assertRaises(ValueError):
+            dump_traceback_later(-1.0)
+        with self.assertRaises(TypeError):
+            dump_traceback_later(1.0, repeat="no")
+        with self.assertRaises(TypeError):
+            dump_traceback_later(1.0, file=[])
+        with self.assertRaises(TypeError):
+            dump_traceback_later(1.0, exit="no")
+
+    def test_cancel_dump_traceback_later_returns_none(self):
+        self.assertIsNone(cancel_dump_traceback_later())
+
+    def test_register_and_unregister_a_signal(self):
+        signum = getattr(signal, "SIGUSR1", None)
+        if signum is None:  # pragma: no cover - Windows has no SIGUSR1
+            self.skipTest("SIGUSR1 is not available on this platform")
+        with tempfile.TemporaryFile(mode="w+b") as handle:
+            previous = register(signum, file=handle)
+        unregister(signum)
+        self.assertIsNone(previous)
+
+    def test_register_unregister_validation(self):
+        with self.assertRaises(TypeError):
+            register("SIGUSR1")
+        with self.assertRaises(TypeError):
+            register(True)
+        with self.assertRaises(TypeError):
+            register(1, file=[])
+        with self.assertRaises(TypeError):
+            register(1, all_threads=[])
+        with self.assertRaises(TypeError):
+            register(1, chain=[])
+        with self.assertRaises(TypeError):
+            unregister("SIGUSR1")
+        with self.assertRaises(TypeError):
+            unregister(True)
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(len(faulthandler_utils.__all__), len(set(faulthandler_utils.__all__)))
+        for name in faulthandler_utils.__all__:
+            self.assertTrue(hasattr(faulthandler_utils, name), name)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_FAULTHANDLER_UTILS
 
 # --- smtplib_utils.py ---
 cat > "$OUTPUT_DIR/smtplib_utils.py" <<'SMTPLIB_UTILS'

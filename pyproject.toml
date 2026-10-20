@@ -253,4 +253,5 @@ py_modules = [
     "poplib_utils",
     "xmlrpc_utils",
     "syslog_utils",
+    "faulthandler_utils",
 ]
