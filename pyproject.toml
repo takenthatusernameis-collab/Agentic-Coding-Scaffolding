@@ -259,4 +259,5 @@ py_modules = [
     "grp_utils",
     "termios_utils",
     "fcntl_utils",
+    "pty_utils",
 ]

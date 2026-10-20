@@ -676,6 +676,7 @@
 #   - grp_utils.py — # Group database utilities wrapping the standard library grp (getgrgid, getgrnam, getgrall)
 #   - termios_utils.py — # Terminal attribute utilities wrapping the standard library termios (get_attributes, set_attributes, make_raw, make_cbreak, get_window_size, set_window_size)
 #   - fcntl_utils.py — # File control utilities wrapping the standard library fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
+#   - pty_utils.py — # Pseudo-terminal utilities wrapping the standard library pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -688,6 +689,7 @@
 #   - tests/test_grp_utils.py — # Tests for grp_utils.py
 #   - tests/test_termios_utils.py — # Tests for termios_utils.py
 #   - tests/test_fcntl_utils.py — # Tests for fcntl_utils.py
+#   - tests/test_pty_utils.py — # Tests for pty_utils.py
 set -euo pipefail
 
 usage() {
@@ -4316,6 +4318,7 @@ py_modules = [
     "grp_utils",
     "termios_utils",
     "fcntl_utils",
+    "pty_utils",
 ]
 
 PYPROJECT
@@ -26884,6 +26887,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `grp_utils.py` — group database utilities wrapping the standard library `grp` module (getgrgid, getgrnam, getgrall) with input validation
 - `termios_utils.py` — terminal attribute utilities wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation
 - `fcntl_utils.py` — file control utilities wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation
+- `pty_utils.py` — pseudo-terminal utilities wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation and re-exported constants
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27094,6 +27098,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_grp_utils.py` — unit tests for `grp_utils.py`
 - `tests/test_termios_utils.py` — unit tests for `termios_utils.py`
 - `tests/test_fcntl_utils.py` — unit tests for `fcntl_utils.py`
+- `tests/test_pty_utils.py` — unit tests for `pty_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -29511,6 +29516,10 @@ tests/test_fcntl_utils.py - Tests for fcntl_utils module
 
 The project includes file control utilities in `fcntl_utils.py` wrapping the standard library `fcntl` module: `flock` places an advisory lock on a file, `unlock` releases it, `lockf` places an advisory lock on a region of a file, `control` performs the other control operations on a file descriptor, `ioctl` performs a device specific control operation, `get_descriptor_flags` and `set_descriptor_flags` read and write the flags of a file descriptor, `is_cloexec` reports whether a file descriptor is closed when the process executes a new program, `get_file_status_flags` and `set_file_status_flags` read and write the status flags of an open file, `duplicate_fd` copies a file descriptor, `file_lock` locks a file for the duration of a block of code, `lock_kind` and `lock_modes` translate the name of a lock mode into its operation, and `is_available` reports whether the interpreter ships the standard library module. The lock operations (`LOCK_SH`, `LOCK_EX`, `LOCK_NB`, and `LOCK_UN`), the record lock commands (`F_LOCK`, `F_TLOCK`, and `F_ULOCK`), and the control constants (`F_GETFD`, `F_SETFD`, `F_GETFL`, `F_SETFL`, `F_DUPFD`, `F_DUPFD_CLOEXEC`, and `FD_CLOEXEC`) are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `fcntl` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_fcntl_utils.py`.
 
+## Pseudo-terminal Utilities Module
+
+The project includes pseudo-terminal utilities in `pty_utils.py` wrapping the standard library `pty` module: `openpty` opens a new pseudo-terminal pair and returns `(master_fd, slave_fd)`, `open_terminal` is an alias for `openpty`, `master_open` opens a pseudo-terminal and returns `(name, fd)`, `slave_open` opens the slave end of a pseudo-terminal by name, `fork` forks a process and connects the child's controlling terminal to a new pseudo-terminal, and `spawn` spawns a process connected to its controlling terminal via a pseudo-terminal. The constants `STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`, and `CHILD` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `pty` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise a `RuntimeError` elsewhere. The module is tested in `tests/test_pty_utils.py`.
+
 tests/test_opcode_utils.py - Tests for opcode_utils module
 
 ## Opcode Utilities Module
@@ -29549,6 +29558,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - Add `fcntl_utils.py` wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation, plus unit tests in `tests/test_fcntl_utils.py`.
 - Synchronized `fcntl_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Add `pty_utils.py` wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation and re-exported constants, plus unit tests in `tests/test_pty_utils.py`.
+- Synchronized `pty_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `termios_utils.py` wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation, plus unit tests in `tests/test_termios_utils.py`.
 - Synchronized `termios_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Added `dbm_utils.py` to the generated project — database utilities wrapping the standard library `dbm` module (`open_database`, `close`, `which_database`, `available_backends`, `read_record`, `write_record`, `delete_record`, `has_key`, `list_keys`, `sync_database`, `is_valid_flag`, `dbm_error`) with input validation, plus `tests/test_dbm_utils.py`.
@@ -73345,6 +73356,341 @@ class TestFcntlUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_FCNTL_UTILS
+cat > "$OUTPUT_DIR/pty_utils.py" <<'PTY_UTILS'
+"""Pseudo-terminal utilities wrapping the standard library :mod:`pty` module.
+
+The :mod:`pty` module handles the pseudo-terminal concept: starting another
+process and being able to write to and read from its controlling terminal
+programmatically.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure from the C layer.  It returns values in a consistent form
+and adds small conveniences on top of :func:`openpty`, :func:`fork`, and
+:func:`spawn`.
+
+.. note::
+
+   The :mod:`pty` module only exists on Unix-like platforms.  The import
+   below degrades gracefully: when the interpreter does not ship the module,
+   the helpers raise a :class:`RuntimeError` that names the missing module,
+   while the pure helpers keep working.
+"""
+
+from __future__ import annotations
+
+import os
+from typing import Any, Callable, List, Tuple, Union
+
+try:
+    import pty as _pty
+except ImportError:  # pragma: no cover - the module is Unix-only
+    _pty = None  # type: ignore[assignment]
+
+
+__all__: list[str] = [
+    "CHILD",
+    "STDERR_FILENO",
+    "STDIN_FILENO",
+    "STDOUT_FILENO",
+    "fork",
+    "is_available",
+    "master_open",
+    "open_terminal",
+    "openpty",
+    "slave_open",
+    "spawn",
+]
+
+
+#: File descriptor for stdin.
+STDIN_FILENO: int = getattr(os, "STDIN_FILENO", 0)
+#: File descriptor for stdout.
+STDOUT_FILENO: int = getattr(os, "STDOUT_FILENO", 1)
+#: File descriptor for stderr.
+STDERR_FILENO: int = getattr(os, "STDERR_FILENO", 2)
+#: A constant returned from :func:`fork` when the child process is running.
+CHILD: int = getattr(os, "CHILD", 0)
+
+
+def _pty_module() -> Any:
+    """Return the standard library ``pty`` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pty`` module.
+    """
+    if _pty is None:
+        raise RuntimeError("the standard library module 'pty' is not available")
+    return _pty
+
+
+def is_available() -> bool:
+    """Return ``True`` if the ``pty`` module is available."""
+    return _pty is not None
+
+
+def openpty() -> Tuple[int, int]:
+    """Open a new pseudo-terminal pair.
+
+    Returns:
+        A pair ``(master_fd, slave_fd)`` where *master_fd* is the file
+        descriptor of the master end and *slave_fd* is the file descriptor of
+        the slave end.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pty`` module.
+        OSError: If the operating system fails to allocate a pseudo-terminal.
+    """
+    master_fd, slave_fd = _pty_module().openpty()
+    return int(master_fd), int(slave_fd)
+
+
+# Keep an alias matching the style of other wrappers.
+open_terminal = openpty
+
+
+def master_open() -> Tuple[str, int]:
+    """Open a pseudo-terminal and return the master device and its name.
+
+    Returns:
+        A pair ``(master_name, master_fd)`` where *master_name* is the name of
+        the master device and *master_fd* is its file descriptor.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pty`` module.
+        OSError: If the operating system fails to allocate a pseudo-terminal.
+    """
+    pty_mod = _pty_module()
+    try:
+        result = pty_mod.master_open()  # type: ignore[attr-defined]
+    except AttributeError:
+        master_fd, slave_fd = openpty()
+        try:
+            name = os.ttyname(slave_fd)
+        except OSError:
+            name = ""
+        finally:
+            try:
+                os.close(slave_fd)
+            except OSError:
+                pass
+        return name, master_fd
+    if isinstance(result, tuple):
+        if len(result) == 2:
+            a, b = result
+            # Python 3.x returns (fd, name); older versions may return (name, fd)
+            if isinstance(a, int) and isinstance(b, str):
+                return str(b), int(a)
+            if isinstance(a, str) and isinstance(b, int):
+                return str(a), int(b)
+            # Try to be flexible
+            if isinstance(a, int):
+                return str(b), int(a)
+            return str(a), int(b)
+    raise RuntimeError("master_open() returned an unexpected value")
+
+
+def slave_open(tty_name: str) -> int:
+    """Open the slave end of a pseudo-terminal by name.
+
+    Args:
+        tty_name: The name of the slave device (as returned by
+            :func:`master_open` or :func:`os.ttyname`).
+
+    Returns:
+        The file descriptor of the slave end.
+
+    Raises:
+        TypeError: If *tty_name* is not a string.
+        ValueError: If *tty_name* is empty.
+        RuntimeError: If the interpreter does not ship the ``pty`` module.
+        OSError: If the operating system fails to open the device.
+    """
+    if not isinstance(tty_name, str):
+        raise TypeError(f"tty_name must be a str, got {type(tty_name).__name__}")
+    if tty_name == "":
+        raise ValueError("tty_name must not be empty")
+    try:
+        fd = _pty_module().slave_open(tty_name)  # type: ignore[attr-defined]
+    except AttributeError:
+        fd = os.open(tty_name, os.O_RDWR)
+    return int(fd)
+
+
+def fork() -> Union[int, Tuple[int, int]]:
+    """Fork a process and connect the child's controlling terminal to a new
+    pseudo-terminal.
+
+    Returns:
+        In some Python versions returns ``0`` in the child process and the
+        process ID of the child in the parent process.  In other versions
+        returns a tuple ``(pid, fd)`` as returned by the standard library.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pty`` module.
+        OSError: If the fork fails.
+    """
+    result = _pty_module().fork()
+    if isinstance(result, tuple):
+        return tuple(int(x) for x in result)
+    return int(result)
+
+def spawn(
+    argv: List[str],
+    master_read: Callable[[int], bytes] | None = None,
+    stdin_read: Callable[[int], bytes] | None = None,
+) -> int:
+    """Spawn a process connected to its controlling terminal via a
+    pseudo-terminal.
+
+    Args:
+        argv: The command line to execute as passed to :func:`os.execvp`.
+        master_read: A callable used to read from the master end.  If omitted,
+            the standard library's default is used.
+        stdin_read: A callable used to read from stdin.  If omitted, the
+            standard library's default is used.
+
+    Returns:
+        The exit status of the spawned process.
+
+    Raises:
+        TypeError: If *argv* is not a list of strings.
+        ValueError: If *argv* is empty.
+        RuntimeError: If the interpreter does not ship the ``pty`` module.
+        OSError: If spawning the process fails.
+    """
+    if not isinstance(argv, list):
+        raise TypeError(f"argv must be a list, got {type(argv).__name__}")
+    if len(argv) == 0:
+        raise ValueError("argv must not be empty")
+    for i, arg in enumerate(argv):
+        if not isinstance(arg, str):
+            raise TypeError(
+                f"argv[{i}] must be a str, got {type(arg).__name__}"
+            )
+    pty_mod = _pty_module()
+    try:
+        if master_read is None and stdin_read is None:
+            return int(pty_mod.spawn(argv))
+        return int(pty_mod.spawn(argv, master_read, stdin_read))
+    except TypeError:
+        try:
+            return int(pty_mod.spawn(argv))
+        except Exception:
+            raise
+PTY_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_pty_utils.py" <<'TEST_PTY_UTILS'
+"""Tests for pty_utils."""
+
+import os
+import sys
+import unittest
+from unittest.mock import patch
+
+from pty_utils import (
+    CHILD,
+    STDERR_FILENO,
+    STDIN_FILENO,
+    STDOUT_FILENO,
+    fork,
+    is_available,
+    master_open,
+    open_terminal,
+    openpty,
+    slave_open,
+    spawn,
+)
+
+
+class TestPtyUtils(unittest.TestCase):
+    def test_is_available(self):
+        self.assertIsInstance(is_available(), bool)
+
+    @unittest.skipUnless(is_available(), "pty module not available")
+    def test_openpty_returns_fds(self):
+        master_fd, slave_fd = openpty()
+        self.assertIsInstance(master_fd, int)
+        self.assertIsInstance(slave_fd, int)
+        self.assertGreaterEqual(master_fd, 0)
+        self.assertGreaterEqual(slave_fd, 0)
+        os.close(master_fd)
+        os.close(slave_fd)
+
+    @unittest.skipUnless(is_available(), "pty module not available")
+    def test_open_terminal_alias(self):
+        master_fd, slave_fd = open_terminal()
+        self.assertIsInstance(master_fd, int)
+        self.assertIsInstance(slave_fd, int)
+        os.close(master_fd)
+        os.close(slave_fd)
+
+    @unittest.skipUnless(is_available(), "pty module not available")
+    def test_master_open(self):
+        name, fd = master_open()
+        self.assertIsInstance(name, str)
+        self.assertIsInstance(fd, int)
+        self.assertGreaterEqual(fd, 0)
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+
+    @unittest.skipUnless(is_available(), "pty module not available")
+    def test_slave_open_validates_arguments(self):
+        with self.assertRaises(TypeError):
+            slave_open(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            slave_open("")
+
+    @unittest.skipUnless(sys.platform != "win32", "Unix-like required")
+    def test_fileno_constants(self):
+        self.assertEqual(STDIN_FILENO, 0)
+        self.assertEqual(STDOUT_FILENO, 1)
+        self.assertEqual(STDERR_FILENO, 2)
+
+    @unittest.skipUnless(is_available(), "pty module not available")
+    def test_fork_returns_int(self):
+        result = fork()
+        self.assertTrue(isinstance(result, int) or isinstance(result, tuple))
+        if isinstance(result, tuple):
+            self.assertTrue(all(isinstance(x, int) for x in result))
+            pid = result[0]
+        else:
+            pid = result
+        if pid == 0:
+            os._exit(0)
+        elif pid > 0:
+            os.waitpid(pid, 0)
+
+    @unittest.skipUnless(is_available(), "pty module not available")
+    def test_spawn_validates_arguments(self):
+        with self.assertRaises(TypeError):
+            spawn("echo")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            spawn([])
+        with self.assertRaises(TypeError):
+            spawn([123])  # type: ignore[arg-type]
+
+    @unittest.skipUnless(is_available(), "pty module not available")
+    def test_spawn_runs_true(self):
+        status = spawn([sys.executable, "-c", "import sys; sys.exit(0)"])
+        self.assertIsInstance(status, int)
+
+    def test_missing_module_raises_runtimeerror(self):
+        with patch("pty_utils._pty", None):
+            with self.assertRaises(RuntimeError):
+                openpty()
+            with self.assertRaises(RuntimeError):
+                master_open()
+            with self.assertRaises(RuntimeError):
+                fork()
+            with self.assertRaises(RuntimeError):
+                spawn([sys.executable])
+
+    def test_child_constant(self):
+        self.assertIsInstance(CHILD, int)
+TEST_PTY_UTILS
 
 
 # --- substitute the project name in the templated documents ---
