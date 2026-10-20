@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import opcode
-from typing import Any
 
 __all__: list[str] = [
     "stack_effect",
@@ -78,4 +77,4 @@ def get_cmp_op() -> tuple[str, ...]:
 
 def has_argument(opcode_val: int) -> bool:
     """Return True if the opcode has an argument."""
-    return opcode_val in opcode.hasarg
+    return opcode_val in opcode.hasnargs

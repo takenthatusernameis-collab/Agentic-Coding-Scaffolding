@@ -34,7 +34,7 @@ def test_get_opname():
 
 
 def test_is_compare():
-    cmp_op = get_cmp_op()
+    get_cmp_op()
     assert isinstance(is_compare(107), bool)
 
 

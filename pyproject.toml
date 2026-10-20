@@ -77,6 +77,7 @@ py_modules = [
     "random_utils",
     "tempfile_utils",
     "re_utils",
+    "rlcompleter_utils",
     "secrets_utils",
     "validation_utils",
     "crypto_utils",

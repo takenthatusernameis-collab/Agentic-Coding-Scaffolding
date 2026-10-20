@@ -53344,7 +53344,6 @@ cat > "$OUTPUT_DIR/opcode_utils.py" <<'OPCODE_UTILS'
 from __future__ import annotations
 
 import opcode
-from typing import Any
 
 __all__: list[str] = [
     "stack_effect",
@@ -53419,7 +53418,7 @@ def get_cmp_op() -> tuple[str, ...]:
 
 def has_argument(opcode_val: int) -> bool:
     """Return True if the opcode has an argument."""
-    return opcode_val in opcode.hasarg
+    return opcode_val in opcode.hasnargs
 OPCODE_UTILS
 
 # --- pickletools_utils.py ---
@@ -53949,7 +53948,7 @@ def test_get_opname():
 
 
 def test_is_compare():
-    cmp_op = get_cmp_op()
+    get_cmp_op()
     assert isinstance(is_compare(107), bool)
 
 
