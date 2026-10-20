@@ -293,10 +293,13 @@
 #   - wave_utils.py — # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames)
 #   - tests/test_wave_utils.py — # Tests for wave_utils.py
 #   - uu_utils.py — # Uuencode utilities wrapping stdlib uu (uu_encode, uu_decode, encode_uu, decode_uu, parse_uu_header, is_uuencoded)
+#   - tests/test_uu_utils.py — # Tests for uu_utils.py
 #   - zipapp_utils.py — # Zipapp utilities wrapping stdlib zipapp (create_archive/create_zipapp, get_interpreter/get_zipapp_interpreter, is_zipapp_archive)
 #   - tests/test_zipapp_utils.py — # Tests for zipapp_utils.py
 #   - py_compile_utils.py — # Py_compile utilities wrapping stdlib py_compile (compile_file/py_compile_file, get_invalidation_mode, parse_invalidation_mode, is_pyc_file, main)
 #   - tests/test_py_compile_utils.py — # Tests for py_compile_utils.py
+#   - compileall_utils.py — # Compileall utilities wrapping stdlib compileall (compile_file, compile_dir, compile_path, main, pyc_path)
+#   - tests/test_compileall_utils.py — # Tests for compileall_utils.py
 #   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 #   - tests/test_contextlib_utils.py — # Tests for contextlib_utils.py
 
@@ -4246,6 +4249,7 @@ py_modules = [
 "imaplib_utils",
      "zipapp_utils",
      "py_compile_utils",
+     "compileall_utils",
      "mailbox_utils",
     "wave_utils",
     "mmap_utils",
@@ -27201,6 +27205,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_zipapp_utils.py` — unit tests for `zipapp_utils.py`
 - `py_compile_utils.py` — py_compile utilities wrapping the standard library `py_compile` module (`compile_file`/`py_compile_file`, `get_invalidation_mode`, `parse_invalidation_mode`, `is_pyc_file`, `main`) with input validation
 - `tests/test_py_compile_utils.py` — unit tests for `py_compile_utils.py`
+- `compileall_utils.py` — compileall utilities wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation
+- `tests/test_compileall_utils.py` — unit tests for `compileall_utils.py`
 SCAFFOLD
 
 
@@ -29289,6 +29295,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Add `compileall_utils.py` wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation, plus unit tests in `tests/test_compileall_utils.py`.
+- Synchronized `compileall_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Add `py_compile_utils.py` wrapping the standard library `py_compile` module (`compile_file`/`py_compile_file`, `get_invalidation_mode`, `parse_invalidation_mode`, `is_pyc_file`, `main`) with `PyCompileError` and `PycInvalidationMode` re-exports, plus unit tests in `tests/test_py_compile_utils.py`.
 - Moved the scaffold summary and smoke test to the end of `scaffold.sh`: both used to run in the middle of the generator, so the "Created files" listing missed every module written after that point and the smoke test only discovered the tests written up to that point. The smoke test now also runs after the project name has been substituted into the templated documents.
 - Registered `asyncio_utils`, `imaplib_utils`, `mmap_utils`, `profile_utils`, `pstats_utils`, `timeit_utils`, and `unittest_utils` in the `pyproject.toml` template embedded in `scaffold.sh`, so a generated project declares every module it ships.
 - Add `uu_utils.py` wrapping the standard library `uu` module (`uu_encode`, `uu_decode`, `encode_uu`, `decode_uu`, `parse_uu_header`, `is_uuencoded`) with input validation, plus unit tests in `tests/test_uu_utils.py`.
@@ -59527,6 +59536,826 @@ class TestZipappUtils(TestCase):
                 f.write("hello")
             self.assertFalse(zipapp_utils.is_zipapp_archive(fpath))
 TEST_ZIPAPP_UTILS
+
+# --- py_compile_utils.py ---
+cat > "$OUTPUT_DIR/py_compile_utils.py" <<'PY_COMPILE_UTILS'
+"""Py_compile utility functions."""
+
+from __future__ import annotations
+
+import os
+import py_compile
+import sys
+from pathlib import Path
+from typing import Optional, Union
+
+__all__ = [
+    "PyCompileError",
+    "PycInvalidationMode",
+    "compile_file",
+    "py_compile_file",
+    "get_invalidation_mode",
+    "parse_invalidation_mode",
+    "is_pyc_file",
+    "main",
+]
+
+# Re-export exception and enum
+PyCompileError = py_compile.PyCompileError
+PycInvalidationMode = py_compile.PycInvalidationMode
+
+PathLikeOrStr = Union[str, Path]
+
+
+def _exit_code(code: object) -> int:
+    """Return the process exit status carried by a ``SystemExit`` exception."""
+    if code is None:
+        return 0
+    if isinstance(code, int):
+        return code
+    return 1
+
+
+def parse_invalidation_mode(value: Union[str, PycInvalidationMode, None]) -> PycInvalidationMode:
+    """Parse an invalidation mode from a string, enum, or None."""
+    if value is None:
+        return PycInvalidationMode.TIMESTAMP
+    if isinstance(value, PycInvalidationMode):
+        return value
+    if not isinstance(value, str):
+        raise TypeError(
+            f"invalidation_mode must be a str, PycInvalidationMode, or None, "
+            f"got {type(value).__name__}"
+        )
+    try:
+        return py_compile.PycInvalidationMode[value.strip().upper()]
+    except KeyError as exc:
+        valid = ", ".join(m.name for m in PycInvalidationMode)
+        raise ValueError(
+            f"unknown invalidation_mode {value!r}; valid modes are: {valid}"
+        ) from exc
+
+
+def get_invalidation_mode(
+    mode: Union[str, PycInvalidationMode, None] = None,
+) -> PycInvalidationMode:
+    """Return the invalidation mode, defaulting to the interpreter's choice."""
+    if mode is None:
+        return py_compile._get_default_invalidation_mode()
+    return parse_invalidation_mode(mode)
+
+
+def compile_file(
+    file: Union[str, Path],
+    cfile: Optional[Union[str, Path]] = None,
+    dfile: Optional[Union[str, Path]] = None,
+    doraise: bool = False,
+    optimize: int = -1,
+    invalidation_mode: Union[str, PycInvalidationMode, None] = None,
+    quiet: int = 0,
+) -> Path:
+    """Byte-compile one Python source file to Python bytecode.
+
+    Returns the path to the resulting ``.pyc`` file. Raises ``TypeError`` or
+    ``ValueError`` on invalid arguments instead of letting the standard
+    library raise its own errors.
+    """
+    if not isinstance(file, (str, Path)):
+        raise TypeError(f"file must be a str or Path, got {type(file).__name__}")
+    if not isinstance(doraise, bool):
+        raise TypeError(f"doraise must be a bool, got {type(doraise).__name__}")
+    if not isinstance(optimize, int) or isinstance(optimize, bool):
+        raise TypeError(f"optimize must be an int, got {type(optimize).__name__}")
+    if optimize not in (-1, 0, 1, 2):
+        raise ValueError(f"optimize must be one of -1, 0, 1, 2, got {optimize}")
+    if not isinstance(quiet, int) or isinstance(quiet, bool):
+        raise TypeError(f"quiet must be an int, got {type(quiet).__name__}")
+    if quiet not in (0, 1, 2):
+        raise ValueError(f"quiet must be one of 0, 1, 2, got {quiet}")
+    if cfile is not None and not isinstance(cfile, (str, Path)):
+        raise TypeError(f"cfile must be a str, Path, or None, got {type(cfile).__name__}")
+    if dfile is not None and not isinstance(dfile, (str, Path)):
+        raise TypeError(f"dfile must be a str, Path, or None, got {type(dfile).__name__}")
+
+    mode = get_invalidation_mode(invalidation_mode)
+    compiled = py_compile.compile(
+        file=str(file),
+        cfile=str(cfile) if cfile is not None else None,
+        dfile=str(dfile) if dfile is not None else None,
+        doraise=doraise,
+        optimize=optimize,
+        invalidation_mode=mode,
+        quiet=quiet,
+    )
+    if compiled is None:
+        raise RuntimeError(f"py_compile did not produce bytecode for {file!r}")
+    return Path(compiled)
+
+
+# Aliases for convenience
+py_compile_file = compile_file
+
+
+def is_pyc_file(path: Union[str, Path]) -> bool:
+    """Check whether a path looks like a compiled bytecode file (``.pyc``)."""
+    if not isinstance(path, (str, Path)):
+        return False
+    name = os.path.basename(str(path))
+    if not name.endswith(".pyc"):
+        return False
+    # PEP 3147 bytecode files embed the source name as ``<name>.<tag>.pyc``.
+    stem = name[:-4]
+    return stem != "" and not stem.endswith(".py")
+
+
+def main(argv: Optional[list[str]] = None) -> int:
+    """Run the ``py_compile`` command-line interface and return its exit code.
+
+    The standard library entry point reads ``sys.argv`` itself and calls
+    ``sys.exit`` when a file cannot be compiled, so the arguments are
+    installed temporarily and the exit status is captured instead of raised.
+    """
+    if argv is not None and not isinstance(argv, (list, tuple)):
+        raise TypeError(f"argv must be a list, tuple, or None, got {type(argv).__name__}")
+    original_argv = sys.argv
+    if argv is not None:
+        sys.argv = ["py_compile", *[str(item) for item in argv]]
+    try:
+        py_compile.main()
+    except SystemExit as exc:
+        return _exit_code(exc.code)
+    finally:
+        sys.argv = original_argv
+    return 0
+PY_COMPILE_UTILS
+
+# --- tests/test_py_compile_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_py_compile_utils.py" <<'TEST_PY_COMPILE_UTILS'
+"""Tests for py_compile utility functions."""
+
+import os
+import py_compile
+import sys
+import tempfile
+from unittest import TestCase, mock
+
+import py_compile_utils
+
+
+class TestPyCompileUtils(TestCase):
+    def test_reexports(self):
+        self.assertTrue(hasattr(py_compile_utils, "PyCompileError"))
+        self.assertTrue(issubclass(py_compile_utils.PyCompileError, Exception))
+        self.assertTrue(hasattr(py_compile_utils, "PycInvalidationMode"))
+        self.assertIs(
+            py_compile_utils.PycInvalidationMode,
+            py_compile.PycInvalidationMode,
+        )
+
+    def test_parse_invalidation_mode(self):
+        self.assertEqual(
+            py_compile_utils.parse_invalidation_mode(None),
+            py_compile.PycInvalidationMode.TIMESTAMP,
+        )
+        self.assertEqual(
+            py_compile_utils.parse_invalidation_mode("timestamp"),
+            py_compile.PycInvalidationMode.TIMESTAMP,
+        )
+        self.assertEqual(
+            py_compile_utils.parse_invalidation_mode("CHECKED_HASH"),
+            py_compile.PycInvalidationMode.CHECKED_HASH,
+        )
+        self.assertEqual(
+            py_compile_utils.parse_invalidation_mode(py_compile.PycInvalidationMode.UNCHECKED_HASH),
+            py_compile.PycInvalidationMode.UNCHECKED_HASH,
+        )
+
+    def test_parse_invalidation_mode_invalid(self):
+        with self.assertRaises(ValueError):
+            py_compile_utils.parse_invalidation_mode("bogus")
+        with self.assertRaises(TypeError):
+            py_compile_utils.parse_invalidation_mode(123)
+
+    def test_get_invalidation_mode_default(self):
+        with mock.patch("py_compile._get_default_invalidation_mode") as patched:
+            patched.return_value = py_compile.PycInvalidationMode.CHECKED_HASH
+            self.assertEqual(
+                py_compile_utils.get_invalidation_mode(),
+                py_compile.PycInvalidationMode.CHECKED_HASH,
+            )
+
+    def test_compile_file_and_pyc_alias(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src = os.path.join(tmpdir, "module.py")
+            with open(src, "w") as f:
+                f.write("x = 1\n")
+            pyc = py_compile_utils.compile_file(src)
+            self.assertTrue(os.path.exists(pyc))
+            self.assertTrue(str(pyc).endswith(".pyc"))
+
+    def test_py_compile_file_alias(self):
+        self.assertIs(py_compile_utils.py_compile_file, py_compile_utils.compile_file)
+
+    def test_compile_file_with_doraise(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src = os.path.join(tmpdir, "bad.py")
+            with open(src, "w") as f:
+                f.write("def (\n")
+            with self.assertRaises(py_compile_utils.PyCompileError):
+                py_compile_utils.compile_file(src, doraise=True)
+
+    def test_compile_file_validates_inputs(self):
+        with self.assertRaises(TypeError):
+            py_compile_utils.compile_file(123)
+        with self.assertRaises(TypeError):
+            py_compile_utils.compile_file("x.py", doraise="yes")
+        with self.assertRaises(TypeError):
+            py_compile_utils.compile_file("x.py", optimize=True)
+        with self.assertRaises(ValueError):
+            py_compile_utils.compile_file("x.py", optimize=5)
+        with self.assertRaises(TypeError):
+            py_compile_utils.compile_file("x.py", quiet=True)
+        with self.assertRaises(ValueError):
+            py_compile_utils.compile_file("x.py", quiet=3)
+        with self.assertRaises(TypeError):
+            py_compile_utils.compile_file("x.py", cfile=123)
+        with self.assertRaises(TypeError):
+            py_compile_utils.compile_file("x.py", dfile=123)
+
+    def test_is_pyc_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tagged = os.path.join(tmpdir, "module.cpython-310.pyc")
+            self.assertTrue(py_compile_utils.is_pyc_file(tagged))
+            self.assertTrue(py_compile_utils.is_pyc_file(os.path.join(tmpdir, "module.pyc")))
+            self.assertFalse(py_compile_utils.is_pyc_file(os.path.join(tmpdir, "module.py")))
+            self.assertFalse(py_compile_utils.is_pyc_file(os.path.join(tmpdir, "module.txt")))
+            self.assertFalse(py_compile_utils.is_pyc_file(os.path.join(tmpdir, ".pyc")))
+            self.assertFalse(py_compile_utils.is_pyc_file(123))
+
+    def test_main(self):
+        with mock.patch("py_compile.main", return_value=0) as patched:
+            self.assertEqual(py_compile_utils.main(["-v"]), 0)
+            patched.assert_called_once()
+
+    def test_main_compiles_a_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src = os.path.join(tmpdir, "module.py")
+            with open(src, "w") as f:
+                f.write("x = 1\n")
+            self.assertEqual(py_compile_utils.main([src]), 0)
+            self.assertTrue(os.path.isdir(os.path.join(tmpdir, "__pycache__")))
+
+    def test_main_reports_a_failure(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src = os.path.join(tmpdir, "broken.py")
+            with open(src, "w") as f:
+                f.write("def (\n")
+            self.assertEqual(py_compile_utils.main([src]), 1)
+
+    def test_main_restores_sys_argv(self):
+        original = list(sys.argv)
+        with mock.patch("py_compile.main", return_value=0):
+            py_compile_utils.main(["-v"])
+        self.assertEqual(sys.argv, original)
+
+    def test_main_validates_inputs(self):
+        with self.assertRaises(TypeError):
+            py_compile_utils.main("not-a-list")  # type: ignore[arg-type]
+TEST_PY_COMPILE_UTILS
+
+# --- compileall_utils.py ---
+cat > "$OUTPUT_DIR/compileall_utils.py" <<'COMPILEALL_UTILS'
+"""Compileall utility functions.
+
+Thin, validated wrappers around the standard library ``compileall`` module.
+The helpers only ever byte-compile files; they never import the compiled
+modules and never touch the network.
+"""
+
+from __future__ import annotations
+
+import compileall
+import importlib.util
+import py_compile
+import re
+import sys
+from pathlib import Path
+from typing import Iterable, Optional, Union
+
+__all__ = [
+    "compile_dir",
+    "compile_file",
+    "compile_path",
+    "main",
+    "pyc_path",
+]
+
+PathLikeOrStr = Union[str, Path]
+
+#: Valid values for the ``optimize`` argument of the standard library helpers.
+VALID_OPTIMIZE = (-1, 0, 1, 2)
+
+#: Valid values for the ``quiet`` argument of the standard library helpers.
+VALID_QUIET = (0, 1, 2)
+
+#: The invalidation modes understood by the standard library compiler.
+InvalidationMode = py_compile.PycInvalidationMode
+
+
+def _validate_optimize(optimize: object) -> int:
+    """Return *optimize* as an int, raising for invalid values."""
+    if not isinstance(optimize, int) or isinstance(optimize, bool):
+        raise TypeError(f"optimize must be an int, got {type(optimize).__name__}")
+    if optimize not in VALID_OPTIMIZE:
+        raise ValueError(f"optimize must be one of {VALID_OPTIMIZE}, got {optimize}")
+    return optimize
+
+
+def _validate_quiet(quiet: object) -> int:
+    """Return *quiet* as an int, raising for invalid values."""
+    if not isinstance(quiet, int) or isinstance(quiet, bool):
+        raise TypeError(f"quiet must be an int, got {type(quiet).__name__}")
+    if quiet not in VALID_QUIET:
+        raise ValueError(f"quiet must be one of {VALID_QUIET}, got {quiet}")
+    return quiet
+
+
+def _validate_rx(rx: object) -> Optional[re.Pattern[str]]:
+    """Return *rx* as a compiled pattern, raising for invalid values."""
+    if rx is None:
+        return None
+    if isinstance(rx, re.Pattern):
+        return rx
+    raise TypeError(f"rx must be a compiled regular expression or None, got {type(rx).__name__}")
+
+
+def _validate_invalidation_mode(
+    invalidation_mode: Union[str, InvalidationMode, None],
+) -> Optional[InvalidationMode]:
+    """Return *invalidation_mode* as a :class:`PycInvalidationMode` member.
+
+    ``None`` is passed through so the interpreter default applies.
+    """
+    if invalidation_mode is None:
+        return None
+    if isinstance(invalidation_mode, InvalidationMode):
+        return invalidation_mode
+    if not isinstance(invalidation_mode, str):
+        raise TypeError(
+            f"invalidation_mode must be a str, PycInvalidationMode, or None, "
+            f"got {type(invalidation_mode).__name__}"
+        )
+    try:
+        return py_compile.PycInvalidationMode[invalidation_mode.strip().upper().replace("-", "_")]
+    except KeyError as exc:
+        valid = ", ".join(mode.name for mode in InvalidationMode)
+        raise ValueError(
+            f"unknown invalidation_mode {invalidation_mode!r}; valid modes are: {valid}"
+        ) from exc
+
+
+def _validate_paths(**values: object) -> None:
+    """Raise ``TypeError`` when any of *values* is not a string, path, or ``None``."""
+    for name, value in values.items():
+        if value is not None and not isinstance(value, (str, Path)):
+            raise TypeError(f"{name} must be a str, Path, or None, got {type(value).__name__}")
+
+
+def compile_file(
+    fullname: PathLikeOrStr,
+    ddir: Optional[str] = None,
+    force: bool = False,
+    rx: Optional[re.Pattern[str]] = None,
+    quiet: int = 0,
+    legacy: bool = False,
+    optimize: int = -1,
+    invalidation_mode: Union[str, InvalidationMode, None] = None,
+    *,
+    stripdir: Optional[PathLikeOrStr] = None,
+    prependdir: Optional[PathLikeOrStr] = None,
+    limit_sl_dest: Optional[PathLikeOrStr] = None,
+    hardlink_dupes: bool = False,
+) -> bool:
+    """Byte-compile a single Python source file.
+
+    Returns ``True`` when the file was compiled successfully and ``False``
+    otherwise. Invalid arguments raise ``TypeError`` or ``ValueError`` instead
+    of letting the standard library fail with a less specific error.
+    """
+    if not isinstance(fullname, (str, Path)):
+        raise TypeError(f"fullname must be a str or Path, got {type(fullname).__name__}")
+    if ddir is not None and not isinstance(ddir, str):
+        raise TypeError(f"ddir must be a str or None, got {type(ddir).__name__}")
+    if not isinstance(force, bool):
+        raise TypeError(f"force must be a bool, got {type(force).__name__}")
+    if not isinstance(legacy, bool):
+        raise TypeError(f"legacy must be a bool, got {type(legacy).__name__}")
+    if not isinstance(hardlink_dupes, bool):
+        raise TypeError(f"hardlink_dupes must be a bool, got {type(hardlink_dupes).__name__}")
+    pattern = _validate_rx(rx)
+    _validate_quiet(quiet)
+    _validate_optimize(optimize)
+    _validate_paths(stripdir=stripdir, prependdir=prependdir, limit_sl_dest=limit_sl_dest)
+    mode = _validate_invalidation_mode(invalidation_mode)
+    return bool(
+        compileall.compile_file(
+            str(fullname),
+            ddir=ddir,
+            force=force,
+            rx=pattern,
+            quiet=quiet,
+            legacy=legacy,
+            optimize=optimize,
+            invalidation_mode=mode,
+            stripdir=str(stripdir) if stripdir is not None else None,
+            prependdir=str(prependdir) if prependdir is not None else None,
+            limit_sl_dest=str(limit_sl_dest) if limit_sl_dest is not None else None,
+            hardlink_dupes=hardlink_dupes,
+        )
+    )
+
+
+def compile_dir(
+    dir: PathLikeOrStr,
+    maxlevels: Optional[int] = None,
+    ddir: Optional[str] = None,
+    force: bool = False,
+    rx: Optional[re.Pattern[str]] = None,
+    quiet: int = 0,
+    legacy: bool = False,
+    optimize: int = -1,
+    workers: int = 1,
+    invalidation_mode: Union[str, InvalidationMode, None] = None,
+    *,
+    stripdir: Optional[PathLikeOrStr] = None,
+    prependdir: Optional[PathLikeOrStr] = None,
+    limit_sl_dest: Optional[PathLikeOrStr] = None,
+    hardlink_dupes: bool = False,
+) -> bool:
+    """Byte-compile every Python source file found below a directory.
+
+    Returns ``True`` when every file compiled successfully and ``False``
+    otherwise. Invalid arguments raise ``TypeError`` or ``ValueError``.
+    """
+    if not isinstance(dir, (str, Path)):
+        raise TypeError(f"dir must be a str or Path, got {type(dir).__name__}")
+    if maxlevels is not None:
+        if not isinstance(maxlevels, int) or isinstance(maxlevels, bool):
+            raise TypeError(f"maxlevels must be an int or None, got {type(maxlevels).__name__}")
+        if maxlevels < 0:
+            raise ValueError(f"maxlevels must be >= 0, got {maxlevels}")
+    if ddir is not None and not isinstance(ddir, str):
+        raise TypeError(f"ddir must be a str or None, got {type(ddir).__name__}")
+    if not isinstance(force, bool):
+        raise TypeError(f"force must be a bool, got {type(force).__name__}")
+    if not isinstance(legacy, bool):
+        raise TypeError(f"legacy must be a bool, got {type(legacy).__name__}")
+    if not isinstance(hardlink_dupes, bool):
+        raise TypeError(f"hardlink_dupes must be a bool, got {type(hardlink_dupes).__name__}")
+    if not isinstance(workers, int) or isinstance(workers, bool):
+        raise TypeError(f"workers must be an int, got {type(workers).__name__}")
+    if workers < 1:
+        raise ValueError(f"workers must be >= 1, got {workers}")
+    pattern = _validate_rx(rx)
+    _validate_quiet(quiet)
+    _validate_optimize(optimize)
+    _validate_paths(stripdir=stripdir, prependdir=prependdir, limit_sl_dest=limit_sl_dest)
+    mode = _validate_invalidation_mode(invalidation_mode)
+    return bool(
+        compileall.compile_dir(
+            str(dir),
+            maxlevels=maxlevels,
+            ddir=ddir,
+            force=force,
+            rx=pattern,
+            quiet=quiet,
+            legacy=legacy,
+            optimize=optimize,
+            workers=workers,
+            invalidation_mode=mode,
+            stripdir=str(stripdir) if stripdir is not None else None,
+            prependdir=str(prependdir) if prependdir is not None else None,
+            limit_sl_dest=str(limit_sl_dest) if limit_sl_dest is not None else None,
+            hardlink_dupes=hardlink_dupes,
+        )
+    )
+
+
+def compile_path(
+    skip_curdir: bool = True,
+    maxlevels: int = 0,
+    force: bool = False,
+    quiet: int = 0,
+    legacy: bool = False,
+    optimize: int = -1,
+    invalidation_mode: Union[str, InvalidationMode, None] = None,
+) -> bool:
+    """Byte-compile the modules found on ``sys.path``.
+
+    The standard library walks every entry of ``sys.path``, so callers should
+    narrow ``sys.path`` when they do not want the whole import path compiled.
+    Invalid arguments raise ``TypeError`` or ``ValueError``.
+    """
+    if not isinstance(skip_curdir, bool):
+        raise TypeError(f"skip_curdir must be a bool, got {type(skip_curdir).__name__}")
+    if not isinstance(maxlevels, int) or isinstance(maxlevels, bool):
+        raise TypeError(f"maxlevels must be an int, got {type(maxlevels).__name__}")
+    if maxlevels < 0:
+        raise ValueError(f"maxlevels must be >= 0, got {maxlevels}")
+    if not isinstance(force, bool):
+        raise TypeError(f"force must be a bool, got {type(force).__name__}")
+    if not isinstance(legacy, bool):
+        raise TypeError(f"legacy must be a bool, got {type(legacy).__name__}")
+    _validate_quiet(quiet)
+    _validate_optimize(optimize)
+    mode = _validate_invalidation_mode(invalidation_mode)
+    return bool(
+        compileall.compile_path(
+            skip_curdir=skip_curdir,
+            maxlevels=maxlevels,
+            force=force,
+            quiet=quiet,
+            legacy=legacy,
+            optimize=optimize,
+            invalidation_mode=mode,
+        )
+    )
+
+
+def main(argv: Optional[Iterable[str]] = None) -> int:
+    """Run the ``compileall`` command-line interface and return its exit code.
+
+    ``argv`` accepts any iterable of strings; ``None`` runs the interface with
+    the real process arguments. The standard library entry point reads
+    ``sys.argv`` directly, so the arguments are installed temporarily.
+    """
+    if argv is not None and not isinstance(argv, (list, tuple)):
+        raise TypeError(f"argv must be a list, tuple, or None, got {type(argv).__name__}")
+    original_argv = sys.argv
+    if argv is not None:
+        sys.argv = ["compileall", *[str(item) for item in argv]]
+    try:
+        success = compileall.main()  # type: ignore[attr-defined]
+    finally:
+        sys.argv = original_argv
+    return 0 if success else 1
+
+
+def pyc_path(source: PathLikeOrStr) -> Path:
+    """Return the bytecode path the compiler would use for *source*.
+
+    The location follows the PEP 3147 cache layout
+    (``__pycache__/<name>.<tag>.pyc``). The file is not created.
+    """
+    if not isinstance(source, (str, Path)):
+        raise TypeError(f"source must be a str or Path, got {type(source).__name__}")
+    return Path(importlib.util.cache_from_source(str(source)))
+COMPILEALL_UTILS
+
+# --- tests/test_compileall_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_compileall_utils.py" <<'TEST_COMPILEALL_UTILS'
+"""Tests for compileall utility functions."""
+
+import os
+import py_compile
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+import compileall_utils
+
+
+class TestCompileallUtils(unittest.TestCase):
+    """Exercise the validated wrappers around the standard library module."""
+
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmpdir.cleanup)
+        self.root = Path(self.tmpdir.name)
+
+    def _write(self, name: str, content: str = "x = 1\n") -> Path:
+        """Create a source file below the temporary directory and return its path."""
+        path = self.root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+        return path
+
+    def test_compile_file_creates_bytecode(self) -> None:
+        source = self._write("module.py")
+        self.assertTrue(compileall_utils.compile_file(source))
+        self.assertTrue(compileall_utils.pyc_path(source).exists())
+
+    def test_compile_file_accepts_str_path(self) -> None:
+        source = self._write("module.py")
+        self.assertTrue(compileall_utils.compile_file(str(source)))
+        self.assertTrue(compileall_utils.pyc_path(source).exists())
+
+    def test_compile_file_reports_failure(self) -> None:
+        source = self._write("broken.py", "def (\n")
+        self.assertFalse(compileall_utils.compile_file(source))
+
+    def test_compile_file_with_force(self) -> None:
+        source = self._write("module.py")
+        self.assertTrue(compileall_utils.compile_file(source))
+        self.assertTrue(compileall_utils.compile_file(source, force=True))
+
+    def test_compile_file_with_invalidation_mode(self) -> None:
+        source = self._write("module.py")
+        self.assertTrue(
+            compileall_utils.compile_file(source, invalidation_mode="checked-hash")
+        )
+        self.assertTrue(
+            compileall_utils.compile_file(
+                source, invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH
+            )
+        )
+
+    def test_compile_file_with_rx(self) -> None:
+        import re
+
+        source = self._write("skip_me.py")
+        self.assertTrue(compileall_utils.compile_file(source, rx=re.compile("skip_me")))
+        self.assertFalse(compileall_utils.pyc_path(source).exists())
+
+    def test_compile_file_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file("x.py", ddir=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file("x.py", force="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file("x.py", legacy="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file("x.py", hardlink_dupes="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file("x.py", rx="not-a-pattern")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file("x.py", quiet=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_file("x.py", quiet=3)
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file("x.py", optimize=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_file("x.py", optimize=5)
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file("x.py", stripdir=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file("x.py", prependdir=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file("x.py", limit_sl_dest=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_file("x.py", invalidation_mode=123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_file("x.py", invalidation_mode="bogus")
+
+    def test_compile_dir_compiles_tree(self) -> None:
+        self._write("pkg/module.py")
+        self._write("pkg/nested/deep.py")
+        self.assertTrue(compileall_utils.compile_dir(self.root))
+        module_pyc = compileall_utils.pyc_path(self.root / "pkg" / "module.py")
+        deep_pyc = compileall_utils.pyc_path(self.root / "pkg" / "nested" / "deep.py")
+        self.assertTrue(module_pyc.exists())
+        self.assertTrue(deep_pyc.exists())
+
+    def test_compile_dir_with_maxlevels(self) -> None:
+        self._write("pkg/module.py")
+        self._write("pkg/nested/deep.py")
+        self.assertTrue(compileall_utils.compile_dir(self.root, maxlevels=1))
+        deep_pyc = compileall_utils.pyc_path(self.root / "pkg" / "nested" / "deep.py")
+        self.assertFalse(deep_pyc.exists())
+
+    def test_compile_dir_with_workers(self) -> None:
+        self._write("module.py")
+        self.assertTrue(compileall_utils.compile_dir(self.root, workers=2))
+
+    def test_compile_dir_reports_failure(self) -> None:
+        self._write("broken.py", "def (\n")
+        self.assertFalse(compileall_utils.compile_dir(self.root))
+
+    def test_compile_dir_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, maxlevels="1")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_dir(self.root, maxlevels=-1)
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, workers=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_dir(self.root, workers=0)
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, ddir=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, force="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, legacy="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, hardlink_dupes="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, rx=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, quiet=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_dir(self.root, quiet=3)
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, optimize=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_dir(self.root, optimize=5)
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, stripdir=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, prependdir=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, limit_sl_dest=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_dir(self.root, invalidation_mode=123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_dir(self.root, invalidation_mode="bogus")
+
+    def test_compile_path_uses_sys_path(self) -> None:
+        source = self._write("module.py")
+        with mock.patch.object(compileall_utils.sys, "path", [str(self.root)]):
+            self.assertTrue(compileall_utils.compile_path())
+        self.assertTrue(compileall_utils.pyc_path(source).exists())
+
+    def test_compile_path_reports_failure(self) -> None:
+        self._write("broken.py", "def (\n")
+        with mock.patch.object(compileall_utils.sys, "path", [str(self.root)]):
+            self.assertFalse(compileall_utils.compile_path())
+
+    def test_compile_path_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_path(skip_curdir="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_path(maxlevels="0")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_path(maxlevels=-1)
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_path(force="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_path(legacy="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_path(quiet=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_path(quiet=3)
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_path(optimize=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_path(optimize=5)
+        with self.assertRaises(TypeError):
+            compileall_utils.compile_path(invalidation_mode=123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compileall_utils.compile_path(invalidation_mode="bogus")
+
+    def test_main_returns_zero_on_success(self) -> None:
+        source = self._write("module.py")
+        self.assertEqual(compileall_utils.main([str(source)]), 0)
+        self.assertTrue(compileall_utils.pyc_path(source).exists())
+
+    def test_main_returns_one_on_failure(self) -> None:
+        source = self._write("broken.py", "def (\n")
+        self.assertEqual(compileall_utils.main([str(source)]), 1)
+
+    def test_main_restores_sys_argv(self) -> None:
+        source = self._write("module.py")
+        original = list(compileall_utils.sys.argv)
+        compileall_utils.main([str(source)])
+        self.assertEqual(compileall_utils.sys.argv, original)
+
+    def test_main_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            compileall_utils.main("not-a-list")  # type: ignore[arg-type]
+
+    def test_pyc_path(self) -> None:
+        source = self.root / "module.py"
+        expected = self.root / "__pycache__" / "module.cpython-312.pyc"
+        self.assertEqual(compileall_utils.pyc_path(source).name, expected.name)
+        self.assertEqual(compileall_utils.pyc_path(source).parent, expected.parent)
+        self.assertEqual(compileall_utils.pyc_path(str(source)), expected)
+
+    def test_pyc_path_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            compileall_utils.pyc_path(123)  # type: ignore[arg-type]
+
+    def test_module_exports(self) -> None:
+        for name in ("compile_dir", "compile_file", "compile_path", "main", "pyc_path"):
+            self.assertIn(name, compileall_utils.__all__)
+            self.assertTrue(hasattr(compileall_utils, name))
+
+    def test_does_not_write_into_repository_root(self) -> None:
+        """The helpers must never leave artefacts in the current directory."""
+        before = set(os.listdir("."))
+        source = self._write("module.py")
+        compileall_utils.compile_file(source)
+        compileall_utils.compile_dir(self.root)
+        self.assertEqual(before, set(os.listdir(".")))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_COMPILEALL_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

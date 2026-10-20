@@ -451,3 +451,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_zipapp_utils.py` — unit tests for `zipapp_utils.py`
 - `py_compile_utils.py` — py_compile utilities wrapping the standard library `py_compile` module (`compile_file`/`py_compile_file`, `get_invalidation_mode`, `parse_invalidation_mode`, `is_pyc_file`, `main`) with input validation
 - `tests/test_py_compile_utils.py` — unit tests for `py_compile_utils.py`
+- `compileall_utils.py` — compileall utilities wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation
+- `tests/test_compileall_utils.py` — unit tests for `compileall_utils.py`

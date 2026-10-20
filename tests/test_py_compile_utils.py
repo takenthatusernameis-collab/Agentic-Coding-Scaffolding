@@ -2,6 +2,7 @@
 
 import os
 import py_compile
+import sys
 import tempfile
 from unittest import TestCase, mock
 
@@ -90,7 +91,8 @@ class TestPyCompileUtils(TestCase):
 
     def test_is_pyc_file(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            self.assertTrue(py_compile_utils.is_pyc_file(os.path.join(tmpdir, "module.cpython-310.pyc")))
+            tagged = os.path.join(tmpdir, "module.cpython-310.pyc")
+            self.assertTrue(py_compile_utils.is_pyc_file(tagged))
             self.assertTrue(py_compile_utils.is_pyc_file(os.path.join(tmpdir, "module.pyc")))
             self.assertFalse(py_compile_utils.is_pyc_file(os.path.join(tmpdir, "module.py")))
             self.assertFalse(py_compile_utils.is_pyc_file(os.path.join(tmpdir, "module.txt")))
@@ -101,3 +103,28 @@ class TestPyCompileUtils(TestCase):
         with mock.patch("py_compile.main", return_value=0) as patched:
             self.assertEqual(py_compile_utils.main(["-v"]), 0)
             patched.assert_called_once()
+
+    def test_main_compiles_a_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src = os.path.join(tmpdir, "module.py")
+            with open(src, "w") as f:
+                f.write("x = 1\n")
+            self.assertEqual(py_compile_utils.main([src]), 0)
+            self.assertTrue(os.path.isdir(os.path.join(tmpdir, "__pycache__")))
+
+    def test_main_reports_a_failure(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src = os.path.join(tmpdir, "broken.py")
+            with open(src, "w") as f:
+                f.write("def (\n")
+            self.assertEqual(py_compile_utils.main([src]), 1)
+
+    def test_main_restores_sys_argv(self):
+        original = list(sys.argv)
+        with mock.patch("py_compile.main", return_value=0):
+            py_compile_utils.main(["-v"])
+        self.assertEqual(sys.argv, original)
+
+    def test_main_validates_inputs(self):
+        with self.assertRaises(TypeError):
+            py_compile_utils.main("not-a-list")  # type: ignore[arg-type]

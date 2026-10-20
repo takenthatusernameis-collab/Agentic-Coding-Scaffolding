@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import py_compile
+import sys
 from pathlib import Path
 from typing import Optional, Union
 
@@ -25,6 +26,15 @@ PycInvalidationMode = py_compile.PycInvalidationMode
 PathLikeOrStr = Union[str, Path]
 
 
+def _exit_code(code: object) -> int:
+    """Return the process exit status carried by a ``SystemExit`` exception."""
+    if code is None:
+        return 0
+    if isinstance(code, int):
+        return code
+    return 1
+
+
 def parse_invalidation_mode(value: Union[str, PycInvalidationMode, None]) -> PycInvalidationMode:
     """Parse an invalidation mode from a string, enum, or None."""
     if value is None:
@@ -37,7 +47,7 @@ def parse_invalidation_mode(value: Union[str, PycInvalidationMode, None]) -> Pyc
             f"got {type(value).__name__}"
         )
     try:
-        return PycInvalidationMode[value.strip().upper()]
+        return py_compile.PycInvalidationMode[value.strip().upper()]
     except KeyError as exc:
         valid = ", ".join(m.name for m in PycInvalidationMode)
         raise ValueError(
@@ -96,6 +106,8 @@ def compile_file(
         invalidation_mode=mode,
         quiet=quiet,
     )
+    if compiled is None:
+        raise RuntimeError(f"py_compile did not produce bytecode for {file!r}")
     return Path(compiled)
 
 
@@ -116,5 +128,21 @@ def is_pyc_file(path: Union[str, Path]) -> bool:
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    """Run the ``py_compile`` command-line interface and return its exit code."""
-    return py_compile.main(argv)
+    """Run the ``py_compile`` command-line interface and return its exit code.
+
+    The standard library entry point reads ``sys.argv`` itself and calls
+    ``sys.exit`` when a file cannot be compiled, so the arguments are
+    installed temporarily and the exit status is captured instead of raised.
+    """
+    if argv is not None and not isinstance(argv, (list, tuple)):
+        raise TypeError(f"argv must be a list, tuple, or None, got {type(argv).__name__}")
+    original_argv = sys.argv
+    if argv is not None:
+        sys.argv = ["py_compile", *[str(item) for item in argv]]
+    try:
+        py_compile.main()
+    except SystemExit as exc:
+        return _exit_code(exc.code)
+    finally:
+        sys.argv = original_argv
+    return 0

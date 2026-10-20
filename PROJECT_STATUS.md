@@ -20,7 +20,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 3349 tests across all wrapper modules (1575 subtests)
+- 3391 tests across all wrapper modules (1599 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -30,14 +30,14 @@ The project foundation is established:
   documented in `README.md`, listed in `.kilo/command/scaffold-project.md` and `CHANGELOG.md`, and
   asserted in `tests/test_scaffold.py`
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 3034 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 3076 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 398 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 404 source files
 
 ## Keeping the Scaffold Synchronized
 
@@ -57,23 +57,53 @@ expectation in `tests/test_scaffold_sync.py`.
 - Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are
   `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
   `sndhdr` (removed in Python 3.13), `cgitb` (removed in Python 3.13), `smtplib`, `ftplib`, `poplib`,
-  `webbrowser`, `xmlrpc`, `zipapp`, `pickletools`, `py_compile`, `compileall`, `modulefinder`,
+  `webbrowser`, `xmlrpc`, `pickletools`, `modulefinder`,
   `xdrlib`, `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`, `opcode`, `optparse`,
-  `rlcompleter`, `pyclbr`, and `encodings`. A natural next candidate is `zipapp_utils.py` wrapping the
-  standard library `zipapp` module: it is pure and hermetic, with no network, subprocess, or
-  interpreter-state dependencies. `py_compile`/`compileall` are equally hermetic alternatives.
-  Note that the stack formatting helpers (`format_stack`, `format_list`, `format_exception_only`,
-  `print_stack`, `walk_stack`, `extract_stack`) live in the standard library `traceback` module and
-  are already wrapped by `traceback_utils.py`; the `trace` module itself only offers `Trace`,
-  `CoverageResults`, `PRAGMA_NOCOVER`, and `main`.
+  `rlcompleter`, `pyclbr`, and `encodings`. A natural next candidate is `pickletools_utils.py`
+  wrapping the standard library `pickletools` module: it is pure and hermetic, with no network,
+  subprocess, or interpreter-state dependencies. `modulefinder` and `optparse` are equally hermetic
+  alternatives. Note that the stack formatting helpers (`format_stack`, `format_list`,
+  `format_exception_only`, `print_stack`, `walk_stack`, `extract_stack`) live in the standard library
+  `traceback` module and are already wrapped by `traceback_utils.py`; the `trace` module itself only
+  offers `Trace`, `CoverageResults`, `PRAGMA_NOCOVER`, and `main`.
 - Keep every new wrapper hermetic: the test suite must never open a network connection or block on a
   subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with
-  `unittest.mock.patch` instead of real servers.
+  `unittest.mock.patch` instead of real servers. The same rule applies to the compiler wrappers:
+  `compileall_utils.py` narrows `sys.path` with `unittest.mock.patch` so the suite never
+  byte-compiles the interpreter's own import path.
 - Keep `make lint` and `make typecheck` green. Previous sessions left `mailcap_utils.py`,
   `mailbox_utils.py`, and `wave_utils.py` failing mypy and three files failing ruff; the latest
   session repaired them, so a new module must not reintroduce the drift.
 
 Completed in the latest session:
+
+- Repaired the interrupted `py_compile_utils` handover. The previous session registered the module in
+  `pyproject.toml` and documented it in the README, the command documentation, and the changelog, but
+  never embedded `py_compile_utils.py` and `tests/test_py_compile_utils.py` in `scaffold.sh`, so
+  `tests/test_scaffold_sync.py` failed and a scaffolded project was missing the module entirely. Both
+  heredocs are now part of the generator.
+- Added `compileall_utils.py` wrapping the standard library `compileall` module
+  (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with typed signatures,
+  docstrings, `__all__`, and input validation, plus unit tests in
+  `tests/test_compileall_utils.py`. The invalidation mode accepts a `PycInvalidationMode` member or
+  its name, with dashes or underscores.
+- Fixed the two `main` entry points of the compiler wrappers. Neither `py_compile.main()` nor
+  `compileall.main()` accepts an argument list — both parse `sys.argv` themselves — so the wrappers
+  install the arguments temporarily, restore `sys.argv` afterwards, and translate the `SystemExit`
+  status into an exit code. The previous `py_compile_utils.main` passed the argument list straight
+  through, which raised `TypeError` at runtime.
+- Repaired the pre-existing `mypy` failures in `py_compile_utils.py` (the enum alias could not be
+  subscripted, `py_compile.compile` returns `AnyStr | None`, and `py_compile.main` is untyped) and in
+  the new `compileall_utils.py` (`compileall.main` is missing from the bundled typeshed), plus the
+  pre-existing `ruff` `E501` failure in `tests/test_py_compile_utils.py`.
+- Closed two more gaps that `tests/test_scaffold_sync.py` reported once the earlier failures stopped
+  masking them: the `scaffold.sh` header comment never listed `tests/test_uu_utils.py`, and
+  `tests/test_scaffold.py` never asserted `cmath_utils.py` or `tests/test_cmath_utils.py`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `compileall_utils.py`, `py_compile_utils.py` and both of their tests, and its 3076 tests, ruff, and
+  mypy all pass.
+
+Previously completed:
 
 - Completed the half-finished `uu_utils` module left by the previous session. The module and its test
   existed and were registered in `pyproject.toml`, but they were missing from every other surface

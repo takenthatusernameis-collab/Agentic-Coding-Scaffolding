@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Add `compileall_utils.py` wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation, plus unit tests in `tests/test_compileall_utils.py`.
+- Synchronized `compileall_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired the interrupted `py_compile_utils.py` handover: the previous session registered the module in `pyproject.toml` and documented it in the README, the command documentation, and the changelog, but never embedded `py_compile_utils.py` and `tests/test_py_compile_utils.py` in `scaffold.sh`, so `tests/test_scaffold_sync.py` failed and a scaffolded project was missing the module. Both heredocs are now part of the generator.
+- Rewrote `compileall_utils.py` and `tests/test_compileall_utils.py` to match the conventions of the other wrappers: typed signatures, docstrings, `__all__`, and input validation. The `compileall.main` entry point reads `sys.argv` itself, so the wrapper installs the arguments temporarily and restores `sys.argv` afterwards; the tests narrow `sys.path` so the suite never byte-compiles the interpreter's own import path.
 - Add `py_compile_utils.py` wrapping the standard library `py_compile` module (`compile_file`/`py_compile_file`, `get_invalidation_mode`, `parse_invalidation_mode`, `is_pyc_file`, `main`) with `PyCompileError` and `PycInvalidationMode` re-exports, plus unit tests in `tests/test_py_compile_utils.py`.
 - Synchronized `py_compile_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `uu_utils.py` wrapping the standard library `uu` module (`uu_encode`, `uu_decode`, `encode_uu`, `decode_uu`, `parse_uu_header`, `is_uuencoded`) with input validation, plus unit tests in `tests/test_uu_utils.py`.
