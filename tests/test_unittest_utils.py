@@ -1,6 +1,6 @@
 import unittest
 
-from unittest_utils import TestCase, TestSuite, make_suite, run_tests
+from unittest_utils import TestCase, make_suite, run_tests
 
 
 class TestUnittestUtils(unittest.TestCase):

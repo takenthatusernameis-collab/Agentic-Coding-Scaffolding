@@ -8,7 +8,7 @@ using :mod:`timeit`, including :func:`timeit`, :func:`repeat`,
 from __future__ import annotations
 
 import timeit as _timeit
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Callable, Optional
 
 __all__: list[str] = ["timeit", "repeat", "default_timer", "Timer"]
 

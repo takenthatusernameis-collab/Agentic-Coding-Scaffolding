@@ -1,7 +1,7 @@
 import termios
 import unittest
 
-from tty_utils import cfmakeraw, cfmakecbreak, setcbreak, setraw
+from tty_utils import cfmakecbreak, cfmakeraw, setcbreak, setraw
 
 
 class TestTtyUtils(unittest.TestCase):

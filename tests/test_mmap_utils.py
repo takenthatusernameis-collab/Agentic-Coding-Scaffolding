@@ -4,9 +4,9 @@ import tempfile
 import unittest
 
 from mmap_utils import (
+    ACCESS_COPY,
     ACCESS_READ,
     ACCESS_WRITE,
-    ACCESS_COPY,
     ALLOCATIONGRANULARITY,
     PAGESIZE,
     access_copy,
