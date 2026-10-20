@@ -437,3 +437,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_select_utils.py` — unit tests for `select_utils.py`
 - `symtable_utils.py` — symbol table utilities wrapping the standard library `symtable` module (`build_symbol_table`, `lookup_symbol_table`, `scope_type`, `scope_identifiers`, `child_scopes`, `iter_scopes`, `find_scope`, `describe_scope`, `symbol_info`, `symbol_flags`, `namespace_names`, `free_variables`, `global_names`, `local_names`, `parameter_names`, `imported_names`, `assigned_names`, `referenced_names`, `nonlocal_names`) with input validation
 - `tests/test_symtable_utils.py` — unit tests for `symtable_utils.py`
+- `imaplib_utils.py` — IMAP4 client utilities wrapping the standard library `imaplib` module (`create_imap4`, `create_imap4_ssl`, `create_imap4_stream`, `parse_capabilities`, `has_capability`, `parse_flags`, `parse_fetch_flags`, `format_flags`, `parse_internaldate`, `format_internaldate`, `int_to_ap`) with input validation
+- `tests/test_imaplib_utils.py` — unit tests for `imaplib_utils.py`

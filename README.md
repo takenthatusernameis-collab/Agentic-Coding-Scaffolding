@@ -210,6 +210,7 @@ symtable_utils.py           # Symbol table utilities wrapping stdlib symtable (b
 profile_utils.py             # Profiling utilities wrapping stdlib profile (Profile, run, runctx, new_profiler, main)
 pstats_utils.py              # Profiling statistics utilities wrapping stdlib pstats (Stats, SortKey, new_stats, load_stats, add_stats, print_stats, sort_stats, strip_dirs, reverse_order, dump_stats)
 select_utils.py              # I/O multiplexing utilities wrapping stdlib select (select, create_poller, poll_register, poll_poll, PIPE_BUF)
+imaplib_utils.py             # IMAP4 client utilities wrapping stdlib imaplib (create_imap4, create_imap4_ssl, create_imap4_stream, parse_capabilities, has_capability, parse_flags, parse_fetch_flags, format_flags, parse_internaldate, format_internaldate, int_to_ap)
 unittest_utils.py            # Unittest utilities wrapping stdlib unittest (TestCase, TestSuite, TestLoader, TextTestRunner, make_suite, run_tests, main)
 typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
@@ -318,7 +319,8 @@ test_doctest_utils.py       # Tests for doctest_utils.py
 test_symtable_utils.py      # Tests for symtable_utils.py
 test_profile_utils.py        # Tests for profile_utils.py
 test_pstats_utils.py         # Tests for pstats_utils.py
-test_select_utils.py         # Tests for select_utils.py
+ test_select_utils.py         # Tests for select_utils.py
+ test_imaplib_utils.py        # Tests for imaplib_utils.py
 test_unittest_utils.py       # Tests for unittest_utils.py
 test_typing_utils.py        # Tests for typing_utils.py
 test_pickle_utils.py        # Tests for pickle_utils.py
@@ -1260,3 +1262,8 @@ The project includes symbol table utilities in `symtable_utils.py` wrapping the 
 ## Hello Module
 
 The project includes a sample application entry point in `hello.py`: `main` prints a greeting for the given name and defaults to `"World"`, and running the module directly greets the name given on the command line. The module is tested in `tests/test_hello.py`.
+
+
+## Imaplib Utilities Module
+
+The project includes IMAP4 client utilities in `imaplib_utils.py` wrapping the standard library `imaplib` module: `create_imap4` builds an `IMAP4` client, `create_imap4_ssl` builds an `IMAP4_SSL` client, `create_imap4_stream` builds an `IMAP4_stream` client for a local command, `parse_capabilities` reads the capability names a server advertises, `has_capability` reports whether a capability is advertised, `parse_flags` reads the flags of a `FLAGS` response, `parse_fetch_flags` extracts the flags from a `FETCH` response, `format_flags` renders flags in the wire format, `parse_internaldate` reads an `INTERNALDATE` value, `format_internaldate` renders a timestamp as an `INTERNALDATE` value, and `int_to_ap` converts an integer into its `A`-`P` digit representation. `IMAP4`, `IMAP4_SSL`, `IMAP4_stream`, `IMAP4Error`, `IMAP4AbortError`, `IMAP4ReadOnlyError`, `CRLF`, `IMAP4_PORT`, and `IMAP4_SSL_PORT` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_imaplib_utils.py`.

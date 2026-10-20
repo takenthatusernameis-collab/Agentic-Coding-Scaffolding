@@ -20,7 +20,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 3219 tests across all wrapper modules (1532 subtests)
+- 3269 tests across all wrapper modules (1543 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -30,14 +30,14 @@ The project foundation is established:
   documented in `README.md`, listed in `.kilo/command/scaffold-project.md` and `CHANGELOG.md`, and
   asserted in `tests/test_scaffold.py`
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 3146 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 2954 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 388 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 390 source files
 
 ## Keeping the Scaffold Synchronized
 
@@ -55,18 +55,35 @@ expectation in `tests/test_scaffold_sync.py`.
 ## Next Planned
 
 - Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are
-  `symtable` (now covered by `symtable_utils.py`), plus `imaplib`, `mailbox`, `nntplib`, `pipes`,
-  `sndhdr`, `cgitb`, `dbm.gnu` variants, and `wave`. A natural next candidate is `imaplib_utils.py`
-  wrapping the standard library `imaplib` module, or `mailbox_utils.py` wrapping `mailbox`.
+  `mailbox`, `mailcap`, `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
+  `sndhdr` (removed in Python 3.13), `cgitb`, `wave`, `smtplib`, `ftplib`, `poplib`, `webbrowser`,
+  `xmlrpc`, `zipapp`, `pickletools`, `py_compile`, `compileall`, `modulefinder`, `uu`, `xdrlib`,
+  `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`, `opcode`, `optparse`, `rlcompleter`,
+  `pyclbr`, and `encodings`. A natural next candidate is `mailbox_utils.py` wrapping the standard
+  library `mailbox` module, or `wave_utils.py` wrapping `wave`.
   Note that the stack formatting helpers (`format_stack`, `format_list`, `format_exception_only`,
   `print_stack`, `walk_stack`, `extract_stack`) live in the standard library `traceback` module and
   are already wrapped by `traceback_utils.py`; the `trace` module itself only offers `Trace`,
   `CoverageResults`, `PRAGMA_NOCOVER`, and `main`.
-- Move the scaffold summary and smoke test to the end of `scaffold.sh`. Both currently run in the
-  middle of the generator, before the last wrapper modules are written, so the "Created files"
-  listing is incomplete and the smoke test only discovers the tests written up to that point.
-- Remove the stray `raises.` file (about 1.1 MB) that a shell redirection accident committed to the
-  repository root. It is tracked in git and is not part of the project.
+- Keep every new wrapper hermetic: the test suite must never open a network connection or block on a
+  subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with
+  `unittest.mock.patch` instead of real servers.
+
+Completed in the latest session:
+
+- Added `imaplib_utils.py` wrapping the standard library `imaplib` module (`create_imap4`,
+  `create_imap4_ssl`, `create_imap4_stream`, `parse_capabilities`, `has_capability`, `parse_flags`,
+  `parse_fetch_flags`, `format_flags`, `parse_internaldate`, `format_internaldate`, `int_to_ap`)
+  with input validation, plus `tests/test_imaplib_utils.py`.
+- Moved the scaffold summary and smoke test to the end of `scaffold.sh`. They used to run in the
+  middle of the generator, so the "Created files" listing missed every module written after that
+  point and the smoke test only discovered the tests written up to that point. The smoke test now
+  also runs after the project name has been substituted into the templated documents.
+- Removed the stray `raises.` file (about 1.1 MB) that a shell redirection accident had committed to
+  the repository root.
+- Registered `asyncio_utils`, `imaplib_utils`, `mmap_utils`, `profile_utils`, `pstats_utils`,
+  `timeit_utils`, and `unittest_utils` in the `pyproject.toml` template embedded in `scaffold.sh`, so
+  a generated project declares every module it ships.
 
 Each session adds one new stdlib wrapper module (`<module>_utils.py`) with full test coverage, registers it in `pyproject.toml` (`[tool.setuptools] py_modules`), and posts a handover task for the next agent via the Kilo board.
 
@@ -74,6 +91,7 @@ Every module must stay synchronized across all surfaces: the module file, its te
 `pyproject.toml` `py_modules`, the `scaffold.sh` header comment, embedded `pyproject.toml`,
 module and test heredocs, embedded README and CHANGELOG, the README tree and module section,
 `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+`tests/test_scaffold_sync.py` fails when any of those surfaces is missed, so check it first.
 
 The embedded module and test copies inside `scaffold.sh` must stay byte-identical to the repository
 files, so refresh them from the repository with `make refresh-scaffold` instead of editing the

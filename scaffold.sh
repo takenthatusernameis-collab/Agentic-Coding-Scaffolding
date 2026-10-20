@@ -284,6 +284,8 @@
 #   - tests/test_pstats_utils.py — # Tests for pstats_utils.py
 #   - select_utils.py — # I/O multiplexing utilities wrapping the standard library select module (select, create_poller, poll_register, poll_poll, PIPE_BUF)
 #   - tests/test_select_utils.py — # Tests for select_utils.py
+#   - imaplib_utils.py — # IMAP4 client utilities wrapping the standard library imaplib module (create_imap4, create_imap4_ssl, create_imap4_stream, parse_capabilities, has_capability, parse_flags, parse_fetch_flags, format_flags, parse_internaldate, format_internaldate, int_to_ap)
+#   - tests/test_imaplib_utils.py — # Tests for imaplib_utils.py
 #   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 #   - tests/test_contextlib_utils.py — # Tests for contextlib_utils.py
 
@@ -4229,6 +4231,13 @@ py_modules = [
     "threading_utils",
     "circuit_breaker_utils",
     "deprecation_utils",
+    "asyncio_utils",
+    "imaplib_utils",
+    "mmap_utils",
+    "profile_utils",
+    "pstats_utils",
+    "timeit_utils",
+    "unittest_utils",
 ]
 
 PYPROJECT
@@ -27162,6 +27171,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_select_utils.py` — unit tests for `select_utils.py`
 - `symtable_utils.py` — symbol table utilities wrapping the standard library `symtable` module (`build_symbol_table`, `lookup_symbol_table`, `scope_type`, `scope_identifiers`, `child_scopes`, `iter_scopes`, `find_scope`, `describe_scope`, `symbol_info`, `symbol_flags`, `namespace_names`, `free_variables`, `global_names`, `local_names`, `parameter_names`, `imported_names`, `assigned_names`, `referenced_names`, `nonlocal_names`) with input validation
 - `tests/test_symtable_utils.py` — unit tests for `symtable_utils.py`
+- `imaplib_utils.py` — IMAP4 client utilities wrapping the standard library `imaplib` module (`create_imap4`, `create_imap4_ssl`, `create_imap4_stream`, `parse_capabilities`, `has_capability`, `parse_flags`, `parse_fetch_flags`, `format_flags`, `parse_internaldate`, `format_internaldate`, `int_to_ap`) with input validation
+- `tests/test_imaplib_utils.py` — unit tests for `imaplib_utils.py`
 SCAFFOLD
 
 
@@ -27193,12 +27204,6 @@ yarn.lock
 agent-manager.json
 KILOGITIGNORE
 
-echo ""
-echo "Scaffolded project '$PROJECT_NAME' at: $OUTPUT_DIR"
-echo ""
-echo "Created files:"
-find "$OUTPUT_DIR" -type f | sort | sed "s/^/  /"
-echo ""
 
 # --- template_utils.py ---
 cat > "$OUTPUT_DIR/template_utils.py" <<'TEMPLATEUTILS'
@@ -27848,23 +27853,6 @@ def interval_length(interval: Interval) -> float:
     return float(interval[1] - interval[0])
 INTERVALUTILS
 
-if [[ "$SMOKE_TEST" == "1" ]] && command -v python >/dev/null 2>&1; then
-  echo "Running smoke test in $OUTPUT_DIR ..."
-  if (cd "$OUTPUT_DIR" && python -m unittest discover tests/ -v); then
-    echo "Smoke test passed."
-  else
-    echo "Warning: smoke test failed. The scaffold may be incomplete." >&2
-  fi
-else
-  echo "Smoke test skipped (pass --no-test to skip intentionally)."
-fi
-
-echo ""
-echo "Next steps:"
-echo "  cd $OUTPUT_DIR"
-echo "  git init"
-echo "  git add -A"
-echo "  git commit -m 'Initial commit'"
 
 
 # --- LICENSE ---
@@ -28201,6 +28189,7 @@ symtable_utils.py           # Symbol table utilities wrapping stdlib symtable (b
 profile_utils.py             # Profiling utilities wrapping stdlib profile (Profile, run, runctx, new_profiler, main)
 pstats_utils.py              # Profiling statistics utilities wrapping stdlib pstats (Stats, SortKey, new_stats, load_stats, add_stats, print_stats, sort_stats, strip_dirs, reverse_order, dump_stats)
 select_utils.py              # I/O multiplexing utilities wrapping stdlib select (select, create_poller, poll_register, poll_poll, PIPE_BUF)
+imaplib_utils.py             # IMAP4 client utilities wrapping stdlib imaplib (create_imap4, create_imap4_ssl, create_imap4_stream, parse_capabilities, has_capability, parse_flags, parse_fetch_flags, format_flags, parse_internaldate, format_internaldate, int_to_ap)
 unittest_utils.py            # Unittest utilities wrapping stdlib unittest (TestCase, TestSuite, TestLoader, TextTestRunner, make_suite, run_tests, main)
 typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
@@ -28310,6 +28299,7 @@ test_symtable_utils.py      # Tests for symtable_utils.py
 test_profile_utils.py        # Tests for profile_utils.py
 test_pstats_utils.py         # Tests for pstats_utils.py
 test_select_utils.py         # Tests for select_utils.py
+test_imaplib_utils.py        # Tests for imaplib_utils.py
 test_unittest_utils.py       # Tests for unittest_utils.py
 test_typing_utils.py        # Tests for typing_utils.py
 test_pickle_utils.py        # Tests for pickle_utils.py
@@ -29219,6 +29209,10 @@ The project includes I/O multiplexing utilities in `select_utils.py` wrapping th
 
 The project includes symbol table utilities in `symtable_utils.py` wrapping the standard library `symtable` module: `build_symbol_table` builds the symbol table of a block of source code, `lookup_symbol_table` analyses the source file of an importable module, `scope_type` reports whether a scope is a module, function, class, annotation, or comprehension, `scope_identifiers` lists the names bound in a scope, `child_scopes` and `iter_scopes` walk the nested scope tree, `find_scope` locates a nested scope by name, `describe_scope` summarizes a scope, `symbol_info` and `symbol_flags` describe how a symbol is used, `namespace_names` lists the names bound in the namespace a symbol introduces, and `free_variables`, `global_names`, `local_names`, `parameter_names`, `imported_names`, `assigned_names`, `referenced_names`, and `nonlocal_names` collect the names of a scope by usage. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_symtable_utils.py`.
 
+## Imaplib Utilities Module
+
+The project includes IMAP4 client utilities in `imaplib_utils.py` wrapping the standard library `imaplib` module: `create_imap4` builds an `IMAP4` client, `create_imap4_ssl` builds an `IMAP4_SSL` client, `create_imap4_stream` builds an `IMAP4_stream` client for a local command, `parse_capabilities` reads the capability names a server advertises, `has_capability` reports whether a capability is advertised, `parse_flags` reads the flags of a `FLAGS` response, `parse_fetch_flags` extracts the flags from a `FETCH` response, `format_flags` renders flags in the wire format, `parse_internaldate` reads an `INTERNALDATE` value, `format_internaldate` renders a timestamp as an `INTERNALDATE` value, and `int_to_ap` converts an integer into its `A`-`P` digit representation. `IMAP4`, `IMAP4_SSL`, `IMAP4_stream`, `IMAP4Error`, `IMAP4AbortError`, `IMAP4ReadOnlyError`, `CRLF`, `IMAP4_PORT`, and `IMAP4_SSL_PORT` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_imaplib_utils.py`.
+
 ## Hello Module
 
 The project includes a sample application entry point in `hello.py`: `main` prints a greeting for the given name and defaults to `"World"`, and running the module directly greets the name given on the command line. The module is tested in `tests/test_hello.py`.
@@ -29237,6 +29231,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Moved the scaffold summary and smoke test to the end of `scaffold.sh`: both used to run in the middle of the generator, so the "Created files" listing missed every module written after that point and the smoke test only discovered the tests written up to that point. The smoke test now also runs after the project name has been substituted into the templated documents.
+- Registered `asyncio_utils`, `imaplib_utils`, `mmap_utils`, `profile_utils`, `pstats_utils`, `timeit_utils`, and `unittest_utils` in the `pyproject.toml` template embedded in `scaffold.sh`, so a generated project declares every module it ships.
+- Added `imaplib_utils.py` to the generated project — IMAP4 client utilities wrapping the standard library `imaplib` module (`create_imap4`, `create_imap4_ssl`, `create_imap4_stream`, `parse_capabilities`, `has_capability`, `parse_flags`, `parse_fetch_flags`, `format_flags`, `parse_internaldate`, `format_internaldate`, `int_to_ap`) with input validation, plus `tests/test_imaplib_utils.py`.
+- Synchronized `imaplib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Closed the embedded `README.md` template gap: the README written into a scaffolded project now documents every wrapper module it ships. The architecture tree lists every module and every test file, and each module has its own documentation section — 190 module sections, up from 44. The repository `README.md` gained the missing tree entries for `profile_utils.py`, `pstats_utils.py`, `select_utils.py`, and `unittest_utils.py`, plus a `Hello Module` section.
 - Fixed the project name placeholder in generated projects: `scaffold.sh` now substitutes the project name into `README.md`, `AGENTS.md`, and `CHANGELOG.md` after writing them, so a scaffolded project no longer ships documents that contain the literal placeholder. `tests/test_scaffold.py` guards the substitution.
@@ -56025,6 +56023,741 @@ if __name__ == "__main__":
     unittest.main()
 TEST_SELECT_UTILS
 
+cat > "$OUTPUT_DIR/imaplib_utils.py" <<'IMAPLIB_UTILS'
+"""IMAP4 client utilities (wrapping :mod:`imaplib`).
+
+The :mod:`imaplib` module defines three classes, ``IMAP4``, ``IMAP4_SSL`` and
+``IMAP4_stream``, which encapsulate a connection to an IMAP4 server and
+implement a large subset of the IMAP4rev1 client commands. It also exposes a
+handful of module level helpers that translate between IMAP4 wire formats and
+Python values.
+
+This wrapper exposes validated constructors for the client classes plus the
+pure helpers used to parse and format capability lists, message flags and
+``INTERNALDATE`` timestamps. The connection helpers only build the standard
+library clients; they never open a socket on their own, so callers stay in
+control of when (and if) a connection is attempted.
+"""
+
+from __future__ import annotations
+
+import imaplib as _imaplib
+import re
+import time
+from datetime import datetime
+from typing import Any, Iterable, List, Optional, Sequence, Tuple, Union
+
+__all__ = [
+    "CRLF",
+    "IMAP4",
+    "IMAP4_SSL",
+    "IMAP4_SSL_PORT",
+    "IMAP4_PORT",
+    "IMAP4_stream",
+    "IMAP4AbortError",
+    "IMAP4Error",
+    "IMAP4ReadOnlyError",
+    "create_imap4",
+    "create_imap4_ssl",
+    "create_imap4_stream",
+    "format_flags",
+    "format_internaldate",
+    "has_capability",
+    "int_to_ap",
+    "is_imap4_abort",
+    "is_imap4_error",
+    "is_imap4_readonly",
+    "parse_capabilities",
+    "parse_fetch_flags",
+    "parse_flags",
+    "parse_internaldate",
+]
+
+CRLF: bytes = _imaplib.CRLF  # type: ignore[attr-defined]
+IMAP4_PORT: int = _imaplib.IMAP4_PORT  # type: ignore[attr-defined]
+IMAP4_SSL_PORT: int = _imaplib.IMAP4_SSL_PORT  # type: ignore[attr-defined]
+
+IMAP4 = _imaplib.IMAP4
+IMAP4_SSL = _imaplib.IMAP4_SSL
+IMAP4_stream = _imaplib.IMAP4_stream
+
+IMAP4Error = _imaplib.IMAP4.error
+IMAP4AbortError = _imaplib.IMAP4.abort
+IMAP4ReadOnlyError = _imaplib.IMAP4.readonly
+
+_RESPONSE_CODES = frozenset({"OK", "NO", "BAD", "BYE", "PREAUTH"})
+
+_CAPABILITY_BRACKET = re.compile(r"\[CAPABILITY(?P<caps>[^\]]*)\]", re.IGNORECASE)
+_FLAGS_SECTION = re.compile(r"FLAGS\s*\((?P<flags>[^)]*)\)", re.IGNORECASE)
+
+
+def _require_str(value: Any, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_bytes(value: Any, name: str) -> bytes:
+    if not isinstance(value, bytes):
+        raise TypeError(f"{name} must be bytes, got {type(value).__name__}")
+    return value
+
+
+def _require_optional_str(value: Any, name: str) -> Optional[str]:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str or None, got {type(value).__name__}")
+    return value
+
+
+def _require_int(value: Any, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def _require_optional_float(value: Any, name: str) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
+    return float(value)
+
+
+def _require_port(value: Any, name: str) -> int:
+    port = _require_int(value, name)
+    if port < 0 or port > 65535:
+        raise ValueError(f"{name} must be between 0 and 65535")
+    return port
+
+
+def _require_timeout(value: Any) -> Optional[float]:
+    timeout = _require_optional_float(value, "timeout")
+    if timeout is not None and timeout < 0:
+        raise ValueError("timeout must be non-negative")
+    return timeout
+
+
+def create_imap4(
+    host: str = "",
+    port: int = IMAP4_PORT,
+    timeout: Optional[float] = None,
+) -> _imaplib.IMAP4:
+    """Create an IMAP4 client for *host*.
+
+    Args:
+        host: The server hostname or address.
+        port: The server port.
+        timeout: Optional socket timeout in seconds.
+
+    Returns:
+        A connected :class:`imaplib.IMAP4` instance.
+
+    Raises:
+        TypeError: If *host* is not a string, *port* is not an int, or
+            *timeout* is not a number.
+        ValueError: If *port* is out of range or *timeout* is negative.
+        imaplib.IMAP4.error: If the server cannot be reached.
+    """
+    _require_str(host, "host")
+    port_value = _require_port(port, "port")
+    timeout_value = _require_timeout(timeout)
+    return _imaplib.IMAP4(host, port_value, timeout=timeout_value)
+
+
+def create_imap4_ssl(
+    host: str = "",
+    port: int = IMAP4_SSL_PORT,
+    keyfile: Optional[str] = None,
+    certfile: Optional[str] = None,
+    ssl_context: Any = None,
+    timeout: Optional[float] = None,
+) -> _imaplib.IMAP4_SSL:
+    """Create an IMAP4 over SSL client for *host*.
+
+    Args:
+        host: The server hostname or address.
+        port: The server port.
+        keyfile: Optional path to a private key file.
+        certfile: Optional path to a certificate file.
+        ssl_context: Optional :class:`ssl.SSLContext` to use.
+        timeout: Optional socket timeout in seconds.
+
+    Returns:
+        A connected :class:`imaplib.IMAP4_SSL` instance.
+
+    Raises:
+        TypeError: If *host*, *port*, *keyfile* or *certfile* have the wrong
+            type, or *timeout* is not a number.
+        ValueError: If *port* is out of range or *timeout* is negative.
+        imaplib.IMAP4.error: If the server cannot be reached.
+    """
+    _require_str(host, "host")
+    port_value = _require_port(port, "port")
+    keyfile_value = _require_optional_str(keyfile, "keyfile")
+    certfile_value = _require_optional_str(certfile, "certfile")
+    timeout_value = _require_timeout(timeout)
+    try:
+        return _imaplib.IMAP4_SSL(
+            host,
+            port_value,
+            keyfile=keyfile_value,
+            certfile=certfile_value,
+            ssl_context=ssl_context,
+            timeout=timeout_value,
+        )
+    except TypeError:
+        return _imaplib.IMAP4_SSL(host, port_value, keyfile_value, certfile_value)
+
+
+def create_imap4_stream(command: str) -> _imaplib.IMAP4_stream:
+    """Create an IMAP4 client that talks to a local command.
+
+    Args:
+        command: The command to run, as a string or a list of arguments.
+
+    Returns:
+        An :class:`imaplib.IMAP4_stream` instance.
+
+    Raises:
+        TypeError: If *command* is not a string.
+    """
+    _require_str(command, "command")
+    return _imaplib.IMAP4_stream(command)
+
+
+def parse_capabilities(response: str) -> List[str]:
+    """Parse the capability names advertised by an IMAP4 server.
+
+    Handles the untagged ``CAPABILITY`` response as well as the bracketed
+    capability list that appears in a greeting.
+
+    Args:
+        response: The raw server response.
+
+    Returns:
+        The advertised capability names, in the order they were reported.
+
+    Raises:
+        TypeError: If *response* is not a string.
+
+    Examples:
+        >>> parse_capabilities("* CAPABILITY IMAP4rev1 STARTTLS")
+        ['IMAP4rev1', 'STARTTLS']
+        >>> parse_capabilities("* OK [CAPABILITY IMAP4rev1 AUTH=PLAIN] Ready")
+        ['IMAP4rev1', 'AUTH=PLAIN']
+    """
+    text = _require_str(response, "response").strip()
+    bracket = _CAPABILITY_BRACKET.search(text)
+    if bracket is not None:
+        return [token for token in bracket.group("caps").split() if token]
+    tokens = text.split()
+    tagged = False
+    if tokens and tokens[0] == "*":
+        tokens = tokens[1:]
+        tagged = True
+    if tokens and tokens[0].upper() in _RESPONSE_CODES:
+        tokens = tokens[1:]
+        tagged = True
+    if tokens and tokens[0].upper() == "CAPABILITY":
+        tokens = tokens[1:]
+    elif tagged:
+        # An untagged response that is not a capability response.
+        return []
+    return [token for token in tokens if token]
+
+
+def has_capability(capabilities: Union[str, Sequence[str]], name: str) -> bool:
+    """Return ``True`` when *name* is among the advertised capabilities.
+
+    Args:
+        capabilities: A space separated capability string, or a sequence of
+            capability names.
+        name: The capability to look for; the comparison ignores case.
+
+    Returns:
+        ``True`` when the capability is advertised.
+
+    Raises:
+        TypeError: If *capabilities* is not a string or sequence of strings,
+            or *name* is not a string.
+
+    Examples:
+        >>> has_capability("IMAP4rev1 STARTTLS", "starttls")
+        True
+        >>> has_capability(["IMAP4rev1"], "STARTTLS")
+        False
+    """
+    _require_str(name, "name")
+    if isinstance(capabilities, str):
+        names: List[str] = capabilities.split()
+    elif isinstance(capabilities, (list, tuple)):
+        for index, item in enumerate(capabilities):
+            if not isinstance(item, str):
+                raise TypeError(
+                    f"capabilities[{index}] must be a str, got {type(item).__name__}"
+                )
+        names = list(capabilities)
+    else:
+        raise TypeError(
+            "capabilities must be a str or a sequence of str, "
+            f"got {type(capabilities).__name__}"
+        )
+    wanted = name.upper()
+    return any(candidate.upper() == wanted for candidate in names)
+
+
+def parse_flags(response: bytes) -> Tuple[bytes, ...]:
+    """Parse a ``FLAGS`` response into the individual flags it carries.
+
+    Args:
+        response: The raw server response, for example
+            ``b"* 1 FETCH (FLAGS (\\\\Seen \\\\Deleted))"``.
+
+    Returns:
+        The flags reported by the server, or an empty tuple when the
+        response does not contain a flag list.
+
+    Raises:
+        TypeError: If *response* is not bytes.
+
+    Examples:
+        >>> parse_flags(b"* 1 FETCH (FLAGS (\\\\Seen \\\\Deleted))")
+        (b'\\\\Seen', b'\\\\Deleted')
+    """
+    raw = _require_bytes(response, "response")
+    return _imaplib.ParseFlags(raw)
+
+
+def parse_fetch_flags(response: str) -> List[str]:
+    """Extract the message flags from a ``FETCH`` response.
+
+    Args:
+        response: The raw server response, for example
+            ``"* 1 FETCH (UID 12 FLAGS (\\\\Seen \\\\Deleted))"``.
+
+    Returns:
+        The flags in the order they were reported; an empty list when the
+        response carries no ``FLAGS`` section.
+
+    Raises:
+        TypeError: If *response* is not a string.
+
+    Examples:
+        >>> parse_fetch_flags("* 1 FETCH (FLAGS (\\\\Seen \\\\Deleted))")
+        ['\\\\Seen', '\\\\Deleted']
+    """
+    text = _require_str(response, "response")
+    section = _FLAGS_SECTION.search(text)
+    if section is None:
+        return []
+    return [flag for flag in section.group("flags").split() if flag]
+
+
+def format_flags(flags: Union[str, Iterable[str]]) -> str:
+    """Format message flags the way an IMAP4 server expects them.
+
+    Args:
+        flags: A space separated flag string, or an iterable of flag names.
+
+    Returns:
+        The flags wrapped in parentheses, for example ``"(\\\\Seen)"``.
+
+    Raises:
+        TypeError: If *flags* is not a string or an iterable of strings.
+
+    Examples:
+        >>> format_flags(["\\\\Seen", "\\\\Draft"])
+        '(\\\\Seen \\\\Draft)'
+        >>> format_flags("  \\\\Seen   \\\\Seen ")
+        '(\\\\Seen)'
+    """
+    if isinstance(flags, str):
+        candidates = flags.split()
+    else:
+        collected: List[str] = []
+        for index, item in enumerate(flags):
+            if not isinstance(item, str):
+                raise TypeError(
+                    f"flags[{index}] must be a str, got {type(item).__name__}"
+                )
+            collected.append(item)
+        candidates = [item.strip() for item in collected]
+    unique: List[str] = []
+    for candidate in candidates:
+        cleaned = candidate.strip()
+        if cleaned and cleaned not in unique:
+            unique.append(cleaned)
+    return "(" + " ".join(unique) + ")"
+
+
+def parse_internaldate(response: bytes) -> Optional[time.struct_time]:
+    """Parse an IMAP4 ``INTERNALDATE`` value into a local time tuple.
+
+    Args:
+        response: The raw ``INTERNALDATE`` value, for example
+            ``b'INTERNALDATE "05-Feb-2024 10:20:30 +0100"'``.
+
+    Returns:
+        The corresponding local time, or ``None`` when *response* is not a
+        valid ``INTERNALDATE`` value.
+
+    Raises:
+        TypeError: If *response* is not bytes.
+
+    Examples:
+        >>> parse_internaldate(b'INTERNALDATE "05-Feb-2024 10:20:30 +0100"').tm_year
+        2024
+    """
+    raw = _require_bytes(response, "response")
+    return _imaplib.Internaldate2tuple(raw)
+
+
+def format_internaldate(date_time: Any) -> str:
+    """Format a timestamp the way an IMAP4 server expects it.
+
+    Args:
+        date_time: A POSIX timestamp, a :class:`time.struct_time`, a
+            :class:`datetime.datetime`, or an already formatted string.
+
+    Returns:
+        The ``INTERNALDATE`` representation, for example
+        ``'"05-Feb-2024 10:20:30 +0100"'``.
+
+    Raises:
+        TypeError: If *date_time* has an unsupported type.
+        ValueError: If *date_time* is a naive :class:`datetime.datetime`.
+    """
+    if isinstance(date_time, (int, float)) and not isinstance(date_time, bool):
+        return _imaplib.Time2Internaldate(float(date_time))
+    if isinstance(date_time, time.struct_time):
+        return _imaplib.Time2Internaldate(date_time)
+    if isinstance(date_time, datetime):
+        return _imaplib.Time2Internaldate(date_time)
+    if isinstance(date_time, str):
+        return _imaplib.Time2Internaldate(date_time)
+    raise TypeError(
+        "date_time must be a number, a time.struct_time, a datetime, or a str, "
+        f"got {type(date_time).__name__}"
+    )
+
+
+def int_to_ap(num: int) -> bytes:
+    """Convert an integer into its ``A``-``P`` digit representation.
+
+    Args:
+        num: The integer to convert.
+
+    Returns:
+        The ``A``-``P`` encoded bytes; an empty result for zero.
+
+    Raises:
+        TypeError: If *num* is not an int.
+
+    Examples:
+        >>> int_to_ap(26)
+        b'BK'
+    """
+    value = _require_int(num, "num")
+    return _imaplib.Int2AP(value)
+
+
+def is_imap4_error(exc: Any) -> bool:
+    """Return ``True`` when *exc* is an IMAP4 error."""
+    return isinstance(exc, _imaplib.IMAP4.error)
+
+
+def is_imap4_abort(exc: Any) -> bool:
+    """Return ``True`` when *exc* is an IMAP4 abort error."""
+    return isinstance(exc, _imaplib.IMAP4.abort)
+
+
+def is_imap4_readonly(exc: Any) -> bool:
+    """Return ``True`` when *exc* is an IMAP4 readonly error."""
+    return isinstance(exc, _imaplib.IMAP4.readonly)
+IMAPLIB_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_imaplib_utils.py" <<'TEST_IMAPLIB_UTILS'
+"""Tests for imaplib_utils module."""
+
+import imaplib
+import time
+import unittest
+from datetime import datetime, timezone
+from unittest import mock
+
+import imaplib_utils
+
+
+class TestExports(unittest.TestCase):
+    def test_constants(self):
+        self.assertIs(imaplib_utils.CRLF, imaplib.CRLF)
+        self.assertEqual(imaplib_utils.IMAP4_PORT, imaplib.IMAP4_PORT)
+        self.assertEqual(imaplib_utils.IMAP4_SSL_PORT, imaplib.IMAP4_SSL_PORT)
+
+    def test_classes_exported(self):
+        self.assertIs(imaplib_utils.IMAP4, imaplib.IMAP4)
+        self.assertIs(imaplib_utils.IMAP4_SSL, imaplib.IMAP4_SSL)
+        self.assertIs(imaplib_utils.IMAP4_stream, imaplib.IMAP4_stream)
+
+    def test_error_classes_exported(self):
+        self.assertIs(imaplib_utils.IMAP4Error, imaplib.IMAP4.error)
+        self.assertIs(imaplib_utils.IMAP4AbortError, imaplib.IMAP4.abort)
+        self.assertIs(imaplib_utils.IMAP4ReadOnlyError, imaplib.IMAP4.readonly)
+
+
+class TestCreateImap4(unittest.TestCase):
+    def test_create_imap4_passes_arguments(self):
+        with mock.patch.object(imaplib, "IMAP4") as fake:
+            client = imaplib_utils.create_imap4("example.org", 1143, timeout=5)
+        fake.assert_called_once_with("example.org", 1143, timeout=5)
+        self.assertIs(client, fake.return_value)
+
+    def test_create_imap4_defaults(self):
+        with mock.patch.object(imaplib, "IMAP4") as fake:
+            imaplib_utils.create_imap4()
+        fake.assert_called_once_with("", imaplib.IMAP4_PORT, timeout=None)
+
+    def test_create_imap4_bad_host(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.create_imap4(123)  # type: ignore[arg-type]
+
+    def test_create_imap4_bad_port(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.create_imap4("localhost", "143")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            imaplib_utils.create_imap4("localhost", True)  # type: ignore[arg-type]
+
+    def test_create_imap4_port_out_of_range(self):
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4("localhost", 70000)
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4("localhost", -1)
+
+    def test_create_imap4_bad_timeout(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, "1")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, -1)
+
+    def test_create_imap4_timeout_is_coerced_to_float(self):
+        with mock.patch.object(imaplib, "IMAP4") as fake:
+            imaplib_utils.create_imap4("localhost", 143, timeout=2)
+        fake.assert_called_once_with("localhost", 143, timeout=2.0)
+
+
+class TestCreateImap4Ssl(unittest.TestCase):
+    def test_create_imap4_ssl_passes_arguments(self):
+        with mock.patch.object(imaplib, "IMAP4_SSL") as fake:
+            client = imaplib_utils.create_imap4_ssl(
+                "example.org",
+                993,
+                keyfile="key.pem",
+                certfile="cert.pem",
+                timeout=3,
+            )
+        fake.assert_called_once_with(
+            "example.org",
+            993,
+            keyfile="key.pem",
+            certfile="cert.pem",
+            ssl_context=None,
+            timeout=3.0,
+        )
+        self.assertIs(client, fake.return_value)
+
+    def test_create_imap4_ssl_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.create_imap4_ssl(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            imaplib_utils.create_imap4_ssl("localhost", "993")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            imaplib_utils.create_imap4_ssl("localhost", 993, keyfile=5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            imaplib_utils.create_imap4_ssl("localhost", 993, certfile=5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            imaplib_utils.create_imap4_ssl("localhost", 993, timeout="1")  # type: ignore[arg-type]
+
+    def test_create_imap4_ssl_port_out_of_range(self):
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4_ssl("localhost", 70000)
+
+
+class TestCreateImap4Stream(unittest.TestCase):
+    def test_create_imap4_stream_passes_command(self):
+        with mock.patch.object(imaplib, "IMAP4_stream") as fake:
+            client = imaplib_utils.create_imap4_stream("cat")
+        fake.assert_called_once_with("cat")
+        self.assertIs(client, fake.return_value)
+
+    def test_create_imap4_stream_bad_command(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.create_imap4_stream(123)  # type: ignore[arg-type]
+
+
+class TestErrorHelpers(unittest.TestCase):
+    def test_is_imap4_error(self):
+        self.assertTrue(imaplib_utils.is_imap4_error(imaplib.IMAP4.error("bad")))
+        self.assertFalse(imaplib_utils.is_imap4_error(ValueError("x")))
+
+    def test_is_imap4_abort(self):
+        self.assertTrue(imaplib_utils.is_imap4_abort(imaplib.IMAP4.abort("bad")))
+        self.assertFalse(imaplib_utils.is_imap4_abort(ValueError("x")))
+
+    def test_is_imap4_readonly(self):
+        self.assertTrue(imaplib_utils.is_imap4_readonly(imaplib.IMAP4.readonly("bad")))
+        self.assertFalse(imaplib_utils.is_imap4_readonly(ValueError("x")))
+
+
+class TestParseCapabilities(unittest.TestCase):
+    def test_parse_untagged_capability_response(self):
+        parsed = imaplib_utils.parse_capabilities("* CAPABILITY IMAP4rev1 STARTTLS")
+        self.assertEqual(parsed, ["IMAP4rev1", "STARTTLS"])
+
+    def test_parse_bracketed_capability_greeting(self):
+        parsed = imaplib_utils.parse_capabilities(
+            "* OK [CAPABILITY IMAP4rev1 AUTH=PLAIN] Ready"
+        )
+        self.assertEqual(parsed, ["IMAP4rev1", "AUTH=PLAIN"])
+
+    def test_parse_plain_capability_string(self):
+        parsed = imaplib_utils.parse_capabilities("IMAP4rev1 STARTTLS")
+        self.assertEqual(parsed, ["IMAP4rev1", "STARTTLS"])
+
+    def test_parse_capabilities_without_capability_section(self):
+        self.assertEqual(imaplib_utils.parse_capabilities("* OK Ready"), [])
+
+    def test_parse_capabilities_bad_type(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.parse_capabilities(None)  # type: ignore[arg-type]
+
+
+class TestHasCapability(unittest.TestCase):
+    def test_has_capability_with_string(self):
+        self.assertTrue(imaplib_utils.has_capability("IMAP4rev1 STARTTLS", "STARTTLS"))
+
+    def test_has_capability_ignores_case(self):
+        self.assertTrue(imaplib_utils.has_capability("IMAP4rev1", "imap4rev1"))
+
+    def test_has_capability_missing(self):
+        self.assertFalse(imaplib_utils.has_capability("IMAP4rev1", "STARTTLS"))
+
+    def test_has_capability_with_sequence(self):
+        self.assertTrue(imaplib_utils.has_capability(["IMAP4rev1", "IDLE"], "IDLE"))
+        self.assertFalse(imaplib_utils.has_capability(["IMAP4rev1"], "IDLE"))
+
+    def test_has_capability_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.has_capability(42, "IMAP4rev1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            imaplib_utils.has_capability(["IMAP4rev1", 5], "IMAP4rev1")  # type: ignore[list-item]
+        with self.assertRaises(TypeError):
+            imaplib_utils.has_capability("IMAP4rev1", 5)  # type: ignore[arg-type]
+
+
+class TestFlags(unittest.TestCase):
+    def test_parse_flags_from_fetch_response(self):
+        parsed = imaplib_utils.parse_flags(b"* 1 FETCH (FLAGS (\\Seen \\Deleted))")
+        self.assertEqual(parsed, (b"\\Seen", b"\\Deleted"))
+
+    def test_parse_flags_without_flags_section(self):
+        self.assertEqual(imaplib_utils.parse_flags(b"* 1 FETCH (UID 12)"), ())
+
+    def test_parse_flags_bad_type(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.parse_flags("(\\Seen)")  # type: ignore[arg-type]
+
+    def test_parse_fetch_flags_from_fetch_response(self):
+        parsed = imaplib_utils.parse_fetch_flags(
+            "* 1 FETCH (UID 12 FLAGS (\\Seen \\Deleted))"
+        )
+        self.assertEqual(parsed, ["\\Seen", "\\Deleted"])
+
+    def test_parse_fetch_flags_without_flags_section(self):
+        self.assertEqual(imaplib_utils.parse_fetch_flags("* 1 FETCH (UID 12)"), [])
+
+    def test_parse_fetch_flags_bad_type(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.parse_fetch_flags(None)  # type: ignore[arg-type]
+
+    def test_format_flags_from_sequence(self):
+        self.assertEqual(
+            imaplib_utils.format_flags(["\\Seen", "\\Draft"]), "(\\Seen \\Draft)"
+        )
+
+    def test_format_flags_from_string(self):
+        self.assertEqual(imaplib_utils.format_flags("  \\Seen   \\Draft "), "(\\Seen \\Draft)")
+
+    def test_format_flags_removes_duplicates(self):
+        self.assertEqual(imaplib_utils.format_flags("\\Seen \\Seen"), "(\\Seen)")
+
+    def test_format_flags_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.format_flags([1])  # type: ignore[list-item]
+        with self.assertRaises(TypeError):
+            imaplib_utils.format_flags(42)  # type: ignore[arg-type]
+
+
+class TestInternalDate(unittest.TestCase):
+    def test_parse_internaldate(self):
+        parsed = imaplib_utils.parse_internaldate(
+            b'INTERNALDATE "05-Feb-2024 10:20:30 +0100"'
+        )
+        self.assertIsNotNone(parsed)
+        assert parsed is not None
+        self.assertEqual(parsed.tm_year, 2024)
+        self.assertEqual(parsed.tm_mon, 2)
+        self.assertEqual(parsed.tm_mday, 5)
+
+    def test_parse_internaldate_invalid_value(self):
+        self.assertIsNone(imaplib_utils.parse_internaldate(b"not a date"))
+
+    def test_parse_internaldate_bad_type(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.parse_internaldate("05-Feb-2024")  # type: ignore[arg-type]
+
+    def test_format_internaldate_from_timestamp(self):
+        formatted = imaplib_utils.format_internaldate(1707121200.0)
+        self.assertTrue(formatted.startswith('"05-Feb-2024'))
+
+    def test_format_internaldate_from_struct_time(self):
+        formatted = imaplib_utils.format_internaldate(time.localtime(1707121200))
+        self.assertTrue(formatted.startswith('"05-Feb-2024'))
+
+    def test_format_internaldate_from_datetime(self):
+        moment = datetime(2024, 2, 5, 10, 20, 30, tzinfo=timezone.utc)
+        formatted = imaplib_utils.format_internaldate(moment)
+        self.assertTrue(formatted.startswith('"05-Feb-2024'))
+
+    def test_format_internaldate_from_quoted_string(self):
+        formatted = imaplib_utils.format_internaldate('"05-Feb-2024 10:20:30 +0100"')
+        self.assertEqual(formatted, '"05-Feb-2024 10:20:30 +0100"')
+
+    def test_format_internaldate_bad_type(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.format_internaldate(object())
+
+
+class TestIntToAp(unittest.TestCase):
+    def test_int_to_ap(self):
+        self.assertEqual(imaplib_utils.int_to_ap(26), b"BK")
+        self.assertEqual(imaplib_utils.int_to_ap(255), b"PP")
+
+    def test_int_to_ap_zero(self):
+        self.assertEqual(imaplib_utils.int_to_ap(0), b"")
+
+    def test_int_to_ap_bad_type(self):
+        with self.assertRaises(TypeError):
+            imaplib_utils.int_to_ap("26")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            imaplib_utils.int_to_ap(True)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_IMAPLIB_UTILS
+
 cat > "$OUTPUT_DIR/symtable_utils.py" <<'SYMTABLE_UTILS'
 """Symbol table utilities (wrapping :mod:`symtable`).
 
@@ -56870,3 +57603,32 @@ for template in "$OUTPUT_DIR/README.md" "$OUTPUT_DIR/AGENTS.md" "$OUTPUT_DIR/CHA
     mv "$template.tmp" "$template"
   fi
 done
+
+# --- report the generated project ---
+# The summary and the smoke test run at the very end of the generator so the
+# file listing covers every generated file and the smoke test sees the
+# complete project, including the substituted project name.
+echo ""
+echo "Scaffolded project '$PROJECT_NAME' at: $OUTPUT_DIR"
+echo ""
+echo "Created files:"
+find "$OUTPUT_DIR" -type f | sort | sed "s/^/  /"
+echo ""
+
+if [[ "$SMOKE_TEST" == "1" ]] && command -v python >/dev/null 2>&1; then
+  echo "Running smoke test in $OUTPUT_DIR ..."
+  if (cd "$OUTPUT_DIR" && python -m unittest discover tests/ -v); then
+    echo "Smoke test passed."
+  else
+    echo "Warning: smoke test failed. The scaffold may be incomplete." >&2
+  fi
+else
+  echo "Smoke test skipped (pass --no-test to skip intentionally)."
+fi
+
+echo ""
+echo "Next steps:"
+echo "  cd $OUTPUT_DIR"
+echo "  git init"
+echo "  git add -A"
+echo "  git commit -m 'Initial commit'"

@@ -232,4 +232,5 @@ py_modules = [
     "tty_utils",
     "doctest_utils",
     "symtable_utils",
+    "imaplib_utils",
 ]
