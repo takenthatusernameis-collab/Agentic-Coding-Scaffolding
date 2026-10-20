@@ -206,6 +206,11 @@ traceback_utils.py         # Traceback utilities wrapping stdlib traceback (form
 tracemalloc_utils.py       # Tracemalloc memory tracing utilities wrapping stdlib tracemalloc (is_tracing, get_traced_memory, get_traceback_limit, start, stop, clear_traces)
 tty_utils.py              # Terminal control utilities wrapping stdlib tty (cfmakeraw, cfmakecbreak, setraw, setcbreak)
 doctest_utils.py           # Doctest utilities wrapping stdlib doctest (parse_doctests, find_doctests, run_string_examples, run_docstring_examples, run_module_examples, run_file_examples)
+symtable_utils.py           # Symbol table utilities wrapping stdlib symtable (build_symbol_table, lookup_symbol_table, scope_type, scope_identifiers, child_scopes, iter_scopes, find_scope, describe_scope, symbol_info, symbol_flags, namespace_names, free_variables, global_names, local_names, parameter_names, imported_names, assigned_names, referenced_names, nonlocal_names)
+profile_utils.py             # Profiling utilities wrapping stdlib profile (Profile, run, runctx, new_profiler, main)
+pstats_utils.py              # Profiling statistics utilities wrapping stdlib pstats (Stats, SortKey, new_stats, load_stats, add_stats, print_stats, sort_stats, strip_dirs, reverse_order, dump_stats)
+select_utils.py              # I/O multiplexing utilities wrapping stdlib select (select, create_poller, poll_register, poll_poll, PIPE_BUF)
+unittest_utils.py            # Unittest utilities wrapping stdlib unittest (TestCase, TestSuite, TestLoader, TextTestRunner, make_suite, run_tests, main)
 typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
@@ -310,6 +315,11 @@ test_traceback_utils.py     # Tests for traceback_utils.py
 test_tracemalloc_utils.py   # Tests for tracemalloc_utils.py
 test_tty_utils.py           # Tests for tty_utils.py
 test_doctest_utils.py       # Tests for doctest_utils.py
+test_symtable_utils.py      # Tests for symtable_utils.py
+test_profile_utils.py        # Tests for profile_utils.py
+test_pstats_utils.py         # Tests for pstats_utils.py
+test_select_utils.py         # Tests for select_utils.py
+test_unittest_utils.py       # Tests for unittest_utils.py
 test_typing_utils.py        # Tests for typing_utils.py
 test_pickle_utils.py        # Tests for pickle_utils.py
   test_plistlib_utils.py      # Tests for plistlib_utils.py
@@ -1241,3 +1251,12 @@ The project includes profiling statistics utilities in `pstats_utils.py` wrappin
 ## Select Utilities Module
 
 The project includes I/O multiplexing utilities in `select_utils.py` wrapping the standard library `select` module: `select` waits for file descriptors to become readable, writable, or exceptional with input validation, `create_poller` builds a `select.poll` object, `poll_register` registers a file descriptor with an event mask, and `poll_poll` polls for pending events. `PIPE_BUF` is re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_select_utils.py`.
+
+
+## Symtable Utilities Module
+
+The project includes symbol table utilities in `symtable_utils.py` wrapping the standard library `symtable` module: `build_symbol_table` builds the symbol table of a block of source code, `lookup_symbol_table` analyses the source file of an importable module, `scope_type` reports whether a scope is a module, function, class, annotation, or comprehension, `scope_identifiers` lists the names bound in a scope, `child_scopes` and `iter_scopes` walk the nested scope tree, `find_scope` locates a nested scope by name, `describe_scope` summarizes a scope, `symbol_info` and `symbol_flags` describe how a symbol is used, `namespace_names` lists the names bound in the namespace a symbol introduces, and `free_variables`, `global_names`, `local_names`, `parameter_names`, `imported_names`, `assigned_names`, `referenced_names`, and `nonlocal_names` collect the names of a scope by usage. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_symtable_utils.py`.
+
+## Hello Module
+
+The project includes a sample application entry point in `hello.py`: `main` prints a greeting for the given name and defaults to `"World"`, and running the module directly greets the name given on the command line. The module is tested in `tests/test_hello.py`.

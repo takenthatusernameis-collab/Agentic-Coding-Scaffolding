@@ -254,9 +254,11 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "trace_utils.py",
             "pstats_utils.py",
             "select_utils.py",
+            "symtable_utils.py",
             "profile_utils.py",            "tests/test_trace_utils.py",
             "tests/test_pstats_utils.py",
             "tests/test_select_utils.py",
+            "tests/test_symtable_utils.py",
             "tests/test_profile_utils.py",            "calendar_utils.py",
             "colorsys_utils.py",
             "tests/test_calendar_utils.py",
@@ -550,6 +552,17 @@ class TestScaffoldKiloJson(unittest.TestCase):
         self.assertIn("Ignore patterns for .kilo directory", content)
         self.assertIn("test_calculator.py", content)
 
+    def test_templated_documents_substitute_the_project_name(self) -> None:
+        """The project name placeholder must be replaced in generated documents."""
+        for relative in ("README.md", "AGENTS.md", "CHANGELOG.md"):
+            with self.subTest(document=relative):
+                content = (self.project_dir / relative).read_text()
+                self.assertNotIn("${PROJECT_NAME}", content)
+        readme = (self.project_dir / "README.md").read_text()
+        self.assertTrue(readme.startswith("# My Project"))
+        agents = (self.project_dir / "AGENTS.md").read_text()
+        self.assertIn("Project: My Project", agents)
+
     def test_scaffold_project_doc_lists_shapes(self) -> None:
         """The scaffold-project command doc should list shapes.py and its tests."""
         content = (self.project_dir / ".kilo/command/scaffold-project.md").read_text()
@@ -707,9 +720,11 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "trace_utils.py",
             "pstats_utils.py",
             "select_utils.py",
+            "symtable_utils.py",
             "profile_utils.py",            "tests/test_trace_utils.py",
             "tests/test_pstats_utils.py",
             "tests/test_select_utils.py",
+            "tests/test_symtable_utils.py",
             "tests/test_profile_utils.py",            "calendar_utils.py",
             "cmath_utils.py",
             "tests/test_calendar_utils.py",
@@ -1075,9 +1090,11 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "trace_utils.py",
             "pstats_utils.py",
             "select_utils.py",
+            "symtable_utils.py",
             "profile_utils.py",            "tests/test_trace_utils.py",
             "tests/test_pstats_utils.py",
             "tests/test_select_utils.py",
+            "tests/test_symtable_utils.py",
             "tests/test_profile_utils.py",            "calendar_utils.py",
             "cmath_utils.py",
             "tests/test_calendar_utils.py",

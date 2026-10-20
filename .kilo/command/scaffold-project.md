@@ -435,3 +435,5 @@ scaffold-project my-cool-tool ./out --no-test
 
 - `select_utils.py` — I/O multiplexing utilities wrapping the standard library `select` module (`select`, `create_poller`, `poll_register`, `poll_poll`, `PIPE_BUF`) with input validation
 - `tests/test_select_utils.py` — unit tests for `select_utils.py`
+- `symtable_utils.py` — symbol table utilities wrapping the standard library `symtable` module (`build_symbol_table`, `lookup_symbol_table`, `scope_type`, `scope_identifiers`, `child_scopes`, `iter_scopes`, `find_scope`, `describe_scope`, `symbol_info`, `symbol_flags`, `namespace_names`, `free_variables`, `global_names`, `local_names`, `parameter_names`, `imported_names`, `assigned_names`, `referenced_names`, `nonlocal_names`) with input validation
+- `tests/test_symtable_utils.py` — unit tests for `symtable_utils.py`

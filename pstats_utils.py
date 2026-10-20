@@ -9,7 +9,7 @@ This wrapper exposes a validated surface for creating and manipulating
 from __future__ import annotations
 
 import pstats as _pstats
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, cast
 
 __all__ = [
     "Stats",
@@ -58,14 +58,18 @@ def new_stats(
         raise TypeError("stream must have a write method or None")
     if not filenames:
         return _pstats.Stats(stream=stream)
-    return _pstats.Stats(*filenames, stream=stream)
+    # The standard library also accepts existing Stats objects here, which
+    # the type stubs do not describe.
+    return _pstats.Stats(*cast(Any, filenames), stream=stream)
 
 
 def load_stats(*filenames: Union[str, _pstats.Stats]) -> _pstats.Stats:
     """Load statistics from files."""
     if not filenames:
         raise ValueError("at least one filename or Stats object is required")
-    return _pstats.Stats(*filenames)
+    # The standard library also accepts existing Stats objects here, which
+    # the type stubs do not describe.
+    return _pstats.Stats(*cast(Any, filenames))
 
 
 def add_stats(stats: _pstats.Stats, *filenames: Union[str, _pstats.Stats]) -> _pstats.Stats:

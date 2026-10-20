@@ -30,7 +30,7 @@ def format_exception_only(etype: Type[BaseException], value: BaseException) -> L
     return traceback.format_exception_only(etype, value)
 
 
-def format_tb(tb: TracebackType = None, limit: Optional[int] = None) -> List[str]:
+def format_tb(tb: Optional[TracebackType] = None, limit: Optional[int] = None) -> List[str]:
     """Format a traceback object."""
     if tb is not None and not isinstance(tb, TracebackType):
         raise TypeError("tb must be a traceback")
@@ -90,7 +90,7 @@ def print_exception(etype_or_exc: Any, value: Any = None, tb: Any = None,
     traceback.print_exception(etype, value, tb, limit=limit, file=file, **kwargs)
 
 
-def print_tb(tb: TracebackType = None, limit: Optional[int] = None, file=None) -> None:
+def print_tb(tb: Optional[TracebackType] = None, limit: Optional[int] = None, file=None) -> None:
     """Print a traceback."""
     if tb is not None and not isinstance(tb, TracebackType):
         raise TypeError("tb must be a traceback")

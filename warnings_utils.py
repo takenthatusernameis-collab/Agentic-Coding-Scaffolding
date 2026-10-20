@@ -1,7 +1,9 @@
 """Utilities for warning control (wrapping :mod:`warnings`)."""
 
 import warnings
-from typing import Type, Union
+from typing import Literal, Optional, Type, Union, cast
+
+Action = Literal["default", "error", "ignore", "always", "all", "module", "once"]
 
 
 def warn(
@@ -33,7 +35,9 @@ def simplefilter(
         raise TypeError("lineno must be an integer")
     if not isinstance(append, bool):
         raise TypeError("append must be a bool")
-    warnings.simplefilter(action, category=category, lineno=lineno, append=append)
+    warnings.simplefilter(
+        cast(Action, action), category=category, lineno=lineno, append=append
+    )
 
 
 def filterwarnings(
@@ -56,7 +60,7 @@ def filterwarnings(
     if not isinstance(append, bool):
         raise TypeError("append must be a bool")
     warnings.filterwarnings(
-        action, message=message, category=category,
+        cast(Action, action), message=message, category=category,
         module=module, lineno=lineno, append=append,
     )
 
@@ -75,7 +79,7 @@ def catch_warnings(record: bool = False, module=None):
 
 def showwarning(
     message: Warning, category: Type[Warning], filename: str, lineno: int,
-    file=None, line: str = None,
+    file=None, line: Optional[str] = None,
 ) -> None:
     """Call showwarning with arguments."""
     if not isinstance(message, Warning):
@@ -93,7 +97,7 @@ def showwarning(
 
 def formatwarning(
     message: Warning, category: Type[Warning], filename: str, lineno: int,
-    line: str = None,
+    line: Optional[str] = None,
 ) -> str:
     """Format a warning the standard way."""
     if not isinstance(message, Warning):

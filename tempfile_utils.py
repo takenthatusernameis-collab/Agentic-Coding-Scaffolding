@@ -15,7 +15,7 @@ def gettempprefix() -> str:
     return tempfile.gettempprefix()
 
 
-def mkstemp(suffix: str = "", prefix: str = None, dir: str = None) -> tuple:
+def mkstemp(suffix: str = "", prefix: Optional[str] = None, dir: Optional[str] = None) -> tuple:
     """Create a temporary file and return (fd, name)."""
     if suffix is not None and not isinstance(suffix, str):
         raise TypeError("suffix must be a string")
@@ -26,7 +26,7 @@ def mkstemp(suffix: str = "", prefix: str = None, dir: str = None) -> tuple:
     return tempfile.mkstemp(suffix=suffix, prefix=prefix, dir=dir)
 
 
-def mkdtemp(suffix: str = "", prefix: str = None, dir: str = None) -> str:
+def mkdtemp(suffix: str = "", prefix: Optional[str] = None, dir: Optional[str] = None) -> str:
     """Create a temporary directory."""
     if suffix is not None and not isinstance(suffix, str):
         raise TypeError("suffix must be a string")
@@ -43,8 +43,8 @@ def NamedTemporaryFile(
     encoding: Optional[str] = None,
     newline: Optional[str] = None,
     suffix: str = "",
-    prefix: str = None,
-    dir: str = None,
+    prefix: Optional[str] = None,
+    dir: Optional[str] = None,
     delete: bool = True,
     **kwargs,
 ) -> Any:
@@ -80,8 +80,8 @@ def NamedTemporaryFile(
 
 def TemporaryDirectory(
     suffix: str = "",
-    prefix: str = None,
-    dir: str = None,
+    prefix: Optional[str] = None,
+    dir: Optional[str] = None,
     ignore_cleanup_errors: bool = False,
 ) -> Any:
     """Return a context manager for a temporary directory."""
@@ -108,8 +108,8 @@ def SpooledTemporaryFile(
     encoding: Optional[str] = None,
     newline: Optional[str] = None,
     suffix: str = "",
-    prefix: str = None,
-    dir: str = None,
+    prefix: Optional[str] = None,
+    dir: Optional[str] = None,
 ) -> Any:
     """Return a spooled temporary file."""
     if not isinstance(max_size, int) or isinstance(max_size, bool):

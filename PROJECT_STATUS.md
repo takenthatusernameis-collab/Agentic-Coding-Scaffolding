@@ -20,7 +20,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 3089 tests across all wrapper modules (1456 subtests)
+- 3219 tests across all wrapper modules (1532 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -30,14 +30,14 @@ The project foundation is established:
   documented in `README.md`, listed in `.kilo/command/scaffold-project.md` and `CHANGELOG.md`, and
   asserted in `tests/test_scaffold.py`
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 1344 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 3146 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10)
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 388 source files
 
 ## Keeping the Scaffold Synchronized
 
@@ -54,18 +54,19 @@ expectation in `tests/test_scaffold_sync.py`.
 
 ## Next Planned
 
-- Add the next stdlib wrapper module. Suggested: `profile_utils.py` wrapping the standard library
-  `profile` module (`Profile`, `run`, `runctx`, `print_stats`, `get_stats`), a natural companion to
-  `trace_utils.py`. Alternatives: `pstats_utils.py` (wrapping `pstats`), `select_utils.py` (wrapping
-  `select`), or `symtable_utils.py` (wrapping `symtable`).
+- Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are
+  `symtable` (now covered by `symtable_utils.py`), plus `imaplib`, `mailbox`, `nntplib`, `pipes`,
+  `sndhdr`, `cgitb`, `dbm.gnu` variants, and `wave`. A natural next candidate is `imaplib_utils.py`
+  wrapping the standard library `imaplib` module, or `mailbox_utils.py` wrapping `mailbox`.
   Note that the stack formatting helpers (`format_stack`, `format_list`, `format_exception_only`,
   `print_stack`, `walk_stack`, `extract_stack`) live in the standard library `traceback` module and
   are already wrapped by `traceback_utils.py`; the `trace` module itself only offers `Trace`,
   `CoverageResults`, `PRAGMA_NOCOVER`, and `main`.
-- Close the embedded `README.md` template gap: the template inside `scaffold.sh` still omits the tree
-  entries of 27 wrapper modules, the test entries of 33 wrapper modules, and the module sections of
-  129 wrapper modules, so scaffolded projects ship a README that does not document the modules they
-  include. The repository `README.md` and `.kilo/command/scaffold-project.md` are complete.
+- Move the scaffold summary and smoke test to the end of `scaffold.sh`. Both currently run in the
+  middle of the generator, before the last wrapper modules are written, so the "Created files"
+  listing is incomplete and the smoke test only discovers the tests written up to that point.
+- Remove the stray `raises.` file (about 1.1 MB) that a shell redirection accident committed to the
+  repository root. It is tracked in git and is not part of the project.
 
 Each session adds one new stdlib wrapper module (`<module>_utils.py`) with full test coverage, registers it in `pyproject.toml` (`[tool.setuptools] py_modules`), and posts a handover task for the next agent via the Kilo board.
 

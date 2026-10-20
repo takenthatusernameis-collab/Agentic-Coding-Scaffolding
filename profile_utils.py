@@ -58,4 +58,4 @@ Profile = _profile.Profile
 
 def main() -> None:
     """Run the profile module's command-line entry point."""
-    _profile.main()
+    _profile.main()  # type: ignore[attr-defined]

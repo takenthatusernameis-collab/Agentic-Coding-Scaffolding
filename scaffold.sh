@@ -9,6 +9,8 @@
 #   - AGENTS.md with project-specific instructions
 #   - README.md for the new project
 #   - CHANGELOG.md following Keep a Changelog format
+#   - the project name substituted into the README, the agent instructions,
+#     and the changelog
 #   - .pre-commit-config.yaml with ruff, mypy, unittest, and scaffold hooks
 #   - kilo.json configuration with the scaffolder subagent
 #   - .kilo/agent/scaffolder.md, .kilo/command/handover.md,
@@ -630,6 +632,8 @@
 #   - doctest_utils.py — # Doctest utilities wrapping the standard library doctest module (parse_doctests, find_doctests, run_string_examples, run_docstring_examples, run_module_examples, run_file_examples, summarize_results, format_failure)
 
 #   - tests/test_doctest_utils.py — # Tests for doctest_utils.py
+#   - symtable_utils.py — # Symbol table utilities wrapping the standard library symtable module (build_symbol_table, lookup_symbol_table, scope_type, scope_identifiers, child_scopes, iter_scopes, find_scope, describe_scope, symbol_info, symbol_flags, namespace_names, free_variables, global_names, local_names, parameter_names, imported_names, assigned_names, referenced_names, nonlocal_names)
+#   - tests/test_symtable_utils.py — # Tests for symtable_utils.py
 set -euo pipefail
 
 usage() {
@@ -2421,7 +2425,7 @@ Profile = _profile.Profile
 
 def main() -> None:
     """Run the profile module's command-line entry point."""
-    _profile.main()
+    _profile.main()  # type: ignore[attr-defined]
 PROFILE_UTILS
 
 # --- tests/test_profile_utils.py ---
@@ -4148,6 +4152,7 @@ py_modules = [
     "tracemalloc_utils",
     "tty_utils",
     "doctest_utils",
+    "symtable_utils",
     "trace_utils",
     "xml_utils",
     "weakref_utils",
@@ -12221,7 +12226,7 @@ def gettempprefix() -> str:
     return tempfile.gettempprefix()
 
 
-def mkstemp(suffix: str = "", prefix: str = None, dir: str = None) -> tuple:
+def mkstemp(suffix: str = "", prefix: Optional[str] = None, dir: Optional[str] = None) -> tuple:
     """Create a temporary file and return (fd, name)."""
     if suffix is not None and not isinstance(suffix, str):
         raise TypeError("suffix must be a string")
@@ -12232,7 +12237,7 @@ def mkstemp(suffix: str = "", prefix: str = None, dir: str = None) -> tuple:
     return tempfile.mkstemp(suffix=suffix, prefix=prefix, dir=dir)
 
 
-def mkdtemp(suffix: str = "", prefix: str = None, dir: str = None) -> str:
+def mkdtemp(suffix: str = "", prefix: Optional[str] = None, dir: Optional[str] = None) -> str:
     """Create a temporary directory."""
     if suffix is not None and not isinstance(suffix, str):
         raise TypeError("suffix must be a string")
@@ -12249,8 +12254,8 @@ def NamedTemporaryFile(
     encoding: Optional[str] = None,
     newline: Optional[str] = None,
     suffix: str = "",
-    prefix: str = None,
-    dir: str = None,
+    prefix: Optional[str] = None,
+    dir: Optional[str] = None,
     delete: bool = True,
     **kwargs,
 ) -> Any:
@@ -12286,8 +12291,8 @@ def NamedTemporaryFile(
 
 def TemporaryDirectory(
     suffix: str = "",
-    prefix: str = None,
-    dir: str = None,
+    prefix: Optional[str] = None,
+    dir: Optional[str] = None,
     ignore_cleanup_errors: bool = False,
 ) -> Any:
     """Return a context manager for a temporary directory."""
@@ -12314,8 +12319,8 @@ def SpooledTemporaryFile(
     encoding: Optional[str] = None,
     newline: Optional[str] = None,
     suffix: str = "",
-    prefix: str = None,
-    dir: str = None,
+    prefix: Optional[str] = None,
+    dir: Optional[str] = None,
 ) -> Any:
     """Return a spooled temporary file."""
     if not isinstance(max_size, int) or isinstance(max_size, bool):
@@ -27155,6 +27160,8 @@ scaffold-project my-cool-tool ./out --no-test
 
 - `select_utils.py` — I/O multiplexing utilities wrapping the standard library `select` module (`select`, `create_poller`, `poll_register`, `poll_poll`, `PIPE_BUF`) with input validation
 - `tests/test_select_utils.py` — unit tests for `select_utils.py`
+- `symtable_utils.py` — symbol table utilities wrapping the standard library `symtable` module (`build_symbol_table`, `lookup_symbol_table`, `scope_type`, `scope_identifiers`, `child_scopes`, `iter_scopes`, `find_scope`, `describe_scope`, `symbol_info`, `symbol_flags`, `namespace_names`, `free_variables`, `global_names`, `local_names`, `parameter_names`, `imported_names`, `assigned_names`, `referenced_names`, `nonlocal_names`) with input validation
+- `tests/test_symtable_utils.py` — unit tests for `symtable_utils.py`
 SCAFFOLD
 
 
@@ -28022,6 +28029,7 @@ tools/                       # Maintainer tools
 hello.py                     # Sample application entry point
 abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
+gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
 pickle_utils.py              # Object serialization utilities wrapping stdlib pickle
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
@@ -28030,14 +28038,21 @@ strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions
-data_utils.py               # Data utility functions
+mmap_utils.py               # Utilities wrapping the standard library mmap module
+data_utils.py                # Data utility functions
+dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
 datetime_utils.py           # Date and time utility functions
+dbm_utils.py                 # Database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
 template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
 file_utils.py               # File and path utility functions
 url_utils.py                # URL and web utility functions
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
 prompt_utils.py             # Prompt utility functions for working with text prompts
 random_utils.py             # Random number generation and sampling utilities
+re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
+tempfile_utils.py           # Temporary file and directory management utilities (mkstemp, mkdtemp, NamedTemporaryFile, TemporaryDirectory)
+traceback_utils.py          # Traceback utilities
+warnings_utils.py           # Warnings utilities
 validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 list_utils.py              # Advanced list manipulation utilities
@@ -28045,18 +28060,25 @@ locale_utils.py           # Locale utility functions for working with locale ide
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
+memoize_utils.py          # Memoization utilities (memoize decorator) with cache_clear
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
+contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
 timing_utils.py           # Performance measurement helpers
+timeit_utils.py           # Wrapper for stdlib timeit
 async_utils.py            # Asynchronous utility functions
+asyncio_utils.py     # Utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for)
 bit_utils.py              # Bitwise utility functions for working with binary representations
+call_once_utils.py        # Call-once execution utilities (call_once decorator)
 concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
+concurrent_futures_utils.py # concurrent.futures wrappers with validation
 priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
+selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
 dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
@@ -28078,20 +28100,21 @@ number_utils.py            # Number utility functions (clamp, round_to, is_integ
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
+threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
 greeting_utils.py          # Greeting utilities (greet, format_names, random_greeting)
-gettext_utils.py           # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
+glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
+keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
 version_utils.py           # Version utility functions (parse, compare, normalize)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
 sqlite3_utils.py           # SQLite database utilities wrapping stdlib sqlite3
-importlib_utils.py         # importlib utilities (dynamic import, reload, spec, metadata, resources)
-atexit_utils.py            # atexit utilities for registering exit handlers
-zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
+ssl_utils.py              # SSL/TLS utilities wrapping stdlib ssl
 pkgutil_utils.py          # Package and module discovery utilities wrapping stdlib pkgutil (iter_modules, walk_packages, get_data, read_text, resolve_name, iter_importers, extend_path, find_spec)
 unicodedata_utils.py      # Unicode character database utilities wrapping stdlib unicodedata (unicodedata_lookup, unicodedata_name, unicodedata_normalize, unicodedata_category, unicodedata_bidirectional, unicodedata_combining, unicodedata_east_asian_width, unicodedata_mirrored, unicodedata_decimal, unicodedata_digit, unicodedata_numeric)
+118:unittest_utils.py          # Utilities wrapping the standard library unittest module
 tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read_toml, load_toml_string, is_valid_toml)
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
@@ -28107,32 +28130,42 @@ configparser_utils.py     # INI configuration file parsing utilities wrapping st
 binascii_utils.py         # Binary-to-ASCII encoding and decoding utilities wrapping stdlib binascii (hexlify, unhexlify, b2a_base64, a2b_base64, b2a_uu, a2b_uu, b2a_qp, a2b_qp, crc32, adler32, crc_hqx)
 shelve_utils.py           # Persistent key/value storage utilities wrapping stdlib shelve (open_shelf, close, sync, keys, get, set_value, delete, contains, is_shelf)
 zlib_utils.py             # Zlib compression and checksum utilities wrapping stdlib zlib (zlib_compress, zlib_decompress, zlib_compressobj, zlib_decompressobj, zlib_crc32, zlib_adler32)
-cmd_utils.py                       # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
-this_utils.py                      # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
-tokenize_utils.py                  # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
-socket_utils.py                    # Low-level socket utilities wrapping stdlib socket (create_socket, connect_socket, send_all, receive_bytes, resolve_address, error_name)
-sysconfig_utils.py                 # Build configuration utilities wrapping stdlib sysconfig (get_config_vars, get_config_var, get_paths, get_path, get_platform, get_scheme_names)
-mimetypes_utils.py                 # MIME type detection utilities wrapping stdlib mimetypes (guess_type, guess_extension, guess_all_extensions, add_type, init_database)
-code_utils.py                       # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
-codeop_utils.py                     # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
-copyreg_utils.py                       # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
-fileinput_utils.py                       # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
-fnmatch_utils.py                       # Filename pattern matching utilities wrapping stdlib fnmatch (match, match_case, filter_names, translate)
-getpass_utils.py                       # Secure password input utilities wrapping stdlib getpass (getpass, getuser)
-id_utils.py                       # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
-memoize_utils.py                       # Memoization utilities (memoize) caching function results by call arguments
-pathlib_utils.py                       # Path manipulation utilities wrapping stdlib pathlib (ensure_dir, join, exists, is_file, is_dir, read_text, write_text, glob, rglob, suffix, stem, parent)
-runpy_utils.py                       # Python module execution utilities wrapping stdlib runpy (run_module, run_path)
-secrets_utils.py                       # Cryptographically secure secrets and token utilities wrapping stdlib secrets (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
-ssl_utils.py                       # SSL/TLS utilities wrapping stdlib ssl (create_default_context, create_context, match_hostname, get_server_certificate, get_server_certificate_tuple, cert_time_to_seconds, verify_cert_chain, get_default_verify_paths, is_tls_version_supported, get_cert_subject, get_cert_issuer, get_cert_san, cert_is_valid_at_time)
-tarfile_utils.py                       # Tar archive utilities wrapping stdlib tarfile (tarfile_open, tarfile_add, tarfile_list, tarfile_extract, tarfile_extractall, tarfile_create)
-types_utils.py                       # Dynamic type creation utilities wrapping stdlib types (new_class, new_function, is_function, is_method, is_generator, is_coroutine, is_lambda, simple_namespace)
-zoneinfo_utils.py                       # IANA timezone utilities wrapping stdlib zoneinfo (zoneinfo_get, zoneinfo_available_timezones)
+deprecation_utils.py      # Deprecation utilities (deprecated decorator) with optional version, replacement, and message
+linecache_utils.py        # Line cache utilities (getline, getlines, updatecache, clearcache) wrapping stdlib linecache
+plistlib_utils.py         # Property list utilities wrapping stdlib plistlib (plist_load, plist_loads, plist_dump, plist_dumps)
+shlex_utils.py            # Simple lexical analysis utilities wrapping stdlib shlex (split, quote, join)
+cmd_utils.py              # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
+this_utils.py             # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
+tokenize_utils.py         # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
+socket_utils.py           # Low-level socket utilities wrapping stdlib socket (create_socket, connect_socket, send_all, receive_bytes, resolve_address, error_name)
+sysconfig_utils.py        # Build configuration utilities wrapping stdlib sysconfig (get_config_vars, get_config_var, get_paths, get_path, get_platform, get_scheme_names)
+mimetypes_utils.py        # MIME type detection utilities wrapping stdlib mimetypes (guess_type, guess_extension, guess_all_extensions, add_type, init_database)
+code_utils.py             # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
+codeop_utils.py           # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
+copyreg_utils.py          # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
+fileinput_utils.py        # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
+fnmatch_utils.py          # Filename pattern matching utilities wrapping stdlib fnmatch (match, match_case, filter_names, translate)
+getpass_utils.py          # Secure password input utilities wrapping stdlib getpass (getpass, getuser)
+pathlib_utils.py          # Path manipulation utilities wrapping stdlib pathlib (ensure_dir, join, exists, is_file, is_dir, read_text, write_text, glob, rglob, suffix, stem, parent)
+runpy_utils.py            # Python module execution utilities wrapping stdlib runpy (run_module, run_path)
+tarfile_utils.py          # Tar archive utilities wrapping stdlib tarfile (tarfile_open, tarfile_add, tarfile_list, tarfile_extract, tarfile_extractall, tarfile_create)
+types_utils.py            # Dynamic type creation utilities wrapping stdlib types (new_class, new_function, is_function, is_method, is_generator, is_coroutine, is_lambda, simple_namespace)
+zoneinfo_utils.py         # IANA timezone utilities wrapping stdlib zoneinfo (zoneinfo_get, zoneinfo_available_timezones)
+marshal_utils.py           # Object serialization utilities wrapping stdlib marshal
+importlib_utils.py         # importlib utilities
+atexit_utils.py            # atexit utilities for registering exit handlers
+multiprocessing_utils.py   # multiprocessing utilities for pools, processes, locks, shared memory (dynamic import, reload, spec, metadata, resources)
+zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
+bz2_utils.py               # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
+gc_utils.py                # GC utilities wrapping stdlib gc (enable, disable, isenabled, collect, get_count, get_stats, get_objects, get_referents, get_referrers, set_threshold, get_threshold, set_debug, get_debug)
+gettext_utils.py           # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
+inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
+difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
 heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
 markdown_utils.py          # Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
@@ -28146,22 +28179,35 @@ platform_utils.py          # Platform utilities wrapping the standard library pl
 signal_utils.py            # Signal utilities wrapping the standard library signal module
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
-inspect_utils.py           # Callable and object introspection utilities (get_callable_name, is_callable, is_async_callable, get_signature, get_parameter_names, get_parameter_kinds, count_parameters, has_parameter, bind_arguments, is_builtin, get_source_file, get_source_lines)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
+circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
+array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
+trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
-threading_utils.py           # Threading utilities wrapping the standard library threading module
-glob_utils.py               # Utilities for pathname pattern expansion wrapping the standard library glob module
-keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
-shlex_utils.py              # Utilities for simple lexical analysis wrapping the standard library shlex module
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
+pprint_utils.py            # Pretty-printing utilities wrapping stdlib pprint (pformat, pprint, isreadable, isrecursive, saferepr)
+reprlib_utils.py           # Reprlib utilities wrapping stdlib reprlib (repr, get_ident, recursive_repr, Repr)
+codecs_utils.py             # Codecs utilities wrapping stdlib codecs
+traceback_utils.py         # Traceback utilities wrapping stdlib traceback (format_exception, format_exception_only, extract_stack, format_stack, format_exc)
+tracemalloc_utils.py       # Tracemalloc memory tracing utilities wrapping stdlib tracemalloc (is_tracing, get_traced_memory, get_traceback_limit, start, stop, clear_traces)
+tty_utils.py              # Terminal control utilities wrapping stdlib tty (cfmakeraw, cfmakecbreak, setraw, setcbreak)
+doctest_utils.py           # Doctest utilities wrapping stdlib doctest (parse_doctests, find_doctests, run_string_examples, run_docstring_examples, run_module_examples, run_file_examples)
+symtable_utils.py           # Symbol table utilities wrapping stdlib symtable (build_symbol_table, lookup_symbol_table, scope_type, scope_identifiers, child_scopes, iter_scopes, find_scope, describe_scope, symbol_info, symbol_flags, namespace_names, free_variables, global_names, local_names, parameter_names, imported_names, assigned_names, referenced_names, nonlocal_names)
+profile_utils.py             # Profiling utilities wrapping stdlib profile (Profile, run, runctx, new_profiler, main)
+pstats_utils.py              # Profiling statistics utilities wrapping stdlib pstats (Stats, SortKey, new_stats, load_stats, add_stats, print_stats, sort_stats, strip_dirs, reverse_order, dump_stats)
+select_utils.py              # I/O multiplexing utilities wrapping stdlib select (select, create_poller, poll_register, poll_poll, PIPE_BUF)
+unittest_utils.py            # Unittest utilities wrapping stdlib unittest (TestCase, TestSuite, TestLoader, TextTestRunner, make_suite, run_tests, main)
+typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
+ctypes_utils.py            # Ctypes utility functions wrapping the standard library ctypes module
+copy_utils.py              # Copy utilities (shallow/deep copy, dict copy, merge) wrapping stdlib copy module
 exceptions_utils.py        # Custom exception classes and error handling utilities
 email_utils.py             # Email utilities wrapping the standard library email.utils module
 enum_utils.py              # Enum utilities for working with Python enum.Enum classes
@@ -28170,30 +28216,30 @@ ini_utils.py                 # INI configuration file utilities (load, save, get
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
 argparse_utils.py           # Argument parsing utilities
 warnings_utils.py           # Utilities wrapping the standard library warnings module
-selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
 compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
+gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
 ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
-doctest_utils.py             # Doctest utilities wrapping stdlib doctest (parse_doctests, find_doctests, run_string_examples, run_docstring_examples, run_module_examples, run_file_examples, summarize_results, format_failure)
-trace_utils.py               # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
-  test_pickle_utils.py       # Tests for pickle_utils.py
   test_async_utils.py         # Tests for async_utils.py
+  test_asyncio_utils.py   # Tests for asyncio_utils.py
   test_array_utils.py        # Tests for array_utils.py
   test_base64_utils.py        # Tests for base64_utils.py
-  test_bisect_utils.py        # Tests for bisect_utils.py
+  test_binascii_utils.py      # Tests for binascii_utils.py
+  test_bisect_utils.py       # Tests for bisect_utils.py
+  test_trace_utils.py        # Tests for trace_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
   test_bytes_utils.py         # Tests for bytes_utils.py
+  test_circuit_breaker_utils.py   # Tests for circuit_breaker_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
+  test_memoize_utils.py      # Tests for memoize_utils.py
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_cmath_utils.py        # Tests for cmath_utils.py
-  test_threading_utils.py    # Tests for threading_utils.py
-  test_selectors_utils.py     # Tests for selectors_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
   test_color_utils.py         # Tests for color_utils.py
   test_colorsys_utils.py        # Tests for colorsys_utils.py
@@ -28201,29 +28247,36 @@ tests/                     # Python unit tests
   test_compression_utils.py   # Tests for compression_utils.py
   test_config_schema.py       # Tests for config_schema.py
   test_config_utils.py        # Tests for config_utils.py
+  test_configparser_utils.py  # Tests for configparser_utils.py
+  test_ctypes_utils.py        # Tests for ctypes_utils.py
   test_concurrent_utils.py    # Tests for concurrent_utils.py
+test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
   test_context_utils.py       # Tests for context_utils.py
   test_crypto_utils.py        # Tests for crypto_utils.py
   test_csv_utils.py           # Tests for csv_utils.py
-  test_doctest_utils.py       # Tests for doctest_utils.py
   test_data_utils.py          # Tests for data_utils.py
   test_dataclasses_utils.py      # Tests for dataclasses_utils.py
   test_datetime_utils.py      # Tests for datetime_utils.py
+  test_dbm_utils.py        # Tests for dbm_utils.py
   test_decimal_utils.py       # Tests for decimal_utils.py
   test_dict_utils.py          # Tests for dict_utils.py
   test_duration_utils.py      # Tests for duration_utils.py
   test_env_utils.py           # Tests for env_utils.py
   test_exceptions_utils.py    # Tests for exceptions_utils.py
-  test_enum_utils.py          # Tests for enum_utils.py
   test_file_utils.py          # Tests for file_utils.py
+  test_fileinput_utils.py     # Tests for fileinput_utils.py
   test_fractions_utils.py     # Tests for fractions_utils.py
+  test_fnmatch_utils.py       # Tests for fnmatch_utils.py
   test_functools_utils.py     # Tests for functools_utils.py
+  test_glob_utils.py          # Tests for glob_utils.py
   test_graphlib_utils.py      # Tests for graphlib_utils.py
   test_greeting_utils.py      # Tests for greeting_utils.py
   test_hash_utils.py          # Tests for hash_utils.py
   test_hmac_utils.py          # Tests for hmac_utils.py
   test_hashlib_utils.py       # Tests for hashlib_utils.py
   test_heapq_utils.py         # Tests for heapq_utils.py
+  test_keyword_utils.py       # Tests for keyword_utils.py
+  test_linecache_utils.py     # Tests for linecache_utils.py
   test_hello.py               # Tests for hello.py
   test_html_utils.py          # Tests for html_utils.py
   test_http_utils.py          # Tests for http_utils.py
@@ -28233,68 +28286,70 @@ tests/                     # Python unit tests
   test_ip_utils.py            # Tests for ip_utils.py
   test_itertools_utils.py     # Tests for itertools_utils.py
   test_json_utils.py          # Tests for json_utils.py
-  test_keyword_utils.py       # Tests for keyword_utils.py
   test_list_utils.py          # Tests for list_utils.py
   test_locale_utils.py        # Tests for locale_utils.py
   test_logging_utils.py       # Tests for logging_utils.py
-  test_markdown_utils.py      # Tests for markdown_utils.py
-  test_math_utils.py          # Tests for math_utils.py
+test_markdown_utils.py      # Tests for markdown_utils.py
+   test_marshal_utils.py       # Tests for marshal_utils.py
+   test_math_utils.py          # Tests for math_utils.py
+  test_mmap_utils.py   # Tests for mmap_utils.py
   test_networking_utils.py    # Tests for networking_utils.py
   test_number_utils.py        # Tests for number_utils.py
   test_operator_utils.py      # Tests for operator_utils.py
   test_os_utils.py            # Tests for os_utils.py
-  test_path_utils.py          # Tests for path_utils.py
+test_path_utils.py          # Tests for path_utils.py
+  test_pathlib_utils.py       # Tests for pathlib_utils.py
   test_pattern_utils.py       # Tests for pattern_utils.py
+  test_pprint_utils.py        # Tests for pprint_utils.py
+test_reprlib_utils.py       # Tests for reprlib_utils.py
+test_traceback_utils.py     # Tests for traceback_utils.py
+test_tracemalloc_utils.py   # Tests for tracemalloc_utils.py
+test_tty_utils.py           # Tests for tty_utils.py
+test_doctest_utils.py       # Tests for doctest_utils.py
+test_symtable_utils.py      # Tests for symtable_utils.py
+test_profile_utils.py        # Tests for profile_utils.py
+test_pstats_utils.py         # Tests for pstats_utils.py
+test_select_utils.py         # Tests for select_utils.py
+test_unittest_utils.py       # Tests for unittest_utils.py
+test_typing_utils.py        # Tests for typing_utils.py
+test_pickle_utils.py        # Tests for pickle_utils.py
+  test_plistlib_utils.py      # Tests for plistlib_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
   test_queue_utils.py         # Tests for queue_utils.py
   test_random_utils.py        # Tests for random_utils.py
+  test_re_utils.py            # Tests for re_utils.py
+  test_tempfile_utils.py      # Tests for tempfile_utils.py
+  test_traceback_utils.py     # Tests for traceback_utils.py
+  test_warnings_utils.py      # Tests for warnings_utils.py
   test_rate_limiter_utils.py  # Tests for rate_limiter_utils.py
   test_regex_utils.py         # Tests for regex_utils.py
-  test_retry_utils.py         # Tests for retry_utils.py
-  test_ring_buffer_utils.py   # Tests for ring_buffer_utils.py
-  test_scaffold.py            # Tests for scaffold.sh
-  test_secrets_utils.py       # Tests for secrets_utils.py
-  test_seq_utils.py           # Tests for seq_utils.py
-  test_set_utils.py           # Tests for set_utils.py
-  test_shapes.py              # Tests for shapes.py
-  test_shelve_utils.py        # Tests for shelve_utils.py
-  test_zlib_utils.py          # Tests for zlib_utils.py
-  test_cmd_utils.py           # Tests for cmd_utils.py
-  test_this_utils.py          # Tests for this_utils.py
-  test_tokenize_utils.py      # Tests for tokenize_utils.py
-  test_socket_utils.py        # Tests for socket_utils.py
-  test_sysconfig_utils.py     # Tests for sysconfig_utils.py
-  test_mimetypes_utils.py     # Tests for mimetypes_utils.py
-  test_code_utils.py          # Tests for code_utils.py
-  test_codeop_utils.py        # Tests for codeop_utils.py
-  test_copyreg_utils.py       # Tests for copyreg_utils.py
-  test_fileinput_utils.py     # Tests for fileinput_utils.py
-  test_fnmatch_utils.py       # Tests for fnmatch_utils.py
-  test_getpass_utils.py       # Tests for getpass_utils.py
-  test_id_utils.py            # Tests for id_utils.py
-  test_memoize_utils.py       # Tests for memoize_utils.py
-  test_pathlib_utils.py       # Tests for pathlib_utils.py
-  test_runpy_utils.py         # Tests for runpy_utils.py
-  test_secrets_utils.py       # Tests for secrets_utils.py
-  test_ssl_utils.py           # Tests for ssl_utils.py
-  test_tarfile_utils.py       # Tests for tarfile_utils.py
-  test_types_utils.py         # Tests for types_utils.py
-  test_zoneinfo_utils.py      # Tests for zoneinfo_utils.py
-  test_shlex_utils.py         # Tests for shlex_utils.py
-  test_shutil_utils.py        # Tests for shutil_utils.py
-  test_signal_utils.py        # Tests for signal_utils.py
-  test_socketserver_utils.py     # Tests for socketserver_utils.py
-  test_sort_utils.py          # Tests for sort_utils.py
-  test_stat_utils.py    # Tests for stat_utils.py
-  test_statistics_utils.py    # Tests for statistics_utils.py
+test_retry_utils.py         # Tests for retry_utils.py
+test_ring_buffer_utils.py   # Tests for ring_buffer_utils.py
+test_scaffold.py            # Tests for scaffold.sh
+test_secrets_utils.py       # Tests for secrets_utils.py
+   test_seq_utils.py           # Tests for seq_utils.py
+   test_set_utils.py           # Tests for set_utils.py
+   test_shapes.py              # Tests for shapes.py
+   test_shelve_utils.py        # Tests for shelve_utils.py
+   test_shutil_utils.py        # Tests for shutil_utils.py
+   test_signal_utils.py        # Tests for signal_utils.py
+   test_socketserver_utils.py     # Tests for socketserver_utils.py
+test_sort_utils.py          # Tests for sort_utils.py
+   test_sqlite3_utils.py       # Tests for sqlite3_utils.py
+   test_ssl_utils.py           # Tests for ssl_utils.py
+   test_pkgutil_utils.py       # Tests for pkgutil_utils.py
+   test_stat_utils.py    # Tests for stat_utils.py
+ test_statistics_utils.py    # Tests for statistics_utils.py
   test_stats.py               # Tests for stats.py
   test_string_utils.py        # Tests for string_utils.py
   test_strings.py             # Tests for strings.py
   test_struct_utils.py        # Tests for struct_utils.py
   test_subprocess_utils.py    # Tests for subprocess_utils.py
   test_sys_utils.py           # Tests for sys_utils.py
+  test_tarfile_utils.py       # Tests for tarfile_utils.py
+  test_threading_utils.py     # Tests for threading_utils.py
   test_template_utils.py      # Tests for template_utils.py
   test_terminal_utils.py      # Tests for terminal_utils.py
   test_temp_utils.py          # Tests for temp_utils.py
@@ -28302,7 +28357,7 @@ tests/                     # Python unit tests
   test_time_utils.py          # Tests for time_utils.py
   test_timezone_utils.py      # Tests for timezone_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
-  test_trace_utils.py        # Tests for trace_utils.py
+  test_timeit_utils.py        # Tests for timeit_utils.py
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
   test_url_utils.py           # Tests for url_utils.py
@@ -28312,14 +28367,59 @@ tests/                     # Python unit tests
   test_version_utils.py       # Tests for version_utils.py
   test_semver_utils.py        # Tests for semver_utils.py
   test_interval_utils.py      # Tests for interval_utils.py
-  test_weakref_utils.py       # Tests for weakref_utils.py
-  test_argparse_utils.py      # Tests for argparse_utils.py
-test_warnings_utils.py      # Tests for warnings_utils.py
+test_weakref_utils.py       # Tests for weakref_utils.py
+   test_warnings_utils.py      # Tests for warnings_utils.py
    test_xml_utils.py           # Tests for xml_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
+test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
 test_zipfile_utils.py       # Tests for zipfile_utils.py
-   ```
+   test_bz2_utils.py           # Tests for bz2_utils.py
+test_lzma_utils.py          # Tests for lzma_utils.py
+    test_gc_utils.py            # Tests for gc_utils.py
+    test_zlib_utils.py          # Tests for zlib_utils.py
+    test_argparse_utils.py      # Tests for argparse_utils.py
+    test_call_once_utils.py     # Tests for call_once_utils.py
+    test_codecs_utils.py        # Tests for codecs_utils.py
+    test_contextlib_utils.py    # Tests for contextlib_utils.py
+    test_contextvars_utils.py   # Tests for contextvars_utils.py
+    test_copy_utils.py          # Tests for copy_utils.py
+    test_deprecation_utils.py   # Tests for deprecation_utils.py
+    test_difflib_utils.py       # Tests for difflib_utils.py
+    test_dis_utils.py           # Tests for dis_utils.py
+    test_email_utils.py         # Tests for email_utils.py
+    test_enum_utils.py          # Tests for enum_utils.py
+    test_errno_utils.py         # Tests for errno_utils.py
+    test_filecmp_utils.py       # Tests for filecmp_utils.py
+    test_getopt_utils.py        # Tests for getopt_utils.py
+    test_gettext_utils.py       # Tests for gettext_utils.py
+    test_gzip_utils.py          # Tests for gzip_utils.py
+    test_inspect_utils.py       # Tests for inspect_utils.py
+    test_netrc_utils.py         # Tests for netrc_utils.py
+    test_numbers_utils.py       # Tests for numbers_utils.py
+    test_platform_utils.py      # Tests for platform_utils.py
+    test_quopri_utils.py        # Tests for quopri_utils.py
+    test_sched_utils.py         # Tests for sched_utils.py
+    test_selectors_utils.py     # Tests for selectors_utils.py
+    test_shlex_utils.py         # Tests for shlex_utils.py
+    test_token_utils.py         # Tests for token_utils.py
+    test_tomllib_utils.py       # Tests for tomllib_utils.py
+    test_unicodedata_utils.py   # Tests for unicodedata_utils.py
+388:     test_unittest_utils.py       # Tests for unittest_utils.py
+    test_cmd_utils.py           # Tests for cmd_utils.py
+    test_this_utils.py          # Tests for this_utils.py
+    test_tokenize_utils.py      # Tests for tokenize_utils.py
+    test_socket_utils.py        # Tests for socket_utils.py
+    test_sysconfig_utils.py     # Tests for sysconfig_utils.py
+    test_mimetypes_utils.py     # Tests for mimetypes_utils.py
+    test_code_utils.py          # Tests for code_utils.py
+    test_codeop_utils.py        # Tests for codeop_utils.py
+    test_copyreg_utils.py       # Tests for copyreg_utils.py
+    test_getpass_utils.py       # Tests for getpass_utils.py
+    test_runpy_utils.py         # Tests for runpy_utils.py
+    test_types_utils.py         # Tests for types_utils.py
+    test_zoneinfo_utils.py      # Tests for zoneinfo_utils.py
+     ```
 ## Getting Started
 
 1. Review `AGENTS.md` for agent instructions and the task handover protocol.
@@ -28362,21 +28462,547 @@ The project includes abstract syntax tree utilities in `ast_utils.py` wrapping t
 
 The project includes object serialization utilities in `pickle_utils.py` wrapping the standard library `pickle` module: `dump` and `dumps` serialize objects to a binary file and bytes respectively, `load` and `loads` deserialize objects from a binary file and bytes, `pickler` and `unpickler` return streaming :class:`pickle.Pickler` and :class:`pickle.Unpickler` instances, `is_valid_protocol` reports whether a protocol number is supported, and `validate_protocol` normalizes a protocol argument (defaulting to the highest protocol) and raises `TypeError` for non-ints and `ValueError` for unsupported values. The module is tested in `tests/test_pickle_utils.py`.
 
+## Calculator Module
+
+The project includes a simple calculator module in `calculator.py` with functions for basic arithmetic operations: add, subtract, multiply, and divide. The module is tested in `tests/test_calculator.py`.
+
+## Shapes Module
+
+The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, and triangles. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
+
+## Strings Module
+
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `is_palindrome`, and `count_vowels`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
+
+## Statistics Module
+
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `variance`, and `stddev`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+
+## Math Utilities Module
+
+The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, and `clamp`. The module is tested in `tests/test_math_utils.py`.
+
+## Data Utilities Module
+
+The project includes a data utilities module in `data_utils.py` with functions for data manipulation: `deep_copy`, `merge_dicts`, `pick`, `omit`, and `flatten_dict`. The module is tested in `tests/test_data_utils.py`.
+
+## Dataclasses Utilities Module
+
+The project includes dataclass utilities in `dataclasses_utils.py` wrapping the standard library `dataclasses` module: `is_dataclass` checks whether an object is a dataclass class or instance, `is_dataclass_instance` checks for dataclass instances specifically, `fields` returns a tuple of `Field` objects, `asdict` converts a dataclass instance to a dictionary, `astuple` converts to a tuple, `replace` returns a new instance with specified fields replaced, `make_dataclass` creates a new dataclass dynamically, `get_field_names` returns field names, `get_field_default` returns a field's default value, and `has_field` checks for a field's presence. The module also re-exports `field` and `MISSING` for convenience. The module is tested in `tests/test_dataclasses_utils.py`.
+
+## Datetime Utilities Module
+
+The project includes a date and time utilities module in `datetime_utils.py` with functions for date/time parsing, formatting, and arithmetic: `parse_datetime`, `format_datetime`, `days_between`, `is_leap_year`, `add_days`, and `get_weekday_name`. The module is tested in `tests/test_datetime_utils.py`.
+
+## Database Utilities Module
+
+The project includes database utilities in `dbm_utils.py` wrapping the standard library `dbm` module: `open_database` opens a database file, `close` and `sync_database` manage the connection, `write_record`/`read_record`/`delete_record`/`has_key`/`list_keys` manipulate byte keys and values, `which_database` detects the backend, `available_backends` lists usable backends, `is_valid_flag` validates open modes, and `dbm_error` exposes the dbm exception class. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_dbm_utils.py`.
+
+## File Utilities Module
+
+The project includes a file utilities module in `file_utils.py` with functions for file and path operations: `read_text`, `write_text`, `read_json`, `write_json`, `ensure_dir`, `list_files`, `copy_file`, and `delete_file`. The module is tested in `tests/test_file_utils.py`.
+
+## File Input Utilities Module
+
+The project includes file input utilities in `fileinput_utils.py` wrapping the standard library `fileinput` module: `read_lines` reads all lines from one or more text files, `count_lines` counts the total number of lines across files, and `filenames` collects the names of files as they are read (one per first line). All functions accept an optional iterable of file paths and validate their inputs. The module is tested in `tests/test_fileinput_utils.py`.
+
+## URL Utilities Module
+
+The project includes a URL and web utilities module in `url_utils.py` with functions for URL validation and manipulation: `is_valid_url`, `extract_domain`, `get_query_params`, `get_query_param`, `add_query_param`, `remove_query_param`, and `build_url`. The module is tested in `tests/test_url_utils.py`.
+
+## Configuration Utilities Module
+
+The project includes a configuration utilities module in `config_utils.py` with functions for loading, saving, and manipulating configuration files: `load_config`, `save_config`, `get_config_value`, `set_config_value`, and `merge_configs`. The module currently supports JSON format and is tested in `tests/test_config_utils.py`.
+
+## Random Utilities Module
+
+The project includes a random utilities module in `random_utils.py` with functions for random number generation and sampling: `random_int`, `random_choice`, `random_sample`, `random_shuffle`, `weighted_choice`, `random_uniform`, and `random_gaussian`. Every function accepts an optional `seed` argument for reproducible results and validates its inputs. The module is tested in `tests/test_random_utils.py`.
+
+## Validation Utilities Module
+
+The project includes a validation utilities module in `validation_utils.py` with functions for common input validation: `is_email`, `is_numeric`, `is_integer`, `is_alphanumeric`, `is_boolean_string`, `is_none_or_empty`, `min_length`, `max_length`, `matches_regex`, and `is_valid_hostname`. The module is tested in `tests/test_validation_utils.py`.
+
+## Cryptographic Utilities Module
+
+The project includes a cryptographic utilities module in `crypto_utils.py` with functions for hashing and encoding: `hash_string`, `generate_token`, `base64_encode`, and `base64_decode`. The module is tested in `tests/test_crypto_utils.py`.
+
+## List Utilities Module
+
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `drop`, `take`, and `intersperse`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
+
+## Locale Utilities Module
+
+The project includes a locale utility functions module in `locale_utils.py` with helpers for working with locale identifiers and language tags: `normalize_locale` normalizes a locale string to `language_REGION` form, `language_code` extracts the language code, `region_code` extracts the region code, and `is_valid_locale` checks whether a string looks like a valid locale identifier. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_locale_utils.py`.
+
+## Environment Utilities Module
+
+The project includes an environment variable utilities module in `env_utils.py` with functions for reading, writing, and parsing environment variables: `get_env`, `get_env_required`, `get_env_int`, `get_env_float`, `get_env_bool`, `set_env`, `ensure_env`, `unset_env`, and `prefix_env`. Typed accessors parse values as `int`, `float`, and `bool`, with required-variable and default fallbacks. The module is tested in `tests/test_env_utils.py`.
+
+## Logging Utilities Module
+
+The project includes a logging utilities module in `logging_utils.py` with helpers for logging configuration and function-call tracing: `get_logger` returns a named logger (or the root logger), `configure_logging` configures the root logger with a consistent format, handlers, and level, and `log_calls` is a decorator factory that logs function entry and return values using `functools.wraps` to preserve metadata. The module is tested in `tests/test_logging_utils.py`.
+
+## Cache Utilities Module
+
+The project includes a caching utilities module in `cache_utils.py` with helpers for memoizing function results: `memoize` is a decorator factory that caches return values keyed by call arguments (with optional `maxsize` LRU eviction and `typed` argument distinction), `clear_cache` invalidates the cache of a memoized function, and `cache_info` returns a dictionary with `hits`, `misses`, `maxsize`, and `currsize` statistics. Decorated functions also expose `clear_cache` and `cache_info` attributes for direct introspection. The module is tested in `tests/test_cache_utils.py`.
+
+## Memoization Utilities Module
+
+The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. The module is tested in `tests/test_memoize_utils.py`.
+
+## Timing Utilities Module
+
+The project includes a performance measurement utilities module in `timing_utils.py` with helpers for measuring and benchmarking code execution: `timer` is a context manager for timing code blocks, `elapsed_time` calculates elapsed time since a start time, and `benchmark` is a decorator that runs a function multiple times and reports average execution time. The module is tested in `tests/test_timing_utils.py`.
+
+The project includes a `timeit_utils.py` module wrapping the standard library `timeit` with `timeit`, `repeat`, `default_timer`, and `Timer`. The module is tested in `tests/test_timeit_utils.py`.
+
+## Concurrent Utilities Module
+
+The project includes a concurrent execution utilities module in `concurrent_utils.py` with helpers for parallel and asynchronous processing: `ThreadPool` and `ProcessPool` context manager wrappers around the standard library executors, `gather` for running awaitables concurrently, `run_async` for running async coroutines from synchronous code, and `to_async` for converting synchronous functions to async. The module is tested in `tests/test_concurrent_utils.py`.
+
+## Priority Queue Utilities Module
+
+The project includes a priority queue utilities module in `priority_queue_utils.py` with a heap-based `PriorityQueue` implementation and helper functions. The queue uses a min-heap with an incrementing counter to preserve insertion order for equal priorities. It provides `push`, `pop`, `peek`, `is_empty`, `size`, `clear`, and convenience functions like `create_priority_queue` and `merge_queues`. The module is tested in `tests/test_priority_queue_utils.py`.
+
+## Queue Utilities Module
+
+The project includes a queue utilities module in `queue_utils.py` providing a simple FIFO `Queue` class backed by `collections.deque` along with module-level helper functions. The `Queue` class supports `enqueue`, `dequeue`, `peek`, `is_empty`, `size`, `clear`, `to_list`, and `from_list`, with `IndexError` raised on dequeue or peek from an empty queue. Module-level functions `create`, `enqueue`, `dequeue`, `peek`, `is_empty`, and `size` provide functional-style wrappers. The module is tested in `tests/test_queue_utils.py`.
+
+## Rate Limiter Utilities Module
+
+The project includes a rate limiting utilities module in `rate_limiter_utils.py` implementing the token bucket algorithm. It provides a `RateLimiter` class, a `token_bucket` context manager, and a `rate_limit` decorator for limiting function call frequency. The module is tested in `tests/test_rate_limiter_utils.py`.
+
+## Retry Utilities Module
+
+The project includes a retry utilities module in `retry_utils.py` with decorators for retrying operations with backoff: `retry` for simple retries with fixed delay and backoff, `retry_with_backoff` for exponential backoff with optional jitter, and `retry_count` which returns the result along with the number of retries performed. The module is tested in `tests/test_retry_utils.py`.
+
+## Dictionary Utilities Module
+
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, and predicate-based filtering. The module is tested in `tests/test_dict_utils.py`.
+
+## JSON Utilities Module
+
+The project includes a JSON utilities module in `json_utils.py` with functions for reading, writing, parsing, serializing, validating, and pretty-printing JSON data. The module is tested in `tests/test_json_utils.py`.
+
+## CSV Utilities Module
+
+The project includes a CSV utilities module in `csv_utils.py` with functions for reading and writing CSV files as dictionaries or lists, and appending rows. The module is tested in `tests/test_csv_utils.py`.
+
+## Set Utilities Module
+
+The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+
+## Stat Utilities Module
+
+The project includes a stat utilities module in `stat_utils.py` with functions for inspecting file types and permission modes using the standard library `stat` and `os.stat`: `file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, and `stat_info`. All functions validate their inputs by delegating to `os.stat`, which raises `TypeError` for invalid paths and `OSError` for missing files. The module is tested in `tests/test_stat_utils.py`.
+
+## Statistical Utilities Module
+
+The project includes a statistical utilities module in `statistics_utils.py` with functions for data analysis beyond `stats.py`: `harmonic_mean`, `geometric_mean`, `median_even`, `percentile`, `covariance`, `correlation`, `z_score`, and `normalize`. The module is tested in `tests/test_statistics_utils.py`.
+
+## String Utilities Module
+
+The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `indent_text`, `remove_extra_whitespace`, and `title_case`. Each function validates its inputs and raises `TypeError` for non-string arguments. The module is tested in `tests/test_string_utils.py`.
+
+## Type Utilities Module
+
+The project includes a type introspection utilities module in `type_utils.py` with functions for inspecting Python type objects: `is_optional` detects `Optional[T]` / `Union[T, None]`, `is_union` detects any `Union` type, `is_generic` detects generic aliases like `List[int]`, `get_type_args` returns the type arguments of a generic, `type_name` produces a human-readable name for a type, and `is_subclass_safe` checks subclass relationships without raising `TypeError`. The module is tested in `tests/test_type_utils.py`.
+
+## Path Utilities Module
+
+The project includes a path manipulation utilities module in `path_utils.py` with functions for joining, normalizing, splitting, and inspecting filesystem paths: `join_path`, `normalize_path`, `get_absolute_path`, `get_relative_path`, `get_parent_dir`, `get_file_name`, `get_file_stem`, `get_file_extension`, `change_extension`, `is_absolute`, `get_path_components`, `get_common_path`, and `ensure_extension`. The module is tested in `tests/test_path_utils.py`.
+
+## Pathlib Utilities Module
+
+The project includes path manipulation utilities in `pathlib_utils.py` wrapping the standard library `pathlib` module: `ensure_dir` creates a directory (and parents) if missing and returns it, `join` joins path parts into a `Path`, `exists`, `is_file`, and `is_dir` test filesystem entries, `read_text` and `write_text` read/write text files (creating parent directories as needed), `glob` and `rglob` return sorted `Path` lists matching a pattern, and `suffix`, `stem`, and `parent` expose common `Path` attributes. The module is tested in `tests/test_pathlib_utils.py`.
+
+## Color Utilities Module
+
+The project includes a color manipulation utilities module in `color_utils.py` with functions for converting between color representations (hexadecimal, RGB, HSL), computing WCAG 2.1 relative luminance and contrast ratios, checking accessibility, and adjusting/blending colors: `validate_hex`, `hex_to_rgb`, `rgb_to_hex`, `rgb_to_hsl`, `hsl_to_rgb`, `get_luminance`, `get_contrast_ratio`, `is_accessible`, `adjust_brightness`, and `blend_colors`. Colors are accepted as either a hex string (``#RRGGBB``) or an RGB tuple. The module is tested in `tests/test_color_utils.py`.
+
+## Colorsys Utilities Module
+
+The project includes colorsys utilities in `colorsys_utils.py` wrapping the standard library `colorsys` module: `rgb_to_hls` converts RGB to HLS, `hls_to_rgb` converts HLS to RGB, `rgb_to_hsv` converts RGB to HSV, `hsv_to_rgb` converts HSV to RGB, `rgb_to_yiq` converts RGB to YIQ, and `yiq_to_rgb` converts YIQ to RGB. The module is tested in `tests/test_colorsys_utils.py`.
+
+## Design Pattern Utilities Module
+
+The project includes a design pattern utilities module in `pattern_utils.py` with reusable implementations of common object-oriented design patterns: `Singleton` (a thread-safe metaclass and `SingletonBase` base class that restrict a class to a single instance), `Factory` (a registry-based factory that creates objects by name), `Observer`/`Observable` (a publish-subscribe mechanism for change notifications), and `Strategy`/`StrategyContext` (plug-and-play algorithm selection). The module is tested in `tests/test_pattern_utils.py`.
+
+## Pretty-Printing Utilities Module
+
+The project includes pretty-printing utilities in `pprint_utils.py` wrapping the standard library `pprint` module: `pformat` returns a formatted string representation of an object, `pprint` prints a formatted representation to a stream, `isreadable` reports whether an object's representation is readable by `eval`, `isrecursive` reports whether an object contains a recursive reference, and `saferepr` returns a safe string representation that truncates recursive structures. All functions forward their keyword arguments to the standard library. The module is tested in `tests/test_pprint_utils.py`.
+
+## Reprlib Utilities Module
+
+The project includes reprlib utilities in `reprlib_utils.py` wrapping the standard library `reprlib` module: `repr` returns a string representation that truncates long objects, `get_ident` returns the identifier used to track recursive objects, `Repr` is a configurable subclass of `reprlib.Repr` with validated constructor arguments, `aRepr` is the default instance, and `recursive_repr` is a decorator that guards against infinite recursion. The module is tested in `tests/test_reprlib_utils.py`.
+
+## Codecs Utilities Module
+
+The project includes codecs utilities in `codecs_utils.py` wrapping the standard library `codecs` module: `encode` and `decode` encode/decode objects, `lookup` looks up a codec by name, `getencoder`/`getdecoder` return encoder/decoder functions, `getincrementalencoder`/`getincrementaldecoder` return incremental encoders/decoders, `getreader`/`getwriter` return stream readers/writers, `open` opens a file with a given encoding, and `register`/`register_error`/`lookup_error` manage codec registration and error handlers. The module is tested in `tests/test_codecs_utils.py`.
+
+## Bz2 Utilities Module
+
+The project includes BZ2 compression utilities in `bz2_utils.py` wrapping the standard library `bz2` module: `bz2_compress` compresses bytes, `bz2_decompress` decompresses bz2-compressed bytes, `bz2_open` opens a bz2 file with optional compression level, `bz2_write` writes bytes to a bz2 file, and `bz2_read` reads and decompresses a bz2 file. The module is tested in `tests/test_bz2_utils.py`.
+
+## Gzip Utilities Module
+
+The project includes gzip compression/decompression utilities in `gzip_utils.py` wrapping the standard library `gzip` module: `gzip_compress` compresses bytes with optional compression level, `gzip_decompress` decompresses gzip-compressed bytes, `gzip_open` opens a gzip file, `gzip_write` writes bytes to a gzip file, and `gzip_read` reads and decompresses a gzip file. The module is tested in `tests/test_gzip_utils.py`.
+
+## Configuration File Parsing Utilities Module
+
+The project includes configuration file parsing utilities in `configparser_utils.py` wrapping the standard library `configparser` module: `load_config` reads an INI-style file into a dictionary of sections (excluding the DEFAULT section), `save_config` writes a configuration dictionary to an INI file, `get_sections` and `get_options` list the sections and options of a parser, `read_files` reads and parses multiple files, and `write_config` serializes a parser to a file. The module re-exports `ConfigParser`, `RawConfigParser`, `BasicInterpolation`, `ExtendedInterpolation`, `DEFAULTSECT`, and the common `configparser` exceptions. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_configparser_utils.py`.
+
+## Configuration Schema Module
+
+The project includes a configuration schema module in `config_schema.py` with declarative, typed configuration schemas. `SchemaField` describes a single typed field (`str`, `int`, `float`, `bool`) with optional defaults, required flags, and validators, and `ConfigSchema` composes fields to validate, coerce, and normalize configuration dictionaries. Built-in validators include `int_validator`, `float_validator`, `str_validator`, `bool_validator`, `email_validator`, `hostname_validator`, `url_validator`, `range_validator`, `choices_validator`, and `regex_validator`. The module is tested in `tests/test_config_schema.py`.
+
+Completed task: Added a new `config_schema.py` module with typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators such as `range_validator`, `choices_validator`, `email_validator`) and its tests. Synchronized the scaffold template: added `config_schema.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions. Verified all tests pass, ruff and mypy are clean.
+
+## Ctypes Utilities Module
+
+The project includes a ctypes utilities module in `ctypes_utils.py` wrapping the standard library `ctypes` module. It re-exports the fundamental C-compatible data types (`c_int`, `c_char_p`, `c_void_p`, `c_size_t`, `c_double`, and more), the composite types (`Structure`, `Union`, `POINTER`, `Array`), the factory (`CFUNCTYPE`), and helper functions (`sizeof`, `alignment`, `addressof`, `pointer`, `byref`, `cast`, `memmove`, `memset`, `string_at`, `create_string_buffer`, `create_unicode_buffer`, `get_errno`, `set_errno`, `get_last_error`, `set_last_error`, `find_library`). The module is tested in `tests/test_ctypes_utils.py`.
+
+## Exception Utilities Module
+
+The project includes custom exception types and utilities in `exceptions_utils.py`: custom exceptions (`ValidationError`, `ConfigurationError`, `NotFoundError`, `PermissionError_`, `TimeoutError_`) with support for error details and field metadata; helper functions `catch_and_wrap()` to catch and wrap exceptions while preserving the cause, `get_error_details()` to extract exception type/message/traceback as a dict, and `is_instance_of_any()` to test for membership in an exception tuple. The module is tested in `tests/test_exceptions_utils.py`.
+
+## Email Utilities Module
+
+The project includes email utilities in `email_utils.py` wrapping the standard library `email.utils` module: `email_formatdate` returns an RFC 2822 formatted date string, `email_parsedate` parses an RFC 2822 date string into a time tuple, `email_parsedate_to_datetime` parses into a datetime, `email_mktime_tz` converts a time tuple to a UTC timestamp, `email_parseaddr` and `email_formataddr` parse and format address headers, `email_getaddresses` parses multiple address values, `email_make_msgid` generates a Message-ID, `email_quote` and `email_unquote` quote and unquote header strings, and `email_format_datetime` formats a datetime as an RFC 2822 date string. The module is tested in `tests/test_email_utils.py`.
+
+## Enum Utilities Module
+
+The project includes enum utilities in `enum_utils.py` for working with Python `enum.Enum` classes: `enum_to_dict` converts an enum class to a name-to-value dictionary, `get_enum_member` looks up a member by name or value, `is_enum_member` checks whether a value matches a member, `list_enum_members` returns all members in declaration order, `enum_value_from_name` returns a member's value by name, and `enum_name_from_value` returns a member's name by value. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_enum_utils.py`.
+
+## IO Utilities Module
+
+The project includes line-oriented and atomic input/output utilities in `io_utils.py`: `read_lines` and `write_lines` for line-based file IO, `append_text` to append to files, `atomic_write_text` to write content atomically via a temp file and `os.replace`, `stream_copy` to copy file contents in chunks, `count_lines` to count lines, and `iter_lines` to stream lines without loading the file into memory. The module is tested in `tests/test_io_utils.py`.
+
+## Terminal Utilities Module
+
+The project includes terminal output utilities in `terminal_utils.py` for formatting terminal output with ANSI escape sequences: `supports_color` detects color support, `colorize` and `print_colored` render text in ANSI colors (black, red, green, yellow, blue, magenta, cyan, white) with optional bold, `clear_screen` clears the terminal, `get_terminal_size` returns the `(columns, lines)`, `ProgressBar` renders a terminal progress bar (usable as a context manager), `progress_bar` wraps an iterable with a progress bar, and `prompt` reads user input with an optional default. Color output is automatically disabled when the stream is not a TTY or the `NO_COLOR` environment variable is set. The module is tested in `tests/test_terminal_utils.py`.
+
+## Async Utilities Module
+
+The project includes asynchronous utility functions in `async_utils.py` for running blocking code in threads, gathering coroutines with timeouts, sleeping asynchronously, and retrying async operations: `run_in_thread`, `gather_with_timeout`, `async_sleep`, and `retry_async`. The module is tested in `tests/test_async_utils.py`.
+
+## Bit Utilities Module
+
+The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits` counts the number of 1 bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
+
+## Collections Utilities Module
+
+The project includes collection utilities in `collections_utils.py` for working with iterables and data structures: `chunk`, `flatten`, `deep_flatten`, `windowed`, `uniq`, `uniq_by`, `frequency`, `most_common`, `least_common`, `merge_dicts`, `to_deque`, `pluck`, `compact`, and `partition_by`. The module is tested in `tests/test_collections_utils.py`.
+
+## Compression Utilities Module
+
+The project includes compression and decompression utilities in `compression_utils.py` supporting gzip, bz2, zip, and tar formats for bytes/strings and archive operations. The module is tested in `tests/test_compression_utils.py`.
+
+## Functools Utilities Module
+
+The project includes functional programming utilities in `functools_utils.py` for composing, piping, and currying functions: `compose`, `pipe`, `curry`, and `apply`. The module is tested in `tests/test_functools_utils.py`.
+
+## IP Utilities Module
+
+The project includes IP address validation and manipulation utilities in `ip_utils.py` for IPv4/IPv6 validation, version detection, conversion between strings and integers, and property checks: `is_valid_ip`, `is_valid_ipv4`, `is_valid_ipv6`, `get_ip_version`, `ip_to_int`, and `int_to_ip`. The module is tested in `tests/test_ip_utils.py`.
+
+## Prompt Utilities Module
+
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `wrap_prompt`, and `estimate_token_count`. The module is tested in `tests/test_prompt_utils.py`.
+
+## Regex Utilities Module
+
+The project includes regular expression utilities in `regex_utils.py` for safe regex compilation, matching, extraction, and manipulation: `compile_pattern`, `is_valid_pattern`, `match_pattern`, `search_pattern`, `find_all`, `replace_pattern`, `split_pattern`, `escape_pattern`, `extract_groups`, and `named_groups`. The module is tested in `tests/test_regex_utils.py`.
+
+## Regular Expression Utilities Module (re_utils)
+
+The project includes regular expression utilities in `re_utils.py` wrapping the standard library `re` module: `find_all` returns all non-overlapping matches as strings, `find_matches` returns `re.Match` objects, `search` and `match` find patterns, `full_match` requires the entire string to match, `split` splits by pattern, `sub` and `subn` substitute matches with strings or callables, `compile_regex` compiles a regex pattern with optional flags, and `escape` escapes special characters. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_re_utils.py`.
+
+## Tree Utilities Module
+
+The project includes tree and nested structure utilities in `tree_utils.py` for getting, setting, deleting, flattening, unflattening, mapping, and filtering nested structures: `get_nested`, `set_nested`, `delete_nested`, `flatten_tree`, `unflatten_tree`, `map_tree`, and `filter_tree`. The module is tested in `tests/test_tree_utils.py`.
+
+## UUID Utilities Module
+
+The project includes UUID utility functions in `uuid_utils.py` for generating and validating UUIDs: `generate_uuid`, `generate_uuid4`, `generate_uuid1`, `is_valid_uuid`, and `parse_uuid`. The module is tested in `tests/test_uuid_utils.py`.
+
+## Utils Module
+
+The project includes general utility helper functions in `utils.py`: `flatten`, `chunk`, `unique`, and `is_empty`. The module is tested in `tests/test_utils.py`.
+
+## CLI Utilities Module
+
+The project includes command-line interface utilities in `cli_utils.py` for building simple CLI applications: `create_parser` builds an :mod:`argparse` parser with standard ``--verbose`` and ``--version`` options, `parse_arguments` parses command-line arguments, and `main_wrapper` wraps a main function to return consistent process exit codes (``0`` on success, ``1`` on error, ``130`` on keyboard interrupt). The module is tested in `tests/test_cli_utils.py`.
+
+## Hashing and Checksum Utilities Module
+
+The project includes hashing and checksum utilities in `hash_utils.py` for computing cryptographic hashes and checksums: `md5`, `sha1`, `sha256`, `sha512`, `crc32`, and `hash_file`. Both string and bytes inputs are supported, and `hash_file` supports multiple algorithms. The module is tested in `tests/test_hash_utils.py`.
+
+## HMAC Utilities Module
+
+The project includes HMAC-based message authentication utilities in `hmac_utils.py` for computing HMAC signatures (MD5, SHA1, SHA256, SHA512) with constant-time signature verification: `hmac_md5`, `hmac_sha1`, `hmac_sha256`, `hmac_sha512`, `hmac_new`, `sign`, `verify`, and `compare_digest`. The module is tested in `tests/test_hmac_utils.py`.
+
+## Hashlib Utilities Module
+
+The project includes hash utilities in `hashlib_utils.py` wrapping the standard library `hashlib` module: `md5_hash`, `sha1_hash`, `sha256_hash`, `sha512_hash`, `sha3_256_hash`, `sha3_512_hash`, `blake2b_hash`, and `blake2s_hash` compute digests of bytes-like input, and `file_hash` computes the digest of file contents using a specified algorithm with chunked reading. All functions validate inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_hashlib_utils.py`.
+
+## Platform Utilities Module
+
+The project includes platform utilities in `platform_utils.py` wrapping the standard library `platform` module: functions to query system information (`get_system`, `get_release`, `get_version`, `get_machine`, `get_processor`, `get_node`, `get_uname`), Python implementation details (`get_python_implementation`, `get_python_version`, `get_python_version_tuple`, `get_python_build`, `get_python_compiler`, `get_python_revision`), and platform identification (`get_platform`, `platform_info`). Input validation is performed where applicable with `TypeError` or `ValueError` raised for invalid arguments. The module is tested in `tests/test_platform_utils.py`.
+
+## Signal Utilities Module
+
+The project includes signal utilities in `signal_utils.py` wrapping the standard library `signal` module: `is_valid_signal` checks whether a number is a valid signal, `get_signal_name` returns the name of a signal, and `signal_names` lists all available signal names. Handlers can be inspected with `get_handler`, set with `set_handler`, registered with `register_handler`, and reset to default with `unregister_handler`. Convenience helpers `register_int_handler` and `register_term_handler` register handlers for `SIGINT` and `SIGTERM` respectively, while `interrupt_handler` and `suspend_handler` provide common handler implementations. `alarm` schedules a `SIGALRM`, `pause` waits for the next signal, and `signal_info` returns a summary dictionary. All functions validate inputs and raise `TypeError` or `ValueError` for invalid arguments. The module is tested in `tests/test_signal_utils.py`.
+
+## INI Configuration Utilities Module
+
+The project includes an INI configuration utilities module in `ini_utils.py` for working with INI-style configuration files: `load_config`, `save_config`, `get_config_value`, `set_config_value`, `merge_configs`, `list_sections`, `has_section`, and `get_section`. Section-based access uses dot notation (``section.key``), keys preserve their case, and parent directories are created automatically on save. The module is tested in `tests/test_ini_utils.py`.
+
+## Filename Pattern Matching Utilities Module
+
+The project includes filename pattern matching utilities in `fnmatch_utils.py` wrapping the standard library `fnmatch` module: `match` tests whether a filename matches a shell-style pattern (case-normalized on the operating system), `match_case` is a case-sensitive variant, `filter_names` returns the subset of names matching a pattern, and `translate` converts a shell-style pattern to a regular expression. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_fnmatch_utils.py`.
+
+## HTML Utilities Module
+
+The project includes HTML utility functions in `html_utils.py` for escaping, unescaping, and sanitizing HTML content: `escape_html` escapes special characters (`&`, `<`, `>`, `"`, `'`) for safe insertion into HTML documents, `unescape_html` decodes named and numeric HTML entities back to their original characters, `strip_tags` removes all HTML tags leaving only text content, and `escape_attribute` escapes values for safe use inside HTML attributes. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_html_utils.py`.
+
+## Bytes Utilities Module
+
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, and `chunk` splits bytes into fixed-size chunks. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+
+## Itertools Utilities Module
+
+The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, and more. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
+
+## Base64 Utilities Module
+
+The project includes Base64 and hexadecimal encoding/decoding utilities in `base64_utils.py`: `base64_encode` and `base64_decode` for standard and URL-safe Base64, `base64_encode_bytes` and `base64_decode_bytes` for raw bytes, `hex_encode` and `hex_decode` for hexadecimal, and `is_valid_base64` / `is_valid_hex` for validation. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_base64_utils.py`.
+
+## Binary-to-ASCII Encoding Utilities Module
+
+The project includes binary-to-ASCII encoding and decoding utilities in `binascii_utils.py` wrapping the standard library `binascii` module: `hexlify` and `unhexlify` convert between binary data and hexadecimal strings, `b2a_base64` and `a2b_base64` encode/decode Base64, `b2a_uu` and `a2b_uu` encode/decode UUencoding, `b2a_qp` and `a2b_qp` encode/decode quoted-printable, `crc32` computes a CRC32 checksum, `adler32` computes an Adler32 checksum, and `crc_hqx` computes a CRC-HQX checksum with an optional initial value. All functions accept str or bytes and raise `TypeError` for unsupported types. The module is tested in `tests/test_binascii_utils.py`.
+
+## Bisect Utilities Module
+
+The project includes bisect utility functions in `bisect_utils.py` for binary search on sorted sequences, wrapping the standard library `bisect` module: `bisect_left` and `bisect_right` return the insertion point to the left or right of existing entries, `insort_left` and `insort_right` insert elements while maintaining sort order, and `find_leftmost` / `find_rightmost` return the index of the first or last occurrence of a value (or `None` when absent). All functions accept an optional `lo`/`hi` range and validate their inputs. The module is tested in `tests/test_bisect_utils.py`.
+
+## Binary Struct Utilities Module
+
+The project includes binary struct packing and unpacking utilities in `struct_utils.py` wrapping the standard library `struct` module: `pack` and `unpack` convert between values and bytes, `pack_into` and `unpack_from` read/write at a buffer offset, `calcsize` reports the byte size of a format string, and `is_valid_format` validates a format string. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid input. The module is tested in `tests/test_struct_utils.py`.
+
+## HTTP Status Codes and Response Handling Module
+
+The project includes HTTP utility functions in `http_utils.py` for working with HTTP status codes and response handling: `STATUS_CODES` is a mapping of standard HTTP status codes to their reason phrases, `status_code_category` returns the leading digit (1-5) of a status code, `status_message` returns the standard reason phrase or `None` for unknown codes, and the `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, and `is_error` predicates classify a status code into its response category. The module is tested in `tests/test_http_utils.py`.
+
+## Time Duration Utilities Module
+
+The project includes time duration utilities in `duration_utils.py` for parsing, formatting, and converting time durations: `parse_duration` parses human-readable duration strings (e.g. `"1h30m"`, `"90s"`, `"2.5 days"`) into total seconds, `format_duration` renders seconds as a compact human-readable string, `seconds_to_hms` and `hms_to_seconds` convert between seconds and `(hours, minutes, seconds)`, `to_seconds` combines time components into seconds, `duration_between` computes the `timedelta` between two datetimes, and `add_duration` adds a parsed duration to a datetime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_duration_utils.py`.
+
+## Temporary File and Directory Utilities Module
+
+The project includes temporary file and directory utilities in `temp_utils.py` for creating, writing, reading, and cleaning up temporary filesystem resources: `create_temp_file` and `create_temp_dir` create named temp files/directories, `temp_file` and `temp_dir` are context managers that remove resources on exit, `write_temp_file` and `read_temp_file` read/write temp file contents, `cleanup_temp_path` removes a temp file or directory, `is_temp_path` checks whether a path lives under the system temp directory, and `temp_path_exists` reports whether a path exists. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_temp_utils.py`.
+
+## Temporary Files Utilities Module (tempfile_utils)
+
+The project includes temporary file and directory utilities in `tempfile_utils.py` wrapping the standard library `tempfile` module: `get_tempdir` and `gettempprefix` return temp directory and prefix, `mkstemp` and `mkdtemp` create temporary files and directories, `NamedTemporaryFile`, `SpooledTemporaryFile`, and `TemporaryDirectory` provide context managers/file objects for temporary resources. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_tempfile_utils.py`.
+
+## XML Parsing and Generation Utilities Module
+
+The project includes XML parsing and generation utilities in `xml_utils.py` for parsing XML documents and strings, building XML elements, converting between elements and dictionaries, querying with XPath, and serializing elements back to strings using the standard library `xml.etree.ElementTree` module: `parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, and `validate_well_formed`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_xml_utils.py`.
+
+## Sequence Utilities Module
+
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, and `nth` retrieve elements by position (returning `None` when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; and `is_sorted` checks ascending or descending order with an optional key. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+
+## Number Utilities Module
+
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, and `percentage` returns a part as a percentage of a total formatted as a string. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+
+## Operating System Utilities Module
+
+The project includes operating system utilities in `os_utils.py` for inspecting the platform and environment: `get_platform_info` returns system/release/version/machine/processor/Python details, `get_cpu_count` reports the available CPU count, `get_disk_usage` reports total/used/free/percent disk usage, `get_user_home` and `get_username` return the current user's home and login name, `find_executable` locates an executable on ``PATH``, `expand_path` expands ``~`` and environment variables to an absolute path, and `is_executable` checks whether a path exists and is executable. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_os_utils.py`.
+
+## Sorting Utilities Module
+
+The project includes sorting utility functions in `sort_utils.py` for sorting and ordering operations: `is_sorted` checks whether a sequence is sorted, `bubble_sort` and `merge_sort` return new sorted lists, `nth_largest` returns the n-th largest element (1-based), and `top_n` returns the top n items sorted by key. All functions accept an optional `key` and `reverse` argument. The module is tested in `tests/test_sort_utils.py`.
+
+## Graph and Dependency Resolution Utilities Module
+
+The project includes graph and dependency resolution utilities in `graphlib_utils.py` for topological sorting and cycle detection of directed graphs using the standard library `graphlib` module: `topological_sort` returns nodes in dependency order, `has_cycle` detects cycles, `dependency_order` orders items by their dependencies, and `is_valid_ordering` validates a candidate ordering. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_graphlib_utils.py`.
+
+## Version Utilities Module
+
+The project includes version utility functions in `version_utils.py` for parsing, comparing, and normalizing dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_greater` returns whether one version is greater than another, and `normalize_version` pads or truncates a version to a fixed component count. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+
+## Text Wrapping Utilities Module
+
+The project includes text wrapping utility functions in `textwrap_utils.py` for wrapping, shortening, dedenting, indenting, and filling text using the standard library `textwrap` module: `wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, and `fill_text`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_textwrap_utils.py`.
+
+## Prime Number Utilities Module
+
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `next_prime` finds the next prime after a given number, and `previous_prime` finds the previous prime before a given number. The module builds on `math_utils.is_prime` and validates its inputs. The module is tested in `tests/test_prime_utils.py`.
+
+## Decimal Utilities Module
+
+The project includes decimal arithmetic utilities in `decimal_utils.py` for precise decimal number operations using the standard library `decimal` module: `to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, and `is_zero`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_decimal_utils.py`.
+
+## Difflib Utilities Module
+
+The project includes difflib utility functions in `difflib_utils.py` for sequence comparison and diffing using the standard library `difflib` module: `get_close_matches` finds close matches for a word, `ratio` returns the similarity ratio between two strings, `unified_diff` and `context_diff` produce unified/context diffs between sequences of lines, and `ndiff` produces a human-readable delta. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_difflib_utils.py`.
+
+## Heap Queue Utilities Module
+
+The project includes heap queue utilities in `heapq_utils.py` wrapping the standard library `heapq` module: `heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, and `nsmallest`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_heapq_utils.py`.
+
+## Operator Utilities Module
+
+The project includes operator utilities in `operator_utils.py` for common functional operations: `identity`, `negate`, arithmetic operators `add`, `subtract`, `multiply`, `divide`, `power`, and `modulo`, plus `clamp` to bound a value to a range and `between` to test membership in an interval (inclusive by default). All functions are generic over their arguments. The module is tested in `tests/test_operator_utils.py`.
+
+## System Utilities Module
+
+The project includes Python runtime and system information utilities in `sys_utils.py` for inspecting the interpreter and runtime environment: `get_python_version` returns the version as a dictionary, `get_python_version_string` returns the full version string, `get_executable` returns the interpreter path, `get_argv` returns command-line arguments, `get_platform` returns the platform identifier, `get_path` returns the module search path, `get_recursion_limit`/`set_recursion_limit` read and set the recursion limit, `get_stdout_encoding`/`get_stderr_encoding`/`get_stdin_encoding` report stream encodings, `is_interactive` detects interactive sessions, `get_frame_info` inspects a stack frame, and `get_refcount` returns an object's reference count. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_sys_utils.py`.
+
+## Context Utilities Module
+
+The project includes context manager utilities in `context_utils.py` for temporarily altering the runtime environment and restoring it on exit: `chdir` changes the current working directory, `temp_environ` updates environment variables (optionally clearing the rest), `redirect_stdout` and `redirect_stderr` redirect the standard streams, and `suppress` swallows listed exceptions. All context managers restore the previous state even when an exception is raised within the context. The module is tested in `tests/test_context_utils.py`.
+
+## Networking Utilities Module
+
+The project includes networking utilities in `networking_utils.py` for TCP port and host operations: `is_valid_port` validates port numbers (1-65535), `is_port_open` checks whether a TCP port is reachable on a host, `find_free_port` returns an unused local TCP port, `resolve_hostname` resolves a hostname to its IPv4 address, `get_local_ip` returns the local machine's IPv4 address, and `tcp_ping` measures TCP connection latency. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_networking_utils.py`.
+
+## Markdown Utilities Module
+
+The project includes Markdown utility functions in `markdown_utils.py` for working with Markdown text: `extract_code_blocks` extracts fenced code blocks (``` ... ```), `strip_markdown` removes common Markdown formatting while keeping readable text, `count_words` counts whitespace-delimited words, `is_heading` detects Markdown headings, and `heading_level` returns the heading level (1-6) or 0 if not a heading. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_markdown_utils.py`.
+
+## Time Utilities Module
+
+The project includes time utility functions in `time_utils.py` for working with timestamps and durations: `now_epoch` returns the current Unix timestamp in seconds, `now_iso` returns the current UTC time as an ISO 8601 string, `epoch_to_iso` converts a Unix timestamp to an ISO 8601 UTC string, and `iso_to_epoch` parses an ISO 8601 string into a Unix timestamp (returning `None` for invalid input). The module is tested in `tests/test_time_utils.py`.
+
+## Timezone Utilities Module
+
+The project includes time zone utilities in `timezone_utils.py` for working with IANA time zones using the standard library `zoneinfo` module: `get_timezone` looks up a `ZoneInfo` by name, `is_valid_timezone` validates an identifier, `get_utc_now` returns the current UTC time, `get_local_timezone` returns the system local zone, `convert_datetime` converts datetimes between zones, `format_datetime` renders a datetime for a zone, `utc_offset` reports the UTC offset, `is_dst` reports daylight saving time status, and `get_common_timezones` / `get_all_timezones` list zone identifiers. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_timezone_utils.py`.
+
+## Template Utilities Module
+
+The project includes string template utilities in `template_utils.py` for rendering and substituting variables in template strings: `render_template` renders a template using `str.format()` style placeholders, `substitute` renders a template using `string.Template` style placeholders, `safe_substitute` renders a template without raising on missing placeholders, `render_from_dict` renders a template from a mapping of variables, `has_placeholders` checks whether a template contains any placeholders, and `extract_placeholders` returns the placeholder names found in a template. The module supports both `str.format()` style and `string.Template` style placeholders and is tested in `tests/test_template_utils.py`.
+
+## Fractions Utilities Module
+
+The project includes fraction arithmetic utilities in `fractions_utils.py` for exact rational number operations using the standard library `fractions` module: `to_fraction`, `add`, `subtract`, `multiply`, `divide`, `power`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`, `is_integer`, `numerator`, `denominator`, `to_float`, and `from_float`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_fractions_utils.py`.
+
+## Identifier Utilities Module
+
+The project includes identifier generation and validation utilities in `id_utils.py` for creating short, URL-safe random identifiers: `generate_id` returns a random alphanumeric string of a given length, `new_id` returns a default 8-character identifier, and `is_valid_id` checks whether a string is a valid identifier of a given length. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_id_utils.py`.
+
+## Inspect Utilities Module
+
+The project includes callable and object introspection utilities in `inspect_utils.py` for working with Python callables using the standard library `inspect` module: `get_callable_name` returns the name of a callable or the class name of a callable instance, `is_callable` tests whether an object can be called, `is_async_callable` detects coroutine functions, `get_signature` returns an `inspect.Signature`, `get_parameter_names` and `get_parameter_kinds` describe a callable's parameters, `count_parameters` returns the parameter count, `has_parameter` checks for a named parameter, `bind_arguments` binds positional and keyword arguments with defaults applied, `is_builtin` detects built-in functions, and `get_source_file`/`get_source_lines` locate a callable's source. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_inspect_utils.py`.
+
+## Call Once Utilities Module
+
+The project includes call-once execution utilities in `call_once_utils.py` for ensuring a function runs only a single time: `call_once` decorates a function so its first invocation is cached and all subsequent calls return the cached result without re-invoking the wrapped function. Execution is thread-safe and the returned wrapper exposes a `reset` method to clear the cached state. The module is tested in `tests/test_call_once_utils.py`.
+
+## Circuit Breaker Utilities Module
+
+The project includes circuit breaker utilities in `circuit_breaker_utils.py` implementing the circuit breaker resilience pattern: `CircuitBreaker` wraps an operation and short-circuits calls once a configurable failure threshold is reached, cycling through `CLOSED`, `OPEN`, and `HALF_OPEN` states with thread-safe transitions.     `CircuitBreaker.call` executes a callable through the breaker, `can_execute` reports whether a call would be allowed, and `reset` returns the circuit to the closed state. A `CircuitOpenError` is raised when the circuit rejects a call. The module is tested in `tests/test_circuit_breaker_utils.py`.
+
+## Deprecation Utilities Module
+
+The project includes deprecation utilities in `deprecation_utils.py` for marking APIs as deprecated: `deprecated` decorates a callable so every invocation emits a `DeprecationWarning` describing the deprecation. An optional `version` records when the deprecation was introduced, an optional `replacement` names the suggested alternative, and an optional `message` overrides the default warning text. The wrapped callable forwards all arguments and return values and preserves its metadata via `functools.wraps`. The module is tested in `tests/test_deprecation_utils.py`.
+
+## Ring Buffer Utilities Module
+
+The project includes fixed-size circular (ring) buffer utilities in `ring_buffer_utils.py`: `RingBuffer` is a bounded buffer that overwrites the oldest element when full, with `append`, `get`, `peek`, `pop`, `clear`, `to_list`, `from_list`, plus `capacity`, `is_full`, and `is_empty` properties. Module-level helpers `create`, `append`, `get`, `pop`, `peek`, `is_empty`, `is_full`, `size`, `clear`, and `to_list` are also provided. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_ring_buffer_utils.py`.
+
+## Copy Utilities Module
+
+The project includes copy utilities in `copy_utils.py` for duplicating Python objects and mappings using the standard library `copy` module: `shallow_copy` returns a shallow copy, `deep_copy` returns a deep copy, `copy_dict` and `deep_copy_dict` return shallow and deep copies of a dictionary, `merge_copy` merges multiple dictionaries into a new one without mutating the inputs, and `is_same_object` performs an identity check. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_copy_utils.py`.
+
+## Warnings Utilities Module
+
+The project includes argument parsing utilities in `argparse_utils.py` wrapping the standard library `argparse` module: `make_parser` creates an `ArgumentParser` with common defaults, `add_flag` adds a boolean store_true flag, `add_option` adds a single-value option, `add_positional` adds a positional argument, `add_subparsers` adds subcommands support, `parse_args` parses arguments, `int_positive` validates positive integers, and `float_range` creates a float range validator. The module is tested in `tests/test_argparse_utils.py`.
+
+The project includes warnings utilities in `warnings_utils.py` wrapping the standard library `warnings` module: `warn` emits a warning message with an optional category and stacklevel, `simplefilter` sets the global warning filter action, `catch_warnings` is a context manager that captures warnings emitted within its scope, `filterwarnings` adds a warning filter entry, and `resetwarnings` clears all warning filters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_warnings_utils.py`.
+
+## Threading Utilities Module
+
+The project includes threading utilities in `threading_utils.py` wrapping the standard library `threading` module: `create_lock` and `create_rlock` return new lock and reentrant lock objects, `create_semaphore` and `create_bounded_semaphore` return semaphores with a validated initial counter, `create_event` returns an event, `create_condition` returns a condition variable, `create_timer` and `create_thread` build configured timer and thread objects, `current_thread` returns the caller's thread, `active_count` reports the number of alive threads, `enumerate_threads` lists alive threads, and `synchronized` is a decorator that serializes calls using a lock. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_threading_utils.py`.
+
+## Selectors Utilities Module
+
+The project includes selectors utilities in `selectors_utils.py` wrapping the standard library `selectors` module for I/O multiplexing: `create_default_selector` returns a platform-default selector, `register` and `unregister` monitor or stop monitoring file objects for read/write events, `select` waits until registered file objects are ready, `get_key` and `get_map` inspect registrations, and `close_selector` releases resources. Event masks `EVENT_READ` and `EVENT_WRITE` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` for invalid arguments. The module is tested in `tests/test_selectors_utils.py`.
+
+## Socketserver Utilities Module
+
+The project includes socketserver utilities in `socketserver_utils.py` wrapping the standard library `socketserver` module for building TCP/UDP servers: `create_tcp_server` and `create_udp_server` create validated server instances, `handle_one_request` processes a single request, `serve_forever` blocks serving requests, `shutdown_server` and `close_server` stop and release a server, and `get_server_address` / `is_serving` inspect bound address and serving state. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_socketserver_utils.py`.
+
+## Glob Utilities Module
+
+The project includes glob utilities in `glob_utils.py` for pathname pattern expansion wrapping the standard library `glob` module: `glob_pattern` returns a list of paths matching a pattern, `iglob` returns an iterator over matching paths, `escape` escapes special characters in a pathname so it can be matched literally, and `has_magic` reports whether a pathname contains glob special characters. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_glob_utils.py`.
+
+## Keyword Utilities Module
+
+The project includes keyword classification utilities in `keyword_utils.py` wrapping the standard library `keyword` module: `is_keyword` reports whether a word is a Python keyword, `is_soft_keyword` reports whether a word is a Python soft keyword (such as `match` and `_`), `kwlist` returns a copy of the list of keywords, `softkwlist` returns a copy of the list of soft keywords, and `main` runs the keyword module's interactive entry point. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_keyword_utils.py`.
+
+## Shlex Utilities Module
+
+The project includes simple lexical analysis utilities in `shlex_utils.py` wrapping the standard library `shlex` module: `split` splits a shell-like string into a list of tokens, `quote` returns a shell-escaped version of a string, and `join` joins a sequence of tokens back into a single shell-escaped string. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_shlex_utils.py`.
+
+## Contextlib Utilities Module
+
+The project includes contextlib utility functions in `contextlib_utils.py` for wrapping the standard library `contextlib` module: `suppress` returns a context manager that silences listed exceptions, `nullcontext` returns a context manager that yields a given value, `closing` ensures an object's `close()` method is called on exit, `redirect_stdout` and `redirect_stderr` temporarily redirect the standard streams, `chdir` temporarily changes the current working directory, and `ExitStack` is a re-export of the standard library exit stack. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_contextlib_utils.py`.
+
+## Typing Utilities Module
+
+The project includes typing utilities in `typing_utils.py` wrapping the standard library `typing` module: `get_type_hints` returns the type hints of a callable or object, `get_origin` returns the unsubscripted generic type, `get_args` returns the type arguments, and `is_typeddict` reports whether a type is a `TypedDict`. The module also re-exports `overload`, `Final`, `Literal`, and `ClassVar` for convenience. All functions forward their keyword arguments to the standard library. The module is tested in `tests/test_typing_utils.py`.
+
+## Traceback Utilities Module
+
+The project includes traceback utilities in `traceback_utils.py` wrapping the standard library `traceback` module: `format_exception` formats an exception as a list of strings, `format_exception_only` formats the exception portion, `extract_stack` returns the current stack as `FrameSummary` objects, `format_stack` renders the current stack trace, and `format_exc` returns the active exception as a string. All functions forward to the standard library. The module is tested in `tests/test_traceback_utils.py`.
+
+## Tracemalloc Utilities Module
+
+The project includes tracemalloc memory tracing utilities in `tracemalloc_utils.py` wrapping the standard library `tracemalloc` module: `is_tracing` reports whether tracing is active, `get_traced_memory` returns current and peak traced memory, `get_traceback_limit` returns the traceback limit, `start` begins tracing allocations, `stop` ends tracing, and `clear_traces` discards recorded traces. The module is tested in `tests/test_tracemalloc_utils.py`.
+
+## Doctest Utilities Module
+
+The project includes doctest utilities in `doctest_utils.py` wrapping the standard library `doctest` module: `parse_doctests` parses the `>>>` examples of a text into doctest objects, `find_doctests` discovers the examples of a module, class, or function, `run_string_examples` runs the examples of a text, `run_docstring_examples` runs the examples of the docstring of an object, `run_module_examples` runs every example of a module, `run_file_examples` runs the examples of a text file, `summarize_results` renders a one line summary of a run, and `format_failure` describes a failed example. The module also re-exports `DocTestSuite`, `DocTestRunner`, and `OutputChecker`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_doctest_utils.py`.
+
+## TTY Utilities Module
+
+The project includes terminal control utilities in `tty_utils.py` wrapping the standard library `tty` module: `cfmakeraw` and `cfmakecbreak` change the terminal mode of a file descriptor to raw or cbreak mode, `setraw` and `setcbreak` set the terminal of a file descriptor to raw or cbreak mode with an optional `when` flag, and the module is tested in `tests/test_tty_utils.py`.
+
+## SQLite Utilities Module
+
+The project includes SQLite database utilities in `sqlite3_utils.py` wrapping the standard library `sqlite3` module: `connect` opens a connection (defaulting to an in-memory database), `execute` and `executemany` run SQL statements with optional parameters, `fetch_all`, `fetch_one`, and `fetch_many` return query results, `create_table` creates a table if it does not exist, `insert_row` inserts a row and returns its id, `query` returns rows as dictionaries keyed by column name, and `table_exists` checks whether a table exists. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_sqlite3_utils.py`.
+
+## Plistlib Utilities Module
+
+The project includes plistlib utility functions in `plistlib_utils.py` wrapping the standard library `plistlib` module: `plist_load` loads a plist from a binary file object, `plist_loads` loads a plist from bytes, `plist_dump` writes an object as a plist to a binary file object, and `plist_dumps` serializes an object to plist bytes. The module is tested in `tests/test_plistlib_utils.py`.
+
+## Tarfile Utilities Module
+
+The project includes tarfile utility functions in `tarfile_utils.py` wrapping the standard library `tarfile` module: `tarfile_open` opens a tar archive, `tarfile_add` adds a file to a (possibly new) tar archive with an optional arcname, `tarfile_list` lists member names in a tar archive, `tarfile_extract` extracts a single member, `tarfile_extractall` extracts all members, and `tarfile_create` creates a new tar archive containing a list of files with optional arcnames. The module is tested in `tests/test_tarfile_utils.py`.
+
+## Unicode Data Utilities Module
+
+The project includes Unicode data utilities in `unicodedata_utils.py` wrapping the standard library `unicodedata` module: `unicodedata_lookup` looks up a character by name, `unicodedata_name` returns the name of a character, `unicodedata_normalize` returns the normal form of a Unicode string, `unicodedata_category` returns the general category, `unicodedata_bidirectional` returns the bidirectional class, `unicodedata_combining` returns the combining class, `unicodedata_east_asian_width` returns the east asian width, `unicodedata_mirrored` returns whether a character is mirrored, and `unicodedata_decimal`, `unicodedata_digit`, and `unicodedata_numeric` return the numeric value of a character. The module is tested in `tests/test_unicodedata_utils.py`.
+
+## ZIP Utilities Module
+
+The project includes ZIP archive utilities in `zipfile_utils.py` wrapping the standard library `zipfile` module: `create_archive` creates a ZIP archive at a path containing a list of files, `list_names` returns the member names in an archive, `extract_all` extracts all members of an archive into a destination directory, and `is_zipfile` reports whether a path points to a valid ZIP archive. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_zipfile_utils.py`.
+
 ## Gettext Utilities Module
 
 The project includes internationalization utilities in `gettext_utils.py` wrapping the standard library `gettext` module: `gettext` translates a message in the current domain, `dgettext` translates a message in a named domain, `ngettext` and `dngettext` select singular or plural translations based on a count, `textdomain` sets or gets the current message domain, `bindtextdomain` binds a domain to a locale directory, and `install` installs the translation function into Python's builtins namespace. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_gettext_utils.py`.
 
+## SSL Utilities Module
+
+The project includes SSL/TLS utilities in `ssl_utils.py` wrapping the standard library `ssl` module: `create_default_context` and `create_context` create SSL contexts with protocol validation, `match_hostname` verifies a certificate against a hostname (with fallback for Python 3.12+ where `ssl.match_hostname` is removed), `get_server_certificate` and `get_server_certificate_tuple` retrieve DER-encoded certificates from a connected socket, `cert_time_to_seconds` converts ASN.1 GENERALIZEDTIME strings to epoch seconds, `verify_cert_chain` validates a certificate chain, `get_default_verify_paths` returns the system's default CA paths, `is_tls_version_supported` checks TLS version support, `get_cert_subject`, `get_cert_issuer`, and `get_cert_san` extract certificate fields, and `cert_is_valid_at_time` checks whether a certificate is valid at a given time. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_ssl_utils.py`.
+
 ## Pkgutil Utilities Module
 
 The project includes package and module discovery utilities in `pkgutil_utils.py` wrapping the standard library `pkgutil` module: `iter_modules` lists the modules found in a search path, `walk_packages` recursively lists modules and sub-packages, `get_data` reads a data file shipped inside a package as bytes, `read_text` reads and decodes such a data file, `resolve_name` resolves a dotted name to the module or attribute it refers to, `iter_importers` returns the meta path finders consulted for a module, `extend_path` extends a package path with namespace package directories, and `find_spec` returns the import spec for a module. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_pkgutil_utils.py`.
-
-## Binascii Utilities Module
-
-The project includes binary-to-ASCII encoding and decoding utilities in `binascii_utils.py` wrapping the standard library `binascii` module: `hexlify` and `unhexlify` convert binary data to and from hexadecimal, `b2a_base64` and `a2b_base64` encode and decode Base64, `b2a_uu` and `a2b_uu` encode and decode UUencode, `b2a_qp` and `a2b_qp` encode and decode quoted-printable data, and `crc32`, `adler32`, and `crc_hqx` compute checksums. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_binascii_utils.py`.
-
-## Configparser Utilities Module
-
-The project includes INI configuration file utilities in `configparser_utils.py` wrapping the standard library `configparser` module: `load_config` reads a configuration file into a dictionary of sections, `save_config` writes a configuration mapping back to a file, `get_sections` and `get_options` list the sections and options of a parser, `read_files` parses a list of configuration files, and `write_config` writes a parser to a file. The module also re-exports `ConfigParser`, `RawConfigParser`, the interpolation classes, and the common `configparser` exceptions. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_configparser_utils.py`.
 
 ## Contextvars Utilities Module
 
@@ -28430,10 +29056,6 @@ The project includes Python token constant utilities in `token_utils.py` wrappin
 
 The project includes TOML parsing utilities in `tomllib_utils.py` wrapping the standard library `tomllib` module: `read_toml` parses a TOML file, `load_toml_string` parses a TOML document from a string, and `is_valid_toml` reports whether a string is valid TOML. The module is tested in `tests/test_tomllib_utils.py`.
 
-## Unicodedata Utilities Module
-
-The project includes Unicode character database utilities in `unicodedata_utils.py` wrapping the standard library `unicodedata` module: `unicodedata_lookup` looks up a character by name, `unicodedata_name` returns the name of a character, `unicodedata_normalize` returns a normalized form, `unicodedata_category` returns the general category, `unicodedata_bidirectional` returns the bidirectional class, `unicodedata_combining` returns the combining class, `unicodedata_east_asian_width` returns the east asian width, `unicodedata_mirrored` reports whether a character is mirrored, and `unicodedata_decimal`, `unicodedata_digit`, and `unicodedata_numeric` return numeric values. The module is tested in `tests/test_unicodedata_utils.py`.
-
 ## Command Interpreter Utilities Module
 
 The project includes command interpreter utilities in `cmd_utils.py` wrapping the standard library `cmd` module: `identchars` returns the characters allowed in command names, `prompt_default` returns the default prompt string, and `main` exposes the module's `main` entry point when it is available. The `Cmd` class is a thin subclass of `cmd.Cmd`. The module is tested in `tests/test_cmd_utils.py`.
@@ -28454,10 +29076,6 @@ The project includes low-level socket utilities in `socket_utils.py` wrapping th
 
 The project includes build configuration utilities in `sysconfig_utils.py` wrapping the standard library `sysconfig` module: `get_config_vars` returns the configuration variables of the running interpreter, `get_config_var` returns the value of a single configuration variable, `has_config_var` reports whether a configuration variable is defined, `list_config_var_names` returns the sorted names of the known configuration variables, `get_paths` returns the installation paths of a scheme, `get_path` returns a single installation path, `get_platform` returns the platform string of the interpreter, `get_python_version` returns the version as `major.minor`, `get_default_scheme` returns the default installation scheme, `get_preferred_scheme` resolves the preferred scheme of an installation type, `get_scheme_names` returns the known installation schemes, `is_python_build` reports whether the interpreter was built from source, `get_config_h_filename` returns the path of `pyconfig.h`, and `get_makefile_filename` returns the path of the interpreter `Makefile`. The module is tested in `tests/test_sysconfig_utils.py`.
 
-## Doctest Utilities Module
-
-The project includes doctest utilities in `doctest_utils.py` wrapping the standard library `doctest` module: `parse_doctests` parses the `>>>` examples of a text into doctest objects, `find_doctests` discovers the examples of a module, class, or function, `run_string_examples` runs the examples of a text, `run_docstring_examples` runs the examples of the docstring of an object, `run_module_examples` runs every example of a module, `run_file_examples` runs the examples of a text file, `summarize_results` renders a one line summary of a run, and `format_failure` describes a failed example. The module also re-exports `DocTestSuite`, `DocTestRunner`, and `OutputChecker`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_doctest_utils.py`.
-
 ## MIME Type Utilities Module
 
 The project includes MIME type utilities in `mimetypes_utils.py` wrapping the standard library `mimetypes` module: `guess_type` guesses the MIME type and content encoding of a file name or URL, `guess_extension` guesses the extension of a MIME type, `guess_all_extensions` returns every extension registered for a MIME type, `type_for_extension` returns the MIME type of an extension, `add_type` registers a custom extension for a MIME type, `init_database` initializes the MIME type database and reads extra `mime.types` files, `normalize_extension` lower cases an extension and adds the leading dot, `is_valid_mime_type` reports whether a value is a well formed `type/subtype` pair, `mime_category` returns the top level type of a MIME type, and `is_text_mime_type` reports whether a MIME type describes textual content. The module is tested in `tests/test_mimetypes_utils.py`.
@@ -28474,45 +29092,13 @@ The project includes codeop utilities in `codeop_utils.py` wrapping the standard
 
 The project includes pickle support registration utilities in `copyreg_utils.py` wrapping the standard library `copyreg` module: `add_extension` and `remove_extension` register and unregister pickling extensions for a type, `clear_extension_cache` clears the extension cache, `constructor` registers a reduction function for a type, `dispatch_table` returns the global dispatch table, and `pickle` registers a reduction function for a type. The module is tested in `tests/test_copyreg_utils.py`.
 
-## File Input Utilities Module
-
-The project includes file input iteration utilities in `fileinput_utils.py` wrapping the standard library `fileinput` module: `read_lines` returns every line read from the given files, `count_lines` counts the lines, and `filenames` lists the names of the files that were read. The module is tested in `tests/test_fileinput_utils.py`.
-
-## Filename Pattern Matching Utilities Module
-
-The project includes filename pattern matching utilities in `fnmatch_utils.py` wrapping the standard library `fnmatch` module: `match` matches a name against a shell-style pattern using the platform's case rules, `match_case` performs a case-sensitive match, `filter_names` returns the subset of names matching a pattern, and `translate` converts a shell-style pattern into a regular expression. The module is tested in `tests/test_fnmatch_utils.py`.
-
 ## Getpass Utilities Module
 
 The project includes secure password input utilities in `getpass_utils.py` wrapping the standard library `getpass` module: `getpass` prompts for a password without echoing it back to the terminal, and `getuser` returns the name of the user running the process. The module is tested in `tests/test_getpass_utils.py`.
 
-## Identifier Utilities Module
-
-The project includes identifier utilities in `id_utils.py`: `generate_id` returns a random alphanumeric identifier of the requested length, `new_id` returns a default-length identifier, and `is_valid_id` reports whether a string is a well-formed identifier of the expected length. The module is tested in `tests/test_id_utils.py`.
-
-## Memoization Utilities Module
-
-The project includes memoization utilities in `memoize_utils.py`: the `memoize` decorator caches a function's return value keyed by its call arguments and exposes a `cache_clear` method for resetting the cache. The module is tested in `tests/test_memoize_utils.py`.
-
-## Pathlib Utilities Module
-
-The project includes path manipulation utilities in `pathlib_utils.py` wrapping the standard library `pathlib` module: `ensure_dir` creates a directory and its parents, `join` joins path parts, `exists`, `is_file`, and `is_dir` inspect a path, `read_text` and `write_text` read and write file contents, `glob` and `rglob` list matching paths, and `suffix`, `stem`, and `parent` expose the corresponding path components. The module is tested in `tests/test_pathlib_utils.py`.
-
 ## Runpy Utilities Module
 
 The project includes Python module execution utilities in `runpy_utils.py` wrapping the standard library `runpy` module: `run_module` executes a module and returns its globals, and `run_path` executes a Python file and returns its globals. The module is tested in `tests/test_runpy_utils.py`.
-
-## Secrets Utilities Module
-
-The project includes cryptographically secure secret utilities in `secrets_utils.py` wrapping the standard library `secrets` module: `token_bytes`, `token_hex`, and `token_urlsafe` generate random tokens, `compare_digest` compares two secrets in constant time, `randbelow` and `randbits` generate random numbers, and `choice` picks a random element from a sequence. The module is tested in `tests/test_secrets_utils.py`.
-
-## SSL Utilities Module
-
-The project includes SSL/TLS utilities in `ssl_utils.py` wrapping the standard library `ssl` module: `create_default_context` and `create_context` build SSL contexts, `match_hostname` verifies a certificate against a hostname, `get_server_certificate` and `get_server_certificate_tuple` fetch a server certificate, `cert_time_to_seconds` converts a certificate timestamp, `verify_cert_chain` validates a chain, `get_default_verify_paths` reports the default trust stores, `is_tls_version_supported` checks protocol support, `get_cert_subject`, `get_cert_issuer`, and `get_cert_san` inspect certificate fields, and `cert_is_valid_at_time` reports whether a certificate is currently valid. The module is tested in `tests/test_ssl_utils.py`.
-
-## Tarfile Utilities Module
-
-The project includes tar archive utilities in `tarfile_utils.py` wrapping the standard library `tarfile` module: `tarfile_open` opens an archive, `tarfile_add` appends a file, `tarfile_list` lists member names, `tarfile_extract` extracts a single member, `tarfile_extractall` extracts every member, and `tarfile_create` builds a new archive from a set of files. The module is tested in `tests/test_tarfile_utils.py`.
 
 ## Types Utilities Module
 
@@ -28522,9 +29108,120 @@ The project includes dynamic type utilities in `types_utils.py` wrapping the sta
 
 The project includes IANA timezone utilities in `zoneinfo_utils.py` wrapping the standard library `zoneinfo` module: `zoneinfo_get` returns a `ZoneInfo` for an IANA key and `zoneinfo_available_timezones` returns the set of available keys. The module is tested in `tests/test_zoneinfo_utils.py`.
 
+## Array Utilities Module
+
+The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, and `array_count` and `array_index` search for a value. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
+
+## Atexit Utilities Module
+
+The project includes exit handler utilities in `atexit_utils.py` wrapping the standard library `atexit` module: `register` and `add` schedule a function to run at interpreter exit, `unregister` and `remove` cancel a scheduled function, `clear` drops every registered handler, `get_registered` lists the registered handlers, and `run_exit_handlers` runs them immediately. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_atexit_utils.py`.
+
+## Calendar Utilities Module
+
+The project includes calendar utilities in `calendar_utils.py` wrapping the standard library `calendar` module: `is_leap_year` reports whether a year is a leap year, `days_in_month` returns the number of days in a month, `first_day_of_month` returns the weekday a month starts on, `month_name` and `day_name` return localized names, `month_calendar` renders a month grid, `weekdays_in_month` and `weekend_days_in_month` collect the matching dates, `is_weekend` reports whether a date falls on a weekend, and `add_months` shifts a date by a number of months. The module is tested in `tests/test_calendar_utils.py`.
+
+## Complex Mathematics Utilities Module
+
+The project includes complex mathematics utilities in `cmath_utils.py` wrapping the standard library `cmath` module: `phase`, `polar`, and `rect` convert between rectangular and polar forms, `exp`, `log`, `log10`, and `sqrt` provide the elementary functions, `sin`, `cos`, `tan`, `asin`, `acos`, and `atan` provide the trigonometric functions, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, and `atanh` provide the hyperbolic functions, and `isfinite`, `isinf`, `isnan`, and `isclose` inspect complex values. The module is tested in `tests/test_cmath_utils.py`.
+
+## Concurrent Futures Utilities Module
+
+The project includes `concurrent.futures` utilities in `concurrent_futures_utils.py` wrapping the standard library `concurrent.futures` module: `ThreadPoolExecutor` and `ProcessPoolExecutor` are re-exported, `Future` and `as_completed` support result collection, `wait` waits on a set of futures with the `FIRST_COMPLETED` and `FIRST_EXCEPTION` policies, `thread_pool_executor` and `process_pool_executor` build validated executors, `submit` schedules a callable, `as_completed_iter` yields futures as they finish, and `wait_futures` waits for a group of futures. The module is tested in `tests/test_concurrent_futures_utils.py`.
+
+## Garbage Collector Utilities Module
+
+The project includes garbage collector utilities in `gc_utils.py` wrapping the standard library `gc` module: `enable` and `disable` toggle automatic collection, `isenabled` reports the current state, `collect` runs a collection pass, `get_count` reports the collection counters, `get_objects` lists tracked objects, `get_referents` and `get_referrers` inspect object relationships, `get_stats` reports per-generation statistics, `set_debug` and `get_debug` control the debug flags, and `set_threshold` and `get_threshold` manage the collection thresholds. The module is tested in `tests/test_gc_utils.py`.
+
+## Greeting Utilities Module
+
+The project includes greeting utilities in `greeting_utils.py`: `format_greeting` renders a greeting for a person and `format_names` renders a greeting for a list of people. The module is tested in `tests/test_greeting_utils.py`.
+
+## Importlib Utilities Module
+
+The project includes import utilities in `importlib_utils.py` wrapping the standard library `importlib` module: `import_module` and `reload_module` load and reload modules, `find_spec` and `get_spec` return import specifications, `get_module_name_from_path` derives a module name from a file path, `is_module_available` reports whether a module can be imported, `get_source_file` and `get_loader` describe a module's origin, `get_distribution` and `get_distribution_version` read installed package metadata, `get_entry_points` lists entry points, `read_text` and `read_binary` read package resources, `is_resource` reports resource availability, `path` returns a package's search path, and `get_attr_from_module` and `call_func_from_module` reach into imported modules. The module is tested in `tests/test_importlib_utils.py`.
+
+## Interval Utilities Module
+
+The project includes interval utilities in `interval_utils.py`: `normalize_interval` orders the bounds of an interval, `is_valid_interval` reports whether the bounds are ordered, `interval_contains` tests for containment, `interval_overlaps` tests for overlap, `interval_intersection` and `interval_union` combine two intervals, `merge_intervals` collapses overlapping intervals, and `interval_length` measures the span. The module is tested in `tests/test_interval_utils.py`.
+
+## Line Cache Utilities Module
+
+The project includes line cache utilities in `linecache_utils.py` wrapping the standard library `linecache` module: `getline` and `getlines` read cached source lines, `checkcache` reports whether a file has stale cached data, `updatecache` refreshes the cache for a file, `lazycache` loads a file's lines on demand, and `clearcache` empties the cache. The module is tested in `tests/test_linecache_utils.py`.
+
+## LZMA Utilities Module
+
+The project includes LZMA compression utilities in `lzma_utils.py` wrapping the standard library `lzma` module: `lzma_compress` compresses bytes, `lzma_decompress` reverses it, `lzma_open` opens a compressed file, and `lzma_write` and `lzma_read` stream data through an archive. The module is tested in `tests/test_lzma_utils.py`.
+
+## Marshal Utilities Module
+
+The project includes object serialization utilities in `marshal_utils.py` wrapping the standard library `marshal` module: `dumps` and `loads` serialize and deserialize objects to and from bytes, `dump` and `load` write and read serialized objects to a file, and `get_version` reports the supported marshal version. The module is tested in `tests/test_marshal_utils.py`.
+
+## Multiprocessing Utilities Module
+
+The project includes multiprocessing utilities in `multiprocessing_utils.py` wrapping the standard library `multiprocessing` module: `get_context` selects a start method, `cpu_count` reports the available CPUs, `active_children` and `current_process` report process state, `freeze_support` enables frozen executables, `create_pool`, `pool_map`, and `pool_starmap` run work in a pool, `create_queue` and `create_simple_queue` build queues, `create_lock`, `create_rlock`, `create_semaphore`, `create_event`, and `create_condition` build synchronization primitives, `create_value` and `create_array` build shared memory, `create_process` and `run_in_process` start a child process, and `is_forking`, `is_spawn`, and `is_forkserver` report the active start method. The module is tested in `tests/test_multiprocessing_utils.py`.
+
+## Secrets Utilities Module
+
+The project includes cryptographically secure secret utilities in `secrets_utils.py` wrapping the standard library `secrets` module: `token_bytes`, `token_hex`, and `token_urlsafe` generate random tokens, `compare_digest` compares two secrets in constant time, `randbelow` and `randbits` generate random numbers, and `choice` picks a random element from a sequence. All functions validate their inputs and raise `ValueError` on invalid arguments. The module is tested in `tests/test_secrets_utils.py`.
+
+## Semantic Versioning Utilities Module
+
+The project includes semantic versioning utilities in `semver_utils.py`: the `SemanticVersion` class parses and compares version strings, `parse_semver` parses a semantic version, `compare_semver` compares two versions, `bump_major`, `bump_minor`, and `bump_patch` increment a version component, and `is_valid_semver` reports whether a string is a valid semantic version. The module is tested in `tests/test_semver_utils.py`.
+
+## Shutil Utilities Module
+
+The project includes high-level file operation utilities in `shutil_utils.py` wrapping the standard library `shutil` module: `copy_file` and `copy_tree` copy files and directories, `move` moves a path, `remove_tree` deletes a directory tree, `disk_usage` reports disk usage for a path, `make_archive` and `unpack_archive` build and expand archives, and `which` locates an executable on `PATH`. The module is tested in `tests/test_shutil_utils.py`.
+
+## Subprocess Utilities Module
+
+The project includes subprocess utilities in `subprocess_utils.py` wrapping the standard library `subprocess` module: `run_command` runs a command and captures its output, `check_output` runs a command and returns its standard output, and `check_call` runs a command and raises on a non-zero exit status. The module is tested in `tests/test_subprocess_utils.py`.
+
+## Weak Reference Utilities Module
+
+The project includes weak reference utilities in `weakref_utils.py` wrapping the standard library `weakref` module: `WeakRef` and `WeakMethod` are re-exported, `create_weakref` creates a weak reference to an object, `create_proxy` creates a transparent proxy, `get_object` resolves a reference to its target, `is_alive` reports whether the target still exists, and `create_finalizer` registers a callback for when the target is collected. The module is tested in `tests/test_weakref_utils.py`.
+
+## Unittest Utilities Module
+
+The project includes utilities wrapping the standard library `unittest` module in `unittest_utils.py`: `TestCase`, `TestSuite`, `TestLoader`, `TextTestRunner` are re-exported, along with `make_suite`, `run_tests`, `main`, and `defaultTestLoader`. The module is tested in `tests/test_unittest_utils.py`.
+
+## Timeit Utilities Module
+
+The project includes timeit utilities in `timeit_utils.py` wrapping the standard library `timeit` module: `timeit`, `repeat`, `default_timer`, and `Timer`. The module is tested in `tests/test_timeit_utils.py`.
+
+## Mmap Utilities Module
+
+The project includes utilities wrapping the standard library `mmap` module in `mmap_utils.py`: `create_anonymous`, `create_file_mmap`, `access_read`, `access_write`, `access_copy`, `pagesize`, `allocation_granularity`, `constants`, `is_mmap`, `write_bytes`, `read_bytes`, `find_bytes`, and `close_mmap`. The module is tested in `tests/test_mmap_utils.py`.
+
+## Asyncio Utilities Module
+
+The project includes utilities wrapping the standard library `asyncio` module in `asyncio_utils.py`: `run`, `create_task`, `gather`, `sleep`, `to_thread`, `wait_for`, `current_task`, `all_tasks`, `iscoroutinefunction`, `iscoroutine`, `get_event_loop`, and `get_running_loop`, along with re-exports of `Event`, `Lock`, `Queue`, and `Semaphore`. The module is tested in `tests/test_asyncio_utils.py`.
+
 ## Trace Utilities Module
 
 The project includes execution tracing utilities in `trace_utils.py` wrapping the standard library `trace` module: `new_tracer` creates a tracer that counts the executed lines, `run_traced` runs a callable under a tracer and returns its result together with the coverage results, `run_script_traced` runs a Python script under a tracer and returns its exit code, `counted_lines` maps every recorded line to the number of times it was executed, `line_counts` groups those counts by file, `called_functions` lists the functions that were called, `call_relationships` lists the recorded calling relationships, `is_ignored_filename` reports whether a file is left out of the coverage report, `merge_results` merges the counts of two runs, `write_coverage_report` writes the coverage report, `summarize_coverage` returns a per file coverage summary, `format_coverage_summary` renders that summary as a table, and `clear_counts` discards the counts recorded by a tracer. The module also re-exports `Trace`, `CoverageResults`, and `PRAGMA_NOCOVER`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_trace_utils.py`.
+profile_utils.py
+tests/test_profile_utils.py
+`profile_utils.py`
+
+## Profile Utilities Module
+
+The project includes profiling utilities in `profile_utils.py` wrapping the standard library `profile` module: `run` profiles a single statement, `runctx` profiles a statement in given namespaces, `new_profiler` creates a new profiler instance, `Profile` is the profiler class, and `main` runs the profile module's command-line entry point. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_profile_utils.py`.
+
+## Pstats Utilities Module
+
+The project includes profiling statistics utilities in `pstats_utils.py` wrapping the standard library `pstats` module: `new_stats` creates `Stats` objects from profile files, `load_stats` loads statistics, `add_stats` merges statistics, `print_stats` prints reports, `sort_stats` sorts results, `strip_dirs` removes path prefixes, `reverse_order` reverses sort order, and `dump_stats` saves statistics to files. `Stats` and `SortKey` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pstats_utils.py`.
+
+## Select Utilities Module
+
+The project includes I/O multiplexing utilities in `select_utils.py` wrapping the standard library `select` module: `select` waits for file descriptors to become readable, writable, or exceptional with input validation, `create_poller` builds a `select.poll` object, `poll_register` registers a file descriptor with an event mask, and `poll_poll` polls for pending events. `PIPE_BUF` is re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_select_utils.py`.
+
+## Symtable Utilities Module
+
+The project includes symbol table utilities in `symtable_utils.py` wrapping the standard library `symtable` module: `build_symbol_table` builds the symbol table of a block of source code, `lookup_symbol_table` analyses the source file of an importable module, `scope_type` reports whether a scope is a module, function, class, annotation, or comprehension, `scope_identifiers` lists the names bound in a scope, `child_scopes` and `iter_scopes` walk the nested scope tree, `find_scope` locates a nested scope by name, `describe_scope` summarizes a scope, `symbol_info` and `symbol_flags` describe how a symbol is used, `namespace_names` lists the names bound in the namespace a symbol introduces, and `free_variables`, `global_names`, `local_names`, `parameter_names`, `imported_names`, `assigned_names`, `referenced_names`, and `nonlocal_names` collect the names of a scope by usage. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_symtable_utils.py`.
+
+## Hello Module
+
+The project includes a sample application entry point in `hello.py`: `main` prints a greeting for the given name and defaults to `"World"`, and running the module directly greets the name given on the command line. The module is tested in `tests/test_hello.py`.
 
 ## License
 
@@ -28541,6 +29238,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Closed the embedded `README.md` template gap: the README written into a scaffolded project now documents every wrapper module it ships. The architecture tree lists every module and every test file, and each module has its own documentation section — 190 module sections, up from 44. The repository `README.md` gained the missing tree entries for `profile_utils.py`, `pstats_utils.py`, `select_utils.py`, and `unittest_utils.py`, plus a `Hello Module` section.
+- Fixed the project name placeholder in generated projects: `scaffold.sh` now substitutes the project name into `README.md`, `AGENTS.md`, and `CHANGELOG.md` after writing them, so a scaffolded project no longer ships documents that contain the literal placeholder. `tests/test_scaffold.py` guards the substitution.
+- Fixed the pre-existing `mypy` errors that broke `make typecheck`: the implicit `Optional` annotations in `traceback_utils.py`, `tempfile_utils.py`, and `warnings_utils.py`, the `profile.main` entry that the type stubs do not declare, and the narrow `pstats.Stats` constructor signature. `make typecheck` now passes for the whole project.
 - Added `trace_utils.py` to the generated project — execution tracing utilities wrapping the standard library `trace` module (`new_tracer`, `run_traced`, `run_script_traced`, `counted_lines`, `line_counts`, `called_functions`, `call_relationships`, `is_ignored_filename`, `merge_results`, `write_coverage_report`, `summarize_coverage`, `format_coverage_summary`, `clear_counts`) with input validation, plus `tests/test_trace_utils.py`.
 - Synchronized `trace_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `profile_utils.py` to the generated project — profiling utilities wrapping the standard library `profile` module (`Profile`, `run`, `runctx`, `new_profiler`) with input validation, plus `tests/test_profile_utils.py`.
@@ -28553,6 +29253,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `re_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `tempfile_utils.py` to the generated project — temporary file and directory utilities wrapping the standard library `tempfile` module (`get_tempdir`, `gettempprefix`, `mkstemp`, `mkdtemp`, `NamedTemporaryFile`, `SpooledTemporaryFile`, `TemporaryDirectory`) with input validation, plus `tests/test_tempfile_utils.py`.
 - Synchronized `tempfile_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `symtable_utils.py` to the generated project — symbol table utilities wrapping the standard library `symtable` module (`build_symbol_table`, `lookup_symbol_table`, `scope_type`, `scope_identifiers`, `child_scopes`, `iter_scopes`, `find_scope`, `describe_scope`, `symbol_info`, `symbol_flags`, `namespace_names`, `free_variables`, `global_names`, `local_names`, `parameter_names`, `imported_names`, `assigned_names`, `referenced_names`, `nonlocal_names`) with input validation, plus `tests/test_symtable_utils.py`.
+- Synchronized `symtable_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `doctest_utils.py` to the generated project — doctest utilities wrapping the standard library `doctest` module (`parse_doctests`, `find_doctests`, `run_string_examples`, `run_docstring_examples`, `run_module_examples`, `run_file_examples`, `summarize_results`, `format_failure`) with input validation, plus `tests/test_doctest_utils.py`.
 - Synchronized `doctest_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `tools/refresh_scaffold.py`, a maintainer tool that rewrites the file copies embedded in `scaffold.sh` from the repository sources and reports stale copies with `--check`.
@@ -38537,7 +39239,7 @@ def format_exception_only(etype: Type[BaseException], value: BaseException) -> L
     return traceback.format_exception_only(etype, value)
 
 
-def format_tb(tb: TracebackType = None, limit: Optional[int] = None) -> List[str]:
+def format_tb(tb: Optional[TracebackType] = None, limit: Optional[int] = None) -> List[str]:
     """Format a traceback object."""
     if tb is not None and not isinstance(tb, TracebackType):
         raise TypeError("tb must be a traceback")
@@ -38597,7 +39299,7 @@ def print_exception(etype_or_exc: Any, value: Any = None, tb: Any = None,
     traceback.print_exception(etype, value, tb, limit=limit, file=file, **kwargs)
 
 
-def print_tb(tb: TracebackType = None, limit: Optional[int] = None, file=None) -> None:
+def print_tb(tb: Optional[TracebackType] = None, limit: Optional[int] = None, file=None) -> None:
     """Print a traceback."""
     if tb is not None and not isinstance(tb, TracebackType):
         raise TypeError("tb must be a traceback")
@@ -43490,7 +44192,9 @@ cat > "$OUTPUT_DIR/warnings_utils.py" <<'WARNINGS_UTILS'
 """Utilities for warning control (wrapping :mod:`warnings`)."""
 
 import warnings
-from typing import Type, Union
+from typing import Literal, Optional, Type, Union, cast
+
+Action = Literal["default", "error", "ignore", "always", "all", "module", "once"]
 
 
 def warn(
@@ -43522,7 +44226,9 @@ def simplefilter(
         raise TypeError("lineno must be an integer")
     if not isinstance(append, bool):
         raise TypeError("append must be a bool")
-    warnings.simplefilter(action, category=category, lineno=lineno, append=append)
+    warnings.simplefilter(
+        cast(Action, action), category=category, lineno=lineno, append=append
+    )
 
 
 def filterwarnings(
@@ -43545,7 +44251,7 @@ def filterwarnings(
     if not isinstance(append, bool):
         raise TypeError("append must be a bool")
     warnings.filterwarnings(
-        action, message=message, category=category,
+        cast(Action, action), message=message, category=category,
         module=module, lineno=lineno, append=append,
     )
 
@@ -43564,7 +44270,7 @@ def catch_warnings(record: bool = False, module=None):
 
 def showwarning(
     message: Warning, category: Type[Warning], filename: str, lineno: int,
-    file=None, line: str = None,
+    file=None, line: Optional[str] = None,
 ) -> None:
     """Call showwarning with arguments."""
     if not isinstance(message, Warning):
@@ -43582,7 +44288,7 @@ def showwarning(
 
 def formatwarning(
     message: Warning, category: Type[Warning], filename: str, lineno: int,
-    line: str = None,
+    line: Optional[str] = None,
 ) -> str:
     """Format a warning the standard way."""
     if not isinstance(message, Warning):
@@ -54831,7 +55537,7 @@ This wrapper exposes a validated surface for creating and manipulating
 from __future__ import annotations
 
 import pstats as _pstats
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, cast
 
 __all__ = [
     "Stats",
@@ -54880,14 +55586,18 @@ def new_stats(
         raise TypeError("stream must have a write method or None")
     if not filenames:
         return _pstats.Stats(stream=stream)
-    return _pstats.Stats(*filenames, stream=stream)
+    # The standard library also accepts existing Stats objects here, which
+    # the type stubs do not describe.
+    return _pstats.Stats(*cast(Any, filenames), stream=stream)
 
 
 def load_stats(*filenames: Union[str, _pstats.Stats]) -> _pstats.Stats:
     """Load statistics from files."""
     if not filenames:
         raise ValueError("at least one filename or Stats object is required")
-    return _pstats.Stats(*filenames)
+    # The standard library also accepts existing Stats objects here, which
+    # the type stubs do not describe.
+    return _pstats.Stats(*cast(Any, filenames))
 
 
 def add_stats(stats: _pstats.Stats, *filenames: Union[str, _pstats.Stats]) -> _pstats.Stats:
@@ -55314,3 +56024,849 @@ class TestPoller(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_SELECT_UTILS
+
+cat > "$OUTPUT_DIR/symtable_utils.py" <<'SYMTABLE_UTILS'
+"""Symbol table utilities (wrapping :mod:`symtable`).
+
+The :mod:`symtable` module exposes the compiler's view of a program: the
+nested scope structure of a module, function, or class, together with the
+symbols each scope binds and how they are used. This wrapper offers a small,
+validated surface over that information so callers can inspect scopes, resolve
+symbols, and collect free variables or globals without handling the raw
+standard library objects.
+"""
+
+from __future__ import annotations
+
+import importlib.util
+import symtable as _symtable
+from pathlib import Path
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
+
+__all__ = [
+    "COMPILE_TYPES",
+    "assigned_names",
+    "build_symbol_table",
+    "child_scopes",
+    "describe_scope",
+    "find_scope",
+    "free_variables",
+    "global_names",
+    "imported_names",
+    "iter_scopes",
+    "local_names",
+    "lookup_symbol_table",
+    "namespace_names",
+    "nonlocal_names",
+    "parameter_names",
+    "referenced_names",
+    "scope_identifiers",
+    "scope_type",
+    "symbol_flags",
+    "symbol_info",
+]
+
+COMPILE_TYPES = ("exec", "eval", "single")
+
+_SYMBOL_FLAGS = (
+    "is_global",
+    "is_local",
+    "is_free",
+    "is_nonlocal",
+    "is_parameter",
+    "is_imported",
+    "is_assigned",
+    "is_referenced",
+    "is_namespace",
+    "is_declared_global",
+    "is_declared_nonlocal",
+)
+
+
+def _require_text(value: object, name: str) -> str:
+    """Return *value* when it is a string, otherwise raise ``TypeError``."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_table(table: object) -> _symtable.SymbolTable:
+    """Return *table* when it is a symbol table, otherwise raise ``TypeError``."""
+    if not isinstance(table, _symtable.SymbolTable):
+        raise TypeError(
+            f"table must be a symtable.SymbolTable, got {type(table).__name__}"
+        )
+    return table
+
+
+def _require_symbol(symbol: object) -> _symtable.Symbol:
+    """Return *symbol* when it is a symbol, otherwise raise ``TypeError``."""
+    if not isinstance(symbol, _symtable.Symbol):
+        raise TypeError(
+            f"symbol must be a symtable.Symbol, got {type(symbol).__name__}"
+        )
+    return symbol
+
+
+def _collect(
+    table: _symtable.SymbolTable, predicate: Callable[[_symtable.Symbol], bool]
+) -> List[str]:
+    """Return the names of the symbols in *table* matching *predicate*."""
+    return [symbol.get_name() for symbol in table.get_symbols() if predicate(symbol)]
+
+
+def build_symbol_table(
+    code: str,
+    filename: str = "<string>",
+    compile_type: str = "exec",
+) -> _symtable.SymbolTable:
+    """Build the symbol table for a block of source code.
+
+    Args:
+        code: The Python source to analyse.
+        filename: The name reported for the source in tracebacks and scopes.
+        compile_type: One of ``"exec"``, ``"eval"``, or ``"single"``.
+
+    Returns:
+        The root :class:`symtable.SymbolTable` for the source.
+
+    Raises:
+        TypeError: If *code* or *filename* is not a string, or if
+            *compile_type* is not a string.
+        ValueError: If *compile_type* is not one of :data:`COMPILE_TYPES`.
+        SyntaxError: If *code* cannot be parsed.
+
+    Examples:
+        >>> table = build_symbol_table("value = 1")
+        >>> table.get_type()
+        'module'
+        >>> scope_identifiers(table)
+        ['value']
+    """
+    source = _require_text(code, "code")
+    source_name = _require_text(filename, "filename")
+    mode = _require_text(compile_type, "compile_type")
+    if mode not in COMPILE_TYPES:
+        raise ValueError(
+            f"compile_type must be one of {', '.join(COMPILE_TYPES)}, got {mode!r}"
+        )
+    return _symtable.symtable(source, source_name, mode)
+
+
+def _module_source(name: str) -> str:
+    """Return the path of the Python source file of the module *name*."""
+    try:
+        spec = importlib.util.find_spec(name)
+    except (ImportError, ValueError) as exc:
+        raise ImportError(f"cannot find the source of module {name!r}") from exc
+    if spec is None or spec.origin is None:
+        raise ImportError(f"cannot find the source of module {name!r}")
+    origin = spec.origin
+    if not origin.endswith(".py"):
+        raise ImportError(f"module {name!r} has no Python source file")
+    return origin
+
+
+def lookup_symbol_table(
+    name: str, filename: Optional[str] = None
+) -> _symtable.SymbolTable:
+    """Look up the symbol table of an importable module.
+
+    The module is located with :func:`importlib.util.find_spec` and its
+    source file is analysed without importing it.
+
+    Args:
+        name: The name of the module to inspect.
+        filename: The path of the module source file, when it cannot be
+            located automatically.
+
+    Returns:
+        The module's :class:`symtable.SymbolTable`.
+
+    Raises:
+        TypeError: If *name* or *filename* is not a string.
+        ValueError: If *name* is empty.
+        ImportError: If the module or its source file cannot be found.
+        OSError: If the source file cannot be read.
+
+    Examples:
+        >>> table = lookup_symbol_table("json")
+        >>> table.get_type()
+        'module'
+    """
+    module_name = _require_text(name, "name")
+    if not module_name:
+        raise ValueError("name must not be empty")
+    source_name = filename
+    if source_name is None:
+        source_name = _module_source(module_name)
+    else:
+        source_name = _require_text(filename, "filename")
+    source = Path(source_name).read_text(encoding="utf-8")
+    return build_symbol_table(source, source_name, "exec")
+
+
+def scope_type(table: _symtable.SymbolTable) -> str:
+    """Return the type of a scope.
+
+    Args:
+        table: The symbol table to inspect.
+
+    Returns:
+        One of ``"module"``, ``"function"``, ``"class"``, ``"annotation"``,
+        or ``"comprehension"``.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    return _require_table(table).get_type()
+
+
+def scope_identifiers(table: _symtable.SymbolTable) -> List[str]:
+    """Return the names bound in a scope.
+
+    Args:
+        table: The symbol table to inspect.
+
+    Returns:
+        The identifiers of the scope, in source order.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    return list(_require_table(table).get_identifiers())
+
+
+def child_scopes(table: _symtable.SymbolTable) -> List[_symtable.SymbolTable]:
+    """Return the nested scopes of a scope.
+
+    Args:
+        table: The symbol table to inspect.
+
+    Returns:
+        The child symbol tables of *table*.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    return list(_require_table(table).get_children())
+
+
+def iter_scopes(
+    table: _symtable.SymbolTable,
+) -> Iterator[Tuple[Tuple[str, ...], _symtable.SymbolTable]]:
+    """Walk a scope tree depth first.
+
+    Args:
+        table: The root symbol table to walk.
+
+    Yields:
+        Tuples of ``(path, table)`` where *path* is the tuple of scope names
+        leading to the yielded table.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+
+    Examples:
+        >>> table = build_symbol_table("def outer():\\n    pass")
+        >>> [path for path, _ in iter_scopes(table)]
+        [(), ('outer',)]
+    """
+    root = _require_table(table)
+    stack: List[Tuple[Tuple[str, ...], _symtable.SymbolTable]] = [((), root)]
+    while stack:
+        path, current = stack.pop()
+        yield path, current
+        for child in reversed(child_scopes(current)):
+            stack.append((path + (child.get_name(),), child))
+
+
+def find_scope(
+    table: _symtable.SymbolTable, name: str
+) -> Optional[_symtable.SymbolTable]:
+    """Find a nested scope by name.
+
+    Args:
+        table: The root symbol table to search.
+        name: The name of the scope to find.
+
+    Returns:
+        The matching symbol table, or ``None`` when no scope matches.
+
+    Raises:
+        TypeError: If *table* is not a symbol table or *name* is not a string.
+    """
+    root = _require_table(table)
+    scope_name = _require_text(name, "name")
+    for _, current in iter_scopes(root):
+        if current.get_name() == scope_name:
+            return current
+    return None
+
+
+def describe_scope(table: _symtable.SymbolTable) -> Dict[str, Any]:
+    """Summarize a scope.
+
+    Args:
+        table: The symbol table to describe.
+
+    Returns:
+        A dictionary with the ``name``, ``type``, ``lineno``, ``id``,
+        ``identifiers``, and ``children`` of the scope.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    scope = _require_table(table)
+    return {
+        "name": scope.get_name(),
+        "type": scope.get_type(),
+        "lineno": scope.get_lineno(),
+        "id": scope.get_id(),
+        "identifiers": scope_identifiers(scope),
+        "children": [child.get_name() for child in child_scopes(scope)],
+    }
+
+
+def symbol_flags(symbol: _symtable.Symbol) -> Dict[str, bool]:
+    """Return the usage flags of a symbol.
+
+    Args:
+        symbol: The symbol to inspect.
+
+    Returns:
+        A dictionary mapping each ``is_*`` predicate of the symbol to a
+        boolean. Predicates that the running interpreter does not provide
+        (such as ``is_declared_nonlocal`` before Python 3.13) report
+        ``False``.
+
+    Raises:
+        TypeError: If *symbol* is not a symbol.
+    """
+    entry = _require_symbol(symbol)
+    flags: Dict[str, bool] = {}
+    for name in _SYMBOL_FLAGS:
+        predicate = getattr(entry, name, None)
+        flags[name] = bool(predicate()) if callable(predicate) else False
+    return flags
+
+
+def symbol_info(table: _symtable.SymbolTable, name: str) -> Dict[str, Any]:
+    """Describe a symbol bound in a scope.
+
+    Args:
+        table: The symbol table holding the symbol.
+        name: The name of the symbol.
+
+    Returns:
+        A dictionary with the symbol ``name`` and its usage flags.
+
+    Raises:
+        TypeError: If *table* is not a symbol table or *name* is not a string.
+        KeyError: If the scope does not bind *name*.
+    """
+    scope = _require_table(table)
+    symbol_name = _require_text(name, "name")
+    symbol = scope.lookup(symbol_name)
+    if symbol is None:
+        raise KeyError(f"{symbol_name!r} is not defined in scope {scope.get_name()!r}")
+    info: Dict[str, Any] = {"name": symbol.get_name()}
+    info.update(symbol_flags(symbol))
+    return info
+
+
+def free_variables(table: _symtable.SymbolTable) -> List[str]:
+    """Return the free variables of a scope.
+
+    Args:
+        table: The symbol table to inspect.
+
+    Returns:
+        The names of the symbols bound in an enclosing scope.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    return _collect(_require_table(table), lambda symbol: symbol.is_free())
+
+
+def global_names(table: _symtable.SymbolTable) -> List[str]:
+    """Return the global names of a scope.
+
+    Args:
+        table: The symbol table to inspect.
+
+    Returns:
+        The names of the symbols that are global in the scope.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    return _collect(_require_table(table), lambda symbol: symbol.is_global())
+
+
+def local_names(table: _symtable.SymbolTable) -> List[str]:
+    """Return the local names of a scope.
+
+    Args:
+        table: The symbol table to inspect.
+
+    Returns:
+        The names of the symbols that are local to the scope.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    return _collect(_require_table(table), lambda symbol: symbol.is_local())
+
+
+def parameter_names(table: _symtable.SymbolTable) -> List[str]:
+    """Return the parameter names of a scope.
+
+    Args:
+        table: The symbol table to inspect.
+
+    Returns:
+        The names of the symbols that are parameters of the scope.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    return _collect(_require_table(table), lambda symbol: symbol.is_parameter())
+
+
+def imported_names(table: _symtable.SymbolTable) -> List[str]:
+    """Return the imported names of a scope.
+
+    Args:
+        table: The symbol table to inspect.
+
+    Returns:
+        The names of the symbols bound by an import statement.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    return _collect(_require_table(table), lambda symbol: symbol.is_imported())
+
+
+def assigned_names(table: _symtable.SymbolTable) -> List[str]:
+    """Return the assigned names of a scope.
+
+    Args:
+        table: The symbol table to inspect.
+
+    Returns:
+        The names of the symbols that are assigned in the scope.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    return _collect(_require_table(table), lambda symbol: symbol.is_assigned())
+
+
+def referenced_names(table: _symtable.SymbolTable) -> List[str]:
+    """Return the referenced names of a scope.
+
+    Args:
+        table: The symbol table to inspect.
+
+    Returns:
+        The names of the symbols that are referenced in the scope.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    return _collect(_require_table(table), lambda symbol: symbol.is_referenced())
+
+
+def nonlocal_names(table: _symtable.SymbolTable) -> List[str]:
+    """Return the nonlocal names of a scope.
+
+    Args:
+        table: The symbol table to inspect.
+
+    Returns:
+        The names of the symbols declared ``nonlocal`` in the scope.
+
+    Raises:
+        TypeError: If *table* is not a symbol table.
+    """
+    return _collect(_require_table(table), lambda symbol: symbol.is_nonlocal())
+
+
+def namespace_names(symbol: _symtable.Symbol) -> List[str]:
+    """Return the names bound in the namespace a symbol introduces.
+
+    A symbol that is the target of a class or function statement introduces
+    a namespace; this function reports the identifiers bound inside that
+    namespace.
+
+    Args:
+        symbol: The symbol to inspect.
+
+    Returns:
+        The identifiers of the namespace, or an empty list when the symbol
+        is not bound to exactly one namespace.
+
+    Raises:
+        TypeError: If *symbol* is not a symbol.
+    """
+    entry = _require_symbol(symbol)
+    try:
+        namespace = entry.get_namespace()
+    except ValueError:
+        return []
+    return list(namespace.get_identifiers())
+SYMTABLE_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_symtable_utils.py" <<'TEST_SYMTABLE_UTILS'
+"""Tests for symtable_utils module."""
+
+import os
+import tempfile
+import unittest
+
+import symtable_utils
+
+SAMPLE = '''
+import os
+from pathlib import Path
+
+CONSTANT = 1
+
+
+def outer(first, second=2):
+    local_value = first + second
+
+    def inner():
+        return local_value
+
+    return inner
+
+
+class Base:
+    attribute = 0
+
+    def method(self):
+        return self.attribute
+'''
+
+
+class TestBuildSymbolTable(unittest.TestCase):
+    def test_returns_module_scope(self):
+        table = symtable_utils.build_symbol_table(SAMPLE, "sample.py")
+        self.assertEqual(symtable_utils.scope_type(table), "module")
+
+    def test_default_filename_and_compile_type(self):
+        table = symtable_utils.build_symbol_table("value = 1")
+        self.assertEqual(symtable_utils.scope_type(table), "module")
+        self.assertEqual(symtable_utils.scope_identifiers(table), ["value"])
+
+    def test_scope_identifiers_lists_bindings(self):
+        table = symtable_utils.build_symbol_table(SAMPLE, "sample.py")
+        identifiers = symtable_utils.scope_identifiers(table)
+        for name in ("os", "Path", "CONSTANT", "outer", "Base"):
+            self.assertIn(name, identifiers)
+
+    def test_eval_compile_type(self):
+        table = symtable_utils.build_symbol_table("1 + 2", "<eval>", "eval")
+        self.assertEqual(symtable_utils.scope_type(table), "module")
+
+    def test_single_compile_type(self):
+        table = symtable_utils.build_symbol_table("value = 1", "<single>", "single")
+        self.assertEqual(symtable_utils.scope_type(table), "module")
+
+    def test_code_must_be_string(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.build_symbol_table(123)  # type: ignore[arg-type]
+
+    def test_filename_must_be_string(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.build_symbol_table("x = 1", 5)  # type: ignore[arg-type]
+
+    def test_compile_type_must_be_string(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.build_symbol_table("x = 1", "<s>", 1)  # type: ignore[arg-type]
+
+    def test_unknown_compile_type_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            symtable_utils.build_symbol_table("x = 1", "<s>", "module")
+
+    def test_syntax_error_propagates(self):
+        with self.assertRaises(SyntaxError):
+            symtable_utils.build_symbol_table("def broken(:")
+
+
+class TestLookupSymbolTable(unittest.TestCase):
+    def test_lookup_known_module(self):
+        table = symtable_utils.lookup_symbol_table("json")
+        self.assertEqual(symtable_utils.scope_type(table), "module")
+        self.assertIn("JSONDecoder", symtable_utils.scope_identifiers(table))
+
+    def test_lookup_with_explicit_filename(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "explicit_module.py")
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write("EXPLICIT = 1\n")
+            table = symtable_utils.lookup_symbol_table("json", filename=path)
+        self.assertIn("EXPLICIT", symtable_utils.scope_identifiers(table))
+
+    def test_lookup_unknown_module_raises_import_error(self):
+        with self.assertRaises(ImportError):
+            symtable_utils.lookup_symbol_table("module_that_does_not_exist_xyz")
+
+    def test_lookup_name_must_be_string(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.lookup_symbol_table(None)  # type: ignore[arg-type]
+
+    def test_lookup_empty_name_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            symtable_utils.lookup_symbol_table("")
+
+    def test_lookup_filename_must_be_string(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.lookup_symbol_table("json", filename=1)  # type: ignore[arg-type]
+
+    def test_lookup_missing_file_raises_os_error(self):
+        with self.assertRaises(OSError):
+            symtable_utils.lookup_symbol_table("json", filename="/nonexistent/module.py")
+
+
+class TestScopeInspection(unittest.TestCase):
+    def setUp(self):
+        self.table = symtable_utils.build_symbol_table(SAMPLE, "sample.py")
+
+    def test_scope_type_rejects_non_table(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.scope_type("not-a-table")  # type: ignore[arg-type]
+
+    def test_scope_identifiers_rejects_non_table(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.scope_identifiers(None)  # type: ignore[arg-type]
+
+    def test_child_scopes_lists_nested_scopes(self):
+        children = symtable_utils.child_scopes(self.table)
+        names = [child.get_name() for child in children]
+        self.assertIn("outer", names)
+        self.assertIn("Base", names)
+
+    def test_child_scopes_rejects_non_table(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.child_scopes(1)  # type: ignore[arg-type]
+
+    def test_iter_scopes_walks_depth_first(self):
+        paths = [path for path, _ in symtable_utils.iter_scopes(self.table)]
+        self.assertIn((), paths)
+        self.assertIn(("outer",), paths)
+        self.assertIn(("outer", "inner"), paths)
+        self.assertIn(("Base",), paths)
+        self.assertIn(("Base", "method"), paths)
+
+    def test_iter_scopes_rejects_non_table(self):
+        with self.assertRaises(TypeError):
+            list(symtable_utils.iter_scopes(None))  # type: ignore[arg-type]
+
+    def test_find_scope_returns_matching_scope(self):
+        found = symtable_utils.find_scope(self.table, "inner")
+        self.assertIsNotNone(found)
+        self.assertEqual(found.get_name(), "inner")
+        self.assertEqual(found.get_type(), "function")
+
+    def test_find_scope_returns_none_when_missing(self):
+        self.assertIsNone(symtable_utils.find_scope(self.table, "absent"))
+
+    def test_find_scope_rejects_non_string_name(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.find_scope(self.table, 5)  # type: ignore[arg-type]
+
+    def test_find_scope_rejects_non_table(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.find_scope("not-a-table", "inner")  # type: ignore[arg-type]
+
+    def test_describe_scope_reports_metadata(self):
+        described = symtable_utils.describe_scope(self.table)
+        self.assertEqual(described["type"], "module")
+        self.assertEqual(described["name"], "top")
+        self.assertIsInstance(described["lineno"], int)
+        self.assertIn("CONSTANT", described["identifiers"])
+        self.assertIn("outer", described["children"])
+
+    def test_describe_scope_rejects_non_table(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.describe_scope(object())  # type: ignore[arg-type]
+
+
+class TestSymbolInfo(unittest.TestCase):
+    def setUp(self):
+        self.table = symtable_utils.build_symbol_table(SAMPLE, "sample.py")
+
+    def test_symbol_info_reports_name_and_flags(self):
+        info = symtable_utils.symbol_info(self.table, "CONSTANT")
+        self.assertEqual(info["name"], "CONSTANT")
+        self.assertTrue(info["is_global"])
+        self.assertTrue(info["is_assigned"])
+        self.assertFalse(info["is_imported"])
+
+    def test_symbol_info_reports_imported_symbol(self):
+        info = symtable_utils.symbol_info(self.table, "os")
+        self.assertTrue(info["is_imported"])
+        self.assertFalse(info["is_parameter"])
+
+    def test_symbol_info_raises_key_error_when_missing(self):
+        with self.assertRaises(KeyError):
+            symtable_utils.symbol_info(self.table, "missing_name")
+
+    def test_symbol_info_rejects_non_table(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.symbol_info(None, "CONSTANT")  # type: ignore[arg-type]
+
+    def test_symbol_info_rejects_non_string_name(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.symbol_info(self.table, 5)  # type: ignore[arg-type]
+
+    def test_symbol_flags_rejects_non_symbol(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.symbol_flags("not-a-symbol")  # type: ignore[arg-type]
+
+    def test_symbol_flags_covers_every_predicate(self):
+        flags = symtable_utils.symbol_flags(self.table.lookup("CONSTANT"))
+        for name in (
+            "is_global",
+            "is_local",
+            "is_free",
+            "is_nonlocal",
+            "is_parameter",
+            "is_imported",
+            "is_assigned",
+            "is_referenced",
+            "is_namespace",
+            "is_declared_global",
+            "is_declared_nonlocal",
+        ):
+            self.assertIn(name, flags)
+            self.assertIsInstance(flags[name], bool)
+
+    def test_namespace_names_of_class_scope(self):
+        names = symtable_utils.namespace_names(self.table.lookup("Base"))
+        self.assertIn("attribute", names)
+        self.assertIn("method", names)
+
+    def test_namespace_names_returns_empty_for_plain_name(self):
+        self.assertEqual(symtable_utils.namespace_names(self.table.lookup("CONSTANT")), [])
+
+    def test_namespace_names_rejects_non_symbol(self):
+        with self.assertRaises(TypeError):
+            symtable_utils.namespace_names(None)  # type: ignore[arg-type]
+
+
+class TestNameCollectors(unittest.TestCase):
+    def setUp(self):
+        self.table = symtable_utils.build_symbol_table(SAMPLE, "sample.py")
+
+    def test_global_names(self):
+        names = symtable_utils.global_names(self.table)
+        self.assertIn("CONSTANT", names)
+        self.assertIn("outer", names)
+
+    def test_local_names_at_module_scope(self):
+        names = symtable_utils.local_names(self.table)
+        self.assertIn("CONSTANT", names)
+
+    def test_imported_names(self):
+        names = symtable_utils.imported_names(self.table)
+        self.assertEqual(sorted(names), ["Path", "os"])
+
+    def test_assigned_names(self):
+        names = symtable_utils.assigned_names(self.table)
+        self.assertIn("CONSTANT", names)
+        self.assertNotIn("os", names)
+
+    def test_parameter_names_of_function_scope(self):
+        outer = symtable_utils.find_scope(self.table, "outer")
+        self.assertEqual(sorted(symtable_utils.parameter_names(outer)), ["first", "second"])
+
+    def test_free_variables_of_nested_scope(self):
+        inner = symtable_utils.find_scope(self.table, "inner")
+        self.assertEqual(symtable_utils.free_variables(inner), ["local_value"])
+
+    def test_referenced_names_of_function_scope(self):
+        outer = symtable_utils.find_scope(self.table, "outer")
+        self.assertIn("first", symtable_utils.referenced_names(outer))
+
+    def test_nonlocal_names_empty_by_default(self):
+        self.assertEqual(symtable_utils.nonlocal_names(self.table), [])
+
+    def test_nonlocal_names_detects_declaration(self):
+        table = symtable_utils.build_symbol_table(
+            "def outer():\n"
+            "    value = 1\n"
+            "    def inner():\n"
+            "        nonlocal value\n"
+            "        value = 2\n",
+            "nonlocal.py",
+        )
+        inner = symtable_utils.find_scope(table, "inner")
+        self.assertEqual(symtable_utils.nonlocal_names(inner), ["value"])
+
+    def test_collectors_reject_non_table(self):
+        for collector in (
+            symtable_utils.global_names,
+            symtable_utils.local_names,
+            symtable_utils.parameter_names,
+            symtable_utils.imported_names,
+            symtable_utils.assigned_names,
+            symtable_utils.referenced_names,
+            symtable_utils.nonlocal_names,
+            symtable_utils.free_variables,
+        ):
+            with self.subTest(collector=collector.__name__):
+                with self.assertRaises(TypeError):
+                    collector(None)  # type: ignore[arg-type]
+
+
+class TestCompileTypes(unittest.TestCase):
+    def test_compile_types_constant(self):
+        self.assertEqual(
+            symtable_utils.COMPILE_TYPES,
+            ("exec", "eval", "single"),
+        )
+
+
+class TestModuleSurface(unittest.TestCase):
+    def test_public_names_are_exported(self):
+        for name in symtable_utils.__all__:
+            with self.subTest(name=name):
+                self.assertTrue(hasattr(symtable_utils, name))
+
+    def test_all_entries_are_unique(self):
+        self.assertEqual(len(symtable_utils.__all__), len(set(symtable_utils.__all__)))
+
+    def test_reads_source_from_disk(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "module_under_test.py")
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write("MARKER = 42\n")
+            with open(path, encoding="utf-8") as handle:
+                source = handle.read()
+            table = symtable_utils.build_symbol_table(source, path)
+        self.assertIn("MARKER", symtable_utils.scope_identifiers(table))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_SYMTABLE_UTILS
+
+# --- substitute the project name in the templated documents ---
+# The README and the agent instructions are written from quoted heredocs so
+# that their content is copied verbatim; the project name placeholder is
+# replaced here, after every file has been written.
+placeholder_name=${PROJECT_NAME//\\/\\\\}
+placeholder_name=${placeholder_name//&/\\&}
+placeholder_name=${placeholder_name//|/\\|}
+for template in "$OUTPUT_DIR/README.md" "$OUTPUT_DIR/AGENTS.md" "$OUTPUT_DIR/CHANGELOG.md"; do
+  if [[ -f "$template" ]]; then
+    sed "s|\${PROJECT_NAME}|${placeholder_name}|g" "$template" > "$template.tmp"
+    mv "$template.tmp" "$template"
+  fi
+done
