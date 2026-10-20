@@ -235,6 +235,7 @@ py_modules = [
     "sysconfig_utils",
     "mimetypes_utils",
     "wave_utils",
+    "webbrowser_utils",
     "tracemalloc_utils",
     "tty_utils",
     "doctest_utils",

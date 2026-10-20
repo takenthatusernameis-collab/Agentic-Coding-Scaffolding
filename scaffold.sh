@@ -65483,8 +65483,7 @@ def create_ftp(
             raise TypeError("source_address must be a (host, port) tuple or None")
     if not isinstance(encoding, str):
         raise TypeError("encoding must be a str")
-    ftp = FTP(host=host, user=user, passwd=passwd, acct=acct,
-              timeout=timeout, source_address=source_address, encoding=encoding)  # type: ignore[arg-type]
+    ftp = ftplib.FTP(host=host, user=user, passwd=passwd, acct=acct,              timeout=timeout, source_address=source_address, encoding=encoding)  # type: ignore[arg-type]
     return ftp
 
 
@@ -65519,8 +65518,7 @@ def create_ftp_tls(
             raise TypeError("source_address must be a (host, port) tuple or None")
     if not isinstance(encoding, str):
         raise TypeError("encoding must be a str")
-    ftp = FTP_TLS(host=host, user=user, passwd=passwd, acct=acct,
-                  context=context, timeout=timeout, source_address=source_address,
+    ftp = ftplib.FTP_TLS(host=host, user=user, passwd=passwd, acct=acct,                  context=context, timeout=timeout, source_address=source_address,
                   encoding=encoding)  # type: ignore[arg-type]
     return ftp
 
@@ -65759,7 +65757,7 @@ def create_pop3(host: str = "", port: int = POP3_PORT, timeout: float | None = N
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
     to = timeout if timeout is not None else None
-    return POP3(host, port, to)  # type: ignore[arg-type]
+    return poplib.POP3(host, port, to)  # type: ignore[arg-type]
 
 
 def create_pop3_ssl(
@@ -65784,7 +65782,7 @@ def create_pop3_ssl(
         raise TypeError("timeout must be a number or None")
     # keyfile/certfile are accepted for compatibility; Python 3.12 uses context
     to = timeout if timeout is not None else None
-    return POP3_SSL(host, port, context=context, timeout=to)  # type: ignore[arg-type]
+    return poplib.POP3_SSL(host, port, context=context, timeout=to)  # type: ignore[arg-type]
 
 
 def connect_pop3(
