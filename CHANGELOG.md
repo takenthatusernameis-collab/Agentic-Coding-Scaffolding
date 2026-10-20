@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add `modulefinder_utils.py` wrapping the standard library `modulefinder` module (`load_script`, `find_dependencies`, `find_modules`, `missing_modules`, `missing_importers`, `module_path`, `is_package`, `report`) with input validation, plus unit tests in `tests/test_modulefinder_utils.py`.
+- Synchronized `modulefinder_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired the broken `pickletools_utils.py` handover: the wrapper passed an `output` keyword and an unknown `compact` flag to `pickletools.dis`, returned the raw `OpcodeInfo` object (a plain class since Python 3.12, so the documented tuple contract was broken), and encoded integers as a pickle stream that `decode_long` could not read. The module now follows the standard library API, `get_opcode_info` returns a tuple of the documented opcode fields, and `encode_long` produces a payload the running interpreter decodes again.
 - Add `compileall_utils.py` wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation, plus unit tests in `tests/test_compileall_utils.py`.
 - Synchronized `compileall_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Repaired the interrupted `py_compile_utils.py` handover: the previous session registered the module in `pyproject.toml` and documented it in the README, the command documentation, and the changelog, but never embedded `py_compile_utils.py` and `tests/test_py_compile_utils.py` in `scaffold.sh`, so `tests/test_scaffold_sync.py` failed and a scaffolded project was missing the module. Both heredocs are now part of the generator.
@@ -335,6 +338,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `pickletools_utils.py` — stdlib `pickletools` wrapper module with tests
+- `tests/test_pickletools_utils.py` — unit tests for `pickletools_utils.py`
 
 - Added `weakref_utils.py` with weak reference utilities (`WeakRef`, `WeakMethod`, `create_weakref`, `create_proxy`, `get_object`, `is_alive`, `create_finalizer`).
 - `time_utils.py` — time utility functions for working with timestamps and durations (`now_epoch`, `now_iso`, `epoch_to_iso`, `iso_to_epoch`)

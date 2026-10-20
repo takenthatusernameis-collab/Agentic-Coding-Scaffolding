@@ -241,4 +241,5 @@ py_modules = [
     "zipapp_utils",
     "py_compile_utils",
     "compileall_utils",
+    "modulefinder_utils",
 ]

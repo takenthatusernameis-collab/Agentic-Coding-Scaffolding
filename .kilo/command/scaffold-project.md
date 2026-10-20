@@ -456,3 +456,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_py_compile_utils.py` — unit tests for `py_compile_utils.py`
 - `compileall_utils.py` — compileall utilities wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation
 - `tests/test_compileall_utils.py` — unit tests for `compileall_utils.py`
+- `modulefinder_utils.py` — modulefinder utilities wrapping the standard library `modulefinder` module (`load_script`, `find_dependencies`, `find_modules`, `missing_modules`, `missing_importers`, `module_path`, `is_package`, `report`) with input validation
+- `tests/test_modulefinder_utils.py` — unit tests for `modulefinder_utils.py`

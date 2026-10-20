@@ -20,7 +20,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 3391 tests across all wrapper modules (1599 subtests)
+- 3441 tests across all wrapper modules (1624 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -30,14 +30,14 @@ The project foundation is established:
   documented in `README.md`, listed in `.kilo/command/scaffold-project.md` and `CHANGELOG.md`, and
   asserted in `tests/test_scaffold.py`
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 3076 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 3367 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 404 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 408 source files
 
 ## Keeping the Scaffold Synchronized
 
@@ -57,12 +57,11 @@ expectation in `tests/test_scaffold_sync.py`.
 - Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are
   `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
   `sndhdr` (removed in Python 3.13), `cgitb` (removed in Python 3.13), `smtplib`, `ftplib`, `poplib`,
-  `webbrowser`, `xmlrpc`, `pickletools`, `modulefinder`,
-  `xdrlib`, `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`, `opcode`, `optparse`,
-  `rlcompleter`, `pyclbr`, and `encodings`. A natural next candidate is `pickletools_utils.py`
-  wrapping the standard library `pickletools` module: it is pure and hermetic, with no network,
-  subprocess, or interpreter-state dependencies. `modulefinder` and `optparse` are equally hermetic
-  alternatives. Note that the stack formatting helpers (`format_stack`, `format_list`,
+  `webbrowser`, `xmlrpc`, `xdrlib`, `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`,
+  `opcode`, `optparse`, `rlcompleter`, `pyclbr`, and `encodings`. A natural next candidate is
+  `optparse_utils.py` wrapping the standard library `optparse` module: it is pure and hermetic, with
+  no network, subprocess, or interpreter-state dependencies. `opcode`, `rlcompleter`, and `pyclbr` are
+  equally hermetic alternatives. Note that the stack formatting helpers (`format_stack`, `format_list`,
   `format_exception_only`, `print_stack`, `walk_stack`, `extract_stack`) live in the standard library
   `traceback` module and are already wrapped by `traceback_utils.py`; the `trace` module itself only
   offers `Trace`, `CoverageResults`, `PRAGMA_NOCOVER`, and `main`.
@@ -70,12 +69,38 @@ expectation in `tests/test_scaffold_sync.py`.
   subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with
   `unittest.mock.patch` instead of real servers. The same rule applies to the compiler wrappers:
   `compileall_utils.py` narrows `sys.path` with `unittest.mock.patch` so the suite never
-  byte-compiles the interpreter's own import path.
+  byte-compiles the interpreter's own import path. `modulefinder_utils.py` follows the rule as well:
+  the analysis is static, so the analysed script is never imported or executed, and the tests restrict
+  the search path to a temporary directory so the suite never scans the whole import path.
 - Keep `make lint` and `make typecheck` green. Previous sessions left `mailcap_utils.py`,
   `mailbox_utils.py`, and `wave_utils.py` failing mypy and three files failing ruff; the latest
   session repaired them, so a new module must not reintroduce the drift.
 
 Completed in the latest session:
+
+- Added `modulefinder_utils.py` wrapping the standard library `modulefinder` module
+  (`load_script`, `find_dependencies`, `find_modules`, `missing_modules`, `missing_importers`,
+  `module_path`, `is_package`, `report`) with typed signatures, docstrings, `__all__`, and input
+  validation, plus unit tests in `tests/test_modulefinder_utils.py`. The analysis is purely static:
+  the analysed script is never imported and never executed, and the report is returned as text
+  instead of being printed to standard output.
+- Repaired the broken `pickletools_utils.py` handover that the previous session left behind. Six
+  tests failed: the wrapper passed an `output` keyword and an unknown `compact` flag to
+  `pickletools.dis`, returned the raw `OpcodeInfo` object (a plain class since Python 3.12, so the
+  documented tuple contract was broken), and encoded integers as a pickle stream that `decode_long`
+  could not read. The module now follows the standard library API, `get_opcode_info` returns a tuple
+  of the documented opcode fields, and `encode_long` produces a payload the running interpreter
+  decodes again.
+- Closed two synchronization gaps that the previous session left behind: neither the repository
+  `CHANGELOG.md` nor the changelog template embedded in `scaffold.sh` mentioned
+  `tests/test_pickletools_utils.py`, and the embedded changelog never mentioned
+  `pickletools_utils.py` at all, so `tests/test_scaffold_sync.py` and
+  `tests/test_scaffold.py::test_changelog_lists_all_modules` both failed.
+- Added the missing `py_compile_utils.py` and `compileall_utils.py` entries to the README template
+  embedded in `scaffold.sh`, so a scaffolded project documents every wrapper module it ships.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `modulefinder_utils.py` and `tests/test_modulefinder_utils.py`, and its 3367 tests, ruff, and
+  mypy all pass.
 
 - Repaired the interrupted `py_compile_utils` handover. The previous session registered the module in
   `pyproject.toml` and documented it in the README, the command documentation, and the changelog, but

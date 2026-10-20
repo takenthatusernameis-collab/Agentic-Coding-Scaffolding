@@ -301,6 +301,8 @@
 #   - tests/test_py_compile_utils.py — # Tests for py_compile_utils.py
 #   - compileall_utils.py — # Compileall utilities wrapping stdlib compileall (compile_file, compile_dir, compile_path, main, pyc_path)
 #   - tests/test_compileall_utils.py — # Tests for compileall_utils.py
+#   - modulefinder_utils.py — # Modulefinder utilities wrapping stdlib modulefinder (load_script, find_dependencies, find_modules, missing_modules, missing_importers, module_path, is_package, report)
+#   - tests/test_modulefinder_utils.py — # Tests for modulefinder_utils.py
 #   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 #   - tests/test_contextlib_utils.py — # Tests for contextlib_utils.py
 
@@ -4252,6 +4254,7 @@ py_modules = [
      "zipapp_utils",
      "py_compile_utils",
      "compileall_utils",
+    "modulefinder_utils",
      "mailbox_utils",
     "wave_utils",
     "mmap_utils",
@@ -27212,6 +27215,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_py_compile_utils.py` — unit tests for `py_compile_utils.py`
 - `compileall_utils.py` — compileall utilities wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation
 - `tests/test_compileall_utils.py` — unit tests for `compileall_utils.py`
+- `modulefinder_utils.py` — modulefinder utilities wrapping the standard library `modulefinder` module (`load_script`, `find_dependencies`, `find_modules`, `missing_modules`, `missing_importers`, `module_path`, `is_package`, `report`) with input validation
+- `tests/test_modulefinder_utils.py` — unit tests for `modulefinder_utils.py`
 SCAFFOLD
 
 
@@ -28130,6 +28135,9 @@ sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, 
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
 wave_utils.py              # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames, create_writer)
 uu_utils.py                # Uuencode utilities wrapping stdlib uu (uu_encode, uu_decode, encode_uu, decode_uu, parse_uu_header, is_uuencoded)
+py_compile_utils.py        # Py_compile utilities wrapping stdlib py_compile (compile_file/py_compile_file, get_invalidation_mode, parse_invalidation_mode, is_pyc_file, main)
+compileall_utils.py         # Compileall utilities wrapping stdlib compileall (compile_file, compile_dir, compile_path, main, pyc_path)
+modulefinder_utils.py        # Modulefinder utilities wrapping stdlib modulefinder (load_script, find_dependencies, find_modules, missing_modules, missing_importers, module_path, is_package, report)
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
@@ -28353,6 +28361,9 @@ test_typing_utils.py        # Tests for typing_utils.py
 test_pickle_utils.py        # Tests for pickle_utils.py
   test_plistlib_utils.py      # Tests for plistlib_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
+  test_py_compile_utils.py    # Tests for py_compile_utils.py
+  test_compileall_utils.py   # Tests for compileall_utils.py
+  test_modulefinder_utils.py   # Tests for modulefinder_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
   test_queue_utils.py         # Tests for queue_utils.py
@@ -29282,6 +29293,20 @@ The project includes wave audio utilities in `wave_utils.py` wrapping the standa
 
 The project includes uuencode utilities in `uu_utils.py` wrapping the standard library `uu` module: `uu_encode` writes the uuencoded form of a payload to a file, `uu_decode` decodes a uuencoded file back into bytes, `encode_uu` and `decode_uu` do the same entirely in memory, `parse_uu_header` reads the `begin <mode> <name>` header, and `is_uuencoded` reports whether a payload carries such a header. `DEFAULT_FILE_MODE` is the permission mask recorded in the header when the caller does not pick one. Unlike the standard library decoder, the helpers never derive an output filename from the header, so nothing is written to the working directory unless an explicit destination is given. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The standard library `uu` module was removed in Python 3.13, so the helpers raise `RuntimeError` when the interpreter no longer ships it. The module is tested in `tests/test_uu_utils.py`.
 
+## Py_compile Utilities Module
+
+The project includes py_compile utilities in `py_compile_utils.py` wrapping the standard library `py_compile` module: `compile_file` / `py_compile_file` byte-compile one Python source file to bytecode and return the resulting ``.pyc`` path, with optional explicit target name, display name, raise-on-error flag, optimization level, and invalidation mode; `parse_invalidation_mode` and `get_invalidation_mode` resolve a ``PycInvalidationMode`` from a string, enum, or ``None`` (falling back to the interpreter's default); `is_pyc_file` reports whether a path looks like a compiled bytecode file; and `main` runs the ``py_compile`` command-line interface. The module re-exports ``py_compile.PyCompileError`` as `PyCompileError` and ``py_compile.PycInvalidationMode`` as `PycInvalidationMode`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_py_compile_utils.py`.
+
+
+## Compileall Utilities Module
+
+The project includes compileall utilities in `compileall_utils.py` wrapping the standard library `compileall` module: `compile_file` byte-compiles a single Python source file and reports whether the compilation succeeded; `compile_dir` byte-compiles every source file below a directory, with an optional recursion limit, a worker count, a skip pattern, and the legacy bytecode layout; `compile_path` byte-compiles the modules found on ``sys.path``; `main` runs the ``compileall`` command-line interface and returns its exit code, restoring ``sys.argv`` afterwards; and `pyc_path` reports the PEP 3147 cache location the compiler would use for a source file without creating it. The invalidation mode accepts either a ``PycInvalidationMode`` member or its name, with dashes or underscores. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_compileall_utils.py`.
+
+
+## Modulefinder Utilities Module
+
+The project includes dependency analysis utilities in `modulefinder_utils.py` wrapping the standard library `modulefinder` module: `load_script` analyses a script statically and returns the module finder that holds the result; `find_dependencies` returns the sorted names of every module the script imports; `find_modules` maps every dependency to the file it was found in; `missing_modules` returns the imports that could not be resolved; `missing_importers` names the modules that import those unresolved names; `module_path` returns the file a single dependency was found in; `is_package` reports whether a dependency is a package; and `report` returns the textual dependency report instead of printing it. The analysis is purely static: the script is never imported and never executed. `Module` and `ModuleFinder` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_modulefinder_utils.py`.
+
 ## Hello Module
 
 The project includes a sample application entry point in `hello.py`: `main` prints a greeting for the given name and defaults to `"World"`, and running the module directly greets the name given on the command line. The module is tested in `tests/test_hello.py`.
@@ -29300,6 +29325,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- `pickletools_utils.py` — stdlib `pickletools` wrapper module with tests
+- `tests/test_pickletools_utils.py` — unit tests for `pickletools_utils.py`
+- Add `modulefinder_utils.py` wrapping the standard library `modulefinder` module (`load_script`, `find_dependencies`, `find_modules`, `missing_modules`, `missing_importers`, `module_path`, `is_package`, `report`) with input validation, plus unit tests in `tests/test_modulefinder_utils.py`.
+- Synchronized `modulefinder_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired the broken `pickletools_utils.py` handover: the wrapper passed an `output` keyword and an unknown `compact` flag to `pickletools.dis`, returned the raw `OpcodeInfo` object (a plain class since Python 3.12, so the documented tuple contract was broken), and encoded integers as a pickle stream that `decode_long` could not read. The module now follows the standard library API, `get_opcode_info` returns a tuple of the documented opcode fields, and `encode_long` produces a payload the running interpreter decodes again.
+- Added `py_compile_utils.py` and `compileall_utils.py` to the README template embedded in `scaffold.sh`, so a generated project documents every wrapper module it ships.
 - Add `compileall_utils.py` wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation, plus unit tests in `tests/test_compileall_utils.py`.
 - Synchronized `compileall_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `py_compile_utils.py` wrapping the standard library `py_compile` module (`compile_file`/`py_compile_file`, `get_invalidation_mode`, `parse_invalidation_mode`, `is_pyc_file`, `main`) with `PyCompileError` and `PycInvalidationMode` re-exports, plus unit tests in `tests/test_py_compile_utils.py`.
@@ -53290,73 +53321,292 @@ ZONEINFO_UTILS
 
 # --- pickletools_utils.py ---
 cat > "$OUTPUT_DIR/pickletools_utils.py" <<'PICKLETOOLS_UTILS'
-"""Pickletools utility functions."""
+"""Pickletools utility functions.
 
-import io
+Thin, validated wrappers around the standard library :mod:`pickletools` module.
+The helpers disassemble, optimise, and inspect pickle byte streams; they never
+unpickle anything and never execute the code a pickle describes.
+
+.. note::
+
+   The standard library changed two details over the lifetime of the supported
+   interpreters, and this wrapper hides both of them:
+
+   * ``pickletools.OpcodeInfo`` was a named tuple up to Python 3.11 and became
+     a plain class in Python 3.12.  :func:`get_opcode_info` therefore reports
+     the opcode name and the fields the standard library documents instead of
+     relying on the concrete type.
+   * ``pickletools.decode_long`` used to expect a length-prefixed payload and
+     decodes raw little-endian bytes since Python 3.11.  :func:`encode_long`
+     inspects the interpreter at import time and always produces a payload the
+     running interpreter can decode again.
+"""
+
+from __future__ import annotations
+
 import pickle
 import pickletools
-from typing import Any, IO
+from typing import IO, Any, Dict, Iterator, List, Optional, Tuple, Union, cast
+
+__all__ = [
+    "decode_long",
+    "dis",
+    "encode_long",
+    "genops",
+    "get_opcode_info",
+    "get_pickle_size",
+    "is_opcode",
+    "list_opcodes",
+    "optimize",
+]
+
+#: The payload accepted by the standard library ``dis`` and ``genops`` helpers.
+PickleData = Union[bytes, bytearray, IO[bytes]]
 
 
-def dis(pickle_data: bytes | bytearray | IO[bytes], out: IO[str] | None = None,
-        memo: dict[Any, Any] | None = None, indentlevel: int = 4,
-        annotate: int = 0) -> None:
-    """Disassemble a pickle and output the symbolic disassembly."""
-    pickletools.dis(pickle_data, out=out, memo=memo, indentlevel=indentlevel, annotate=annotate)
+def _require_bytes(value: Any, name: str) -> bytes:
+    """Return *value* as bytes, raising ``TypeError`` for other types."""
+    if isinstance(value, bytes):
+        return value
+    if isinstance(value, (bytearray, memoryview)):
+        return bytes(value)
+    raise TypeError(f"{name} must be bytes, got {type(value).__name__}")
 
 
-def genops(pickle_data: bytes | bytearray | IO[bytes]) -> Any:
-    """Generate all the opcode proto-objects in pickle."""
-    return pickletools.genops(pickle_data)
+def _require_pickle_data(value: Any, name: str) -> PickleData:
+    """Return *value* as a pickle payload the standard library accepts."""
+    if isinstance(value, (bytes, bytearray)):
+        return value
+    if hasattr(value, "read"):
+        return cast(PickleData, value)
+    raise TypeError(
+        f"{name} must be bytes or a binary file object, got {type(value).__name__}"
+    )
+
+
+def _require_out(value: Any) -> Optional[IO[str]]:
+    """Return *value* as a text stream, raising ``TypeError`` for other types."""
+    if value is None:
+        return None
+    if hasattr(value, "write"):
+        return cast(IO[str], value)
+    raise TypeError(f"out must be a text stream or None, got {type(value).__name__}")
+
+
+def _require_memo(value: Any) -> Optional[Dict[Any, Any]]:
+    """Return *value* as a memo dictionary, raising ``TypeError`` otherwise."""
+    if value is None:
+        return None
+    if isinstance(value, dict):
+        return value
+    raise TypeError(f"memo must be a dict or None, got {type(value).__name__}")
+
+
+def _require_indentlevel(value: Any) -> int:
+    """Return *value* as an indentation level, raising for invalid values."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"indentlevel must be an int, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"indentlevel must be >= 0, got {value}")
+    return value
+
+
+def _require_annotate(value: Any) -> int:
+    """Return *value* as an annotation level, raising for invalid values."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"annotate must be an int, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"annotate must be >= 0, got {value}")
+    return value
+
+
+def _uses_length_prefix() -> bool:
+    """Return ``True`` when the standard library expects a length prefix.
+
+    Python 3.10 and earlier decode a payload whose first byte holds the
+    number of payload bytes; later interpreters decode the raw little-endian
+    bytes.  The two formats are told apart by a payload that is valid in
+    exactly one of them.
+    """
+    return pickle.decode_long(b"\x02\x05\x00") != 0x000502
+
+
+def _payload_length(value: int) -> int:
+    """Return the number of bytes needed to store *value* as a signed integer."""
+    return max(1, (value.bit_length() + 8) // 8)
+
+
+def dis(
+    pickle_data: PickleData,
+    out: Optional[IO[str]] = None,
+    memo: Optional[Dict[Any, Any]] = None,
+    indentlevel: int = 4,
+    annotate: int = 0,
+) -> None:
+    """Write the symbolic disassembly of a pickle.
+
+    Args:
+        pickle_data: The pickle to disassemble, as bytes or a binary file.
+        out: The text stream the disassembly is written to.  Defaults to
+            standard output.
+        memo: The memo dictionary the disassembly refers to.
+        indentlevel: The number of spaces one nesting level adds.
+        annotate: The annotation level; ``1`` adds the opcode argument names.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *indentlevel* or *annotate* is negative.
+    """
+    data = _require_pickle_data(pickle_data, "pickle_data")
+    stream = _require_out(out)
+    memo_dict = _require_memo(memo)
+    level = _require_indentlevel(indentlevel)
+    annotation = _require_annotate(annotate)
+    pickletools.dis(data, out=stream, memo=memo_dict, indentlevel=level, annotate=annotation)
+
+
+def genops(pickle_data: PickleData) -> Iterator[Any]:
+    """Return an iterator over the opcodes of a pickle.
+
+    Args:
+        pickle_data: The pickle to scan, as bytes or a binary file.
+
+    Returns:
+        An iterator of ``(opcode, argument, position)`` triples.
+
+    Raises:
+        TypeError: If *pickle_data* is neither bytes nor a binary file.
+    """
+    data = _require_pickle_data(pickle_data, "pickle_data")
+    return pickletools.genops(data)
 
 
 def optimize(pickle_data: bytes) -> bytes:
-    """Return an optimized version of the pickle."""
-    return pickletools.optimize(pickle_data)
+    """Return an optimized copy of a pickle.
+
+    Args:
+        pickle_data: The pickle to optimize.
+
+    Returns:
+        The optimized pickle.
+
+    Raises:
+        TypeError: If *pickle_data* is not bytes.
+    """
+    data = _require_bytes(pickle_data, "pickle_data")
+    return pickletools.optimize(data)
 
 
-def get_opcode_info(opcode_name: str) -> Any:
-    """Return information about a pickle opcode."""
-    for op in pickletools.opcodes:
-        if op.name == opcode_name:
-            return op
-    raise KeyError(opcode_name)
+def get_opcode_info(opcode_name: str) -> Tuple[Any, ...]:
+    """Return the description of a pickle opcode.
+
+    Args:
+        opcode_name: The symbolic name of the opcode, such as ``"PROTO"``.
+
+    Returns:
+        A tuple with the opcode name, its byte code, its argument descriptor,
+        the stack before and after the opcode, the protocol that introduced it,
+        and its documentation.
+
+    Raises:
+        TypeError: If *opcode_name* is not a string.
+        KeyError: If no opcode carries that name.
+    """
+    if not isinstance(opcode_name, str):
+        raise TypeError(f"opcode_name must be a str, got {type(opcode_name).__name__}")
+    for opcode in pickletools.opcodes:
+        if opcode.name == opcode_name:
+            return (
+                opcode.name,
+                opcode.code,
+                opcode.arg,
+                tuple(opcode.stack_before),
+                tuple(opcode.stack_after),
+                opcode.proto,
+                opcode.doc,
+            )
+    raise KeyError(f"unknown pickle opcode: {opcode_name}")
 
 
-def list_opcodes() -> list[str]:
-    """Return a list of all opcode names."""
-    return [op.name for op in pickletools.opcodes]
+def list_opcodes() -> List[str]:
+    """Return the names of every pickle opcode.
+
+    Returns:
+        The opcode names in the order the standard library declares them.
+    """
+    return [opcode.name for opcode in pickletools.opcodes]
 
 
 def is_opcode(name: str) -> bool:
-    """Check if a name is a valid pickle opcode."""
-    return any(op.name == name for op in pickletools.opcodes)
+    """Report whether *name* is a pickle opcode.
+
+    Args:
+        name: The symbolic name of the opcode.
+
+    Returns:
+        ``True`` when the standard library knows the opcode.
+
+    Raises:
+        TypeError: If *name* is not a string.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    return any(opcode.name == name for opcode in pickletools.opcodes)
 
 
 def get_pickle_size(pickle_data: bytes) -> int:
-    """Get the size of a pickle in bytes."""
-    return len(pickle_data)
+    """Return the size of a pickle in bytes.
+
+    Args:
+        pickle_data: The pickle to measure.
+
+    Returns:
+        The number of bytes the pickle occupies.
+
+    Raises:
+        TypeError: If *pickle_data* is not bytes.
+    """
+    data = _require_bytes(pickle_data, "pickle_data")
+    return len(data)
 
 
 def decode_long(data: bytes) -> int:
-    """Decode a long integer from a bytes object."""
-    return pickletools.decode_long(data)
+    """Decode an integer from its two's complement little-endian form.
+
+    Args:
+        data: The bytes to decode.
+
+    Returns:
+        The decoded integer.
+
+    Raises:
+        TypeError: If *data* is not bytes.
+        ValueError: If the standard library rejects the payload.
+    """
+    payload = _require_bytes(data, "data")
+    return pickle.decode_long(payload)
 
 
-def encode_long(x: int) -> bytes:
-    """Encode a long integer as a bytes object."""
-    if hasattr(pickletools, 'encode_long'):
-        return pickletools.encode_long(x)
-    # Fallback: use pickle's encoding
-    f = io.BytesIO()
-    p = pickle._Pickler(f, protocol=2)
-    p.dump(x)
-    return f.getvalue()
+def encode_long(value: int) -> bytes:
+    """Encode an integer in the form the standard library decodes again.
 
+    Args:
+        value: The integer to encode.
 
-def __getattr__(name: str) -> Any:
-    """Delegate unknown attributes to the pickletools module."""
-    return getattr(pickletools, name)
+    Returns:
+        The encoded payload.
+
+    Raises:
+        TypeError: If *value* is not an integer.
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    payload = value.to_bytes(_payload_length(value), "little", signed=True)
+    if not _uses_length_prefix():
+        return payload
+    if len(payload) >= 0xFF:
+        return b"\xff" + payload
+    return bytes([len(payload)]) + payload
 PICKLETOOLS_UTILS
 
 # --- tests/test_pickletools_utils.py ---
@@ -53365,7 +53615,6 @@ cat > "$OUTPUT_DIR/tests/test_pickletools_utils.py" <<'TEST_PICKLETOOLS_UTILS'
 
 import io
 import pickle
-import pickletools
 import unittest
 
 from pickletools_utils import (
@@ -53385,21 +53634,32 @@ class TestPickletoolsDis(unittest.TestCase):
     def test_dis_basic(self) -> None:
         data = pickle.dumps({"hello": "world"})
         output = io.StringIO()
-        dis(data, output=output)
+        dis(data, out=output)
         result = output.getvalue()
-        self.assertIn("proto", result.lower() or result)
+        self.assertIn("proto", result.lower())
 
     def test_dis_with_memo(self) -> None:
         data = pickle.dumps([1, 2, 3])
         output = io.StringIO()
-        dis(data, memo={}, output=output)
+        dis(data, memo={}, out=output)
         self.assertGreater(len(output.getvalue()), 0)
 
     def test_dis_with_compact(self) -> None:
         data = pickle.dumps("test")
         output = io.StringIO()
-        dis(data, output=output, compact=True)
+        dis(data, out=output, indentlevel=0)
         self.assertGreater(len(output.getvalue()), 0)
+
+    def test_dis_validates_inputs(self) -> None:
+        data = pickle.dumps("test")
+        with self.assertRaises(TypeError):
+            dis(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dis(data, out="not-a-stream")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dis(data, memo="not-a-dict")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            dis(data, indentlevel=-1)
 
 
 class TestPickletoolsGenops(unittest.TestCase):
@@ -53413,6 +53673,10 @@ class TestPickletoolsGenops(unittest.TestCase):
         ops = list(genops(data))
         # Each op is a tuple
         self.assertIsInstance(ops[0], tuple)
+
+    def test_genops_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            genops(123)  # type: ignore[arg-type]
 
 
 class TestPickletoolsOptimize(unittest.TestCase):
@@ -53429,6 +53693,10 @@ class TestPickletoolsOptimize(unittest.TestCase):
         optimized = optimize(data)
         self.assertEqual(pickle.loads(optimized), original)
 
+    def test_optimize_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            optimize("not bytes")  # type: ignore[arg-type]
+
 
 class TestPickletoolsOpcodes(unittest.TestCase):
     def test_list_opcodes(self) -> None:
@@ -53444,9 +53712,22 @@ class TestPickletoolsOpcodes(unittest.TestCase):
     def test_is_opcode_invalid(self) -> None:
         self.assertFalse(is_opcode("NOT_AN_OPCODE"))
 
+    def test_is_opcode_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            is_opcode(42)  # type: ignore[arg-type]
+
     def test_get_opcode_info(self) -> None:
         info = get_opcode_info("STOP")
         self.assertIsInstance(info, tuple)
+        self.assertEqual(info[0], "STOP")
+
+    def test_get_opcode_info_rejects_unknown_opcodes(self) -> None:
+        with self.assertRaises(KeyError):
+            get_opcode_info("NOT_AN_OPCODE")
+
+    def test_get_opcode_info_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            get_opcode_info(42)  # type: ignore[arg-type]
 
 
 class TestPickletoolsUtils(unittest.TestCase):
@@ -53454,6 +53735,10 @@ class TestPickletoolsUtils(unittest.TestCase):
         data = pickle.dumps({"test": 123})
         size = get_pickle_size(data)
         self.assertEqual(size, len(data))
+
+    def test_get_pickle_size_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            get_pickle_size("not bytes")  # type: ignore[arg-type]
 
     def test_encode_decode_long(self) -> None:
         num = 123456789
@@ -53467,6 +53752,19 @@ class TestPickletoolsUtils(unittest.TestCase):
         encoded = encode_long(num)
         decoded = decode_long(encoded)
         self.assertEqual(decoded, num)
+
+    def test_encode_decode_long_boundaries(self) -> None:
+        for num in (0, 1, -1, 127, 128, -128, -129, 2**63 - 1, -(2**63)):
+            with self.subTest(value=num):
+                self.assertEqual(decode_long(encode_long(num)), num)
+
+    def test_encode_long_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            encode_long("not an int")  # type: ignore[arg-type]
+
+    def test_decode_long_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            decode_long("not bytes")  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -60012,6 +60310,657 @@ class TestPyCompileUtils(TestCase):
         with self.assertRaises(TypeError):
             py_compile_utils.main("not-a-list")  # type: ignore[arg-type]
 TEST_PY_COMPILE_UTILS
+
+# --- modulefinder_utils.py ---
+cat > "$OUTPUT_DIR/modulefinder_utils.py" <<'MODULEFINDER_UTILS'
+"""Dependency analysis utilities wrapping the standard library :mod:`modulefinder`.
+
+The :mod:`modulefinder` module answers the question "which modules does this
+script need?" by *statically* analysing the byte code of a script and of every
+module it imports.  Nothing is imported and nothing is executed, so the
+analysis is safe for untrusted sources and never triggers import side effects.
+
+This wrapper exposes validated helpers that answer the question in the shapes
+callers usually need: the sorted list of dependency names, the file each
+dependency was found in, the modules that could not be located, the importers
+of those missing modules, and the textual report of the standard library.
+
+.. note::
+
+   The analysis is purely static.  A script that would raise, block, or open a
+   network connection at import time is scanned just like any other script,
+   because the byte code is never run.
+
+The standard library reports a missing import either as *certainly* missing or
+as *maybe* missing: a name imported with ``from package import *`` may be an
+attribute of the package rather than a submodule.  The helpers here follow the
+same distinction and expose both views.
+"""
+
+from __future__ import annotations
+
+import io
+import modulefinder
+import os
+import sys
+from contextlib import redirect_stdout
+from pathlib import Path
+from typing import Dict, Iterable, List, Optional, Union
+
+__all__ = [
+    "Module",
+    "ModuleFinder",
+    "find_dependencies",
+    "find_modules",
+    "is_package",
+    "load_script",
+    "missing_importers",
+    "missing_modules",
+    "module_path",
+    "report",
+]
+
+#: The standard library module description re-exported for convenience.
+Module = modulefinder.Module
+
+#: The standard library module finder re-exported for convenience.
+ModuleFinder = modulefinder.ModuleFinder
+
+PathLike = Union[str, "os.PathLike[str]"]
+
+#: The name the standard library gives to the analysed script itself.
+MAIN_MODULE_NAME = "__main__"
+
+
+def _require_script(script: PathLike) -> Path:
+    """Return *script* as an existing :class:`~pathlib.Path`.
+
+    Args:
+        script: The path of the script to analyse.
+
+    Returns:
+        The resolved path of the script.
+
+    Raises:
+        TypeError: If *script* is not a string or an ``os.PathLike``.
+        FileNotFoundError: If *script* does not point at an existing file.
+    """
+    if isinstance(script, str):
+        path = Path(script)
+    elif isinstance(script, os.PathLike):
+        path = Path(os.fspath(script))
+    else:
+        raise TypeError(f"script must be a str or os.PathLike, got {type(script).__name__}")
+    if not path.is_file():
+        raise FileNotFoundError(f"script not found: {path}")
+    return path
+
+
+def _require_search_path(path: Optional[Iterable[PathLike]]) -> Optional[List[str]]:
+    """Return *path* as a list of directory strings.
+
+    Args:
+        path: The directories the analysis searches, or ``None``.
+
+    Returns:
+        The search path as a list of strings, or ``None`` when no path was given.
+
+    Raises:
+        TypeError: If *path* is a string or contains a non-path entry.
+    """
+    if path is None:
+        return None
+    if isinstance(path, (str, bytes, os.PathLike)):
+        raise TypeError("path must be a sequence of directories, not a single path")
+    try:
+        entries = list(path)
+    except TypeError as exc:
+        raise TypeError(
+            f"path must be an iterable of directories, got {type(path).__name__}"
+        ) from exc
+    search_path: List[str] = []
+    for entry in entries:
+        if isinstance(entry, str):
+            search_path.append(entry)
+        elif isinstance(entry, os.PathLike):
+            search_path.append(os.fspath(entry))
+        else:
+            raise TypeError(
+                f"path entries must be str or os.PathLike, got {type(entry).__name__}"
+            )
+    return search_path
+
+
+def _require_excludes(excludes: Optional[Iterable[str]]) -> Optional[List[str]]:
+    """Return *excludes* as a list of module names.
+
+    Args:
+        excludes: The module names the analysis must ignore, or ``None``.
+
+    Returns:
+        The excluded module names, or ``None`` when nothing was excluded.
+
+    Raises:
+        TypeError: If *excludes* is a string or contains a non-string entry.
+    """
+    if excludes is None:
+        return None
+    if isinstance(excludes, (str, bytes)):
+        raise TypeError("excludes must be a sequence of module names, not a single name")
+    try:
+        names = list(excludes)
+    except TypeError as exc:
+        raise TypeError(
+            f"excludes must be an iterable of module names, got {type(excludes).__name__}"
+        ) from exc
+    for name in names:
+        if not isinstance(name, str):
+            raise TypeError(f"excludes entries must be str, got {type(name).__name__}")
+    return names
+
+
+def _require_module_name(name: str) -> str:
+    """Return *name* as a module name.
+
+    Args:
+        name: The name of the module to look up.
+
+    Returns:
+        The validated module name.
+
+    Raises:
+        TypeError: If *name* is not a string.
+    """
+    if not isinstance(name, str):
+        raise TypeError(f"name must be a str, got {type(name).__name__}")
+    return name
+
+
+def load_script(
+    script: PathLike,
+    path: Optional[Iterable[PathLike]] = None,
+    excludes: Optional[Iterable[str]] = None,
+) -> ModuleFinder:
+    """Analyse *script* and return the module finder that holds the result.
+
+    The script is scanned, never executed.  When no *path* is given, the
+    directory of the script is searched first, followed by :data:`sys.path`.
+
+    Args:
+        script: The path of the script to analyse.
+        path: The directories the analysis searches.  Defaults to the script
+            directory followed by :data:`sys.path`.
+        excludes: The module names the analysis must ignore.
+
+    Returns:
+        A :class:`modulefinder.ModuleFinder` whose ``modules`` mapping holds
+        every module that was found and whose ``badmodules`` mapping holds the
+        imports that could not be resolved.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        FileNotFoundError: If *script* does not point at an existing file.
+        SyntaxError: If *script* is not valid Python source.
+    """
+    script_path = _require_script(script)
+    search_path = _require_search_path(path)
+    excluded = _require_excludes(excludes)
+    if search_path is None:
+        search_path = [str(script_path.parent), *sys.path]
+    finder = ModuleFinder(path=search_path, debug=0, excludes=excluded or [])
+    finder.run_script(str(script_path))
+    return finder
+
+
+def find_dependencies(
+    script: PathLike,
+    path: Optional[Iterable[PathLike]] = None,
+    excludes: Optional[Iterable[str]] = None,
+) -> List[str]:
+    """Return the sorted names of every module *script* depends on.
+
+    The script itself is registered as ``__main__`` by the standard library and
+    is therefore not part of the result.
+
+    Args:
+        script: The path of the script to analyse.
+        path: The directories the analysis searches.
+        excludes: The module names the analysis must ignore.
+
+    Returns:
+        The sorted names of the modules the script imports.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        FileNotFoundError: If *script* does not point at an existing file.
+        SyntaxError: If *script* is not valid Python source.
+    """
+    finder = load_script(script, path, excludes)
+    return sorted(name for name in finder.modules if name != MAIN_MODULE_NAME)
+
+
+def find_modules(
+    script: PathLike,
+    path: Optional[Iterable[PathLike]] = None,
+    excludes: Optional[Iterable[str]] = None,
+) -> Dict[str, Optional[str]]:
+    """Return every module *script* depends on together with its file.
+
+    Args:
+        script: The path of the script to analyse.
+        path: The directories the analysis searches.
+        excludes: The module names the analysis must ignore.
+
+    Returns:
+        A mapping of module name to the file the module was found in.  Built-in
+        modules have no file and map to ``None``.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        FileNotFoundError: If *script* does not point at an existing file.
+        SyntaxError: If *script* is not valid Python source.
+    """
+    finder = load_script(script, path, excludes)
+    return {
+        name: getattr(module, "__file__", None)
+        for name, module in finder.modules.items()
+    }
+
+
+def missing_modules(
+    script: PathLike,
+    path: Optional[Iterable[PathLike]] = None,
+    excludes: Optional[Iterable[str]] = None,
+) -> List[str]:
+    """Return the names of the modules *script* imports that were not found.
+
+    The result merges the modules that are certainly missing with the modules
+    that may be missing, exactly like the standard library does.
+
+    Args:
+        script: The path of the script to analyse.
+        path: The directories the analysis searches.
+        excludes: The module names the analysis must ignore.
+
+    Returns:
+        The sorted names of the unresolved imports.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        FileNotFoundError: If *script* does not point at an existing file.
+        SyntaxError: If *script* is not valid Python source.
+    """
+    finder = load_script(script, path, excludes)
+    return sorted(finder.any_missing())
+
+
+def missing_importers(
+    script: PathLike,
+    path: Optional[Iterable[PathLike]] = None,
+    excludes: Optional[Iterable[str]] = None,
+) -> Dict[str, List[str]]:
+    """Return the unresolved imports of *script* together with their importers.
+
+    Args:
+        script: The path of the script to analyse.
+        path: The directories the analysis searches.
+        excludes: The module names the analysis must ignore.
+
+    Returns:
+        A mapping of the unresolved module name to the sorted names of the
+        modules that import it.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        FileNotFoundError: If *script* does not point at an existing file.
+        SyntaxError: If *script* is not valid Python source.
+    """
+    finder = load_script(script, path, excludes)
+    return {
+        name: sorted(importers)
+        for name, importers in finder.badmodules.items()
+    }
+
+
+def module_path(
+    script: PathLike,
+    name: str,
+    path: Optional[Iterable[PathLike]] = None,
+    excludes: Optional[Iterable[str]] = None,
+) -> Optional[str]:
+    """Return the file the module *name* was found in.
+
+    Args:
+        script: The path of the script to analyse.
+        name: The name of the module to look up.
+        path: The directories the analysis searches.
+        excludes: The module names the analysis must ignore.
+
+    Returns:
+        The path of the module, or ``None`` for built-in modules.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        KeyError: If *name* is not a dependency of *script*.
+        FileNotFoundError: If *script* does not point at an existing file.
+        SyntaxError: If *script* is not valid Python source.
+    """
+    module_name = _require_module_name(name)
+    finder = load_script(script, path, excludes)
+    module = finder.modules.get(module_name)
+    if module is None:
+        raise KeyError(f"module not found in the dependencies of {script}: {module_name}")
+    return getattr(module, "__file__", None)
+
+
+def is_package(
+    script: PathLike,
+    name: str,
+    path: Optional[Iterable[PathLike]] = None,
+    excludes: Optional[Iterable[str]] = None,
+) -> bool:
+    """Return ``True`` when *name* is a package *script* depends on.
+
+    Args:
+        script: The path of the script to analyse.
+        name: The name of the module to look up.
+        path: The directories the analysis searches.
+        excludes: The module names the analysis must ignore.
+
+    Returns:
+        ``True`` when the module is a package, ``False`` otherwise.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        KeyError: If *name* is not a dependency of *script*.
+        FileNotFoundError: If *script* does not point at an existing file.
+        SyntaxError: If *script* is not valid Python source.
+    """
+    module_name = _require_module_name(name)
+    finder = load_script(script, path, excludes)
+    module = finder.modules.get(module_name)
+    if module is None:
+        raise KeyError(f"module not found in the dependencies of {script}: {module_name}")
+    return bool(getattr(module, "__path__", None))
+
+
+def report(
+    script: PathLike,
+    path: Optional[Iterable[PathLike]] = None,
+    excludes: Optional[Iterable[str]] = None,
+) -> str:
+    """Return the dependency report of *script* as text.
+
+    The standard library prints the report to standard output; this helper
+    captures it and returns it instead, so the caller decides where the report
+    goes.
+
+    Args:
+        script: The path of the script to analyse.
+        path: The directories the analysis searches.
+        excludes: The module names the analysis must ignore.
+
+    Returns:
+        The textual report listing every module that was found and every
+        import that could not be resolved.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        FileNotFoundError: If *script* does not point at an existing file.
+        SyntaxError: If *script* is not valid Python source.
+    """
+    finder = load_script(script, path, excludes)
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        finder.report()
+    return buffer.getvalue()
+MODULEFINDER_UTILS
+
+# --- tests/test_modulefinder_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_modulefinder_utils.py" <<'TEST_MODULEFINDER_UTILS'
+"""Tests for modulefinder utility functions."""
+
+import sys
+import sysconfig
+import tempfile
+import unittest
+from contextlib import redirect_stdout
+from io import StringIO
+from pathlib import Path
+
+import modulefinder_utils
+
+#: Name of the local helper module created next to the analysed scripts.
+HELPER_NAME = "mf_local_helper"
+
+#: Name of the local package created next to the analysed scripts.
+PACKAGE_NAME = "mf_local_package"
+
+
+class TestModulefinderUtils(unittest.TestCase):
+    """Exercise the validated wrappers around the standard library module."""
+
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmpdir.cleanup)
+        self.root = Path(self.tmpdir.name)
+
+    def _write(self, name: str, content: str = "VALUE = 1\n") -> Path:
+        """Create a source file below the temporary directory and return its path."""
+        path = self.root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+        return path
+
+    def _write_helper(self) -> Path:
+        """Create the local helper module and return its path."""
+        return self._write(f"{HELPER_NAME}.py")
+
+    def _search_path(self) -> list[str]:
+        """Return the restricted search path used by the fast tests."""
+        return [str(self.root)]
+
+    def _stdlib_search_path(self) -> list[str]:
+        """Return a search path that also contains the standard library."""
+        return [str(self.root), sysconfig.get_paths()["stdlib"]]
+
+    def test_find_dependencies_lists_imported_modules(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        dependencies = modulefinder_utils.find_dependencies(
+            script, path=self._search_path()
+        )
+        self.assertIn(HELPER_NAME, dependencies)
+
+    def test_find_dependencies_excludes_the_script_itself(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        dependencies = modulefinder_utils.find_dependencies(
+            script, path=self._search_path()
+        )
+        self.assertNotIn("__main__", dependencies)
+
+    def test_find_dependencies_are_sorted(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\nimport json\n")
+        dependencies = modulefinder_utils.find_dependencies(
+            script, path=self._search_path()
+        )
+        self.assertEqual(dependencies, sorted(dependencies))
+
+    def test_find_dependencies_finds_standard_library_modules(self) -> None:
+        script = self._write("app.py", "import base64\n")
+        dependencies = modulefinder_utils.find_dependencies(
+            script, path=self._stdlib_search_path()
+        )
+        self.assertIn("base64", dependencies)
+
+    def test_find_dependencies_accepts_a_string_path(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        dependencies = modulefinder_utils.find_dependencies(
+            str(script), path=self._search_path()
+        )
+        self.assertIn(HELPER_NAME, dependencies)
+
+    def test_find_dependencies_honours_excludes(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        dependencies = modulefinder_utils.find_dependencies(
+            script, path=self._search_path(), excludes=[HELPER_NAME]
+        )
+        self.assertNotIn(HELPER_NAME, dependencies)
+
+    def test_find_modules_maps_names_to_files(self) -> None:
+        helper = self._write(f"{HELPER_NAME}.py")
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        modules = modulefinder_utils.find_modules(script, path=self._search_path())
+        self.assertEqual(modules[HELPER_NAME], str(helper))
+
+    def test_find_modules_reports_none_for_builtin_modules(self) -> None:
+        script = self._write("app.py", "import sys\n")
+        modules = modulefinder_utils.find_modules(script, path=self._search_path())
+        self.assertIn("sys", modules)
+        self.assertIsNone(modules["sys"])
+
+    def test_missing_modules_reports_unknown_imports(self) -> None:
+        script = self._write("app.py", "import mf_missing_dependency\n")
+        missing = modulefinder_utils.missing_modules(script, path=self._search_path())
+        self.assertIn("mf_missing_dependency", missing)
+
+    def test_missing_modules_is_empty_for_resolvable_imports(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        missing = modulefinder_utils.missing_modules(script, path=self._search_path())
+        self.assertEqual(missing, [])
+
+    def test_missing_modules_ignores_excluded_modules(self) -> None:
+        script = self._write("app.py", "import mf_missing_dependency\n")
+        missing = modulefinder_utils.missing_modules(
+            script, path=self._search_path(), excludes=["mf_missing_dependency"]
+        )
+        self.assertNotIn("mf_missing_dependency", missing)
+
+    def test_missing_importers_names_the_importing_module(self) -> None:
+        script = self._write("app.py", "import mf_missing_dependency\n")
+        importers = modulefinder_utils.missing_importers(script, path=self._search_path())
+        self.assertIn("mf_missing_dependency", importers)
+        self.assertEqual(importers["mf_missing_dependency"], ["__main__"])
+
+    def test_module_path_returns_the_module_file(self) -> None:
+        helper = self._write(f"{HELPER_NAME}.py")
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        self.assertEqual(
+            modulefinder_utils.module_path(script, HELPER_NAME, path=self._search_path()),
+            str(helper),
+        )
+
+    def test_module_path_raises_key_error_for_unknown_modules(self) -> None:
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        with self.assertRaises(KeyError):
+            modulefinder_utils.module_path(
+                script, "mf_unknown_module", path=self._search_path()
+            )
+
+    def test_module_path_rejects_non_string_names(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        with self.assertRaises(TypeError):
+            modulefinder_utils.module_path(
+                script,
+                42,  # type: ignore[arg-type]
+                path=self._search_path(),
+            )
+
+    def test_is_package_detects_packages(self) -> None:
+        self._write(f"{PACKAGE_NAME}/__init__.py", "VALUE = 1\n")
+        script = self._write("app.py", f"import {PACKAGE_NAME}\n")
+        self.assertTrue(
+            modulefinder_utils.is_package(
+                script, PACKAGE_NAME, path=self._search_path()
+            )
+        )
+
+    def test_is_package_rejects_plain_modules(self) -> None:
+        self._write(f"{HELPER_NAME}.py")
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        self.assertFalse(
+            modulefinder_utils.is_package(script, HELPER_NAME, path=self._search_path())
+        )
+
+    def test_is_package_raises_key_error_for_unknown_modules(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        with self.assertRaises(KeyError):
+            modulefinder_utils.is_package(
+                script, "mf_unknown_module", path=self._search_path()
+            )
+
+    def test_report_lists_the_dependencies(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        text = modulefinder_utils.report(script, path=self._search_path())
+        self.assertIn(HELPER_NAME, text)
+        self.assertIn("Name", text)
+
+    def test_report_does_not_write_to_standard_output(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        buffer = StringIO()
+        with redirect_stdout(buffer):
+            modulefinder_utils.report(script, path=self._search_path())
+        self.assertEqual(buffer.getvalue(), "")
+
+    def test_load_script_returns_a_module_finder(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        finder = modulefinder_utils.load_script(script, path=self._search_path())
+        self.assertIsInstance(finder, modulefinder_utils.ModuleFinder)
+        self.assertIn(HELPER_NAME, finder.modules)
+        self.assertIn("__main__", finder.modules)
+
+    def test_analysis_does_not_execute_the_script(self) -> None:
+        script = self._write("app.py", "raise SystemExit('the script must not run')\n")
+        dependencies = modulefinder_utils.find_dependencies(
+            script, path=self._search_path()
+        )
+        self.assertEqual(dependencies, [])
+
+    def test_analysis_does_not_import_the_analysed_modules(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        modulefinder_utils.find_dependencies(script, path=self._search_path())
+        self.assertNotIn(HELPER_NAME, sys.modules)
+
+    def test_load_script_rejects_invalid_scripts(self) -> None:
+        with self.assertRaises(TypeError):
+            modulefinder_utils.load_script(42)  # type: ignore[arg-type]
+        with self.assertRaises(FileNotFoundError):
+            modulefinder_utils.load_script(self.root / "does_not_exist.py")
+
+    def test_load_script_rejects_invalid_search_paths(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        with self.assertRaises(TypeError):
+            modulefinder_utils.load_script(script, path=str(self.root))
+        with self.assertRaises(TypeError):
+            modulefinder_utils.load_script(script, path=[42])  # type: ignore[list-item]
+
+    def test_load_script_rejects_invalid_excludes(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        with self.assertRaises(TypeError):
+            modulefinder_utils.load_script(script, excludes=HELPER_NAME)
+        with self.assertRaises(TypeError):
+            modulefinder_utils.load_script(
+                script,
+                excludes=[42],  # type: ignore[list-item]
+            )
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_MODULEFINDER_UTILS
 
 # --- compileall_utils.py ---
 cat > "$OUTPUT_DIR/compileall_utils.py" <<'COMPILEALL_UTILS'

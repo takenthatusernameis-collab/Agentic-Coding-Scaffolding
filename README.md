@@ -116,6 +116,7 @@ uu_utils.py                # Uuencode utilities wrapping stdlib uu (uu_encode, u
 zipapp_utils.py            # Zipapp utilities wrapping stdlib zipapp (create_archive/create_zipapp, get_interpreter/get_zipapp_interpreter, is_zipapp_archive)
 py_compile_utils.py        # Py_compile utilities wrapping stdlib py_compile (compile_file/py_compile_file, get_invalidation_mode, parse_invalidation_mode, is_pyc_file, main)
 compileall_utils.py         # Compileall utilities wrapping stdlib compileall (compile_file, compile_dir, compile_path, main, pyc_path)
+modulefinder_utils.py        # Modulefinder utilities wrapping stdlib modulefinder (load_script, find_dependencies, find_modules, missing_modules, missing_importers, module_path, is_package, report)
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
@@ -340,6 +341,7 @@ test_pickle_utils.py        # Tests for pickle_utils.py
         test_pickletools_utils.py # Tests for pickletools_utils.py
   test_plistlib_utils.py      # Tests for plistlib_utils.py
   test_prime_utils.py         # Tests for prime_utils.py
+  test_modulefinder_utils.py   # Tests for modulefinder_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
   test_queue_utils.py         # Tests for queue_utils.py
@@ -1313,3 +1315,8 @@ The project includes py_compile utilities in `py_compile_utils.py` wrapping the 
 ## Compileall Utilities Module
 
 The project includes compileall utilities in `compileall_utils.py` wrapping the standard library `compileall` module: `compile_file` byte-compiles a single Python source file and reports whether the compilation succeeded; `compile_dir` byte-compiles every source file below a directory, with an optional recursion limit, a worker count, a skip pattern, and the legacy bytecode layout; `compile_path` byte-compiles the modules found on ``sys.path``; `main` runs the ``compileall`` command-line interface and returns its exit code, restoring ``sys.argv`` afterwards; and `pyc_path` reports the PEP 3147 cache location the compiler would use for a source file without creating it. The invalidation mode accepts either a ``PycInvalidationMode`` member or its name, with dashes or underscores. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_compileall_utils.py`.
+
+
+## Modulefinder Utilities Module
+
+The project includes dependency analysis utilities in `modulefinder_utils.py` wrapping the standard library `modulefinder` module: `load_script` analyses a script statically and returns the module finder that holds the result; `find_dependencies` returns the sorted names of every module the script imports; `find_modules` maps every dependency to the file it was found in; `missing_modules` returns the imports that could not be resolved; `missing_importers` names the modules that import those unresolved names; `module_path` returns the file a single dependency was found in; `is_package` reports whether a dependency is a package; and `report` returns the textual dependency report instead of printing it. The analysis is purely static: the script is never imported and never executed. `Module` and `ModuleFinder` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_modulefinder_utils.py`.

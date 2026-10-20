@@ -2,7 +2,6 @@
 
 import io
 import pickle
-import pickletools
 import unittest
 
 from pickletools_utils import (
@@ -22,21 +21,32 @@ class TestPickletoolsDis(unittest.TestCase):
     def test_dis_basic(self) -> None:
         data = pickle.dumps({"hello": "world"})
         output = io.StringIO()
-        dis(data, output=output)
+        dis(data, out=output)
         result = output.getvalue()
-        self.assertIn("proto", result.lower() or result)
+        self.assertIn("proto", result.lower())
 
     def test_dis_with_memo(self) -> None:
         data = pickle.dumps([1, 2, 3])
         output = io.StringIO()
-        dis(data, memo={}, output=output)
+        dis(data, memo={}, out=output)
         self.assertGreater(len(output.getvalue()), 0)
 
     def test_dis_with_compact(self) -> None:
         data = pickle.dumps("test")
         output = io.StringIO()
-        dis(data, output=output, compact=True)
+        dis(data, out=output, indentlevel=0)
         self.assertGreater(len(output.getvalue()), 0)
+
+    def test_dis_validates_inputs(self) -> None:
+        data = pickle.dumps("test")
+        with self.assertRaises(TypeError):
+            dis(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dis(data, out="not-a-stream")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dis(data, memo="not-a-dict")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            dis(data, indentlevel=-1)
 
 
 class TestPickletoolsGenops(unittest.TestCase):
@@ -50,6 +60,10 @@ class TestPickletoolsGenops(unittest.TestCase):
         ops = list(genops(data))
         # Each op is a tuple
         self.assertIsInstance(ops[0], tuple)
+
+    def test_genops_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            genops(123)  # type: ignore[arg-type]
 
 
 class TestPickletoolsOptimize(unittest.TestCase):
@@ -66,6 +80,10 @@ class TestPickletoolsOptimize(unittest.TestCase):
         optimized = optimize(data)
         self.assertEqual(pickle.loads(optimized), original)
 
+    def test_optimize_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            optimize("not bytes")  # type: ignore[arg-type]
+
 
 class TestPickletoolsOpcodes(unittest.TestCase):
     def test_list_opcodes(self) -> None:
@@ -81,9 +99,22 @@ class TestPickletoolsOpcodes(unittest.TestCase):
     def test_is_opcode_invalid(self) -> None:
         self.assertFalse(is_opcode("NOT_AN_OPCODE"))
 
+    def test_is_opcode_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            is_opcode(42)  # type: ignore[arg-type]
+
     def test_get_opcode_info(self) -> None:
         info = get_opcode_info("STOP")
         self.assertIsInstance(info, tuple)
+        self.assertEqual(info[0], "STOP")
+
+    def test_get_opcode_info_rejects_unknown_opcodes(self) -> None:
+        with self.assertRaises(KeyError):
+            get_opcode_info("NOT_AN_OPCODE")
+
+    def test_get_opcode_info_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            get_opcode_info(42)  # type: ignore[arg-type]
 
 
 class TestPickletoolsUtils(unittest.TestCase):
@@ -91,6 +122,10 @@ class TestPickletoolsUtils(unittest.TestCase):
         data = pickle.dumps({"test": 123})
         size = get_pickle_size(data)
         self.assertEqual(size, len(data))
+
+    def test_get_pickle_size_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            get_pickle_size("not bytes")  # type: ignore[arg-type]
 
     def test_encode_decode_long(self) -> None:
         num = 123456789
@@ -104,6 +139,19 @@ class TestPickletoolsUtils(unittest.TestCase):
         encoded = encode_long(num)
         decoded = decode_long(encoded)
         self.assertEqual(decoded, num)
+
+    def test_encode_decode_long_boundaries(self) -> None:
+        for num in (0, 1, -1, 127, 128, -128, -129, 2**63 - 1, -(2**63)):
+            with self.subTest(value=num):
+                self.assertEqual(decode_long(encode_long(num)), num)
+
+    def test_encode_long_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            encode_long("not an int")  # type: ignore[arg-type]
+
+    def test_decode_long_validates_inputs(self) -> None:
+        with self.assertRaises(TypeError):
+            decode_long("not bytes")  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
