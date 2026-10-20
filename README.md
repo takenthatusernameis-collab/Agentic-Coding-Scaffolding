@@ -33,6 +33,8 @@ kilo.json                    # Kilo project configuration
 Makefile                     # Common developer targets
 pyproject.toml               # Python project configuration (pytest, ruff, mypy)
 scaffold.sh                  # Project scaffolding script
+tools/                       # Maintainer tools
+  refresh_scaffold.py        # Refresh the file copies embedded in scaffold.sh
 hello.py                     # Sample application entry point
 abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
@@ -198,6 +200,7 @@ codecs_utils.py             # Codecs utilities wrapping stdlib codecs
 traceback_utils.py         # Traceback utilities wrapping stdlib traceback (format_exception, format_exception_only, extract_stack, format_stack, format_exc)
 tracemalloc_utils.py       # Tracemalloc memory tracing utilities wrapping stdlib tracemalloc (is_tracing, get_traced_memory, get_traceback_limit, start, stop, clear_traces)
 tty_utils.py              # Terminal control utilities wrapping stdlib tty (cfmakeraw, cfmakecbreak, setraw, setcbreak)
+doctest_utils.py           # Doctest utilities wrapping stdlib doctest (parse_doctests, find_doctests, run_string_examples, run_docstring_examples, run_module_examples, run_file_examples)
 typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
@@ -300,6 +303,7 @@ test_reprlib_utils.py       # Tests for reprlib_utils.py
 test_traceback_utils.py     # Tests for traceback_utils.py
 test_tracemalloc_utils.py   # Tests for tracemalloc_utils.py
 test_tty_utils.py           # Tests for tty_utils.py
+test_doctest_utils.py       # Tests for doctest_utils.py
 test_typing_utils.py        # Tests for typing_utils.py
 test_pickle_utils.py        # Tests for pickle_utils.py
   test_plistlib_utils.py      # Tests for plistlib_utils.py
@@ -963,6 +967,10 @@ The project includes traceback utilities in `traceback_utils.py` wrapping the st
 ## Tracemalloc Utilities Module
 
 The project includes tracemalloc memory tracing utilities in `tracemalloc_utils.py` wrapping the standard library `tracemalloc` module: `is_tracing` reports whether tracing is active, `get_traced_memory` returns current and peak traced memory, `get_traceback_limit` returns the traceback limit, `start` begins tracing allocations, `stop` ends tracing, and `clear_traces` discards recorded traces. The module is tested in `tests/test_tracemalloc_utils.py`.
+
+## Doctest Utilities Module
+
+The project includes doctest utilities in `doctest_utils.py` wrapping the standard library `doctest` module: `parse_doctests` parses the `>>>` examples of a text into doctest objects, `find_doctests` discovers the examples of a module, class, or function, `run_string_examples` runs the examples of a text, `run_docstring_examples` runs the examples of the docstring of an object, `run_module_examples` runs every example of a module, `run_file_examples` runs the examples of a text file, `summarize_results` renders a one line summary of a run, and `format_failure` describes a failed example. The module also re-exports `DocTestSuite`, `DocTestRunner`, and `OutputChecker`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_doctest_utils.py`.
 
 ## TTY Utilities Module
 

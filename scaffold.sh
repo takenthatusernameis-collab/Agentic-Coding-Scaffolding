@@ -613,6 +613,9 @@
 #   - mmap_utils.py — # Utilities wrapping the standard library mmap module (create_anonymous, create_file_mmap, access_read, access_write, access_copy, pagesize, allocation_granularity, constants, is_mmap, write_bytes, read_bytes, find_bytes, close_mmap)
 
 #   - tests/test_mmap_utils.py — # Tests for mmap_utils.py
+#   - doctest_utils.py — # Doctest utilities wrapping the standard library doctest module (parse_doctests, find_doctests, run_string_examples, run_docstring_examples, run_module_examples, run_file_examples, summarize_results, format_failure)
+
+#   - tests/test_doctest_utils.py — # Tests for doctest_utils.py
 set -euo pipefail
 
 usage() {
@@ -639,6 +642,9 @@ fi
 if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
   usage
 fi
+
+# Absolute path of the running generator, used to copy it into the new project
+SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 
 PROJECT_NAME="$1"
 
@@ -683,9 +689,723 @@ if [[ -d "$OUTPUT_DIR" ]]; then
     echo "Existing files will not be overwritten, but new files will be created." >&2
 fi
 
-mkdir -p "$OUTPUT_DIR"/{.github/workflows,.kilo/agent,.kilo/command,.kilo/skill,tests}
+mkdir -p "$OUTPUT_DIR"/{.github/workflows,.kilo/agent,.kilo/command,.kilo/skill,tests,tools}
+
+# The generated project scaffolds further projects with the very same generator.
+cp "$SCRIPT_PATH" "$OUTPUT_DIR/scaffold.sh"
+chmod 755 "$OUTPUT_DIR/scaffold.sh"
 
 # --- .github/workflows/main.yml ---
+
+cat > "$OUTPUT_DIR/tools/refresh_scaffold.py" <<'REFRESH_SCAFFOLD'
+#!/usr/bin/env python3
+"""Refresh the file copies embedded in ``scaffold.sh`` from the repository.
+
+The scaffold generator embeds a verbatim copy of every wrapper module and test
+file so that a scaffolded project is a faithful copy of the project that
+generated it. Those copies live in heredoc blocks inside ``scaffold.sh`` and
+drift out of sync whenever a module is edited in the repository without
+refreshing the generator.
+
+This script rewrites every heredoc whose target path exists in the repository
+with the current contents of that file. Run it after editing any module or
+test, then re-run the test suite to confirm the invariant holds.
+
+Usage:
+    python tools/refresh_scaffold.py [--check]
+
+``--check`` reports stale copies and exits with a non-zero status instead of
+rewriting the generator.
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+SCAFFOLD = ROOT / "scaffold.sh"
+
+HEREDOC = re.compile(
+    r"cat > \"\$OUTPUT_DIR/(?P<path>[A-Za-z0-9_./-]+)\" <<'(?P<delim>[A-Z0-9_]+)'\n"
+    r"(?P<body>.*?)\n(?P=delim)\n",
+    re.S,
+)
+
+
+def embedded_blocks(scaffold_text: str) -> list[re.Match[str]]:
+    """Return every quoted heredoc block that writes into the output directory."""
+    return list(HEREDOC.finditer(scaffold_text))
+
+
+def is_verbatim_copy(relative: str) -> bool:
+    """Return ``True`` when *relative* is embedded as a verbatim repository copy.
+
+    Only Python sources and the scaffold command documentation are copied
+    verbatim. The README, the changelog, and the agent instructions are
+    embedded as templates that use ``${PROJECT_NAME}`` placeholders, so they
+    are maintained separately and never overwritten here.
+    """
+    return relative.endswith(".py") or relative == ".kilo/command/scaffold-project.md"
+
+
+def repository_body(relative: str) -> str | None:
+    """Return the repository copy of *relative*, or ``None`` when it is absent."""
+    path = ROOT / relative
+    if not path.is_file():
+        return None
+    return path.read_text().rstrip("\n")
+
+
+def refresh(scaffold_text: str) -> tuple[str, list[str], list[str]]:
+    """Return the refreshed generator text together with the changed and stale paths."""
+    changed: list[str] = []
+    stale: list[str] = []
+    pieces: list[str] = []
+    cursor = 0
+    for match in embedded_blocks(scaffold_text):
+        relative = match.group("path")
+        if not is_verbatim_copy(relative):
+            continue
+        expected = repository_body(relative)
+        if expected is None:
+            stale.append(relative)
+            continue
+        if match.group("body") != expected:
+            changed.append(relative)
+            replacement = (
+                f"cat > \"$OUTPUT_DIR/{relative}\" <<'{match.group('delim')}'\n"
+                f"{expected}\n{match.group('delim')}\n"
+            )
+            pieces.append(scaffold_text[cursor : match.start()])
+            pieces.append(replacement)
+            cursor = match.end()
+    pieces.append(scaffold_text[cursor:])
+    return "".join(pieces), changed, stale
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Refresh the embedded copies and report the outcome."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="report stale copies without rewriting scaffold.sh",
+    )
+    args = parser.parse_args(argv)
+
+    scaffold_text = SCAFFOLD.read_text()
+    refreshed, changed, stale = refresh(scaffold_text)
+
+    if args.check:
+        for relative in changed:
+            print(f"stale: {relative}")
+        if changed:
+            print(f"{len(changed)} embedded copies are out of sync")
+            return 1
+        print("all embedded copies are in sync")
+        return 0
+
+    if changed:
+        SCAFFOLD.write_text(refreshed)
+    for relative in changed:
+        print(f"refreshed: {relative}")
+    for relative in stale:
+        print(f"no repository copy: {relative}")
+    print(f"{len(changed)} embedded copies refreshed")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+REFRESH_SCAFFOLD
+chmod 644 "$OUTPUT_DIR/tools/refresh_scaffold.py"
+
+cat > "$OUTPUT_DIR/doctest_utils.py" <<'DOCTEST_UTILS'
+"""Utilities for running documentation examples (wrapping :mod:`doctest`).
+
+The :mod:`doctest` module finds and runs the ``>>>`` examples embedded in
+docstrings. This wrapper exposes a small, validated surface over that
+functionality so callers can parse examples, run the examples of a docstring,
+a module, or a text file, and turn the outcome into a readable report without
+having to remember the exact class names of the standard library.
+"""
+
+from __future__ import annotations
+
+import doctest as _doctest
+import inspect
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Mapping, Optional
+
+__all__ = [
+    "parse_doctests",
+    "find_doctests",
+    "run_string_examples",
+    "run_docstring_examples",
+    "run_module_examples",
+    "run_file_examples",
+    "summarize_results",
+    "format_failure",
+    "DocTestSuite",
+    "DocTestRunner",
+    "OutputChecker",
+]
+
+
+def _require_text(value: object, name: str) -> str:
+    """Return *value* when it is a string, otherwise raise ``TypeError``."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _require_flag(value: object, name: str) -> bool:
+    """Return *value* when it is a boolean, otherwise raise ``TypeError``."""
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def _require_count(value: object, name: str) -> int:
+    """Return *value* when it is a non-negative integer, otherwise raise."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"{name} must not be negative")
+    return value
+
+
+def _require_mapping(value: object, name: str) -> Dict[str, Any]:
+    """Return a shallow copy of *value* when it is a mapping, otherwise raise."""
+    if not isinstance(value, Mapping):
+        raise TypeError(f"{name} must be a mapping, got {type(value).__name__}")
+    return dict(value)
+
+
+def _default_globs(obj: object) -> Dict[str, Any]:
+    """Return the globals the examples of *obj* are executed with.
+
+    The namespace of the module that defines *obj* is used, so that examples
+    can call the very functions they document.
+    """
+    if inspect.ismodule(obj):
+        return dict(vars(obj))
+    module_name = getattr(obj, "__module__", None)
+    module = sys.modules.get(module_name) if isinstance(module_name, str) else None
+    if module is None:
+        return {}
+    return dict(vars(module))
+
+
+def parse_doctests(
+    text: str,
+    name: str = "<string>",
+    globs: Optional[Mapping[str, Any]] = None,
+    filename: Optional[str] = None,
+    lineno: int = 1,
+) -> List[_doctest.DocTest]:
+    """Parse the examples contained in *text* into doctest objects.
+
+    Args:
+        text: Text holding ``>>>`` examples.
+        name: Name reported for the parsed examples.
+        globs: Globals made available to the examples.
+        filename: File name reported for the parsed examples.
+        lineno: First line number of *text*.
+
+    Returns:
+        A list with the parsed doctest, empty when *text* holds no example.
+
+    Raises:
+        TypeError: If an argument has an unsupported type.
+        ValueError: If *lineno* is negative.
+    """
+    source = _require_text(text, "text")
+    label = _require_text(name, "name")
+    namespace = _require_mapping(globs, "globs") if globs is not None else {}
+    if filename is not None:
+        filename = _require_text(filename, "filename")
+    line = _require_count(lineno, "lineno")
+    parser = _doctest.DocTestParser()
+    test = parser.get_doctest(source, namespace, label, filename, line)
+    if not test.examples:
+        return []
+    return [test]
+
+
+def find_doctests(obj: object, name: Optional[str] = None) -> List[_doctest.DocTest]:
+    """Find every doctest defined by *obj* and the objects it contains.
+
+    Args:
+        obj: Module, class, function, or other object to inspect.
+        name: Name reported for the found examples.
+
+    Returns:
+        The discovered doctests, ordered by name. Tests without examples are
+        left out.
+
+    Raises:
+        TypeError: If *name* is not a string or ``None``.
+        ValueError: If *obj* does not support doctest discovery.
+    """
+    if name is not None:
+        name = _require_text(name, "name")
+    finder = _doctest.DocTestFinder()
+    tests = finder.find(obj, name=name)
+    return sorted((test for test in tests if test.examples), key=lambda test: test.name)
+
+
+def _run_tests(tests: List[_doctest.DocTest], verbose: bool) -> _doctest.TestResults:
+    """Run *tests* with a fresh runner and return the aggregated results."""
+    runner = _doctest.DocTestRunner(verbose=verbose)
+    for test in tests:
+        runner.run(test)
+    return runner.summarize()
+
+
+def run_string_examples(
+    text: str,
+    globs: Optional[Mapping[str, Any]] = None,
+    name: str = "<string>",
+    verbose: bool = False,
+) -> _doctest.TestResults:
+    """Run the doctest examples contained in *text*.
+
+    Args:
+        text: Text holding ``>>>`` examples.
+        globs: Globals made available to the examples.
+        name: Name reported for the examples.
+        verbose: Whether the runner prints each example.
+
+    Returns:
+        The results of the run, holding the number of failures and attempts.
+
+    Raises:
+        TypeError: If an argument has an unsupported type.
+    """
+    source = _require_text(text, "text")
+    label = _require_text(name, "name")
+    verbose_flag = _require_flag(verbose, "verbose")
+    return _run_tests(parse_doctests(source, label, globs), verbose_flag)
+
+
+def run_docstring_examples(
+    obj: object,
+    name: Optional[str] = None,
+    globs: Optional[Mapping[str, Any]] = None,
+    verbose: bool = False,
+) -> _doctest.TestResults:
+    """Run the doctest examples of the docstring of *obj*.
+
+    Only the docstring of *obj* itself is executed; the docstrings of the
+    members it contains are left untouched.
+
+    Args:
+        obj: Object whose docstring is executed.
+        name: Name reported for the examples.
+        globs: Globals made available to the examples.
+        verbose: Whether the runner prints each example.
+
+    Returns:
+        The results of the run, holding the number of failures and attempts.
+
+    Raises:
+        TypeError: If an argument has an unsupported type.
+    """
+    if name is not None:
+        name = _require_text(name, "name")
+    verbose_flag = _require_flag(verbose, "verbose")
+    docstring = inspect.getdoc(obj)
+    if not docstring:
+        return _doctest.TestResults(0, 0)
+    label = name if name is not None else getattr(obj, "__name__", repr(obj))
+    namespace = _require_mapping(globs, "globs") if globs is not None else _default_globs(obj)
+    return _run_tests(parse_doctests(docstring, label, namespace), verbose_flag)
+
+
+def run_module_examples(
+    module: object,
+    verbose: bool = False,
+) -> _doctest.TestResults:
+    """Run every doctest example defined by *module*.
+
+    Args:
+        module: Module whose examples are executed.
+        verbose: Whether the runner prints each example.
+
+    Returns:
+        The results of the run, holding the number of failures and attempts.
+
+    Raises:
+        TypeError: If *module* is not a module or *verbose* is not a boolean.
+    """
+    if not inspect.ismodule(module):
+        raise TypeError(f"module must be a module, got {type(module).__name__}")
+    verbose_flag = _require_flag(verbose, "verbose")
+    finder = _doctest.DocTestFinder()
+    runner = _doctest.DocTestRunner(verbose=verbose_flag)
+    for test in finder.find(module):
+        runner.run(test)
+    return runner.summarize()
+
+
+def run_file_examples(
+    path: str,
+    base_dir: Optional[str] = None,
+    verbose: bool = False,
+) -> _doctest.TestResults:
+    """Run the doctest examples contained in a text file.
+
+    Args:
+        path: Path of the file holding the examples.
+        base_dir: Directory the path is resolved against, or ``None`` for the
+            current working directory.
+        verbose: Whether the runner prints each example.
+
+    Returns:
+        The results of the run, holding the number of failures and attempts.
+
+    Raises:
+        TypeError: If an argument has an unsupported type.
+        OSError: If the file cannot be read.
+    """
+    location = _require_text(path, "path")
+    verbose_flag = _require_flag(verbose, "verbose")
+    file_path = Path(location)
+    if base_dir is not None:
+        file_path = Path(_require_text(base_dir, "base_dir")) / file_path
+    text = file_path.read_text(encoding="utf-8")
+    return run_string_examples(text, name=str(file_path), verbose=verbose_flag)
+
+
+def summarize_results(results: object) -> str:
+    """Return a one line summary of a doctest run.
+
+    Args:
+        results: The :class:`doctest.TestResults` of a run.
+
+    Returns:
+        A sentence reporting the number of failed and attempted examples.
+
+    Raises:
+        TypeError: If *results* does not expose the result counters.
+    """
+    failed = _require_count(getattr(results, "failed", None), "failed")
+    attempted = _require_count(getattr(results, "attempted", None), "attempted")
+    if failed:
+        return f"{failed} of {attempted} doctests failed"
+    return f"{attempted} doctests passed"
+
+
+def format_failure(failure: object) -> str:
+    """Return a readable description of a doctest failure.
+
+    Args:
+        failure: The failure recorded by a doctest runner.
+
+    Returns:
+        A description of the mismatch, or of the unexpected exception.
+
+    Raises:
+        TypeError: If *failure* is not a doctest failure.
+    """
+    if isinstance(failure, _doctest.DocTestFailure):
+        return f"Expected:\n{failure.example.want}\nGot:\n{failure.got}"
+    if isinstance(failure, _doctest.UnexpectedException):
+        error = failure.exc_info[1]
+        return f"Exception: {type(error).__name__}: {error}"
+    raise TypeError(f"failure must be a doctest failure, got {type(failure).__name__}")
+
+
+DocTestSuite = _doctest.DocTestSuite
+DocTestRunner = _doctest.DocTestRunner
+OutputChecker = _doctest.OutputChecker
+DOCTEST_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_doctest_utils.py" <<'TEST_DOCTEST_UTILS'
+"""Tests for doctest_utils module."""
+
+import contextlib
+import doctest
+import io
+import os
+import sys
+import tempfile
+import types
+import unittest
+
+import doctest_utils
+
+
+def add(first, second):
+    """Return the sum of two numbers.
+
+    >>> add(1, 2)
+    3
+    """
+    return first + second
+
+
+def _sample_module(docstring):
+    """Return a module whose docstring holds *docstring*."""
+    module = types.ModuleType("sample_module")
+    module.__doc__ = docstring
+    return module
+
+
+class TestParseDoctests(unittest.TestCase):
+    """Verify parsing of doctest examples out of text."""
+
+    def test_parse_doctests_returns_a_list(self):
+        result = doctest_utils.parse_doctests(">>> 1 + 1\n2\n")
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 1)
+
+    def test_parse_doctests_collects_the_examples(self):
+        test = doctest_utils.parse_doctests(">>> 1 + 1\n2\n")[0]
+        self.assertEqual(len(test.examples), 1)
+        self.assertEqual(test.examples[0].source.strip(), "1 + 1")
+
+    def test_parse_doctests_returns_an_empty_list_without_examples(self):
+        self.assertEqual(doctest_utils.parse_doctests("Nothing to run here."), [])
+
+    def test_parse_doctests_uses_the_given_name(self):
+        test = doctest_utils.parse_doctests(">>> 1 + 1\n2\n", name="sample")[0]
+        self.assertEqual(test.name, "sample")
+
+    def test_parse_doctests_makes_the_globals_available(self):
+        test = doctest_utils.parse_doctests(">>> value\n42\n", globs={"value": 42})[0]
+        self.assertEqual(test.globs["value"], 42)
+
+    def test_parse_doctests_requires_a_string(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.parse_doctests(None)  # type: ignore[arg-type]
+
+    def test_parse_doctests_requires_a_string_name(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.parse_doctests(">>> 1\n", name=7)  # type: ignore[arg-type]
+
+    def test_parse_doctests_rejects_non_mapping_globals(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.parse_doctests(">>> 1\n", globs=["value"])  # type: ignore[arg-type]
+
+    def test_parse_doctests_rejects_a_negative_line_number(self):
+        with self.assertRaises(ValueError):
+            doctest_utils.parse_doctests(">>> 1\n", lineno=-1)
+
+
+class TestFindDoctests(unittest.TestCase):
+    """Verify discovery of doctests inside modules and objects."""
+
+    def test_find_doctests_finds_the_examples_of_a_module(self):
+        module = _sample_module(">>> 1 + 1\n2\n")
+        tests = doctest_utils.find_doctests(module)
+        self.assertTrue(tests)
+        self.assertEqual(tests[0].name, "sample_module")
+
+    def test_find_doctests_finds_the_examples_of_a_function(self):
+        tests = doctest_utils.find_doctests(add)
+        self.assertTrue(tests)
+        self.assertEqual(len(tests[0].examples), 1)
+
+    def test_find_doctests_returns_an_empty_list_without_examples(self):
+        self.assertEqual(doctest_utils.find_doctests(_sample_module("Plain text.")), [])
+
+    def test_find_doctests_requires_a_string_name(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.find_doctests(add, name=7)  # type: ignore[arg-type]
+
+
+class TestRunStringExamples(unittest.TestCase):
+    """Verify running the doctest examples of a string."""
+
+    def test_run_string_examples_passes_for_correct_output(self):
+        results = doctest_utils.run_string_examples(">>> 1 + 1\n2\n")
+        self.assertEqual(results.failed, 0)
+        self.assertEqual(results.attempted, 1)
+
+    def test_run_string_examples_fails_for_wrong_output(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            results = doctest_utils.run_string_examples(">>> 1 + 1\n3\n")
+        self.assertEqual(results.failed, 1)
+        self.assertEqual(results.attempted, 1)
+
+    def test_run_string_examples_reports_no_attempts_without_examples(self):
+        results = doctest_utils.run_string_examples("Nothing to run here.")
+        self.assertEqual(results.attempted, 0)
+
+    def test_run_string_examples_makes_the_globals_available(self):
+        results = doctest_utils.run_string_examples(">>> value\n42\n", globs={"value": 42})
+        self.assertEqual(results.failed, 0)
+
+    def test_run_string_examples_requires_a_string(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.run_string_examples(None)  # type: ignore[arg-type]
+
+    def test_run_string_examples_requires_a_boolean_verbose_flag(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.run_string_examples(">>> 1\n", verbose="yes")  # type: ignore[arg-type]
+
+
+class TestRunDocstringExamples(unittest.TestCase):
+    """Verify running the doctest examples of a docstring."""
+
+    def test_run_docstring_examples_passes_for_correct_output(self):
+        results = doctest_utils.run_docstring_examples(add)
+        self.assertEqual(results.failed, 0)
+        self.assertEqual(results.attempted, 1)
+
+    def test_run_docstring_examples_reports_no_attempts_without_a_docstring(self):
+        def undocumented():
+            pass
+
+        results = doctest_utils.run_docstring_examples(undocumented)
+        self.assertEqual(results.failed, 0)
+        self.assertEqual(results.attempted, 0)
+
+    def test_run_docstring_examples_requires_a_string_name(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.run_docstring_examples(add, name=7)  # type: ignore[arg-type]
+
+    def test_run_docstring_examples_rejects_non_mapping_globals(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.run_docstring_examples(add, globs=["value"])  # type: ignore[arg-type]
+
+
+class TestRunModuleExamples(unittest.TestCase):
+    """Verify running every doctest example of a module."""
+
+    def test_run_module_examples_passes_for_correct_output(self):
+        results = doctest_utils.run_module_examples(_sample_module(">>> 1 + 1\n2\n"))
+        self.assertEqual(results.failed, 0)
+        self.assertEqual(results.attempted, 1)
+
+    def test_run_module_examples_fails_for_wrong_output(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            results = doctest_utils.run_module_examples(_sample_module(">>> 1 + 1\n3\n"))
+        self.assertEqual(results.failed, 1)
+
+    def test_run_module_examples_requires_a_module(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.run_module_examples("not a module")  # type: ignore[arg-type]
+
+    def test_run_module_examples_requires_a_boolean_verbose_flag(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.run_module_examples(_sample_module(">>> 1\n"), verbose=1)  # type: ignore[arg-type]
+
+
+class TestRunFileExamples(unittest.TestCase):
+    """Verify running the doctest examples of a text file."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp(prefix="doctest-utils-")
+
+    def tearDown(self):
+        for root, dirs, files in os.walk(self.tmp, topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+        os.rmdir(self.tmp)
+
+    def _write(self, name, text):
+        path = os.path.join(self.tmp, name)
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(text)
+        return path
+
+    def test_run_file_examples_passes_for_correct_output(self):
+        path = self._write("sample.txt", ">>> 1 + 1\n2\n")
+        results = doctest_utils.run_file_examples(path)
+        self.assertEqual(results.failed, 0)
+        self.assertEqual(results.attempted, 1)
+
+    def test_run_file_examples_fails_for_wrong_output(self):
+        path = self._write("sample.txt", ">>> 1 + 1\n3\n")
+        with contextlib.redirect_stdout(io.StringIO()):
+            results = doctest_utils.run_file_examples(path)
+        self.assertEqual(results.failed, 1)
+
+    def test_run_file_examples_resolves_against_the_base_directory(self):
+        self._write("sample.txt", ">>> 1 + 1\n2\n")
+        results = doctest_utils.run_file_examples("sample.txt", base_dir=self.tmp)
+        self.assertEqual(results.failed, 0)
+        self.assertEqual(results.attempted, 1)
+
+    def test_run_file_examples_requires_a_string_path(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.run_file_examples(None)  # type: ignore[arg-type]
+
+    def test_run_file_examples_requires_a_string_base_directory(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.run_file_examples("sample.txt", base_dir=7)  # type: ignore[arg-type]
+
+    def test_run_file_examples_reports_a_missing_file(self):
+        with self.assertRaises(OSError):
+            doctest_utils.run_file_examples(os.path.join(self.tmp, "absent.txt"))
+
+
+class TestSummarizeResults(unittest.TestCase):
+    """Verify the one line summary of a doctest run."""
+
+    def test_summarize_results_reports_a_passing_run(self):
+        results = doctest_utils.run_string_examples(">>> 1 + 1\n2\n")
+        self.assertEqual(doctest_utils.summarize_results(results), "1 doctests passed")
+
+    def test_summarize_results_reports_a_failing_run(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            results = doctest_utils.run_string_examples(">>> 1 + 1\n3\n")
+        self.assertEqual(
+            doctest_utils.summarize_results(results),
+            "1 of 1 doctests failed",
+        )
+
+    def test_summarize_results_requires_the_result_counters(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.summarize_results(object())
+
+    def test_summarize_results_rejects_negative_counters(self):
+        class Broken:
+            failed = -1
+            attempted = 1
+
+        with self.assertRaises(ValueError):
+            doctest_utils.summarize_results(Broken())
+
+
+class TestFormatFailure(unittest.TestCase):
+    """Verify the readable description of a doctest failure."""
+
+    def test_format_failure_describes_a_mismatch(self):
+        example = doctest.Example("1 + 1", "2")
+        failure = doctest.DocTestFailure("sample", example, "3")
+        description = doctest_utils.format_failure(failure)
+        self.assertIn("Expected:", description)
+        self.assertIn("Got:", description)
+        self.assertIn("2", description)
+
+    def test_format_failure_describes_an_unexpected_exception(self):
+        example = doctest.Example("raise ValueError('boom')", "boom")
+        try:
+            raise ValueError("boom")
+        except ValueError:
+            failure = doctest.UnexpectedException("sample", example, sys.exc_info())
+        description = doctest_utils.format_failure(failure)
+        self.assertIn("ValueError", description)
+        self.assertIn("boom", description)
+
+    def test_format_failure_rejects_other_objects(self):
+        with self.assertRaises(TypeError):
+            doctest_utils.format_failure("not a failure")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_DOCTEST_UTILS
 
 cat > "$OUTPUT_DIR/asyncio_utils.py" <<'ASYNCIO_UTILS'
 """Utilities wrapping the standard library ``asyncio`` module.
@@ -1196,9 +1916,9 @@ import tempfile
 import unittest
 
 from mmap_utils import (
+    ACCESS_COPY,
     ACCESS_READ,
     ACCESS_WRITE,
-    ACCESS_COPY,
     ALLOCATIONGRANULARITY,
     PAGESIZE,
     access_copy,
@@ -2132,7 +2852,7 @@ PRECOMMIT
 # Makefile for ${PROJECT_NAME}
 # Common developer commands for project management
 
-.PHONY: test lint typecheck run scaffold clean help pre-commit-install pre-commit-run
+.PHONY: test lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run
 
 ## Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
 test:
@@ -2172,6 +2892,11 @@ run:
 scaffold:
 	@echo "Running scaffold.sh..."
 	@./scaffold.sh
+
+## Refresh the file copies embedded in scaffold.sh from the repository sources
+refresh-scaffold:
+	@echo "Refreshing the copies embedded in scaffold.sh..."
+	@python tools/refresh_scaffold.py
 
 ## Install pre-commit hooks into .git/hooks
 pre-commit-install:
@@ -2213,6 +2938,7 @@ help:
 	@echo "  typecheck  Run mypy static type checking"
 	@echo "  run        Run hello.py (usage: make run [NAME=YourName])"
 	@echo "  scaffold   Scaffold a new project using scaffold.sh"
+	@echo "  refresh-scaffold  Refresh the copies embedded in scaffold.sh"
 	@echo "  clean      Remove build artifacts"
 	@echo "  help       Show this help message"
 	@echo "  pre-commit-install  Install pre-commit hooks into .git/hooks"
@@ -2372,6 +3098,7 @@ py_modules = [
     "temp_utils",
     "tracemalloc_utils",
     "tty_utils",
+    "doctest_utils",
     "xml_utils",
     "weakref_utils",
     "argparse_utils",
@@ -24490,6 +25217,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
+- `mmap_utils.py` — utilities wrapping the standard library mmap module
 - `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping stdlib stat and os.stat
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 - `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
@@ -24514,10 +25242,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
 - `timing_utils.py` — performance measurement helpers
 - `timeit_utils.py` — wrapper for stdlib timeit
-- `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
-- `unittest_utils.py` — wrapper for stdlib unittest
-- `tests/test_unittest_utils.py` — unit tests for `unittest_utils.py`
 - `async_utils.py` — asynchronous utility functions
+- `asyncio_utils.py` — utilities wrapping the standard library asyncio module
 - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
 - `call_once_utils.py` — call-once execution utilities ensuring a function runs only a single time
@@ -24538,6 +25264,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `tests/test_stats.py` — unit tests for `stats.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
+- `tests/test_mmap_utils.py` — unit tests for `mmap_utils.py`
 - `tests/test_stat_utils.py` — unit tests for `stat_utils.py`
 - `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
 - `tests/test_string_utils.py` — unit tests for `string_utils.py`
@@ -24594,6 +25321,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_traceback_utils.py` — unit tests for `traceback_utils.py`
 - `tracemalloc_utils.py` — tracemalloc memory tracing utilities wrapping stdlib tracemalloc (`is_tracing`, `get_traced_memory`, `get_traceback_limit`, `start`, `stop`, `clear_traces`)
 - `tests/test_tracemalloc_utils.py` — unit tests for `tracemalloc_utils.py`
+- `doctest_utils.py` — doctest utilities wrapping the standard library `doctest` module (`parse_doctests`, `find_doctests`, `run_string_examples`, `run_docstring_examples`, `run_module_examples`, `run_file_examples`, `summarize_results`, `format_failure`) with input validation
+- `tests/test_doctest_utils.py` — unit tests for `doctest_utils.py`
+- `tools/refresh_scaffold.py` — maintainer tool that rewrites the file copies embedded in `scaffold.sh` from the repository sources
 - `typing_utils.py` — typing utilities wrapping stdlib typing (`get_type_hints`, `get_origin`, `get_args`, `is_typeddict`) with re-exports of `overload`, `Final`, `Literal`, and `ClassVar`
 - `tests/test_typing_utils.py` — unit tests for `typing_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
@@ -24615,13 +25345,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_memoize_utils.py` — unit tests for `memoize_utils.py`
 - `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
-- `timeit_utils.py` — wrapper for stdlib timeit
 - `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
-- `unittest_utils.py` — wrapper for stdlib unittest
-- `tests/test_unittest_utils.py` — unit tests for `unittest_utils.py`
-- `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
-- `unittest_utils.py` — wrapper for stdlib unittest
-- `tests/test_unittest_utils.py` — unit tests for `unittest_utils.py`
 - `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
@@ -24676,6 +25400,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_lzma_utils.py` — unit tests for `lzma_utils.py`
 - `tests/test_gc_utils.py` — unit tests for `gc_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
+- `tests/test_asyncio_utils.py` — unit tests for `asyncio_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
 - `tests/test_call_once_utils.py` — unit tests for `call_once_utils.py`
@@ -25602,6 +26327,13 @@ This repository is a self-evolving scaffolding project for autonomous agentic co
 - The workflow auto-commits all non-workflow changes after each session
 - Do NOT modify `.github/workflows/` files — they are maintainer-managed
 
+## Scaffold Synchronization
+
+`scaffold.sh` embeds a verbatim copy of every wrapper module, its test, and
+`.kilo/command/scaffold-project.md`. After editing any of those files run `make refresh-scaffold`
+so the embedded copies stay byte-identical to the repository sources. Use
+`python tools/refresh_scaffold.py --check` to report stale copies without rewriting the generator.
+
 ## Coding Conventions
 
 - Write clean, well-documented code
@@ -25636,6 +26368,7 @@ Use the following Makefile targets during development:
 - `make typecheck` - Run mypy static type checking
 - `make run` - Run hello.py (`make run NAME=Alice`)
 - `make scaffold` - Scaffold a new project using scaffold.sh
+- `make refresh-scaffold` - Refresh the file copies embedded in scaffold.sh from the repository sources
 - `make pre-commit-install` - Install pre-commit hooks into .git/hooks
 - `make pre-commit-run` - Run all pre-commit hooks against tracked files
 - `make clean` - Remove build artifacts
@@ -25686,6 +26419,8 @@ kilo.json                    # Kilo project configuration
 Makefile                     # Common developer targets
 pyproject.toml               # Python project configuration (pytest, ruff, mypy)
 scaffold.sh                  # Project scaffolding script
+tools/                       # Maintainer tools
+  refresh_scaffold.py        # Refresh the file copies embedded in scaffold.sh
 hello.py                     # Sample application entry point
 abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
@@ -25843,6 +26578,7 @@ ip_utils.py                # IP address validation and manipulation utilities
 regex_utils.py             # Regular expression utilities (compile, match, search, replace, split, escape)
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
+doctest_utils.py             # Doctest utilities wrapping stdlib doctest (parse_doctests, find_doctests, run_string_examples, run_docstring_examples, run_module_examples, run_file_examples, summarize_results, format_failure)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -25870,6 +26606,7 @@ tests/                     # Python unit tests
   test_context_utils.py       # Tests for context_utils.py
   test_crypto_utils.py        # Tests for crypto_utils.py
   test_csv_utils.py           # Tests for csv_utils.py
+  test_doctest_utils.py       # Tests for doctest_utils.py
   test_data_utils.py          # Tests for data_utils.py
   test_dataclasses_utils.py      # Tests for dataclasses_utils.py
   test_datetime_utils.py      # Tests for datetime_utils.py
@@ -26000,6 +26737,7 @@ test_zipfile_utils.py       # Tests for zipfile_utils.py
 | `make typecheck` | Run mypy static type checking |
 | `make run` | Run hello.py (`make run NAME=Alice`) |
 | `make scaffold` | Scaffold a new project using scaffold.sh |
+| `make refresh-scaffold` | Refresh the copies embedded in scaffold.sh |
 | `make pre-commit-install` | Install pre-commit hooks into .git/hooks |
 | `make pre-commit-run` | Run all pre-commit hooks against tracked files |
 | `make clean` | Remove build artifacts |
@@ -26116,6 +26854,10 @@ The project includes low-level socket utilities in `socket_utils.py` wrapping th
 
 The project includes build configuration utilities in `sysconfig_utils.py` wrapping the standard library `sysconfig` module: `get_config_vars` returns the configuration variables of the running interpreter, `get_config_var` returns the value of a single configuration variable, `has_config_var` reports whether a configuration variable is defined, `list_config_var_names` returns the sorted names of the known configuration variables, `get_paths` returns the installation paths of a scheme, `get_path` returns a single installation path, `get_platform` returns the platform string of the interpreter, `get_python_version` returns the version as `major.minor`, `get_default_scheme` returns the default installation scheme, `get_preferred_scheme` resolves the preferred scheme of an installation type, `get_scheme_names` returns the known installation schemes, `is_python_build` reports whether the interpreter was built from source, `get_config_h_filename` returns the path of `pyconfig.h`, and `get_makefile_filename` returns the path of the interpreter `Makefile`. The module is tested in `tests/test_sysconfig_utils.py`.
 
+## Doctest Utilities Module
+
+The project includes doctest utilities in `doctest_utils.py` wrapping the standard library `doctest` module: `parse_doctests` parses the `>>>` examples of a text into doctest objects, `find_doctests` discovers the examples of a module, class, or function, `run_string_examples` runs the examples of a text, `run_docstring_examples` runs the examples of the docstring of an object, `run_module_examples` runs every example of a module, `run_file_examples` runs the examples of a text file, `summarize_results` renders a one line summary of a run, and `format_failure` describes a failed example. The module also re-exports `DocTestSuite`, `DocTestRunner`, and `OutputChecker`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_doctest_utils.py`.
+
 ## MIME Type Utilities Module
 
 The project includes MIME type utilities in `mimetypes_utils.py` wrapping the standard library `mimetypes` module: `guess_type` guesses the MIME type and content encoding of a file name or URL, `guess_extension` guesses the extension of a MIME type, `guess_all_extensions` returns every extension registered for a MIME type, `type_for_extension` returns the MIME type of an extension, `add_type` registers a custom extension for a MIME type, `init_database` initializes the MIME type database and reads extra `mime.types` files, `normalize_extension` lower cases an extension and adds the leading dot, `is_valid_mime_type` reports whether a value is a well formed `type/subtype` pair, `mime_category` returns the top level type of a MIME type, and `is_text_mime_type` reports whether a MIME type describes textual content. The module is tested in `tests/test_mimetypes_utils.py`.
@@ -26195,6 +26937,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `doctest_utils.py` to the generated project — doctest utilities wrapping the standard library `doctest` module (`parse_doctests`, `find_doctests`, `run_string_examples`, `run_docstring_examples`, `run_module_examples`, `run_file_examples`, `summarize_results`, `format_failure`) with input validation, plus `tests/test_doctest_utils.py`.
+- Synchronized `doctest_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `tools/refresh_scaffold.py`, a maintainer tool that rewrites the file copies embedded in `scaffold.sh` from the repository sources and reports stale copies with `--check`.
+- `scaffold.sh` now copies itself into every project it generates, so a scaffolded project ships a working generator again.
 - Added `mimetypes_utils.py` to the generated project — MIME type detection utilities wrapping the standard library `mimetypes` module (`guess_type, guess_extension, guess_all_extensions, type_for_extension, add_type, init_database, normalize_extension, is_valid_mime_type, mime_category, is_text_mime_type`) with input validation, plus `tests/test_mimetypes_utils.py`.
 - Synchronized `mimetypes_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `sysconfig_utils.py` to the generated project — build configuration utilities wrapping the standard library `sysconfig` module (`get_config_vars, get_config_var, has_config_var, list_config_var_names, get_paths, get_path, get_platform, get_python_version, get_default_scheme, get_preferred_scheme, get_scheme_names, is_python_build, get_config_h_filename, get_makefile_filename`) with input validation, plus `tests/test_sysconfig_utils.py`.
@@ -39764,7 +40510,7 @@ using :mod:`timeit`, including :func:`timeit`, :func:`repeat`,
 from __future__ import annotations
 
 import timeit as _timeit
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Callable, Optional
 
 __all__: list[str] = ["timeit", "repeat", "default_timer", "Timer"]
 
@@ -46829,7 +47575,7 @@ TEST_UNICODEDATA_UTILS
 cat > "$OUTPUT_DIR/tests/test_unittest_utils.py" <<'TESTUNITTESTUTILS'
 import unittest
 
-from unittest_utils import TestCase, TestSuite, make_suite, run_tests
+from unittest_utils import TestCase, make_suite, run_tests
 
 
 class TestUnittestUtils(unittest.TestCase):
@@ -50108,7 +50854,7 @@ cat > "$OUTPUT_DIR/tests/test_tty_utils.py" <<'TEST_TTY_UTILS'
 import termios
 import unittest
 
-from tty_utils import cfmakeraw, cfmakecbreak, setcbreak, setraw
+from tty_utils import cfmakecbreak, cfmakeraw, setcbreak, setraw
 
 
 class TestTtyUtils(unittest.TestCase):

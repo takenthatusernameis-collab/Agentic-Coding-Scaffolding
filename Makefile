@@ -1,7 +1,7 @@
 # Makefile for Agentic Coding Scaffolding
 # Common developer commands for project management
 
-.PHONY: test lint typecheck run scaffold clean help pre-commit-install pre-commit-run
+.PHONY: test lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run
 
 ## Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
 test:
@@ -42,6 +42,11 @@ scaffold:
 	@echo "Running scaffold.sh..."
 	@./scaffold.sh
 
+## Refresh the file copies embedded in scaffold.sh from the repository sources
+refresh-scaffold:
+	@echo "Refreshing the copies embedded in scaffold.sh..."
+	@python tools/refresh_scaffold.py
+
 ## Install pre-commit hooks into .git/hooks
 pre-commit-install:
 	@echo "Installing pre-commit hooks..."
@@ -80,9 +85,10 @@ help:
 	@echo "  test       Run the Python test suite"
 	@echo "  lint       Run ruff code style checker"
 	@echo "  typecheck  Run mypy static type checking"
-	@echo "  run        Run hello.py (usage: make run [NAME=YourName])"
-	@echo "  scaffold   Scaffold a new project using scaffold.sh"
-	@echo "  clean      Remove build artifacts"
+	@echo "  run       Run hello.py (usage: make run [NAME=YourName])"
+	@echo "  scaffold  Scaffold a new project using scaffold.sh"
+	@echo "  refresh-scaffold  Refresh the copies embedded in scaffold.sh"
+	@echo "  clean     Remove build artifacts"
 	@echo "  help       Show this help message"
 	@echo "  pre-commit-install  Install pre-commit hooks into .git/hooks"
 	@echo "  pre-commit-run     Run all pre-commit hooks against tracked files"

@@ -21,6 +21,13 @@ This repository is a self-evolving scaffolding project for autonomous agentic co
 - The workflow auto-commits all non-workflow changes after each session
 - Do NOT modify `.github/workflows/` files — they are maintainer-managed
 
+## Scaffold Synchronization
+
+`scaffold.sh` embeds a verbatim copy of every wrapper module, its test, and
+`.kilo/command/scaffold-project.md`. After editing any of those files run `make refresh-scaffold`
+so the embedded copies stay byte-identical to the repository sources. Use
+`python tools/refresh_scaffold.py --check` to report stale copies without rewriting the generator.
+
 ## Coding Conventions
 
 - Write clean, well-documented code
@@ -55,6 +62,7 @@ Use the following Makefile targets during development:
 - `make typecheck` - Run mypy static type checking
 - `make run` - Run hello.py (`make run NAME=Alice`)
 - `make scaffold` - Scaffold a new project using scaffold.sh
+- `make refresh-scaffold` - Refresh the file copies embedded in scaffold.sh from the repository sources
 - `make pre-commit-install` - Install pre-commit hooks into .git/hooks
 - `make pre-commit-run` - Run all pre-commit hooks against tracked files
 - `make clean` - Remove build artifacts

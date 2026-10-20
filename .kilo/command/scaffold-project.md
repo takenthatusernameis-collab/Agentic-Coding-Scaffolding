@@ -184,6 +184,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_traceback_utils.py` — unit tests for `traceback_utils.py`
 - `tracemalloc_utils.py` — tracemalloc memory tracing utilities wrapping stdlib tracemalloc (`is_tracing`, `get_traced_memory`, `get_traceback_limit`, `start`, `stop`, `clear_traces`)
 - `tests/test_tracemalloc_utils.py` — unit tests for `tracemalloc_utils.py`
+- `doctest_utils.py` — doctest utilities wrapping the standard library `doctest` module (`parse_doctests`, `find_doctests`, `run_string_examples`, `run_docstring_examples`, `run_module_examples`, `run_file_examples`, `summarize_results`, `format_failure`) with input validation
+- `tests/test_doctest_utils.py` — unit tests for `doctest_utils.py`
+- `tools/refresh_scaffold.py` — maintainer tool that rewrites the file copies embedded in `scaffold.sh` from the repository sources
 - `typing_utils.py` — typing utilities wrapping stdlib typing (`get_type_hints`, `get_origin`, `get_args`, `is_typeddict`) with re-exports of `overload`, `Final`, `Literal`, and `ClassVar`
 - `tests/test_typing_utils.py` — unit tests for `typing_utils.py`
 - `tests/test_ini_utils.py` — unit tests for `ini_utils.py`

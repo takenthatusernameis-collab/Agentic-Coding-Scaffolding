@@ -224,4 +224,5 @@ py_modules = [
     "mimetypes_utils",
     "tracemalloc_utils",
     "tty_utils",
+    "doctest_utils",
 ]
