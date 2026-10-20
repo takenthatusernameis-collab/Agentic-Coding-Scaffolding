@@ -1,11 +1,10 @@
 """Tests for py_compile utility functions."""
 
 import os
-import tempfile
-from unittest import TestCase
-from unittest import mock
-
 import py_compile
+import tempfile
+from unittest import TestCase, mock
+
 import py_compile_utils
 
 
