@@ -223,6 +223,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `difflib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `bisect_utils.py` — bisect utility functions for binary search on sorted sequences (`bisect_left`, `bisect_right`, `insort_left`, `insort_right`, `find_leftmost`, `find_rightmost`) wrapping the standard library `bisect` module, plus `tests/test_bisect_utils.py`.
+- Added `trace_utils.py` — trace utility functions wrapping the standard library `trace` module (`Trace`, `CoverageResults`), plus `tests/test_trace_utils.py`.
 - Synchronized `bisect_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation, plus `tests/test_warnings_utils.py`.

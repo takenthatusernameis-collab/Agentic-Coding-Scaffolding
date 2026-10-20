@@ -420,3 +420,9 @@ scaffold-project my-cool-tool ./out --no-test
 
 - `tty_utils.py` — tty utilities
 - `tests/test_tty_utils.py` — unit tests for tty_utils.py
+
+-  — trace utility functions wrapping the standard library trace module (, )
+-  — unit tests for
+
+- `trace_utils.py` — trace utility functions wrapping the standard library trace module (`Trace`, `CoverageResults`)
+- `tests/test_trace_utils.py` — unit tests for `trace_utils.py`

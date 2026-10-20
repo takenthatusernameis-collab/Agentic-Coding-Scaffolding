@@ -190,6 +190,7 @@ circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreake
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
+trace_utils.py            # Trace utility functions wrapping the standard library trace module
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
 struct_utils.py            # Binary struct packing and unpacking utilities
@@ -230,6 +231,7 @@ tests/                     # Python unit tests
   test_base64_utils.py        # Tests for base64_utils.py
   test_binascii_utils.py      # Tests for binascii_utils.py
   test_bisect_utils.py       # Tests for bisect_utils.py
+  test_trace_utils.py        # Tests for trace_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
   test_bytes_utils.py         # Tests for bytes_utils.py
   test_circuit_breaker_utils.py   # Tests for circuit_breaker_utils.py
