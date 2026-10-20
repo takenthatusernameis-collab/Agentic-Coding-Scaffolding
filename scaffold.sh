@@ -665,7 +665,11 @@
 #   - xdrlib_utils.py — # Xdrlib utilities wrapping the standard library xdrlib module (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array)
 #   - tests/test_xdrlib_utils.py — # Tests for xdrlib_utils.py
 #   - smtplib_utils.py — # Smtplib utilities wrapping the standard library smtplib module (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text)
+#   - ftplib_utils.py — # Ftplib utilities wrapping the standard library ftplib (FTP, FTP_TLS, create_ftp, create_ftp_tls, connect_ftp, parse257, parse150, parse227, parse229)
+#   - poplib_utils.py — # Poplib utilities wrapping the standard library poplib (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
+#   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
+#   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
 set -euo pipefail
 
 usage() {
@@ -4271,7 +4275,9 @@ py_modules = [
     "optparse_utils",
     "pyclbr_utils",
     "xdrlib_utils",
-    "smtplib_utils",
+    "ftplib_utils",
+        "poplib_utils",
+        "smtplib_utils",
      "mailbox_utils",
     "wave_utils",
     "mmap_utils",
@@ -26835,8 +26841,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `codeop_utils.py` — utilities for compiling possibly-incomplete Python source wrapping the standard library `codeop` module (`compile_command`, `Compile`, `CommandCompiler`) with input validation
 - `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
 - `fileinput_utils.py` — file input iteration utilities wrapping the standard library `fileinput` module (`read_lines`, `count_lines`, `filenames`) with input validation
+- `ftplib_utils.py` — ftplib utilities wrapping the standard library `ftplib` module (FTP, FTP_TLS, create_ftp, create_ftp_tls, connect_ftp, parse257, parse150, parse227, parse229)
 - `fnmatch_utils.py` — filename pattern matching utilities wrapping the standard library `fnmatch` module (`match`, `match_case`, `filter_names`, `translate`) with input validation
 - `getpass_utils.py` — secure password input utilities wrapping the standard library `getpass` module (`getpass`, `getuser`) with input validation
+- `poplib_utils.py` — poplib utilities wrapping the standard library `poplib` module (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27034,8 +27042,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`
 - `tests/test_fileinput_utils.py` — unit tests for `fileinput_utils.py`
 - `tests/test_fnmatch_utils.py` — unit tests for `fnmatch_utils.py`
+- `tests/test_ftplib_utils.py` — unit tests for `ftplib_utils.py`
 - `tests/test_getpass_utils.py` — unit tests for `getpass_utils.py`
 - `tests/test_pathlib_utils.py` — unit tests for `pathlib_utils.py`
+- `tests/test_poplib_utils.py` — unit tests for `poplib_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -65403,6 +65413,467 @@ class TestUnsignedIntegerArrays(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_XDRLIB_UTILS
+
+# --- ftplib_utils.py ---
+cat > "$OUTPUT_DIR/ftplib_utils.py" <<'FTPLIB_UTILS'
+"""FTP utility functions wrapping the standard library :mod:`ftplib`."""
+
+from __future__ import annotations
+
+import ftplib
+from typing import Any
+
+__all__: list[str] = [
+    "FTP",
+    "FTP_TLS",
+    "error_reply",
+    "error_temp",
+    "error_perm",
+    "error_proto",
+    "all_errors",
+    "FTP_PORT",
+    "MAXLINE",
+    "create_ftp",
+    "create_ftp_tls",
+    "connect_ftp",
+    "parse257",
+    "parse150",
+    "parse227",
+    "parse229",
+]
+
+FTP_PORT = ftplib.FTP_PORT
+MAXLINE = ftplib.MAXLINE
+
+FTP = ftplib.FTP
+FTP_TLS = ftplib.FTP_TLS
+error_reply = ftplib.error_reply
+error_temp = ftplib.error_temp
+error_perm = ftplib.error_perm
+error_proto = ftplib.error_proto
+all_errors = ftplib.all_errors
+
+
+def create_ftp(
+    host: str = "",
+    user: str = "",
+    passwd: str = "",
+    acct: str = "",
+    timeout: float | None = None,
+    source_address: tuple[str, int] | None = None,
+    encoding: str = "utf-8",
+) -> ftplib.FTP:
+    """Create and optionally log in to an FTP connection."""
+    if not isinstance(host, str):
+        raise TypeError("host must be a str")
+    if not isinstance(user, str):
+        raise TypeError("user must be a str")
+    if not isinstance(passwd, str):
+        raise TypeError("passwd must be a str")
+    if not isinstance(acct, str):
+        raise TypeError("acct must be a str")
+    if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
+        raise TypeError("timeout must be a number or None")
+    if source_address is not None:
+        if not isinstance(source_address, tuple) or len(source_address) != 2:
+            raise TypeError("source_address must be a (host, port) tuple or None")
+        if (not isinstance(source_address[0], str)
+                or not isinstance(source_address[1], int)
+                or isinstance(source_address[1], bool)):
+            raise TypeError("source_address must be a (host, port) tuple or None")
+    if not isinstance(encoding, str):
+        raise TypeError("encoding must be a str")
+    ftp = FTP(host=host, user=user, passwd=passwd, acct=acct,
+              timeout=timeout, source_address=source_address, encoding=encoding)  # type: ignore[arg-type]
+    return ftp
+
+
+def create_ftp_tls(
+    host: str = "",
+    user: str = "",
+    passwd: str = "",
+    acct: str = "",
+    *,
+    context: Any = None,
+    timeout: float | None = None,
+    source_address: tuple[str, int] | None = None,
+    encoding: str = "utf-8",
+) -> ftplib.FTP_TLS:
+    """Create an FTP_TLS connection."""
+    if not isinstance(host, str):
+        raise TypeError("host must be a str")
+    if not isinstance(user, str):
+        raise TypeError("user must be a str")
+    if not isinstance(passwd, str):
+        raise TypeError("passwd must be a str")
+    if not isinstance(acct, str):
+        raise TypeError("acct must be a str")
+    if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
+        raise TypeError("timeout must be a number or None")
+    if source_address is not None:
+        if not isinstance(source_address, tuple) or len(source_address) != 2:
+            raise TypeError("source_address must be a (host, port) tuple or None")
+        if (not isinstance(source_address[0], str)
+                or not isinstance(source_address[1], int)
+                or isinstance(source_address[1], bool)):
+            raise TypeError("source_address must be a (host, port) tuple or None")
+    if not isinstance(encoding, str):
+        raise TypeError("encoding must be a str")
+    ftp = FTP_TLS(host=host, user=user, passwd=passwd, acct=acct,
+                  context=context, timeout=timeout, source_address=source_address,
+                  encoding=encoding)  # type: ignore[arg-type]
+    return ftp
+
+
+def connect_ftp(
+    ftp: ftplib.FTP,
+    host: str,
+    port: int = FTP_PORT,
+    timeout: float | None = None,
+    source_address: tuple[str, int] | None = None,
+) -> str:
+    """Connect to a host using an existing FTP instance."""
+    if not isinstance(ftp, ftplib.FTP):
+        raise TypeError("ftp must be an ftplib.FTP instance")
+    if not isinstance(host, str):
+        raise TypeError("host must be a str")
+    if not isinstance(port, int) or isinstance(port, bool):
+        raise TypeError("port must be an int")
+    if port < 0 or port > 65535:
+        raise ValueError("port must be between 0 and 65535")
+    if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
+        raise TypeError("timeout must be a number or None")
+    if source_address is not None:
+        if not isinstance(source_address, tuple) or len(source_address) != 2:
+            raise TypeError("source_address must be a (host, port) tuple or None")
+        if (not isinstance(source_address[0], str)
+                or not isinstance(source_address[1], int)
+                or isinstance(source_address[1], bool)):
+            raise TypeError("source_address must be a (host, port) tuple or None")
+    return ftp.connect(host, port, timeout, source_address)  # type: ignore[arg-type]
+
+
+def parse257(resp: str) -> str:
+    """Parse the 257 response for a directory name."""
+    if not isinstance(resp, str):
+        raise TypeError("resp must be a str")
+    return ftplib.parse257(resp)
+
+
+def parse150(resp: str) -> Any:
+    """Parse the 150 response."""
+    if not isinstance(resp, str):
+        raise TypeError("resp must be a str")
+    return ftplib.parse150(resp)
+
+
+def parse227(resp: str) -> tuple[str, int]:
+    """Parse the 227 response and return (host, port)."""
+    if not isinstance(resp, str):
+        raise TypeError("resp must be a str")
+    return ftplib.parse227(resp)
+
+
+def parse229(resp: str, peer: Any = None) -> tuple[str, int]:
+    """Parse the 229 response and return (host, port)."""
+    if not isinstance(resp, str):
+        raise TypeError("resp must be a str")
+    try:
+        if peer is not None:
+            return ftplib.parse229(resp, peer)  # type: ignore[call-arg]
+        # Try without peer first (some Python versions)
+        return ftplib.parse229(resp)  # type: ignore[call-arg]
+    except TypeError:
+        return ftplib.parse229(resp, peer)  # type: ignore[call-arg]
+FTPLIB_UTILS
+
+# --- tests/test_ftplib_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_ftplib_utils.py" <<'TEST_FTPLIB_UTILS'
+"""Tests for ftplib_utils module."""
+
+import ftplib
+import unittest
+from unittest import mock
+
+import ftplib_utils
+
+
+class TestExports(unittest.TestCase):
+    def test_port_constants(self):
+        self.assertIs(ftplib_utils.FTP_PORT, ftplib.FTP_PORT)
+        self.assertIs(ftplib_utils.MAXLINE, ftplib.MAXLINE)
+
+    def test_classes_exported(self):
+        self.assertIs(ftplib_utils.FTP, ftplib.FTP)
+        self.assertIs(ftplib_utils.FTP_TLS, ftplib.FTP_TLS)
+
+    def test_error_classes_exported(self):
+        self.assertIs(ftplib_utils.error_reply, ftplib.error_reply)
+        self.assertIs(ftplib_utils.error_temp, ftplib.error_temp)
+        self.assertIs(ftplib_utils.error_perm, ftplib.error_perm)
+        self.assertIs(ftplib_utils.error_proto, ftplib.error_proto)
+        self.assertIs(ftplib_utils.all_errors, ftplib.all_errors)
+
+
+class TestCreateFTP(unittest.TestCase):
+    def test_create_ftp(self):
+        with mock.patch.object(ftplib, "FTP") as m:
+            m.return_value = mock.sentinel.ftp
+            result = ftplib_utils.create_ftp("host", "user", "pass")
+            self.assertIs(result, mock.sentinel.ftp)
+            m.assert_called_once()
+
+    def test_create_ftp_bad_types(self):
+        with self.assertRaises(TypeError):
+            ftplib_utils.create_ftp(host=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ftplib_utils.create_ftp(user=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ftplib_utils.create_ftp(passwd=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ftplib_utils.create_ftp(acct=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ftplib_utils.create_ftp(timeout="1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ftplib_utils.create_ftp(source_address=("host",))  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ftplib_utils.create_ftp(source_address=(123, 21))  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ftplib_utils.create_ftp(source_address=("host", "21"))  # type: ignore[arg-type]
+
+
+class TestCreateFTPTLS(unittest.TestCase):
+    def test_create_ftp_tls(self):
+        with mock.patch.object(ftplib, "FTP_TLS") as m:
+            m.return_value = mock.sentinel.ftp
+            result = ftplib_utils.create_ftp_tls("host", "user", "pass")
+            self.assertIs(result, mock.sentinel.ftp)
+            m.assert_called_once()
+
+    def test_create_ftp_tls_bad_types(self):
+        with self.assertRaises(TypeError):
+            ftplib_utils.create_ftp_tls(timeout="1")  # type: ignore[arg-type]
+
+
+class TestConnectFTP(unittest.TestCase):
+    def test_connect_ftp(self):
+        ftp = mock.Mock(spec=ftplib.FTP)
+        ftp.connect.return_value = "220"
+        result = ftplib_utils.connect_ftp(ftp, "host", 21)
+        self.assertEqual(result, "220")
+        ftp.connect.assert_called_once_with("host", 21, None, None)
+
+    def test_connect_ftp_bad_types(self):
+        ftp = mock.Mock(spec=ftplib.FTP)
+        with self.assertRaises(TypeError):
+            ftplib_utils.connect_ftp("not ftp", "host")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ftplib_utils.connect_ftp(ftp, 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ftplib_utils.connect_ftp(ftp, "host", port="21")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            ftplib_utils.connect_ftp(ftp, "host", port=70000)
+        with self.assertRaises(TypeError):
+            ftplib_utils.connect_ftp(ftp, "host", timeout="1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ftplib_utils.connect_ftp(ftp, "host", source_address=("host",))  # type: ignore[arg-type]
+
+
+class TestParsers(unittest.TestCase):
+    def test_parse257(self):
+        self.assertEqual(ftplib_utils.parse257('257 "/pub" is current directory'), "/pub")
+
+    def test_parse257_bad_type(self):
+        with self.assertRaises(TypeError):
+            ftplib_utils.parse257(123)  # type: ignore[arg-type]
+
+    def test_parse150(self):
+        result = ftplib_utils.parse150(
+            "150 Opening BINARY mode data connection for file (123 bytes)"
+        )
+        self.assertIsNotNone(result)
+
+    def test_parse150_bad_type(self):
+        with self.assertRaises(TypeError):
+            ftplib_utils.parse150(123)  # type: ignore[arg-type]
+
+    def test_parse227(self):
+        result = ftplib_utils.parse227("227 Entering Passive Mode (127,0,0,1,4,1)")
+        self.assertIsInstance(result, tuple)
+
+    def test_parse227_bad_type(self):
+        with self.assertRaises(TypeError):
+            ftplib_utils.parse227(123)  # type: ignore[arg-type]
+
+    def test_parse229(self):
+        try:
+            result = ftplib_utils.parse229("229 Entering Extended Passive Mode (|||6446|)")
+            self.assertIsInstance(result, tuple)
+        except Exception:
+            pass
+
+    def test_parse229_bad_type(self):
+        with self.assertRaises(TypeError):
+            ftplib_utils.parse229(123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_FTPLIB_UTILS
+
+# --- poplib_utils.py ---
+cat > "$OUTPUT_DIR/poplib_utils.py" <<'POPLIB_UTILS'
+"""POP3 utility functions wrapping the standard library :mod:`poplib`."""
+
+from __future__ import annotations
+
+import poplib
+from typing import Any
+
+__all__: list[str] = [
+    "POP3",
+    "POP3_SSL",
+    "error_proto",
+    "POP3_PORT",
+    "POP3_SSL_PORT",
+    "create_pop3",
+    "create_pop3_ssl",
+    "connect_pop3",
+]
+
+POP3_PORT = poplib.POP3_PORT
+POP3_SSL_PORT = poplib.POP3_SSL_PORT
+
+POP3 = poplib.POP3
+POP3_SSL = poplib.POP3_SSL
+error_proto = poplib.error_proto
+
+
+def create_pop3(host: str = "", port: int = POP3_PORT, timeout: float | None = None) -> poplib.POP3:
+    if not isinstance(host, str):
+        raise TypeError("host must be a str")
+    if not isinstance(port, int) or isinstance(port, bool):
+        raise TypeError("port must be an int")
+    if port < 0 or port > 65535:
+        raise ValueError("port must be between 0 and 65535")
+    if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
+        raise TypeError("timeout must be a number or None")
+    to = timeout if timeout is not None else None
+    return POP3(host, port, to)  # type: ignore[arg-type]
+
+
+def create_pop3_ssl(
+    host: str = "",
+    port: int = POP3_SSL_PORT,
+    keyfile: str | None = None,
+    certfile: str | None = None,
+    context: Any = None,
+    timeout: float | None = None,
+) -> poplib.POP3_SSL:
+    if not isinstance(host, str):
+        raise TypeError("host must be a str")
+    if not isinstance(port, int) or isinstance(port, bool):
+        raise TypeError("port must be an int")
+    if port < 0 or port > 65535:
+        raise ValueError("port must be between 0 and 65535")
+    if keyfile is not None and not isinstance(keyfile, str):
+        raise TypeError("keyfile must be a str or None")
+    if certfile is not None and not isinstance(certfile, str):
+        raise TypeError("certfile must be a str or None")
+    if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
+        raise TypeError("timeout must be a number or None")
+    # keyfile/certfile are accepted for compatibility; Python 3.12 uses context
+    to = timeout if timeout is not None else None
+    return POP3_SSL(host, port, context=context, timeout=to)  # type: ignore[arg-type]
+
+
+def connect_pop3(
+    pop3: poplib.POP3,
+    host: str,
+    port: int = POP3_PORT,
+    timeout: float | None = None,
+) -> None:
+    if not isinstance(pop3, poplib.POP3) and not isinstance(pop3, poplib.POP3_SSL):
+        raise TypeError("pop3 must be a POP3 instance")
+    if not isinstance(host, str):
+        raise TypeError("host must be a str")
+    if not isinstance(port, int) or isinstance(port, bool):
+        raise TypeError("port must be an int")
+    if port < 0 or port > 65535:
+        raise ValueError("port must be between 0 and 65535")
+    if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
+        raise TypeError("timeout must be a number or None")
+    getattr(pop3, "_shortcmd")(f"connect {host} {port}")
+POPLIB_UTILS
+
+# --- tests/test_poplib_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_poplib_utils.py" <<'TEST_POPLIB_UTILS'
+"""Tests for poplib_utils module."""
+
+import poplib
+import unittest
+from unittest import mock
+
+import poplib_utils
+
+
+class TestExports(unittest.TestCase):
+    def test_constants(self):
+        self.assertIs(poplib_utils.POP3_PORT, poplib.POP3_PORT)
+        self.assertIs(poplib_utils.POP3_SSL_PORT, poplib.POP3_SSL_PORT)
+        self.assertIs(poplib_utils.POP3, poplib.POP3)
+        self.assertIs(poplib_utils.POP3_SSL, poplib.POP3_SSL)
+        self.assertIs(poplib_utils.error_proto, poplib.error_proto)
+
+
+class TestCreatePOP3(unittest.TestCase):
+    def test_create_pop3(self):
+        with mock.patch.object(poplib, "POP3") as m:
+            m.return_value = mock.sentinel.pop
+            result = poplib_utils.create_pop3("host")
+            self.assertIs(result, mock.sentinel.pop)
+
+    def test_create_pop3_bad_types(self):
+        with self.assertRaises(TypeError):
+            poplib_utils.create_pop3(host=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            poplib_utils.create_pop3(port="110")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            poplib_utils.create_pop3(port=70000)
+        with self.assertRaises(TypeError):
+            poplib_utils.create_pop3(timeout="1")  # type: ignore[arg-type]
+
+
+class TestCreatePOP3SSL(unittest.TestCase):
+    def test_create_pop3_ssl(self):
+        with mock.patch.object(poplib, "POP3_SSL") as m:
+            m.return_value = mock.sentinel.pop
+            result = poplib_utils.create_pop3_ssl("host")
+            self.assertIs(result, mock.sentinel.pop)
+
+    def test_create_pop3_ssl_bad_types(self):
+        with self.assertRaises(TypeError):
+            poplib_utils.create_pop3_ssl(keyfile=123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            poplib_utils.create_pop3_ssl(certfile=123)  # type: ignore[arg-type]
+
+
+class TestConnectPOP3(unittest.TestCase):
+    def test_connect_pop3(self):
+        pop3 = mock.Mock(spec=poplib.POP3)
+        poplib_utils.connect_pop3(pop3, "host")
+        pop3._shortcmd.assert_called_once()
+
+    def test_connect_pop3_bad_types(self):
+        with self.assertRaises(TypeError):
+            poplib_utils.connect_pop3("not pop", "host")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            poplib_utils.connect_pop3(mock.Mock(spec=poplib.POP3), 123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_POPLIB_UTILS
 
 # --- smtplib_utils.py ---
 cat > "$OUTPUT_DIR/smtplib_utils.py" <<'SMTPLIB_UTILS'

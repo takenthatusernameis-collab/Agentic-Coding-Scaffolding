@@ -1,3 +1,5 @@
+- Add `ftplib_utils.py` wrapping the standard library `ftplib` module (FTP, FTP_TLS, error classes, FTP_PORT, MAXLINE, create_ftp, create_ftp_tls, connect_ftp, parse257, parse150, parse227, parse229) with input validation, plus unit tests in `tests/test_ftplib_utils.py`.
+- Add `poplib_utils.py` wrapping the standard library `poplib` module (POP3, POP3_SSL, error_proto, POP3_PORT, POP3_SSL_PORT, create_pop3, create_pop3_ssl, connect_pop3) with input validation, plus unit tests in `tests/test_poplib_utils.py`.
 ## Unreleased
 
 - Add `smtplib_utils.py` wrapping the standard library `smtplib` module (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text) with input validation, plus unit tests in `tests/test_smtplib_utils.py`.

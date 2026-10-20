@@ -52,8 +52,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `codeop_utils.py` — utilities for compiling possibly-incomplete Python source wrapping the standard library `codeop` module (`compile_command`, `Compile`, `CommandCompiler`) with input validation
 - `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
 - `fileinput_utils.py` — file input iteration utilities wrapping the standard library `fileinput` module (`read_lines`, `count_lines`, `filenames`) with input validation
+- `ftplib_utils.py` — ftplib utilities wrapping the standard library `ftplib` module (FTP, FTP_TLS, create_ftp, create_ftp_tls, connect_ftp, parse257, parse150, parse227, parse229)
 - `fnmatch_utils.py` — filename pattern matching utilities wrapping the standard library `fnmatch` module (`match`, `match_case`, `filter_names`, `translate`) with input validation
 - `getpass_utils.py` — secure password input utilities wrapping the standard library `getpass` module (`getpass`, `getuser`) with input validation
+- `poplib_utils.py` — poplib utilities wrapping the standard library `poplib` module (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -251,8 +253,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`
 - `tests/test_fileinput_utils.py` — unit tests for `fileinput_utils.py`
 - `tests/test_fnmatch_utils.py` — unit tests for `fnmatch_utils.py`
+- `tests/test_ftplib_utils.py` — unit tests for `ftplib_utils.py`
 - `tests/test_getpass_utils.py` — unit tests for `getpass_utils.py`
 - `tests/test_pathlib_utils.py` — unit tests for `pathlib_utils.py`
+- `tests/test_poplib_utils.py` — unit tests for `poplib_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`

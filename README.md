@@ -293,6 +293,7 @@ test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
   test_fileinput_utils.py     # Tests for fileinput_utils.py
   test_fractions_utils.py     # Tests for fractions_utils.py
   test_fnmatch_utils.py       # Tests for fnmatch_utils.py
+ftplib_utils.py            # Ftplib utilities wrapping stdlib ftplib (FTP, FTP_TLS, create_ftp, create_ftp_tls, connect_ftp, parse257, parse150, parse227, parse229)
   test_functools_utils.py     # Tests for functools_utils.py
   test_glob_utils.py          # Tests for glob_utils.py
   test_graphlib_utils.py      # Tests for graphlib_utils.py
@@ -325,6 +326,7 @@ test_markdown_utils.py      # Tests for markdown_utils.py
   test_os_utils.py            # Tests for os_utils.py
 test_path_utils.py          # Tests for path_utils.py
   test_pathlib_utils.py       # Tests for pathlib_utils.py
+poplib_utils.py            # Poplib utilities wrapping stdlib poplib (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
   test_pattern_utils.py       # Tests for pattern_utils.py
   test_pprint_utils.py        # Tests for pprint_utils.py
 test_reprlib_utils.py       # Tests for reprlib_utils.py
@@ -1357,3 +1359,17 @@ The project includes XDR (eXternal Data Representation) utilities in `xdrlib_uti
 ## Smtplib Utilities Module
 
 The project includes SMTP client utilities in `smtplib_utils.py` wrapping the standard library `smtplib` module: `quoteaddr` quotes an address the way a server expects it; `quote_string` quotes a string so that it can be used inside a header; `quote_data` quotes a message body so that it cannot end the message early; `parse_address` splits an address into its display name and its address; `address_only` returns an address without its display name; `format_address` formats a display name and an address as a single header value; `getfqdn` returns the fully qualified domain name of a host; `parse_response` parses a raw server reply into its code and its message; and `parse_ehlo_features` parses the service extensions a server announced in its EHLO reply. `build_message` assembles a complete `email.message.EmailMessage` from plain values and guesses the media type of an attachment from its file name. `create_smtp`, `create_smtp_ssl`, and `create_lmtp` build the standard library clients, and `send_message` and `send_text` send a message with a client the caller already owns. `SMTP`, `SMTP_SSL`, `LMTP`, and the standard library error classes are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module never opens a connection on its own, so the caller stays in control of when a connection is attempted and the test suite stays hermetic. The module is tested in `tests/test_smtplib_utils.py`.
+
+
+tests/test_ftplib_utils.py - Tests for ftplib_utils module
+
+## Ftplib Utilities Module
+
+The project includes FTP utilities in `ftplib_utils.py` wrapping the standard library `ftplib` module: `FTP` and `FTP_TLS` classes, `error_reply`, `error_temp`, `error_perm`, `error_proto`, `all_errors`, `FTP_PORT`, `MAXLINE`, plus validated helpers `create_ftp`, `create_ftp_tls`, `connect_ftp`, `parse257`, `parse150`, `parse227`, `parse229`.
+
+
+tests/test_poplib_utils.py - Tests for poplib_utils module
+
+## Poplib Utilities Module
+
+The project includes POP3 utilities in `poplib_utils.py` wrapping the standard library `poplib` module: `POP3`, `POP3_SSL`, `error_proto`, `POP3_PORT`, `POP3_SSL_PORT`, plus validated helpers `create_pop3`, `create_pop3_ssl`, `connect_pop3`.
