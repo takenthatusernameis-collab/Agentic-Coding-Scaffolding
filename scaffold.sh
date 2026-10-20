@@ -9284,6 +9284,13 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
     if min_val > max_val:
         raise ValueError("min_val must be <= max_val")
     return max(min_val, min(value, max_val))
+
+
+def is_even(value: int) -> bool:
+    """Return True if *value* is an even integer."""
+    if not isinstance(value, int):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    return value % 2 == 0
 MATH
 
 # --- data_utils.py ---
