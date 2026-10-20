@@ -270,7 +270,7 @@
 
 #   - array_utils.py — # Array utility functions wrapping the standard library array module
 #   - bisect_utils.py — # Bisect utility functions for binary search on sorted sequences
-#   - trace_utils.py — # Trace utility functions wrapping the standard library trace module
+#   - trace_utils.py — # Execution tracing utilities wrapping the standard library trace module (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 #   - tests/test_trace_utils.py — # Tests for trace_utils.py
 #   - contextlib_utils.py — # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 #   - tests/test_contextlib_utils.py — # Tests for contextlib_utils.py
@@ -1408,6 +1408,944 @@ class TestFormatFailure(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_DOCTEST_UTILS
+
+# --- trace_utils.py ---
+cat > "$OUTPUT_DIR/trace_utils.py" <<'TRACE_UTILS'
+"""Utilities for tracing Python program execution (wrapping :mod:`trace`).
+
+The :mod:`trace` module implements a deterministic trace of the execution of a
+Python program: it can count how often every line was executed, report each
+executed line, and record which functions were called and by whom. This wrapper
+exposes a small, validated surface over that functionality so callers can build
+a tracer, run code under it, and turn the recorded results into readable
+reports.
+"""
+
+from __future__ import annotations
+
+import ast
+import os
+import sys
+import trace as _trace
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Set, Tuple
+
+__all__ = [
+    "new_tracer",
+    "run_traced",
+    "run_script_traced",
+    "counted_lines",
+    "line_counts",
+    "called_functions",
+    "call_relationships",
+    "is_ignored_filename",
+    "merge_results",
+    "write_coverage_report",
+    "summarize_coverage",
+    "format_coverage_summary",
+    "clear_counts",
+    "Trace",
+    "CoverageResults",
+    "PRAGMA_NOCOVER",
+]
+
+
+def _require_bool(value: object, name: str) -> bool:
+    """Return *value* when it is a boolean, otherwise raise ``TypeError``."""
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def _require_text(value: object, name: str) -> str:
+    """Return *value* when it is a string, otherwise raise ``TypeError``."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _require_path(value: object, name: str) -> Path:
+    """Return *value* as a :class:`pathlib.Path`, otherwise raise ``TypeError``."""
+    if isinstance(value, Path):
+        return value
+    if isinstance(value, str):
+        return Path(value)
+    if isinstance(value, os.PathLike):
+        return Path(os.fspath(value))
+    raise TypeError(f"{name} must be a path, got {type(value).__name__}")
+
+
+def _require_text_sequence(value: object, name: str) -> List[str]:
+    """Return *value* as a list of strings, otherwise raise ``TypeError``."""
+    if isinstance(value, (str, bytes)) or not isinstance(value, (list, tuple, set, frozenset)):
+        raise TypeError(f"{name} must be a sequence of strings, got {type(value).__name__}")
+    items: List[str] = []
+    for item in value:
+        items.append(_require_text(item, f"{name} entry"))
+    return items
+
+
+def _require_results(value: object, name: str = "results") -> _trace.CoverageResults:
+    """Return *value* when it holds coverage results, otherwise raise."""
+    if not isinstance(value, _trace.CoverageResults):
+        raise TypeError(f"{name} must be a trace.CoverageResults, got {type(value).__name__}")
+    return value
+
+
+def _require_tracer(value: object, name: str = "tracer") -> _trace.Trace:
+    """Return *value* when it is a tracer, otherwise raise ``TypeError``."""
+    if not isinstance(value, _trace.Trace):
+        raise TypeError(f"{name} must be a trace.Trace, got {type(value).__name__}")
+    return value
+
+
+def _default_ignoredirs() -> List[str]:
+    """Return the installation prefixes that are excluded from tracing."""
+    candidates = [sys.prefix, sys.base_prefix, sys.exec_prefix, sys.base_exec_prefix]
+    directories: List[str] = []
+    for candidate in candidates:
+        if candidate and candidate not in directories:
+            directories.append(candidate)
+    return directories
+
+
+def _executable_lines(filename: str) -> Optional[Set[int]]:
+    """Return the executable line numbers of *filename*, or ``None``.
+
+    The source of the file is parsed to find the lines that hold a statement.
+    ``None`` is returned when the file cannot be read or cannot be parsed.
+    """
+    path = Path(filename)
+    if path.suffix == ".pyc" or not path.is_file():
+        return None
+    try:
+        source = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    try:
+        tree = ast.parse(source, filename=filename)
+    except SyntaxError:
+        return None
+    return {node.lineno for node in ast.walk(tree) if isinstance(node, ast.stmt)}
+
+
+def new_tracer(
+    count: bool = True,
+    trace_lines: bool = False,
+    count_funcs: bool = False,
+    count_callers: bool = False,
+    ignoredirs: Optional[Sequence[str]] = None,
+    ignoremods: Optional[Sequence[str]] = None,
+    infile: Optional[str] = None,
+    outfile: Optional[str] = None,
+) -> _trace.Trace:
+    """Create a tracer that records the execution of the code it runs.
+
+    Args:
+        count: Whether the number of executions of every line is counted.
+        trace_lines: Whether every executed line is written out.
+        count_funcs: Whether the called functions are recorded. This overrides
+            ``count`` and ``trace_lines`` in the standard library.
+        count_callers: Whether the calling relationships are recorded. This
+            overrides ``count``, ``trace_lines``, and ``count_funcs`` in the
+            standard library.
+        ignoredirs: Directories whose content is not traced. The installation
+            prefixes are excluded when this is ``None``.
+        ignoremods: Names of the modules that are not traced.
+        infile: File holding previously stored counts that are merged into the
+            results.
+        outfile: File the counts are written to.
+
+    Returns:
+        A tracer ready to run code under.
+
+    Raises:
+        TypeError: If an argument has an unsupported type.
+    """
+    count_flag = _require_bool(count, "count")
+    trace_flag = _require_bool(trace_lines, "trace_lines")
+    funcs_flag = _require_bool(count_funcs, "count_funcs")
+    callers_flag = _require_bool(count_callers, "count_callers")
+    directories = (
+        _default_ignoredirs()
+        if ignoredirs is None
+        else _require_text_sequence(ignoredirs, "ignoredirs")
+    )
+    modules = [] if ignoremods is None else _require_text_sequence(ignoremods, "ignoremods")
+    source = None if infile is None else _require_text(infile, "infile")
+    destination = None if outfile is None else _require_text(outfile, "outfile")
+    return _trace.Trace(
+        count=count_flag,
+        trace=trace_flag,
+        countfuncs=funcs_flag,
+        countcallers=callers_flag,
+        ignoremods=tuple(modules),
+        ignoredirs=tuple(directories),
+        infile=source,
+        outfile=destination,
+    )
+
+
+def run_traced(
+    func: Callable[..., Any],
+    *args: Any,
+    tracer: Optional[_trace.Trace] = None,
+    **kwargs: Any,
+) -> Tuple[Any, _trace.CoverageResults]:
+    """Run *func* under a tracer and return its result and the recorded counts.
+
+    Args:
+        func: The callable to run.
+        *args: Positional arguments passed to *func*.
+        tracer: The tracer to run the code under. A counting tracer is created
+            when this is ``None``.
+        **kwargs: Keyword arguments passed to *func*.
+
+    Returns:
+        A tuple with the return value of *func* and the coverage results.
+
+    Raises:
+        TypeError: If *func* is not callable or *tracer* is not a tracer.
+    """
+    if not callable(func):
+        raise TypeError(f"func must be callable, got {type(func).__name__}")
+    active = new_tracer() if tracer is None else _require_tracer(tracer)
+    result = active.runfunc(func, *args, **kwargs)
+    return result, active.results()
+
+
+def run_script_traced(
+    path: Any,
+    tracer: Optional[_trace.Trace] = None,
+) -> Tuple[int, _trace.CoverageResults]:
+    """Run the Python script at *path* under a tracer.
+
+    Args:
+        path: Path of the script to run.
+        tracer: The tracer to run the script under. A counting tracer is
+            created when this is ``None``.
+
+    Returns:
+        A tuple with the exit code of the script and the coverage results. A
+        script that ends without calling :func:`sys.exit` exits with ``0``.
+
+    Raises:
+        TypeError: If *path* is not a path or *tracer* is not a tracer.
+        FileNotFoundError: If the script does not exist.
+    """
+    script = _require_path(path, "path")
+    if not script.is_file():
+        raise FileNotFoundError(f"script not found: {script}")
+    active = new_tracer() if tracer is None else _require_tracer(tracer)
+    source = script.read_text(encoding="utf-8")
+    code = compile(source, str(script), "exec")
+    namespace: Dict[str, Any] = {"__name__": "__main__", "__file__": str(script)}
+    exit_code = 0
+    try:
+        active.runctx(code, namespace, namespace)
+    except SystemExit as request:
+        requested = request.code
+        if requested is None:
+            exit_code = 0
+        elif isinstance(requested, int):
+            exit_code = requested
+        else:
+            print(requested, file=sys.stderr)
+            exit_code = 1
+    return exit_code, active.results()
+
+
+def counted_lines(results: object) -> Dict[Tuple[str, int], int]:
+    """Return how often every recorded line was executed.
+
+    Args:
+        results: The coverage results of a run.
+
+    Returns:
+        A mapping from a ``(file name, line number)`` pair to the number of
+        executions of that line.
+
+    Raises:
+        TypeError: If *results* does not hold coverage results.
+    """
+    data = _require_results(results)
+    return {(str(name), int(number)): int(count) for (name, number), count in data.counts.items()}
+
+
+def line_counts(results: object) -> Dict[str, Dict[int, int]]:
+    """Return the execution counts of the recorded lines, grouped by file.
+
+    Args:
+        results: The coverage results of a run.
+
+    Returns:
+        A mapping from a file name to a mapping from a line number to the
+        number of executions of that line.
+
+    Raises:
+        TypeError: If *results* does not hold coverage results.
+    """
+    per_file: Dict[str, Dict[int, int]] = {}
+    for (name, number), count in counted_lines(results).items():
+        per_file.setdefault(name, {})[number] = count
+    return per_file
+
+
+def called_functions(results: object) -> List[Tuple[str, str, str]]:
+    """Return the functions that were called during the traced run.
+
+    Args:
+        results: The coverage results of a run.
+
+    Returns:
+        A sorted list of ``(file name, module name, function name)`` triples.
+
+    Raises:
+        TypeError: If *results* does not hold coverage results.
+    """
+    data = _require_results(results)
+    return sorted((str(name), str(module), str(func)) for name, module, func in data.calledfuncs)
+
+
+def call_relationships(results: object) -> List[Tuple[Tuple[str, str, str], Tuple[str, str, str]]]:
+    """Return the calling relationships recorded during the traced run.
+
+    Args:
+        results: The coverage results of a run.
+
+    Returns:
+        A sorted list of ``(caller, callee)`` pairs, each holding a
+        ``(file name, module name, function name)`` triple.
+
+    Raises:
+        TypeError: If *results* does not hold coverage results.
+    """
+    data = _require_results(results)
+    return sorted(
+        (
+            (str(caller[0]), str(caller[1]), str(caller[2])),
+            (str(callee[0]), str(callee[1]), str(callee[2])),
+        )
+        for caller, callee in data.callers
+    )
+
+
+def is_ignored_filename(results: object, filename: str) -> bool:
+    """Return whether *filename* is excluded from the coverage report.
+
+    Args:
+        results: The coverage results of a run.
+        filename: Name of the file to check.
+
+    Returns:
+        ``True`` when the file is not reported, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *results* does not hold coverage results or *filename* is
+            not a string.
+    """
+    data = _require_results(results)
+    return bool(data.is_ignored_filename(_require_text(filename, "filename")))
+
+
+def merge_results(results: object, other: object) -> _trace.CoverageResults:
+    """Merge the counts of *other* into *results*.
+
+    Args:
+        results: The coverage results that receive the counts.
+        other: The coverage results that are merged in.
+
+    Returns:
+        The updated *results*.
+
+    Raises:
+        TypeError: If either argument does not hold coverage results.
+    """
+    data = _require_results(results)
+    extra = _require_results(other, "other")
+    data.update(extra)
+    return data
+
+
+def write_coverage_report(
+    results: object,
+    coverdir: Optional[str] = None,
+    show_missing: bool = True,
+    summary: bool = False,
+) -> None:
+    """Write the coverage report of *results*.
+
+    Args:
+        results: The coverage results of a run.
+        coverdir: Directory the report files are written to. The files are
+            written next to the traced sources when this is ``None``.
+        show_missing: Whether the lines that were not executed are reported.
+        summary: Whether a summary of the coverage per module is printed.
+
+    Raises:
+        TypeError: If an argument has an unsupported type.
+    """
+    data = _require_results(results)
+    directory = None if coverdir is None else _require_text(coverdir, "coverdir")
+    missing_flag = _require_bool(show_missing, "show_missing")
+    summary_flag = _require_bool(summary, "summary")
+    data.write_results(show_missing=missing_flag, summary=summary_flag, coverdir=directory)
+
+
+def summarize_coverage(results: object) -> List[Dict[str, Any]]:
+    """Return a coverage summary of every file recorded in *results*.
+
+    Args:
+        results: The coverage results of a run.
+
+    Returns:
+        One entry per file, sorted by file name. Every entry holds the
+        ``file`` name, the number of ``lines`` that hold a statement, the
+        number of ``covered`` lines, the number of ``missing`` lines, the
+        number of ``hits`` of the covered lines, and the ``percent`` of the
+        lines that were covered.
+
+    Raises:
+        TypeError: If *results* does not hold coverage results.
+    """
+    data = _require_results(results)
+    summaries: List[Dict[str, Any]] = []
+    for name, counts in sorted(line_counts(data).items()):
+        if data.is_ignored_filename(name):
+            continue
+        hit_lines = set(counts)
+        executable = _executable_lines(name)
+        if executable is None:
+            executable = set(hit_lines)
+        covered = len(hit_lines & executable)
+        total = len(executable)
+        summaries.append(
+            {
+                "file": name,
+                "lines": total,
+                "covered": covered,
+                "missing": total - covered,
+                "hits": sum(counts.values()),
+                "percent": round(100.0 * covered / total, 1) if total else 0.0,
+            }
+        )
+    return summaries
+
+
+def format_coverage_summary(summaries: object) -> str:
+    """Render coverage summaries as a readable table.
+
+    Args:
+        summaries: The entries returned by :func:`summarize_coverage`.
+
+    Returns:
+        A table with one row per entry.
+
+    Raises:
+        TypeError: If *summaries* is not a sequence of mappings.
+    """
+    if isinstance(summaries, (str, bytes)) or not isinstance(summaries, (list, tuple)):
+        raise TypeError(f"summaries must be a sequence of mappings, got {type(summaries).__name__}")
+    header = f"{'file':<40} {'lines':>7} {'covered':>8} {'missing':>8} {'cover%':>7}"
+    rows = [header, "-" * len(header)]
+    for entry in summaries:
+        if not isinstance(entry, Mapping):
+            raise TypeError(f"every summary must be a mapping, got {type(entry).__name__}")
+        rows.append(
+            "{file:<40} {lines:>7} {covered:>8} {missing:>8} {percent:>6.1f}%".format(
+                file=str(entry.get("file", "")),
+                lines=int(entry.get("lines", 0)),
+                covered=int(entry.get("covered", 0)),
+                missing=int(entry.get("missing", 0)),
+                percent=float(entry.get("percent", 0.0)),
+            )
+        )
+    return "\n".join(rows)
+
+
+def clear_counts(tracer: object) -> None:
+    """Discard the line counts recorded by *tracer*.
+
+    Args:
+        tracer: The tracer whose counts are cleared.
+
+    Raises:
+        TypeError: If *tracer* is not a tracer.
+    """
+    active = _require_tracer(tracer)
+    active.counts.clear()
+
+
+Trace = _trace.Trace
+CoverageResults = _trace.CoverageResults
+PRAGMA_NOCOVER = getattr(_trace, "PRAGMA_NOCOVER", "#pragma NO COVER")
+TRACE_UTILS
+
+# --- tests/test_trace_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_trace_utils.py" <<'TEST_TRACE_UTILS'
+"""Tests for the trace_utils module."""
+
+import os
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+import trace_utils
+
+SCRIPT_SOURCE = """def unused():
+    return "never"
+
+
+def used():
+    return "used"
+
+
+used()
+"""
+
+
+def sample_function(first, second):
+    """Return the sum of two numbers."""
+    total = first + second
+    return total
+
+
+def write_script(directory, source=SCRIPT_SOURCE, name="sample_script.py"):
+    """Write *source* into *directory* and return the path of the script."""
+    path = Path(directory) / name
+    path.write_text(source, encoding="utf-8")
+    return path
+
+
+class TestNewTracer(unittest.TestCase):
+    """Verify the creation of tracers."""
+
+    def test_new_tracer_returns_a_trace(self):
+        self.assertIsInstance(trace_utils.new_tracer(), trace_utils.Trace)
+
+    def test_new_tracer_counts_by_default(self):
+        tracer = trace_utils.new_tracer()
+        self.assertEqual(tracer.trace, 0)
+        trace_utils.run_traced(sample_function, 1, 2, tracer=tracer)
+        self.assertTrue(tracer.counts)
+
+    def test_new_tracer_can_disable_counting(self):
+        tracer = trace_utils.new_tracer(count=False)
+        trace_utils.run_traced(sample_function, 1, 2, tracer=tracer)
+        self.assertEqual(tracer.counts, {})
+
+    def test_new_tracer_can_trace_the_lines(self):
+        tracer = trace_utils.new_tracer(trace_lines=True)
+        self.assertEqual(tracer.trace, 1)
+
+    def test_new_tracer_records_the_called_functions(self):
+        import trace
+
+        tracer = trace_utils.new_tracer(count_funcs=True)
+        self.assertIs(tracer.globaltrace.__func__, trace.Trace.globaltrace_countfuncs)
+
+    def test_new_tracer_records_the_callers(self):
+        import trace
+
+        tracer = trace_utils.new_tracer(count_callers=True)
+        self.assertIs(tracer.globaltrace.__func__, trace.Trace.globaltrace_trackcallers)
+
+    def test_new_tracer_ignores_the_installation_prefixes_by_default(self):
+        tracer = trace_utils.new_tracer()
+        self.assertIn(sys.prefix, tracer.ignore._dirs)
+
+    def test_new_tracer_accepts_directories_and_modules(self):
+        tracer = trace_utils.new_tracer(ignoredirs=["/tmp"], ignoremods=["json"])
+        self.assertIn("/tmp", tracer.ignore._dirs)
+        self.assertIn("json", tracer.ignore._mods)
+
+    def test_new_tracer_rejects_a_string_of_directories(self):
+        with self.assertRaises(TypeError):
+            trace_utils.new_tracer(ignoredirs="/tmp")  # type: ignore[arg-type]
+
+    def test_new_tracer_rejects_a_directory_entry_that_is_not_a_string(self):
+        with self.assertRaises(TypeError):
+            trace_utils.new_tracer(ignoredirs=[1])  # type: ignore[list-item]
+
+    def test_new_tracer_rejects_a_module_entry_that_is_not_a_string(self):
+        with self.assertRaises(TypeError):
+            trace_utils.new_tracer(ignoremods=[None])  # type: ignore[list-item]
+
+    def test_new_tracer_rejects_a_flag_that_is_not_a_bool(self):
+        with self.assertRaises(TypeError):
+            trace_utils.new_tracer(count="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            trace_utils.new_tracer(trace_lines=1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            trace_utils.new_tracer(count_funcs=None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            trace_utils.new_tracer(count_callers="no")  # type: ignore[arg-type]
+
+    def test_new_tracer_rejects_a_file_that_is_not_a_string(self):
+        with self.assertRaises(TypeError):
+            trace_utils.new_tracer(infile=1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            trace_utils.new_tracer(outfile=1)  # type: ignore[arg-type]
+
+
+class TestRunTraced(unittest.TestCase):
+    """Verify running a callable under a tracer."""
+
+    def test_run_traced_returns_the_result(self):
+        value, _ = trace_utils.run_traced(sample_function, 1, 2)
+        self.assertEqual(value, 3)
+
+    def test_run_traced_returns_the_coverage_results(self):
+        _, results = trace_utils.run_traced(sample_function, 1, 2)
+        self.assertIsInstance(results, trace_utils.CoverageResults)
+
+    def test_run_traced_passes_the_keyword_arguments(self):
+        value, _ = trace_utils.run_traced(sample_function, first=2, second=5)
+        self.assertEqual(value, 7)
+
+    def test_run_traced_records_the_executed_lines(self):
+        _, results = trace_utils.run_traced(sample_function, 1, 2)
+        counts = trace_utils.counted_lines(results)
+        self.assertTrue(counts)
+        self.assertTrue(any(name == __file__ for name, _ in counts))
+
+    def test_run_traced_uses_the_given_tracer(self):
+        tracer = trace_utils.new_tracer()
+        _, results = trace_utils.run_traced(sample_function, 1, 2, tracer=tracer)
+        self.assertEqual(
+            trace_utils.counted_lines(results),
+            trace_utils.counted_lines(tracer.results()),
+        )
+
+    def test_run_traced_rejects_a_function_that_is_not_callable(self):
+        with self.assertRaises(TypeError):
+            trace_utils.run_traced("not callable")  # type: ignore[arg-type]
+
+    def test_run_traced_rejects_a_tracer_that_is_not_a_trace(self):
+        with self.assertRaises(TypeError):
+            trace_utils.run_traced(sample_function, 1, 2, tracer=object())  # type: ignore[arg-type]
+
+
+class TestRunScriptTraced(unittest.TestCase):
+    """Verify running a script under a tracer."""
+
+    def test_run_script_traced_returns_the_exit_code(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory)
+            exit_code, results = trace_utils.run_script_traced(script)
+        self.assertEqual(exit_code, 0)
+        self.assertIsInstance(results, trace_utils.CoverageResults)
+
+    def test_run_script_traced_records_the_lines_of_the_script(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory)
+            _, results = trace_utils.run_script_traced(script)
+        self.assertIn(str(script), trace_utils.line_counts(results))
+
+    def test_run_script_traced_returns_the_exit_code_of_the_script(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory, "import sys\nsys.exit(3)\n")
+            exit_code, _ = trace_utils.run_script_traced(script)
+        self.assertEqual(exit_code, 3)
+
+    def test_run_script_traced_treats_a_missing_exit_code_as_success(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory, "import sys\nsys.exit()\n")
+            exit_code, _ = trace_utils.run_script_traced(script)
+        self.assertEqual(exit_code, 0)
+
+    def test_run_script_traced_reports_a_message_exit_code(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory, "import sys\nsys.exit('bye')\n")
+            with tempfile.TemporaryDirectory() as errors:
+                stderr = sys.stderr
+                with open(os.path.join(errors, "err.txt"), "w", encoding="utf-8") as handle:
+                    sys.stderr = handle
+                    try:
+                        exit_code, _ = trace_utils.run_script_traced(script)
+                    finally:
+                        sys.stderr = stderr
+                with open(os.path.join(errors, "err.txt"), encoding="utf-8") as handle:
+                    captured = handle.read()
+        self.assertEqual(exit_code, 1)
+        self.assertIn("bye", captured)
+
+    def test_run_script_traced_ignores_a_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory)
+            tracer = trace_utils.new_tracer(ignoredirs=[directory])
+            _, results = trace_utils.run_script_traced(script, tracer=tracer)
+        self.assertNotIn(str(script), trace_utils.line_counts(results))
+
+    def test_run_script_traced_rejects_a_missing_script(self):
+        with self.assertRaises(FileNotFoundError):
+            trace_utils.run_script_traced("/definitely/not/a/script.py")
+
+    def test_run_script_traced_rejects_a_path_that_is_not_a_path(self):
+        with self.assertRaises(TypeError):
+            trace_utils.run_script_traced(42)  # type: ignore[arg-type]
+
+    def test_run_script_traced_rejects_a_tracer_that_is_not_a_trace(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory)
+            with self.assertRaises(TypeError):
+                trace_utils.run_script_traced(script, tracer=object())  # type: ignore[arg-type]
+
+
+class TestCountedLines(unittest.TestCase):
+    """Verify the access to the recorded line counts."""
+
+    def setUp(self):
+        _, self.results = trace_utils.run_traced(sample_function, 1, 2)
+
+    def test_counted_lines_maps_lines_to_counts(self):
+        counts = trace_utils.counted_lines(self.results)
+        self.assertTrue(all(isinstance(name, str) for name, _ in counts))
+        self.assertTrue(all(isinstance(number, int) for _, number in counts))
+        self.assertTrue(all(count > 0 for count in counts.values()))
+
+    def test_counted_lines_of_an_empty_result_is_empty(self):
+        self.assertEqual(trace_utils.counted_lines(trace_utils.CoverageResults()), {})
+
+    def test_counted_lines_rejects_a_result_that_is_not_a_coverage_result(self):
+        with self.assertRaises(TypeError):
+            trace_utils.counted_lines({})  # type: ignore[arg-type]
+
+
+class TestLineCounts(unittest.TestCase):
+    """Verify the grouping of the recorded line counts."""
+
+    def setUp(self):
+        _, self.results = trace_utils.run_traced(sample_function, 1, 2)
+
+    def test_line_counts_groups_the_counts_by_file(self):
+        counts = trace_utils.line_counts(self.results)
+        self.assertIn(__file__, counts)
+        self.assertTrue(all(isinstance(number, int) for number in counts[__file__].values()))
+
+    def test_line_counts_rejects_a_result_that_is_not_a_coverage_result(self):
+        with self.assertRaises(TypeError):
+            trace_utils.line_counts(None)  # type: ignore[arg-type]
+
+
+class TestCalledFunctions(unittest.TestCase):
+    """Verify the access to the recorded function calls."""
+
+    def test_called_functions_is_empty_without_a_function_counter(self):
+        _, results = trace_utils.run_traced(sample_function, 1, 2)
+        self.assertEqual(trace_utils.called_functions(results), [])
+
+    def test_called_functions_records_the_called_function(self):
+        tracer = trace_utils.new_tracer(count_funcs=True)
+        _, results = trace_utils.run_traced(sample_function, 1, 2, tracer=tracer)
+        called = trace_utils.called_functions(results)
+        self.assertTrue(called)
+        self.assertTrue(all(len(entry) == 3 for entry in called))
+
+    def test_called_functions_rejects_a_result_that_is_not_a_coverage_result(self):
+        with self.assertRaises(TypeError):
+            trace_utils.called_functions("results")  # type: ignore[arg-type]
+
+
+class TestCallRelationships(unittest.TestCase):
+    """Verify the access to the recorded calling relationships."""
+
+    def test_call_relationships_is_empty_without_a_caller_counter(self):
+        _, results = trace_utils.run_traced(sample_function, 1, 2)
+        self.assertEqual(trace_utils.call_relationships(results), [])
+
+    def test_call_relationships_records_the_caller(self):
+        tracer = trace_utils.new_tracer(count_callers=True)
+        _, results = trace_utils.run_traced(sample_function, 1, 2, tracer=tracer)
+        relationships = trace_utils.call_relationships(results)
+        self.assertTrue(relationships)
+        self.assertTrue(
+            all(len(caller) == 3 and len(callee) == 3 for caller, callee in relationships)
+        )
+
+    def test_call_relationships_rejects_a_result_that_is_not_a_coverage_result(self):
+        with self.assertRaises(TypeError):
+            trace_utils.call_relationships(None)  # type: ignore[arg-type]
+
+
+class TestIsIgnoredFilename(unittest.TestCase):
+    """Verify the detection of the files that are not reported."""
+
+    def setUp(self):
+        self.results = trace_utils.CoverageResults()
+
+    def test_is_ignored_filename_is_true_for_a_virtual_file(self):
+        self.assertTrue(trace_utils.is_ignored_filename(self.results, "<string>"))
+
+    def test_is_ignored_filename_is_false_for_a_real_file(self):
+        self.assertFalse(trace_utils.is_ignored_filename(self.results, __file__))
+
+    def test_is_ignored_filename_rejects_a_filename_that_is_not_a_string(self):
+        with self.assertRaises(TypeError):
+            trace_utils.is_ignored_filename(self.results, None)  # type: ignore[arg-type]
+
+    def test_is_ignored_filename_rejects_a_result_that_is_not_a_coverage_result(self):
+        with self.assertRaises(TypeError):
+            trace_utils.is_ignored_filename(object(), "file.py")  # type: ignore[arg-type]
+
+
+class TestMergeResults(unittest.TestCase):
+    """Verify the merging of coverage results."""
+
+    def test_merge_results_adds_the_counts(self):
+        _, first = trace_utils.run_traced(sample_function, 1, 2)
+        _, second = trace_utils.run_traced(sample_function, 3, 4)
+        merged = trace_utils.merge_results(first, second)
+        counts = trace_utils.counted_lines(merged)
+        self.assertTrue(all(count >= 2 for count in counts.values()))
+
+    def test_merge_results_returns_the_merged_results(self):
+        _, first = trace_utils.run_traced(sample_function, 1, 2)
+        _, second = trace_utils.run_traced(sample_function, 3, 4)
+        self.assertIs(trace_utils.merge_results(first, second), first)
+
+    def test_merge_results_rejects_a_result_that_is_not_a_coverage_result(self):
+        results = trace_utils.CoverageResults()
+        with self.assertRaises(TypeError):
+            trace_utils.merge_results(results, {})  # type: ignore[arg-type]
+
+    def test_merge_results_rejects_an_other_result_that_is_not_a_coverage_result(self):
+        results = trace_utils.CoverageResults()
+        with self.assertRaises(TypeError):
+            trace_utils.merge_results(results, None)  # type: ignore[arg-type]
+
+
+class TestWriteCoverageReport(unittest.TestCase):
+    """Verify the writing of the coverage report."""
+
+    def test_write_coverage_report_writes_a_cover_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory)
+            _, results = trace_utils.run_script_traced(script)
+            coverdir = Path(directory) / "cover"
+            trace_utils.write_coverage_report(results, coverdir=str(coverdir))
+            written = sorted(path.name for path in coverdir.iterdir())
+        self.assertTrue(any(name.endswith(".cover") for name in written))
+
+    def test_write_coverage_report_rejects_a_coverdir_that_is_not_a_string(self):
+        results = trace_utils.CoverageResults()
+        with self.assertRaises(TypeError):
+            trace_utils.write_coverage_report(results, coverdir=1)  # type: ignore[arg-type]
+
+    def test_write_coverage_report_rejects_a_flag_that_is_not_a_bool(self):
+        results = trace_utils.CoverageResults()
+        with self.assertRaises(TypeError):
+            trace_utils.write_coverage_report(results, show_missing="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            trace_utils.write_coverage_report(results, summary=1)  # type: ignore[arg-type]
+
+    def test_write_coverage_report_rejects_a_result_that_is_not_a_coverage_result(self):
+        with self.assertRaises(TypeError):
+            trace_utils.write_coverage_report(object())  # type: ignore[arg-type]
+
+
+class TestSummarizeCoverage(unittest.TestCase):
+    """Verify the coverage summary of a run."""
+
+    def test_summarize_coverage_returns_one_entry_per_file(self):
+        _, results = trace_utils.run_traced(sample_function, 1, 2)
+        summaries = trace_utils.summarize_coverage(results)
+        self.assertTrue(summaries)
+        entry = summaries[0]
+        self.assertEqual(
+            set(entry),
+            {"file", "lines", "covered", "missing", "hits", "percent"},
+        )
+
+    def test_summarize_coverage_reports_the_uncovered_lines(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory)
+            _, results = trace_utils.run_script_traced(script)
+            summaries = trace_utils.summarize_coverage(results)
+        entry = next(item for item in summaries if item["file"] == str(script))
+        self.assertEqual(entry["covered"] + entry["missing"], entry["lines"])
+        self.assertGreaterEqual(entry["missing"], 1)
+        self.assertLess(entry["percent"], 100.0)
+        self.assertEqual(entry["percent"], round(100.0 * entry["covered"] / entry["lines"], 1))
+
+    def test_summarize_coverage_skips_the_ignored_files(self):
+        results = trace_utils.CoverageResults(counts={("<string>", 1): 1})
+        self.assertEqual(trace_utils.summarize_coverage(results), [])
+
+    def test_summarize_coverage_rejects_a_result_that_is_not_a_coverage_result(self):
+        with self.assertRaises(TypeError):
+            trace_utils.summarize_coverage(None)  # type: ignore[arg-type]
+
+
+class TestFormatCoverageSummary(unittest.TestCase):
+    """Verify the rendering of a coverage summary."""
+
+    def test_format_coverage_summary_renders_a_table(self):
+        table = trace_utils.format_coverage_summary(
+            [
+                {
+                    "file": "sample.py",
+                    "lines": 10,
+                    "covered": 8,
+                    "missing": 2,
+                    "hits": 12,
+                    "percent": 80.0,
+                }
+            ]
+        )
+        self.assertIn("file", table)
+        self.assertIn("sample.py", table)
+        self.assertIn("80.0%", table)
+
+    def test_format_coverage_summary_renders_the_header_without_entries(self):
+        table = trace_utils.format_coverage_summary([])
+        self.assertIn("cover%", table)
+
+    def test_format_coverage_summary_rejects_a_summaries_that_is_not_a_sequence(self):
+        with self.assertRaises(TypeError):
+            trace_utils.format_coverage_summary("summary")  # type: ignore[arg-type]
+
+    def test_format_coverage_summary_rejects_an_entry_that_is_not_a_mapping(self):
+        with self.assertRaises(TypeError):
+            trace_utils.format_coverage_summary(["summary"])  # type: ignore[list-item]
+
+
+class TestClearCounts(unittest.TestCase):
+    """Verify the discarding of the recorded counts."""
+
+    def test_clear_counts_empties_the_counts(self):
+        tracer = trace_utils.new_tracer()
+        trace_utils.run_traced(sample_function, 1, 2, tracer=tracer)
+        self.assertTrue(tracer.counts)
+        trace_utils.clear_counts(tracer)
+        self.assertEqual(tracer.counts, {})
+
+    def test_clear_counts_rejects_a_tracer_that_is_not_a_trace(self):
+        with self.assertRaises(TypeError):
+            trace_utils.clear_counts(object())  # type: ignore[arg-type]
+
+
+class TestExports(unittest.TestCase):
+    """Verify the re-exported standard library names."""
+
+    def test_trace_is_the_standard_library_class(self):
+        import trace
+
+        self.assertIs(trace_utils.Trace, trace.Trace)
+
+    def test_coverage_results_is_the_standard_library_class(self):
+        import trace
+
+        self.assertIs(trace_utils.CoverageResults, trace.CoverageResults)
+
+    def test_pragma_nocover_is_exported(self):
+        self.assertIsInstance(trace_utils.PRAGMA_NOCOVER, str)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_TRACE_UTILS
 
 cat > "$OUTPUT_DIR/asyncio_utils.py" <<'ASYNCIO_UTILS'
 """Utilities wrapping the standard library ``asyncio`` module.
@@ -3101,6 +4039,7 @@ py_modules = [
     "tracemalloc_utils",
     "tty_utils",
     "doctest_utils",
+    "trace_utils",
     "xml_utils",
     "weakref_utils",
     "argparse_utils",
@@ -25560,10 +26499,7 @@ scaffold-project my-cool-tool ./out --no-test
 - `tty_utils.py` — tty utilities
 - `tests/test_tty_utils.py` — unit tests for tty_utils.py
 
--  — trace utility functions wrapping the standard library trace module (, )
--  — unit tests for
-
-- `trace_utils.py` — trace utility functions wrapping the standard library trace module (`Trace`, `CoverageResults`)
+- `trace_utils.py` — execution tracing utilities wrapping the standard library `trace` module (`new_tracer`, `run_traced`, `run_script_traced`, `counted_lines`, `line_counts`, `called_functions`, `call_relationships`, `is_ignored_filename`, `merge_results`, `write_coverage_report`, `summarize_coverage`, `format_coverage_summary`, `clear_counts`) with input validation
 - `tests/test_trace_utils.py` — unit tests for `trace_utils.py`
 SCAFFOLD
 
@@ -26587,6 +27523,7 @@ regex_utils.py             # Regular expression utilities (compile, match, searc
 terminal_utils.py          # Terminal output utilities (ANSI color, progress bars, clear screen, prompts)
 subprocess_utils.py         # Subprocess utilities (run_command, check_output, check_call)
 doctest_utils.py             # Doctest utilities wrapping stdlib doctest (parse_doctests, find_doctests, run_string_examples, run_docstring_examples, run_module_examples, run_file_examples, summarize_results, format_failure)
+trace_utils.py               # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -26711,6 +27648,7 @@ tests/                     # Python unit tests
   test_time_utils.py          # Tests for time_utils.py
   test_timezone_utils.py      # Tests for timezone_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
+  test_trace_utils.py        # Tests for trace_utils.py
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
   test_url_utils.py           # Tests for url_utils.py
@@ -26930,6 +27868,10 @@ The project includes dynamic type utilities in `types_utils.py` wrapping the sta
 
 The project includes IANA timezone utilities in `zoneinfo_utils.py` wrapping the standard library `zoneinfo` module: `zoneinfo_get` returns a `ZoneInfo` for an IANA key and `zoneinfo_available_timezones` returns the set of available keys. The module is tested in `tests/test_zoneinfo_utils.py`.
 
+## Trace Utilities Module
+
+The project includes execution tracing utilities in `trace_utils.py` wrapping the standard library `trace` module: `new_tracer` creates a tracer that counts the executed lines, `run_traced` runs a callable under a tracer and returns its result together with the coverage results, `run_script_traced` runs a Python script under a tracer and returns its exit code, `counted_lines` maps every recorded line to the number of times it was executed, `line_counts` groups those counts by file, `called_functions` lists the functions that were called, `call_relationships` lists the recorded calling relationships, `is_ignored_filename` reports whether a file is left out of the coverage report, `merge_results` merges the counts of two runs, `write_coverage_report` writes the coverage report, `summarize_coverage` returns a per file coverage summary, `format_coverage_summary` renders that summary as a table, and `clear_counts` discards the counts recorded by a tracer. The module also re-exports `Trace`, `CoverageResults`, and `PRAGMA_NOCOVER`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_trace_utils.py`.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -26945,6 +27887,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Added `trace_utils.py` to the generated project — execution tracing utilities wrapping the standard library `trace` module (`new_tracer`, `run_traced`, `run_script_traced`, `counted_lines`, `line_counts`, `called_functions`, `call_relationships`, `is_ignored_filename`, `merge_results`, `write_coverage_report`, `summarize_coverage`, `format_coverage_summary`, `clear_counts`) with input validation, plus `tests/test_trace_utils.py`.
+- Synchronized `trace_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `doctest_utils.py` to the generated project — doctest utilities wrapping the standard library `doctest` module (`parse_doctests`, `find_doctests`, `run_string_examples`, `run_docstring_examples`, `run_module_examples`, `run_file_examples`, `summarize_results`, `format_failure`) with input validation, plus `tests/test_doctest_utils.py`.
 - Synchronized `doctest_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `tools/refresh_scaffold.py`, a maintainer tool that rewrites the file copies embedded in `scaffold.sh` from the repository sources and reports stale copies with `--check`.
