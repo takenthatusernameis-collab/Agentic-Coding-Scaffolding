@@ -678,6 +678,7 @@
 #   - fcntl_utils.py — # File control utilities wrapping the standard library fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
 #   - pty_utils.py — # Pseudo-terminal utilities wrapping the standard library pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
 #   - stringprep_utils.py — # String preparation utilities wrapping the standard library stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
+#   - tabnanny_utils.py — # Tabnanny utilities wrapping the standard library tabnanny (check, process_tokens, NannyNag)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -692,6 +693,7 @@
 #   - tests/test_fcntl_utils.py — # Tests for fcntl_utils.py
 #   - tests/test_pty_utils.py — # Tests for pty_utils.py
 #   - tests/test_stringprep_utils.py — # Tests for stringprep_utils.py
+#   - tests/test_tabnanny_utils.py — # Tests for tabnanny_utils.py
 set -euo pipefail
 
 usage() {
@@ -4322,6 +4324,7 @@ py_modules = [
     "fcntl_utils",
     "pty_utils",
     "stringprep_utils",
+    "tabnanny_utils",
 ]
 
 PYPROJECT
@@ -26892,6 +26895,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `fcntl_utils.py` — file control utilities wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation
 - `pty_utils.py` — pseudo-terminal utilities wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation, a `ForkResult` named tuple, and re-exported constants
 - `stringprep_utils.py` — string preparation utilities wrapping the standard library `stringprep` module (table_names, map_table_names, in_table, map_table, is_unassigned, is_mapped_to_nothing, is_prohibited, is_allowed, is_bidi_allowed, map_text, find_problems, is_preparable) with input validation and read-only table mappings
+- `tabnanny_utils.py` — tabnanny utilities wrapping the standard library `tabnanny` module (check, process_tokens, NannyNag) with input validation
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27104,6 +27108,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_fcntl_utils.py` — unit tests for `fcntl_utils.py`
 - `tests/test_pty_utils.py` — unit tests for `pty_utils.py`
 - `tests/test_stringprep_utils.py` — unit tests for `stringprep_utils.py`
+- `tests/test_tabnanny_utils.py` — unit tests for `tabnanny_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -28386,6 +28391,7 @@ termios_utils.py             # Terminal attribute utilities wrapping stdlib term
 fcntl_utils.py               # File control utilities wrapping stdlib fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
 pty_utils.py                 # Pseudo-terminal utilities wrapping stdlib pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
 stringprep_utils.py          # String preparation utilities wrapping stdlib stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
+tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (check, process_tokens, NannyNag)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -28560,6 +28566,7 @@ test_weakref_utils.py       # Tests for weakref_utils.py
     test_fcntl_utils.py          # Tests for fcntl_utils.py
     test_pty_utils.py            # Tests for pty_utils.py
     test_stringprep_utils.py     # Tests for stringprep_utils.py
+    test_tabnanny_utils.py       # Tests for tabnanny_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -29533,9 +29540,17 @@ The project includes pseudo-terminal utilities in `pty_utils.py` wrapping the st
 
 tests/test_stringprep_utils.py - Tests for stringprep_utils module
 
+tests/test_tabnanny_utils.py - Tests for tabnanny_utils module
+
 ## String Preparation Utilities Module
 
 The project includes string preparation utilities in `stringprep_utils.py` wrapping the standard library `stringprep` module: `table_names` returns the names of the set tables of RFC 3454, `map_table_names` returns the names of the mapping tables, `in_table` reports whether a character belongs to a set table, `map_table` maps a character with a mapping table, `is_unassigned` reports whether a character is an unassigned code point, `is_mapped_to_nothing` reports whether a character is commonly mapped to nothing, `is_prohibited` reports whether a character belongs to the prohibited output, `is_allowed` reports whether a character may be stored in a prepared string, `is_bidi_allowed` reports whether a character may appear in a bidirectional name, `map_text` performs the mapping step of RFC 3454 on a whole string, `find_problems` reports the characters that prevent a string from being stored, and `is_preparable` reports whether a string may be prepared. The tables are also exposed as the read-only mappings `TABLES` and `MAP_TABLES`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_stringprep_utils.py`.
+
+tests/test_tabnanny_utils.py - Tests for tabnanny_utils module
+
+## Tabnanny Utilities Module
+
+The project includes tabnanny utilities in `tabnanny_utils.py` wrapping the standard library `tabnanny` module: `check` scans a file or a directory for ambiguous indentation and raises :class:`NannyNag` when it finds a mix of tabs and spaces, and `process_tokens` processes a stream of tokens and raises :class:`NannyNag` on ambiguous indentation. :class:`NannyNag` is re-exported from the standard library and carries the offending line number, message, and source line. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_tabnanny_utils.py`.
 
 tests/test_opcode_utils.py - Tests for opcode_utils module
 
@@ -29581,6 +29596,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Completed the `pty_utils.py` synchronization, which left the architecture tree of the README and of the README template embedded in `scaffold.sh` without the new module.
 - Add `stringprep_utils.py` wrapping the standard library `stringprep` module (table_names, map_table_names, in_table, map_table, is_unassigned, is_mapped_to_nothing, is_prohibited, is_allowed, is_bidi_allowed, map_text, find_problems, is_preparable) with input validation and read-only table mappings, plus unit tests in `tests/test_stringprep_utils.py`.
 - Synchronized `stringprep_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Add `tabnanny_utils.py` wrapping the standard library `tabnanny` module (check, process_tokens, NannyNag) with input validation, plus unit tests in `tests/test_tabnanny_utils.py`.
+- Synchronized `tabnanny_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `termios_utils.py` wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation, plus unit tests in `tests/test_termios_utils.py`.
 - Synchronized `termios_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Added `dbm_utils.py` to the generated project — database utilities wrapping the standard library `dbm` module (`open_database`, `close`, `which_database`, `available_backends`, `read_record`, `write_record`, `delete_record`, `has_key`, `list_keys`, `sync_database`, `is_valid_flag`, `dbm_error`) with input validation, plus `tests/test_dbm_utils.py`.
@@ -74118,6 +74135,69 @@ def is_preparable(text: str) -> bool:
     return not find_problems(text)
 STRINGPREP_UTILS
 
+cat > "$OUTPUT_DIR/tabnanny_utils.py" <<'TABNANNY_UTILS'
+"""Ambiguous indentation detection utilities wrapping the standard library :mod:`tabnanny` module.
+
+The :mod:`tabnanny` module scans Python source files for ambiguous indentation,
+that is, a mix of tabs and spaces that makes a program hard to read or that
+changes the meaning of a program depending on how the indentation is
+interpreted.  This wrapper validates every argument before the standard library
+is reached, so a caller gets a clear :class:`TypeError` instead of an opaque
+failure.  It also re-exports :class:`NannyNag`, the exception raised when
+ambiguous indentation is found.
+
+The module is pure computation, so it works on every platform and never
+touches the network or a subprocess.  It only reads the files the caller points
+it at.
+"""
+
+from __future__ import annotations
+
+import os as _os
+import tabnanny as _tabnanny
+
+__all__: list[str] = [
+    "NannyNag",
+    "check",
+    "process_tokens",
+]
+
+#: The exception raised by :mod:`tabnanny` when ambiguous indentation is found.
+NannyNag = _tabnanny.NannyNag
+
+
+def check(path: str | bytes | _os.PathLike[str] | _os.PathLike[bytes]) -> None:
+    """Check *path* (a file or a directory) for ambiguous indentation.
+
+    Args:
+        path: The file or directory to check.
+
+    Raises:
+        TypeError: If *path* is not a path-like object.
+        NannyNag: If *path* contains ambiguous indentation.
+    """
+    if not isinstance(path, (str, bytes, _os.PathLike)):
+        raise TypeError(f"path must be a path-like object, got {type(path).__name__}")
+    _tabnanny.check(path)
+
+
+def process_tokens(tokens) -> None:
+    """Process *tokens* and raise :class:`NannyNag` on ambiguous indentation.
+
+    Args:
+        tokens: An iterable of tokens as produced by :mod:`tokenize`.
+
+    Raises:
+        TypeError: If *tokens* is not iterable.
+        NannyNag: If the tokens contain ambiguous indentation.
+    """
+    try:
+        iterator = iter(tokens)
+    except TypeError:
+        raise TypeError(f"tokens must be iterable, got {type(tokens).__name__}") from None
+    _tabnanny.process_tokens(iterator)
+TABNANNY_UTILS
+
 cat > "$OUTPUT_DIR/tests/test_stringprep_utils.py" <<'TEST_STRINGPREP_UTILS'
 """Tests for stringprep_utils."""
 
@@ -74306,6 +74386,63 @@ class TestStringprepUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_STRINGPREP_UTILS
+
+cat > "$OUTPUT_DIR/tests/test_tabnanny_utils.py" <<'TEST_TABNANNY_UTILS'
+"""Tests for tabnanny_utils."""
+
+import io
+import tempfile
+import tokenize
+import unittest
+
+from tabnanny_utils import NannyNag, check, process_tokens
+
+
+class TestTabnannyUtils(unittest.TestCase):
+    """Verify the ambiguous indentation detection helpers of the wrapper."""
+
+    def test_check_clean_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = tmp + "/clean.py"
+            with open(src, "w") as handle:
+                handle.write("x = 1\n")
+            check(src)
+
+    def test_process_tokens_raises_on_ambiguous(self):
+        src = "def f():\n  x = 1\n\ty = 2\n"
+        tokens = tokenize.generate_tokens(io.StringIO(src).readline)
+        with self.assertRaises(NannyNag):
+            process_tokens(tokens)
+
+    def test_nannynag_attributes(self):
+        nag = NannyNag(3, "msg", "line")
+        self.assertEqual(nag.get_lineno(), 3)
+        self.assertEqual(nag.get_msg(), "msg")
+        self.assertEqual(nag.get_line(), "line")
+
+    def test_check_rejects_non_path(self):
+        with self.assertRaises(TypeError):
+            check(123)  # type: ignore[arg-type]
+
+    def test_process_tokens_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            process_tokens(123)  # type: ignore[arg-type]
+
+    def test_all_is_sorted_and_unique(self):
+        import tabnanny_utils
+
+        self.assertIsNotNone(tabnanny_utils.__all__)
+        self.assertEqual(
+            len(tabnanny_utils.__all__), len(set(tabnanny_utils.__all__))
+        )
+        self.assertEqual(tabnanny_utils.__all__, sorted(tabnanny_utils.__all__))
+        for name in tabnanny_utils.__all__:
+            self.assertTrue(hasattr(tabnanny_utils, name), name)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_TABNANNY_UTILS
 
 
 # --- substitute the project name in the templated documents ---

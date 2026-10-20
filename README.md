@@ -259,6 +259,7 @@ termios_utils.py             # Terminal attribute utilities wrapping stdlib term
 fcntl_utils.py               # File control utilities wrapping stdlib fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
 pty_utils.py                 # Pseudo-terminal utilities wrapping stdlib pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
 stringprep_utils.py          # String preparation utilities wrapping stdlib stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
+tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (check, process_tokens, NannyNag)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -431,6 +432,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_fcntl_utils.py          # Tests for fcntl_utils.py
     test_pty_utils.py            # Tests for pty_utils.py
     test_stringprep_utils.py     # Tests for stringprep_utils.py
+    test_tabnanny_utils.py       # Tests for tabnanny_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -1454,3 +1456,7 @@ The project includes pseudo-terminal utilities in `pty_utils.py` wrapping the st
 ## String Preparation Utilities Module
 
 The project includes string preparation utilities in `stringprep_utils.py` wrapping the standard library `stringprep` module: `table_names` returns the names of the set tables of RFC 3454, `map_table_names` returns the names of the mapping tables, `in_table` reports whether a character belongs to a set table, `map_table` maps a character with a mapping table, `is_unassigned` reports whether a character is an unassigned code point, `is_mapped_to_nothing` reports whether a character is commonly mapped to nothing, `is_prohibited` reports whether a character belongs to the prohibited output, `is_allowed` reports whether a character may be stored in a prepared string, `is_bidi_allowed` reports whether a character may appear in a bidirectional name, `map_text` performs the mapping step of RFC 3454 on a whole string, `find_problems` reports the characters that prevent a string from being stored, and `is_preparable` reports whether a string may be prepared. The tables are also exposed as the read-only mappings `TABLES` and `MAP_TABLES`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_stringprep_utils.py`.
+
+## Tabnanny Utilities Module
+
+The project includes tabnanny utilities in `tabnanny_utils.py` wrapping the standard library `tabnanny` module: `check` scans a file or a directory for ambiguous indentation and raises :class:`NannyNag` when it finds a mix of tabs and spaces, and `process_tokens` processes a stream of tokens and raises :class:`NannyNag` on ambiguous indentation. :class:`NannyNag` is re-exported from the standard library and carries the offending line number, message, and source line. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_tabnanny_utils.py`.
