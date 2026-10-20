@@ -50,6 +50,7 @@ py_modules = [
     "utils",
     "stats",
     "math_utils",
+    "mmap_utils",
     "memoize_utils",
     "number_utils",
     "operator_utils",
