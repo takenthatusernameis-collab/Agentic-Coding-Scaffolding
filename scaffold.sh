@@ -177,6 +177,10 @@
 
 #   - tests/test_tracemalloc_utils.py — # Tests for tracemalloc_utils.py
 
+#   - tty_utils.py — # Terminal control utilities wrapping stdlib tty (cfmakeraw, cfmakecbreak, setraw, setcbreak)
+
+#   - tests/test_tty_utils.py — # Tests for tty_utils.py
+
 #   - type_utils.py — # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 
 #   - path_utils.py — # Path manipulation utilities (join, normalize, components, extensions)
@@ -1727,6 +1731,7 @@ py_modules = [
     "duration_utils",
     "temp_utils",
     "tracemalloc_utils",
+    "tty_utils",
     "xml_utils",
     "weakref_utils",
     "argparse_utils",
@@ -49193,6 +49198,67 @@ def test_clear_traces():
     tracemalloc_utils.clear_traces()
     tracemalloc_utils.stop()
 TEST_TRACEMALLOC_UTILS
+
+# --- tty_utils.py ---
+cat > "$OUTPUT_DIR/tty_utils.py" <<'TTY_UTILS'
+"""Utilities for terminal control (wrapping :mod:`tty`)."""
+
+import tty as _tty
+
+
+def cfmakeraw(mode):
+    return _tty.cfmakeraw(mode)
+
+
+def cfmakecbreak(mode):
+    return _tty.cfmakecbreak(mode)
+
+
+def setraw(fd, when=None):
+    if when is None:
+        return _tty.setraw(fd)
+    return _tty.setraw(fd, when)
+
+
+def setcbreak(fd, when=None):
+    if when is None:
+        return _tty.setcbreak(fd)
+    return _tty.setcbreak(fd, when)
+TTY_UTILS
+
+# --- tests/test_tty_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_tty_utils.py" <<'TEST_TTY_UTILS'
+import termios
+import unittest
+
+from tty_utils import cfmakeraw, cfmakecbreak, setcbreak, setraw
+
+
+class TestTtyUtils(unittest.TestCase):
+    def test_cfmakeraw(self):
+        mode = [0, 0, 0, 0, 0, 0, list(termios.tcgetattr(0)[6])] if False else None
+        # Build a minimal mode list mimicking termios structure
+        mode = [0] * 7
+        mode[6] = [0] * termios.NCCS
+        result = cfmakeraw(mode)
+        self.assertIsNone(result)
+
+    def test_cfmakecbreak(self):
+        mode = [0] * 7
+        mode[6] = [0] * termios.NCCS
+        result = cfmakecbreak(mode)
+        self.assertIsNone(result)
+
+    def test_setraw_callable(self):
+        self.assertTrue(callable(setraw))
+
+    def test_setcbreak_callable(self):
+        self.assertTrue(callable(setcbreak))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_TTY_UTILS
 
 
 # --- socket_utils.py ---

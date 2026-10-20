@@ -193,6 +193,7 @@ reprlib_utils.py           # Reprlib utilities wrapping stdlib reprlib (repr, ge
 codecs_utils.py             # Codecs utilities wrapping stdlib codecs
 traceback_utils.py         # Traceback utilities wrapping stdlib traceback (format_exception, format_exception_only, extract_stack, format_stack, format_exc)
 tracemalloc_utils.py       # Tracemalloc memory tracing utilities wrapping stdlib tracemalloc (is_tracing, get_traced_memory, get_traceback_limit, start, stop, clear_traces)
+tty_utils.py              # Terminal control utilities wrapping stdlib tty (cfmakeraw, cfmakecbreak, setraw, setcbreak)
 typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_hints, get_origin, get_args, is_typeddict)
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
@@ -292,6 +293,7 @@ test_path_utils.py          # Tests for path_utils.py
 test_reprlib_utils.py       # Tests for reprlib_utils.py
 test_traceback_utils.py     # Tests for traceback_utils.py
 test_tracemalloc_utils.py   # Tests for tracemalloc_utils.py
+test_tty_utils.py           # Tests for tty_utils.py
 test_typing_utils.py        # Tests for typing_utils.py
 test_pickle_utils.py        # Tests for pickle_utils.py
   test_plistlib_utils.py      # Tests for plistlib_utils.py
@@ -951,6 +953,10 @@ The project includes traceback utilities in `traceback_utils.py` wrapping the st
 ## Tracemalloc Utilities Module
 
 The project includes tracemalloc memory tracing utilities in `tracemalloc_utils.py` wrapping the standard library `tracemalloc` module: `is_tracing` reports whether tracing is active, `get_traced_memory` returns current and peak traced memory, `get_traceback_limit` returns the traceback limit, `start` begins tracing allocations, `stop` ends tracing, and `clear_traces` discards recorded traces. The module is tested in `tests/test_tracemalloc_utils.py`.
+
+## TTY Utilities Module
+
+The project includes terminal control utilities in `tty_utils.py` wrapping the standard library `tty` module: `cfmakeraw` and `cfmakecbreak` change the terminal mode of a file descriptor to raw or cbreak mode, `setraw` and `setcbreak` set the terminal of a file descriptor to raw or cbreak mode with an optional `when` flag, and the module is tested in `tests/test_tty_utils.py`.
 
 ## SQLite Utilities Module
 
