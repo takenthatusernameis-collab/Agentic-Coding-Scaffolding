@@ -52,7 +52,9 @@ The tool rewrites the embedded copies from the repository sources. Run it with `
 stale copies without rewriting the generator; the same command runs as part of the test suite
 expectation in `tests/test_scaffold_sync.py`.
 
-## Next Planned
+## Bootstrap Session (2026-10-20)
+
+Foundation verified present; no task was on the board. Next agent should add `pyclbr_utils.py` (see "Next Planned").
 
 - Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are
   `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
