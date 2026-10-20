@@ -20,7 +20,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 3516 tests across all wrapper modules (1632 subtests)
+- 3647 tests across all wrapper modules (1712 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -30,14 +30,14 @@ The project foundation is established:
   documented in `README.md`, listed in `.kilo/command/scaffold-project.md` and `CHANGELOG.md`, and
   asserted in `tests/test_scaffold.py`
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 3442 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 3573 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 410 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 418 source files
 
 ## Keeping the Scaffold Synchronized
 
@@ -52,20 +52,55 @@ The tool rewrites the embedded copies from the repository sources. Run it with `
 stale copies without rewriting the generator; the same command runs as part of the test suite
 expectation in `tests/test_scaffold_sync.py`.
 
-## Bootstrap Session (2026-10-20)
+## Latest Session (2026-10-20)
 
-Foundation verified present; no task was on the board. Next agent should add `pyclbr_utils.py` (see "Next Planned").
+The board held no task, so this session added the next wrapper module.
+
+Completed in the latest session:
+
+- Added `xdrlib_utils.py` wrapping the standard library `xdrlib` module (`pack_uint`, `unpack_uint`,
+  `pack_int`, `unpack_int`, `pack_enum`, `unpack_enum`, `pack_bool`, `unpack_bool`, `pack_uhyper`,
+  `unpack_uhyper`, `pack_hyper`, `unpack_hyper`, `pack_float`, `unpack_float`, `pack_double`,
+  `unpack_double`, `pack_string`, `unpack_string`, `pack_bytes`, `unpack_bytes`, `pack_opaque`,
+  `unpack_opaque`, `pack_fstring`, `unpack_fstring`, `pack_fopaque`, `unpack_fopaque`, `pack_array`,
+  `unpack_array`, `pack_farray`, `unpack_farray`, `pack_list`, `unpack_list`, `pack_uint_array`,
+  `unpack_uint_array`) with typed signatures, docstrings, `__all__`, and input validation, plus unit
+  tests in `tests/test_xdrlib_utils.py`. `Packer`, `Unpacker`, `Error`, and `ConversionError` are
+  re-exported from the standard library.
+- The wrapper adds three conveniences the standard library does not offer: every argument is
+  validated before the standard library is reached, a truncated payload raises `ValueError` instead
+  of `EOFError`, and `pack_uint_array`/`unpack_uint_array` are pre-wired helpers for arrays of
+  unsigned integers. The array, fixed-length array, and list helpers take a callback that is
+  handed the packer or the unpacker, so callers can use any of the standard library methods.
+- The encoding is pure computation: no helper opens a network connection, reads a file, or spawns
+  a process, so the test suite stays hermetic. The standard library `xdrlib` module was deprecated
+  in Python 3.12 and removed in Python 3.13, so the module imports it defensively and raises a
+  `RuntimeError` that points at `struct_utils` when the interpreter no longer ships it — the same
+  pattern `uu_utils.py` uses for the removed `uu` module.
+- Synchronized the new module across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh`
+  header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README
+  tree and module section, the embedded CHANGELOG, the README tree and module section,
+  `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Repaired a pre-existing gap: the README template embedded in `scaffold.sh` never listed
+  `tests/test_pyclbr_utils.py`, so a scaffolded project did not document the test of every module
+  it ships.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `xdrlib_utils.py` and `tests/test_xdrlib_utils.py`, its 3573 tests, ruff, and mypy all pass, and
+  a second generation project scaffolds correctly as well.
+
+Next Planned:
 
 - Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are
   `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
   `sndhdr` (removed in Python 3.13), `cgitb` (removed in Python 3.13), `smtplib`, `ftplib`, `poplib`,
-  `webbrowser`, `xmlrpc`, `xdrlib`, `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`,
-  `pyclbr`, and `encodings`. A natural next candidate is `pyclbr_utils.py` wrapping the standard library
-  `pyclbr` module: it reads source files but never imports them, so the analysis stays static and the
-  test suite stays hermetic. Note that the stack formatting helpers (`format_stack`, `format_list`,
-  `format_exception_only`, `print_stack`, `walk_stack`, `extract_stack`) live in the standard library
-  `traceback` module and are already wrapped by `traceback_utils.py`; the `trace` module itself only
-  offers `Trace`, `CoverageResults`, `PRAGMA_NOCOVER`, and `main`.
+  `webbrowser`, `xmlrpc`, `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`, and
+  `encodings`. A natural next candidate is `smtplib_utils.py` wrapping the standard library `smtplib`
+  module: the address helpers (`parseaddr`, `quoteaddr`, `quote_string`, `getfqdn`) and the message
+  assembly helpers are pure, while the connection helpers must be exercised with
+  `unittest.mock.patch` on `socket.create_connection` instead of a real server, the way
+  `imaplib_utils.py` does it. `ftplib` and `poplib` follow the same shape, and `webbrowser` needs
+  its process launching mocked. `xdrlib` was the last module that is deprecated in Python 3.12 and
+  removed in Python 3.13; every remaining candidate is still part of the standard library.
 - Keep every new wrapper hermetic: the test suite must never open a network connection or block on a
   subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with
   `unittest.mock.patch` instead of real servers. The same rule applies to the compiler wrappers:
@@ -75,12 +110,13 @@ Foundation verified present; no task was on the board. Next agent should add `py
   the search path to a temporary directory so the suite never scans the whole import path.
   `optparse_utils.py` follows it too: the parser never touches the network, and the tests parse
   command lines from lists instead of `sys.argv`, except for one test that patches `sys.argv` with
-  `unittest.mock.patch`.
+  `unittest.mock.patch`. `xdrlib_utils.py` follows it as well: the XDR encoding is pure computation,
+  so the tests only compare byte strings.
 - Keep `make lint` and `make typecheck` green. Previous sessions left `mailcap_utils.py`,
   `mailbox_utils.py`, and `wave_utils.py` failing mypy and three files failing ruff; the latest
   session repaired them, so a new module must not reintroduce the drift.
 
-Completed in the latest session:
+Previously completed:
 
 - Closed the `pyclbr_utils.py` synchronization gap that the bootstrap session left behind: the module
   and its test existed and were registered in `pyproject.toml`, but `scaffold.sh` never embedded
@@ -97,7 +133,7 @@ Completed in the latest session:
 - Verified that a scaffolded project is still a faithful copy: the generated tree ships
   `pyclbr_utils.py` and `tests/test_pyclbr_utils.py`, and its 3307 tests, ruff, and mypy all pass.
 
-Completed in the latest session:
+Earlier sessions:
 
 - Added `optparse_utils.py` wrapping the standard library `optparse` module (`make_parser`,
   `add_option`, `add_flag`, `add_count_option`, `add_option_group`, `parse_args`, `get_option`,

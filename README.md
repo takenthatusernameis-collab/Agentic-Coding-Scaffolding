@@ -117,6 +117,7 @@ uu_utils.py                # Uuencode utilities wrapping stdlib uu (uu_encode, u
 zipapp_utils.py            # Zipapp utilities wrapping stdlib zipapp (create_archive/create_zipapp, get_interpreter/get_zipapp_interpreter, is_zipapp_archive)
 py_compile_utils.py        # Py_compile utilities wrapping stdlib py_compile (compile_file/py_compile_file, get_invalidation_mode, parse_invalidation_mode, is_pyc_file, main)
 pyclbr_utils.py            # Pyclbr utilities wrapping stdlib pyclbr (read_module, read_module_ex, class_names, function_names, find_class, find_function, has_class, has_function, is_class, is_function)
+xdrlib_utils.py             # Xdrlib utilities wrapping stdlib xdrlib (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array)
 compileall_utils.py         # Compileall utilities wrapping stdlib compileall (compile_file, compile_dir, compile_path, main, pyc_path)
 modulefinder_utils.py        # Modulefinder utilities wrapping stdlib modulefinder (load_script, find_dependencies, find_modules, missing_modules, missing_importers, module_path, is_package, report)
 optparse_utils.py          # Optparse utilities wrapping stdlib optparse (make_parser, add_option, add_flag, add_count_option, add_option_group, parse_args, get_option, has_option, remove_option, get_default_values, set_defaults, get_usage, format_usage, format_help, format_option_help, get_prog_name, dest_for, string_type, int_type, float_type, choice_type, values_to_dict)
@@ -348,6 +349,7 @@ test_pickle_utils.py        # Tests for pickle_utils.py
   test_modulefinder_utils.py   # Tests for modulefinder_utils.py
   test_optparse_utils.py       # Tests for optparse_utils.py
   test_pyclbr_utils.py         # Tests for pyclbr_utils.py
+  test_xdrlib_utils.py         # Tests for xdrlib_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
   test_queue_utils.py         # Tests for queue_utils.py
@@ -1343,3 +1345,8 @@ The project includes command-line option parsing utilities in `optparse_utils.py
 ## Pyclbr Utilities Module
 
 The project includes class and function browser utilities in `pyclbr_utils.py` wrapping the standard library `pyclbr` module: `read_module` returns the classes defined in a module, `read_module_ex` returns both its classes and its top-level functions, and `class_names`, `function_names`, `find_class`, `find_function`, `has_class`, `has_function`, `is_class`, and `is_function` query the result. The analysis is purely static: the source is read but never imported or executed, so the module is safe to inspect from a test suite. `Class` and `Function` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pyclbr_utils.py`.
+
+
+## Xdrlib Utilities Module
+
+The project includes XDR (eXternal Data Representation) utilities in `xdrlib_utils.py` wrapping the standard library `xdrlib` module: `pack_uint` and `unpack_uint` encode and decode 32-bit unsigned integers; `pack_int` and `unpack_int` do the same for signed integers; `pack_enum` and `unpack_enum` encode enumeration values; `pack_bool` and `unpack_bool` encode booleans; `pack_uhyper`, `unpack_uhyper`, `pack_hyper`, and `unpack_hyper` handle 64-bit integers; `pack_float`, `unpack_float`, `pack_double`, and `unpack_double` handle floating point numbers; `pack_string`, `unpack_string`, `pack_bytes`, `unpack_bytes`, `pack_opaque`, and `unpack_opaque` handle length-prefixed data; `pack_fstring`, `unpack_fstring`, `pack_fopaque`, and `unpack_fopaque` handle fixed length data; `pack_array`, `unpack_array`, `pack_farray`, and `unpack_farray` handle arrays; `pack_list` and `unpack_list` handle terminated lists; and `pack_uint_array` and `unpack_uint_array` are pre-wired helpers for arrays of unsigned integers. `Packer`, `Unpacker`, `Error`, and `ConversionError` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments, and a truncated payload raises `ValueError` instead of `EOFError`. The encoding is pure computation, so the module never opens a network connection or spawns a process. The standard library `xdrlib` module was removed in Python 3.13, so the helpers raise `RuntimeError` when the interpreter no longer ships it. The module is tested in `tests/test_xdrlib_utils.py`.

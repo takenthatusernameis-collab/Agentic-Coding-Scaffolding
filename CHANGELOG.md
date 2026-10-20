@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add `xdrlib_utils.py` wrapping the standard library `xdrlib` module (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array) with input validation, plus unit tests in `tests/test_xdrlib_utils.py`.
+- Synchronized `xdrlib_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired the missing `tests/test_pyclbr_utils.py` entry in the README template embedded in `scaffold.sh`, so a scaffolded project documents the test of every module it ships.
 - Completed the `pyclbr_utils.py` handover: the module and its test existed and were registered in `pyproject.toml`, but `scaffold.sh` never embedded either of them, so `tests/test_scaffold_sync.py` failed and a scaffolded project was missing the module entirely. Both heredocs are now part of the generator.
 - Repaired the pre-existing `mypy` failure in `pyclbr_utils.py` (the `read_module_ex` return annotation claimed `Dict[str, Class | Function]`, but the standard library also returns a `__path__` entry whose value is a list of strings) and the pre-existing `ruff` failure (the now-unused `Union` import).
 - Verified that a scaffolded project is still a faithful copy: the generated tree ships `pyclbr_utils.py` and `tests/test_pyclbr_utils.py`, and its 3307 tests, ruff, and mypy all pass.
