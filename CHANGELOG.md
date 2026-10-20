@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Add `wave_utils.py` wrapping the standard library `wave` module (`open_read`, `open_write`, `wave_info`, `read_frames`, `write_frames`, `create_writer`, `get_params`, `set_params`, and per-field parameter setters) with input validation, plus unit tests in `tests/test_wave_utils.py`.
 - Add `mailbox_utils.py` wrapping the standard library `mailbox` module (factory helpers for mbox/Maildir/MH/MMDF/Babyl, message factories, and exception type checks) with unit tests in `tests/test_mailbox_utils.py`.
 
 # Changelog

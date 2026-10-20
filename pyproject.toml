@@ -229,6 +229,7 @@ py_modules = [
     "socket_utils",
     "sysconfig_utils",
     "mimetypes_utils",
+    "wave_utils",
     "tracemalloc_utils",
     "tty_utils",
     "doctest_utils",

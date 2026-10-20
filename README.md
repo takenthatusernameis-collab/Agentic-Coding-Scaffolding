@@ -109,6 +109,7 @@ number_utils.py            # Number utility functions (clamp, round_to, is_integ
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
+wave_utils.py              # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames, create_writer)
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
@@ -1274,3 +1275,8 @@ The project includes mailbox utilities in `mailbox_utils.py` wrapping the standa
 
 
 The project includes IMAP4 client utilities in `imaplib_utils.py` wrapping the standard library `imaplib` module: `create_imap4` builds an `IMAP4` client, `create_imap4_ssl` builds an `IMAP4_SSL` client, `create_imap4_stream` builds an `IMAP4_stream` client for a local command, `parse_capabilities` reads the capability names a server advertises, `has_capability` reports whether a capability is advertised, `parse_flags` reads the flags of a `FLAGS` response, `parse_fetch_flags` extracts the flags from a `FETCH` response, `format_flags` renders flags in the wire format, `parse_internaldate` reads an `INTERNALDATE` value, `format_internaldate` renders a timestamp as an `INTERNALDATE` value, and `int_to_ap` converts an integer into its `A`-`P` digit representation. `IMAP4`, `IMAP4_SSL`, `IMAP4_stream`, `IMAP4Error`, `IMAP4AbortError`, `IMAP4ReadOnlyError`, `CRLF`, `IMAP4_PORT`, and `IMAP4_SSL_PORT` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_imaplib_utils.py`.
+
+
+## Wave Utilities Module
+
+The project includes wave audio utilities in `wave_utils.py` wrapping the standard library `wave` module: `open_read` and `open_write` open WAV files for reading and writing, `wave_info` returns the audio parameters as a dictionary, `read_frames` and `write_frames` transfer raw frame data, `create_writer` builds a configured :class:`wave.Wave_write`, and `get_params`/`set_params` plus the per-field setters inspect and adjust channel count, sample width, frame rate, frame count, and compression type. `Error`, `WAVE_FORMAT_PCM`, and `WAVE_FORMAT_EXTENSIBLE` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_wave_utils.py`.
