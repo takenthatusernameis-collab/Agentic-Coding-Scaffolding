@@ -462,6 +462,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_pyclbr_utils.py` — unit tests for `pyclbr_utils.py`
 - `xdrlib_utils.py` — xdrlib utilities wrapping the standard library `xdrlib` module (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array) with input validation
 - `tests/test_xdrlib_utils.py` — unit tests for `xdrlib_utils.py`
+- `smtplib_utils.py` — smtplib utilities wrapping the standard library `smtplib` module (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text) with input validation
+- `tests/test_smtplib_utils.py` — unit tests for `smtplib_utils.py`
 - `compileall_utils.py` — compileall utilities wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation
 - `tests/test_compileall_utils.py` — unit tests for `compileall_utils.py`
 - `modulefinder_utils.py` — modulefinder utilities wrapping the standard library `modulefinder` module (`load_script`, `find_dependencies`, `find_modules`, `missing_modules`, `missing_importers`, `module_path`, `is_package`, `report`) with input validation

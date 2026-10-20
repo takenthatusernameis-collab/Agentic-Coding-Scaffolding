@@ -664,6 +664,8 @@
 #   - tests/test_pyclbr_utils.py — # Tests for pyclbr_utils.py
 #   - xdrlib_utils.py — # Xdrlib utilities wrapping the standard library xdrlib module (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array)
 #   - tests/test_xdrlib_utils.py — # Tests for xdrlib_utils.py
+#   - smtplib_utils.py — # Smtplib utilities wrapping the standard library smtplib module (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text)
+#   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 set -euo pipefail
 
 usage() {
@@ -4269,6 +4271,7 @@ py_modules = [
     "optparse_utils",
     "pyclbr_utils",
     "xdrlib_utils",
+    "smtplib_utils",
      "mailbox_utils",
     "wave_utils",
     "mmap_utils",
@@ -27242,6 +27245,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_pyclbr_utils.py` — unit tests for `pyclbr_utils.py`
 - `xdrlib_utils.py` — xdrlib utilities wrapping the standard library `xdrlib` module (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array) with input validation
 - `tests/test_xdrlib_utils.py` — unit tests for `xdrlib_utils.py`
+- `smtplib_utils.py` — smtplib utilities wrapping the standard library `smtplib` module (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text) with input validation
+- `tests/test_smtplib_utils.py` — unit tests for `smtplib_utils.py`
 - `compileall_utils.py` — compileall utilities wrapping the standard library `compileall` module (`compile_file`, `compile_dir`, `compile_path`, `main`, `pyc_path`) with input validation
 - `tests/test_compileall_utils.py` — unit tests for `compileall_utils.py`
 - `modulefinder_utils.py` — modulefinder utilities wrapping the standard library `modulefinder` module (`load_script`, `find_dependencies`, `find_modules`, `missing_modules`, `missing_importers`, `module_path`, `is_package`, `report`) with input validation
@@ -28173,6 +28178,7 @@ modulefinder_utils.py        # Modulefinder utilities wrapping stdlib modulefind
 optparse_utils.py          # Optparse utilities wrapping stdlib optparse (make_parser, add_option, add_flag, add_count_option, add_option_group, parse_args, get_option, has_option, remove_option, get_default_values, set_defaults, get_usage, format_usage, format_help, format_option_help, get_prog_name, dest_for, string_type, int_type, float_type, choice_type, values_to_dict)
 pyclbr_utils.py            # Pyclbr utilities wrapping stdlib pyclbr (read_module, read_module_ex, class_names, function_names, find_class, find_function, has_class, has_function, is_class, is_function)
 xdrlib_utils.py             # Xdrlib utilities wrapping stdlib xdrlib (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array)
+smtplib_utils.py           # Smtplib utilities wrapping stdlib smtplib (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text)
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
@@ -28402,6 +28408,7 @@ test_pickle_utils.py        # Tests for pickle_utils.py
   test_optparse_utils.py       # Tests for optparse_utils.py
   test_pyclbr_utils.py         # Tests for pyclbr_utils.py
   test_xdrlib_utils.py         # Tests for xdrlib_utils.py
+  test_smtplib_utils.py        # Tests for smtplib_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
   test_queue_utils.py         # Tests for queue_utils.py
@@ -29362,6 +29369,10 @@ The project includes class and function browser utilities in `pyclbr_utils.py` w
 
 The project includes XDR (eXternal Data Representation) utilities in `xdrlib_utils.py` wrapping the standard library `xdrlib` module: `pack_uint` and `unpack_uint` encode and decode 32-bit unsigned integers; `pack_int` and `unpack_int` do the same for signed integers; `pack_enum` and `unpack_enum` encode enumeration values; `pack_bool` and `unpack_bool` encode booleans; `pack_uhyper`, `unpack_uhyper`, `pack_hyper`, and `unpack_hyper` handle 64-bit integers; `pack_float`, `unpack_float`, `pack_double`, and `unpack_double` handle floating point numbers; `pack_string`, `unpack_string`, `pack_bytes`, `unpack_bytes`, `pack_opaque`, and `unpack_opaque` handle length-prefixed data; `pack_fstring`, `unpack_fstring`, `pack_fopaque`, and `unpack_fopaque` handle fixed length data; `pack_array`, `unpack_array`, `pack_farray`, and `unpack_farray` handle arrays; `pack_list` and `unpack_list` handle terminated lists; and `pack_uint_array` and `unpack_uint_array` are pre-wired helpers for arrays of unsigned integers. `Packer`, `Unpacker`, `Error`, and `ConversionError` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments, and a truncated payload raises `ValueError` instead of `EOFError`. The encoding is pure computation, so the module never opens a network connection or spawns a process. The standard library `xdrlib` module was removed in Python 3.13, so the helpers raise `RuntimeError` when the interpreter no longer ships it. The module is tested in `tests/test_xdrlib_utils.py`.
 
+## Smtplib Utilities Module
+
+The project includes SMTP client utilities in `smtplib_utils.py` wrapping the standard library `smtplib` module: `quoteaddr` quotes an address the way a server expects it; `quote_string` quotes a string so that it can be used inside a header; `quote_data` quotes a message body so that it cannot end the message early; `parse_address` splits an address into its display name and its address; `address_only` returns an address without its display name; `format_address` formats a display name and an address as a single header value; `getfqdn` returns the fully qualified domain name of a host; `parse_response` parses a raw server reply into its code and its message; and `parse_ehlo_features` parses the service extensions a server announced in its EHLO reply. `build_message` assembles a complete `email.message.EmailMessage` from plain values and guesses the media type of an attachment from its file name. `create_smtp`, `create_smtp_ssl`, and `create_lmtp` build the standard library clients, and `send_message` and `send_text` send a message with a client the caller already owns. `SMTP`, `SMTP_SSL`, `LMTP`, and the standard library error classes are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module never opens a connection on its own, so the caller stays in control of when a connection is attempted and the test suite stays hermetic. The module is tested in `tests/test_smtplib_utils.py`.
+
 ## Hello Module
 
 The project includes a sample application entry point in `hello.py`: `main` prints a greeting for the given name and defaults to `"World"`, and running the module directly greets the name given on the command line. The module is tested in `tests/test_hello.py`.
@@ -29380,6 +29391,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Add `smtplib_utils.py` wrapping the standard library `smtplib` module (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text) with input validation, plus unit tests in `tests/test_smtplib_utils.py`.
+- Synchronized `smtplib_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `xdrlib_utils.py` wrapping the standard library `xdrlib` module (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array) with input validation, plus unit tests in `tests/test_xdrlib_utils.py`.
 - Synchronized `xdrlib_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Repaired the missing `tests/test_pyclbr_utils.py` entry in the README template embedded in `scaffold.sh`, so a scaffolded project documents the test of every module it ships.
@@ -65390,6 +65403,1781 @@ class TestUnsignedIntegerArrays(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_XDRLIB_UTILS
+
+# --- smtplib_utils.py ---
+cat > "$OUTPUT_DIR/smtplib_utils.py" <<'SMTPLIB_UTILS'
+"""SMTP client utilities (wrapping :mod:`smtplib`).
+
+The :mod:`smtplib` module implements an SMTP client as described in
+:rfc:`821`, :rfc:`1869` (ESMTP), :rfc:`2554` (authentication) and :rfc:`2487`
+(SMTP over TLS).  It ships the :class:`~smtplib.SMTP`,
+:class:`~smtplib.SMTP_SSL` and :class:`~smtplib.LMTP` clients, the exception
+hierarchy they raise, and a handful of address helpers.
+
+This wrapper keeps the standard library as the single source of truth and adds
+three conveniences:
+
+* every argument is validated before the standard library is reached, so a
+  mistake raises :class:`TypeError` or :class:`ValueError` instead of failing
+  deep inside the client,
+* :func:`build_message` assembles a complete
+  :class:`email.message.EmailMessage` from plain values, which the standard
+  library leaves to the caller,
+* :func:`parse_response` and :func:`parse_ehlo_features` parse captured
+  server replies without needing a connection.
+
+The wrapper never opens a connection on its own: :func:`create_smtp`,
+:func:`create_smtp_ssl` and :func:`create_lmtp` build the standard library
+clients, and it is up to the caller to decide when to connect.  The
+:func:`send_message` and :func:`send_text` helpers operate on a client the
+caller already owns.
+"""
+
+from __future__ import annotations
+
+import email.message
+import email.utils
+import mimetypes
+import re
+import smtplib as _smtplib
+import socket
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
+
+__all__ = [
+    "CRLF",
+    "LMTP",
+    "LMTP_PORT",
+    "RefusedRecipients",
+    "SMTP",
+    "SMTPAuthenticationError",
+    "SMTPConnectError",
+    "SMTPDataError",
+    "SMTPHeloError",
+    "SMTPNotSupportedError",
+    "SMTPRecipientsRefused",
+    "SMTPSenderRefused",
+    "SMTPServerDisconnected",
+    "SMTPResponseException",
+    "SMTPException",
+    "SMTP_PORT",
+    "SMTP_SSL",
+    "SMTP_SSL_PORT",
+    "address_only",
+    "build_message",
+    "create_lmtp",
+    "create_smtp",
+    "create_smtp_ssl",
+    "format_address",
+    "getfqdn",
+    "is_smtp_authentication_error",
+    "is_smtp_data_error",
+    "is_smtp_error",
+    "is_smtp_helo_error",
+    "is_smtp_not_supported",
+    "is_smtp_recipients_refused",
+    "is_smtp_response_error",
+    "is_smtp_sender_refused",
+    "is_smtp_server_disconnected",
+    "parse_address",
+    "parse_ehlo_features",
+    "parse_response",
+    "quote_data",
+    "quote_string",
+    "quoteaddr",
+    "send_message",
+    "send_text",
+]
+
+#: The line ending every SMTP command uses.
+CRLF: str = _smtplib.CRLF
+
+#: The default port of a plain SMTP server.
+SMTP_PORT: int = _smtplib.SMTP_PORT
+
+#: The default port of an SMTP server that speaks TLS from the first byte.
+SMTP_SSL_PORT: int = _smtplib.SMTP_SSL_PORT
+
+#: The default port of a local mail transfer agent.
+LMTP_PORT: int = _smtplib.LMTP_PORT
+
+#: The standard library plain SMTP client, re-exported for convenience.
+SMTP = _smtplib.SMTP
+
+#: The standard library SMTP over TLS client, re-exported for convenience.
+SMTP_SSL = _smtplib.SMTP_SSL
+
+#: The standard library local mail transfer client, re-exported for convenience.
+LMTP = _smtplib.LMTP
+
+#: The base error of the standard library, re-exported for convenience.
+SMTPException = _smtplib.SMTPException
+
+#: The standard library "command not supported" error.
+SMTPNotSupportedError = _smtplib.SMTPNotSupportedError
+
+#: The standard library "server disconnected" error.
+SMTPServerDisconnected = _smtplib.SMTPServerDisconnected
+
+#: The standard library "unexpected reply" error.
+SMTPResponseException = _smtplib.SMTPResponseException
+
+#: The standard library "sender refused" error.
+SMTPSenderRefused = _smtplib.SMTPSenderRefused
+
+#: The standard library "recipients refused" error.
+SMTPRecipientsRefused = _smtplib.SMTPRecipientsRefused
+
+#: The standard library "data refused" error.
+SMTPDataError = _smtplib.SMTPDataError
+
+#: The standard library "connection failed" error.
+SMTPConnectError = _smtplib.SMTPConnectError
+
+#: The standard library "greeting refused" error.
+SMTPHeloError = _smtplib.SMTPHeloError
+
+#: The standard library "authentication failed" error.
+SMTPAuthenticationError = _smtplib.SMTPAuthenticationError
+
+#: The recipients a server refused, mapped to the reason it gave.
+RefusedRecipients = Dict[str, Tuple[int, bytes]]
+
+#: The sentinel the standard library uses for "use the global socket timeout".
+_GLOBAL_DEFAULT_TIMEOUT: Any = getattr(socket, "_GLOBAL_DEFAULT_TIMEOUT", None)
+
+_FEATURE = re.compile(r"(?P<feature>[A-Za-z0-9][A-Za-z0-9\-]*) ?")
+
+_DEFAULT_MAINTYPE = "application"
+_DEFAULT_SUBTYPE = "octet-stream"
+
+
+def _require_str(value: Any, name: str) -> str:
+    """Return *value* when it is a string.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The validated string.
+
+    Raises:
+        TypeError: If *value* is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_optional_str(value: Any, name: str) -> Optional[str]:
+    """Return *value* when it is a string or ``None``.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The validated string, or ``None``.
+
+    Raises:
+        TypeError: If *value* is neither a string nor ``None``.
+    """
+    if value is None:
+        return None
+    return _require_str(value, name)
+
+
+def _require_int(value: Any, name: str) -> int:
+    """Return *value* when it is an integer.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The validated integer.
+
+    Raises:
+        TypeError: If *value* is not an integer.  Booleans are rejected because
+            they are integers in Python but never a meaningful port or count.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def _require_port(value: Any, name: str) -> int:
+    """Return *value* when it is a usable port number.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The validated port.  Zero means "use the default port of the client".
+
+    Raises:
+        TypeError: If *value* is not an integer.
+        ValueError: If *value* is negative or above 65535.
+    """
+    port = _require_int(value, name)
+    if port < 0 or port > 65535:
+        raise ValueError(f"{name} must be between 0 and 65535, got {port}")
+    return port
+
+
+def _require_timeout(value: Any) -> Optional[float]:
+    """Return *value* when it is a usable socket timeout.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        The validated timeout, or ``None`` for "use the global default".
+
+    Raises:
+        TypeError: If *value* is neither a number nor ``None``.
+        ValueError: If *value* is not positive.  The standard library rejects
+            a non-blocking socket, so a timeout of zero is refused as well.
+    """
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"timeout must be a number or None, got {type(value).__name__}")
+    timeout = float(value)
+    if timeout <= 0:
+        raise ValueError(f"timeout must be positive, got {timeout}")
+    return timeout
+
+
+def _require_source_address(
+    value: Any,
+) -> Optional[Tuple[str, int]]:
+    """Return *value* when it is a usable source address.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        The validated ``(host, port)`` pair, or ``None``.
+
+    Raises:
+        TypeError: If *value* is neither a pair nor ``None``.
+        ValueError: If the port of the pair is out of range.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, (tuple, list)) or len(value) != 2:
+        raise TypeError(
+            "source_address must be a (host, port) pair or None, "
+            f"got {type(value).__name__}"
+        )
+    host = _require_str(value[0], "source_address[0]")
+    port = _require_port(value[1], "source_address[1]")
+    return (host, port)
+
+
+def _require_addresses(value: Any, name: str) -> List[str]:
+    """Return *value* as a list of non-empty addresses.
+
+    Args:
+        value: A single address, or an iterable of addresses.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The validated addresses.
+
+    Raises:
+        TypeError: If *value* is not a string or an iterable of strings.
+        ValueError: If one of the addresses is empty.
+    """
+    if isinstance(value, str):
+        candidates: List[str] = [value]
+    else:
+        try:
+            collected = list(value)
+        except TypeError as exc:
+            raise TypeError(
+                f"{name} must be a str or an iterable of str, "
+                f"got {type(value).__name__}"
+            ) from exc
+        candidates = []
+        for index, item in enumerate(collected):
+            if not isinstance(item, str):
+                raise TypeError(
+                    f"{name}[{index}] must be a str, got {type(item).__name__}"
+                )
+            candidates.append(item)
+    for index, candidate in enumerate(candidates):
+        if not candidate.strip():
+            raise ValueError(f"{name}[{index}] must not be empty")
+    return candidates
+
+
+def _require_message(value: Any, name: str) -> email.message.Message:
+    """Return *value* when it is an email message.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The validated message.
+
+    Raises:
+        TypeError: If *value* is not an :class:`email.message.Message`.
+    """
+    if not isinstance(value, email.message.Message):
+        raise TypeError(
+            f"{name} must be an email.message.Message, got {type(value).__name__}"
+        )
+    return value
+
+
+def _require_client(value: Any, name: str) -> _smtplib.SMTP:
+    """Return *value* when it looks like an SMTP client.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The validated client.
+
+    Raises:
+        TypeError: If *value* is not an SMTP client.
+    """
+    if not isinstance(value, _smtplib.SMTP):
+        raise TypeError(
+            f"{name} must be an smtplib.SMTP instance, got {type(value).__name__}"
+        )
+    return value
+
+
+def _require_options(value: Any, name: str) -> List[str]:
+    """Return *value* as a list of SMTP options.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The validated options.
+
+    Raises:
+        TypeError: If *value* is not an iterable of strings.
+        ValueError: If one of the options is empty or holds a line break.
+    """
+    options: List[str] = []
+    for index, item in enumerate(value):
+        if not isinstance(item, str):
+            raise TypeError(
+                f"{name}[{index}] must be a str, got {type(item).__name__}"
+            )
+        if not item:
+            raise ValueError(f"{name}[{index}] must not be empty")
+        if "\r" in item or "\n" in item:
+            raise ValueError(f"{name}[{index}] must not contain a line break")
+        options.append(item)
+    return options
+
+
+def _response_text(value: Any, name: str) -> str:
+    """Return *value* as the text of a server reply.
+
+    Args:
+        value: A reply as a string or as bytes.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The reply as text.
+
+    Raises:
+        TypeError: If *value* is neither a string nor bytes.
+    """
+    if isinstance(value, bytes):
+        return value.decode("latin-1")
+    if isinstance(value, str):
+        return value
+    raise TypeError(f"{name} must be a str or bytes, got {type(value).__name__}")
+
+
+def quoteaddr(address: str) -> str:
+    """Quote an address the way an SMTP server expects it.
+
+    Args:
+        address: The address, optionally with a display name.
+
+    Returns:
+        The address in angle brackets, for example ``"<user@example.com>"``.
+
+    Raises:
+        TypeError: If *address* is not a string.
+
+    Examples:
+        >>> quoteaddr("user@example.com")
+        '<user@example.com>'
+    """
+    return _smtplib.quoteaddr(_require_str(address, "address"))
+
+
+def quote_string(text: str) -> str:
+    """Quote a string so that it can be used inside a header.
+
+    Backslashes and double quotes are escaped, and the result is wrapped in
+    double quotes.
+
+    Args:
+        text: The string to quote.
+
+    Returns:
+        The quoted string, for example ``'"say \\"hi\\""'``.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> quote_string('say "hi"')
+        '"say \\\\"hi\\\\""'
+    """
+    return '"' + email.utils.quote(_require_str(text, "text")) + '"'
+
+
+def quote_data(data: str) -> str:
+    """Quote the body of a message the way SMTP expects it.
+
+    Leading periods are doubled and every line ending becomes a CRLF, so the
+    body cannot terminate the message early.
+
+    Args:
+        data: The message body.
+
+    Returns:
+        The quoted body.
+
+    Raises:
+        TypeError: If *data* is not a string.
+
+    Examples:
+        >>> quote_data("one\\ntwo")
+        'one\\r\\ntwo'
+    """
+    return _smtplib.quotedata(_require_str(data, "data"))
+
+
+def parse_address(address: str) -> Tuple[str, str]:
+    """Split an address into its display name and its address.
+
+    Args:
+        address: The address, optionally with a display name.
+
+    Returns:
+        A ``(display name, address)`` pair.  Both parts are empty when the
+        address cannot be parsed.
+
+    Raises:
+        TypeError: If *address* is not a string.
+
+    Examples:
+        >>> parse_address("Alice <alice@example.com>")
+        ('Alice', 'alice@example.com')
+    """
+    return email.utils.parseaddr(_require_str(address, "address"))
+
+
+def address_only(address: str) -> str:
+    """Return an address without its display name.
+
+    Args:
+        address: The address, optionally with a display name.
+
+    Returns:
+        The bare address, for example ``"alice@example.com"``.
+
+    Raises:
+        TypeError: If *address* is not a string.
+
+    Examples:
+        >>> address_only("Alice <alice@example.com>")
+        'alice@example.com'
+    """
+    display_name, parsed = email.utils.parseaddr(_require_str(address, "address"))
+    if not display_name and not parsed:
+        return address
+    return parsed
+
+
+def format_address(display_name: str, address: str) -> str:
+    """Format a display name and an address as a single header value.
+
+    A display name that is not plain ASCII is encoded as described in
+    :rfc:`2047`.
+
+    Args:
+        display_name: The display name of the address.
+        address: The address itself.
+
+    Returns:
+        The formatted value, for example ``"Alice <alice@example.com>"``.
+
+    Raises:
+        TypeError: If *display_name* or *address* is not a string.
+
+    Examples:
+        >>> format_address("Alice", "alice@example.com")
+        'Alice <alice@example.com>'
+    """
+    name = _require_str(display_name, "display_name")
+    target = _require_str(address, "address")
+    return email.utils.formataddr((name, target))
+
+
+def getfqdn(name: str = "") -> str:
+    """Return the fully qualified domain name of a host.
+
+    Args:
+        name: The host name to resolve.  An empty name resolves the local
+            host.
+
+    Returns:
+        The fully qualified domain name.
+
+    Raises:
+        TypeError: If *name* is not a string.
+    """
+    return socket.getfqdn(_require_str(name, "name"))
+
+
+def parse_response(response: Union[str, bytes]) -> Tuple[int, str]:
+    """Parse a raw SMTP reply into its code and its message.
+
+    A multiline reply keeps every line but the last one in the message, joined
+    with a newline, exactly like the standard library client does.
+
+    Args:
+        response: The reply as it was received from the server.
+
+    Returns:
+        A ``(code, message)`` pair.  The code is ``-1`` when the reply does not
+        start with a three digit code.
+
+    Raises:
+        TypeError: If *response* is neither a string nor bytes.
+        ValueError: If *response* holds no line at all.
+
+    Examples:
+        >>> parse_response("250 OK")
+        (250, 'OK')
+        >>> parse_response("250-First\\n250 Second")
+        (250, 'First\\nSecond')
+    """
+    text = _response_text(response, "response")
+    lines = text.splitlines()
+    if not lines:
+        raise ValueError("response must not be empty")
+    code = -1
+    messages: List[str] = []
+    for line in lines:
+        stripped = line.rstrip("\r\n")
+        try:
+            code = int(stripped[:3])
+        except ValueError:
+            code = -1
+        messages.append(stripped[4:].strip())
+        if stripped[3:4] != "-":
+            break
+    return code, "\n".join(messages)
+
+
+def _has_code_prefix(line: str) -> bool:
+    """Return ``True`` when *line* starts with an SMTP reply code.
+
+    Args:
+        line: The line to inspect.
+
+    Returns:
+        ``True`` when the line starts with three digits followed by a space or
+        a hyphen.
+    """
+    return len(line) >= 4 and line[:3].isdigit() and line[3] in "- "
+
+
+def parse_ehlo_features(
+    response: Union[str, bytes],
+    skip_greeting: bool = True,
+) -> Dict[str, str]:
+    """Parse the service extensions a server announced in its EHLO reply.
+
+    Args:
+        response: The reply, either the message of a reply or the complete
+            raw reply.  Both the message of a reply, which is what
+            :meth:`smtplib.SMTP.ehlo` returns, and a raw reply are accepted.
+        skip_greeting: Whether the first line is the greeting of the server
+            and therefore not a service extension.  The standard library
+            behaves the same way.
+
+    Returns:
+        The announced service extensions, mapped to their parameters.  The
+        names are lower case, again like the standard library.
+
+    Raises:
+        TypeError: If *response* is neither a string nor bytes.
+
+    Examples:
+        >>> parse_ehlo_features("mail.example.com Hello\\nSIZE 100\\n8BITMIME")
+        {'size': '100', '8bitmime': ''}
+    """
+    text = _response_text(response, "response")
+    lines = text.splitlines()
+    if not lines:
+        return {}
+    if skip_greeting:
+        lines = lines[1:]
+    features: Dict[str, str] = {}
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if _has_code_prefix(stripped):
+            stripped = stripped[4:].strip()
+        match = _FEATURE.match(stripped)
+        if match is None:
+            continue
+        name = match.group("feature").lower()
+        params = stripped[match.end("feature") :].strip()
+        if name == "auth":
+            features[name] = (features.get(name, "") + " " + params).strip()
+        else:
+            features[name] = params
+    return features
+
+
+def build_message(
+    sender: str,
+    recipients: Iterable[str],
+    subject: str,
+    body: str,
+    cc: Optional[Iterable[str]] = None,
+    bcc: Optional[Iterable[str]] = None,
+    reply_to: Optional[str] = None,
+    html: Optional[str] = None,
+    attachments: Optional[Sequence[Tuple[str, bytes]]] = None,
+) -> email.message.EmailMessage:
+    """Build a complete message from plain values.
+
+    The standard library only offers the low level ``sendmail`` and
+    ``send_message`` methods, so building the message is left to the caller.
+    This helper assembles a :class:`email.message.EmailMessage` instead.
+
+    Args:
+        sender: The address the message is sent from.
+        recipients: The addresses the message is sent to.
+        subject: The subject of the message.
+        body: The plain text body of the message.
+        cc: Optional addresses that receive a copy of the message.
+        bcc: Optional addresses that receive a hidden copy of the message.
+            They are part of the envelope but never appear in the headers.
+        reply_to: Optional address replies are sent to.
+        html: Optional HTML body.  When it is given, the message carries both
+            a plain text and an HTML alternative.
+        attachments: Optional ``(file name, payload)`` pairs.  The media type
+            of an attachment is guessed from its file name.
+
+    Returns:
+        The assembled message.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If an address is empty or an attachment is malformed.
+
+    Examples:
+        >>> message = build_message("alice@example.com", ["bob@example.com"], "Hi", "Hello")
+        >>> message["Subject"]
+        'Hi'
+    """
+    from_address = _require_str(sender, "sender")
+    if not from_address.strip():
+        raise ValueError("sender must not be empty")
+    to_addresses = _require_addresses(recipients, "recipients")
+    if not to_addresses:
+        raise ValueError("recipients must not be empty")
+    title = _require_str(subject, "subject")
+    text = _require_str(body, "body")
+    cc_addresses = _require_addresses(cc, "cc") if cc is not None else []
+    if bcc is not None:
+        _require_addresses(bcc, "bcc")
+    reply = _require_optional_str(reply_to, "reply_to")
+    if reply is not None and not reply.strip():
+        raise ValueError("reply_to must not be empty")
+
+    message = email.message.EmailMessage()
+    message["From"] = from_address
+    message["To"] = ", ".join(to_addresses)
+    if cc_addresses:
+        message["Cc"] = ", ".join(cc_addresses)
+    message["Subject"] = title
+    if reply is not None:
+        message["Reply-To"] = reply
+    message.set_content(text)
+    if html is not None:
+        message.add_alternative(_require_str(html, "html"), subtype="html")
+    for index, attachment in enumerate(attachments or ()):
+        if not isinstance(attachment, (tuple, list)) or len(attachment) != 2:
+            raise TypeError(
+                f"attachments[{index}] must be a (file name, payload) pair, "
+                f"got {type(attachment).__name__}"
+            )
+        file_name = _require_str(attachment[0], f"attachments[{index}][0]")
+        payload = attachment[1]
+        if not isinstance(payload, bytes):
+            raise TypeError(
+                f"attachments[{index}][1] must be bytes, got {type(payload).__name__}"
+            )
+        if not file_name:
+            raise ValueError(f"attachments[{index}][0] must not be empty")
+        maintype, subtype = _guess_media_type(file_name)
+        message.add_attachment(
+            payload,
+            maintype=maintype,
+            subtype=subtype,
+            filename=file_name,
+        )
+    return message
+
+
+def _guess_media_type(file_name: str) -> Tuple[str, str]:
+    """Return the media type of a file name.
+
+    Args:
+        file_name: The name of the file.
+
+    Returns:
+        A ``(main type, sub type)`` pair.  Unknown file names fall back to
+        ``("application", "octet-stream")``.
+    """
+    guessed = mimetypes.guess_type(file_name)[0]
+    if not guessed:
+        return (_DEFAULT_MAINTYPE, _DEFAULT_SUBTYPE)
+    maintype, _, subtype = guessed.partition("/")
+    if not maintype or not subtype:
+        return (_DEFAULT_MAINTYPE, _DEFAULT_SUBTYPE)
+    return (maintype, subtype)
+
+
+def create_smtp(
+    host: str = "",
+    port: int = 0,
+    local_hostname: Optional[str] = None,
+    timeout: Optional[float] = None,
+    source_address: Optional[Tuple[str, int]] = None,
+) -> _smtplib.SMTP:
+    """Create a plain SMTP client.
+
+    The client connects right away when *host* is not empty, so the caller
+    stays in control of when a connection is attempted.
+
+    Args:
+        host: The server to connect to.  An empty host builds a client that
+            is not connected yet.
+        port: The port of the server.  Zero uses the default port of the
+            client.
+        local_hostname: The name the client announces in its greeting.  When
+            it is omitted the standard library looks the name up.
+        timeout: The socket timeout in seconds.  ``None`` uses the global
+            socket default.
+        source_address: Optional ``(host, port)`` pair the socket binds to.
+
+    Returns:
+        A :class:`smtplib.SMTP` instance.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *port* is out of range or *timeout* is not positive.
+    """
+    server = _require_str(host, "host")
+    port_number = _require_port(port, "port")
+    hostname = _require_optional_str(local_hostname, "local_hostname")
+    timeout_value = _require_timeout(timeout)
+    address = _require_source_address(source_address)
+    if timeout_value is None:
+        timeout_argument: Any = _GLOBAL_DEFAULT_TIMEOUT
+    else:
+        timeout_argument = timeout_value
+    return _smtplib.SMTP(
+        server,
+        port_number,
+        local_hostname=hostname,
+        timeout=timeout_argument,
+        source_address=address,
+    )
+
+
+def create_smtp_ssl(
+    host: str = "",
+    port: int = 0,
+    local_hostname: Optional[str] = None,
+    context: Optional[Any] = None,
+    timeout: Optional[float] = None,
+    source_address: Optional[Tuple[str, int]] = None,
+) -> _smtplib.SMTP_SSL:
+    """Create an SMTP client that speaks TLS from the first byte.
+
+    Args:
+        host: The server to connect to.  An empty host builds a client that
+            is not connected yet.
+        port: The port of the server.  Zero uses the default port of the
+            client.
+        local_hostname: The name the client announces in its greeting.
+        context: Optional :class:`ssl.SSLContext` to use.  When it is
+            omitted the standard library builds a default context.
+        timeout: The socket timeout in seconds.  ``None`` uses the global
+            socket default.
+        source_address: Optional ``(host, port)`` pair the socket binds to.
+
+    Returns:
+        An :class:`smtplib.SMTP_SSL` instance.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *port* is out of range or *timeout* is not positive.
+    """
+    server = _require_str(host, "host")
+    port_number = _require_port(port, "port")
+    hostname = _require_optional_str(local_hostname, "local_hostname")
+    timeout_value = _require_timeout(timeout)
+    address = _require_source_address(source_address)
+    if timeout_value is None:
+        timeout_argument: Any = _GLOBAL_DEFAULT_TIMEOUT
+    else:
+        timeout_argument = timeout_value
+    return _smtplib.SMTP_SSL(
+        server,
+        port_number,
+        local_hostname=hostname,
+        context=context,
+        timeout=timeout_argument,
+        source_address=address,
+    )
+
+
+def create_lmtp(
+    host: str = "",
+    port: int = LMTP_PORT,
+    local_hostname: Optional[str] = None,
+    timeout: Optional[float] = None,
+    source_address: Optional[Tuple[str, int]] = None,
+) -> _smtplib.LMTP:
+    """Create a local mail transfer client.
+
+    Args:
+        host: The server to connect to.  A host that starts with a slash is
+            treated as a Unix socket by the standard library.
+        port: The port of the server.
+        local_hostname: The name the client announces in its greeting.
+        timeout: The socket timeout in seconds.  ``None`` uses the global
+            socket default.
+        source_address: Optional ``(host, port)`` pair the socket binds to.
+
+    Returns:
+        A :class:`smtplib.LMTP` instance.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If *port* is out of range or *timeout* is not positive.
+    """
+    server = _require_str(host, "host")
+    port_number = _require_port(port, "port")
+    hostname = _require_optional_str(local_hostname, "local_hostname")
+    timeout_value = _require_timeout(timeout)
+    address = _require_source_address(source_address)
+    if timeout_value is None:
+        timeout_argument: Any = _GLOBAL_DEFAULT_TIMEOUT
+    else:
+        timeout_argument = timeout_value
+    return _smtplib.LMTP(
+        server,
+        port_number,
+        local_hostname=hostname,
+        source_address=address,
+        timeout=timeout_argument,
+    )
+
+
+def send_message(
+    smtp: _smtplib.SMTP,
+    message: email.message.Message,
+    from_addr: Optional[str] = None,
+    to_addrs: Optional[Iterable[str]] = None,
+    mail_options: Sequence[str] = (),
+    rcpt_options: Sequence[str] = (),
+) -> RefusedRecipients:
+    """Send a message with a client the caller owns.
+
+    Args:
+        smtp: The client to send the message with.
+        message: The message to send.
+        from_addr: The envelope sender.  When it is omitted the ``From``
+            header of the message is used.
+        to_addrs: The envelope recipients.  When it is omitted the ``To``,
+            ``Cc`` and ``Bcc`` headers of the message are used.
+        mail_options: Options for the ``MAIL`` command, for example
+            ``("SIZE=1000",)``.
+        rcpt_options: Options for the ``RCPT`` command.
+
+    Returns:
+        The recipients the server refused, mapped to the reason it gave.  An
+        empty mapping means that every recipient was accepted.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If an option is empty or holds a line break.
+    """
+    client = _require_client(smtp, "smtp")
+    payload = _require_message(message, "message")
+    sender = _require_optional_str(from_addr, "from_addr")
+    recipients = _require_addresses(to_addrs, "to_addrs") if to_addrs is not None else None
+    mail = _require_options(mail_options, "mail_options")
+    rcpt = _require_options(rcpt_options, "rcpt_options")
+    return client.send_message(payload, sender, recipients, mail, rcpt)
+
+
+def send_text(
+    smtp: _smtplib.SMTP,
+    sender: str,
+    recipients: Iterable[str],
+    subject: str,
+    body: str,
+    cc: Optional[Iterable[str]] = None,
+    bcc: Optional[Iterable[str]] = None,
+    reply_to: Optional[str] = None,
+    html: Optional[str] = None,
+    attachments: Optional[Sequence[Tuple[str, bytes]]] = None,
+    mail_options: Sequence[str] = (),
+    rcpt_options: Sequence[str] = (),
+) -> RefusedRecipients:
+    """Build a message and send it with a client the caller owns.
+
+    Args:
+        smtp: The client to send the message with.
+        sender: The address the message is sent from.
+        recipients: The addresses the message is sent to.
+        subject: The subject of the message.
+        body: The plain text body of the message.
+        cc: Optional addresses that receive a copy of the message.
+        bcc: Optional addresses that receive a hidden copy of the message.
+        reply_to: Optional address replies are sent to.
+        html: Optional HTML body.
+        attachments: Optional ``(file name, payload)`` pairs.
+        mail_options: Options for the ``MAIL`` command.
+        rcpt_options: Options for the ``RCPT`` command.
+
+    Returns:
+        The recipients the server refused, mapped to the reason it gave.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If an address is empty or an option is malformed.
+    """
+    client = _require_client(smtp, "smtp")
+    message = build_message(
+        sender,
+        recipients,
+        subject,
+        body,
+        cc=cc,
+        bcc=bcc,
+        reply_to=reply_to,
+        html=html,
+        attachments=attachments,
+    )
+    envelope = list(_require_addresses(recipients, "recipients"))
+    if cc is not None:
+        envelope.extend(_require_addresses(cc, "cc"))
+    if bcc is not None:
+        envelope.extend(_require_addresses(bcc, "bcc"))
+    return send_message(
+        client,
+        message,
+        from_addr=sender,
+        to_addrs=envelope,
+        mail_options=mail_options,
+        rcpt_options=rcpt_options,
+    )
+
+
+def is_smtp_error(exc: Any) -> bool:
+    """Return ``True`` when *exc* is any SMTP error."""
+    return isinstance(exc, _smtplib.SMTPException)
+
+
+def is_smtp_response_error(exc: Any) -> bool:
+    """Return ``True`` when *exc* is an unexpected SMTP reply."""
+    return isinstance(exc, _smtplib.SMTPResponseException)
+
+
+def is_smtp_sender_refused(exc: Any) -> bool:
+    """Return ``True`` when *exc* reports a refused sender."""
+    return isinstance(exc, _smtplib.SMTPSenderRefused)
+
+
+def is_smtp_recipients_refused(exc: Any) -> bool:
+    """Return ``True`` when *exc* reports refused recipients."""
+    return isinstance(exc, _smtplib.SMTPRecipientsRefused)
+
+
+def is_smtp_data_error(exc: Any) -> bool:
+    """Return ``True`` when *exc* reports a refused message body."""
+    return isinstance(exc, _smtplib.SMTPDataError)
+
+
+def is_smtp_helo_error(exc: Any) -> bool:
+    """Return ``True`` when *exc* reports a refused greeting."""
+    return isinstance(exc, _smtplib.SMTPHeloError)
+
+
+def is_smtp_not_supported(exc: Any) -> bool:
+    """Return ``True`` when *exc* reports an unsupported command."""
+    return isinstance(exc, _smtplib.SMTPNotSupportedError)
+
+
+def is_smtp_server_disconnected(exc: Any) -> bool:
+    """Return ``True`` when *exc* reports a closed connection."""
+    return isinstance(exc, _smtplib.SMTPServerDisconnected)
+
+
+def is_smtp_authentication_error(exc: Any) -> bool:
+    """Return ``True`` when *exc* reports a failed authentication."""
+    return isinstance(exc, _smtplib.SMTPAuthenticationError)
+SMTPLIB_UTILS
+
+# --- tests/test_smtplib_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_smtplib_utils.py" <<'TEST_SMTPLIB_UTILS'
+"""Tests for smtplib_utils module."""
+
+import smtplib
+import socket
+import ssl
+import unittest
+from unittest import mock
+
+import smtplib_utils
+
+GREETING = "220 mail.example.com ESMTP\r\n"
+EHLO_REPLY = [
+    "250-mail.example.com Hello\r\n",
+    "250-SIZE 35882577\r\n",
+    "250 HELP\r\n",
+]
+
+
+class FakeSocket:
+    """A socket that replays scripted server replies."""
+
+    def __init__(self, replies):
+        self._replies = list(replies)
+        self._buffer = b""
+        self.sent = []
+        self.closed = False
+
+    def makefile(self, mode="rb", *args, **kwargs):
+        return self
+
+    def readline(self, size=-1):
+        if not self._buffer:
+            if not self._replies:
+                return b""
+            self._buffer = self._replies.pop(0).encode("latin-1")
+        line, separator, rest = self._buffer.partition(b"\n")
+        self._buffer = rest
+        if not separator:
+            return line
+        return line + b"\n"
+
+    def sendall(self, data):
+        self.sent.append(data)
+
+    def close(self):
+        self.closed = True
+
+    def settimeout(self, timeout):
+        return None
+
+    def getpeername(self):
+        return ("127.0.0.1", 25)
+
+    def commands(self):
+        """Return everything the client sent, without the line endings."""
+        return [chunk.decode("latin-1").strip() for chunk in self.sent]
+
+
+def connected_socket(replies):
+    """Return a fake socket and a patcher that hands it to the client."""
+    fake = FakeSocket(replies)
+    return fake, mock.patch("socket.create_connection", return_value=fake)
+
+
+class TestExports(unittest.TestCase):
+    def test_constants(self):
+        self.assertIs(smtplib_utils.CRLF, smtplib.CRLF)
+        self.assertEqual(smtplib_utils.SMTP_PORT, smtplib.SMTP_PORT)
+        self.assertEqual(smtplib_utils.SMTP_SSL_PORT, smtplib.SMTP_SSL_PORT)
+        self.assertEqual(smtplib_utils.LMTP_PORT, smtplib.LMTP_PORT)
+
+    def test_classes_exported(self):
+        self.assertIs(smtplib_utils.SMTP, smtplib.SMTP)
+        self.assertIs(smtplib_utils.SMTP_SSL, smtplib.SMTP_SSL)
+        self.assertIs(smtplib_utils.LMTP, smtplib.LMTP)
+
+    def test_error_classes_exported(self):
+        self.assertIs(smtplib_utils.SMTPException, smtplib.SMTPException)
+        self.assertIs(
+            smtplib_utils.SMTPNotSupportedError, smtplib.SMTPNotSupportedError
+        )
+        self.assertIs(
+            smtplib_utils.SMTPServerDisconnected, smtplib.SMTPServerDisconnected
+        )
+        self.assertIs(
+            smtplib_utils.SMTPResponseException, smtplib.SMTPResponseException
+        )
+        self.assertIs(smtplib_utils.SMTPSenderRefused, smtplib.SMTPSenderRefused)
+        self.assertIs(
+            smtplib_utils.SMTPRecipientsRefused, smtplib.SMTPRecipientsRefused
+        )
+        self.assertIs(smtplib_utils.SMTPDataError, smtplib.SMTPDataError)
+        self.assertIs(smtplib_utils.SMTPConnectError, smtplib.SMTPConnectError)
+        self.assertIs(smtplib_utils.SMTPHeloError, smtplib.SMTPHeloError)
+        self.assertIs(
+            smtplib_utils.SMTPAuthenticationError, smtplib.SMTPAuthenticationError
+        )
+
+
+class TestAddressHelpers(unittest.TestCase):
+    def test_quoteaddr(self):
+        self.assertEqual(smtplib_utils.quoteaddr("user@example.com"), "<user@example.com>")
+        self.assertEqual(
+            smtplib_utils.quoteaddr("Alice <alice@example.com>"), "<alice@example.com>"
+        )
+
+    def test_quoteaddr_bad_type(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.quoteaddr(42)  # type: ignore[arg-type]
+
+    def test_quote_string(self):
+        self.assertEqual(smtplib_utils.quote_string("plain"), '"plain"')
+        self.assertEqual(smtplib_utils.quote_string('say "hi"'), '"say \\"hi\\""')
+
+    def test_quote_string_escapes_backslashes(self):
+        self.assertEqual(smtplib_utils.quote_string("a\\b"), '"a\\\\b"')
+
+    def test_quote_string_bad_type(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.quote_string(None)  # type: ignore[arg-type]
+
+    def test_quote_data(self):
+        self.assertEqual(smtplib_utils.quote_data("one\ntwo"), "one\r\ntwo")
+        self.assertEqual(smtplib_utils.quote_data(".hidden"), "..hidden")
+
+    def test_quote_data_bad_type(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.quote_data(b"bytes")  # type: ignore[arg-type]
+
+    def test_parse_address(self):
+        self.assertEqual(
+            smtplib_utils.parse_address("Alice <alice@example.com>"),
+            ("Alice", "alice@example.com"),
+        )
+        self.assertEqual(
+            smtplib_utils.parse_address("alice@example.com"), ("", "alice@example.com")
+        )
+
+    def test_parse_address_bad_type(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.parse_address(1)  # type: ignore[arg-type]
+
+    def test_address_only(self):
+        self.assertEqual(
+            smtplib_utils.address_only("Alice <alice@example.com>"), "alice@example.com"
+        )
+        self.assertEqual(smtplib_utils.address_only("alice@example.com"), "alice@example.com")
+
+    def test_address_only_keeps_unparsable_value(self):
+        self.assertEqual(smtplib_utils.address_only("not an address"), "not")
+
+    def test_address_only_keeps_a_value_without_an_address(self):
+        self.assertEqual(smtplib_utils.address_only("<"), "<")
+
+    def test_address_only_bad_type(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.address_only(object())  # type: ignore[arg-type]
+
+    def test_format_address(self):
+        self.assertEqual(
+            smtplib_utils.format_address("Alice", "alice@example.com"),
+            "Alice <alice@example.com>",
+        )
+
+    def test_format_address_encodes_non_ascii(self):
+        formatted = smtplib_utils.format_address("Älice", "alice@example.com")
+        self.assertIn("=?utf-8?", formatted)
+        self.assertTrue(formatted.endswith("<alice@example.com>"))
+
+    def test_format_address_bad_type(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.format_address(None, "alice@example.com")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            smtplib_utils.format_address("Alice", 5)  # type: ignore[arg-type]
+
+    def test_getfqdn(self):
+        with mock.patch.object(socket, "getfqdn", return_value="host.example.com") as fake:
+            self.assertEqual(smtplib_utils.getfqdn("host"), "host.example.com")
+        fake.assert_called_once_with("host")
+
+    def test_getfqdn_bad_type(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.getfqdn(3)  # type: ignore[arg-type]
+
+
+class TestParseResponse(unittest.TestCase):
+    def test_single_line(self):
+        self.assertEqual(smtplib_utils.parse_response("250 OK"), (250, "OK"))
+
+    def test_bytes_input(self):
+        self.assertEqual(smtplib_utils.parse_response(b"250 OK"), (250, "OK"))
+
+    def test_multiline(self):
+        code, message = smtplib_utils.parse_response("250-First\r\n250 Second")
+        self.assertEqual(code, 250)
+        self.assertEqual(message, "First\nSecond")
+
+    def test_invalid_code(self):
+        self.assertEqual(smtplib_utils.parse_response("oops"), (-1, ""))
+
+    def test_empty_response(self):
+        with self.assertRaises(ValueError):
+            smtplib_utils.parse_response("")
+
+    def test_bad_type(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.parse_response(42)  # type: ignore[arg-type]
+
+
+class TestParseEhloFeatures(unittest.TestCase):
+    def test_message_form(self):
+        features = smtplib_utils.parse_ehlo_features(
+            "mail.example.com Hello\nSIZE 35882577\n8BITMIME\nHELP"
+        )
+        self.assertEqual(
+            features, {"size": "35882577", "8bitmime": "", "help": ""}
+        )
+
+    def test_raw_reply_form(self):
+        features = smtplib_utils.parse_ehlo_features(
+            "250-mail.example.com Hello\r\n250-SIZE 100\r\n250 HELP\r\n"
+        )
+        self.assertEqual(features, {"size": "100", "help": ""})
+
+    def test_greeting_can_be_kept(self):
+        features = smtplib_utils.parse_ehlo_features("SIZE 100", skip_greeting=False)
+        self.assertEqual(features, {"size": "100"})
+
+    def test_auth_mechanisms_are_merged(self):
+        features = smtplib_utils.parse_ehlo_features(
+            "AUTH LOGIN PLAIN", skip_greeting=False
+        )
+        self.assertEqual(features, {"auth": "LOGIN PLAIN"})
+
+    def test_empty_response(self):
+        self.assertEqual(smtplib_utils.parse_ehlo_features(""), {})
+
+    def test_bad_type(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.parse_ehlo_features(7)  # type: ignore[arg-type]
+
+
+class TestBuildMessage(unittest.TestCase):
+    def test_headers(self):
+        message = smtplib_utils.build_message(
+            "alice@example.com", ["bob@example.com"], "Report", "The body"
+        )
+        self.assertEqual(message["From"], "alice@example.com")
+        self.assertEqual(message["To"], "bob@example.com")
+        self.assertEqual(message["Subject"], "Report")
+        self.assertEqual(message.get_content_type(), "text/plain")
+        self.assertEqual(message.get_content().strip(), "The body")
+
+    def test_multiple_recipients_are_joined(self):
+        message = smtplib_utils.build_message(
+            "alice@example.com", ["bob@example.com", "carol@example.com"], "Hi", "Body"
+        )
+        self.assertEqual(message["To"], "bob@example.com, carol@example.com")
+
+    def test_cc_is_added(self):
+        message = smtplib_utils.build_message(
+            "alice@example.com",
+            ["bob@example.com"],
+            "Hi",
+            "Body",
+            cc=["carol@example.com"],
+        )
+        self.assertEqual(message["Cc"], "carol@example.com")
+
+    def test_bcc_is_not_a_header(self):
+        message = smtplib_utils.build_message(
+            "alice@example.com",
+            ["bob@example.com"],
+            "Hi",
+            "Body",
+            bcc=["hidden@example.com"],
+        )
+        self.assertIsNone(message["Bcc"])
+
+    def test_reply_to_is_added(self):
+        message = smtplib_utils.build_message(
+            "alice@example.com",
+            ["bob@example.com"],
+            "Hi",
+            "Body",
+            reply_to="replies@example.com",
+        )
+        self.assertEqual(message["Reply-To"], "replies@example.com")
+
+    def test_html_alternative(self):
+        message = smtplib_utils.build_message(
+            "alice@example.com",
+            ["bob@example.com"],
+            "Hi",
+            "Body",
+            html="<p>Body</p>",
+        )
+        self.assertEqual(message.get_content_type(), "multipart/alternative")
+        self.assertEqual(
+            message.get_body(preferencelist=("plain",)).get_content().strip(), "Body"
+        )
+        self.assertEqual(
+            message.get_body(preferencelist=("html",)).get_content().strip(), "<p>Body</p>"
+        )
+
+    def test_attachment_media_type_is_guessed(self):
+        message = smtplib_utils.build_message(
+            "alice@example.com",
+            ["bob@example.com"],
+            "Hi",
+            "Body",
+            attachments=[("picture.png", b"\x89PNG")],
+        )
+        self.assertEqual(message.get_content_type(), "multipart/mixed")
+        attachments = list(message.iter_attachments())
+        self.assertEqual(len(attachments), 1)
+        self.assertEqual(attachments[0].get_content_type(), "image/png")
+        self.assertEqual(attachments[0].get_filename(), "picture.png")
+
+    def test_unknown_attachment_type_falls_back(self):
+        message = smtplib_utils.build_message(
+            "alice@example.com",
+            ["bob@example.com"],
+            "Hi",
+            "Body",
+            attachments=[("payload.unknown-extension", b"data")],
+        )
+        attachment = list(message.iter_attachments())[0]
+        self.assertEqual(attachment.get_content_type(), "application/octet-stream")
+
+    def test_bad_sender(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.build_message(1, ["bob@example.com"], "Hi", "Body")  # type: ignore[arg-type]
+
+    def test_empty_sender(self):
+        with self.assertRaises(ValueError):
+            smtplib_utils.build_message("  ", ["bob@example.com"], "Hi", "Body")
+
+    def test_empty_recipients(self):
+        with self.assertRaises(ValueError):
+            smtplib_utils.build_message("alice@example.com", [], "Hi", "Body")
+
+    def test_bad_recipient(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.build_message("alice@example.com", [5], "Hi", "Body")  # type: ignore[list-item]
+
+    def test_empty_recipient(self):
+        with self.assertRaises(ValueError):
+            smtplib_utils.build_message("alice@example.com", [""], "Hi", "Body")
+
+    def test_bad_body(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.build_message("alice@example.com", ["bob@example.com"], "Hi", 5)  # type: ignore[arg-type]
+
+    def test_bad_html(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.build_message(
+                "alice@example.com", ["bob@example.com"], "Hi", "Body", html=5
+            )  # type: ignore[arg-type]
+
+    def test_bad_attachment(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.build_message(
+                "alice@example.com",
+                ["bob@example.com"],
+                "Hi",
+                "Body",
+                attachments=[("picture.png", "not bytes")],  # type: ignore[list-item]
+            )
+
+    def test_malformed_attachment(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.build_message(
+                "alice@example.com",
+                ["bob@example.com"],
+                "Hi",
+                "Body",
+                attachments=["picture.png"],  # type: ignore[list-item]
+            )
+
+
+class TestCreateSmtp(unittest.TestCase):
+    def test_arguments_are_forwarded(self):
+        with mock.patch.object(smtplib, "SMTP") as fake:
+            client = smtplib_utils.create_smtp(
+                "example.org", 2525, local_hostname="client.example.org", timeout=5
+            )
+        self.assertIs(client, fake.return_value)
+        args, kwargs = fake.call_args
+        self.assertEqual(args, ("example.org", 2525))
+        self.assertEqual(kwargs["local_hostname"], "client.example.org")
+        self.assertEqual(kwargs["timeout"], 5.0)
+        self.assertIsNone(kwargs["source_address"])
+
+    def test_source_address_is_forwarded(self):
+        with mock.patch.object(smtplib, "SMTP") as fake:
+            smtplib_utils.create_smtp("example.org", 25, source_address=("10.0.0.1", 0))
+        self.assertEqual(fake.call_args.kwargs["source_address"], ("10.0.0.1", 0))
+
+    def test_bad_host(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.create_smtp(123)  # type: ignore[arg-type]
+
+    def test_bad_port(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.create_smtp("localhost", "25")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            smtplib_utils.create_smtp("localhost", True)  # type: ignore[arg-type]
+
+    def test_port_out_of_range(self):
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp("localhost", 70000)
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp("localhost", -1)
+
+    def test_bad_timeout(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.create_smtp("localhost", 25, timeout="5")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp("localhost", 25, timeout=0)
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp("localhost", 25, timeout=-1)
+
+    def test_bad_source_address(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.create_smtp("localhost", 25, source_address="10.0.0.1")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp("localhost", 25, source_address=("10.0.0.1", 99999))
+
+    def test_bad_local_hostname(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.create_smtp("localhost", 25, local_hostname=5)  # type: ignore[arg-type]
+
+    def test_client_connects(self):
+        fake, patcher = connected_socket([GREETING])
+        with patcher:
+            client = smtplib_utils.create_smtp(
+                "mail.example.com", 25, local_hostname="client.example.org"
+            )
+        self.assertIs(client.sock, fake)
+        self.assertEqual(client.local_hostname, "client.example.org")
+
+
+class TestCreateSmtpSsl(unittest.TestCase):
+    def test_arguments_are_forwarded(self):
+        with mock.patch.object(smtplib, "SMTP_SSL") as fake:
+            client = smtplib_utils.create_smtp_ssl(
+                "example.org", 465, local_hostname="client.example.org", timeout=3
+            )
+        self.assertIs(client, fake.return_value)
+        args, kwargs = fake.call_args
+        self.assertEqual(args, ("example.org", 465))
+        self.assertEqual(kwargs["local_hostname"], "client.example.org")
+        self.assertEqual(kwargs["timeout"], 3.0)
+        self.assertIsNone(kwargs["context"])
+
+    def test_context_is_forwarded(self):
+        context = ssl.create_default_context()
+        with mock.patch.object(smtplib, "SMTP_SSL") as fake:
+            smtplib_utils.create_smtp_ssl("example.org", 465, context=context)
+        self.assertIs(fake.call_args.kwargs["context"], context)
+
+    def test_bad_port(self):
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp_ssl("example.org", 70000)
+
+    def test_client_wraps_the_socket(self):
+        fake, patcher = connected_socket([GREETING])
+        with patcher, mock.patch.object(
+            ssl.SSLContext, "wrap_socket", side_effect=lambda sock, **kwargs: sock
+        ):
+            client = smtplib_utils.create_smtp_ssl(
+                "mail.example.com", 465, local_hostname="client.example.org"
+            )
+        self.assertIs(client.sock, fake)
+
+
+class TestCreateLmtp(unittest.TestCase):
+    def test_arguments_are_forwarded(self):
+        with mock.patch.object(smtplib, "LMTP") as fake:
+            client = smtplib_utils.create_lmtp(
+                "example.org", 2003, local_hostname="client.example.org", timeout=2
+            )
+        self.assertIs(client, fake.return_value)
+        args, kwargs = fake.call_args
+        self.assertEqual(args, ("example.org", 2003))
+        self.assertEqual(kwargs["local_hostname"], "client.example.org")
+        self.assertEqual(kwargs["timeout"], 2.0)
+
+    def test_default_port(self):
+        with mock.patch.object(smtplib, "LMTP") as fake:
+            smtplib_utils.create_lmtp()
+        self.assertEqual(fake.call_args.args[1], smtplib.LMTP_PORT)
+
+    def test_bad_host(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.create_lmtp(5)  # type: ignore[arg-type]
+
+    def test_bad_port(self):
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_lmtp("example.org", -5)
+
+
+class TestSend(unittest.TestCase):
+    def _client(self, replies):
+        fake, patcher = connected_socket(replies)
+        return fake, patcher
+
+    def test_send_text_runs_a_full_transaction(self):
+        replies = [GREETING] + EHLO_REPLY + [
+            "250 OK\r\n",
+            "250 OK\r\n",
+            "354 Go ahead\r\n",
+            "250 OK\r\n",
+            "221 Bye\r\n",
+        ]
+        fake, patcher = self._client(replies)
+        with patcher:
+            client = smtplib_utils.create_smtp(
+                "mail.example.com", 25, local_hostname="client.example.org"
+            )
+            refused = smtplib_utils.send_text(
+                client,
+                "alice@example.com",
+                ["bob@example.com"],
+                "Report",
+                "The body",
+            )
+            client.quit()
+        self.assertEqual(refused, {})
+        commands = fake.commands()
+        self.assertEqual(commands[0], "ehlo client.example.org")
+        self.assertTrue(commands[1].startswith("mail FROM:<alice@example.com>"))
+        self.assertEqual(commands[2], "rcpt TO:<bob@example.com>")
+        self.assertEqual(commands[3], "data")
+        self.assertIn("Subject: Report", commands[4])
+        self.assertTrue(commands[4].endswith("."))
+        self.assertEqual(commands[5], "quit")
+
+    def test_bcc_reaches_the_envelope_only(self):
+        replies = [GREETING] + EHLO_REPLY + [
+            "250 OK\r\n",
+            "250 OK\r\n",
+            "250 OK\r\n",
+            "354 Go ahead\r\n",
+            "250 OK\r\n",
+        ]
+        fake, patcher = self._client(replies)
+        with patcher:
+            client = smtplib_utils.create_smtp(
+                "mail.example.com", 25, local_hostname="client.example.org"
+            )
+            smtplib_utils.send_text(
+                client,
+                "alice@example.com",
+                ["bob@example.com"],
+                "Report",
+                "The body",
+                bcc=["hidden@example.com"],
+            )
+        commands = fake.commands()
+        self.assertIn("rcpt TO:<hidden@example.com>", commands)
+        self.assertNotIn("Bcc: hidden@example.com", commands[4])
+
+    def test_refused_recipient_is_reported(self):
+        replies = [GREETING] + EHLO_REPLY + [
+            "250 OK\r\n",
+            "550 No such user\r\n",
+            "250 OK\r\n",
+            "354 Go ahead\r\n",
+            "250 OK\r\n",
+        ]
+        fake, patcher = self._client(replies)
+        with patcher:
+            client = smtplib_utils.create_smtp(
+                "mail.example.com", 25, local_hostname="client.example.org"
+            )
+            refused = smtplib_utils.send_text(
+                client,
+                "alice@example.com",
+                ["bob@example.com", "carol@example.com"],
+                "Report",
+                "The body",
+            )
+        self.assertEqual(list(refused), ["bob@example.com"])
+        self.assertEqual(refused["bob@example.com"][0], 550)
+        self.assertEqual(refused["bob@example.com"][1], b"No such user")
+
+    def test_all_recipients_refused_raises(self):
+        replies = [GREETING] + EHLO_REPLY + [
+            "250 OK\r\n",
+            "550 No such user\r\n",
+            "250 OK\r\n",
+        ]
+        fake, patcher = self._client(replies)
+        with patcher:
+            client = smtplib_utils.create_smtp(
+                "mail.example.com", 25, local_hostname="client.example.org"
+            )
+            with self.assertRaises(smtplib.SMTPRecipientsRefused) as caught:
+                smtplib_utils.send_text(
+                    client,
+                    "alice@example.com",
+                    ["bob@example.com"],
+                    "Report",
+                    "The body",
+                )
+        self.assertIn("bob@example.com", caught.exception.recipients)
+        self.assertIn("rset", fake.commands())
+
+    def test_send_message_uses_the_message_headers(self):
+        replies = [GREETING] + EHLO_REPLY + [
+            "250 OK\r\n",
+            "250 OK\r\n",
+            "354 Go ahead\r\n",
+            "250 OK\r\n",
+        ]
+        fake, patcher = self._client(replies)
+        message = smtplib_utils.build_message(
+            "alice@example.com", ["bob@example.com"], "Report", "The body"
+        )
+        with patcher:
+            client = smtplib_utils.create_smtp(
+                "mail.example.com", 25, local_hostname="client.example.org"
+            )
+            refused = smtplib_utils.send_message(client, message)
+        self.assertEqual(refused, {})
+        commands = fake.commands()
+        self.assertTrue(commands[1].startswith("mail FROM:<alice@example.com>"))
+        self.assertIn("size=", commands[1])
+        self.assertEqual(commands[2], "rcpt TO:<bob@example.com>")
+
+    def test_bad_client(self):
+        with self.assertRaises(TypeError):
+            smtplib_utils.send_text(object(), "alice@example.com", ["bob@x.com"], "s", "b")  # type: ignore[arg-type]
+
+    def test_bad_message(self):
+        client = mock.Mock(spec=smtplib.SMTP)
+        with self.assertRaises(TypeError):
+            smtplib_utils.send_message(client, "not a message")  # type: ignore[arg-type]
+
+    def test_bad_option(self):
+        client = mock.Mock(spec=smtplib.SMTP)
+        message = smtplib_utils.build_message(
+            "alice@example.com", ["bob@example.com"], "Report", "The body"
+        )
+        with self.assertRaises(ValueError):
+            smtplib_utils.send_message(client, message, mail_options=("SIZE=1\n",))
+        with self.assertRaises(TypeError):
+            smtplib_utils.send_message(client, message, mail_options=(5,))  # type: ignore[arg-type]
+
+    def test_mail_options_are_forwarded(self):
+        replies = [GREETING] + EHLO_REPLY + [
+            "250 OK\r\n",
+            "250 OK\r\n",
+            "354 Go ahead\r\n",
+            "250 OK\r\n",
+        ]
+        fake, patcher = self._client(replies)
+        with patcher:
+            client = smtplib_utils.create_smtp(
+                "mail.example.com", 25, local_hostname="client.example.org"
+            )
+            smtplib_utils.send_text(
+                client,
+                "alice@example.com",
+                ["bob@example.com"],
+                "Report",
+                "The body",
+                mail_options=["BODY=8BITMIME"],
+            )
+        self.assertIn("BODY=8BITMIME", fake.commands()[1])
+
+
+class TestErrorPredicates(unittest.TestCase):
+    def test_predicates_match_their_error(self):
+        self.assertTrue(smtplib_utils.is_smtp_error(smtplib.SMTPException("x")))
+        self.assertTrue(
+            smtplib_utils.is_smtp_response_error(smtplib.SMTPResponseException(500, "x"))
+        )
+        self.assertTrue(
+            smtplib_utils.is_smtp_sender_refused(smtplib.SMTPSenderRefused(550, b"x", "a"))
+        )
+        self.assertTrue(
+            smtplib_utils.is_smtp_recipients_refused(
+                smtplib.SMTPRecipientsRefused({"a": (550, b"x")})
+            )
+        )
+        self.assertTrue(
+            smtplib_utils.is_smtp_data_error(smtplib.SMTPDataError(451, b"x"))
+        )
+        self.assertTrue(
+            smtplib_utils.is_smtp_helo_error(smtplib.SMTPHeloError(550, b"x"))
+        )
+        self.assertTrue(
+            smtplib_utils.is_smtp_not_supported(smtplib.SMTPNotSupportedError("x"))
+        )
+        self.assertTrue(
+            smtplib_utils.is_smtp_server_disconnected(smtplib.SMTPServerDisconnected("x"))
+        )
+        self.assertTrue(
+            smtplib_utils.is_smtp_authentication_error(
+                smtplib.SMTPAuthenticationError(535, b"x")
+            )
+        )
+
+    def test_predicates_reject_other_errors(self):
+        self.assertFalse(smtplib_utils.is_smtp_error(ValueError("x")))
+        self.assertFalse(smtplib_utils.is_smtp_response_error(ValueError("x")))
+        self.assertFalse(smtplib_utils.is_smtp_sender_refused(ValueError("x")))
+        self.assertFalse(smtplib_utils.is_smtp_recipients_refused(ValueError("x")))
+        self.assertFalse(smtplib_utils.is_smtp_data_error(ValueError("x")))
+        self.assertFalse(smtplib_utils.is_smtp_helo_error(ValueError("x")))
+        self.assertFalse(smtplib_utils.is_smtp_not_supported(ValueError("x")))
+        self.assertFalse(smtplib_utils.is_smtp_server_disconnected(ValueError("x")))
+        self.assertFalse(smtplib_utils.is_smtp_authentication_error(ValueError("x")))
+
+    def test_response_error_is_an_smtp_error(self):
+        self.assertTrue(
+            smtplib_utils.is_smtp_error(smtplib.SMTPResponseException(500, "x"))
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_SMTPLIB_UTILS
 
 # --- rlcompleter_utils.py ---
 cat > "$OUTPUT_DIR/rlcompleter_utils.py" <<'RLCOMPLETER_UTILS'

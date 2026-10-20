@@ -247,4 +247,5 @@ py_modules = [
     "compileall_utils",
     "modulefinder_utils",
     "optparse_utils",
+    "smtplib_utils",
 ]

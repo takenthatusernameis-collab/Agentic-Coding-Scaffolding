@@ -20,7 +20,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 3647 tests across all wrapper modules (1712 subtests)
+- 3726 tests across all wrapper modules (1720 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -30,14 +30,14 @@ The project foundation is established:
   documented in `README.md`, listed in `.kilo/command/scaffold-project.md` and `CHANGELOG.md`, and
   asserted in `tests/test_scaffold.py`
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 3573 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 3652 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 418 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 420 source files
 
 ## Keeping the Scaffold Synchronized
 
@@ -57,6 +57,63 @@ expectation in `tests/test_scaffold_sync.py`.
 The board held no task, so this session added the next wrapper module.
 
 Completed in the latest session:
+
+- Added `smtplib_utils.py` wrapping the standard library `smtplib` module (`quoteaddr`,
+  `quote_string`, `quote_data`, `parse_address`, `address_only`, `format_address`, `getfqdn`,
+  `parse_response`, `parse_ehlo_features`, `build_message`, `create_smtp`, `create_smtp_ssl`,
+  `create_lmtp`, `send_message`, `send_text`) with typed signatures, docstrings, `__all__`, and input
+  validation, plus unit tests in `tests/test_smtplib_utils.py`. `SMTP`, `SMTP_SSL`, `LMTP`, and the
+  standard library error classes (`SMTPException`, `SMTPNotSupportedError`, `SMTPServerDisconnected`,
+  `SMTPResponseException`, `SMTPSenderRefused`, `SMTPRecipientsRefused`, `SMTPDataError`,
+  `SMTPConnectError`, `SMTPHeloError`, `SMTPAuthenticationError`) are re-exported.
+- The wrapper adds three conveniences the standard library does not offer: every argument is
+  validated before the standard library is reached, `build_message` assembles a complete
+  `email.message.EmailMessage` from plain values (and guesses the media type of an attachment from
+  its file name), and `parse_response` and `parse_ehlo_features` parse captured server replies
+  without needing a connection.
+- The wrapper never opens a connection on its own: `create_smtp`, `create_smtp_ssl` and `create_lmtp`
+  build the standard library clients, and `send_message` and `send_text` operate on a client the
+  caller already owns. The test suite therefore stays hermetic — `tests/test_smtplib_utils.py`
+  replays scripted server replies through a fake socket installed with
+  `unittest.mock.patch("socket.create_connection")`, so no test ever opens a network connection, and
+  the SSL client is exercised by patching `ssl.SSLContext.wrap_socket`.
+- Synchronized the new module across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh`
+  header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README
+  tree and module section, the embedded CHANGELOG, the README tree and module section,
+  `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `smtplib_utils.py` and `tests/test_smtplib_utils.py`, its 3652 tests, ruff, and mypy all pass, and
+  a second generation project scaffolds correctly as well.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are
+  `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
+  `sndhdr` (removed in Python 3.13), `cgitb` (removed in Python 3.13), `ftplib`, `poplib`,
+  `webbrowser`, `xmlrpc`, `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`, and
+  `encodings`. A natural next candidate is `ftplib_utils.py` wrapping the standard library `ftplib`
+  module: the response parsing helpers (`parse150`, `parse227`, `parse229`, `make_eprt`, `make_epot`)
+  and the `FTP` class shape follow the same pattern as `smtplib_utils.py`, and the connection
+  helpers must be exercised with `unittest.mock.patch` on `socket.create_connection` instead of a
+  real server, the way `imaplib_utils.py` and `smtplib_utils.py` do it. `poplib` follows the same
+  shape, and `webbrowser` needs its process launching mocked.
+- Keep every new wrapper hermetic: the test suite must never open a network connection or block on a
+  subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with
+  `unittest.mock.patch` instead of real servers. `smtplib_utils.py` follows it: the tests replay
+  scripted server replies through a fake socket and never touch the network. The same rule applies to
+  the compiler wrappers: `compileall_utils.py` narrows `sys.path` with `unittest.mock.patch` so the
+  suite never byte-compiles the interpreter's own import path. `modulefinder_utils.py` follows the
+  rule as well: the analysis is static, so the analysed script is never imported or executed, and the
+  tests restrict the search path to a temporary directory so the suite never scans the whole import
+  path. `optparse_utils.py` follows it too: the parser never touches the network, and the tests parse
+  command lines from lists instead of `sys.argv`, except for one test that patches `sys.argv` with
+  `unittest.mock.patch`. `xdrlib_utils.py` follows it as well: the XDR encoding is pure computation,
+  so the tests only compare byte strings.
+- Keep `make lint` and `make typecheck` green. Previous sessions left `mailcap_utils.py`,
+  `mailbox_utils.py`, and `wave_utils.py` failing mypy and three files failing ruff; the latest
+  session repaired them, so a new module must not reintroduce the drift.
+
+Previously completed:
 
 - Added `xdrlib_utils.py` wrapping the standard library `xdrlib` module (`pack_uint`, `unpack_uint`,
   `pack_int`, `unpack_int`, `pack_enum`, `unpack_enum`, `pack_bool`, `unpack_bool`, `pack_uhyper`,
@@ -87,36 +144,6 @@ Completed in the latest session:
 - Verified that a scaffolded project is still a faithful copy: the generated tree ships
   `xdrlib_utils.py` and `tests/test_xdrlib_utils.py`, its 3573 tests, ruff, and mypy all pass, and
   a second generation project scaffolds correctly as well.
-
-Next Planned:
-
-- Add the next stdlib wrapper module. The standard library modules that still lack a wrapper are
-  `nntplib` (removed in Python 3.13), `pipes` (removed in Python 3.13),
-  `sndhdr` (removed in Python 3.13), `cgitb` (removed in Python 3.13), `smtplib`, `ftplib`, `poplib`,
-  `webbrowser`, `xmlrpc`, `syslog`, `termios`, `fcntl`, `grp`, `pwd`, `pty`, `resource`, and
-  `encodings`. A natural next candidate is `smtplib_utils.py` wrapping the standard library `smtplib`
-  module: the address helpers (`parseaddr`, `quoteaddr`, `quote_string`, `getfqdn`) and the message
-  assembly helpers are pure, while the connection helpers must be exercised with
-  `unittest.mock.patch` on `socket.create_connection` instead of a real server, the way
-  `imaplib_utils.py` does it. `ftplib` and `poplib` follow the same shape, and `webbrowser` needs
-  its process launching mocked. `xdrlib` was the last module that is deprecated in Python 3.12 and
-  removed in Python 3.13; every remaining candidate is still part of the standard library.
-- Keep every new wrapper hermetic: the test suite must never open a network connection or block on a
-  subprocess. `imaplib_utils.py` is the reference — its connection helpers are exercised with
-  `unittest.mock.patch` instead of real servers. The same rule applies to the compiler wrappers:
-  `compileall_utils.py` narrows `sys.path` with `unittest.mock.patch` so the suite never
-  byte-compiles the interpreter's own import path. `modulefinder_utils.py` follows the rule as well:
-  the analysis is static, so the analysed script is never imported or executed, and the tests restrict
-  the search path to a temporary directory so the suite never scans the whole import path.
-  `optparse_utils.py` follows it too: the parser never touches the network, and the tests parse
-  command lines from lists instead of `sys.argv`, except for one test that patches `sys.argv` with
-  `unittest.mock.patch`. `xdrlib_utils.py` follows it as well: the XDR encoding is pure computation,
-  so the tests only compare byte strings.
-- Keep `make lint` and `make typecheck` green. Previous sessions left `mailcap_utils.py`,
-  `mailbox_utils.py`, and `wave_utils.py` failing mypy and three files failing ruff; the latest
-  session repaired them, so a new module must not reintroduce the drift.
-
-Previously completed:
 
 - Closed the `pyclbr_utils.py` synchronization gap that the bootstrap session left behind: the module
   and its test existed and were registered in `pyproject.toml`, but `scaffold.sh` never embedded
