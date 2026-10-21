@@ -1,4 +1,56 @@
-## Latest Session (2026-10-21) — ensurepip_utils added, the interrupted audioop handover repaired
+## Latest Session (2026-10-21) — readline_utils finished and synchronized across every surface
+
+The board held no task, so this session finished the readline wrapper module that the previous
+session had started and synchronized it across every surface of the project.
+
+Completed in the latest session:
+
+- The previous session left `readline_utils.py` and `tests/test_readline_utils.py` in the working
+  tree and had already synchronized `scaffold.sh`, `pyproject.toml`, the README,
+  `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and `CHANGELOG.md`, but it never
+  committed the work and it never wrote the status of the project. This session verified the work
+  instead of rewriting it: the module is written against the real interface of the standard
+  library, the copies of the generator are in sync, and the suite, the linter, and the type checker
+  are green.
+- Verified the semantics of the standard library against the interpreter of the CI:
+  `readline.get_history_item` reads an entry by its one-based position, while
+  `readline.remove_history_item` and `readline.replace_history_item` work on a zero-based position.
+  The wrapper numbers every position the same way, with the one-based number, so a position that
+  can be read can also be removed and replaced.
+- Removed the unused constant `_DEFAULT_DELIMITERS` from `tests/test_readline_utils.py`. It was the
+  only dead module level constant in the tests of the project.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `readline_utils.py` and `tests/test_readline_utils.py`, both byte identical to the repository
+  copies, and the 50 tests of the module pass inside the generated project.
+- The repository suite now runs 4688 tests, and `make lint` and `make typecheck` are green.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `builtins`, `cgi`, `cgitb`, `chunk`, `crypt`, `idlelib`, `imghdr`, `lib2to3`,
+  `msilib`, `msvcrt`, `nis`, `nntplib`, `ossaudiodev`, `pipes`, `posix`, `pyexpat`, `sndhdr`,
+  `spwd`, `sre_compile`, `sre_constants`, `sre_parse`, `sunau`, `telnetlib`, `tkinter`, `turtle`,
+  `turtledemo`, `winreg`, and `winsound`. Most of them were removed in Python 3.13 as part of
+  :pep:`594`, and the ones that remain are either platform specific (`msvcrt`, `winreg`, `winsound`,
+  `spwd`, `nis`, `posix`, `ossaudiodev`) or need a graphical toolkit that the interpreter of the CI
+  does not ship (`tkinter`, `idlelib`, `turtle`, `turtledemo`). The `pyexpat` module is the natural
+  next candidate: it is the binding of the expat parser, it ships with the interpreter of the CI on
+  every platform, it offers a parser that a caller drives with handlers, and the tests only parse
+  documents the test itself writes in a temporary directory of its own. The `builtins` module is the
+  alternative: it ships with every interpreter, and its helpers are pure computation apart from the
+  ones that read or write a file.
+- Keep every new wrapper hermetic: the test suite must never open a network connection, install a
+  package, write to a system service, or block on a subprocess. `imaplib_utils.py` is the reference
+  — its connection helpers are exercised with `unittest.mock.patch` instead of real servers,
+  `smtplib_utils.py` replays scripted server replies through a fake socket, `xmlrpc_utils.py` patches
+  its server helpers, and `syslog_utils.py` patches every call into the system logger.
+  `readline_utils.py` follows the rule as well: the helpers that touch a file only touch the file
+  they are given, so the tests create every file in a temporary directory of their own and the suite
+  never reads the history file of the user.
+- Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new
+  module must not reintroduce any drift.
+
+## Previous Session (2026-10-21) — ensurepip_utils added, the interrupted audioop handover repaired
 
 The board held no task, so this session repaired the handover that the previous session left
 behind and then added the next standard library wrapper module.
