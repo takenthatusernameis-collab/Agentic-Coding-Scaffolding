@@ -19,7 +19,8 @@ an opaque failure.  It adds the helpers the standard library leaves to the
 caller: the measurements of a fragment are reported together, the state of a
 resampling is kept by a :class:`Resampler` instead of by the caller, the index
 of a sample may be negative, and an empty fragment is rejected by the
-measurements instead of being reported as silence.
+measurements instead of being reported as silence.  The helper
+:func:`is_available` reports whether the interpreter still ships the module.
 
 .. note::
 
@@ -37,7 +38,7 @@ from __future__ import annotations
 
 import math
 import warnings
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 try:
     with warnings.catch_warnings():
@@ -65,6 +66,7 @@ __all__ = [
     "encode_adpcm",
     "find_scale_factor",
     "frame_count",
+    "is_available",
     "mix_to_mono",
     "peak_range",
     "peak_to_peak",
@@ -82,10 +84,22 @@ __all__ = [
 SAMPLE_WIDTHS = (1, 2, 3, 4)
 
 #: The error the standard library raises for an invalid audio fragment.
-AudioOpError: Any = _audioop.error if _audioop is not None else RuntimeError
+AudioOpError: Type[Exception] = (
+    _audioop.error if _audioop is not None else RuntimeError  # type: ignore[union-attr]
+)
 
 #: The calling convention of the ADPCM helpers of the standard library.
 _ADPCM_CONVENTION: Optional[str] = None
+
+
+def is_available() -> bool:
+    """Return ``True`` when the interpreter ships the standard library module.
+
+    Returns:
+        ``True`` when the :mod:`audioop` module can be used, ``False`` when
+        the interpreter removed it.
+    """
+    return _audioop is not None
 
 
 def _require_available() -> None:
@@ -334,11 +348,11 @@ def convert_sample_width(fragment: Any, width: int, new_width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     target = _require_width(new_width, "new_width")
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.lin2lin(data, size, target)
     return result
 
@@ -360,10 +374,10 @@ def convert_to_u_law(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.lin2ulaw(data, size)
     return result
 
@@ -385,10 +399,10 @@ def convert_from_u_law(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.ulaw2lin(data, size)
     return result
 
@@ -410,10 +424,10 @@ def convert_to_a_law(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.lin2alaw(data, size)
     return result
 
@@ -435,10 +449,10 @@ def convert_from_a_law(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.alaw2lin(data, size)
     return result
 
@@ -461,11 +475,11 @@ def shift_bias(fragment: Any, width: int, bias: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     offset = _require_int(bias, "bias")
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.bias(data, size, offset)
     return result
 
@@ -489,12 +503,12 @@ def add_fragments(left: Any, right: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     first = _require_bytes(left, "left")
     second = _require_bytes(right, "right")
     size = _require_width(width)
     _require_frames(first, size, "left")
     _require_frames(second, size, "right")
+    module = _audioop_module()
     if len(first) != len(second):
         raise ValueError(
             f"both fragments must have the same length, got {len(first)} and {len(second)}"
@@ -521,11 +535,11 @@ def scale(fragment: Any, width: int, factor: float) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     multiplier = _require_factor(factor, "factor")
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.mul(data, size, multiplier)
     return result
 
@@ -582,11 +596,11 @@ def average_peak_to_peak(fragment: Any, width: int) -> float:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     return float(module.avgpp(data, size))
 
 
@@ -637,11 +651,11 @@ def peak_value(fragment: Any, width: int) -> int:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     result: int = module.max(data, size)
     return result
 
@@ -664,11 +678,11 @@ def peak_range(fragment: Any, width: int) -> Tuple[int, int]:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     result: Tuple[int, int] = module.minmax(data, size)
     return result
 
@@ -695,11 +709,11 @@ def peak_to_peak(fragment: Any, width: int) -> int:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     result: int = module.maxpp(data, size)
     return result
 
@@ -722,11 +736,11 @@ def count_zero_crossings(fragment: Any, width: int) -> int:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     result: int = module.cross(data, size)
     return result
 
@@ -750,9 +764,9 @@ def find_scale_factor(fragment: Any, reference: Any) -> float:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     other = _require_bytes(reference, "reference")
+    module = _audioop_module()
     if len(data) != len(other):
         raise ValueError(
             f"both fragments must have the same length, got {len(data)} and {len(other)}"
@@ -786,12 +800,12 @@ def mix_to_mono(
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     left = _require_factor(left_factor, "left_factor")
     right = _require_factor(right_factor, "right_factor")
     _require_frames(data, size)
+    module = _audioop_module()
     if (len(data) // size) % 2:
         raise ValueError("fragment must hold an even number of frames to be mixed down")
     result: bytes = module.tomono(data, size, left, right)
@@ -822,12 +836,12 @@ def duplicate_to_stereo(
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     left = _require_factor(left_factor, "left_factor")
     right = _require_factor(right_factor, "right_factor")
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.tostereo(data, size, left, right)
     return result
 
@@ -849,10 +863,10 @@ def swap_byte_order(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.byteswap(data, size)
     return result
 
@@ -874,10 +888,10 @@ def reverse_samples(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.reverse(data, size)
     return result
 
@@ -904,11 +918,11 @@ def sample_at(fragment: Any, width: int, index: int) -> int:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     position = _require_int(index, "index")
     _require_frames(data, size)
+    module = _audioop_module()
     frames = len(data) // size
     if position < 0:
         position += frames
@@ -953,13 +967,13 @@ def resample(
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     channel_count = _require_positive_int(channels, "channels")
     source_rate = _require_positive_int(input_rate, "input_rate")
     target_rate = _require_positive_int(output_rate, "output_rate")
     _require_frames(data, size * channel_count)
+    module = _audioop_module()
     result: Tuple[bytes, Any] = module.ratecv(
         data, size, channel_count, source_rate, target_rate, state
     )
@@ -988,11 +1002,11 @@ def encode_adpcm(fragment: Any, width: int, state: Any = None, bits: int = 4) ->
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     bit_count = _require_int(bits, "bits")
     _require_frames(data, size)
+    module = _audioop_module()
     if _adpcm_convention() == "stateful":
         if bit_count != 4:
             raise ValueError(f"bits must be 4 on this interpreter, got {bit_count}")
@@ -1026,11 +1040,11 @@ def decode_adpcm(fragment: Any, width: int, state: Any = None, bits: int = 4) ->
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     bit_count = _require_int(bits, "bits")
     _require_frames(data, size)
+    module = _audioop_module()
     if _adpcm_convention() == "stateful":
         if bit_count != 4:
             raise ValueError(f"bits must be 4 on this interpreter, got {bit_count}")
@@ -1065,11 +1079,11 @@ def describe_fragment(fragment: Any, width: int) -> Dict[str, Any]:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     smallest, largest = module.minmax(data, size)
     return {
         "width": size,
