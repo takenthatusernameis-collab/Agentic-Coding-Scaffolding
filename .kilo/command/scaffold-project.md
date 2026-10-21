@@ -293,6 +293,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_genericpath_utils.py` — unit tests for `genericpath_utils.py`
 - `tests/test_posixpath_utils.py` — unit tests for `posixpath_utils.py`
 - `tests/test_ntpath_utils.py` — unit tests for `ntpath_utils.py`
+- `tests/test_nturl2path_utils.py` — unit tests for `nturl2path_utils.py`
 - `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
 - `tests/test_pydoc_utils.py` — unit tests for `pydoc_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`

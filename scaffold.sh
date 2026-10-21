@@ -4506,6 +4506,7 @@ py_modules = [
     "genericpath_utils",
     "posixpath_utils",
     "ntpath_utils",
+    "nturl2path_utils",
     "ipaddress_utils",
     "pydoc_utils",
 ]
@@ -29145,6 +29146,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_genericpath_utils.py` — unit tests for `genericpath_utils.py`
 - `tests/test_posixpath_utils.py` — unit tests for `posixpath_utils.py`
 - `tests/test_ntpath_utils.py` — unit tests for `ntpath_utils.py`
+- `tests/test_nturl2path_utils.py` — unit tests for `nturl2path_utils.py`
 - `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
 - `tests/test_pydoc_utils.py` — unit tests for `pydoc_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
@@ -30685,6 +30687,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
 - Add `ntpath_utils.py` wrapping the standard library `ntpath` module (abspath, basename, commonpath, commonprefix, dirname, exists, expanduser, expandvars, isabs, isdevdrive, isjunction, join, normcase, normpath, realpath, relpath, split, splitdrive, splitroot, splitext) with input validation, the re-exported constants, and the helpers `has_drive`, `is_unc_path`, `is_device_path`, `to_slashes`, and `to_backslashes`, plus unit tests in `tests/test_ntpath_utils.py`.
+- Add `nturl2path_utils.py` wrapping the standard library `nturl2path` module (url2pathname, pathname2url) with input validation where applicable and unit tests in `tests/test_nturl2path_utils.py`.
+- Synchronized `nturl2path_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Synchronized `ntpath_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Repaired the end of `scaffold.sh`, which lost the summary of the generated project and the post-scaffold smoke test, so a scaffolded project no longer reported its files and the `--no-test` flag had no effect.
 - Added the table of the developer commands to the README, so the generated project documents the targets of its `Makefile`.
@@ -31816,6 +31820,7 @@ zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipi
 genericpath_utils.py         # Generic path utilities wrapping stdlib genericpath (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile)
 posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
 ntpath_utils.py              # Windows path utilities wrapping stdlib ntpath (splitdrive, splitroot, normcase, normpath, has_drive, is_unc_path, is_device_path, to_slashes)
+nturl2path_utils.py         # URL to pathname conversions wrapping stdlib nturl2path (url2pathname, pathname2url)
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
 tests/                     # Python unit tests
@@ -31995,6 +32000,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_genericpath_utils.py    # Tests for genericpath_utils.py
     test_posixpath_utils.py      # Tests for posixpath_utils.py
     test_ntpath_utils.py         # Tests for ntpath_utils.py
+    test_nturl2path_utils.py    # Tests for nturl2path_utils.py
     test_ipaddress_utils.py      # Tests for ipaddress_utils.py
     test_pydoc_utils.py          # Tests for pydoc_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
@@ -80234,6 +80240,48 @@ class TestHelpers(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_PYDOC_UTILS
+
+# --- nturl2path_utils.py ---
+cat > "$OUTPUT_DIR/nturl2path_utils.py" <<'NTURL2PATH_UTILS'
+"""Utilities wrapping the standard library ``nturl2path`` module."""
+
+import nturl2path
+
+__all__: list[str] = ["url2pathname", "pathname2url"]
+
+
+def url2pathname(url: str) -> str:
+    return nturl2path.url2pathname(url)
+
+
+def pathname2url(path: str) -> str:
+    return nturl2path.pathname2url(path)
+NTURL2PATH_UTILS
+
+# --- tests/test_nturl2path_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_nturl2path_utils.py" <<'TEST_NTURL2PATH_UTILS'
+"""Tests for nturl2path_utils."""
+
+
+from nturl2path_utils import pathname2url, url2pathname
+
+
+def test_url2pathname_drive():
+    assert url2pathname("///C:/foo/bar") == "C:\\foo\\bar"
+
+
+def test_url2pathname_no_drive():
+    assert url2pathname("/foo/bar") == "\\foo\\bar"
+
+
+def test_pathname2url_drive():
+    assert pathname2url("C:\\foo\\bar") == "///C:/foo/bar"
+
+
+def test_roundtrip():
+    path = "C:\\foo\\bar\\spam.foo"
+    assert url2pathname(pathname2url(path)) == path
+TEST_NTURL2PATH_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

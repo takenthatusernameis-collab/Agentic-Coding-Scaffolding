@@ -265,6 +265,7 @@ zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipi
 genericpath_utils.py         # Generic path utilities wrapping stdlib genericpath (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile)
 posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
 ntpath_utils.py              # Windows path utilities wrapping stdlib ntpath (splitdrive, splitroot, normcase, normpath, has_drive, is_unc_path, is_device_path, to_slashes)
+nturl2path_utils.py         # URL to pathname conversions wrapping stdlib nturl2path (url2pathname, pathname2url)
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
 tests/                     # Python unit tests
@@ -444,6 +445,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_genericpath_utils.py    # Tests for genericpath_utils.py
     test_posixpath_utils.py      # Tests for posixpath_utils.py
     test_ntpath_utils.py         # Tests for ntpath_utils.py
+    test_nturl2path_utils.py    # Tests for nturl2path_utils.py
     test_ipaddress_utils.py      # Tests for ipaddress_utils.py
     test_pydoc_utils.py          # Tests for pydoc_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py

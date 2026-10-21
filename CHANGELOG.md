@@ -1,6 +1,8 @@
 ## Unreleased
 
 - Add `ntpath_utils.py` wrapping the standard library `ntpath` module (abspath, basename, commonpath, commonprefix, dirname, exists, expanduser, expandvars, isabs, isdevdrive, isjunction, join, normcase, normpath, realpath, relpath, split, splitdrive, splitroot, splitext) with input validation, the re-exported constants, and the helpers `has_drive`, `is_unc_path`, `is_device_path`, `to_slashes`, and `to_backslashes`, plus unit tests in `tests/test_ntpath_utils.py`.
+- Add `nturl2path_utils.py` wrapping the standard library `nturl2path` module (url2pathname, pathname2url) with input validation where applicable and unit tests in `tests/test_nturl2path_utils.py`.
+- Synchronized `nturl2path_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Synchronized `ntpath_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Repaired the end of `scaffold.sh`, which lost the summary of the generated project and the post-scaffold smoke test, so a scaffolded project no longer reported its files and the `--no-test` flag had no effect.
 - Added the table of the developer commands to the README, so the generated project documents the targets of its `Makefile`.
