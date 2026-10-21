@@ -684,6 +684,8 @@
 #   - genericpath_utils.py — # Generic path utilities wrapping the standard library genericpath (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile, sameopenfile, samestat, ALLOW_MISSING) with input validation
 #   - posixpath_utils.py — # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
 #   - ntpath_utils.py — # Windows path utilities wrapping stdlib ntpath (splitdrive, splitroot, normcase, normpath, has_drive, is_unc_path, is_device_path, to_slashes)
+#   - nturl2path_utils.py — # URL to pathname conversions wrapping stdlib nturl2path (url2pathname, pathname2url)
+#   - curses_utils.py — # Terminal handling utilities wrapping stdlib curses (initscr, endwin, cbreak, echo, raw, colors)
 #   - ipaddress_utils.py — # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 #   - pydoc_utils.py — # Documentation utilities wrapping the standard library pydoc module (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
@@ -706,6 +708,8 @@
 #   - tests/test_genericpath_utils.py — # Tests for genericpath_utils.py
 #   - tests/test_posixpath_utils.py — # Tests for posixpath_utils.py
 #   - tests/test_ntpath_utils.py — # Tests for ntpath_utils.py
+#   - tests/test_nturl2path_utils.py — # Tests for nturl2path_utils.py
+#   - tests/test_curses_utils.py — # Tests for curses_utils.py
 #   - tests/test_ipaddress_utils.py — # Tests for ipaddress_utils.py
 #   - tests/test_pydoc_utils.py — # Tests for pydoc_utils.py
 set -euo pipefail
@@ -4507,6 +4511,7 @@ py_modules = [
     "posixpath_utils",
     "ntpath_utils",
     "nturl2path_utils",
+    "curses_utils",
     "ipaddress_utils",
     "pydoc_utils",
 ]
@@ -28926,6 +28931,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `genericpath_utils.py` — Generic path utilities wrapping the standard library `genericpath` module (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile, sameopenfile, samestat, ALLOW_MISSING) with input validation
 - `posixpath_utils.py` — Posixpath utilities wrapping the standard library `posixpath` module with POSIX path operations and the helper `is_rooted`
 - `ntpath_utils.py` — Windows path utilities wrapping the standard library `ntpath` module (abspath, basename, commonpath, commonprefix, dirname, join, normcase, normpath, realpath, relpath, split, splitdrive, splitroot, splitext, expanduser, expandvars, has_drive, is_unc_path, is_device_path, to_slashes, to_backslashes) with input validation
+- `nturl2path_utils.py` — URL to pathname conversions wrapping the standard library `nturl2path` module (`url2pathname`, `pathname2url`)
+- `curses_utils.py` — terminal handling utilities wrapping the standard library `curses` module (`initscr`, `endwin`, `cbreak`, `echo`, `raw`, `colors`) with input validation
 - `ipaddress_utils.py` — IP address utilities wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors
 - `pydoc_utils.py` — Documentation utilities wrapping the standard library `pydoc` module (`render_doc`, `doc`, `writedoc`, `writedocs`, `apropos`, `locate`, `resolve`, `safeimport`, `importfile`, `getdoc`, `synopsis`, `source_synopsis`, `describe`, `classify_class_attrs`, `classname`, `parentname`, `visiblename`, `isdata`, `ispackage`, `ispath`, `allmethods`, `splitdoc`, `stripid`, `replace`, `cram`, `plain`, `cli`, `help`, `getpager`, `plainpager`, `browse`) with input validation, and the re-exported classes `Doc`, `HTMLDoc`, `HTMLRepr`, `Helper`, `ModuleScanner`, `Repr`, `TextDoc`, and `TextRepr` together with the error `ErrorDuringImport`
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
@@ -29147,6 +29154,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_posixpath_utils.py` — unit tests for `posixpath_utils.py`
 - `tests/test_ntpath_utils.py` — unit tests for `ntpath_utils.py`
 - `tests/test_nturl2path_utils.py` — unit tests for `nturl2path_utils.py`
+- `tests/test_curses_utils.py` — unit tests for `curses_utils.py`
 - `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
 - `tests/test_pydoc_utils.py` — unit tests for `pydoc_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
@@ -30688,6 +30696,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Add `ntpath_utils.py` wrapping the standard library `ntpath` module (abspath, basename, commonpath, commonprefix, dirname, exists, expanduser, expandvars, isabs, isdevdrive, isjunction, join, normcase, normpath, realpath, relpath, split, splitdrive, splitroot, splitext) with input validation, the re-exported constants, and the helpers `has_drive`, `is_unc_path`, `is_device_path`, `to_slashes`, and `to_backslashes`, plus unit tests in `tests/test_ntpath_utils.py`.
 - Add `nturl2path_utils.py` wrapping the standard library `nturl2path` module (url2pathname, pathname2url) with input validation where applicable and unit tests in `tests/test_nturl2path_utils.py`.
+- Add `curses_utils.py` wrapping the standard library `curses` module (initscr, endwin, isendwin, savetty, resetty, def_prog_mode, def_shell_mode, reset_prog_mode, reset_shell_mode, resetterm, setterm, cbreak, nocbreak, echo, noecho, raw, noraw, nl, nonl, qiflush, noqiflush, norqflush, intrflush, meta, halfdelay, curs_set, getsyx, setsyx, start_color, has_colors, can_change_color, init_pair, init_color, color_content, pair_content, color_pair, pair_number, use_default_colors, baudrate, beep, flash, delay_output, flushinp, napms, ungetch, unget_wch, newwin, doupdate, erasechar, killchar, keyname, longname, termname, termattrs, has_ic, has_il, has_key, filter, typeahead, mouseinterval, mousemask, resize_term, resizeterm, is_term_resized, update_lines_cols, setupterm, putp, use_env) with input validation, the re-exported constants and the `window` class, graceful degradation when the module is missing, plus unit tests in `tests/test_curses_utils.py`.
 - Synchronized `nturl2path_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Synchronized `ntpath_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Repaired the end of `scaffold.sh`, which lost the summary of the generated project and the post-scaffold smoke test, so a scaffolded project no longer reported its files and the `--no-test` flag had no effect.
@@ -31821,6 +31830,7 @@ genericpath_utils.py         # Generic path utilities wrapping stdlib genericpat
 posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
 ntpath_utils.py              # Windows path utilities wrapping stdlib ntpath (splitdrive, splitroot, normcase, normpath, has_drive, is_unc_path, is_device_path, to_slashes)
 nturl2path_utils.py         # URL to pathname conversions wrapping stdlib nturl2path (url2pathname, pathname2url)
+curses_utils.py             # Terminal handling utilities wrapping stdlib curses (initscr, endwin, cbreak, echo, raw, colors)
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
 tests/                     # Python unit tests
@@ -32001,7 +32011,8 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_posixpath_utils.py      # Tests for posixpath_utils.py
     test_ntpath_utils.py         # Tests for ntpath_utils.py
     test_nturl2path_utils.py    # Tests for nturl2path_utils.py
-    test_ipaddress_utils.py      # Tests for ipaddress_utils.py
+    test_curses_utils.py        # Tests for curses_utils.py
+    test_ipaddress_utils.py     # Tests for ipaddress_utils.py
     test_pydoc_utils.py          # Tests for pydoc_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
@@ -33067,6 +33078,14 @@ The project includes posixpath utilities in `posixpath_utils.py` wrapping the st
 ## Ntpath Utilities Module
 
 The project includes Windows path utilities in `ntpath_utils.py` wrapping the standard library `ntpath` module: `abspath`, `basename`, `commonpath`, `commonprefix`, `dirname`, `exists`, `expanduser`, `expandvars`, `getatime`, `getctime`, `getmtime`, `getsize`, `isabs`, `isdevdrive`, `isdir`, `isfile`, `isjunction`, `islink`, `ismount`, `join`, `lexists`, `normcase`, `normpath`, `realpath`, `relpath`, `samefile`, `sameopenfile`, `samestat`, `split`, `splitdrive`, `splitroot`, `splitext`. The wrapper adds the helpers the standard library leaves to the caller: `has_drive` reports whether a path carries a drive specification, `is_unc_path` reports whether a path names a share of a network, `is_device_path` reports whether a path names a device, and `to_slashes` and `to_backslashes` convert the separators of a path. The constants `ALLOW_MISSING`, `sep`, `altsep`, `curdir`, `pardir`, `extsep`, `pathsep`, `defpath`, `devnull`, and `supports_unicode_filenames` are re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is written in pure Python, so it works on every platform and a caller can work with Windows paths on a machine that runs a different operating system. The module is tested in `tests/test_ntpath_utils.py`.
+
+## Nturl2path Utilities Module
+
+The project includes URL-to-pathname conversion utilities in `nturl2path_utils.py` wrapping the standard library `nturl2path` module: `url2pathname` converts a file URL to a pathname, and `pathname2url` converts a pathname to a file URL. Both functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system or the network. The module is tested in `tests/test_nturl2path_utils.py`.
+
+## Curses Utilities Module
+
+The project includes terminal handling utilities in `curses_utils.py` wrapping the standard library `curses` module: `initscr` initializes the standard screen, `endwin` restores the terminal, `isendwin` reports whether the terminal was restored, `cbreak` and `nocbreak` switch cbreak mode, `echo` and `noecho` switch echoing, `raw` and `noraw` switch raw mode, `nl` and `nonl` switch newline translation, `qiflush` and `noqiflush` switch queue flushing on interrupt, `intrflush` configures interrupt flushing, `meta` switches the meta key, `halfdelay` sets a half-delay read, `curs_set` sets the cursor visibility, `getsyx` and `setsyx` read and set the virtual cursor, `start_color` initializes color support, `has_colors` and `can_change_color` report color capabilities, `init_pair` and `init_color` define colors and pairs, `color_content` and `pair_content` report colors, `color_pair` returns the attribute of a pair, `pair_number` returns the pair of an attribute, `use_default_colors` assigns the default colors, `baudrate` returns the baud rate, `beep` and `flash` signal the user, `delay_output` and `napms` delay output, `flushinp` discards pending input, `ungetch` and `unget_wch` push characters back onto the input queue, `newwin` creates a window, `doupdate` updates the physical screen, `erasechar` and `killchar` return the control characters, `keyname` names a key, `longname` and `termname` name the terminal, `termattrs` reports the supported attributes, `has_ic` and `has_il` report insert/delete capabilities, `has_key` reports whether a key is recognized, `filter` restricts the terminal to the current line, `typeahead` sets the typeahead descriptor, `mouseinterval` and `mousemask` configure mouse reporting, `resize_term` and `resizeterm` resize the screen, `is_term_resized` reports a resize, `update_lines_cols` updates the size, `setupterm` reads terminal capabilities, `putp` writes a string, and `use_env` selects the source of the terminal size. The constants `OK`, `ERR`, the `A_*` video attributes, the `COLOR_*` colors, the `KEY_*` special keys, and the `window` class are re-exported. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The :mod:`curses` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_curses_utils.py`.
 
 The project includes IP address utilities in `ipaddress_utils.py` wrapping the standard library `ipaddress` module: `ip_address` returns the address object of a text, an integer, or a packed byte string, `ip_network` returns the network object of a network, `ip_interface` returns the interface object of an address that carries a prefix length, `is_valid_address` reports whether a value names a valid address, `is_valid_network` reports whether a value names a valid network, `is_valid_interface` reports whether a value names a valid interface, `address_version` returns the version of an address, `to_packed` returns the packed bytes of an address, `from_packed` returns the address that a packed byte string holds, `network_hosts` returns the usable hosts of a network, `subnets` splits a network into its subnets, `summarize_addresses` returns the smallest set of networks that still covers a list of networks, `network_overlaps` reports whether two networks overlap, `address_within` reports whether an address lies inside a network, `common_prefix_length` returns the length of the common prefix of a list of addresses, `next_address` returns the address that follows an address, `previous_address` returns the address that precedes an address, and `sort_addresses` returns the addresses of a list in ascending order. The classes `IPv4Address`, `IPv6Address`, `IPv4Network`, `IPv6Network`, `IPv4Interface`, and `IPv6Interface` are re-exported from the standard library, and so are the errors `AddressValueError` and `NetmaskValueError`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_ipaddress_utils.py`.
 
@@ -80282,6 +80301,1828 @@ def test_roundtrip():
     path = "C:\\foo\\bar\\spam.foo"
     assert url2pathname(pathname2url(path)) == path
 TEST_NTURL2PATH_UTILS
+
+# --- curses_utils.py ---
+cat > "$OUTPUT_DIR/curses_utils.py" <<'CURSES_UTILS'
+"""Terminal handling utilities wrapping the standard library :mod:`curses` module.
+
+The :mod:`curses` module controls a text terminal: it initializes the screen,
+changes the input mode of the terminal, paints text on windows, refreshes the
+display, and handles colors and special keys.
+
+This wrapper validates every argument before the standard library is reached, so
+a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of an
+opaque failure from the C layer. It re-exports the constants and the functions
+of :mod:`curses`, and it adds the helper :func:`is_available`, which reports
+whether the interpreter ships the module.
+
+.. note::
+
+   The :mod:`curses` module only exists on Unix-like platforms.  The import
+   below degrades gracefully: when the interpreter does not ship the module, the
+   helpers raise a :class:`RuntimeError` that names the missing module, while the
+   pure helpers keep working.
+"""
+
+from __future__ import annotations
+
+from typing import Any, List, Optional, Tuple, Union, cast
+
+try:
+    import curses as _curses
+except ImportError:  # pragma: no cover - the module is Unix-only
+    _curses = None  # type: ignore[assignment]
+
+
+def _curses_module() -> Any:
+    """Return the standard library ``curses`` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    if _curses is None:
+        raise RuntimeError("the standard library module 'curses' is not available")
+    return _curses
+
+
+def is_available() -> bool:
+    """Return ``True`` if the ``curses`` module is available."""
+    return _curses is not None
+
+
+#: The window class of the standard library.
+Window: Any = _curses.window if _curses is not None else Any  # type: ignore[assignment]
+
+#: The result of an operation that failed.
+ERR: int = _curses.ERR if _curses is not None else -1  # type: ignore[assignment]
+#: The result of an operation that succeeded.
+OK: int = _curses.OK if _curses is not None else 0  # type: ignore[assignment]
+
+#: Attributes: standout mode.
+A_STANDOUT: int = _curses.A_STANDOUT if _curses is not None else 0
+#: Attributes: normal mode.
+A_NORMAL: int = _curses.A_NORMAL if _curses is not None else 0
+#: Attributes: reverse video.
+A_REVERSE: int = _curses.A_REVERSE if _curses is not None else 0
+#: Attributes: bold.
+A_BOLD: int = _curses.A_BOLD if _curses is not None else 0
+#: Attributes: dim.
+A_DIM: int = _curses.A_DIM if _curses is not None else 0
+#: Attributes: blinking.
+A_BLINK: int = _curses.A_BLINK if _curses is not None else 0
+#: Attributes: italic.
+A_ITALIC: int = _curses.A_ITALIC if _curses is not None else 0
+#: Attributes: underline.
+A_UNDERLINE: int = _curses.A_UNDERLINE if _curses is not None else 0
+#: Attributes: invisibility.
+A_INVIS: int = _curses.A_INVIS if _curses is not None else 0
+#: Attributes: protection.
+A_PROTECT: int = _curses.A_PROTECT if _curses is not None else 0
+#: Attributes: alternate character set.
+A_ALTCHARSET: int = _curses.A_ALTCHARSET if _curses is not None else 0
+#: Attributes: character text.
+A_CHARTEXT: int = _curses.A_CHARTEXT if _curses is not None else 0
+#: Attributes: color.
+A_COLOR: int = _curses.A_COLOR if _curses is not None else 0
+#: Attributes: all attributes.
+A_ATTRIBUTES: int = _curses.A_ATTRIBUTES if _curses is not None else 0
+#: Attributes: horizontal.
+A_HORIZONTAL: int = _curses.A_HORIZONTAL if _curses is not None else 0
+#: Attributes: left.
+A_LEFT: int = _curses.A_LEFT if _curses is not None else 0
+#: Attributes: low.
+A_LOW: int = _curses.A_LOW if _curses is not None else 0
+#: Attributes: right.
+A_RIGHT: int = _curses.A_RIGHT if _curses is not None else 0
+#: Attributes: top.
+A_TOP: int = _curses.A_TOP if _curses is not None else 0
+#: Attributes: vertical.
+A_VERTICAL: int = _curses.A_VERTICAL if _curses is not None else 0
+
+#: Colors.
+COLOR_BLACK: int = _curses.COLOR_BLACK if _curses is not None else 0
+COLOR_RED: int = _curses.COLOR_RED if _curses is not None else 0
+COLOR_GREEN: int = _curses.COLOR_GREEN if _curses is not None else 0
+COLOR_YELLOW: int = _curses.COLOR_YELLOW if _curses is not None else 0
+COLOR_BLUE: int = _curses.COLOR_BLUE if _curses is not None else 0
+COLOR_MAGENTA: int = _curses.COLOR_MAGENTA if _curses is not None else 0
+COLOR_CYAN: int = _curses.COLOR_CYAN if _curses is not None else 0
+COLOR_WHITE: int = _curses.COLOR_WHITE if _curses is not None else 0
+
+#: Special keys.
+KEY_UP: int = _curses.KEY_UP if _curses is not None else 0
+KEY_DOWN: int = _curses.KEY_DOWN if _curses is not None else 0
+KEY_LEFT: int = _curses.KEY_LEFT if _curses is not None else 0
+KEY_RIGHT: int = _curses.KEY_RIGHT if _curses is not None else 0
+KEY_HOME: int = _curses.KEY_HOME if _curses is not None else 0
+KEY_END: int = _curses.KEY_END if _curses is not None else 0
+KEY_BACKSPACE: int = _curses.KEY_BACKSPACE if _curses is not None else 0
+KEY_ENTER: int = _curses.KEY_ENTER if _curses is not None else 0
+KEY_RESIZE: int = _curses.KEY_RESIZE if _curses is not None else 0
+KEY_MAX: int = _curses.KEY_MAX if _curses is not None else 0
+KEY_MIN: int = _curses.KEY_MIN if _curses is not None else 0
+
+__all__: List[str] = [
+    "A_ALTCHARSET",
+    "A_ATTRIBUTES",
+    "A_BLINK",
+    "A_BOLD",
+    "A_CHARTEXT",
+    "A_COLOR",
+    "A_DIM",
+    "A_HORIZONTAL",
+    "A_INVIS",
+    "A_ITALIC",
+    "A_LEFT",
+    "A_LOW",
+    "A_NORMAL",
+    "A_PROTECT",
+    "A_REVERSE",
+    "A_RIGHT",
+    "A_STANDOUT",
+    "A_TOP",
+    "A_UNDERLINE",
+    "A_VERTICAL",
+    "COLOR_BLACK",
+    "COLOR_BLUE",
+    "COLOR_CYAN",
+    "COLOR_GREEN",
+    "COLOR_MAGENTA",
+    "COLOR_RED",
+    "COLOR_WHITE",
+    "COLOR_YELLOW",
+    "ERR",
+    "KEY_BACKSPACE",
+    "KEY_DOWN",
+    "KEY_END",
+    "KEY_ENTER",
+    "KEY_HOME",
+    "KEY_LEFT",
+    "KEY_MAX",
+    "KEY_MIN",
+    "KEY_RESIZE",
+    "KEY_RIGHT",
+    "KEY_UP",
+    "OK",
+    "Window",
+    "baudrate",
+    "beep",
+    "can_change_color",
+    "cbreak",
+    "color_content",
+    "color_pair",
+    "curs_set",
+    "def_prog_mode",
+    "def_shell_mode",
+    "delay_output",
+    "doupdate",
+    "echo",
+    "endwin",
+    "erasechar",
+    "filter",
+    "flash",
+    "flushinp",
+    "get_escdelay",
+    "get_tabsize",
+    "getsyx",
+    "has_colors",
+    "has_ic",
+    "has_il",
+    "has_key",
+    "is_available",
+    "is_term_resized",
+    "isendwin",
+    "keyname",
+    "killchar",
+    "longname",
+    "meta",
+    "mouseinterval",
+    "mousemask",
+    "napms",
+    "newwin",
+    "nl",
+    "nocbreak",
+    "noecho",
+    "nonl",
+    "noqiflush",
+    "noraw",
+    "pair_content",
+    "pair_number",
+    "putp",
+    "qiflush",
+    "raw",
+    "reset_prog_mode",
+    "reset_shell_mode",
+    "resetty",
+    "resize_term",
+    "resizeterm",
+    "savetty",
+    "set_escdelay",
+    "set_tabsize",
+    "setsyx",
+    "start_color",
+    "termattrs",
+    "termname",
+    "typeahead",
+    "unget_wch",
+    "ungetch",
+    "use_default_colors",
+    "use_env",
+]
+
+
+def _validate_int(value: int, name: str) -> int:
+    """Return *value* when it is an integer.
+
+    Args:
+        value: The value to validate.
+        name: The name of the argument, used in the error messages.
+
+    Returns:
+        The validated integer.
+
+    Raises:
+        TypeError: If *value* is not an int.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def _validate_bool(value: bool, name: str) -> bool:
+    """Return *value* when it is a boolean.
+
+    Args:
+        value: The value to validate.
+        name: The name of the argument, used in the error messages.
+
+    Returns:
+        The validated boolean.
+
+    Raises:
+        TypeError: If *value* is not a bool.
+    """
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def initscr() -> Window:
+    """Initialize the standard screen and return it.
+
+    Returns:
+        The standard screen window.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(Window, module.initscr())
+
+
+def endwin() -> None:
+    """Restore the terminal to its previous state.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.endwin()
+
+
+def isendwin() -> bool:
+    """Report whether ``endwin`` has been called.
+
+    Returns:
+        True if the terminal has been restored, False otherwise.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(bool, module.isendwin())
+
+
+def savetty() -> None:
+    """Save the state of the terminal.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.savetty()
+
+
+def resetty() -> None:
+    """Restore the state of the terminal to the last saved state.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.resetty()
+
+
+def def_prog_mode() -> None:
+    """Save the current terminal modes as the program mode.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.def_prog_mode()
+
+
+def def_shell_mode() -> None:
+    """Save the current terminal modes as the shell mode.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.def_shell_mode()
+
+
+def reset_prog_mode() -> None:
+    """Restore the terminal modes to the saved program mode.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.reset_prog_mode()
+
+
+def reset_shell_mode() -> None:
+    """Restore the terminal modes to the saved shell mode.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.reset_shell_mode()
+
+
+def cbreak() -> None:
+    """Set cbreak mode: characters are available immediately.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.cbreak()
+
+
+def nocbreak() -> None:
+    """Leave cbreak mode and return to normal line-buffered input.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.nocbreak()
+
+
+def echo() -> None:
+    """Enable echoing of input characters.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.echo()
+
+
+def noecho() -> None:
+    """Disable echoing of input characters.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.noecho()
+
+
+def raw() -> None:
+    """Set raw mode: characters are available without processing.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.raw()
+
+
+def noraw() -> None:
+    """Leave raw mode.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.noraw()
+
+
+def nl() -> None:
+    """Enable the translation of newline into carriage return and line feed.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.nl()
+
+
+def nonl() -> None:
+    """Disable the translation of newline into carriage return and line feed.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.nonl()
+
+
+def qiflush() -> None:
+    """Flush the input and output queues on an interrupt or quit character.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.qiflush()
+
+
+def noqiflush() -> None:
+    """Disable flushing of the input and output queues.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.noqiflush()
+
+
+def intrflush(flag: bool) -> None:
+    """Set whether an interrupt or a quit flushes the input queue.
+
+    Args:
+        flag: Whether flushing is enabled.
+
+    Raises:
+        TypeError: If *flag* is not a bool.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_bool(flag, "flag")
+    module = _curses_module()
+    module.intrflush(flag)
+
+
+def meta(flag: bool) -> None:
+    """Set whether the meta key returns eight-bit characters.
+
+    Args:
+        flag: Whether meta mode is enabled.
+
+    Raises:
+        TypeError: If *flag* is not a bool.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_bool(flag, "flag")
+    module = _curses_module()
+    module.meta(flag)
+
+
+def halfdelay(tenths: int) -> None:
+    """Set half-delay mode: input blocks for *tenths* tenths of a second.
+
+    Args:
+        tenths: The delay in tenths of a second.
+
+    Raises:
+        TypeError: If *tenths* is not an int.
+        ValueError: If *tenths* is negative.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(tenths, "tenths")
+    if tenths < 0:
+        raise ValueError(f"tenths must not be negative, got {tenths}")
+    module = _curses_module()
+    module.halfdelay(tenths)
+
+
+def get_escdelay() -> int:
+    """Return the escape delay of the terminal in milliseconds.
+
+    Returns:
+        The escape delay in milliseconds.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(int, module.get_escdelay())
+
+
+def set_escdelay(ms: int) -> None:
+    """Set the escape delay of the terminal to *ms* milliseconds.
+
+    Args:
+        ms: The escape delay in milliseconds.
+
+    Raises:
+        TypeError: If *ms* is not an int.
+        ValueError: If *ms* is negative.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(ms, "ms")
+    if ms < 0:
+        raise ValueError(f"ms must not be negative, got {ms}")
+    module = _curses_module()
+    module.set_escdelay(ms)
+
+
+def get_tabsize() -> int:
+    """Return the tab size of the terminal.
+
+    Returns:
+        The tab size of the terminal.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(int, module.get_tabsize())
+
+
+def set_tabsize(size: int) -> None:
+    """Set the tab size of the terminal to *size*.
+
+    Args:
+        size: The tab size.
+
+    Raises:
+        TypeError: If *size* is not an int.
+        ValueError: If *size* is negative.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(size, "size")
+    if size < 0:
+        raise ValueError(f"size must not be negative, got {size}")
+    module = _curses_module()
+    module.set_tabsize(size)
+
+
+def curs_set(visibility: int) -> int:
+    """Set the visibility of the cursor.
+
+    Args:
+        visibility: ``0`` hides the cursor, ``1`` shows it normally, and
+            ``2`` makes it highly visible.
+
+    Returns:
+        The previous visibility of the cursor.
+
+    Raises:
+        TypeError: If *visibility* is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(visibility, "visibility")
+    module = _curses_module()
+    return cast(int, module.curs_set(visibility))
+
+
+def getsyx() -> Optional[Tuple[int, int]]:
+    """Return the coordinates of the virtual cursor.
+
+    Returns:
+        The ``(y, x)`` coordinates of the cursor, or ``None`` when they are
+        unknown.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    result = module.getsyx()
+    if result is None:
+        return None
+    return cast(Tuple[int, int], result)
+
+
+def setsyx(y: int, x: int) -> None:
+    """Set the virtual cursor to the coordinates (*y*, *x*).
+
+    Args:
+        y: The row of the cursor.
+        x: The column of the cursor.
+
+    Raises:
+        TypeError: If *y* or *x* is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(y, "y")
+    _validate_int(x, "x")
+    module = _curses_module()
+    module.setsyx(y, x)
+
+
+def start_color() -> None:
+    """Initialize color support.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.start_color()
+
+
+def has_colors() -> bool:
+    """Report whether the terminal supports colors.
+
+    Returns:
+        True if the terminal can change colors, False otherwise.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(bool, module.has_colors())
+
+
+def can_change_color() -> bool:
+    """Report whether colors can be redefined.
+
+    Returns:
+        True if colors can be redefined, False otherwise.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(bool, module.can_change_color())
+
+
+def init_pair(pair: int, fg: int, bg: int) -> None:
+    """Define the colors of the color pair *pair*.
+
+    Args:
+        pair: The number of the color pair.
+        fg: The foreground color.
+        bg: The background color.
+
+    Raises:
+        TypeError: If an argument is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(pair, "pair")
+    _validate_int(fg, "fg")
+    _validate_int(bg, "bg")
+    module = _curses_module()
+    module.init_pair(pair, fg, bg)
+
+
+def init_color(color: int, r: int, g: int, b: int) -> None:
+    """Redefine a color.
+
+    Args:
+        color: The number of the color to redefine.
+        r: The red component.
+        g: The green component.
+        b: The blue component.
+
+    Raises:
+        TypeError: If an argument is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(color, "color")
+    _validate_int(r, "r")
+    _validate_int(g, "g")
+    _validate_int(b, "b")
+    module = _curses_module()
+    module.init_color(color, r, g, b)
+
+
+def color_content(color: int) -> Tuple[int, int, int]:
+    """Return the red, green, and blue components of a color.
+
+    Args:
+        color: The number of the color.
+
+    Returns:
+        The ``(red, green, blue)`` components of the color.
+
+    Raises:
+        TypeError: If *color* is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(color, "color")
+    module = _curses_module()
+    return cast(Tuple[int, int, int], module.color_content(color))
+
+
+def pair_content(pair: int) -> Tuple[int, int, int]:
+    """Return the foreground and background colors of a color pair.
+
+    Args:
+        pair: The number of the color pair.
+
+    Returns:
+        The ``(foreground, background)`` colors of the pair.
+
+    Raises:
+        TypeError: If *pair* is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(pair, "pair")
+    module = _curses_module()
+    return cast(Tuple[int, int, int], module.pair_content(pair))
+
+
+def color_pair(pair: int) -> int:
+    """Return the attribute value of a color pair.
+
+    Args:
+        pair: The number of the color pair.
+
+    Returns:
+        The attribute value of the color pair.
+
+    Raises:
+        TypeError: If *pair* is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(pair, "pair")
+    module = _curses_module()
+    return cast(int, module.color_pair(pair))
+
+
+def pair_number(attrs: int) -> int:
+    """Return the number of the color pair of an attribute.
+
+    Args:
+        attrs: The attribute value.
+
+    Returns:
+        The number of the color pair.
+
+    Raises:
+        TypeError: If *attrs* is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(attrs, "attrs")
+    module = _curses_module()
+    return cast(int, module.pair_number(attrs))
+
+
+def use_default_colors() -> int:
+    """Assign the default colors of the terminal to color pairs.
+
+    Returns:
+        :data:`OK` on success.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(int, module.use_default_colors())
+
+
+def baudrate() -> int:
+    """Return the speed of the terminal in bits per second.
+
+    Returns:
+        The baud rate of the terminal.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(int, module.baudrate())
+
+
+def beep() -> None:
+    """Produce a beep on the terminal.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.beep()
+
+
+def flash() -> None:
+    """Flash the screen.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.flash()
+
+
+def delay_output(ms: int) -> None:
+    """Delay the output for *ms* milliseconds.
+
+    Args:
+        ms: The delay in milliseconds.
+
+    Raises:
+        TypeError: If *ms* is not an int.
+        ValueError: If *ms* is negative.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(ms, "ms")
+    if ms < 0:
+        raise ValueError(f"ms must not be negative, got {ms}")
+    module = _curses_module()
+    module.delay_output(ms)
+
+
+def flushinp() -> None:
+    """Discard all input waiting in the input queue.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.flushinp()
+
+
+def napms(ms: int) -> None:
+    """Sleep for *ms* milliseconds.
+
+    Args:
+        ms: The delay in milliseconds.
+
+    Raises:
+        TypeError: If *ms* is not an int.
+        ValueError: If *ms* is negative.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(ms, "ms")
+    if ms < 0:
+        raise ValueError(f"ms must not be negative, got {ms}")
+    module = _curses_module()
+    module.napms(ms)
+
+
+def ungetch(ch: int) -> None:
+    """Push a character back onto the input queue.
+
+    Args:
+        ch: The character to push back.
+
+    Raises:
+        TypeError: If *ch* is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(ch, "ch")
+    module = _curses_module()
+    module.ungetch(ch)
+
+
+def unget_wch(ch: str) -> None:
+    """Push a wide character back onto the input queue.
+
+    Args:
+        ch: The wide character to push back.
+
+    Raises:
+        TypeError: If *ch* is not a str.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    if not isinstance(ch, str):
+        raise TypeError(f"ch must be a str, got {type(ch).__name__}")
+    module = _curses_module()
+    module.unget_wch(ch)
+
+
+def newwin(nlines: int, ncols: int, begin_y: int, begin_x: int) -> Window:
+    """Create a new window.
+
+    Args:
+        nlines: The number of lines of the window.
+        ncols: The number of columns of the window.
+        begin_y: The row of the upper left corner.
+        begin_x: The column of the upper left corner.
+
+    Returns:
+        The new window.
+
+    Raises:
+        TypeError: If an argument is not an int.
+        ValueError: If an argument is negative.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(nlines, "nlines")
+    _validate_int(ncols, "ncols")
+    _validate_int(begin_y, "begin_y")
+    _validate_int(begin_x, "begin_x")
+    if nlines < 0 or ncols < 0 or begin_y < 0 or begin_x < 0:
+        raise ValueError("arguments must not be negative")
+    module = _curses_module()
+    return cast(Window, module.newwin(nlines, ncols, begin_y, begin_x))
+
+
+def doupdate() -> None:
+    """Update the physical screen to match the virtual screens.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.doupdate()
+
+
+def erasechar() -> str:
+    """Return the erase character of the terminal.
+
+    Returns:
+        The erase character.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(str, module.erasechar())
+
+
+def killchar() -> str:
+    """Return the kill character of the terminal.
+
+    Returns:
+        The kill character.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(str, module.killchar())
+
+
+def keyname(c: Union[int, str]) -> Union[str, bytes]:
+    """Return the name of the key *c*.
+
+    Args:
+        c: The key code or the character.
+
+    Returns:
+        The name of the key.
+
+    Raises:
+        TypeError: If *c* is not an int or a str.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    if not isinstance(c, (int, str)):
+        raise TypeError(f"c must be an int or a str, got {type(c).__name__}")
+    module = _curses_module()
+    return cast(Union[str, bytes], module.keyname(c))
+
+
+def longname() -> str:
+    """Return the long name of the terminal.
+
+    Returns:
+        The long name of the terminal.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(str, module.longname())
+
+
+def termname() -> str:
+    """Return the short name of the terminal.
+
+    Returns:
+        The short name of the terminal.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(str, module.termname())
+
+
+def termattrs() -> int:
+    """Return the video attributes supported by the terminal.
+
+    Returns:
+        The supported video attributes.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(int, module.termattrs())
+
+
+def has_ic() -> bool:
+    """Report whether the terminal supports insert and delete characters.
+
+    Returns:
+        True if the terminal supports them, False otherwise.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(bool, module.has_ic())
+
+
+def has_il() -> bool:
+    """Report whether the terminal supports insert and delete lines.
+
+    Returns:
+        True if the terminal supports them, False otherwise.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    return cast(bool, module.has_il())
+
+
+def has_key(key: int) -> bool:
+    """Report whether the terminal recognizes the key *key*.
+
+    Args:
+        key: The key code to test.
+
+    Returns:
+        True if the terminal recognizes the key, False otherwise.
+
+    Raises:
+        TypeError: If *key* is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(key, "key")
+    module = _curses_module()
+    return cast(bool, module.has_key(key))
+
+
+def filter() -> None:
+    """Restrict the terminal to the current line.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.filter()
+
+
+def typeahead(fd: int) -> None:
+    """Set the file descriptor used for typeahead checking.
+
+    Args:
+        fd: The file descriptor.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(fd, "fd")
+    module = _curses_module()
+    module.typeahead(fd)
+
+
+def resize_term(nlines: int, ncols: int) -> None:
+    """Resize the standard screen and the windows.
+
+    Args:
+        nlines: The new number of lines.
+        ncols: The new number of columns.
+
+    Raises:
+        TypeError: If an argument is not an int.
+        ValueError: If an argument is negative.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(nlines, "nlines")
+    _validate_int(ncols, "ncols")
+    if nlines < 0 or ncols < 0:
+        raise ValueError("arguments must not be negative")
+    module = _curses_module()
+    module.resize_term(nlines, ncols)
+
+
+def resizeterm(nlines: int, ncols: int) -> None:
+    """Alias of :func:`resize_term`.
+
+    Args:
+        nlines: The new number of lines.
+        ncols: The new number of columns.
+
+    Raises:
+        TypeError: If an argument is not an int.
+        ValueError: If an argument is negative.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(nlines, "nlines")
+    _validate_int(ncols, "ncols")
+    if nlines < 0 or ncols < 0:
+        raise ValueError("arguments must not be negative")
+    module = _curses_module()
+    module.resizeterm(nlines, ncols)
+
+
+def is_term_resized(nlines: int, ncols: int) -> bool:
+    """Report whether the terminal was resized to (*nlines*, *ncols*).
+
+    Args:
+        nlines: The number of lines.
+        ncols: The number of columns.
+
+    Returns:
+        True if the terminal was resized, False otherwise.
+
+    Raises:
+        TypeError: If an argument is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(nlines, "nlines")
+    _validate_int(ncols, "ncols")
+    module = _curses_module()
+    return cast(bool, module.is_term_resized(nlines, ncols))
+
+
+def update_lines_cols() -> None:
+    """Update the number of lines and columns of the standard screen.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    module = _curses_module()
+    module.update_lines_cols()
+
+
+def setupterm(term: str) -> None:
+    """Read the terminal capabilities of *term*.
+
+    Args:
+        term: The name of the terminal type.
+
+    Raises:
+        TypeError: If *term* is not a str.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    if not isinstance(term, str):
+        raise TypeError(f"term must be a str, got {type(term).__name__}")
+    module = _curses_module()
+    module.setupterm(term)
+
+
+def mouseinterval(interval: int) -> int:
+    """Set the maximum interval in milliseconds between mouse clicks.
+
+    Args:
+        interval: The interval in milliseconds.
+
+    Returns:
+        The previous interval.
+
+    Raises:
+        TypeError: If *interval* is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(interval, "interval")
+    module = _curses_module()
+    return cast(int, module.mouseinterval(interval))
+
+
+def mousemask(newmask: int) -> int:
+    """Set the mouse events to be reported.
+
+    Args:
+        newmask: The mask of the mouse events.
+
+    Returns:
+        The mask of the mouse events that can be reported.
+
+    Raises:
+        TypeError: If *newmask* is not an int.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_int(newmask, "newmask")
+    module = _curses_module()
+    return cast(int, module.mousemask(newmask))
+
+
+def putp(string: str) -> None:
+    """Write the string *string* to the terminal.
+
+    Args:
+        string: The string to write.
+
+    Raises:
+        TypeError: If *string* is not a str.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    if not isinstance(string, str):
+        raise TypeError(f"string must be a str, got {type(string).__name__}")
+    module = _curses_module()
+    module.putp(string)
+
+
+def use_env(flag: bool) -> None:
+    """Set whether the environment determines the terminal size.
+
+    Args:
+        flag: Whether the environment is used.
+
+    Raises:
+        TypeError: If *flag* is not a bool.
+        RuntimeError: If the interpreter does not ship the ``curses`` module.
+    """
+    _validate_bool(flag, "flag")
+    module = _curses_module()
+    module.use_env(flag)
+CURSES_UTILS
+
+# --- tests/test_curses_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_curses_utils.py" <<'TEST_CURSES_UTILS'
+"""Tests for curses_utils."""
+
+import curses
+import unittest
+from unittest import mock
+
+import curses_utils
+
+
+class TestModuleContract(unittest.TestCase):
+    """Test the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(
+            curses_utils.__all__, sorted(set(curses_utils.__all__))
+        )
+
+    def test_every_name_exists(self):
+        for name in curses_utils.__all__:
+            self.assertTrue(hasattr(curses_utils, name), name)
+
+
+class TestAvailability(unittest.TestCase):
+    """Test the availability of the standard library module."""
+
+    def test_is_available_returns_a_bool(self):
+        self.assertIsInstance(curses_utils.is_available(), bool)
+
+    def test_is_available_matches_the_standard_library(self):
+        try:
+            import curses as standard_curses  # noqa: F401
+        except ImportError:
+            self.assertFalse(curses_utils.is_available())
+        else:
+            self.assertTrue(curses_utils.is_available())
+
+
+@unittest.skipUnless(curses_utils.is_available(), "curses module not available")
+class TestConstantsMatchTheStandardLibrary(unittest.TestCase):
+    """Test that the constants match the standard library."""
+
+    def test_attribute_constants_match(self):
+        self.assertEqual(curses_utils.A_BOLD, curses.A_BOLD)
+        self.assertEqual(curses_utils.A_REVERSE, curses.A_REVERSE)
+
+    def test_color_constants_match(self):
+        self.assertEqual(curses_utils.COLOR_BLACK, curses.COLOR_BLACK)
+        self.assertEqual(curses_utils.COLOR_RED, curses.COLOR_RED)
+
+    def test_key_constants_match(self):
+        self.assertEqual(curses_utils.KEY_UP, curses.KEY_UP)
+        self.assertEqual(curses_utils.KEY_DOWN, curses.KEY_DOWN)
+
+    def test_result_constants_match(self):
+        self.assertEqual(curses_utils.OK, curses.OK)
+        self.assertEqual(curses_utils.ERR, curses.ERR)
+
+    def test_window_is_the_standard_library_window(self):
+        self.assertIs(curses_utils.Window, curses.window)
+
+
+@unittest.skipUnless(curses_utils.is_available(), "curses module not available")
+class TestDelegation(unittest.TestCase):
+    """Test that the helpers delegate to the standard library."""
+
+    def test_initscr_delegates(self):
+        with mock.patch.object(curses_utils._curses, "initscr") as initscr:
+            initscr.return_value = mock.Mock()
+            curses_utils.initscr()
+            initscr.assert_called_once_with()
+
+    def test_endwin_delegates(self):
+        with mock.patch.object(curses_utils._curses, "endwin") as endwin:
+            curses_utils.endwin()
+            endwin.assert_called_once_with()
+
+    def test_isendwin_delegates(self):
+        with mock.patch.object(curses_utils._curses, "isendwin") as isendwin:
+            isendwin.return_value = True
+            self.assertTrue(curses_utils.isendwin())
+            isendwin.assert_called_once_with()
+
+    def test_curs_set_delegates(self):
+        with mock.patch.object(curses_utils._curses, "curs_set") as curs_set:
+            curs_set.return_value = 1
+            self.assertEqual(curses_utils.curs_set(1), 1)
+            curs_set.assert_called_once_with(1)
+
+    def test_baudrate_delegates(self):
+        with mock.patch.object(curses_utils._curses, "baudrate") as baudrate:
+            baudrate.return_value = 9600
+            self.assertEqual(curses_utils.baudrate(), 9600)
+            baudrate.assert_called_once_with()
+
+    def test_has_colors_delegates(self):
+        with mock.patch.object(curses_utils._curses, "has_colors") as has_colors:
+            has_colors.return_value = True
+            self.assertTrue(curses_utils.has_colors())
+            has_colors.assert_called_once_with()
+
+    def test_keyname_delegates(self):
+        with mock.patch.object(curses_utils._curses, "keyname") as keyname:
+            keyname.return_value = "KEY_UP"
+            self.assertEqual(curses_utils.keyname(curses.KEY_UP), "KEY_UP")
+            keyname.assert_called_once_with(curses.KEY_UP)
+
+    def test_longname_delegates(self):
+        with mock.patch.object(curses_utils._curses, "longname") as longname:
+            longname.return_value = "xterm"
+            self.assertEqual(curses_utils.longname(), "xterm")
+            longname.assert_called_once_with()
+
+    def test_termattrs_delegates(self):
+        with mock.patch.object(
+            curses_utils._curses, "termattrs"
+        ) as termattrs:
+            termattrs.return_value = curses_utils.A_BOLD | curses_utils.A_REVERSE
+            self.assertEqual(
+                curses_utils.termattrs(), curses_utils.A_BOLD | curses_utils.A_REVERSE
+            )
+            termattrs.assert_called_once_with()
+
+    def test_use_default_colors_delegates(self):
+        with mock.patch.object(
+            curses_utils._curses, "use_default_colors"
+        ) as use_default_colors:
+            use_default_colors.return_value = curses_utils.OK
+            self.assertEqual(curses_utils.use_default_colors(), curses_utils.OK)
+            use_default_colors.assert_called_once_with()
+
+    def test_start_color_delegates(self):
+        with mock.patch.object(curses_utils._curses, "start_color") as start_color:
+            curses_utils.start_color()
+            start_color.assert_called_once_with()
+
+    def test_init_pair_delegates(self):
+        with mock.patch.object(curses_utils._curses, "init_pair") as init_pair:
+            curses_utils.init_pair(1, curses_utils.COLOR_RED, curses_utils.COLOR_BLACK)
+            init_pair.assert_called_once_with(
+                1, curses_utils.COLOR_RED, curses_utils.COLOR_BLACK
+            )
+
+    def test_color_pair_delegates(self):
+        with mock.patch.object(curses_utils._curses, "color_pair") as color_pair:
+            color_pair.return_value = curses_utils.A_COLOR | 1
+            self.assertEqual(
+                curses_utils.color_pair(1), curses_utils.A_COLOR | 1
+            )
+            color_pair.assert_called_once_with(1)
+
+    def test_napms_delegates(self):
+        with mock.patch.object(curses_utils._curses, "napms") as napms:
+            curses_utils.napms(100)
+            napms.assert_called_once_with(100)
+
+    def test_flash_delegates(self):
+        with mock.patch.object(curses_utils._curses, "flash") as flash:
+            curses_utils.flash()
+            flash.assert_called_once_with()
+
+    def test_beep_delegates(self):
+        with mock.patch.object(curses_utils._curses, "beep") as beep:
+            curses_utils.beep()
+            beep.assert_called_once_with()
+
+    def test_getsyx_returns_none_before_a_screen(self):
+        with mock.patch.object(curses_utils._curses, "getsyx") as getsyx:
+            getsyx.return_value = None
+            self.assertIsNone(curses_utils.getsyx())
+            getsyx.assert_called_once_with()
+
+    def test_setsyx_delegates(self):
+        with mock.patch.object(curses_utils._curses, "setsyx") as setsyx:
+            curses_utils.setsyx(2, 4)
+            setsyx.assert_called_once_with(2, 4)
+
+    def test_erasechar_delegates(self):
+        with mock.patch.object(curses_utils._curses, "erasechar") as erasechar:
+            erasechar.return_value = "\x7f"
+            self.assertEqual(curses_utils.erasechar(), "\x7f")
+            erasechar.assert_called_once_with()
+
+    def test_killchar_delegates(self):
+        with mock.patch.object(curses_utils._curses, "killchar") as killchar:
+            killchar.return_value = "\x15"
+            self.assertEqual(curses_utils.killchar(), "\x15")
+            killchar.assert_called_once_with()
+
+    def test_has_ic_delegates(self):
+        with mock.patch.object(curses_utils._curses, "has_ic") as has_ic:
+            has_ic.return_value = True
+            self.assertTrue(curses_utils.has_ic())
+            has_ic.assert_called_once_with()
+
+    def test_has_il_delegates(self):
+        with mock.patch.object(curses_utils._curses, "has_il") as has_il:
+            has_il.return_value = True
+            self.assertTrue(curses_utils.has_il())
+            has_il.assert_called_once_with()
+
+    def test_filter_delegates(self):
+        with mock.patch.object(curses_utils._curses, "filter") as filter:
+            curses_utils.filter()
+            filter.assert_called_once_with()
+
+    def test_typeahead_delegates(self):
+        with mock.patch.object(curses_utils._curses, "typeahead") as typeahead:
+            curses_utils.typeahead(1)
+            typeahead.assert_called_once_with(1)
+
+    def test_mouseinterval_delegates(self):
+        with mock.patch.object(
+            curses_utils._curses, "mouseinterval"
+        ) as mouseinterval:
+            mouseinterval.return_value = 0
+            self.assertEqual(curses_utils.mouseinterval(0), 0)
+            mouseinterval.assert_called_once_with(0)
+
+    def test_mousemask_delegates(self):
+        with mock.patch.object(curses_utils._curses, "mousemask") as mousemask:
+            mousemask.return_value = 0
+            self.assertEqual(curses_utils.mousemask(0), 0)
+            mousemask.assert_called_once_with(0)
+
+    def test_putp_delegates(self):
+        with mock.patch.object(curses_utils._curses, "putp") as putp:
+            curses_utils.putp("\n")
+            putp.assert_called_once_with("\n")
+
+    def test_use_env_delegates(self):
+        with mock.patch.object(curses_utils._curses, "use_env") as use_env:
+            curses_utils.use_env(True)
+            use_env.assert_called_once_with(True)
+
+    def test_savetty_and_resetty_delegate(self):
+        with mock.patch.object(curses_utils._curses, "savetty") as savetty:
+            curses_utils.savetty()
+            savetty.assert_called_once_with()
+        with mock.patch.object(curses_utils._curses, "resetty") as resetty:
+            curses_utils.resetty()
+            resetty.assert_called_once_with()
+
+    def test_def_and_reset_prog_mode_delegate(self):
+        with mock.patch.object(
+            curses_utils._curses, "def_prog_mode"
+        ) as def_prog_mode:
+            curses_utils.def_prog_mode()
+            def_prog_mode.assert_called_once_with()
+        with mock.patch.object(
+            curses_utils._curses, "reset_prog_mode"
+        ) as reset_prog_mode:
+            curses_utils.reset_prog_mode()
+            reset_prog_mode.assert_called_once_with()
+
+    def test_def_and_reset_shell_mode_delegate(self):
+        with mock.patch.object(
+            curses_utils._curses, "def_shell_mode"
+        ) as def_shell_mode:
+            curses_utils.def_shell_mode()
+            def_shell_mode.assert_called_once_with()
+        with mock.patch.object(
+            curses_utils._curses, "reset_shell_mode"
+        ) as reset_shell_mode:
+            curses_utils.reset_shell_mode()
+            reset_shell_mode.assert_called_once_with()
+
+    def test_cbreak_and_nocbreak_delegate(self):
+        with mock.patch.object(curses_utils._curses, "cbreak") as cbreak:
+            curses_utils.cbreak()
+            cbreak.assert_called_once_with()
+        with mock.patch.object(curses_utils._curses, "nocbreak") as nocbreak:
+            curses_utils.nocbreak()
+            nocbreak.assert_called_once_with()
+
+    def test_echo_and_noecho_delegate(self):
+        with mock.patch.object(curses_utils._curses, "echo") as echo:
+            curses_utils.echo()
+            echo.assert_called_once_with()
+        with mock.patch.object(curses_utils._curses, "noecho") as noecho:
+            curses_utils.noecho()
+            noecho.assert_called_once_with()
+
+    def test_raw_and_noraw_delegate(self):
+        with mock.patch.object(curses_utils._curses, "raw") as raw:
+            curses_utils.raw()
+            raw.assert_called_once_with()
+        with mock.patch.object(curses_utils._curses, "noraw") as noraw:
+            curses_utils.noraw()
+            noraw.assert_called_once_with()
+
+    def test_nl_and_nonl_delegate(self):
+        with mock.patch.object(curses_utils._curses, "nl") as nl:
+            curses_utils.nl()
+            nl.assert_called_once_with()
+        with mock.patch.object(curses_utils._curses, "nonl") as nonl:
+            curses_utils.nonl()
+            nonl.assert_called_once_with()
+
+    def test_qiflush_and_noqiflush_delegate(self):
+        with mock.patch.object(curses_utils._curses, "qiflush") as qiflush:
+            curses_utils.qiflush()
+            qiflush.assert_called_once_with()
+        with mock.patch.object(curses_utils._curses, "noqiflush") as noqiflush:
+            curses_utils.noqiflush()
+            noqiflush.assert_called_once_with()
+
+    def test_intrflush_delegates(self):
+        with mock.patch.object(curses_utils._curses, "intrflush") as intrflush:
+            curses_utils.intrflush(True)
+            intrflush.assert_called_once_with(True)
+
+    def test_meta_delegates(self):
+        with mock.patch.object(curses_utils._curses, "meta") as meta:
+            curses_utils.meta(True)
+            meta.assert_called_once_with(True)
+
+    def test_halfdelay_delegates(self):
+        with mock.patch.object(curses_utils._curses, "halfdelay") as halfdelay:
+            curses_utils.halfdelay(10)
+            halfdelay.assert_called_once_with(10)
+
+    def test_delay_output_delegates(self):
+        with mock.patch.object(
+            curses_utils._curses, "delay_output"
+        ) as delay_output:
+            curses_utils.delay_output(50)
+            delay_output.assert_called_once_with(50)
+
+    def test_flushinp_delegates(self):
+        with mock.patch.object(curses_utils._curses, "flushinp") as flushinp:
+            curses_utils.flushinp()
+            flushinp.assert_called_once_with()
+
+    def test_ungetch_delegates(self):
+        with mock.patch.object(curses_utils._curses, "ungetch") as ungetch:
+            curses_utils.ungetch(curses.KEY_UP)
+            ungetch.assert_called_once_with(curses.KEY_UP)
+
+    def test_unget_wch_delegates(self):
+        with mock.patch.object(curses_utils._curses, "unget_wch") as unget_wch:
+            curses_utils.unget_wch("A")
+            unget_wch.assert_called_once_with("A")
+
+    def test_doupdate_delegates(self):
+        with mock.patch.object(curses_utils._curses, "doupdate") as doupdate:
+            curses_utils.doupdate()
+            doupdate.assert_called_once_with()
+
+    def test_newwin_delegates(self):
+        with mock.patch.object(curses_utils._curses, "newwin") as newwin:
+            newwin.return_value = mock.Mock()
+            curses_utils.newwin(5, 10, 0, 0)
+            newwin.assert_called_once_with(5, 10, 0, 0)
+
+    def test_resize_term_and_resizeterm_delegate(self):
+        with mock.patch.object(curses_utils._curses, "resize_term") as resize_term:
+            curses_utils.resize_term(20, 40)
+            resize_term.assert_called_once_with(20, 40)
+        with mock.patch.object(curses_utils._curses, "resizeterm") as resizeterm:
+            curses_utils.resizeterm(20, 40)
+            resizeterm.assert_called_once_with(20, 40)
+
+    def test_is_term_resized_delegates(self):
+        with mock.patch.object(
+            curses_utils._curses, "is_term_resized"
+        ) as is_term_resized:
+            is_term_resized.return_value = False
+            self.assertFalse(curses_utils.is_term_resized(20, 40))
+            is_term_resized.assert_called_once_with(20, 40)
+
+    def test_update_lines_cols_delegates(self):
+        with mock.patch.object(
+            curses_utils._curses, "update_lines_cols"
+        ) as update_lines_cols:
+            curses_utils.update_lines_cols()
+            update_lines_cols.assert_called_once_with()
+
+    def test_setupterm_delegates(self):
+        with mock.patch.object(curses_utils._curses, "setupterm") as setupterm:
+            curses_utils.setupterm("xterm")
+            setupterm.assert_called_once_with("xterm")
+
+    def test_get_escdelay_and_set_escdelay_delegate(self):
+        with mock.patch.object(
+            curses_utils._curses, "get_escdelay"
+        ) as get_escdelay:
+            get_escdelay.return_value = 250
+            self.assertEqual(curses_utils.get_escdelay(), 250)
+            get_escdelay.assert_called_once_with()
+        with mock.patch.object(
+            curses_utils._curses, "set_escdelay"
+        ) as set_escdelay:
+            curses_utils.set_escdelay(100)
+            set_escdelay.assert_called_once_with(100)
+
+    def test_get_tabsize_and_set_tabsize_delegate(self):
+        with mock.patch.object(
+            curses_utils._curses, "get_tabsize"
+        ) as get_tabsize:
+            get_tabsize.return_value = 8
+            self.assertEqual(curses_utils.get_tabsize(), 8)
+            get_tabsize.assert_called_once_with()
+        with mock.patch.object(
+            curses_utils._curses, "set_tabsize"
+        ) as set_tabsize:
+            curses_utils.set_tabsize(4)
+            set_tabsize.assert_called_once_with(4)
+
+    def test_can_change_color_delegates(self):
+        with mock.patch.object(
+            curses_utils._curses, "can_change_color"
+        ) as can_change_color:
+            can_change_color.return_value = True
+            self.assertTrue(curses_utils.can_change_color())
+            can_change_color.assert_called_once_with()
+
+    def test_init_color_delegates(self):
+        with mock.patch.object(curses_utils._curses, "init_color") as init_color:
+            curses_utils.init_color(1, 100, 200, 50)
+            init_color.assert_called_once_with(1, 100, 200, 50)
+
+    def test_color_content_delegates(self):
+        with mock.patch.object(curses_utils._curses, "color_content") as color_content:
+            color_content.return_value = (100, 200, 50)
+            self.assertEqual(curses_utils.color_content(1), (100, 200, 50))
+            color_content.assert_called_once_with(1)
+
+    def test_pair_content_delegates(self):
+        with mock.patch.object(curses_utils._curses, "pair_content") as pair_content:
+            pair_content.return_value = (
+                curses_utils.COLOR_RED,
+                curses_utils.COLOR_BLACK,
+            )
+            self.assertEqual(
+                curses_utils.pair_content(1),
+                (curses_utils.COLOR_RED, curses_utils.COLOR_BLACK),
+            )
+            pair_content.assert_called_once_with(1)
+
+    def test_pair_number_delegates(self):
+        with mock.patch.object(curses_utils._curses, "pair_number") as pair_number:
+            pair_number.return_value = 1
+            self.assertEqual(curses_utils.pair_number(curses_utils.A_COLOR | 1), 1)
+            pair_number.assert_called_once_with(curses_utils.A_COLOR | 1)
+
+
+@unittest.skipUnless(curses_utils.is_available(), "curses module not available")
+class TestTypeValidation(unittest.TestCase):
+    """Test that invalid argument types are rejected."""
+
+    def test_curs_set_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.curs_set("high")  # type: ignore[arg-type]
+
+    def test_setsyx_rejects_non_ints(self):
+        with self.assertRaises(TypeError):
+            curses_utils.setsyx("a", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            curses_utils.setsyx(1, "b")  # type: ignore[arg-type]
+
+    def test_init_pair_rejects_non_ints(self):
+        with self.assertRaises(TypeError):
+            curses_utils.init_pair(
+                "1", curses_utils.COLOR_RED, curses_utils.COLOR_BLACK
+            )  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            curses_utils.init_pair(1, "red", curses_utils.COLOR_BLACK)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            curses_utils.init_pair(
+                1, curses_utils.COLOR_RED, "black"
+            )  # type: ignore[arg-type]
+
+    def test_color_pair_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.color_pair("1")  # type: ignore[arg-type]
+
+    def test_pair_content_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.pair_content("1")  # type: ignore[arg-type]
+
+    def test_pair_number_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.pair_number("1")  # type: ignore[arg-type]
+
+    def test_napms_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.napms("100")  # type: ignore[arg-type]
+
+    def test_delay_output_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.delay_output("50")  # type: ignore[arg-type]
+
+    def test_ungetch_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.ungetch("A")  # type: ignore[arg-type]
+
+    def test_unget_wch_rejects_a_non_str(self):
+        with self.assertRaises(TypeError):
+            curses_utils.unget_wch(65)  # type: ignore[arg-type]
+
+    def test_newwin_rejects_non_ints(self):
+        with self.assertRaises(TypeError):
+            curses_utils.newwin("5", 10, 0, 0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            curses_utils.newwin(5, "10", 0, 0)  # type: ignore[arg-type]
+
+    def test_resize_term_rejects_non_ints(self):
+        with self.assertRaises(TypeError):
+            curses_utils.resize_term("20", 40)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            curses_utils.resize_term(20, "40")  # type: ignore[arg-type]
+
+    def test_is_term_resized_rejects_non_ints(self):
+        with self.assertRaises(TypeError):
+            curses_utils.is_term_resized("20", 40)  # type: ignore[arg-type]
+
+    def test_keyname_rejects_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            curses_utils.keyname(12.5)  # type: ignore[arg-type]
+
+    def test_mouseinterval_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.mouseinterval("0")  # type: ignore[arg-type]
+
+    def test_mousemask_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.mousemask("0")  # type: ignore[arg-type]
+
+    def test_putp_rejects_a_non_str(self):
+        with self.assertRaises(TypeError):
+            curses_utils.putp(123)  # type: ignore[arg-type]
+
+    def test_intrflush_rejects_a_non_bool(self):
+        with self.assertRaises(TypeError):
+            curses_utils.intrflush(1)  # type: ignore[arg-type]
+
+    def test_meta_rejects_a_non_bool(self):
+        with self.assertRaises(TypeError):
+            curses_utils.meta(1)  # type: ignore[arg-type]
+
+    def test_halfdelay_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.halfdelay("10")  # type: ignore[arg-type]
+
+    def test_use_env_rejects_a_non_bool(self):
+        with self.assertRaises(TypeError):
+            curses_utils.use_env(1)  # type: ignore[arg-type]
+
+    def test_init_color_rejects_non_ints(self):
+        with self.assertRaises(TypeError):
+            curses_utils.init_color("1", 100, 200, 50)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            curses_utils.init_color(1, "100", 200, 50)  # type: ignore[arg-type]
+
+    def test_typeahead_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.typeahead("1")  # type: ignore[arg-type]
+
+    def test_has_key_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            curses_utils.has_key("KEY_UP")  # type: ignore[arg-type]
+
+
+class TestMissingModule(unittest.TestCase):
+    """Test the behaviour when the standard library module is absent."""
+
+    def test_helpers_raise_when_the_module_is_missing(self):
+        with mock.patch.object(curses_utils, "_curses", None):
+            with self.assertRaises(RuntimeError):
+                curses_utils.isendwin()
+            with self.assertRaises(RuntimeError):
+                curses_utils.baudrate()
+            with self.assertRaises(RuntimeError):
+                curses_utils.start_color()
+            with self.assertRaises(RuntimeError):
+                curses_utils.beep()
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_CURSES_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

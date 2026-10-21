@@ -270,4 +270,5 @@ py_modules = [
     "genericpath_utils",
     "ntpath_utils",
     "nturl2path_utils",
+    "curses_utils",
 ]
