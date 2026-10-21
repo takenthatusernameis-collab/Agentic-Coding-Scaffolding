@@ -686,6 +686,8 @@
 #   - ntpath_utils.py — # Windows path utilities wrapping stdlib ntpath (splitdrive, splitroot, normcase, normpath, has_drive, is_unc_path, is_device_path, to_slashes)
 #   - nturl2path_utils.py — # URL to pathname conversions wrapping stdlib nturl2path (url2pathname, pathname2url)
 #   - curses_utils.py — # Terminal handling utilities wrapping stdlib curses (initscr, endwin, cbreak, echo, raw, colors)
+#   - bdb_utils.py — # Debugger framework utilities wrapping stdlib bdb (create_bdb, set_breakpoint, clear_breakpoint, get_breakpoints, effective_breakpoint, checkfuncname)
+#   - pdb_utils.py — # Interactive debugger utilities wrapping stdlib pdb (create_pdb, set_trace, post_mortem, pm, run, runeval, runctx, runcall)
 #   - ipaddress_utils.py — # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 #   - pydoc_utils.py — # Documentation utilities wrapping the standard library pydoc module (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
@@ -710,6 +712,8 @@
 #   - tests/test_ntpath_utils.py — # Tests for ntpath_utils.py
 #   - tests/test_nturl2path_utils.py — # Tests for nturl2path_utils.py
 #   - tests/test_curses_utils.py — # Tests for curses_utils.py
+#   - tests/test_bdb_utils.py — # Tests for bdb_utils.py
+#   - tests/test_pdb_utils.py — # Tests for pdb_utils.py
 #   - tests/test_ipaddress_utils.py — # Tests for ipaddress_utils.py
 #   - tests/test_pydoc_utils.py — # Tests for pydoc_utils.py
 set -euo pipefail
@@ -4512,6 +4516,8 @@ py_modules = [
     "ntpath_utils",
     "nturl2path_utils",
     "curses_utils",
+    "bdb_utils",
+    "pdb_utils",
     "ipaddress_utils",
     "pydoc_utils",
 ]
@@ -28933,6 +28939,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ntpath_utils.py` — Windows path utilities wrapping the standard library `ntpath` module (abspath, basename, commonpath, commonprefix, dirname, join, normcase, normpath, realpath, relpath, split, splitdrive, splitroot, splitext, expanduser, expandvars, has_drive, is_unc_path, is_device_path, to_slashes, to_backslashes) with input validation
 - `nturl2path_utils.py` — URL to pathname conversions wrapping the standard library `nturl2path` module (`url2pathname`, `pathname2url`)
 - `curses_utils.py` — terminal handling utilities wrapping the standard library `curses` module (`initscr`, `endwin`, `cbreak`, `echo`, `raw`, `colors`) with input validation
+- `bdb_utils.py` — debugger framework utilities wrapping the standard library `bdb` module (`create_bdb`, `set_breakpoint`, `clear_breakpoint`, `clear_breakpoints`, `clear_all_breakpoints`, `get_breakpoints`, `get_breakpoint`, `get_file_breakpoints`, `enable_breakpoint`, `disable_breakpoint`, `is_breakpoint_enabled`, `breakpoint_hits`, `canonical_filename`, `effective_breakpoint`, `checkfuncname`) with input validation and the re-exported classes `Bdb` and `Breakpoint`
+- `pdb_utils.py` — interactive debugger utilities wrapping the standard library `pdb` module (`create_pdb`, `set_trace`, `post_mortem`, `pm`, `run`, `runeval`, `runctx`, `runcall`) with input validation and the re-exported class `Pdb`
 - `ipaddress_utils.py` — IP address utilities wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors
 - `pydoc_utils.py` — Documentation utilities wrapping the standard library `pydoc` module (`render_doc`, `doc`, `writedoc`, `writedocs`, `apropos`, `locate`, `resolve`, `safeimport`, `importfile`, `getdoc`, `synopsis`, `source_synopsis`, `describe`, `classify_class_attrs`, `classname`, `parentname`, `visiblename`, `isdata`, `ispackage`, `ispath`, `allmethods`, `splitdoc`, `stripid`, `replace`, `cram`, `plain`, `cli`, `help`, `getpager`, `plainpager`, `browse`) with input validation, and the re-exported classes `Doc`, `HTMLDoc`, `HTMLRepr`, `Helper`, `ModuleScanner`, `Repr`, `TextDoc`, and `TextRepr` together with the error `ErrorDuringImport`
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
@@ -29155,6 +29163,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_ntpath_utils.py` — unit tests for `ntpath_utils.py`
 - `tests/test_nturl2path_utils.py` — unit tests for `nturl2path_utils.py`
 - `tests/test_curses_utils.py` — unit tests for `curses_utils.py`
+- `tests/test_bdb_utils.py` — unit tests for `bdb_utils.py`
+- `tests/test_pdb_utils.py` — unit tests for `pdb_utils.py`
 - `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
 - `tests/test_pydoc_utils.py` — unit tests for `pydoc_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
@@ -30694,6 +30704,9 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `bdb_utils.py` wrapping the standard library `bdb` module (`create_bdb`, `set_breakpoint`, `clear_breakpoint`, `clear_breakpoints`, `clear_all_breakpoints`, `get_breakpoints`, `get_breakpoint`, `get_file_breakpoints`, `enable_breakpoint`, `disable_breakpoint`, `is_breakpoint_enabled`, `breakpoint_hits`, `canonical_filename`, `effective_breakpoint`, `checkfuncname`) with input validation and the re-exported classes `Bdb` and `Breakpoint` together with the error `BdbQuit`, plus unit tests in `tests/test_bdb_utils.py`.
+- Add `pdb_utils.py` wrapping the standard library `pdb` module (`create_pdb`, `set_trace`, `post_mortem`, `pm`, `run`, `runeval`, `runctx`, `runcall`) with input validation and the re-exported class `Pdb` together with the error `Restart`, plus unit tests in `tests/test_pdb_utils.py`.
+- Synchronized `bdb_utils.py` and `pdb_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `ntpath_utils.py` wrapping the standard library `ntpath` module (abspath, basename, commonpath, commonprefix, dirname, exists, expanduser, expandvars, isabs, isdevdrive, isjunction, join, normcase, normpath, realpath, relpath, split, splitdrive, splitroot, splitext) with input validation, the re-exported constants, and the helpers `has_drive`, `is_unc_path`, `is_device_path`, `to_slashes`, and `to_backslashes`, plus unit tests in `tests/test_ntpath_utils.py`.
 - Add `nturl2path_utils.py` wrapping the standard library `nturl2path` module (url2pathname, pathname2url) with input validation where applicable and unit tests in `tests/test_nturl2path_utils.py`.
 - Add `curses_utils.py` wrapping the standard library `curses` module (initscr, endwin, isendwin, savetty, resetty, def_prog_mode, def_shell_mode, reset_prog_mode, reset_shell_mode, resetterm, setterm, cbreak, nocbreak, echo, noecho, raw, noraw, nl, nonl, qiflush, noqiflush, norqflush, intrflush, meta, halfdelay, curs_set, getsyx, setsyx, start_color, has_colors, can_change_color, init_pair, init_color, color_content, pair_content, color_pair, pair_number, use_default_colors, baudrate, beep, flash, delay_output, flushinp, napms, ungetch, unget_wch, newwin, doupdate, erasechar, killchar, keyname, longname, termname, termattrs, has_ic, has_il, has_key, filter, typeahead, mouseinterval, mousemask, resize_term, resizeterm, is_term_resized, update_lines_cols, setupterm, putp, use_env) with input validation, the re-exported constants and the `window` class, graceful degradation when the module is missing, plus unit tests in `tests/test_curses_utils.py`.
@@ -31831,6 +31844,8 @@ posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (ab
 ntpath_utils.py              # Windows path utilities wrapping stdlib ntpath (splitdrive, splitroot, normcase, normpath, has_drive, is_unc_path, is_device_path, to_slashes)
 nturl2path_utils.py         # URL to pathname conversions wrapping stdlib nturl2path (url2pathname, pathname2url)
 curses_utils.py             # Terminal handling utilities wrapping stdlib curses (initscr, endwin, cbreak, echo, raw, colors)
+bdb_utils.py                 # Debugger framework utilities wrapping stdlib bdb (create_bdb, set_breakpoint, clear_breakpoint, get_breakpoints, effective_breakpoint, checkfuncname)
+pdb_utils.py                 # Interactive debugger utilities wrapping stdlib pdb (create_pdb, set_trace, post_mortem, pm, run, runeval, runctx, runcall)
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
 tests/                     # Python unit tests
@@ -32012,6 +32027,8 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_ntpath_utils.py         # Tests for ntpath_utils.py
     test_nturl2path_utils.py    # Tests for nturl2path_utils.py
     test_curses_utils.py        # Tests for curses_utils.py
+    test_bdb_utils.py           # Tests for bdb_utils.py
+    test_pdb_utils.py           # Tests for pdb_utils.py
     test_ipaddress_utils.py     # Tests for ipaddress_utils.py
     test_pydoc_utils.py          # Tests for pydoc_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
@@ -33090,6 +33107,14 @@ The project includes terminal handling utilities in `curses_utils.py` wrapping t
 The project includes IP address utilities in `ipaddress_utils.py` wrapping the standard library `ipaddress` module: `ip_address` returns the address object of a text, an integer, or a packed byte string, `ip_network` returns the network object of a network, `ip_interface` returns the interface object of an address that carries a prefix length, `is_valid_address` reports whether a value names a valid address, `is_valid_network` reports whether a value names a valid network, `is_valid_interface` reports whether a value names a valid interface, `address_version` returns the version of an address, `to_packed` returns the packed bytes of an address, `from_packed` returns the address that a packed byte string holds, `network_hosts` returns the usable hosts of a network, `subnets` splits a network into its subnets, `summarize_addresses` returns the smallest set of networks that still covers a list of networks, `network_overlaps` reports whether two networks overlap, `address_within` reports whether an address lies inside a network, `common_prefix_length` returns the length of the common prefix of a list of addresses, `next_address` returns the address that follows an address, `previous_address` returns the address that precedes an address, and `sort_addresses` returns the addresses of a list in ascending order. The classes `IPv4Address`, `IPv6Address`, `IPv4Network`, `IPv6Network`, `IPv4Interface`, and `IPv6Interface` are re-exported from the standard library, and so are the errors `AddressValueError` and `NetmaskValueError`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_ipaddress_utils.py`.
 
 The project includes documentation utilities in `pydoc_utils.py` wrapping the standard library `pydoc` module: `render_doc`, `doc`, `writedoc`, `writedocs`, `apropos`, `locate`, `resolve`, `safeimport`, `importfile`, `getdoc`, `synopsis`, `source_synopsis`, `describe`, `classify_class_attrs`, `classname`, `parentname`, `visiblename`, `isdata`, `ispackage`, `ispath`, `allmethods`, `splitdoc`, `stripid`, `replace`, `cram`, `plain`, `cli`, `help`, `getpager`, `plainpager`, and `browse` render, resolve, page, and browse documentation, `format_exception_only` formats exceptions, and the classes `Doc`, `HTMLDoc`, `HTMLRepr`, `Helper`, `ModuleScanner`, `Repr`, `TextDoc`, and `TextRepr` together with the error `ErrorDuringImport` are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the network. The module is tested in `tests/test_pydoc_utils.py`.
+
+## Bdb Utilities Module
+
+The project includes debugger framework utilities in `bdb_utils.py` wrapping the standard library `bdb` module: `create_bdb` creates a debugger of the framework, `set_breakpoint` sets a breakpoint in a file, `clear_breakpoint` removes a single breakpoint, `clear_breakpoints` removes every breakpoint of a file, and `clear_all_breakpoints` empties the registry of the process. The helpers `get_breakpoints`, `get_breakpoint`, and `get_file_breakpoints` report the registered breakpoints, `enable_breakpoint` and `disable_breakpoint` change the state of a breakpoint, `is_breakpoint_enabled` reports it, and `breakpoint_hits` counts the hits of a breakpoint. The helper `canonical_filename` returns the absolute name of a file, the way the standard library stores it, `effective_breakpoint` reports the breakpoint that is effective for a line of code, and `checkfuncname` reports whether a breakpoint matches the line a frame runs. The classes `Bdb` and `Breakpoint` together with the error `BdbQuit` are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never starts a debugger of its own. The module is tested in `tests/test_bdb_utils.py`.
+
+## Pdb Utilities Module
+
+The project includes interactive debugger utilities in `pdb_utils.py` wrapping the standard library `pdb` module: `create_pdb` creates an interactive debugger, `set_trace` enters the debugger at the frame of the caller, `post_mortem` enters the debugger with the frame of a traceback, and `pm` enters it with the traceback of the last exception. The helpers `run`, `runeval`, `runctx`, and `runcall` run a statement, an expression, a statement in given namespaces, and a function under the control of the debugger. The class `Pdb` together with the error `Restart` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. Every helper opens the prompt of the debugger on the standard input of the process, so a program that calls one of them has to answer the prompt; the tests of the project patch the standard library instead, so the suite never waits for a prompt. The module is tested in `tests/test_pdb_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -82123,6 +82148,1086 @@ class TestMissingModule(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_CURSES_UTILS
+
+# --- bdb_utils.py ---
+cat > "$OUTPUT_DIR/bdb_utils.py" <<'BDB_UTILS'
+"""Debugger framework utilities wrapping the standard library :mod:`bdb` module.
+
+The :mod:`bdb` module is the framework the interactive debugger of the
+standard library is built on.  It keeps the breakpoints of a debugging
+session, decides whether a line of code stops the program, and calls back into
+the debugger when it does.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure.  It re-exports the classes :class:`Bdb` and
+:class:`Breakpoint` together with the error :class:`BdbQuit`, and it adds the
+helpers that manage the breakpoints of a session: setting, enabling, disabling
+and removing them, listing them, and finding the breakpoint that is effective
+for a line of code.
+
+The breakpoints of the standard library live in the class attributes of
+:class:`bdb.Breakpoint`, so every debugger of the process shares them.  The
+helpers of this module work on that registry, and :func:`clear_all_breakpoints`
+empties it again.
+"""
+
+from __future__ import annotations
+
+import bdb as _bdb
+import os
+import types
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+__all__: list[str] = [
+    "Bdb",
+    "BdbQuit",
+    "Breakpoint",
+    "breakpoint_hits",
+    "canonical_filename",
+    "checkfuncname",
+    "clear_all_breakpoints",
+    "clear_breakpoint",
+    "clear_breakpoints",
+    "create_bdb",
+    "disable_breakpoint",
+    "effective_breakpoint",
+    "enable_breakpoint",
+    "get_breakpoint",
+    "get_breakpoints",
+    "get_file_breakpoints",
+    "is_bdb_instance",
+    "is_breakpoint",
+    "is_breakpoint_enabled",
+    "set_breakpoint",
+]
+
+#: The debugger framework of the standard library.
+Bdb = _bdb.Bdb
+
+#: A breakpoint of a debugging session.
+Breakpoint = _bdb.Breakpoint
+
+#: The error the standard library raises when a debugger quits.
+BdbQuit = _bdb.BdbQuit
+
+
+def _require_str(value: object, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_positive_int(value: object, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value < 1:
+        raise ValueError(f"{name} must be a positive number, got {value}")
+    return value
+
+
+def _require_bool(value: object, name: str) -> bool:
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def _require_frame(value: object) -> types.FrameType:
+    if not isinstance(value, types.FrameType):
+        raise TypeError(f"frame must be a frame, got {type(value).__name__}")
+    return value
+
+
+def _require_breakpoint(value: object) -> Breakpoint:
+    if not isinstance(value, Breakpoint):
+        raise TypeError(f"breakpoint must be a bdb.Breakpoint, got {type(value).__name__}")
+    return value
+
+
+def canonical_filename(filename: str) -> str:
+    """Return the canonical form of a file name.
+
+    The standard library stores a breakpoint under the absolute name of its
+    file, so a lookup of a breakpoint has to use the same form.
+
+    Args:
+        filename: The name of a file.
+
+    Returns:
+        The absolute name of the file, normalized for the case of the platform.
+    """
+    name = _require_str(filename, "filename")
+    if not name:
+        raise ValueError("filename must not be empty")
+    return os.path.normcase(os.path.abspath(name))
+
+
+def create_bdb(skip: Optional[Sequence[str]] = None) -> Bdb:
+    """Create a debugger of the standard library framework.
+
+    Args:
+        skip: The names of the modules the debugger does not trace.
+
+    Returns:
+        A new debugger.
+    """
+    if skip is not None:
+        if isinstance(skip, (str, bytes)):
+            raise TypeError("skip must be a sequence of strings, not a single string")
+        if not isinstance(skip, (list, tuple)):
+            raise TypeError(f"skip must be a list or a tuple, got {type(skip).__name__}")
+        for name in skip:
+            if not isinstance(name, str):
+                raise TypeError(f"skip entries must be strings, got {type(name).__name__}")
+    return Bdb(skip=list(skip) if skip is not None else None)
+
+
+def is_bdb_instance(obj: Any) -> bool:
+    """Return ``True`` if *obj* is a debugger of the standard library framework.
+
+    Args:
+        obj: The object to check.
+
+    Returns:
+        ``True`` if the object is a debugger.
+    """
+    return isinstance(obj, Bdb)
+
+
+def is_breakpoint(obj: Any) -> bool:
+    """Return ``True`` if *obj* is a breakpoint of the standard library.
+
+    Args:
+        obj: The object to check.
+
+    Returns:
+        ``True`` if the object is a breakpoint.
+    """
+    return isinstance(obj, Breakpoint)
+
+
+def get_breakpoints() -> Dict[int, Breakpoint]:
+    """Return every breakpoint of the process, indexed by its number.
+
+    Returns:
+        The breakpoints of the registry of the standard library.
+    """
+    return {number: bp for number, bp in enumerate(Breakpoint.bpbynumber) if bp is not None}
+
+
+def get_breakpoint(number: int) -> Optional[Breakpoint]:
+    """Return the breakpoint with a number, if the registry holds one.
+
+    Args:
+        number: The number of the breakpoint.
+
+    Returns:
+        The breakpoint, or ``None`` when the registry holds no such number.
+    """
+    if isinstance(number, bool) or not isinstance(number, int):
+        raise TypeError(f"number must be an int, got {type(number).__name__}")
+    if number < 0:
+        raise ValueError(f"number must not be negative, got {number}")
+    if number >= len(Breakpoint.bpbynumber):
+        return None
+    return Breakpoint.bpbynumber[number]
+
+
+def get_file_breakpoints(filename: str) -> List[Breakpoint]:
+    """Return the breakpoints that are set in a file.
+
+    Args:
+        filename: The name of the file.
+
+    Returns:
+        The breakpoints of the file, ordered by the line they stop at.
+    """
+    canonical = canonical_filename(filename)
+    found: List[Breakpoint] = []
+    for (name, _line), breakpoints in Breakpoint.bplist.items():
+        if name == canonical:
+            found.extend(breakpoints)
+    return sorted(found, key=lambda bp: (bp.line, bp.number))
+
+
+def set_breakpoint(
+    filename: str,
+    lineno: int,
+    temporary: bool = False,
+    cond: Optional[str] = None,
+    funcname: Optional[str] = None,
+) -> Breakpoint:
+    """Set a breakpoint in a file.
+
+    The breakpoint is registered in the registry of the standard library, so
+    every debugger of the process sees it.
+
+    Args:
+        filename: The name of the file the breakpoint belongs to.
+        lineno: The line the breakpoint stops at.
+        temporary: Whether the breakpoint is removed once it was hit.
+        cond: The condition that has to hold for the breakpoint to stop.
+        funcname: The name of the function the breakpoint belongs to.
+
+    Returns:
+        The new breakpoint.
+    """
+    canonical = canonical_filename(filename)
+    line = _require_positive_int(lineno, "lineno")
+    _require_bool(temporary, "temporary")
+    if cond is not None and not isinstance(cond, str):
+        raise TypeError(f"cond must be a str or None, got {type(cond).__name__}")
+    if funcname is not None and not isinstance(funcname, str):
+        raise TypeError(f"funcname must be a str or None, got {type(funcname).__name__}")
+    return Breakpoint(canonical, line, temporary, cond, funcname)
+
+
+def clear_breakpoint(breakpoint: Breakpoint) -> bool:
+    """Remove a breakpoint from the registry of the standard library.
+
+    Args:
+        breakpoint: The breakpoint to remove.
+
+    Returns:
+        ``True`` if the breakpoint was registered, ``False`` if it was not.
+    """
+    bp = _require_breakpoint(breakpoint)
+    index = (bp.file, bp.line)
+    if bp not in Breakpoint.bplist.get(index, []):
+        return False
+    bp.deleteMe()
+    return True
+
+
+def clear_breakpoints(filename: str) -> int:
+    """Remove every breakpoint of a file from the registry.
+
+    Args:
+        filename: The name of the file.
+
+    Returns:
+        The number of removed breakpoints.
+    """
+    canonical = canonical_filename(filename)
+    removed = 0
+    for breakpoints in list(Breakpoint.bplist.values()):
+        for bp in list(breakpoints):
+            if bp.file == canonical:
+                bp.deleteMe()
+                removed += 1
+    return removed
+
+
+def clear_all_breakpoints() -> int:
+    """Remove every breakpoint of the process from the registry.
+
+    The registry starts over, the way the standard library restarts it: the
+    numbers of the breakpoints begin at one again.
+
+    Returns:
+        The number of removed breakpoints.
+    """
+    removed = len(get_breakpoints())
+    Breakpoint.bpbynumber = [None]
+    Breakpoint.bplist = {}
+    Breakpoint.next = 1
+    return removed
+
+
+def enable_breakpoint(breakpoint: Breakpoint) -> None:
+    """Enable a breakpoint, so that it stops the program again.
+
+    Args:
+        breakpoint: The breakpoint to enable.
+    """
+    _require_breakpoint(breakpoint).enable()
+
+
+def disable_breakpoint(breakpoint: Breakpoint) -> None:
+    """Disable a breakpoint, so that it does not stop the program.
+
+    Args:
+        breakpoint: The breakpoint to disable.
+    """
+    _require_breakpoint(breakpoint).disable()
+
+
+def is_breakpoint_enabled(breakpoint: Breakpoint) -> bool:
+    """Return ``True`` if a breakpoint is enabled.
+
+    Args:
+        breakpoint: The breakpoint to check.
+
+    Returns:
+        ``True`` if the breakpoint stops the program.
+    """
+    return bool(_require_breakpoint(breakpoint).enabled)
+
+
+def breakpoint_hits(breakpoint: Breakpoint) -> int:
+    """Return the number of times a breakpoint was hit.
+
+    Args:
+        breakpoint: The breakpoint to check.
+
+    Returns:
+        The number of hits the breakpoint counted.
+    """
+    return int(_require_breakpoint(breakpoint).hits)
+
+
+def effective_breakpoint(
+    file: str,
+    line: int,
+    frame: types.FrameType,
+) -> Tuple[Optional[Breakpoint], Optional[bool]]:
+    """Return the breakpoint that is effective for a line of code.
+
+    The standard library returns the breakpoint that stops the program and
+    whether the breakpoint is to be removed afterwards.  A location without a
+    breakpoint has no effective breakpoint at all.
+
+    Args:
+        file: The name of the file the line belongs to.
+        line: The line of the code.
+        frame: The frame the code runs in.
+
+    Returns:
+        The effective breakpoint and whether it is temporary, or a pair of
+        ``None`` values when no breakpoint is effective.
+    """
+    canonical = canonical_filename(file)
+    number = _require_positive_int(line, "line")
+    stack_frame = _require_frame(frame)
+    if (canonical, number) not in Breakpoint.bplist:
+        return (None, None)
+    return _bdb.effective(canonical, number, stack_frame)
+
+
+def checkfuncname(breakpoint: Breakpoint, frame: types.FrameType) -> bool:
+    """Return ``True`` if a breakpoint matches the line a frame runs.
+
+    Args:
+        breakpoint: The breakpoint to check.
+        frame: The frame the code runs in.
+
+    Returns:
+        ``True`` if the breakpoint stops at the line of the frame.
+    """
+    bp = _require_breakpoint(breakpoint)
+    stack_frame = _require_frame(frame)
+    return _bdb.checkfuncname(bp, stack_frame)
+BDB_UTILS
+
+# --- tests/test_bdb_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_bdb_utils.py" <<'TEST_BDB_UTILS'
+"""Tests for bdb_utils."""
+
+import bdb
+import os
+import sys
+import types
+import unittest
+
+import bdb_utils
+from bdb_utils import (
+    Bdb,
+    BdbQuit,
+    Breakpoint,
+    breakpoint_hits,
+    canonical_filename,
+    checkfuncname,
+    clear_all_breakpoints,
+    clear_breakpoint,
+    clear_breakpoints,
+    create_bdb,
+    disable_breakpoint,
+    effective_breakpoint,
+    enable_breakpoint,
+    get_breakpoint,
+    get_breakpoints,
+    get_file_breakpoints,
+    is_bdb_instance,
+    is_breakpoint,
+    is_breakpoint_enabled,
+    set_breakpoint,
+)
+
+
+def _frame_and_line() -> tuple[types.FrameType, int]:
+    """Return a frame of this file together with the line it stopped at."""
+    frame = sys._getframe()
+    return frame, frame.f_lineno
+
+
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(bdb_utils.__all__, sorted(set(bdb_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in bdb_utils.__all__:
+            self.assertTrue(hasattr(bdb_utils, name), name)
+
+    def test_the_standard_library_classes_are_re_exported(self):
+        self.assertIs(Bdb, bdb.Bdb)
+        self.assertIs(Breakpoint, bdb.Breakpoint)
+        self.assertIs(BdbQuit, bdb.BdbQuit)
+
+
+class TestDebuggerCreation(unittest.TestCase):
+    """Verify the helpers that create a debugger."""
+
+    def test_create_bdb_returns_a_debugger(self):
+        debugger = create_bdb()
+        self.assertIsInstance(debugger, Bdb)
+        self.assertTrue(is_bdb_instance(debugger))
+
+    def test_create_bdb_accepts_skip_patterns(self):
+        debugger = create_bdb(skip=["unittest", "doctest"])
+        self.assertIn("unittest", debugger.skip)
+
+    def test_create_bdb_rejects_a_single_string(self):
+        with self.assertRaises(TypeError):
+            create_bdb(skip="unittest")
+
+    def test_create_bdb_rejects_a_bad_container(self):
+        with self.assertRaises(TypeError):
+            create_bdb(skip=42)
+
+    def test_create_bdb_rejects_a_bad_entry(self):
+        with self.assertRaises(TypeError):
+            create_bdb(skip=[42])
+
+    def test_is_bdb_instance_rejects_other_objects(self):
+        self.assertFalse(is_bdb_instance("not a debugger"))
+
+
+class TestCanonicalFilename(unittest.TestCase):
+    """Verify the helper that canonicalizes a file name."""
+
+    def test_canonical_filename_is_absolute(self):
+        self.assertTrue(os.path.isabs(canonical_filename("example.py")))
+
+    def test_canonical_filename_rejects_a_bad_type(self):
+        with self.assertRaises(TypeError):
+            canonical_filename(42)
+
+    def test_canonical_filename_rejects_an_empty_name(self):
+        with self.assertRaises(ValueError):
+            canonical_filename("")
+
+
+class TestBreakpoints(unittest.TestCase):
+    """Verify the helpers that manage the breakpoints of a session."""
+
+    def setUp(self):
+        clear_all_breakpoints()
+
+    def tearDown(self):
+        clear_all_breakpoints()
+
+    def test_set_breakpoint_registers_the_breakpoint(self):
+        bp = set_breakpoint(__file__, 12)
+        self.assertIsInstance(bp, Breakpoint)
+        self.assertTrue(is_breakpoint(bp))
+        self.assertEqual(get_breakpoints(), {bp.number: bp})
+
+    def test_set_breakpoint_keeps_the_line(self):
+        self.assertEqual(set_breakpoint(__file__, 12).line, 12)
+
+    def test_set_breakpoint_canonicalizes_the_file(self):
+        bp = set_breakpoint("example.py", 12)
+        self.assertEqual(bp.file, canonical_filename("example.py"))
+
+    def test_set_breakpoint_rejects_a_bad_line(self):
+        with self.assertRaises(TypeError):
+            set_breakpoint(__file__, "12")
+        with self.assertRaises(ValueError):
+            set_breakpoint(__file__, 0)
+
+    def test_set_breakpoint_rejects_a_bad_condition(self):
+        with self.assertRaises(TypeError):
+            set_breakpoint(__file__, 12, cond=42)
+
+    def test_set_breakpoint_rejects_a_bad_function_name(self):
+        with self.assertRaises(TypeError):
+            set_breakpoint(__file__, 12, funcname=42)
+
+    def test_set_breakpoint_rejects_a_bad_temporary_flag(self):
+        with self.assertRaises(TypeError):
+            set_breakpoint(__file__, 12, temporary="yes")
+
+    def test_get_breakpoint_returns_the_breakpoint(self):
+        bp = set_breakpoint(__file__, 12)
+        self.assertIs(get_breakpoint(bp.number), bp)
+
+    def test_get_breakpoint_returns_none_for_an_unknown_number(self):
+        self.assertIsNone(get_breakpoint(9999))
+
+    def test_get_breakpoint_rejects_a_bad_number(self):
+        with self.assertRaises(TypeError):
+            get_breakpoint("1")
+        with self.assertRaises(ValueError):
+            get_breakpoint(-1)
+
+    def test_get_file_breakpoints_finds_the_breakpoint(self):
+        bp = set_breakpoint(__file__, 12)
+        self.assertEqual(get_file_breakpoints(__file__), [bp])
+
+    def test_get_file_breakpoints_ignores_other_files(self):
+        set_breakpoint(__file__, 12)
+        self.assertEqual(get_file_breakpoints("other.py"), [])
+
+    def test_clear_breakpoint_removes_the_breakpoint(self):
+        bp = set_breakpoint(__file__, 12)
+        self.assertTrue(clear_breakpoint(bp))
+        self.assertEqual(get_breakpoints(), {})
+
+    def test_clear_breakpoint_reports_an_unknown_breakpoint(self):
+        bp = set_breakpoint(__file__, 12)
+        clear_breakpoint(bp)
+        self.assertFalse(clear_breakpoint(bp))
+
+    def test_clear_breakpoint_rejects_other_objects(self):
+        with self.assertRaises(TypeError):
+            clear_breakpoint("not a breakpoint")
+
+    def test_clear_breakpoints_removes_the_breakpoints_of_a_file(self):
+        set_breakpoint(__file__, 12)
+        set_breakpoint(__file__, 13)
+        self.assertEqual(clear_breakpoints(__file__), 2)
+        self.assertEqual(get_breakpoints(), {})
+
+    def test_clear_all_breakpoints_empties_the_registry(self):
+        set_breakpoint(__file__, 12)
+        self.assertEqual(clear_all_breakpoints(), 1)
+        self.assertEqual(get_breakpoints(), {})
+
+
+class TestBreakpointState(unittest.TestCase):
+    """Verify the helpers that read and change the state of a breakpoint."""
+
+    def setUp(self):
+        clear_all_breakpoints()
+
+    def tearDown(self):
+        clear_all_breakpoints()
+
+    def test_a_new_breakpoint_is_enabled(self):
+        self.assertTrue(is_breakpoint_enabled(set_breakpoint(__file__, 12)))
+
+    def test_disable_and_enable_change_the_state(self):
+        bp = set_breakpoint(__file__, 12)
+        disable_breakpoint(bp)
+        self.assertFalse(is_breakpoint_enabled(bp))
+        enable_breakpoint(bp)
+        self.assertTrue(is_breakpoint_enabled(bp))
+
+    def test_the_hits_of_a_new_breakpoint_are_zero(self):
+        self.assertEqual(breakpoint_hits(set_breakpoint(__file__, 12)), 0)
+
+    def test_the_helpers_reject_other_objects(self):
+        with self.assertRaises(TypeError):
+            disable_breakpoint("not a breakpoint")
+        with self.assertRaises(TypeError):
+            enable_breakpoint("not a breakpoint")
+        with self.assertRaises(TypeError):
+            is_breakpoint_enabled("not a breakpoint")
+        with self.assertRaises(TypeError):
+            breakpoint_hits("not a breakpoint")
+
+
+class TestEffectiveBreakpoint(unittest.TestCase):
+    """Verify the helper that finds the breakpoint of a line of code."""
+
+    def setUp(self):
+        clear_all_breakpoints()
+
+    def tearDown(self):
+        clear_all_breakpoints()
+
+    def test_a_location_without_a_breakpoint_is_not_effective(self):
+        frame, line = _frame_and_line()
+        self.assertEqual(effective_breakpoint(__file__, line, frame), (None, None))
+
+    def test_the_breakpoint_of_the_line_is_effective(self):
+        frame, line = _frame_and_line()
+        bp = set_breakpoint(__file__, line)
+        breakpoint, temporary = effective_breakpoint(__file__, line, frame)
+        self.assertIs(breakpoint, bp)
+        self.assertTrue(temporary)
+
+    def test_a_disabled_breakpoint_is_not_effective(self):
+        frame, line = _frame_and_line()
+        disable_breakpoint(set_breakpoint(__file__, line))
+        self.assertEqual(effective_breakpoint(__file__, line, frame), (None, None))
+
+    def test_a_hit_is_counted(self):
+        frame, line = _frame_and_line()
+        bp = set_breakpoint(__file__, line)
+        effective_breakpoint(__file__, line, frame)
+        self.assertEqual(breakpoint_hits(bp), 1)
+
+    def test_effective_breakpoint_rejects_a_bad_file(self):
+        frame, line = _frame_and_line()
+        with self.assertRaises(TypeError):
+            effective_breakpoint(42, line, frame)
+
+    def test_effective_breakpoint_rejects_a_bad_line(self):
+        frame, line = _frame_and_line()
+        with self.assertRaises(TypeError):
+            effective_breakpoint(__file__, "12", frame)
+        with self.assertRaises(ValueError):
+            effective_breakpoint(__file__, 0, frame)
+
+    def test_effective_breakpoint_rejects_a_bad_frame(self):
+        frame, line = _frame_and_line()
+        with self.assertRaises(TypeError):
+            effective_breakpoint(__file__, line, "not a frame")
+
+
+class TestCheckFuncName(unittest.TestCase):
+    """Verify the helper that matches a breakpoint against a frame."""
+
+    def setUp(self):
+        clear_all_breakpoints()
+
+    def tearDown(self):
+        clear_all_breakpoints()
+
+    def test_the_breakpoint_matches_the_line_of_the_frame(self):
+        frame, line = _frame_and_line()
+        bp = set_breakpoint(__file__, line)
+        self.assertTrue(checkfuncname(bp, frame))
+
+    def test_the_breakpoint_does_not_match_another_line(self):
+        frame, line = _frame_and_line()
+        bp = set_breakpoint(__file__, line + 100)
+        self.assertFalse(checkfuncname(bp, frame))
+
+    def test_checkfuncname_rejects_a_bad_breakpoint(self):
+        frame, line = _frame_and_line()
+        with self.assertRaises(TypeError):
+            checkfuncname("not a breakpoint", frame)
+
+    def test_checkfuncname_rejects_a_bad_frame(self):
+        frame, line = _frame_and_line()
+        bp = set_breakpoint(__file__, 12)
+        with self.assertRaises(TypeError):
+            checkfuncname(bp, "not a frame")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_BDB_UTILS
+
+# --- pdb_utils.py ---
+cat > "$OUTPUT_DIR/pdb_utils.py" <<'PDB_UTILS'
+"""Python debugger utilities wrapping the standard library :mod:`pdb` module.
+
+The :mod:`pdb` module is the interactive debugger of the standard library.  It
+runs a statement, an expression, or a function under the control of a prompt,
+and it inspects the frame of a program after an exception was raised.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure.  It re-exports the class :class:`Pdb` together with the
+error :class:`Restart`, and it adds the helpers that run a program under the
+debugger.
+
+Every helper of this module opens the prompt of the debugger on the standard
+input of the process, so a program that calls one of them has to answer the
+prompt.  The tests of the project patch the standard library instead, so the
+suite never waits for a prompt.
+"""
+
+from __future__ import annotations
+
+import pdb as _pdb
+import types
+from typing import IO, Any, Callable, Dict, Mapping, Optional, Sequence
+
+__all__: list[str] = [
+    "Pdb",
+    "Restart",
+    "create_pdb",
+    "is_pdb_instance",
+    "pm",
+    "post_mortem",
+    "run",
+    "runcall",
+    "runctx",
+    "runeval",
+    "set_trace",
+]
+
+#: The interactive debugger of the standard library.
+Pdb = _pdb.Pdb
+
+#: The error the standard library raises when a debugger is restarted.
+Restart = _pdb.Restart
+
+
+def _require_str(value: object, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_optional_dict(value: object, name: str) -> Optional[Dict[str, Any]]:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise TypeError(f"{name} must be a dict or None, got {type(value).__name__}")
+    return value
+
+
+def _require_mapping(value: object, name: str) -> Mapping[str, object]:
+    if not isinstance(value, Mapping):
+        raise TypeError(f"{name} must be a mapping, got {type(value).__name__}")
+    return value
+
+
+def create_pdb(
+    completekey: str = "tab",
+    stdin: Optional[IO[str]] = None,
+    stdout: Optional[IO[str]] = None,
+    skip: Optional[Sequence[str]] = None,
+    nosigint: bool = False,
+    readrc: bool = True,
+) -> Pdb:
+    """Create an interactive debugger.
+
+    Args:
+        completekey: The key that completes a name.
+        stdin: The stream the debugger reads its commands from.
+        stdout: The stream the debugger writes its output to.
+        skip: The names of the modules the debugger does not trace.
+        nosigint: Whether the debugger leaves the handling of ``SIGINT`` to
+            the program.
+        readrc: Whether the debugger reads the files of the user.
+
+    Returns:
+        A new debugger.
+    """
+    if not isinstance(completekey, str):
+        raise TypeError(f"completekey must be a str, got {type(completekey).__name__}")
+    if stdin is not None and not hasattr(stdin, "read"):
+        raise TypeError("stdin must have a read method or None")
+    if stdout is not None and not hasattr(stdout, "write"):
+        raise TypeError("stdout must have a write method or None")
+    if skip is not None:
+        if isinstance(skip, (str, bytes)):
+            raise TypeError("skip must be a sequence of strings, not a single string")
+        if not isinstance(skip, (list, tuple)):
+            raise TypeError(f"skip must be a list or a tuple, got {type(skip).__name__}")
+        for name in skip:
+            if not isinstance(name, str):
+                raise TypeError(f"skip entries must be strings, got {type(name).__name__}")
+    if not isinstance(nosigint, bool):
+        raise TypeError(f"nosigint must be a bool, got {type(nosigint).__name__}")
+    if not isinstance(readrc, bool):
+        raise TypeError(f"readrc must be a bool, got {type(readrc).__name__}")
+    return Pdb(
+        completekey=completekey,
+        stdin=stdin,
+        stdout=stdout,
+        skip=list(skip) if skip is not None else None,
+        nosigint=nosigint,
+        readrc=readrc,
+    )
+
+
+def is_pdb_instance(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an interactive debugger.
+
+    Args:
+        obj: The object to check.
+
+    Returns:
+        ``True`` if the object is a debugger.
+    """
+    return isinstance(obj, Pdb)
+
+
+def set_trace(header: Optional[str] = None) -> None:
+    """Enter the debugger at the frame of the caller.
+
+    Args:
+        header: The message the debugger prints before it waits for a command.
+    """
+    if header is not None and not isinstance(header, str):
+        raise TypeError(f"header must be a str or None, got {type(header).__name__}")
+    _pdb.set_trace(header=header)
+
+
+def post_mortem(traceback: Optional[types.TracebackType] = None) -> None:
+    """Enter the debugger with the frame of a traceback.
+
+    Args:
+        traceback: The traceback the debugger inspects.  The traceback of the
+            exception that is handled at the moment is used when it is
+            ``None``.
+    """
+    if traceback is not None and not isinstance(traceback, types.TracebackType):
+        raise TypeError(f"traceback must be a traceback or None, got {type(traceback).__name__}")
+    _pdb.post_mortem(traceback)
+
+
+def pm() -> None:
+    """Enter the debugger with the traceback of the last exception."""
+    _pdb.pm()
+
+
+def run(
+    statement: str,
+    globals: Optional[Dict[str, Any]] = None,
+    locals: Optional[Mapping[str, object]] = None,
+) -> Any:
+    """Run a statement under the control of the debugger.
+
+    Args:
+        statement: The statement the debugger runs.
+        globals: The global namespace of the statement.
+        locals: The local namespace of the statement.
+
+    Returns:
+        The value of the last expression of the statement.
+    """
+    _require_str(statement, "statement")
+    namespace = _require_optional_dict(globals, "globals")
+    local_namespace = None if locals is None else _require_mapping(locals, "locals")
+    return _pdb.run(statement, namespace, local_namespace)
+
+
+def runeval(
+    expression: str,
+    globals: Optional[Dict[str, Any]] = None,
+    locals: Optional[Mapping[str, object]] = None,
+) -> Any:
+    """Evaluate an expression under the control of the debugger.
+
+    Args:
+        expression: The expression the debugger evaluates.
+        globals: The global namespace of the expression.
+        locals: The local namespace of the expression.
+
+    Returns:
+        The value of the expression.
+    """
+    _require_str(expression, "expression")
+    namespace = _require_optional_dict(globals, "globals")
+    local_namespace = None if locals is None else _require_mapping(locals, "locals")
+    return _pdb.runeval(expression, namespace, local_namespace)
+
+
+def runctx(
+    statement: str,
+    globals: Dict[str, Any],
+    locals: Mapping[str, object],
+) -> None:
+    """Run a statement in the given namespaces under the control of the debugger.
+
+    Args:
+        statement: The statement the debugger runs.
+        globals: The global namespace of the statement.
+        locals: The local namespace of the statement.
+    """
+    _require_str(statement, "statement")
+    namespace = _require_optional_dict(globals, "globals")
+    if namespace is None:
+        raise TypeError("globals must be a dict")
+    _require_mapping(locals, "locals")
+    _pdb.runctx(statement, namespace, locals)
+
+
+def runcall(function: Callable[..., Any], /, *args: Any, **kwargs: Any) -> Any:
+    """Call a function under the control of the debugger.
+
+    Args:
+        function: The function the debugger calls.
+        args: The positional arguments of the call.
+        kwargs: The keyword arguments of the call.
+
+    Returns:
+        The value the function returned.
+    """
+    if not callable(function):
+        raise TypeError(f"function must be callable, got {type(function).__name__}")
+    return _pdb.runcall(function, *args, **kwargs)
+PDB_UTILS
+
+# --- tests/test_pdb_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_pdb_utils.py" <<'TEST_PDB_UTILS'
+"""Tests for pdb_utils."""
+
+import io
+import pdb as standard_pdb
+import unittest
+from unittest import mock
+
+import pdb_utils
+from pdb_utils import (
+    Pdb,
+    Restart,
+    create_pdb,
+    is_pdb_instance,
+    pm,
+    post_mortem,
+    run,
+    runcall,
+    runctx,
+    runeval,
+    set_trace,
+)
+
+
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(pdb_utils.__all__, sorted(set(pdb_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in pdb_utils.__all__:
+            self.assertTrue(hasattr(pdb_utils, name), name)
+
+    def test_the_standard_library_classes_are_re_exported(self):
+        self.assertIs(Pdb, standard_pdb.Pdb)
+        self.assertIs(Restart, standard_pdb.Restart)
+
+
+class TestDebuggerCreation(unittest.TestCase):
+    """Verify the helpers that create a debugger."""
+
+    def test_create_pdb_returns_a_debugger(self):
+        debugger = create_pdb()
+        self.assertIsInstance(debugger, Pdb)
+        self.assertTrue(is_pdb_instance(debugger))
+
+    def test_create_pdb_accepts_the_streams(self):
+        debugger = create_pdb(stdin=io.StringIO(), stdout=io.StringIO())
+        self.assertFalse(debugger.use_rawinput)
+
+    def test_create_pdb_accepts_skip_patterns(self):
+        debugger = create_pdb(skip=["unittest"])
+        self.assertIn("unittest", debugger.skip)
+
+    def test_create_pdb_rejects_a_bad_completekey(self):
+        with self.assertRaises(TypeError):
+            create_pdb(completekey=42)
+
+    def test_create_pdb_rejects_a_bad_stream(self):
+        with self.assertRaises(TypeError):
+            create_pdb(stdin=object())
+        with self.assertRaises(TypeError):
+            create_pdb(stdout=object())
+
+    def test_create_pdb_rejects_a_single_string(self):
+        with self.assertRaises(TypeError):
+            create_pdb(skip="unittest")
+
+    def test_create_pdb_rejects_a_bad_skip(self):
+        with self.assertRaises(TypeError):
+            create_pdb(skip=42)
+        with self.assertRaises(TypeError):
+            create_pdb(skip=[42])
+
+    def test_create_pdb_rejects_a_bad_flag(self):
+        with self.assertRaises(TypeError):
+            create_pdb(nosigint="yes")
+        with self.assertRaises(TypeError):
+            create_pdb(readrc="yes")
+
+    def test_is_pdb_instance_rejects_other_objects(self):
+        self.assertFalse(is_pdb_instance("not a debugger"))
+
+
+class TestRunningUnderTheDebugger(unittest.TestCase):
+    """Verify the helpers that run a program under the debugger."""
+
+    def test_set_trace_forwards_the_header(self):
+        with mock.patch.object(pdb_utils._pdb, "set_trace") as patched:
+            set_trace("a header")
+            patched.assert_called_once_with(header="a header")
+
+    def test_set_trace_without_a_header(self):
+        with mock.patch.object(pdb_utils._pdb, "set_trace") as patched:
+            set_trace()
+            patched.assert_called_once_with(header=None)
+
+    def test_set_trace_rejects_a_bad_header(self):
+        with self.assertRaises(TypeError):
+            set_trace(header=42)
+
+    def test_post_mortem_forwards_the_traceback(self):
+        try:
+            raise ValueError("boom")
+        except ValueError as error:
+            traceback = error.__traceback__
+        with mock.patch.object(pdb_utils._pdb, "post_mortem") as patched:
+            post_mortem(traceback)
+            patched.assert_called_once_with(traceback)
+
+    def test_post_mortem_rejects_a_bad_traceback(self):
+        with self.assertRaises(TypeError):
+            post_mortem("not a traceback")
+
+    def test_pm_calls_the_standard_library(self):
+        with mock.patch.object(pdb_utils._pdb, "pm") as patched:
+            pm()
+            patched.assert_called_once_with()
+
+    def test_run_forwards_the_namespaces(self):
+        with mock.patch.object(pdb_utils._pdb, "run", return_value=42) as patched:
+            self.assertEqual(run("1 + 1", {"a": 1}, {"b": 2}), 42)
+            patched.assert_called_once_with("1 + 1", {"a": 1}, {"b": 2})
+
+    def test_run_rejects_a_bad_statement(self):
+        with self.assertRaises(TypeError):
+            run(42)
+
+    def test_run_rejects_a_bad_namespace(self):
+        with self.assertRaises(TypeError):
+            run("1 + 1", globals="not a dict")
+        with self.assertRaises(TypeError):
+            run("1 + 1", locals="not a mapping")
+
+    def test_runeval_forwards_the_namespaces(self):
+        with mock.patch.object(pdb_utils._pdb, "runeval", return_value=7) as patched:
+            self.assertEqual(runeval("1 + 1"), 7)
+            patched.assert_called_once_with("1 + 1", None, None)
+
+    def test_runeval_rejects_a_bad_expression(self):
+        with self.assertRaises(TypeError):
+            runeval(42)
+
+    def test_runctx_forwards_the_namespaces(self):
+        with mock.patch.object(pdb_utils._pdb, "runctx") as patched:
+            runctx("1 + 1", {"a": 1}, {"b": 2})
+            patched.assert_called_once_with("1 + 1", {"a": 1}, {"b": 2})
+
+    def test_runctx_rejects_a_bad_namespace(self):
+        with self.assertRaises(TypeError):
+            runctx("1 + 1", "not a dict", {})
+        with self.assertRaises(TypeError):
+            runctx("1 + 1", {}, "not a mapping")
+
+    def test_runcall_forwards_the_arguments(self):
+        with mock.patch.object(pdb_utils._pdb, "runcall", return_value=3) as patched:
+            self.assertEqual(runcall(len, "abc"), 3)
+            patched.assert_called_once_with(len, "abc")
+
+    def test_runcall_rejects_a_value_that_is_not_callable(self):
+        with self.assertRaises(TypeError):
+            runcall(42)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_PDB_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

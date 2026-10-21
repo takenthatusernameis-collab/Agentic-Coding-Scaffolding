@@ -75,6 +75,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ntpath_utils.py` — Windows path utilities wrapping the standard library `ntpath` module (abspath, basename, commonpath, commonprefix, dirname, join, normcase, normpath, realpath, relpath, split, splitdrive, splitroot, splitext, expanduser, expandvars, has_drive, is_unc_path, is_device_path, to_slashes, to_backslashes) with input validation
 - `nturl2path_utils.py` — URL to pathname conversions wrapping the standard library `nturl2path` module (`url2pathname`, `pathname2url`)
 - `curses_utils.py` — terminal handling utilities wrapping the standard library `curses` module (`initscr`, `endwin`, `cbreak`, `echo`, `raw`, `colors`) with input validation
+- `bdb_utils.py` — debugger framework utilities wrapping the standard library `bdb` module (`create_bdb`, `set_breakpoint`, `clear_breakpoint`, `clear_breakpoints`, `clear_all_breakpoints`, `get_breakpoints`, `get_breakpoint`, `get_file_breakpoints`, `enable_breakpoint`, `disable_breakpoint`, `is_breakpoint_enabled`, `breakpoint_hits`, `canonical_filename`, `effective_breakpoint`, `checkfuncname`) with input validation and the re-exported classes `Bdb` and `Breakpoint`
+- `pdb_utils.py` — interactive debugger utilities wrapping the standard library `pdb` module (`create_pdb`, `set_trace`, `post_mortem`, `pm`, `run`, `runeval`, `runctx`, `runcall`) with input validation and the re-exported class `Pdb`
 - `ipaddress_utils.py` — IP address utilities wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors
 - `pydoc_utils.py` — Documentation utilities wrapping the standard library `pydoc` module (`render_doc`, `doc`, `writedoc`, `writedocs`, `apropos`, `locate`, `resolve`, `safeimport`, `importfile`, `getdoc`, `synopsis`, `source_synopsis`, `describe`, `classify_class_attrs`, `classname`, `parentname`, `visiblename`, `isdata`, `ispackage`, `ispath`, `allmethods`, `splitdoc`, `stripid`, `replace`, `cram`, `plain`, `cli`, `help`, `getpager`, `plainpager`, `browse`) with input validation, and the re-exported classes `Doc`, `HTMLDoc`, `HTMLRepr`, `Helper`, `ModuleScanner`, `Repr`, `TextDoc`, and `TextRepr` together with the error `ErrorDuringImport`
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
@@ -297,6 +299,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_ntpath_utils.py` — unit tests for `ntpath_utils.py`
 - `tests/test_nturl2path_utils.py` — unit tests for `nturl2path_utils.py`
 - `tests/test_curses_utils.py` — unit tests for `curses_utils.py`
+- `tests/test_bdb_utils.py` — unit tests for `bdb_utils.py`
+- `tests/test_pdb_utils.py` — unit tests for `pdb_utils.py`
 - `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
 - `tests/test_pydoc_utils.py` — unit tests for `pydoc_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`

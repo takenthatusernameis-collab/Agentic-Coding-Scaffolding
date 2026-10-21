@@ -1,4 +1,89 @@
-## Latest Session (2026-10-21) — ntpath_utils added, the generator and the documents repaired
+## Latest Session (2026-10-21) — bdb_utils and pdb_utils added, the previous session finished
+
+The board held no task, so this session finished the wrapper modules the previous session had started
+and synchronized them across every surface of the project.
+
+Completed in the latest session:
+
+- The previous session left `bdb_utils.py`, `pdb_utils.py`, and `tests/test_bdb_utils.py` in the
+  working tree without registering them anywhere, and it was stopped before it wrote the test of the
+  interactive debugger. This session completed the work: both modules were rewritten against the real
+  interface of the standard library, the test of the framework was finished, and the test of the
+  interactive debugger was written.
+- Corrected the semantics the previous session had assumed. The function `bdb.effective` returns the
+  breakpoint that is effective and the flag that says whether the breakpoint may be removed, not a
+  triple of values, and the method `bdb.Bdb.set_break` returns an error message instead of the
+  breakpoint it sets, so the wrapper registers the breakpoint itself and hands it to the caller.
+- Added `bdb_utils.py` wrapping the standard library `bdb` module (`create_bdb`, `set_breakpoint`,
+  `clear_breakpoint`, `clear_breakpoints`, `clear_all_breakpoints`, `get_breakpoints`,
+  `get_breakpoint`, `get_file_breakpoints`, `enable_breakpoint`, `disable_breakpoint`,
+  `is_breakpoint_enabled`, `breakpoint_hits`, `canonical_filename`, `effective_breakpoint`,
+  `checkfuncname`) with typed signatures, docstrings, `__all__`, and input validation, plus unit
+  tests in `tests/test_bdb_utils.py`. The classes `Bdb` and `Breakpoint` together with the error
+  `BdbQuit` are re-exported.
+- Added `pdb_utils.py` wrapping the standard library `pdb` module (`create_pdb`, `set_trace`,
+  `post_mortem`, `pm`, `run`, `runeval`, `runctx`, `runcall`) with typed signatures, docstrings,
+  `__all__`, and input validation, plus unit tests in `tests/test_pdb_utils.py`. The class `Pdb`
+  together with the error `Restart` is re-exported.
+- The breakpoints of the standard library live in the class attributes of `bdb.Breakpoint`, so every
+  debugger of the process shares them. The helpers of the wrapper work on that registry, and
+  `clear_all_breakpoints` restarts it the way the standard library does, without the method
+  `clearBreakpoints` that only exists from Python 3.11 on, so the wrapper works on every version the
+  project supports.
+- The tests are hermetic. The tests of the interactive debugger patch the standard library, so the
+  suite never waits for a prompt, and the tests of the framework only work with the frames of the
+  test file itself, so they never stop a program of the suite.
+- Synchronized the new modules across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh`
+  header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README
+  and changelog, the README tree and module sections, `.kilo/command/scaffold-project.md`, the
+  `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships `bdb_utils.py`
+  and `pdb_utils.py` together with their tests, all four byte identical to the repository copies, and
+  the smoke test of the generator passes with them.
+- The repository suite now runs 4496 tests, and `make lint` and `make typecheck` are green.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `antigravity`, `audioop`, `cgi`, `cgitb`, `chunk`, `crypt`, `ensurepip`, `idlelib`,
+  `imghdr`, `lib2to3`, `msilib`, `msvcrt`, `nis`, `nntplib`, `ossaudiodev`, `pipes`, `posix`,
+  `pydoc_data`, `pyexpat`, `readline`, `site`, `sndhdr`, `spwd`, `sre_compile`, `sre_constants`,
+  `sre_parse`, `sunau`, `telnetlib`, `tkinter`, `turtle`, `turtledemo`, `urllib`, `venv`, `winreg`,
+  `winsound`, and `wsgiref`. The `site` module is the natural next candidate: it is pure Python, so
+  it works on every platform, and the tests only compare the search paths and the settings it
+  reports. The `wsgiref` module is the alternative: it is a package of pure Python helpers for the
+  web, and the tests never open a connection.
+- Keep every new wrapper hermetic: the test suite must never open a network connection, write to a
+  system service, or block on a subprocess. `imaplib_utils.py` is the reference — its connection
+  helpers are exercised with `unittest.mock.patch` instead of real servers. `smtplib_utils.py`
+  follows it: the tests replay scripted server replies through a fake socket and never touch the
+  network. `xmlrpc_utils.py` follows it as well: the server helpers are patched and the encoding
+  helpers only compare strings. `syslog_utils.py` follows it too: every call into the system logger
+  is patched. `resource_utils.py` follows it as well: the tests only read the limits of the running
+  process and patch the write. `termios_utils.py` follows it as well: the tests work on a pseudo
+  terminal that the test itself opens. `fcntl_utils.py` follows it as well: the tests lock the files
+  of a temporary directory that the test itself creates, and they use the non blocking operations so
+  that no test ever waits for a lock. `pty_utils.py` follows it as well: the tests exercise `fork`
+  and `spawn` through a patched standard library module and never fork or spawn a process.
+  `zipimport_utils.py` follows it as well: the tests build a Zip archive of their own in a
+  temporary directory and never read an archive that the interpreter ships. `ipaddress_utils.py`
+  follows it as well: the module is pure computation, so the tests only compare addresses and
+  networks. `ntpath_utils.py` follows it as well: the module is pure computation apart from the
+  helpers that read the file system, and the tests only look at a file that the test itself creates.
+  `pdb_utils.py` follows it as well: every helper that opens the prompt of the debugger is patched,
+  so the suite never waits for a command.
+  The same rule applies to the compiler wrappers: `compileall_utils.py` narrows `sys.path` with
+  `unittest.mock.patch` so the suite never byte-compiles the interpreter's own import path.
+  `modulefinder_utils.py` follows the rule as well: the analysis is static, so the analysed script is
+  never imported or executed, and the tests restrict the search path to a temporary directory so the
+  suite never scans the whole import path. `optparse_utils.py` follows it too: the parser never
+  touches the network, and the tests parse command lines from lists instead of `sys.argv`, except for
+  one test that patches `sys.argv` with `unittest.mock.patch`. `xdrlib_utils.py` follows it as well:
+  the XDR encoding is pure computation, so the tests only compare byte strings.
+- Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new
+  module must not reintroduce any drift.
+
+## Previous Session (2026-10-21) — ntpath_utils added, the generator and the documents repaired
 
 The board held no task, so this session repaired the state the previous sessions left behind and added the
 next standard library wrapper module.
@@ -391,7 +476,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 3861 tests across all wrapper modules (1984 subtests)
+- 4496 tests across all wrapper modules (3279 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -402,14 +487,14 @@ The project foundation is established:
   asserted in `tests/test_scaffold.py`; the `pyproject.toml` template embedded in `scaffold.sh` has to
   register every module as well
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 3786 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 4396 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 434 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 470 source files
 
 ## Keeping the Scaffold Synchronized
 
