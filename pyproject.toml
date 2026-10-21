@@ -117,6 +117,7 @@ py_modules = [
     "tree_utils",
     "path_utils",
     "pathlib_utils",
+    "posixpath_utils",
     "pattern_utils",
     "plistlib_utils",
     "glob_utils",

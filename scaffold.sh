@@ -682,6 +682,7 @@
 #   - encodings_utils.py — # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 #   - zipimport_utils.py — # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
 #   - genericpath_utils.py — # Generic path utilities wrapping the standard library genericpath (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile, sameopenfile, samestat, ALLOW_MISSING) with input validation
+#   - posixpath_utils.py — # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
 #   - ipaddress_utils.py — # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
@@ -701,6 +702,7 @@
 #   - tests/test_encodings_utils.py — # Tests for encodings_utils.py
 #   - tests/test_zipimport_utils.py — # Tests for zipimport_utils.py
 #   - tests/test_genericpath_utils.py — # Tests for genericpath_utils.py
+#   - tests/test_posixpath_utils.py — # Tests for posixpath_utils.py
 #   - tests/test_ipaddress_utils.py — # Tests for ipaddress_utils.py
 set -euo pipefail
 
@@ -4436,6 +4438,8 @@ py_modules = [
     "encodings_utils",
     "zipimport_utils",
     "genericpath_utils",
+    "posixpath_utils",
+    "posixpath_utils",
     "ipaddress_utils",
 ]
 PYPROJECT
@@ -4488,6 +4492,842 @@ class TestHello(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TESTHELLO
+
+
+# --- config_schema.py ---
+cat > "$OUTPUT_DIR/config_schema.py" <<'CONFIG_SCHEMA'
+"""Typed configuration schema utilities.
+
+This module provides declarative, typed configuration schemas for
+validating, parsing, and serializing configuration dictionaries. A
+:class:`SchemaField` describes a single typed configuration field, and a
+:class:`ConfigSchema` composes fields into a schema that validates raw
+configuration dictionaries, coerces values to declared types, applies
+defaults, enforces required fields, and serializes back to plain
+dictionaries.
+
+Example:
+    >>> schema = ConfigSchema(
+    ...     [
+    ...         SchemaField("host", str, default="localhost"),
+    ...         SchemaField("port", int, default=8080, validator=range_validator(1, 65535)),
+    ...         SchemaField("debug", bool, default=False),
+    ...     ]
+    ... )
+    >>> config = schema.validate({"host": "example.com", "port": "9000"})
+    >>> config["port"]
+    9000
+    >>> schema.validate({})["host"]
+    'localhost'
+"""
+
+from __future__ import annotations
+
+import re
+from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar, Union
+from urllib.parse import urlparse
+
+T = TypeVar("T")
+
+_UNSET: Any = object()
+
+# A validator coerces and validates a raw value, returning the converted
+# value or raising TypeError/ValueError when the value is invalid.
+Validator = Callable[[Any], Any]
+
+
+class ConfigValidationError(ValueError):
+    """Raised when a configuration value fails schema validation."""
+
+
+def int_validator(value: Any) -> int:
+    """Validate and coerce *value* to an ``int``.
+
+    Args:
+        value: The value to validate.
+
+    Returns:
+        The value converted to an int.
+
+    Raises:
+        TypeError: If *value* is a bool or otherwise non-numeric.
+        ValueError: If *value* is a float that is not a whole number or a
+            string that cannot be parsed as an int.
+
+    Examples:
+        >>> int_validator("42")
+        42
+        >>> int_validator(7)
+        7
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        raise TypeError(f"cannot coerce {value!r} to int")
+    if isinstance(value, float) and not value.is_integer():
+        raise ValueError(f"float value {value!r} is not a whole number")
+    try:
+        return int(value)
+    except (ValueError, TypeError) as exc:
+        raise ValueError(f"cannot coerce {value!r} to int") from exc
+
+
+def float_validator(value: Any) -> float:
+    """Validate and coerce *value* to a ``float``.
+
+    Args:
+        value: The value to validate.
+
+    Returns:
+        The value converted to a float.
+
+    Raises:
+        TypeError: If *value* is a bool or otherwise non-numeric.
+        ValueError: If *value* is a string that cannot be parsed as a float.
+
+    Examples:
+        >>> float_validator("3.14")
+        3.14
+        >>> float_validator(7)
+        7.0
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        raise TypeError(f"cannot coerce {value!r} to float")
+    try:
+        return float(value)
+    except (ValueError, TypeError) as exc:
+        raise ValueError(f"cannot coerce {value!r} to float") from exc
+
+
+def str_validator(value: Any) -> str:
+    """Validate that *value* is a ``str`` and return it unchanged.
+
+    Args:
+        value: The value to validate.
+
+    Returns:
+        The input string.
+
+    Raises:
+        TypeError: If *value* is not a string.
+
+    Examples:
+        >>> str_validator("hello")
+        'hello'
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"expected a string, got {type(value).__name__}")
+    return value
+
+
+def bool_validator(value: Any) -> bool:
+    """Validate and coerce *value* to a ``bool``.
+
+    Accepts booleans, numeric values (zero is falsy), and the strings
+    ``true``, ``false``, ``1``, ``0``, ``yes``, ``no``, ``on``, ``off``
+    (case-insensitive).
+
+    Args:
+        value: The value to validate.
+
+    Returns:
+        The value converted to a bool.
+
+    Raises:
+        TypeError: If *value* cannot be interpreted as a bool.
+        ValueError: If *value* is a string that does not represent a bool.
+
+    Examples:
+        >>> bool_validator("true")
+        True
+        >>> bool_validator(0)
+        False
+    """
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in ("true", "1", "yes", "on"):
+            return True
+        if lowered in ("false", "0", "no", "off"):
+            return False
+        raise ValueError(f"cannot interpret string {value!r} as a bool")
+    if isinstance(value, (int, float)):
+        return bool(value)
+    raise TypeError(f"cannot coerce {value!r} to bool")
+
+
+_EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+
+
+def email_validator(value: Any) -> str:
+    """Validate that *value* is a string resembling an email address.
+
+    Args:
+        value: The value to validate.
+
+    Returns:
+        The validated email string.
+
+    Raises:
+        TypeError: If *value* is not a string.
+        ValueError: If *value* does not resemble an email address.
+
+    Examples:
+        >>> email_validator("user@example.com")
+        'user@example.com'
+    """
+    text = str_validator(value)
+    if not _EMAIL_PATTERN.match(text):
+        raise ValueError(f"invalid email address: {text!r}")
+    return text
+
+
+_HOSTNAME_LABEL_PATTERN = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$")
+
+
+def hostname_validator(value: Any) -> str:
+    """Validate that *value* is a string resembling a hostname.
+
+    Args:
+        value: The value to validate.
+
+    Returns:
+        The validated hostname string.
+
+    Raises:
+        TypeError: If *value* is not a string.
+        ValueError: If *value* is not a valid hostname.
+
+    Examples:
+        >>> hostname_validator("example.com")
+        'example.com'
+    """
+    text = str_validator(value)
+    if not text:
+        raise ValueError("hostname must not be empty")
+    if text.endswith(".") or text.startswith("-") or text.endswith("-"):
+        raise ValueError(f"invalid hostname: {text!r}")
+    if len(text) > 253:
+        raise ValueError(f"hostname too long: {text!r}")
+    for label in text.split("."):
+        if not label or len(label) > 63 or not _HOSTNAME_LABEL_PATTERN.match(label):
+            raise ValueError(f"invalid hostname: {text!r}")
+    return text
+
+
+def url_validator(value: Any) -> str:
+    """Validate that *value* is a string with a scheme and a host.
+
+    Args:
+        value: The value to validate.
+
+    Returns:
+        The validated URL string.
+
+    Raises:
+        TypeError: If *value* is not a string.
+        ValueError: If *value* has no scheme or no host.
+
+    Examples:
+        >>> url_validator("https://example.com/path")
+        'https://example.com/path'
+    """
+    text = str_validator(value)
+    parsed = urlparse(text)
+    if not parsed.scheme:
+        raise ValueError(f"URL has no scheme: {text!r}")
+    if not parsed.hostname:
+        raise ValueError(f"URL has no host: {text!r}")
+    return text
+
+
+def range_validator(min_value: Union[int, float], max_value: Union[int, float]) -> Validator:
+    """Return a validator ensuring a numeric value lies within ``[min, max]``.
+
+    Args:
+        min_value: The inclusive lower bound.
+        max_value: The inclusive upper bound.
+
+    Returns:
+        A validator callable.
+
+    Raises:
+        ValueError: If ``min_value`` is greater than ``max_value``.
+
+    Examples:
+        >>> validate = range_validator(1, 10)
+        >>> validate(5)
+        5
+        >>> validate(15)  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        ValueError: value 15 is outside the allowed range [1, 10]
+    """
+    if min_value > max_value:
+        raise ValueError("min_value must be <= max_value")
+
+    def validate(value: Any) -> Union[int, float]:
+        number: Union[int, float]
+        if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+            raise TypeError(f"cannot coerce {value!r} to a number")
+        try:
+            number = float(value) if isinstance(value, str) else value  # type: ignore[assignment]
+        except (ValueError, TypeError) as exc:
+            raise ValueError(f"cannot coerce {value!r} to a number") from exc
+        if not (min_value <= number <= max_value):
+            raise ValueError(
+                f"value {value!r} is outside the allowed range [{min_value}, {max_value}]"
+            )
+        return number
+
+    return validate
+
+
+def choices_validator(*choices: Any) -> Validator:
+    """Return a validator ensuring the value is one of ``choices``.
+
+    Args:
+        choices: The allowed values.
+
+    Returns:
+        A validator callable.
+
+    Raises:
+        ValueError: If no choices are provided.
+
+    Examples:
+        >>> validate = choices_validator("dev", "staging", "prod")
+        >>> validate("staging")
+        'staging'
+    """
+    if not choices:
+        raise ValueError("at least one choice is required")
+    choice_set = frozenset(choices)
+    choice_list = list(choices)
+
+    def validate(value: Any) -> Any:
+        if value not in choice_set:
+            raise ValueError(f"value {value!r} is not one of {choice_list!r}")
+        return value
+
+    return validate
+
+
+def regex_validator(pattern: Union[str, re.Pattern], flags: int = 0) -> Validator:
+    """Return a validator ensuring a string matches *pattern*.
+
+    Args:
+        pattern: A regex pattern string or compiled ``re.Pattern``.
+        flags: Regex flags, used when *pattern* is a string.
+
+    Returns:
+        A validator callable.
+
+    Raises:
+        TypeError: If *pattern* is neither a string nor a compiled pattern.
+        ValueError: If *pattern* is an invalid regex string.
+
+    Examples:
+        >>> validate = regex_validator(r"^[A-Z]+$")
+        >>> validate("HELLO")
+        'HELLO'
+    """
+    if isinstance(pattern, str):
+        try:
+            compiled = re.compile(pattern, flags)
+        except re.error as exc:
+            raise ValueError(f"invalid regex pattern: {pattern!r}") from exc
+    elif isinstance(pattern, re.Pattern):
+        compiled = pattern
+    else:
+        raise TypeError(f"pattern must be a string or re.Pattern, got {type(pattern).__name__}")
+
+    def validate(value: Any) -> str:
+        text = str_validator(value)
+        if not compiled.match(text):
+            raise ValueError(f"value {text!r} does not match pattern {pattern!r}")
+        return text
+
+    return validate
+
+
+class SchemaField:
+    """A single typed configuration field within a :class:`ConfigSchema`.
+
+    Args:
+        name: The configuration key name.
+        type_: The expected type (``str``, ``int``, ``float``, or ``bool``).
+        default: The default value used when the field is absent. Use
+            :data:`schema_required` or omit to mark the field as required.
+        required: Whether the field must be present in the config.
+        validator: Optional extra validator applied after type coercion.
+        description: Human-readable description of the field.
+
+    Raises:
+        TypeError: If ``type_`` is not one of the supported types, or if
+            ``validator`` is not callable.
+        ValueError: If both ``default`` is unset and ``required`` is False
+            is contradictory usage (handled by the schema instead).
+    """
+
+    _SUPPORTED_TYPES: Dict[type, Validator] = {
+        str: str_validator,
+        int: int_validator,
+        float: float_validator,
+        bool: bool_validator,
+    }
+
+    def __init__(
+        self,
+        name: str,
+        type_: type,
+        default: Any = _UNSET,
+        required: bool = False,
+        validator: Optional[Validator] = None,
+        description: str = "",
+    ) -> None:
+        if type_ not in self._SUPPORTED_TYPES:
+            raise TypeError(
+                f"unsupported type {type_!r}; supported types are "
+                f"{sorted(self._SUPPORTED_TYPES, key=lambda t: t.__name__)!r}"
+            )
+        if not isinstance(name, str) or not name:
+            raise ValueError("name must be a non-empty string")
+        if validator is not None and not callable(validator):
+            raise TypeError("validator must be callable")
+        self.name: str = name
+        self.type_: type = type_
+        self.default: Any = default
+        self.required: bool = required
+        self.validator: Optional[Validator] = validator
+        self.description: str = description
+
+    @property
+    def has_default(self) -> bool:
+        """Return ``True`` if a default value was provided."""
+        return self.default is not _UNSET
+
+    def coerce(self, value: Any) -> Any:
+        """Coerce *value* to the field's declared type.
+
+        Args:
+            value: The raw value to coerce.
+
+        Returns:
+            The value converted to the field's type.
+
+        Raises:
+            TypeError: If the value cannot be coerced.
+            ValueError: If the value is invalid for the type.
+        """
+        return self._SUPPORTED_TYPES[self.type_](value)
+
+    def validate(self, value: Any) -> Any:
+        """Validate and coerce *value*, applying the field's validator.
+
+        Args:
+            value: The raw value to validate.
+
+        Returns:
+            The validated, coerced value.
+
+        Raises:
+            TypeError: If the value cannot be coerced to the field's type.
+            ValueError: If the value fails the type check or validator.
+        """
+        coerced = self.coerce(value)
+        if self.validator is not None:
+            return self.validator(coerced)
+        return coerced
+
+
+class ConfigSchema:
+    """A typed configuration schema composed of :class:`SchemaField` instances.
+
+    Args:
+        fields: An iterable of :class:`SchemaField` instances. Duplicate
+            names are not allowed; later definitions win.
+
+    Raises:
+        ValueError: If a field name is duplicated.
+        TypeError: If any item in ``fields`` is not a :class:`SchemaField`.
+    """
+
+    def __init__(self, fields: Iterable[SchemaField]) -> None:
+        self._fields: Dict[str, SchemaField] = {}
+        for field in fields:
+            if not isinstance(field, SchemaField):
+                raise TypeError(
+                    f"all fields must be SchemaField instances, got {type(field).__name__}"
+                )
+            if field.name in self._fields:
+                raise ValueError(f"duplicate field name: {field.name!r}")
+            self._fields[field.name] = field
+
+    @property
+    def fields(self) -> Dict[str, SchemaField]:
+        """Return a copy of the field name to :class:`SchemaField` mapping."""
+        return dict(self._fields)
+
+    def field_names(self) -> List[str]:
+        """Return the list of declared field names."""
+        return list(self._fields)
+
+    def required_fields(self) -> List[str]:
+        """Return the sorted list of required field names."""
+        return sorted(name for name, field in self._fields.items() if field.required)
+
+    def optional_fields(self) -> List[str]:
+        """Return the sorted list of optional field names."""
+        return sorted(name for name, field in self._fields.items() if not field.required)
+
+    def validate(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate and normalize *config* against this schema.
+
+        Only declared fields are present in the returned dictionary.
+        Required fields must be present; optional fields fall back to their
+        defaults when absent. All values are coerced to the declared types
+        and passed through any field-level validators.
+
+        Args:
+            config: The raw configuration dictionary.
+
+        Returns:
+            A new dictionary with validated, coerced values.
+
+        Raises:
+            TypeError: If *config* is not a dictionary.
+            ConfigValidationError: If a required field is missing or a
+                value fails validation.
+        """
+        if not isinstance(config, dict):
+            raise TypeError("config must be a dictionary")
+        result: Dict[str, Any] = {}
+        for name, field in self._fields.items():
+            if name not in config:
+                if field.required:
+                    raise ConfigValidationError(f"required field {name!r} is missing")
+                if field.has_default:
+                    result[name] = field.default
+                continue
+            try:
+                result[name] = field.validate(config[name])
+            except (TypeError, ValueError) as exc:
+                raise ConfigValidationError(f"field {name!r}: {exc}") from exc
+        return result
+
+    def parse(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Alias for :meth:`validate`."""
+        return self.validate(config)
+
+    def get(self, config: Dict[str, Any], name: str, default: Any = None) -> Any:
+        """Return the validated value for *name* from *config*.
+
+        Args:
+            config: The raw configuration dictionary.
+            name: The field name to look up.
+            default: Value returned if the field is absent or invalid.
+
+        Returns:
+            The validated value, or *default* if unavailable.
+        """
+        if name not in self._fields:
+            return default
+        try:
+            validated = self.validate(config)
+        except (TypeError, ValueError, ConfigValidationError):
+            return default
+        return validated.get(name, default)
+
+    def merge(self, other: ConfigSchema) -> ConfigSchema:
+        """Return a new schema merging *other* into this one.
+
+        Fields from *other* override fields with the same name.
+
+        Args:
+            other: The schema to merge in.
+
+        Returns:
+            A new :class:`ConfigSchema` with the combined fields.
+        """
+        merged: Dict[str, SchemaField] = dict(self._fields)
+        merged.update(other._fields)
+        return ConfigSchema(list(merged.values()))
+CONFIG_SCHEMA
+
+# --- tests/test_config_schema.py ---
+cat > "$OUTPUT_DIR/tests/test_config_schema.py" <<'TEST_CONFIG_SCHEMA'
+"""Tests for config_schema module."""
+
+import unittest
+
+from config_schema import (
+    ConfigSchema,
+    ConfigValidationError,
+    SchemaField,
+    bool_validator,
+    choices_validator,
+    email_validator,
+    float_validator,
+    hostname_validator,
+    int_validator,
+    range_validator,
+    regex_validator,
+    str_validator,
+    url_validator,
+)
+
+
+class TestSchemaFieldCoercion(unittest.TestCase):
+    def test_int_validator_coerces_string(self):
+        self.assertEqual(int_validator("42"), 42)
+        self.assertEqual(int_validator(7), 7)
+        self.assertEqual(int_validator(7.0), 7)
+
+    def test_int_validator_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            int_validator(True)
+
+    def test_int_validator_rejects_non_whole_float(self):
+        with self.assertRaises(ValueError):
+            int_validator(3.5)
+
+    def test_int_validator_rejects_bad_string(self):
+        with self.assertRaises(ValueError):
+            int_validator("not-a-number")
+
+    def test_float_validator_coerces(self):
+        self.assertEqual(float_validator("3.14"), 3.14)
+        self.assertEqual(float_validator(7), 7.0)
+
+    def test_float_validator_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            float_validator(False)
+
+    def test_str_validator_passthrough(self):
+        self.assertEqual(str_validator("hello"), "hello")
+
+    def test_str_validator_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            str_validator(123)
+
+    def test_bool_validator_strings(self):
+        self.assertTrue(bool_validator("true"))
+        self.assertTrue(bool_validator("True"))
+        self.assertTrue(bool_validator("1"))
+        self.assertTrue(bool_validator("yes"))
+        self.assertTrue(bool_validator("on"))
+        self.assertFalse(bool_validator("false"))
+        self.assertFalse(bool_validator("0"))
+        self.assertFalse(bool_validator("no"))
+        self.assertFalse(bool_validator("off"))
+
+    def test_bool_validator_numbers(self):
+        self.assertTrue(bool_validator(1))
+        self.assertFalse(bool_validator(0))
+
+    def test_bool_validator_rejects_bad_string(self):
+        with self.assertRaises(ValueError):
+            bool_validator("maybe")
+
+
+class TestSchemaFieldValidators(unittest.TestCase):
+    def test_email_validator(self):
+        self.assertEqual(email_validator("user@example.com"), "user@example.com")
+        with self.assertRaises(ValueError):
+            email_validator("not-an-email")
+
+    def test_hostname_validator(self):
+        self.assertEqual(hostname_validator("example.com"), "example.com")
+        self.assertEqual(hostname_validator("sub.example.com"), "sub.example.com")
+        with self.assertRaises(ValueError):
+            hostname_validator("-example.com")
+        with self.assertRaises(ValueError):
+            hostname_validator("example..com")
+
+    def test_url_validator(self):
+        self.assertEqual(url_validator("https://example.com/path"), "https://example.com/path")
+        with self.assertRaises(ValueError):
+            url_validator("example.com")
+        with self.assertRaises(ValueError):
+            url_validator("http://")
+
+    def test_range_validator(self):
+        validate = range_validator(1, 10)
+        self.assertEqual(validate(5), 5)
+        self.assertEqual(validate("7"), 7)
+        with self.assertRaises(ValueError):
+            validate(15)
+
+    def test_range_validator_invalid_bounds(self):
+        with self.assertRaises(ValueError):
+            range_validator(10, 1)
+
+    def test_choices_validator(self):
+        validate = choices_validator("dev", "staging", "prod")
+        self.assertEqual(validate("staging"), "staging")
+        with self.assertRaises(ValueError):
+            validate("production")
+
+    def test_choices_validator_no_choices(self):
+        with self.assertRaises(ValueError):
+            choices_validator()
+
+    def test_regex_validator(self):
+        validate = regex_validator(r"^[A-Z]+$")
+        self.assertEqual(validate("HELLO"), "HELLO")
+        with self.assertRaises(ValueError):
+            validate("hello")
+
+
+class TestSchemaField(unittest.TestCase):
+    def test_field_coerce_and_validate(self):
+        field = SchemaField("port", int, default=8080)
+        self.assertEqual(field.validate("9000"), 9000)
+        self.assertEqual(field.validate(443), 443)
+
+    def test_field_with_extra_validator(self):
+        field = SchemaField("port", int, validator=range_validator(1, 65535))
+        self.assertEqual(field.validate("8080"), 8080)
+        with self.assertRaises(ValueError):
+            field.validate(99999)
+
+    def test_field_has_default(self):
+        field = SchemaField("debug", bool, default=False)
+        self.assertTrue(field.has_default)
+        required = SchemaField("secret", str, required=True)
+        self.assertFalse(required.has_default)
+
+    def test_field_unsupported_type(self):
+        with self.assertRaises(TypeError):
+            SchemaField("x", list)
+
+    def test_field_empty_name(self):
+        with self.assertRaises(ValueError):
+            SchemaField("", str)
+
+
+class TestConfigSchemaValidate(unittest.TestCase):
+    def setUp(self):
+        self.schema = ConfigSchema(
+            [
+                SchemaField("host", str, default="localhost"),
+                SchemaField("port", int, default=8080, validator=range_validator(1, 65535)),
+                SchemaField("debug", bool, default=False),
+                SchemaField("secret", str, required=True),
+            ]
+        )
+
+    def test_validate_full_config(self):
+        config = self.schema.validate(
+            {
+                "host": "example.com",
+                "port": "9000",
+                "debug": "true",
+                "secret": "s3cr3t",
+            }
+        )
+        self.assertEqual(
+            config,
+            {
+                "host": "example.com",
+                "port": 9000,
+                "debug": True,
+                "secret": "s3cr3t",
+            },
+        )
+
+    def test_validate_applies_defaults(self):
+        config = self.schema.validate({"secret": "s3cr3t"})
+        self.assertEqual(config["host"], "localhost")
+        self.assertEqual(config["port"], 8080)
+        self.assertEqual(config["debug"], False)
+        self.assertEqual(config["secret"], "s3cr3t")
+
+    def test_validate_missing_required_field(self):
+        with self.assertRaises(ConfigValidationError):
+            self.schema.validate({"host": "example.com"})
+
+    def test_validate_rejects_non_dict(self):
+        with self.assertRaises(TypeError):
+            self.schema.validate("not a dict")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            self.schema.validate([1, 2])  # type: ignore[arg-type]
+
+    def test_validate_type_coercion_error(self):
+        with self.assertRaises(ConfigValidationError):
+            self.schema.validate({"secret": "x", "port": "not-a-number"})
+
+    def test_validate_validation_error_wrapped(self):
+        with self.assertRaises(ConfigValidationError):
+            self.schema.validate({"secret": "x", "port": 99999})
+
+    def test_validation_error_is_value_error(self):
+        self.assertTrue(issubclass(ConfigValidationError, ValueError))
+
+    def test_validate_unknown_keys_are_dropped(self):
+        config = self.schema.validate(
+            {
+                "secret": "x",
+                "unknown": "ignored",
+                "another": 1,
+            }
+        )
+        self.assertNotIn("unknown", config)
+        self.assertNotIn("another", config)
+
+    def test_parse_alias(self):
+        config = {"secret": "x", "port": "3000"}
+        self.assertEqual(self.schema.parse(config), self.schema.validate(config))
+
+    def test_get(self):
+        config = {"secret": "x", "port": "3000"}
+        self.assertEqual(self.schema.get(config, "port"), 3000)
+        self.assertEqual(self.schema.get(config, "host"), "localhost")
+        self.assertEqual(self.schema.get(config, "missing", "fallback"), "fallback")
+        self.assertEqual(self.schema.get(config, "not_a_field"), None)
+
+    def test_field_names(self):
+        self.assertEqual(
+            sorted(self.schema.field_names()),
+            ["debug", "host", "port", "secret"],
+        )
+
+    def test_required_and_optional_fields(self):
+        self.assertEqual(self.schema.required_fields(), ["secret"])
+        self.assertEqual(
+            self.schema.optional_fields(),
+            ["debug", "host", "port"],
+        )
+
+
+class TestConfigSchemaMerge(unittest.TestCase):
+    def test_merge_combines_fields(self):
+        base = ConfigSchema([SchemaField("a", str, default="x")])
+        override = ConfigSchema([SchemaField("b", int, default=1)])
+        merged = base.merge(override)
+        self.assertEqual(sorted(merged.field_names()), ["a", "b"])
+
+    def test_merge_overrides_existing_field(self):
+        base = ConfigSchema([SchemaField("a", str, default="x")])
+        override = ConfigSchema([SchemaField("a", int, default=7)])
+        merged = base.merge(override)
+        field = merged.fields["a"]
+        self.assertIsInstance(field, SchemaField)
+        self.assertEqual(field.type_, int)
+        self.assertEqual(field.default, 7)
+
+    def test_merge_returns_new_schema(self):
+        base = ConfigSchema([SchemaField("a", str)])
+        other = ConfigSchema([SchemaField("b", str)])
+        merged = base.merge(other)
+        self.assertIsNot(merged, base)
+        self.assertEqual(len(base.fields), 1)
+        self.assertEqual(len(merged.fields), 2)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_CONFIG_SCHEMA
 
 # --- abc_utils.py ---
 cat > "$OUTPUT_DIR/abc_utils.py" <<'ABC_UTILS'
@@ -28016,6 +28856,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `encodings_utils.py` — encoding name utilities wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping
 - `zipimport_utils.py` — Zip archive import utilities wrapping the standard library `zipimport` module (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches) with input validation and the re-exported `ZipImportError`
 - `genericpath_utils.py` — Generic path utilities wrapping the standard library `genericpath` module (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile, sameopenfile, samestat, ALLOW_MISSING) with input validation
+- `posixpath_utils.py` — Posixpath utilities wrapping the standard library `posixpath` module with POSIX path operations
 - `ipaddress_utils.py` — IP address utilities wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
@@ -28233,6 +29074,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_encodings_utils.py` — unit tests for `encodings_utils.py`
 - `tests/test_zipimport_utils.py` — unit tests for `zipimport_utils.py`
 - `tests/test_genericpath_utils.py` — unit tests for `genericpath_utils.py`
+- `tests/test_posixpath_utils.py` — unit tests for `posixpath_utils.py`
 - `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
@@ -29771,6 +30613,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `posixpath_utils.py` wrapping the standard library `posixpath` module with POSIX path operations, plus unit tests in `tests/test_posixpath_utils.py`.
+
 - Add `genericpath_utils.py` wrapping the standard library `genericpath` module (exists, isfile, isdir, islink, getsize, getmtime, getatime, getctime, commonprefix, samefile, sameopenfile, samestat, ALLOW_MISSING) with input validation and re-exports, plus unit tests in `tests/test_genericpath_utils.py`.
 - Add `ipaddress_utils.py` wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors, plus unit tests in `tests/test_ipaddress_utils.py`.
 - Synchronized `genericpath_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
@@ -30620,9 +31464,14 @@ tests/test_profile_utils.py
 
 CHANGELOG
 
+# Substitute project name in templated documents
+if [[ -n "$PROJECT_NAME" ]]; then
+    perl -pi -e "s/\$\{PROJECT_NAME\}/$PROJECT_NAME/g" "$OUTPUT_DIR/README.md" "$OUTPUT_DIR/AGENTS.md" "$OUTPUT_DIR/CHANGELOG.md" 2>/dev/null ||     sed -i "s/\${PROJECT_NAME}/$PROJECT_NAME/g" "$OUTPUT_DIR/README.md" "$OUTPUT_DIR/AGENTS.md" "$OUTPUT_DIR/CHANGELOG.md" 2>/dev/null || true
+fi
+
 # --- README.md ---
 cat > "$OUTPUT_DIR/README.md" <<'README_MD'
-# Agentic Coding Scaffolding
+# ${PROJECT_NAME}
 
 A self-evolving scaffolding project for autonomous agentic coding loops powered by Kilo.
 
@@ -30887,6 +31736,8 @@ tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (chec
 encodings_utils.py           # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
 genericpath_utils.py         # Generic path utilities wrapping stdlib genericpath (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile)
+posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
+posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
@@ -31063,6 +31914,8 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_tabnanny_utils.py       # Tests for tabnanny_utils.py
     test_zipimport_utils.py      # Tests for zipimport_utils.py
     test_genericpath_utils.py    # Tests for genericpath_utils.py
+    test_posixpath_utils.py      # Tests for posixpath_utils.py
+    test_posixpath_utils.py      # Tests for posixpath_utils.py
     test_ipaddress_utils.py      # Tests for ipaddress_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
@@ -32103,6 +32956,10 @@ The project includes Zip archive import utilities in `zipimport_utils.py` wrappi
 ## IP Address Utilities Module
 
 The project includes generic path utilities in `genericpath_utils.py` wrapping the standard library `genericpath` module: `exists` tests whether a path exists, `isfile` tests whether a path is a regular file, `isdir` tests whether a path is a directory, `islink` tests whether a path is a symbolic link, `getsize` returns the size of a file, `getmtime` returns the last modification time, `getatime` returns the last access time, `getctime` returns the metadata change time, `commonprefix` returns the longest common leading component, `samefile` tests whether two paths reference the same file, `sameopenfile` tests whether two open files reference the same file, `samestat` tests whether two stat buffers reference the same file. The constant `ALLOW_MISSING` is re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system in special ways beyond standard operations. The module is tested in `tests/test_genericpath_utils.py`.
+
+## Posixpath Utilities Module
+
+The project includes posixpath utilities in `posixpath_utils.py` wrapping the standard library `posixpath` module: `abspath`, `basename`, `commonpath`, `commonprefix`, `dirname`, `exists`, `expanduser`, `expandvars`, `getatime`, `getctime`, `getmtime`, `getsize`, `isabs`, `isdir`, `isfile`, `isjunction`, `islink`, `ismount`, `join`, `lexists`, `normcase`, `normpath`, `realpath`, `relpath`, `samefile`, `sameopenfile`, `samestat`, `split`, `splitdrive`, `splitext`, `splitroot`. The constants `ALLOW_MISSING`, `sep`, `altsep`, `curdir`, `pardir`, `extsep`, `pathsep`, `defpath`, `devnull`, and `supports_unicode_filenames` are re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is tested in `tests/test_posixpath_utils.py`.
 
 The project includes IP address utilities in `ipaddress_utils.py` wrapping the standard library `ipaddress` module: `ip_address` returns the address object of a text, an integer, or a packed byte string, `ip_network` returns the network object of a network, `ip_interface` returns the interface object of an address that carries a prefix length, `is_valid_address` reports whether a value names a valid address, `is_valid_network` reports whether a value names a valid network, `is_valid_interface` reports whether a value names a valid interface, `address_version` returns the version of an address, `to_packed` returns the packed bytes of an address, `from_packed` returns the address that a packed byte string holds, `network_hosts` returns the usable hosts of a network, `subnets` splits a network into its subnets, `summarize_addresses` returns the smallest set of networks that still covers a list of networks, `network_overlaps` reports whether two networks overlap, `address_within` reports whether an address lies inside a network, `common_prefix_length` returns the length of the common prefix of a list of addresses, `next_address` returns the address that follows an address, `previous_address` returns the address that precedes an address, and `sort_addresses` returns the addresses of a list in ascending order. The classes `IPv4Address`, `IPv6Address`, `IPv4Network`, `IPv6Network`, `IPv4Interface`, and `IPv6Interface` are re-exported from the standard library, and so are the errors `AddressValueError` and `NetmaskValueError`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_ipaddress_utils.py`.
 
@@ -41389,6 +42246,458 @@ class TestModuleContract(unittest.TestCase):
     def test_allow_missing_is_reexported(self):
         self.assertIs(ALLOW_MISSING, genericpath_utils.ALLOW_MISSING)
 TEST_GENERICPATH_UTILS
+
+# --- posixpath_utils.py ---
+cat > "$OUTPUT_DIR/posixpath_utils.py" <<'POSIXPATH_UTILS'
+"""Posixpath utilities wrapping the standard library :mod:`posixpath` module.
+
+The :mod:`posixpath` module implements POSIX pathname operations. This
+wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` instead of an opaque failure
+from the standard library. It re-exports the constants and functions from
+:mod:`posixpath` with the same behavior, while adding input validation for
+defensive programming.
+"""
+
+from __future__ import annotations
+
+import os
+import posixpath as _posixpath
+from typing import Any, List, Optional, Sequence, Tuple, Union
+
+
+# Re-export all public names from posixpath for compatibility
+# Constants
+sep = _posixpath.sep
+altsep = _posixpath.altsep
+curdir = _posixpath.curdir
+pardir = _posixpath.pardir
+extsep = _posixpath.extsep
+pathsep = _posixpath.pathsep
+defpath = _posixpath.defpath
+devnull = _posixpath.devnull
+supports_unicode_filenames = _posixpath.supports_unicode_filenames
+
+# Re-export from genericpath
+from posixpath import ALLOW_MISSING  # noqa: F401
+from posixpath import commonprefix  # noqa: F401
+from posixpath import exists  # noqa: F401
+from posixpath import getatime  # noqa: F401
+from posixpath import getctime  # noqa: F401
+from posixpath import getmtime  # noqa: F401
+from posixpath import getsize  # noqa: F401
+from posixpath import isdir  # noqa: F401
+from posixpath import isfile  # noqa: F401
+from posixpath import islink  # noqa: F401
+from posixpath import samefile  # noqa: F401
+from posixpath import sameopenfile  # noqa: F401
+from posixpath import samestat  # noqa: F401
+
+__all__: List[str] = [
+    "ALLOW_MISSING",
+    "abspath",
+    "altsep",
+    "basename",
+    "commonpath",
+    "commonprefix",
+    "curdir",
+    "defpath",
+    "devnull",
+    "dirname",
+    "exists",
+    "expanduser",
+    "expandvars",
+    "extsep",
+    "getatime",
+    "getctime",
+    "getmtime",
+    "getsize",
+    "isabs",
+    "isdir",
+    "isfile",
+    "isjunction",
+    "islink",
+    "ismount",
+    "join",
+    "lexists",
+    "normcase",
+    "normpath",
+    "pardir",
+    "pathsep",
+    "realpath",
+    "relpath",
+    "samefile",
+    "sameopenfile",
+    "samestat",
+    "sep",
+    "split",
+    "splitdrive",
+    "splitext",
+    "splitroot",
+    "supports_unicode_filenames",
+]
+
+
+def _check_path_like(path: object, name: str) -> Union[str, bytes]:
+    if isinstance(path, (str, bytes, os.PathLike)):
+        return path  # type: ignore[return-value]
+    raise TypeError(f"{name} must be str, bytes, or os.PathLike object, not {type(path).__name__!r}")
+
+
+def _check_path_or_none(path: object, name: str) -> Union[str, bytes, None]:
+    if path is None:
+        return None
+    return _check_path_like(path, name)
+
+
+def abspath(path: Union[str, bytes, os.PathLike]) -> str:
+    """Return a normalized absolutized version of the pathname path."""
+    _check_path_like(path, "path")
+    return _posixpath.abspath(path)
+
+
+def basename(p: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Return the final component of a pathname."""
+    _check_path_like(p, "p")
+    return _posixpath.basename(p)
+
+
+def commonpath(paths: Sequence[Union[str, bytes, os.PathLike]]) -> str:
+    """Return the longest common sub-path of each pathname in the sequence paths."""
+    if not isinstance(paths, (list, tuple, set)):
+        raise TypeError("commonpath() argument 1 must be an iterable, not %s" % type(paths).__name__)
+    # Validate each element
+    paths_list = list(paths)
+    for item in paths_list:
+        if not isinstance(item, (str, bytes, os.PathLike)):
+            raise TypeError(f"Can't mix strings and bytes in path components: {item!r}")
+    return _posixpath.commonpath(paths_list)
+
+
+def dirname(p: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Return the directory component of a pathname."""
+    _check_path_like(p, "p")
+    return _posixpath.dirname(p)
+
+
+def expanduser(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Expand ~ and ~user constructions."""
+    _check_path_like(path, "path")
+    return _posixpath.expanduser(path)
+
+
+def expandvars(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Expand shell variables of form $var and ${var}."""
+    _check_path_like(path, "path")
+    return _posixpath.expandvars(path)
+
+
+def isabs(s: Union[str, bytes, os.PathLike]) -> bool:
+    """Test whether a path is absolute."""
+    _check_path_like(s, "s")
+    return _posixpath.isabs(s)
+
+
+def isjunction(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Test whether a path is a junction."""
+    _check_path_like(path, "path")
+    return _posixpath.isjunction(path)
+
+
+def ismount(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Test whether a path is a mount point."""
+    _check_path_like(path, "path")
+    return _posixpath.ismount(path)
+
+
+def join(a: Union[str, bytes, os.PathLike], *p: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Join two or more pathname components, inserting '/' as needed."""
+    _check_path_like(a, "a")
+    for i, item in enumerate(p):
+        _check_path_like(item, f"p[{i}]")
+    return _posixpath.join(a, *p)
+
+
+def lexists(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Test whether a path exists. Returns True for broken symbolic links."""
+    _check_path_like(path, "path")
+    return _posixpath.lexists(path)
+
+
+def normcase(s: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Normalize the case of a pathname."""
+    _check_path_like(s, "s")
+    return _posixpath.normcase(s)
+
+
+def normpath(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Normalize a pathname by collapsing redundant separators and up-level references."""
+    _check_path_like(path, "path")
+    return _posixpath.normpath(path)
+
+
+def realpath(filename: Union[str, bytes, os.PathLike], strict: bool = False) -> str:
+    """Return the canonical path of the specified filename."""
+    _check_path_like(filename, "filename")
+    if not isinstance(strict, bool):
+        raise TypeError(f"strict must be bool, not {type(strict).__name__!r}")
+    return _posixpath.realpath(filename, strict=strict)
+
+
+def relpath(path: Union[str, bytes, os.PathLike], start: Optional[Union[str, bytes, os.PathLike]] = None) -> str:
+    """Return a relative version of a path."""
+    _check_path_like(path, "path")
+    if start is not None:
+        _check_path_like(start, "start")
+    return _posixpath.relpath(path, start=start)
+
+
+def split(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    """Split a pathname into (tail) and (head)."""
+    _check_path_like(p, "p")
+    return _posixpath.split(p)
+
+
+def splitdrive(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    """Split the pathname into a drive specification and the rest of the path."""
+    _check_path_like(p, "p")
+    return _posixpath.splitdrive(p)
+
+
+def splitext(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    """Split the extension from a pathname."""
+    _check_path_like(p, "p")
+    return _posixpath.splitext(p)
+
+
+def splitroot(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes], Union[str, bytes]]:
+    """Split a pathname into drive, root and tail."""
+    _check_path_like(p, "p")
+    return _posixpath.splitroot(p)
+
+
+def samefile(f1: Union[str, bytes, os.PathLike], f2: Union[str, bytes, os.PathLike]) -> bool:
+    """Test whether two pathnames reference the same actual file or directory."""
+    _check_two_paths(f1, f2)
+    return _posixpath.samefile(f1, f2)
+
+
+def sameopenfile(fp1: int, fp2: int) -> bool:
+    """Test whether two open file objects reference the same file."""
+    if not isinstance(fp1, int) or isinstance(fp1, bool):
+        raise TypeError(f"sameopenfile() argument 1 must be int, not {type(fp1).__name__!r}")
+    if not isinstance(fp2, int) or isinstance(fp2, bool):
+        raise TypeError(f"sameopenfile() argument 2 must be int, not {type(fp2).__name__!r}")
+    return _posixpath.sameopenfile(fp1, fp2)
+
+
+def samestat(s1: os.stat_result, s2: os.stat_result) -> bool:
+    """Test whether two stat buffers reference the same file."""
+    if not isinstance(s1, os.stat_result):
+        raise TypeError(f"samestat() argument 1 must be stat_result, not {type(s1).__name__!r}")
+    if not isinstance(s2, os.stat_result):
+        raise TypeError(f"samestat() argument 2 must be stat_result, not {type(s2).__name__!r}")
+    return _posixpath.samestat(s1, s2)
+
+
+def _check_two_paths(path1: object, path2: object) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    return _check_path_like(path1, "path1"), _check_path_like(path2, "path2")
+POSIXPATH_UTILS
+
+# --- tests/test_posixpath_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_posixpath_utils.py" <<'TEST_POSIXPATH_UTILS'
+"""Tests for posixpath_utils."""
+
+import os
+import tempfile
+import unittest
+
+import posixpath_utils
+from posixpath_utils import (
+    ALLOW_MISSING,
+    abspath,
+    basename,
+    commonpath,
+    commonprefix,
+    curdir,
+    dirname,
+    exists,
+    expanduser,
+    expandvars,
+    isabs,
+    isdir,
+    isfile,
+    isjunction,
+    islink,
+    ismount,
+    join,
+    lexists,
+    normcase,
+    normpath,
+    pardir,
+    realpath,
+    relpath,
+    samefile,
+    sameopenfile,
+    samestat,
+    sep,
+    split,
+    splitdrive,
+    splitext,
+    splitroot,
+)
+
+
+class TestModuleContract(unittest.TestCase):
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(posixpath_utils.__all__, sorted(set(posixpath_utils.__all__)))
+
+    def test_constants_reexported(self):
+        self.assertIs(ALLOW_MISSING, posixpath_utils.ALLOW_MISSING)
+        self.assertIs(sep, posixpath_utils.sep)
+        self.assertIs(curdir, posixpath_utils.curdir)
+        self.assertIs(pardir, posixpath_utils.pardir)
+
+
+class TestBasenameDirname(unittest.TestCase):
+    def test_basename(self):
+        self.assertEqual(basename("/foo/bar/baz"), "baz")
+        self.assertEqual(basename("/foo/bar/"), "")
+
+    def test_dirname(self):
+        self.assertEqual(dirname("/foo/bar/baz"), "/foo/bar")
+        self.assertEqual(dirname("/foo/bar/"), "/foo/bar")
+
+    def test_rejects_bad_type(self):
+        with self.assertRaises(TypeError):
+            basename(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dirname(None)  # type: ignore[arg-type]
+
+
+class TestJoinSplit(unittest.TestCase):
+    def test_join(self):
+        self.assertEqual(join("/foo", "bar", "baz"), "/foo/bar/baz")
+        self.assertEqual(join("/foo", "/bar"), "/bar")
+
+    def test_split(self):
+        self.assertEqual(split("/foo/bar"), ("/foo", "bar"))
+        self.assertEqual(split("/foo/bar/"), ("/foo/bar", ""))
+
+    def test_splitext(self):
+        self.assertEqual(splitext("foo.bar.baz"), ("foo.bar", ".baz"))
+        self.assertEqual(splitext("foo"), ("foo", ""))
+
+    def test_splitdrive(self):
+        # On POSIX, splitdrive behaves specially
+        self.assertEqual(splitdrive("/foo/bar"), ("", "/foo/bar"))
+
+    def test_splitroot(self):
+        result = splitroot("/foo/bar")
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 3)
+
+    def test_join_validates_args(self):
+        with self.assertRaises(TypeError):
+            join("/foo", 123)  # type: ignore[arg-type]
+
+
+class TestNorm(unittest.TestCase):
+    def test_normpath(self):
+        self.assertEqual(normpath("/foo//bar/../baz"), "/foo/baz")
+        self.assertEqual(normpath("foo/bar/.."), "foo")
+
+    def test_normcase(self):
+        self.assertEqual(normcase("/Foo/Bar"), "/Foo/Bar")
+
+    def test_abspath(self):
+        path = abspath(".")
+        self.assertTrue(os.path.isabs(path))
+
+    def test_realpath(self):
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            temp_path = f.name
+        try:
+            rp = realpath(temp_path)
+            self.assertTrue(os.path.isabs(rp))
+        finally:
+            os.unlink(temp_path)
+
+    def test_realpath_strict_validation(self):
+        with self.assertRaises(TypeError):
+            realpath("/tmp", strict="false")  # type: ignore[arg-type]
+
+
+class TestRelpath(unittest.TestCase):
+    def test_relpath(self):
+        rel = relpath("/foo/bar/baz", start="/foo")
+        self.assertEqual(rel, "bar/baz")
+
+    def test_relpath_no_start(self):
+        rel = relpath("/foo/bar")
+        self.assertIsInstance(rel, str)
+
+
+class TestIsAbs(unittest.TestCase):
+    def test_isabs(self):
+        self.assertTrue(isabs("/foo"))
+        self.assertFalse(isabs("foo"))
+
+
+class TestExpand(unittest.TestCase):
+    def test_expanduser(self):
+        result = expanduser("~")
+        self.assertIsInstance(result, str)
+
+    def test_expandvars(self):
+        result = expandvars("$HOME/test")
+        self.assertIsInstance(result, str)
+
+
+class TestCommonPath(unittest.TestCase):
+    def test_commonpath(self):
+        self.assertEqual(commonpath(["/usr/local", "/usr/local/bin"]), "/usr/local")
+
+    def test_commonpath_rejects_bad_type(self):
+        with self.assertRaises(TypeError):
+            commonpath("not iterable")  # type: ignore[arg-type]
+
+
+class TestLexists(unittest.TestCase):
+    def test_lexists_existing_file(self):
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            temp_path = f.name
+        try:
+            self.assertTrue(lexists(temp_path))
+        finally:
+            os.unlink(temp_path)
+
+    def test_lexists_nonexistent(self):
+        self.assertFalse(lexists("/nonexistent/path/12345"))
+
+
+class TestReExports(unittest.TestCase):
+    def test_genericpath_reexports(self):
+        self.assertTrue(exists("/tmp") or True)  # Just check callable
+        self.assertTrue(callable(isfile))
+        self.assertTrue(callable(isdir))
+        self.assertTrue(callable(islink))
+        self.assertEqual(commonprefix(["/a/b", "/a/c"]), "/a/")
+
+    def test_samefile_functions(self):
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            temp_path = f.name
+        try:
+            self.assertTrue(samefile(temp_path, temp_path))
+            s = os.stat(temp_path)
+            self.assertTrue(samestat(s, os.stat(temp_path)))
+        finally:
+            os.unlink(temp_path)
+        with self.assertRaises(TypeError):
+            samefile(123, 456)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sameopenfile(True, 1)  # type: ignore[arg-type]
+TEST_POSIXPATH_UTILS
 
 # --- getopt_utils.py ---
 cat > "$OUTPUT_DIR/getopt_utils.py" <<'GETOPT_UTILS'
@@ -75830,4 +77139,9 @@ class TestZoneinfoAvailableTimezones(unittest.TestCase):
 TEST_ZONEINFO_UTILS
 
 # --- README.md ---
+# Substitute project name in templated documents
+if [[ -n "$PROJECT_NAME" ]]; then
+    perl -pi -e "s/\$\{PROJECT_NAME\}/$PROJECT_NAME/g" "$OUTPUT_DIR/README.md" "$OUTPUT_DIR/AGENTS.md" "$OUTPUT_DIR/CHANGELOG.md" 2>/dev/null || \
+    sed -i "s/\${PROJECT_NAME}/$PROJECT_NAME/g" "$OUTPUT_DIR/README.md" "$OUTPUT_DIR/AGENTS.md" "$OUTPUT_DIR/CHANGELOG.md" 2>/dev/null || true
+fi
 

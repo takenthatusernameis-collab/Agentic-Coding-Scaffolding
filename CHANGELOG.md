@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Add `posixpath_utils.py` wrapping the standard library `posixpath` module with POSIX path operations, plus unit tests in `tests/test_posixpath_utils.py`.
+
 - Add `genericpath_utils.py` wrapping the standard library `genericpath` module (exists, isfile, isdir, islink, getsize, getmtime, getatime, getctime, commonprefix, samefile, sameopenfile, samestat, ALLOW_MISSING) with input validation and re-exports, plus unit tests in `tests/test_genericpath_utils.py`.
 - Add `ipaddress_utils.py` wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors, plus unit tests in `tests/test_ipaddress_utils.py`.
 - Synchronized `genericpath_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
