@@ -259,6 +259,7 @@ termios_utils.py             # Terminal attribute utilities wrapping stdlib term
 fcntl_utils.py               # File control utilities wrapping stdlib fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
 pty_utils.py                 # Pseudo-terminal utilities wrapping stdlib pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
 stringprep_utils.py          # String preparation utilities wrapping stdlib stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
+site_utils.py               # Site configuration utilities wrapping stdlib site (get_site_packages, get_user_base, get_user_site_packages, is_user_site_enabled)
 tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (check, process_tokens, NannyNag)
 encodings_utils.py           # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
@@ -443,6 +444,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_fcntl_utils.py          # Tests for fcntl_utils.py
     test_pty_utils.py            # Tests for pty_utils.py
     test_stringprep_utils.py     # Tests for stringprep_utils.py
+    test_site_utils.py           # Tests for site_utils.py
     test_tabnanny_utils.py       # Tests for tabnanny_utils.py
     test_zipimport_utils.py      # Tests for zipimport_utils.py
     test_genericpath_utils.py    # Tests for genericpath_utils.py
@@ -1494,6 +1496,10 @@ The project includes pseudo-terminal utilities in `pty_utils.py` wrapping the st
 ## String Preparation Utilities Module
 
 The project includes string preparation utilities in `stringprep_utils.py` wrapping the standard library `stringprep` module: `table_names` returns the names of the set tables of RFC 3454, `map_table_names` returns the names of the mapping tables, `in_table` reports whether a character belongs to a set table, `map_table` maps a character with a mapping table, `is_unassigned` reports whether a character is an unassigned code point, `is_mapped_to_nothing` reports whether a character is commonly mapped to nothing, `is_prohibited` reports whether a character belongs to the prohibited output, `is_allowed` reports whether a character may be stored in a prepared string, `is_bidi_allowed` reports whether a character may appear in a bidirectional name, `map_text` performs the mapping step of RFC 3454 on a whole string, `find_problems` reports the characters that prevent a string from being stored, and `is_preparable` reports whether a string may be prepared. The tables are also exposed as the read-only mappings `TABLES` and `MAP_TABLES`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_stringprep_utils.py`.
+
+## Site Utilities Module
+
+The project includes site configuration utilities in `site_utils.py` wrapping the standard library `site` module: `get_site_packages` returns the global site-packages directories the interpreter looks for packages in, `get_site_prefixes` returns the installation prefixes those directories are looked up in, `get_user_base` returns the base directory a user installs packages below, and `get_user_site_packages` returns the site-packages directory of the user. The helpers `get_enable_user_site`, `is_user_site_enabled`, and `check_enable_user_site` report the setting of the user site directory, the last one with the tri-state of the standard library, which disables the directory for security reasons when the process runs with a different effective user. The helper `make_path` joins path segments and reports them in the absolute and normalized form the standard library stores the paths of the search path in. The helpers `remove_duplicate_paths`, `add_site_dir`, `add_site_packages`, and `add_user_site_packages` change the search path of the process the way the standard library changes it, and `add_site_dir` also processes the `.pth` files of the directory it adds. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is pure computation apart from the helpers that read the search path of the process, so it works on every platform. The tests of the project replace the search path of the process with a copy, so the suite never changes the search path of the interpreter that runs it. The module is tested in `tests/test_site_utils.py`.
 
 ## Tabnanny Utilities Module
 

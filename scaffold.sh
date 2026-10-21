@@ -705,6 +705,7 @@
 #   - tests/test_fcntl_utils.py — # Tests for fcntl_utils.py
 #   - tests/test_pty_utils.py — # Tests for pty_utils.py
 #   - tests/test_stringprep_utils.py — # Tests for stringprep_utils.py
+#   - tests/test_site_utils.py — # Tests for site_utils.py
 #   - tests/test_tabnanny_utils.py — # Tests for tabnanny_utils.py
 #   - tests/test_encodings_utils.py — # Tests for encodings_utils.py
 #   - tests/test_zipimport_utils.py — # Tests for zipimport_utils.py
@@ -4519,6 +4520,7 @@ py_modules = [
     "curses_utils",
     "bdb_utils",
     "pdb_utils",
+    "site_utils",
     "ipaddress_utils",
     "pydoc_utils",
 ]
@@ -28932,6 +28934,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `fcntl_utils.py` — file control utilities wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation
 - `pty_utils.py` — pseudo-terminal utilities wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation, a `ForkResult` named tuple, and re-exported constants
 - `stringprep_utils.py` — string preparation utilities wrapping the standard library `stringprep` module (table_names, map_table_names, in_table, map_table, is_unassigned, is_mapped_to_nothing, is_prohibited, is_allowed, is_bidi_allowed, map_text, find_problems, is_preparable) with input validation and read-only table mappings
+- `site_utils.py` — site configuration utilities wrapping the standard library `site` module (`get_site_packages`, `get_site_prefixes`, `get_user_base`, `get_user_site_packages`, `get_enable_user_site`, `is_user_site_enabled`, `check_enable_user_site`, `make_path`, `remove_duplicate_paths`, `add_site_dir`, `add_site_packages`, `add_user_site_packages`) with input validation
 - `tabnanny_utils.py` — tabnanny utilities wrapping the standard library `tabnanny` module (check, process_tokens, NannyNag) with input validation
 - `encodings_utils.py` — encoding name utilities wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping
 - `zipimport_utils.py` — Zip archive import utilities wrapping the standard library `zipimport` module (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches) with input validation and the re-exported `ZipImportError`
@@ -29156,6 +29159,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_fcntl_utils.py` — unit tests for `fcntl_utils.py`
 - `tests/test_pty_utils.py` — unit tests for `pty_utils.py`
 - `tests/test_stringprep_utils.py` — unit tests for `stringprep_utils.py`
+- `tests/test_site_utils.py` — unit tests for `site_utils.py`
 - `tests/test_tabnanny_utils.py` — unit tests for `tabnanny_utils.py`
 - `tests/test_encodings_utils.py` — unit tests for `encodings_utils.py`
 - `tests/test_zipimport_utils.py` — unit tests for `zipimport_utils.py`
@@ -30705,6 +30709,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `site_utils.py` wrapping the standard library `site` module (`get_site_packages`, `get_site_prefixes`, `get_user_base`, `get_user_site_packages`, `get_enable_user_site`, `is_user_site_enabled`, `check_enable_user_site`, `make_path`, `remove_duplicate_paths`, `add_site_dir`, `add_site_packages`, `add_user_site_packages`) with input validation, plus unit tests in `tests/test_site_utils.py`.
+- Synchronized `site_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `bdb_utils.py` wrapping the standard library `bdb` module (`create_bdb`, `set_breakpoint`, `clear_breakpoint`, `clear_breakpoints`, `clear_all_breakpoints`, `get_breakpoints`, `get_breakpoint`, `get_file_breakpoints`, `enable_breakpoint`, `disable_breakpoint`, `is_breakpoint_enabled`, `breakpoint_hits`, `canonical_filename`, `effective_breakpoint`, `checkfuncname`) with input validation and the re-exported classes `Bdb` and `Breakpoint` together with the error `BdbQuit`, plus unit tests in `tests/test_bdb_utils.py`.
 - Add `pdb_utils.py` wrapping the standard library `pdb` module (`create_pdb`, `set_trace`, `post_mortem`, `pm`, `run`, `runeval`, `runctx`, `runcall`) with input validation and the re-exported class `Pdb` together with the error `Restart`, plus unit tests in `tests/test_pdb_utils.py`.
 - Synchronized `bdb_utils.py` and `pdb_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
@@ -31837,6 +31843,7 @@ termios_utils.py             # Terminal attribute utilities wrapping stdlib term
 fcntl_utils.py               # File control utilities wrapping stdlib fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
 pty_utils.py                 # Pseudo-terminal utilities wrapping stdlib pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
 stringprep_utils.py          # String preparation utilities wrapping stdlib stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
+site_utils.py               # Site configuration utilities wrapping stdlib site (get_site_packages, get_user_base, get_user_site_packages, is_user_site_enabled)
 tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (check, process_tokens, NannyNag)
 encodings_utils.py           # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
@@ -32021,6 +32028,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_fcntl_utils.py          # Tests for fcntl_utils.py
     test_pty_utils.py            # Tests for pty_utils.py
     test_stringprep_utils.py     # Tests for stringprep_utils.py
+    test_site_utils.py           # Tests for site_utils.py
     test_tabnanny_utils.py       # Tests for tabnanny_utils.py
     test_zipimport_utils.py      # Tests for zipimport_utils.py
     test_genericpath_utils.py    # Tests for genericpath_utils.py
@@ -33072,6 +33080,10 @@ The project includes pseudo-terminal utilities in `pty_utils.py` wrapping the st
 ## String Preparation Utilities Module
 
 The project includes string preparation utilities in `stringprep_utils.py` wrapping the standard library `stringprep` module: `table_names` returns the names of the set tables of RFC 3454, `map_table_names` returns the names of the mapping tables, `in_table` reports whether a character belongs to a set table, `map_table` maps a character with a mapping table, `is_unassigned` reports whether a character is an unassigned code point, `is_mapped_to_nothing` reports whether a character is commonly mapped to nothing, `is_prohibited` reports whether a character belongs to the prohibited output, `is_allowed` reports whether a character may be stored in a prepared string, `is_bidi_allowed` reports whether a character may appear in a bidirectional name, `map_text` performs the mapping step of RFC 3454 on a whole string, `find_problems` reports the characters that prevent a string from being stored, and `is_preparable` reports whether a string may be prepared. The tables are also exposed as the read-only mappings `TABLES` and `MAP_TABLES`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_stringprep_utils.py`.
+
+## Site Utilities Module
+
+The project includes site configuration utilities in `site_utils.py` wrapping the standard library `site` module: `get_site_packages` returns the global site-packages directories the interpreter looks for packages in, `get_site_prefixes` returns the installation prefixes those directories are looked up in, `get_user_base` returns the base directory a user installs packages below, and `get_user_site_packages` returns the site-packages directory of the user. The helpers `get_enable_user_site`, `is_user_site_enabled`, and `check_enable_user_site` report the setting of the user site directory, the last one with the tri-state of the standard library, which disables the directory for security reasons when the process runs with a different effective user. The helper `make_path` joins path segments and reports them in the absolute and normalized form the standard library stores the paths of the search path in. The helpers `remove_duplicate_paths`, `add_site_dir`, `add_site_packages`, and `add_user_site_packages` change the search path of the process the way the standard library changes it, and `add_site_dir` also processes the `.pth` files of the directory it adds. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is pure computation apart from the helpers that read the search path of the process, so it works on every platform. The tests of the project replace the search path of the process with a copy, so the suite never changes the search path of the interpreter that runs it. The module is tested in `tests/test_site_utils.py`.
 
 ## Tabnanny Utilities Module
 
@@ -83232,87 +83244,464 @@ TEST_PDB_UTILS
 
 # --- site_utils.py ---
 cat > "$OUTPUT_DIR/site_utils.py" <<'SITE_UTILS'
-"""Site configuration and user-site directory utilities.
+"""Site configuration utilities wrapping the standard library :mod:`site` module.
 
-This module provides helpers for inspecting the Python site configuration
-using only the standard library ``site`` module.
+The :mod:`site` module is imported by the interpreter at startup to configure
+the module search path.  It knows the directories the interpreter looks for
+packages in, the directory a user installs packages into, and it adds the site
+directories of a virtual environment to the search path.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure.  The settings of the standard library are read through the
+helpers of this module, so a caller never has to reach into the module to read
+them, and the tri-state of the user site setting is reported as the standard
+library reports it.
+
+The helpers that change the search path of the interpreter work on
+:data:`sys.path` of the process, so a program that calls one of them changes
+where its own imports are looked up.  The tests of the project replace
+:data:`sys.path` with a copy, so the suite never changes the search path of
+the process that runs it.
 """
 
 from __future__ import annotations
 
-import site
-from typing import List
+import site as _site
+from typing import List, Optional, Sequence, Set, Tuple
 
 __all__: list[str] = [
+    "add_site_dir",
+    "add_site_packages",
+    "add_user_site_packages",
+    "check_enable_user_site",
+    "get_enable_user_site",
     "get_site_packages",
+    "get_site_prefixes",
     "get_user_base",
     "get_user_site_packages",
     "is_user_site_enabled",
+    "make_path",
+    "remove_duplicate_paths",
 ]
 
 
-def get_site_packages() -> List[str]:
-    """Return the list of site-packages directories.
+def _require_str(value: object, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_non_empty_str(value: object, name: str) -> str:
+    text = _require_str(value, name)
+    if not text:
+        raise ValueError(f"{name} must not be empty")
+    return text
+
+
+def _require_optional_prefixes(value: object, name: str) -> Optional[List[str]]:
+    """Return the prefixes as a list, or ``None`` when no prefixes are given."""
+    if value is None:
+        return None
+    if isinstance(value, (str, bytes)):
+        raise TypeError(f"{name} must be a sequence of strings, not a single string")
+    if not isinstance(value, (list, tuple)):
+        raise TypeError(f"{name} must be a list or a tuple, got {type(value).__name__}")
+    for entry in value:
+        if not isinstance(entry, str):
+            raise TypeError(f"{name} entries must be strings, got {type(entry).__name__}")
+    return list(value)
+
+
+def _require_known_paths(value: object, name: str) -> Set[str]:
+    """Return the set of known paths unchanged, so the standard library can fill it."""
+    if not isinstance(value, set):
+        raise TypeError(f"{name} must be a set of strings, got {type(value).__name__}")
+    for entry in value:
+        if not isinstance(entry, str):
+            raise TypeError(f"{name} entries must be strings, got {type(entry).__name__}")
+    return value
+
+
+def get_site_packages(prefixes: Optional[Sequence[str]] = None) -> List[str]:
+    """Return the global site-packages directories of the interpreter.
+
+    Args:
+        prefixes: The installation prefixes the directories are looked up in.
+            The prefixes of the interpreter are used when it is ``None``.
 
     Returns:
-        A list of absolute directory paths.
+        The absolute paths of the site-packages directories.
     """
-    return list(site.getsitepackages())
+    resolved = _require_optional_prefixes(prefixes, "prefixes")
+    return list(_site.getsitepackages(resolved))
 
 
-def get_user_base() -> str:
-    """Return the base directory for user-specific installations.
+def get_site_prefixes() -> List[str]:
+    """Return the installation prefixes of the interpreter.
 
     Returns:
-        The absolute path to the user base directory.
+        The prefixes the site-packages directories are looked up in.
     """
-    return site.getuserbase()
+    return list(_site.PREFIXES)
 
 
-def get_user_site_packages() -> str:
-    """Return the user site-packages directory.
+def get_user_base() -> Optional[str]:
+    """Return the base directory a user installs packages below.
 
     Returns:
-        The absolute path to the user site-packages directory.
+        The absolute path of the user base directory, or ``None`` on the
+        platforms that have no home directory.
     """
-    return site.getusersitepackages()
+    return _site.getuserbase()
+
+
+def get_user_site_packages() -> Optional[str]:
+    """Return the site-packages directory of the user.
+
+    Returns:
+        The absolute path of the user site-packages directory, or ``None`` on
+        the platforms that have no home directory.
+    """
+    return _site.getusersitepackages()
+
+
+def get_enable_user_site() -> Optional[bool]:
+    """Return the user site setting of the interpreter.
+
+    Returns:
+        ``True`` when the user site directory is used, ``False`` when it is
+        disabled, and ``None`` when the interpreter has not decided yet.
+    """
+    return _site.ENABLE_USER_SITE
 
 
 def is_user_site_enabled() -> bool:
-    """Return whether user site-packages are enabled.
+    """Return whether the user site directory is used by the interpreter.
 
     Returns:
-        ``True`` when user site-packages are enabled, ``False`` otherwise.
+        ``True`` when the user site directory is used, ``False`` otherwise.
     """
-    return bool(site.ENABLE_USER_SITE)
+    return bool(_site.ENABLE_USER_SITE)
+
+
+def check_enable_user_site() -> Optional[bool]:
+    """Check whether the user site directory is safe to use.
+
+    The standard library disables the user site directory when the process
+    runs with a different effective user than the real one, and when the
+    interpreter was started with the ``-s`` flag.
+
+    Returns:
+        ``True`` when the user site directory is safe to use, ``False`` when
+        it is disabled by the user, and ``None`` when it is disabled for
+        security reasons.
+    """
+    return _site.check_enableusersite()
+
+
+def make_path(*paths: str) -> Tuple[str, str]:
+    """Join the given paths and report them in absolute and normalized form.
+
+    Args:
+        paths: The path segments that are joined.
+
+    Returns:
+        The absolute path of the joined segments and its normalized form, the
+        way the standard library stores the paths of the search path.
+    """
+    if not paths:
+        raise ValueError("paths must not be empty")
+    segments = [_require_str(path, "paths entries") for path in paths]
+    return _site.makepath(*segments)
+
+
+def remove_duplicate_paths() -> Set[str]:
+    """Remove the duplicates of the search path and make its entries absolute.
+
+    The search path of the process is changed in place, the way the standard
+    library changes it.
+
+    Returns:
+        The normalized paths that are known to the search path.
+    """
+    return _site.removeduppaths()
+
+
+def add_site_dir(sitedir: str, known_paths: Optional[Set[str]] = None) -> Optional[Set[str]]:
+    """Add a directory to the search path and process the files it holds.
+
+    The files with the ``.pth`` suffix of the directory are processed, the way
+    the standard library processes them.  The search path of the process is
+    changed in place.
+
+    Args:
+        sitedir: The directory that is added to the search path.
+        known_paths: The paths that are known to the search path.  The paths
+            of the search path of the process are used when it is ``None``.
+
+    Returns:
+        The paths that are known to the search path, or ``None`` when they
+        were derived from the search path of the process.
+    """
+    directory = _require_non_empty_str(sitedir, "sitedir")
+    if known_paths is None:
+        _site.addsitedir(directory, None)
+        return None
+    known = _require_known_paths(known_paths, "known_paths")
+    _site.addsitedir(directory, known)
+    return known
+
+
+def add_site_packages(
+    known_paths: Set[str],
+    prefixes: Optional[Sequence[str]] = None,
+) -> Set[str]:
+    """Add the global site-packages directories to the search path.
+
+    The search path of the process is changed in place, the way the standard
+    library changes it.
+
+    Args:
+        known_paths: The paths that are known to the search path.
+        prefixes: The installation prefixes the directories are looked up in.
+            The prefixes of the interpreter are used when it is ``None``.
+
+    Returns:
+        The paths that are known to the search path.
+    """
+    known = _require_known_paths(known_paths, "known_paths")
+    resolved = _require_optional_prefixes(prefixes, "prefixes")
+    return _site.addsitepackages(known, resolved)
+
+
+def add_user_site_packages(known_paths: Set[str]) -> Set[str]:
+    """Add the site-packages directory of the user to the search path.
+
+    The directory is only added when the interpreter uses the user site
+    directory and the directory exists.  The search path of the process is
+    changed in place, the way the standard library changes it.
+
+    Args:
+        known_paths: The paths that are known to the search path.
+
+    Returns:
+        The paths that are known to the search path.
+    """
+    known = _require_known_paths(known_paths, "known_paths")
+    return _site.addusersitepackages(known)
 SITE_UTILS
 
 # --- tests/test_site_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_site_utils.py" <<'TEST_SITE_UTILS'
-import site
+"""Tests for site_utils."""
 
+import os
+import site
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+import site_utils
 from site_utils import (
+    add_site_dir,
+    add_site_packages,
+    add_user_site_packages,
+    check_enable_user_site,
+    get_enable_user_site,
     get_site_packages,
+    get_site_prefixes,
     get_user_base,
     get_user_site_packages,
     is_user_site_enabled,
+    make_path,
+    remove_duplicate_paths,
 )
 
 
-def test_get_site_packages():
-    assert get_site_packages() == list(site.getsitepackages())
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(site_utils.__all__, sorted(set(site_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in site_utils.__all__:
+            self.assertTrue(hasattr(site_utils, name), name)
+
+    def test_the_helpers_read_the_standard_library(self):
+        self.assertEqual(get_site_packages(), list(site.getsitepackages()))
+        self.assertEqual(get_site_prefixes(), list(site.PREFIXES))
+        self.assertEqual(get_user_base(), site.getuserbase())
+        self.assertEqual(get_user_site_packages(), site.getusersitepackages())
+        self.assertEqual(get_enable_user_site(), site.ENABLE_USER_SITE)
+        self.assertEqual(is_user_site_enabled(), bool(site.ENABLE_USER_SITE))
+        self.assertEqual(check_enable_user_site(), site.check_enableusersite())
 
 
-def test_get_user_base():
-    assert get_user_base() == site.getuserbase()
+class TestSitePackages(unittest.TestCase):
+    """Verify the helpers that report the global site directories."""
+
+    def test_get_site_packages_matches_the_standard_library(self):
+        self.assertEqual(get_site_packages(), list(site.getsitepackages()))
+
+    def test_get_site_packages_accepts_prefixes(self):
+        self.assertEqual(get_site_packages(["/nowhere"]), list(site.getsitepackages(["/nowhere"])))
+
+    def test_get_site_packages_rejects_a_single_string(self):
+        with self.assertRaises(TypeError):
+            get_site_packages("/nowhere")
+
+    def test_get_site_packages_rejects_a_bad_container(self):
+        with self.assertRaises(TypeError):
+            get_site_packages(42)
+
+    def test_get_site_packages_rejects_a_bad_entry(self):
+        with self.assertRaises(TypeError):
+            get_site_packages([42])
+
+    def test_get_site_prefixes_matches_the_standard_library(self):
+        self.assertEqual(get_site_prefixes(), list(site.PREFIXES))
 
 
-def test_get_user_site_packages():
-    assert get_user_site_packages() == site.getusersitepackages()
+class TestUserSite(unittest.TestCase):
+    """Verify the helpers that report the settings of the user site."""
+
+    def test_get_user_base_matches_the_standard_library(self):
+        self.assertEqual(get_user_base(), site.getuserbase())
+
+    def test_get_user_site_packages_matches_the_standard_library(self):
+        self.assertEqual(get_user_site_packages(), site.getusersitepackages())
+
+    def test_get_enable_user_site_matches_the_standard_library(self):
+        self.assertEqual(get_enable_user_site(), site.ENABLE_USER_SITE)
+
+    def test_is_user_site_enabled_matches_the_standard_library(self):
+        self.assertEqual(is_user_site_enabled(), bool(site.ENABLE_USER_SITE))
+
+    def test_check_enable_user_site_matches_the_standard_library(self):
+        self.assertEqual(check_enable_user_site(), site.check_enableusersite())
+
+    def test_check_enable_user_site_reports_a_state(self):
+        self.assertIn(check_enable_user_site(), (True, False, None))
 
 
-def test_is_user_site_enabled():
-    assert is_user_site_enabled() == bool(site.ENABLE_USER_SITE)
+class TestPathHelpers(unittest.TestCase):
+    """Verify the helpers that work on the paths of the search path."""
+
+    def test_make_path_joins_the_segments(self):
+        expected = os.path.join(os.getcwd(), "alpha", "beta")
+        self.assertEqual(make_path("alpha", "beta"), (expected, os.path.normcase(expected)))
+
+    def test_make_path_accepts_a_single_segment(self):
+        expected = os.path.abspath("alpha")
+        self.assertEqual(make_path("alpha"), (expected, os.path.normcase(expected)))
+
+    def test_make_path_rejects_a_bad_segment(self):
+        with self.assertRaises(TypeError):
+            make_path("alpha", 42)
+
+    def test_make_path_rejects_an_empty_call(self):
+        with self.assertRaises(ValueError):
+            make_path()
+
+    def test_remove_duplicate_paths_removes_the_duplicates(self):
+        with mock.patch.object(sys, "path", ["/one", "/two", "/one"]):
+            known = remove_duplicate_paths()
+            self.assertEqual(sys.path, ["/one", "/two"])
+        self.assertIn(os.path.normcase("/one"), known)
+        self.assertIn(os.path.normcase("/two"), known)
+
+    def test_remove_duplicate_paths_forwards_to_the_standard_library(self):
+        with mock.patch.object(
+            site_utils._site, "removeduppaths", return_value={"/one"}
+        ) as patched:
+            self.assertEqual(remove_duplicate_paths(), {"/one"})
+            patched.assert_called_once_with()
+
+
+class TestSearchPath(unittest.TestCase):
+    """Verify the helpers that add directories to the search path."""
+
+    def test_add_site_dir_adds_the_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with mock.patch.object(sys, "path", []):
+                known = set()
+                result = add_site_dir(directory, known)
+                self.assertIs(result, known)
+                self.assertIn(os.path.normcase(os.path.abspath(directory)), known)
+                self.assertIn(os.path.abspath(directory), sys.path)
+
+    def test_add_site_dir_processes_the_pth_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            Path(directory, "extra.pth").write_text("import sys\n")
+            with mock.patch.object(sys, "path", []):
+                known = set()
+                add_site_dir(directory, known)
+            self.assertIn(os.path.normcase(os.path.abspath(directory)), known)
+
+    def test_add_site_dir_derives_the_known_paths_from_the_process(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with mock.patch.object(sys, "path", []):
+                result = add_site_dir(directory)
+                self.assertIsNone(result)
+                self.assertIn(os.path.abspath(directory), sys.path)
+
+    def test_add_site_dir_rejects_a_bad_directory(self):
+        with self.assertRaises(TypeError):
+            add_site_dir(42, set())
+
+    def test_add_site_dir_rejects_an_empty_directory(self):
+        with self.assertRaises(ValueError):
+            add_site_dir("", set())
+
+    def test_add_site_dir_rejects_a_bad_known_paths(self):
+        with self.assertRaises(TypeError):
+            add_site_dir("/nowhere", "not a set")
+        with self.assertRaises(TypeError):
+            add_site_dir("/nowhere", {42})
+
+    def test_add_site_packages_adds_the_global_directories(self):
+        with mock.patch.object(sys, "path", []):
+            known = set()
+            result = add_site_packages(known)
+            self.assertIs(result, known)
+            for directory in get_site_packages():
+                if os.path.isdir(directory):
+                    self.assertIn(os.path.normcase(os.path.abspath(directory)), result)
+
+    def test_add_site_packages_accepts_prefixes(self):
+        with mock.patch.object(sys, "path", []):
+            known = set()
+            add_site_packages(known, ["/nowhere"])
+        self.assertEqual(known, set())
+
+    def test_add_site_packages_rejects_a_bad_known_paths(self):
+        with self.assertRaises(TypeError):
+            add_site_packages("not a set")
+
+    def test_add_site_packages_rejects_a_bad_prefix(self):
+        with self.assertRaises(TypeError):
+            add_site_packages(set(), "/nowhere")
+
+    def test_add_user_site_packages_reports_the_known_paths(self):
+        with mock.patch.object(sys, "path", []):
+            known = set()
+            result = add_user_site_packages(known)
+            self.assertIs(result, known)
+            user_site = get_user_site_packages()
+            if is_user_site_enabled() and user_site and os.path.isdir(user_site):
+                self.assertIn(os.path.normcase(user_site), result)
+
+    def test_add_user_site_packages_rejects_a_bad_known_paths(self):
+        with self.assertRaises(TypeError):
+            add_user_site_packages("not a set")
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_SITE_UTILS
 
 # --- substitute the project name in the templated documents ---

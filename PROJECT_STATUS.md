@@ -1,4 +1,88 @@
-## Latest Session (2026-10-21) — bdb_utils and pdb_utils added, the previous session finished
+## Latest Session (2026-10-21) — site_utils finished and synchronized across every surface
+
+The board held no task, so this session finished the site wrapper module the previous session had
+started and synchronized it across every surface of the project.
+
+Completed in the latest session:
+
+- The previous session left `site_utils.py` and `tests/test_site_utils.py` in the working tree and
+  registered the module in `pyproject.toml` and embedded both files in `scaffold.sh`, but it never
+  synchronized the module with the remaining surfaces. Seven checks of `tests/test_scaffold_sync.py`
+  failed before this session, because the README, the command documentation, the changelog, the
+  embedded `pyproject.toml`, the header comment of the generator, and the assertions of the scaffold
+  tests did not know the module.
+- Rewrote `site_utils.py` against the real interface of the standard library, with typed signatures,
+  docstrings, `__all__`, and input validation: `get_site_packages`, `get_site_prefixes`,
+  `get_user_base`, `get_user_site_packages`, `get_enable_user_site`, `is_user_site_enabled`,
+  `check_enable_user_site`, `make_path`, `remove_duplicate_paths`, `add_site_dir`,
+  `add_site_packages`, and `add_user_site_packages`.
+- The settings of the standard library are read through the helpers of the wrapper instead of being
+  re-exported as constants, because the standard library changes them while the interpreter runs. The
+  helper `get_enable_user_site` reports the tri-state of the user site setting, and
+  `check_enable_user_site` reports the state the standard library checks for security reasons, which
+  disables the user site directory when the process runs with a different effective user.
+- The helpers that change the search path of the interpreter work on `sys.path` of the process. The
+  tests replace `sys.path` with a copy, so the suite never changes the search path of the interpreter
+  that runs it, and the tests never add a directory of the system to it.
+- Wrote `tests/test_site_utils.py` with 33 unit tests in the style of the other tests of the
+  project. The wrapper had only four tests in the style of pytest before, and they only compared the
+  results with the standard library.
+- The type stubs of the standard library describe `site.addsitedir` as a function that returns
+  nothing, although it returns the set of known paths when the caller passes one. The wrapper
+  therefore hands the set to the standard library and returns it itself, so the result of the
+  wrapper is the same without fighting the type stubs.
+- Synchronized the module across every surface: the `scaffold.sh` header comment, the embedded
+  `pyproject.toml`, the embedded README and changelog, the README tree and module section,
+  `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `site_utils.py` and `tests/test_site_utils.py`, both byte identical to the repository copies, and
+  the 4172 tests of the generated project, ruff, and mypy all pass.
+- The repository suite now runs 4529 tests, and `make lint` and `make typecheck` are green.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `antigravity`, `audioop`, `cgi`, `cgitb`, `chunk`, `crypt`, `ensurepip`, `idlelib`,
+  `imghdr`, `lib2to3`, `msilib`, `msvcrt`, `nis`, `nntplib`, `ossaudiodev`, `pipes`, `posix`,
+  `pydoc_data`, `pyexpat`, `readline`, `sndhdr`, `spwd`, `sre_compile`, `sre_constants`,
+  `sre_parse`, `sunau`, `telnetlib`, `tkinter`, `turtle`, `turtledemo`, `urllib`, `venv`, `winreg`,
+  `winsound`, and `wsgiref`. The `wsgiref` module is the natural next candidate: it is a package of
+  pure Python helpers for the web, and the tests never open a connection. The `pydoc_data` module is
+  the alternative: it holds the topics of the documentation of the standard library, so the tests
+  only compare strings.
+- Keep every new wrapper hermetic: the test suite must never open a network connection, write to a
+  system service, or block on a subprocess. `imaplib_utils.py` is the reference — its connection
+  helpers are exercised with `unittest.mock.patch` instead of real servers. `smtplib_utils.py`
+  follows it: the tests replay scripted server replies through a fake socket and never touch the
+  network. `xmlrpc_utils.py` follows it as well: the server helpers are patched and the encoding
+  helpers only compare strings. `syslog_utils.py` follows it too: every call into the system logger
+  is patched. `resource_utils.py` follows it as well: the tests only read the limits of the running
+  process and patch the write. `termios_utils.py` follows it as well: the tests work on a pseudo
+  terminal that the test itself opens. `fcntl_utils.py` follows it as well: the tests lock the files
+  of a temporary directory that the test itself creates, and they use the non blocking operations so
+  that no test ever waits for a lock. `pty_utils.py` follows it as well: the tests exercise `fork`
+  and `spawn` through a patched standard library module and never fork or spawn a process.
+  `zipimport_utils.py` follows it as well: the tests build a Zip archive of their own in a
+  temporary directory and never read an archive that the interpreter ships. `ipaddress_utils.py`
+  follows it as well: the module is pure computation, so the tests only compare addresses and
+  networks. `ntpath_utils.py` follows it as well: the module is pure computation apart from the
+  helpers that read the file system, and the tests only look at a file that the test itself creates.
+  `pdb_utils.py` follows it as well: every helper that opens the prompt of the debugger is patched,
+  so the suite never waits for a command. `site_utils.py` follows it as well: the helpers that
+  change the search path of the interpreter work on a copy of `sys.path`, so the suite never changes
+  the search path of the interpreter that runs it.
+  The same rule applies to the compiler wrappers: `compileall_utils.py` narrows `sys.path` with
+  `unittest.mock.patch` so the suite never byte-compiles the interpreter's own import path.
+  `modulefinder_utils.py` follows the rule as well: the analysis is static, so the analysed script is
+  never imported or executed, and the tests restrict the search path to a temporary directory so the
+  suite never scans the whole import path. `optparse_utils.py` follows it too: the parser never
+  touches the network, and the tests parse command lines from lists instead of `sys.argv`, except for
+  one test that patches `sys.argv` with `unittest.mock.patch`. `xdrlib_utils.py` follows it as well:
+  the XDR encoding is pure computation, so the tests only compare byte strings.
+- Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new
+  module must not reintroduce any drift.
+
+## Previous Session (2026-10-21) — bdb_utils and pdb_utils added, the previous session finished
 
 The board held no task, so this session finished the wrapper modules the previous session had started
 and synchronized them across every surface of the project.

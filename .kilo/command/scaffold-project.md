@@ -67,6 +67,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `fcntl_utils.py` — file control utilities wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation
 - `pty_utils.py` — pseudo-terminal utilities wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation, a `ForkResult` named tuple, and re-exported constants
 - `stringprep_utils.py` — string preparation utilities wrapping the standard library `stringprep` module (table_names, map_table_names, in_table, map_table, is_unassigned, is_mapped_to_nothing, is_prohibited, is_allowed, is_bidi_allowed, map_text, find_problems, is_preparable) with input validation and read-only table mappings
+- `site_utils.py` — site configuration utilities wrapping the standard library `site` module (`get_site_packages`, `get_site_prefixes`, `get_user_base`, `get_user_site_packages`, `get_enable_user_site`, `is_user_site_enabled`, `check_enable_user_site`, `make_path`, `remove_duplicate_paths`, `add_site_dir`, `add_site_packages`, `add_user_site_packages`) with input validation
 - `tabnanny_utils.py` — tabnanny utilities wrapping the standard library `tabnanny` module (check, process_tokens, NannyNag) with input validation
 - `encodings_utils.py` — encoding name utilities wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping
 - `zipimport_utils.py` — Zip archive import utilities wrapping the standard library `zipimport` module (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches) with input validation and the re-exported `ZipImportError`
@@ -291,6 +292,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_fcntl_utils.py` — unit tests for `fcntl_utils.py`
 - `tests/test_pty_utils.py` — unit tests for `pty_utils.py`
 - `tests/test_stringprep_utils.py` — unit tests for `stringprep_utils.py`
+- `tests/test_site_utils.py` — unit tests for `site_utils.py`
 - `tests/test_tabnanny_utils.py` — unit tests for `tabnanny_utils.py`
 - `tests/test_encodings_utils.py` — unit tests for `encodings_utils.py`
 - `tests/test_zipimport_utils.py` — unit tests for `zipimport_utils.py`
