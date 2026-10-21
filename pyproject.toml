@@ -60,6 +60,7 @@ py_modules = [
     "gzip_utils",
     "hmac_utils",
     "hashlib_utils",
+    "pydoc_utils",
     "platform_utils",
     "signal_utils",
     "id_utils",
