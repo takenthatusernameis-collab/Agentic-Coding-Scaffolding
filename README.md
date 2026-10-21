@@ -224,6 +224,7 @@ doctest_utils.py           # Doctest utilities wrapping stdlib doctest (parse_do
 symtable_utils.py           # Symbol table utilities wrapping stdlib symtable (build_symbol_table, lookup_symbol_table, scope_type, scope_identifiers, child_scopes, iter_scopes, find_scope, describe_scope, symbol_info, symbol_flags, namespace_names, free_variables, global_names, local_names, parameter_names, imported_names, assigned_names, referenced_names, nonlocal_names)
 profile_utils.py             # Profiling utilities wrapping stdlib profile (Profile, run, runctx, new_profiler, main)
 pstats_utils.py              # Profiling statistics utilities wrapping stdlib pstats (Stats, SortKey, new_stats, load_stats, add_stats, print_stats, sort_stats, strip_dirs, reverse_order, dump_stats)
+cprofile_utils.py            # Profiling utilities wrapping stdlib cProfile (Profile, new_profiler, run, runctx, runcall, profile_call, collect_stats, format_report, dump_stats, main)
 select_utils.py              # I/O multiplexing utilities wrapping stdlib select (select, create_poller, poll_register, poll_poll, PIPE_BUF)
 imaplib_utils.py             # IMAP4 client utilities wrapping stdlib imaplib (create_imap4, create_imap4_ssl, create_imap4_stream, parse_capabilities, has_capability, parse_flags, parse_fetch_flags, format_flags, parse_internaldate, format_internaldate, int_to_ap)
 mailbox_utils.py             # Mailbox utilities wrapping stdlib mailbox (create_* factories)
@@ -365,6 +366,7 @@ test_doctest_utils.py       # Tests for doctest_utils.py
 test_symtable_utils.py      # Tests for symtable_utils.py
 test_profile_utils.py        # Tests for profile_utils.py
 test_pstats_utils.py         # Tests for pstats_utils.py
+test_cprofile_utils.py       # Tests for cprofile_utils.py
  test_select_utils.py         # Tests for select_utils.py
  test_imaplib_utils.py        # Tests for imaplib_utils.py
  test_mailbox_utils.py        # Tests for mailbox_utils.py
@@ -1568,3 +1570,7 @@ The project includes documentation topic utilities in `pydoc_data_utils.py` wrap
 ## Antigravity Utilities Module
 
 The project includes antigravity utilities in `antigravity_utils.py` wrapping the standard library `antigravity` module: `geohash` returns the geohash of a coordinate with the Munroe algorithm of https://xkcd.com/426/, `fly` opens the XKCD comic about Python in a browser, and `get_xkcd_url` returns the address of the comic. The constant `XKCD_URL` holds the address of the comic as well. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The standard library module opens a browser when it is imported, so the wrapper re-implements the algorithm of the standard library with :mod:`hashlib` instead of importing it, and a browser is only started by `fly`. The module is tested in `tests/test_antigravity_utils.py`.
+
+## Cprofile Utilities Module
+
+The project includes profiling utilities in `cprofile_utils.py` wrapping the standard library `cProfile` module: `new_profiler` creates a profiler, `run` profiles a single statement, `runctx` profiles a statement in given namespaces, `runcall` profiles a single call and returns its result, and `profile_call` returns the result of a profiled call together with its statistics. The helper `collect_stats` returns the statistics a profiler collected, `format_report` returns the report of a profiling run as text, `dump_stats` writes the statistics of a profiling run to a file, and `main` runs the command-line interface of the standard library. The class `Profile` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds three conveniences to the standard library: the report of a profiling run is returned as text instead of being printed to the standard output, a profiled call returns its statistics together with its result, and a timer that does not return the integer number of ticks the profiler needs is rejected with a clear message instead of failing inside the profiler. The module is tested in `tests/test_cprofile_utils.py`.

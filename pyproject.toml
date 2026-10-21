@@ -278,4 +278,5 @@ py_modules = [
     "wsgiref_utils",
     "antigravity_utils",
     "pydoc_data_utils",
+    "cprofile_utils",
 ]

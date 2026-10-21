@@ -285,9 +285,11 @@
 #   - trace_utils.py — # Execution tracing utilities wrapping the standard library trace module (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 #   - profile_utils.py — # Profiling utilities wrapping the standard library profile module (Profile, run, runctx, new_profiler)
 #   - pstats_utils.py — # Profiling statistics utilities wrapping the standard library pstats module (Stats, SortKey, new_stats, load_stats, add_stats, print_stats, sort_stats, strip_dirs, reverse_order, dump_stats)
+#   - cprofile_utils.py — # Profiling utilities wrapping the standard library cProfile module (Profile, new_profiler, run, runctx, runcall, profile_call, collect_stats, format_report, dump_stats, main)
 #   - tests/test_trace_utils.py — # Tests for trace_utils.py
 #   - tests/test_profile_utils.py — # Tests for profile_utils.py
 #   - tests/test_pstats_utils.py — # Tests for pstats_utils.py
+#   - tests/test_cprofile_utils.py — # Tests for cprofile_utils.py
 #   - select_utils.py — # I/O multiplexing utilities wrapping the standard library select module (select, create_poller, poll_register, poll_poll, PIPE_BUF)
 #   - tests/test_select_utils.py — # Tests for select_utils.py
 #   - imaplib_utils.py — # IMAP4 client utilities wrapping the standard library imaplib module (create_imap4, create_imap4_ssl, create_imap4_stream, parse_capabilities, has_capability, parse_flags, parse_fetch_flags, format_flags, parse_internaldate, format_internaldate, int_to_ap)
@@ -4537,6 +4539,7 @@ py_modules = [
     "pydoc_data_utils",
     "wsgiref_utils",
     "antigravity_utils",
+    "cprofile_utils",
 ]
 PYPROJECT
 
@@ -29381,6 +29384,9 @@ scaffold-project my-cool-tool ./out --no-test
 - `pstats_utils.py` — profiling statistics utilities wrapping stdlib pstats
 - `tests/test_pstats_utils.py` — tests for pstats_utils.py
 
+- `cprofile_utils.py` — profiling utilities wrapping the standard library `cProfile` module (`new_profiler`, `run`, `runctx`, `runcall`, `profile_call`, `collect_stats`, `format_report`, `dump_stats`, `main`) with input validation and the re-exported class `Profile`
+- `tests/test_cprofile_utils.py` — tests for cprofile_utils.py
+
 - `select_utils.py` — I/O multiplexing utilities wrapping the standard library `select` module (`select`, `create_poller`, `poll_register`, `poll_poll`, `PIPE_BUF`) with input validation
 - `tests/test_select_utils.py` — unit tests for `select_utils.py`
 - `symtable_utils.py` — symbol table utilities wrapping the standard library `symtable` module (`build_symbol_table`, `lookup_symbol_table`, `scope_type`, `scope_identifiers`, `child_scopes`, `iter_scopes`, `find_scope`, `describe_scope`, `symbol_info`, `symbol_flags`, `namespace_names`, `free_variables`, `global_names`, `local_names`, `parameter_names`, `imported_names`, `assigned_names`, `referenced_names`, `nonlocal_names`) with input validation
@@ -30731,6 +30737,9 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `cprofile_utils.py` wrapping the standard library `cProfile` module (`new_profiler`, `run`, `runctx`, `runcall`, `profile_call`, `collect_stats`, `format_report`, `dump_stats`, `main`) with input validation and the re-exported class `Profile`, plus unit tests in `tests/test_cprofile_utils.py`.
+- Synchronized `cprofile_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Return the report of a profiling run as text instead of printing it to the standard output, let a profiled call return its statistics together with its result, and reject a timer that does not return the integer number of ticks the profiler needs with a clear message instead of a failure inside the profiler.
 - Add `urllib_utils.py` wrapping the standard library `urllib.parse` module (`parse_url`, `build_url`, `urlsplit`, `urlunsplit`, `join_url`, `quote`, `quote_plus`, `unquote`, `unquote_plus`, `unquote_to_bytes`, `urlencode`, `parse_qs`, `parse_qsl`, `defrag`) with input validation, plus unit tests in `tests/test_urllib_utils.py`.
 - Synchronized `urllib_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 
@@ -31839,6 +31848,7 @@ doctest_utils.py           # Doctest utilities wrapping stdlib doctest (parse_do
 symtable_utils.py           # Symbol table utilities wrapping stdlib symtable (build_symbol_table, lookup_symbol_table, scope_type, scope_identifiers, child_scopes, iter_scopes, find_scope, describe_scope, symbol_info, symbol_flags, namespace_names, free_variables, global_names, local_names, parameter_names, imported_names, assigned_names, referenced_names, nonlocal_names)
 profile_utils.py             # Profiling utilities wrapping stdlib profile (Profile, run, runctx, new_profiler, main)
 pstats_utils.py              # Profiling statistics utilities wrapping stdlib pstats (Stats, SortKey, new_stats, load_stats, add_stats, print_stats, sort_stats, strip_dirs, reverse_order, dump_stats)
+cprofile_utils.py            # Profiling utilities wrapping stdlib cProfile (Profile, new_profiler, run, runctx, runcall, profile_call, collect_stats, format_report, dump_stats, main)
 select_utils.py              # I/O multiplexing utilities wrapping stdlib select (select, create_poller, poll_register, poll_poll, PIPE_BUF)
 imaplib_utils.py             # IMAP4 client utilities wrapping stdlib imaplib (create_imap4, create_imap4_ssl, create_imap4_stream, parse_capabilities, has_capability, parse_flags, parse_fetch_flags, format_flags, parse_internaldate, format_internaldate, int_to_ap)
 mailbox_utils.py             # Mailbox utilities wrapping stdlib mailbox (create_* factories)
@@ -31980,6 +31990,7 @@ test_doctest_utils.py       # Tests for doctest_utils.py
 test_symtable_utils.py      # Tests for symtable_utils.py
 test_profile_utils.py        # Tests for profile_utils.py
 test_pstats_utils.py         # Tests for pstats_utils.py
+test_cprofile_utils.py       # Tests for cprofile_utils.py
  test_select_utils.py         # Tests for select_utils.py
  test_imaplib_utils.py        # Tests for imaplib_utils.py
  test_mailbox_utils.py        # Tests for mailbox_utils.py
@@ -33183,6 +33194,10 @@ The project includes documentation topic utilities in `pydoc_data_utils.py` wrap
 ## Antigravity Utilities Module
 
 The project includes antigravity utilities in `antigravity_utils.py` wrapping the standard library `antigravity` module: `geohash` returns the geohash of a coordinate with the Munroe algorithm of https://xkcd.com/426/, `fly` opens the XKCD comic about Python in a browser, and `get_xkcd_url` returns the address of the comic. The constant `XKCD_URL` holds the address of the comic as well. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The standard library module opens a browser when it is imported, so the wrapper re-implements the algorithm of the standard library with :mod:`hashlib` instead of importing it, and a browser is only started by `fly`. The module is tested in `tests/test_antigravity_utils.py`.
+
+## Cprofile Utilities Module
+
+The project includes profiling utilities in `cprofile_utils.py` wrapping the standard library `cProfile` module: `new_profiler` creates a profiler, `run` profiles a single statement, `runctx` profiles a statement in given namespaces, `runcall` profiles a single call and returns its result, and `profile_call` returns the result of a profiled call together with its statistics. The helper `collect_stats` returns the statistics a profiler collected, `format_report` returns the report of a profiling run as text, `dump_stats` writes the statistics of a profiling run to a file, and `main` runs the command-line interface of the standard library. The class `Profile` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds three conveniences to the standard library: the report of a profiling run is returned as text instead of being printed to the standard output, a profiled call returns its statistics together with its result, and a timer that does not return the integer number of ticks the profiler needs is rejected with a clear message instead of failing inside the profiler. The module is tested in `tests/test_cprofile_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -86218,6 +86233,810 @@ class TestDefrag(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_URLLIB_UTILS
+
+# --- cprofile_utils.py ---
+cat > "$OUTPUT_DIR/cprofile_utils.py" <<'CPROFILE_UTILS'
+"""Profiling utilities wrapping the standard library :mod:`cProfile` module.
+
+The :mod:`cProfile` module is the C implementation of the deterministic
+profiler: it counts how often every function of a program was called and
+measures the time spent in that function.
+
+The wrapper keeps the standard library as the single source of truth and adds
+three conveniences the standard library does not offer: every helper validates
+the types of its arguments before the standard library is reached, the report of
+a profiling run is returned as text instead of being printed to standard
+output, and a profiled call returns its result together with its statistics.
+"""
+
+from __future__ import annotations
+
+import cProfile as _cProfile
+import io
+import os
+import sys
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Literal,
+    Mapping,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+)
+
+__all__: list[str] = [
+    "Profile",
+    "collect_stats",
+    "dump_stats",
+    "format_report",
+    "main",
+    "new_profiler",
+    "profile_call",
+    "run",
+    "runcall",
+    "runctx",
+]
+
+_T = TypeVar("_T")
+
+#: The key of a statistics entry: the file, the first line, and the name of a
+#: function.
+StatKey = Tuple[str, int, str]
+
+#: The callers of a statistics entry, keyed by the entry of the caller.
+Callers = Dict[StatKey, Tuple[int, int, float, float]]
+
+#: The value of a statistics entry: the primitive calls, the total calls, the
+#: time spent in the function, the time spent in the function and in the
+#: functions it called, and the callers of the function.
+StatValue = Tuple[int, int, float, float, Callers]
+
+#: The statistics of a profiling run, keyed by the profiled function.
+Stats = Dict[StatKey, StatValue]
+
+#: The indexes of the columns a report can be sorted by.
+_SORT_INDEXES = (-1, 0, 1, 2)
+
+
+def _require_str(value: object, name: str) -> str:
+    """Return *value* when it is a string.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The string value.
+
+    Raises:
+        TypeError: If the value is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_optional_str(value: object, name: str) -> Optional[str]:
+    """Return *value* when it is a string or ``None``.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The string value or ``None``.
+
+    Raises:
+        TypeError: If the value is neither a string nor ``None``.
+    """
+    if value is None:
+        return None
+    return _require_str(value, name)
+
+
+def _require_sort(value: object, name: str = "sort") -> Union[str, int]:
+    """Return *value* when it is a sort key or a sort index.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The sort key or the sort index.
+
+    Raises:
+        TypeError: If the value is neither a string nor an integer.
+    """
+    if isinstance(value, bool) or not isinstance(value, (str, int)):
+        raise TypeError(f"{name} must be a str or an int, got {type(value).__name__}")
+    return value
+
+
+def _require_profiler(value: object, name: str = "profiler") -> _cProfile.Profile:
+    """Return *value* when it is a profiler.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The profiler.
+
+    Raises:
+        TypeError: If the value is not a profiler.
+    """
+    if not isinstance(value, _cProfile.Profile):
+        raise TypeError(f"{name} must be a cProfile.Profile, got {type(value).__name__}")
+    return value
+
+
+def new_profiler(
+    timer: Optional[Callable[[], float]] = None,
+    timeunit: Optional[float] = None,
+    subcalls: bool = True,
+    builtins: bool = True,
+) -> _cProfile.Profile:
+    """Create a profiler.
+
+    Args:
+        timer: A callable that returns the current time as a number of ticks.
+            The standard library expects the timer to return an integer; a
+            timer that returns a float is rejected with a clear message
+            instead of failing inside the profiler.
+        timeunit: The number of seconds a single tick of the timer represents.
+        subcalls: Whether the profiler records the calls of the profiled
+            functions.
+        builtins: Whether the profiler records the calls of the built-in
+            functions.
+
+    Returns:
+        The profiler.
+
+    Raises:
+        TypeError: If an argument is not of the expected type.
+        ValueError: If *timeunit* is not a positive number.
+    """
+    if timer is not None and not callable(timer):
+        raise TypeError(f"timer must be callable or None, got {type(timer).__name__}")
+    if timeunit is not None:
+        if isinstance(timeunit, bool) or not isinstance(timeunit, (int, float)):
+            raise TypeError(f"timeunit must be a number or None, got {type(timeunit).__name__}")
+        if timeunit <= 0:
+            raise ValueError(f"timeunit must be a positive number, got {timeunit!r}")
+    if not isinstance(subcalls, bool):
+        raise TypeError(f"subcalls must be a bool, got {type(subcalls).__name__}")
+    if not isinstance(builtins, bool):
+        raise TypeError(f"builtins must be a bool, got {type(builtins).__name__}")
+
+    kwargs: dict[str, Any] = {"subcalls": subcalls, "builtins": builtins}
+    if timer is not None:
+        _check_timer(timer)
+        kwargs["timer"] = timer
+    if timeunit is not None:
+        kwargs["timeunit"] = float(timeunit)
+    return _cProfile.Profile(**kwargs)
+
+
+def _check_timer(timer: Callable[[], float]) -> None:
+    """Check that *timer* returns the integer number of ticks the profiler needs.
+
+    Args:
+        timer: The timer to check.
+
+    Raises:
+        TypeError: If the timer does not return an integer.
+    """
+    value = timer()
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(
+            "timer must return an integer number of ticks, "
+            f"got {type(value).__name__}; use time.monotonic_ns with a timeunit of 1e-9"
+        )
+
+
+def run(statement: str, filename: Optional[str] = None, sort: Union[str, int] = -1) -> None:
+    """Profile a single statement and report the result.
+
+    Args:
+        statement: The statement to profile.
+        filename: The file the statistics are written to. The report is
+            printed to standard output when no file is given.
+        sort: The sort key or the sort index of the report.
+
+    Raises:
+        TypeError: If an argument is not of the expected type.
+    """
+    _require_str(statement, "statement")
+    _require_optional_str(filename, "filename")
+    _require_sort(sort)
+    _cProfile.run(statement, filename=filename, sort=sort)
+
+
+def runctx(
+    statement: str,
+    globals: Mapping[str, Any],
+    locals: Mapping[str, Any],
+    filename: Optional[str] = None,
+    sort: Union[str, int] = -1,
+) -> None:
+    """Profile a statement in the given namespaces and report the result.
+
+    Args:
+        statement: The statement to profile.
+        globals: The global namespace the statement runs in. It must be a
+            dictionary, the kind of namespace the standard library uses.
+        locals: The local namespace the statement runs in.
+        filename: The file the statistics are written to. The report is
+            printed to standard output when no file is given.
+        sort: The sort key or the sort index of the report.
+
+    Raises:
+        TypeError: If an argument is not of the expected type.
+    """
+    _require_str(statement, "statement")
+    if not isinstance(globals, dict):
+        raise TypeError(f"globals must be a dict, got {type(globals).__name__}")
+    if not isinstance(locals, Mapping):
+        raise TypeError(f"locals must be a mapping, got {type(locals).__name__}")
+    _require_optional_str(filename, "filename")
+    _require_sort(sort)
+    _cProfile.runctx(
+        statement,
+        globals,
+        locals,
+        filename=filename,
+        sort=sort,
+    )
+
+
+def runcall(func: Callable[..., _T], /, *args: Any, **kwargs: Any) -> _T:
+    """Profile a single call and return its result.
+
+    The statistics of the call are discarded; use :func:`profile_call` to get
+    them together with the result.
+
+    Args:
+        func: The callable to profile.
+        args: The positional arguments of the call.
+        kwargs: The keyword arguments of the call.
+
+    Returns:
+        The result of the call.
+
+    Raises:
+        TypeError: If *func* is not callable.
+    """
+    result, _ = _profile_call(func, args, kwargs)
+    return result
+
+
+def profile_call(
+    func: Callable[..., _T], /, *args: Any, **kwargs: Any
+) -> Tuple[_T, Stats]:
+    """Profile a single call and return its result together with its statistics.
+
+    Args:
+        func: The callable to profile.
+        args: The positional arguments of the call.
+        kwargs: The keyword arguments of the call.
+
+    Returns:
+        The result of the call and the statistics of the call.
+
+    Raises:
+        TypeError: If *func* is not callable.
+    """
+    return _profile_call(func, args, kwargs)
+
+
+def _profile_call(
+    func: Callable[..., _T], args: Tuple[Any, ...], kwargs: Dict[str, Any]
+) -> Tuple[_T, Stats]:
+    """Profile a call and return its result together with its statistics.
+
+    Args:
+        func: The callable to profile.
+        args: The positional arguments of the call.
+        kwargs: The keyword arguments of the call.
+
+    Returns:
+        The result of the call and the statistics of the call.
+
+    Raises:
+        TypeError: If *func* is not callable.
+    """
+    if not callable(func):
+        raise TypeError(f"func must be callable, got {type(func).__name__}")
+    profiler = new_profiler()
+    result = profiler.runcall(func, *args, **kwargs)
+    return result, collect_stats(profiler)
+
+
+def collect_stats(profiler: _cProfile.Profile) -> Stats:
+    """Return the statistics a profiler collected.
+
+    Args:
+        profiler: The profiler to read the statistics from.
+
+    Returns:
+        The statistics of the profiler, keyed by the profiled function.
+
+    Raises:
+        TypeError: If *profiler* is not a profiler.
+    """
+    _require_profiler(profiler)
+    profiler.create_stats()
+    return cast(Stats, profiler.stats)
+
+
+def format_report(
+    profiler: _cProfile.Profile,
+    sort: Union[str, int] = "cumulative",
+    limit: Optional[int] = None,
+) -> str:
+    """Return the report of a profiling run as text.
+
+    The standard library prints the report to standard output; the wrapper
+    returns it, so the caller decides where it goes.
+
+    Args:
+        profiler: The profiler to report on.
+        sort: The sort key of the report, such as ``"cumulative"``, or the
+            index of the column the report is sorted by. The standard library
+            knows the indexes ``-1`` (the name of the function), ``0`` (the
+            number of calls), ``1`` (the time in the function), and ``2`` (the
+            cumulative time).
+        limit: The number of rows of the report. The whole report is returned
+            when no limit is given.
+
+    Returns:
+        The report.
+
+    Raises:
+        TypeError: If an argument is not of the expected type.
+        ValueError: If the sort key is unknown or the limit is not positive.
+    """
+    import pstats
+
+    _require_profiler(profiler)
+    _require_sort(sort)
+    if limit is not None:
+        if isinstance(limit, bool) or not isinstance(limit, int):
+            raise TypeError(f"limit must be an int or None, got {type(limit).__name__}")
+        if limit <= 0:
+            raise ValueError(f"limit must be a positive number, got {limit!r}")
+    if isinstance(sort, str):
+        if sort not in pstats.Stats.sort_arg_dict_default:
+            raise ValueError(
+                f"unknown sort key {sort!r}, expected one of "
+                f"{sorted(pstats.Stats.sort_arg_dict_default)}"
+            )
+    elif sort not in _SORT_INDEXES:
+        raise ValueError(f"unknown sort index {sort!r}, expected one of {sorted(_SORT_INDEXES)}")
+
+    buffer = io.StringIO()
+    stats = pstats.Stats(profiler, stream=buffer)
+    if isinstance(sort, str):
+        stats.sort_stats(sort)
+    else:
+        stats.sort_stats(cast(Literal[-1, 0, 1, 2], sort))
+    if limit is None:
+        stats.print_stats()
+    else:
+        stats.print_stats(limit)
+    return buffer.getvalue()
+
+
+def dump_stats(profiler: _cProfile.Profile, path: Union[str, "os.PathLike[str]"]) -> str:
+    """Write the statistics of a profiling run to a file.
+
+    Args:
+        profiler: The profiler to read the statistics from.
+        path: The file the statistics are written to.
+
+    Returns:
+        The path of the file the statistics were written to.
+
+    Raises:
+        TypeError: If an argument is not of the expected type.
+    """
+    _require_profiler(profiler)
+    if not isinstance(path, (str, os.PathLike)):
+        raise TypeError(f"path must be a str or a path, got {type(path).__name__}")
+    target = os.fspath(path)
+    profiler.dump_stats(target)
+    return target
+
+
+def main(argv: Optional[Iterable[str]] = None) -> int:
+    """Run the ``cProfile`` command-line interface and return its exit code.
+
+    ``argv`` accepts any iterable of strings; ``None`` runs the interface with
+    the real process arguments. The standard library entry point reads
+    ``sys.argv`` directly, so the arguments are installed temporarily.
+
+    Args:
+        argv: The arguments of the command-line interface.
+
+    Returns:
+        The exit code of the command-line interface.
+
+    Raises:
+        TypeError: If *argv* is neither an iterable of strings nor ``None``.
+    """
+    if argv is not None and not isinstance(argv, (list, tuple)):
+        raise TypeError(f"argv must be a list, tuple, or None, got {type(argv).__name__}")
+    original_argv = sys.argv
+    if argv is None:
+        sys.argv = list(sys.argv)
+    else:
+        sys.argv = ["cProfile", *[str(item) for item in argv]]
+    try:
+        _cProfile.main()  # type: ignore[attr-defined]
+    except SystemExit as exit_error:
+        code = exit_error.code
+        if code is None:
+            return 0
+        if isinstance(code, int):
+            return code
+        print(code, file=sys.stderr)
+        return 1
+    finally:
+        sys.argv = original_argv
+    return 0
+
+
+#: The profiler class of the standard library.
+Profile = _cProfile.Profile
+CPROFILE_UTILS
+
+# --- tests/test_cprofile_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_cprofile_utils.py" <<'TEST_CPROFILE_UTILS'
+"""Tests for cprofile_utils."""
+
+import contextlib
+import cProfile as _cProfile
+import io
+import os
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+from typing import Any, Dict
+
+import cprofile_utils
+from cprofile_utils import (
+    Profile,
+    collect_stats,
+    dump_stats,
+    format_report,
+    main,
+    new_profiler,
+    profile_call,
+    run,
+    runcall,
+    runctx,
+)
+
+
+def _work(value: int = 10) -> int:
+    """Return the sum of the numbers below *value*."""
+    total = 0
+    for number in range(value):
+        total += number
+    return total
+
+
+def time_perf_counter() -> float:
+    """Return the current time in seconds."""
+    import time
+
+    return time.perf_counter()
+
+
+def monotonic_nanoseconds() -> int:
+    """Return the current time in nanoseconds."""
+    import time
+
+    return time.monotonic_ns()
+
+
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(cprofile_utils.__all__, sorted(set(cprofile_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in cprofile_utils.__all__:
+            self.assertTrue(hasattr(cprofile_utils, name), name)
+
+    def test_profile_is_the_standard_library_class(self):
+        self.assertIs(Profile, _cProfile.Profile)
+
+    def test_every_public_name_is_documented(self):
+        for name in cprofile_utils.__all__:
+            member = getattr(cprofile_utils, name)
+            self.assertTrue(member.__doc__, name)
+
+
+class TestNewProfiler(unittest.TestCase):
+    """Verify creating a profiler."""
+
+    def test_new_profiler_returns_a_profiler(self):
+        self.assertIsInstance(new_profiler(), _cProfile.Profile)
+
+    def test_new_profiler_accepts_the_switches(self):
+        profiler = new_profiler(subcalls=False, builtins=False)
+        self.assertIsInstance(profiler, _cProfile.Profile)
+
+    def test_new_profiler_accepts_an_integer_timer(self):
+        profiler = new_profiler(timer=monotonic_nanoseconds, timeunit=1e-9)
+        self.assertIsInstance(profiler, _cProfile.Profile)
+
+    def test_new_profiler_rejects_a_timer_that_is_not_callable(self):
+        with self.assertRaises(TypeError):
+            new_profiler(timer=42)  # type: ignore[arg-type]
+
+    def test_new_profiler_rejects_a_timer_that_returns_a_float(self):
+        with self.assertRaises(TypeError):
+            new_profiler(timer=time_perf_counter, timeunit=1e-9)
+
+    def test_new_profiler_rejects_a_timeunit_that_is_not_a_number(self):
+        with self.assertRaises(TypeError):
+            new_profiler(timeunit="1e-9")  # type: ignore[arg-type]
+
+    def test_new_profiler_rejects_a_timeunit_that_is_not_positive(self):
+        with self.assertRaises(ValueError):
+            new_profiler(timeunit=0)
+        with self.assertRaises(ValueError):
+            new_profiler(timeunit=-1.0)
+
+    def test_new_profiler_rejects_switches_that_are_not_booleans(self):
+        with self.assertRaises(TypeError):
+            new_profiler(subcalls=1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            new_profiler(builtins=1)  # type: ignore[arg-type]
+
+
+class TestRun(unittest.TestCase):
+    """Verify profiling a single statement."""
+
+    def test_run_prints_a_report(self):
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            run("total = sum(range(10))")
+        self.assertIn("function calls", buffer.getvalue())
+
+    def test_run_writes_the_statistics_to_a_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "stats.prof")
+            with contextlib.redirect_stdout(io.StringIO()):
+                run("total = sum(range(10))", filename=path)
+            self.assertTrue(os.path.getsize(path) > 0)
+
+    def test_run_rejects_a_statement_that_is_not_a_string(self):
+        with self.assertRaises(TypeError):
+            run(42)  # type: ignore[arg-type]
+
+    def test_run_rejects_a_filename_that_is_not_a_string(self):
+        with self.assertRaises(TypeError):
+            run("total = 1", filename=42)  # type: ignore[arg-type]
+
+    def test_run_rejects_a_sort_that_is_not_a_key(self):
+        with self.assertRaises(TypeError):
+            run("total = 1", sort=1.5)  # type: ignore[arg-type]
+
+
+class TestRunctx(unittest.TestCase):
+    """Verify profiling a statement in given namespaces."""
+
+    def test_runctx_runs_the_statement_in_the_namespaces(self):
+        namespace: Dict[str, Any] = {}
+        with contextlib.redirect_stdout(io.StringIO()):
+            runctx("total = sum(range(10))", namespace, namespace)
+        self.assertEqual(namespace["total"], 45)
+
+    def test_runctx_writes_the_statistics_to_a_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "stats.prof")
+            namespace: Dict[str, Any] = {}
+            with contextlib.redirect_stdout(io.StringIO()):
+                runctx("total = 1", namespace, namespace, filename=path)
+            self.assertTrue(os.path.getsize(path) > 0)
+
+    def test_runctx_rejects_a_statement_that_is_not_a_string(self):
+        with self.assertRaises(TypeError):
+            runctx(42, {}, {})  # type: ignore[arg-type]
+
+    def test_runctx_rejects_globals_that_are_not_a_dict(self):
+        with self.assertRaises(TypeError):
+            runctx("total = 1", [], {})  # type: ignore[arg-type]
+
+    def test_runctx_rejects_locals_that_are_not_a_mapping(self):
+        with self.assertRaises(TypeError):
+            runctx("total = 1", {}, 42)  # type: ignore[arg-type]
+
+
+class TestRuncall(unittest.TestCase):
+    """Verify profiling a single call."""
+
+    def test_runcall_returns_the_result_of_the_call(self):
+        self.assertEqual(runcall(_work, 10), 45)
+
+    def test_runcall_passes_the_arguments_on(self):
+        self.assertEqual(runcall(_work, value=5), 10)
+
+    def test_runcall_rejects_a_function_that_is_not_callable(self):
+        with self.assertRaises(TypeError):
+            runcall(42)  # type: ignore[arg-type]
+
+
+class TestProfileCall(unittest.TestCase):
+    """Verify profiling a call and reading its statistics."""
+
+    def test_profile_call_returns_the_result_and_the_statistics(self):
+        result, stats = profile_call(_work, 10)
+        self.assertEqual(result, 45)
+        self.assertTrue(stats)
+
+    def test_profile_call_reports_the_profiled_function(self):
+        _, stats = profile_call(_work, 10)
+        names = [key[2] for key in stats]
+        self.assertIn("_work", names)
+
+    def test_profile_call_rejects_a_function_that_is_not_callable(self):
+        with self.assertRaises(TypeError):
+            profile_call(42)  # type: ignore[arg-type]
+
+
+class TestCollectStats(unittest.TestCase):
+    """Verify reading the statistics of a profiler."""
+
+    def test_collect_stats_returns_the_statistics_of_the_profiler(self):
+        profiler = new_profiler()
+        profiler.runcall(_work, 10)
+        stats = collect_stats(profiler)
+        self.assertTrue(stats)
+        for key, value in stats.items():
+            self.assertEqual(len(key), 3)
+            self.assertEqual(len(value), 5)
+
+    def test_collect_stats_rejects_a_profiler_that_is_not_one(self):
+        with self.assertRaises(TypeError):
+            collect_stats(object())  # type: ignore[arg-type]
+
+
+class TestFormatReport(unittest.TestCase):
+    """Verify rendering the report of a profiling run."""
+
+    def setUp(self):
+        self.profiler = new_profiler()
+        self.profiler.runcall(_work, 10)
+
+    def test_format_report_returns_the_report_as_text(self):
+        report = format_report(self.profiler)
+        self.assertIn("function calls", report)
+        self.assertIn("_work", report)
+
+    def test_format_report_sorts_the_report(self):
+        report = format_report(self.profiler, sort="calls")
+        self.assertIn("Ordered by: call count", report)
+
+    def test_format_report_sorts_the_report_by_an_index(self):
+        report = format_report(self.profiler, sort=2)
+        self.assertIn("Ordered by: cumulative time", report)
+
+    def test_format_report_rejects_a_sort_index_that_is_unknown(self):
+        with self.assertRaises(ValueError):
+            format_report(self.profiler, sort=7)
+
+    def test_format_report_limits_the_number_of_rows(self):
+        report = format_report(self.profiler, limit=1)
+        body = [line for line in report.splitlines() if line.strip()]
+        self.assertLess(len(body), 10)
+
+    def test_format_report_rejects_a_sort_key_that_is_unknown(self):
+        with self.assertRaises(ValueError):
+            format_report(self.profiler, sort="not-a-key")
+
+    def test_format_report_rejects_a_sort_that_is_not_a_key(self):
+        with self.assertRaises(TypeError):
+            format_report(self.profiler, sort=1.5)  # type: ignore[arg-type]
+
+    def test_format_report_rejects_a_limit_that_is_not_a_number(self):
+        with self.assertRaises(TypeError):
+            format_report(self.profiler, limit="1")  # type: ignore[arg-type]
+
+    def test_format_report_rejects_a_limit_that_is_not_positive(self):
+        with self.assertRaises(ValueError):
+            format_report(self.profiler, limit=0)
+
+    def test_format_report_rejects_a_profiler_that_is_not_one(self):
+        with self.assertRaises(TypeError):
+            format_report(object())  # type: ignore[arg-type]
+
+
+class TestDumpStats(unittest.TestCase):
+    """Verify writing the statistics of a profiling run to a file."""
+
+    def setUp(self):
+        self.profiler = new_profiler()
+        self.profiler.runcall(_work, 10)
+
+    def test_dump_stats_writes_a_readable_file(self):
+        import pstats
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "stats.prof")
+            written = dump_stats(self.profiler, path)
+            self.assertEqual(written, path)
+            self.assertTrue(os.path.getsize(path) > 0)
+            self.assertTrue(pstats.Stats(path).stats)
+
+    def test_dump_stats_accepts_a_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "stats.prof"
+            written = dump_stats(self.profiler, path)
+            self.assertEqual(written, str(path))
+            self.assertTrue(path.exists())
+
+    def test_dump_stats_rejects_a_path_that_is_not_a_path(self):
+        with self.assertRaises(TypeError):
+            dump_stats(self.profiler, 42)  # type: ignore[arg-type]
+
+    def test_dump_stats_rejects_a_profiler_that_is_not_one(self):
+        with self.assertRaises(TypeError):
+            dump_stats(object(), "stats.prof")  # type: ignore[arg-type]
+
+
+class TestMain(unittest.TestCase):
+    """Verify the command-line interface of the module."""
+
+    def test_main_profiles_a_script(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = Path(directory) / "script.py"
+            script.write_text("total = sum(range(10))\n", encoding="utf-8")
+            original_path = list(sys.path)
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    exit_code = main([str(script)])
+            finally:
+                sys.path[:] = original_path
+            self.assertEqual(exit_code, 0)
+
+    def test_main_reports_the_usage_when_no_arguments_are_given(self):
+        original_path = list(sys.path)
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                exit_code = main([])
+        finally:
+            sys.path[:] = original_path
+        self.assertEqual(exit_code, 2)
+
+    def test_main_restores_the_arguments_of_the_process(self):
+        original_argv = list(sys.argv)
+        original_path = list(sys.path)
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                main([])
+        finally:
+            sys.path[:] = original_path
+        self.assertEqual(sys.argv, original_argv)
+
+    def test_main_rejects_arguments_that_are_not_a_list(self):
+        with self.assertRaises(TypeError):
+            main("stats.prof")  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_CPROFILE_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

@@ -500,6 +500,9 @@ scaffold-project my-cool-tool ./out --no-test
 - `pstats_utils.py` — profiling statistics utilities wrapping stdlib pstats
 - `tests/test_pstats_utils.py` — tests for pstats_utils.py
 
+- `cprofile_utils.py` — profiling utilities wrapping the standard library `cProfile` module (`new_profiler`, `run`, `runctx`, `runcall`, `profile_call`, `collect_stats`, `format_report`, `dump_stats`, `main`) with input validation and the re-exported class `Profile`
+- `tests/test_cprofile_utils.py` — tests for cprofile_utils.py
+
 - `select_utils.py` — I/O multiplexing utilities wrapping the standard library `select` module (`select`, `create_poller`, `poll_register`, `poll_poll`, `PIPE_BUF`) with input validation
 - `tests/test_select_utils.py` — unit tests for `select_utils.py`
 - `symtable_utils.py` — symbol table utilities wrapping the standard library `symtable` module (`build_symbol_table`, `lookup_symbol_table`, `scope_type`, `scope_identifiers`, `child_scopes`, `iter_scopes`, `find_scope`, `describe_scope`, `symbol_info`, `symbol_flags`, `namespace_names`, `free_variables`, `global_names`, `local_names`, `parameter_names`, `imported_names`, `assigned_names`, `referenced_names`, `nonlocal_names`) with input validation

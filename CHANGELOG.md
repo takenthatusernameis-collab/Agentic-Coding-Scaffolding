@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add `cprofile_utils.py` wrapping the standard library `cProfile` module (`new_profiler`, `run`, `runctx`, `runcall`, `profile_call`, `collect_stats`, `format_report`, `dump_stats`, `main`) with input validation and the re-exported class `Profile`, plus unit tests in `tests/test_cprofile_utils.py`.
+- Synchronized `cprofile_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Return the report of a profiling run as text instead of printing it to the standard output, let a profiled call return its statistics together with its result, and reject a timer that does not return the integer number of ticks the profiler needs with a clear message instead of a failure inside the profiler.
 - Add `urllib_utils.py` wrapping the standard library `urllib.parse` module (`parse_url`, `build_url`, `urlsplit`, `urlunsplit`, `join_url`, `quote`, `quote_plus`, `unquote`, `unquote_plus`, `unquote_to_bytes`, `urlencode`, `parse_qs`, `parse_qsl`, `defrag`) with input validation, plus unit tests in `tests/test_urllib_utils.py`.
 - Synchronized `urllib_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 
