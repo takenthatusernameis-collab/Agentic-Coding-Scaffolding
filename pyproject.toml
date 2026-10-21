@@ -265,4 +265,5 @@ py_modules = [
     "tabnanny_utils",
     "encodings_utils",
     "ipaddress_utils",
+    "genericpath_utils",
 ]
