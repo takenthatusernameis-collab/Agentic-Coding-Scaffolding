@@ -8,7 +8,7 @@ the degradation are skipped on an interpreter that still ships it.
 
 import unittest
 import warnings
-from typing import Any, Optional, Tuple
+from typing import Any
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", DeprecationWarning)
@@ -30,20 +30,22 @@ if _audioop is not None:
         _STATEFUL = True
 
 
-def _standard_encode(fragment: bytes, width: int, bits: int = 4) -> Tuple[bytes, Any]:
+def _standard_encode(fragment: bytes, width: int, bits: int = 4) -> Any:
     """Return the ADPCM coded form of a fragment, the way the standard library does."""
+    module: Any = _audioop
     if _STATEFUL:
-        coded, state = _audioop.lin2adpcm(fragment, width, None)
+        coded, state = module.lin2adpcm(fragment, width, None)
         return coded, state
-    return _audioop.lin2adpcm(fragment, width, bits), None
+    return module.lin2adpcm(fragment, width, bits), None
 
 
-def _standard_decode(fragment: bytes, width: int, bits: int = 4) -> Tuple[bytes, Any]:
+def _standard_decode(fragment: bytes, width: int, bits: int = 4) -> Any:
     """Return the linear form of a coded fragment, the way the standard library does."""
+    module: Any = _audioop
     if _STATEFUL:
-        decoded, state = _audioop.adpcm2lin(fragment, width, None)
+        decoded, state = module.adpcm2lin(fragment, width, None)
         return decoded, state
-    return _audioop.adpcm2lin(fragment, width, bits), None
+    return module.adpcm2lin(fragment, width, bits), None
 
 
 class TestModuleContract(unittest.TestCase):
@@ -114,7 +116,7 @@ class TestValidation(unittest.TestCase):
         with self.assertRaises(ValueError):
             audioop_utils.add_fragments(b"\x01\x02", b"\x01", 2)
         with self.assertRaises(ValueError):
-            audioop_utils.frame_count(b"\x01\x02", 2)
+            audioop_utils.frame_count(b"\x01\x02\x03", 2)
 
     def test_the_measurements_reject_an_empty_fragment(self):
         with self.assertRaises(ValueError):
@@ -191,14 +193,17 @@ class TestMeasurements(unittest.TestCase):
 
     def test_the_peak_is_the_largest_absolute_sample(self):
         self.assertEqual(audioop_utils.peak_value(self.fragment, 1), 3)
-        self.assertEqual(audioop_utils.peak_value(b"\xff\x01", 1), -1)
+        self.assertEqual(audioop_utils.peak_value(b"\xff\x01", 1), 1)
 
     def test_the_peak_range_holds_the_smallest_and_the_largest_sample(self):
         self.assertEqual(audioop_utils.peak_range(self.fragment, 1), (0, 3))
         self.assertEqual(audioop_utils.peak_range(b"\xff\x01", 1), (-1, 1))
 
     def test_the_peak_to_peak_value_is_the_distance_of_two_samples(self):
-        self.assertEqual(audioop_utils.peak_to_peak(self.fragment, 1), 3)
+        self.assertEqual(
+            audioop_utils.peak_to_peak(self.fragment, 1),
+            _audioop.maxpp(self.fragment, 1),
+        )
 
     def test_the_average_peak_to_peak_value_matches_the_standard_library(self):
         self.assertEqual(
@@ -217,11 +222,13 @@ class TestMeasurements(unittest.TestCase):
         self.assertEqual(description["minimum"], 0)
         self.assertEqual(description["maximum"], 3)
         self.assertEqual(description["peak"], 3)
-        self.assertEqual(description["peak_to_peak"], 3)
+        self.assertEqual(description["peak_to_peak"], _audioop.maxpp(self.fragment, 1))
         self.assertEqual(description["average"], 1.5)
         self.assertAlmostEqual(description["root_mean_square"], (3.5) ** 0.5)
         self.assertEqual(description["zero_crossings"], 0)
-        self.assertEqual(description["average_peak_to_peak"], float(_audioop.avgpp(self.fragment, 1)))
+        self.assertEqual(
+            description["average_peak_to_peak"], float(_audioop.avgpp(self.fragment, 1))
+        )
 
 
 class TestConversions(unittest.TestCase):
@@ -348,20 +355,26 @@ class TestSamples(unittest.TestCase):
     def setUp(self):
         if _audioop is None:
             self.skipTest("audioop module not available")
-        self.fragment = b"\x01\x02\x03"
+        self.fragment = b"\x01\x02\x03\x04"
 
     def test_a_sample_is_read_by_its_position(self):
         self.assertEqual(audioop_utils.sample_at(self.fragment, 1, 0), 1)
         self.assertEqual(audioop_utils.sample_at(self.fragment, 1, 2), 3)
 
     def test_a_negative_position_counts_from_the_end(self):
-        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, -1), 3)
-        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, -3), 1)
+        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, -1), 4)
+        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, -4), 1)
 
     def test_the_scale_factor_of_a_fragment_is_one_for_equal_fragments(self):
         self.assertAlmostEqual(
             audioop_utils.find_scale_factor(self.fragment, self.fragment), 1.0
         )
+
+    def test_the_scale_factor_needs_whole_sixteen_bit_samples(self):
+        with self.assertRaises(ValueError):
+            audioop_utils.find_scale_factor(b"\x01\x02\x03", b"\x01\x02\x03")
+        with self.assertRaises(ValueError):
+            audioop_utils.find_scale_factor(b"\x01\x02", b"\x01\x02\x03\x04")
 
 
 class TestResampling(unittest.TestCase):
@@ -386,7 +399,7 @@ class TestResampling(unittest.TestCase):
 
     def test_a_fragment_must_hold_whole_frames_of_every_channel(self):
         with self.assertRaises(ValueError):
-            audioop_utils.resample(b"\x01\x02", 1, 2, 8000, 16000, None)
+            audioop_utils.resample(b"\x01\x02\x03", 1, 2, 8000, 16000, None)
 
     def test_the_resampler_keeps_the_state_of_the_conversion(self):
         resampler = audioop_utils.Resampler(1, 8000, 16000)

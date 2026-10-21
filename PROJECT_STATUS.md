@@ -1,4 +1,70 @@
-## Latest Session (2026-10-21) — venv_utils added and synchronized across every surface
+## Latest Session (2026-10-21) — ensurepip_utils added, the interrupted audioop handover repaired
+
+The board held no task, so this session repaired the handover that the previous session left
+behind and then added the next standard library wrapper module.
+
+Completed in the latest session:
+
+- Repaired the `audioop_utils` handover that the previous session left behind. Six tests failed
+  because they contradicted the standard library: the peak of a fragment is the largest absolute
+  value of its samples, the peak to peak value is the distance between two turning points of the
+  waveform, a fragment has to hold a whole number of frames, and the scale factor needs a whole
+  number of sixteen bit samples. The tests compare with the standard library now.
+- Closed two synchronization gaps that the previous session left behind: the header comment of
+  `scaffold.sh` never listed `audioop_utils.py`, and the embedded `pyproject.toml` never
+  registered the module, so `tests/test_scaffold_sync.py` failed.
+- Refreshed the copies of `audioop_utils.py` and of `tests/test_audioop_utils.py` that the
+  generator embeds. They were stale because the previous session edited the files without
+  refreshing the generator.
+- `find_scale_factor` rejects a fragment that does not hold a whole number of sixteen bit samples
+  with a `ValueError` now, instead of letting the standard library fail with an opaque error, and
+  the docstrings of the wrapper describe the measurements the way the standard library computes
+  them.
+- The README section of `audioop_utils.py` listed the names of the standard library instead of the
+  helpers of the wrapper; it lists the helpers now.
+- Added `ensurepip_utils.py` wrapping the standard library `ensurepip` package (`bootstrap`,
+  `bundled_wheel`, `pip_version`, `is_pip_installed`, `run_cli`, `is_available`) with typed
+  signatures, docstrings, `__all__`, and input validation, plus unit tests in
+  `tests/test_ensurepip_utils.py`. The record `BootstrapResult` holds what an installation did.
+- The wrapper adds four conveniences to the standard library: the installation returns a record
+  instead of nothing, the wheel the interpreter carries is located, the presence of `pip` is
+  reported without importing it, and the command line interface returns its exit code instead of
+  terminating the interpreter.
+- The test suite is hermetic. The standard library is patched wherever the wrapper reaches it, so
+  the suite installs no package, writes no file, and never reaches the network.
+- Synchronized the new module across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh`
+  header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README
+  and changelog, the README tree and module section, `.kilo/command/scaffold-project.md`, the
+  `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `ensurepip_utils.py` and `tests/test_ensurepip_utils.py`, both byte identical to the repository
+  copies, the 4793 tests of the generated project pass, and the embedded refresh tool reports that
+  all embedded copies are in sync inside the generated project.
+- The repository suite now runs 4893 tests, and `make lint` and `make typecheck` are green.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `cgi`, `cgitb`, `chunk`, `crypt`, `idlelib`, `imghdr`, `lib2to3`, `msilib`, `msvcrt`,
+  `nis`, `nntplib`, `ossaudiodev`, `pipes`, `posix`, `pyexpat`, `readline`, `sndhdr`, `spwd`,
+  `sre_compile`, `sre_constants`, `sre_parse`, `sunau`, `telnetlib`, `tkinter`, `turtle`,
+  `turtledemo`, `winreg`, and `winsound`. Most of them were removed in Python 3.13 as part of
+  :pep:`594`, and the ones that remain are either platform specific (`msvcrt`, `winreg`, `winsound`,
+  `spwd`, `nis`, `posix`) or need a graphical toolkit that the interpreter of the CI does not ship
+  (`tkinter`, `idlelib`, `turtle`, `turtledemo`). The `readline` module is the natural next
+  candidate: it ships with the interpreter on Unix-like platforms, and the wrapper can use the
+  graceful degradation that `curses_utils.py` uses for a module that is missing on Windows.
+- Keep every new wrapper hermetic: the test suite must never open a network connection, install a
+  package, write to a system service, or block on a subprocess. `ensurepip_utils.py` follows the
+  rule as well: the standard library is patched, so the suite installs no package. The reference
+  modules are `imaplib_utils.py`, whose connection helpers are exercised with
+  `unittest.mock.patch` instead of real servers, `smtplib_utils.py`, whose tests replay scripted
+  server replies through a fake socket, `xmlrpc_utils.py`, whose server helpers are patched, and
+  `syslog_utils.py`, where every call into the system logger is patched.
+- Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new
+  module must not reintroduce any drift.
+
+## Previous Session (2026-10-21) — venv_utils added and synchronized across every surface
 
 The board held no task, so this session added the next standard library wrapper module and
 synchronized it across every surface of the project.
@@ -727,7 +793,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 4801 tests across all wrapper modules (3377 subtests)
+- 4893 tests across all wrapper modules (3405 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -738,14 +804,14 @@ The project foundation is established:
   asserted in `tests/test_scaffold.py`; the `pyproject.toml` template embedded in `scaffold.sh` has to
   register every module as well
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 4701 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 4793 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 484 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 488 source files
 
 ## Keeping the Scaffold Synchronized
 

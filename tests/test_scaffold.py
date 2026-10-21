@@ -609,8 +609,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_wsgiref_utils.py",
             "cprofile_utils.py",
             "tests/test_cprofile_utils.py",
-            "venv_utils.py", "audioop_utils.py",
+            "venv_utils.py", "audioop_utils.py", "ensurepip_utils.py",
             "tests/test_venv_utils.py", "tests/test_audioop_utils.py",
+            "tests/test_ensurepip_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -1196,8 +1197,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_wsgiref_utils.py",
             "cprofile_utils.py",
             "tests/test_cprofile_utils.py",
-            "venv_utils.py", "audioop_utils.py",
+            "venv_utils.py", "audioop_utils.py", "ensurepip_utils.py",
             "tests/test_venv_utils.py", "tests/test_audioop_utils.py",
+            "tests/test_ensurepip_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -1595,8 +1597,9 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_wsgiref_utils.py",
             "cprofile_utils.py",
             "tests/test_cprofile_utils.py",
-            "venv_utils.py", "audioop_utils.py",
+            "venv_utils.py", "audioop_utils.py", "ensurepip_utils.py",
             "tests/test_venv_utils.py", "tests/test_audioop_utils.py",
+            "tests/test_ensurepip_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 

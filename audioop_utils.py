@@ -586,7 +586,8 @@ def average_peak_to_peak(fragment: Any, width: int) -> float:
         width: The width of a sample of *fragment* in bytes.
 
     Returns:
-        The average peak to peak value.
+        The average of the distances between the turning points of the
+        waveform.
 
     Raises:
         TypeError: If an argument has the wrong type.
@@ -699,7 +700,7 @@ def peak_to_peak(fragment: Any, width: int) -> int:
         width: The width of a sample of *fragment* in bytes.
 
     Returns:
-        The largest difference between two samples of the fragment.
+        The largest difference between two turning points of the fragment.
 
     Raises:
         TypeError: If an argument has the wrong type.
@@ -751,6 +752,9 @@ def find_scale_factor(fragment: Any, reference: Any) -> float:
     The factor is the one that minimizes the root mean square of the sum of
     the fragment and the negated reference scaled by the factor.
 
+    The standard library reads the two fragments as samples of sixteen bits, so
+    both fragments have to hold an even number of bytes.
+
     Args:
         fragment: The audio fragment.
         reference: The reference audio fragment.
@@ -760,17 +764,22 @@ def find_scale_factor(fragment: Any, reference: Any) -> float:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If the fragments hold a different number of bytes.
+        ValueError: If the fragments hold a different number of bytes, or a
+            fragment holds an odd number of bytes.
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
     data = _require_bytes(fragment, "fragment")
     other = _require_bytes(reference, "reference")
-    module = _audioop_module()
     if len(data) != len(other):
         raise ValueError(
             f"both fragments must have the same length, got {len(data)} and {len(other)}"
         )
+    if len(data) % 2:
+        raise ValueError(
+            f"both fragments must hold a whole number of 16-bit samples, got {len(data)} bytes"
+        )
+    module = _audioop_module()
     result: float = module.findfactor(data, other)
     return result
 

@@ -281,4 +281,5 @@ py_modules = [
     "pydoc_data_utils",
     "cprofile_utils",
     "venv_utils",
+    "ensurepip_utils",
 ]

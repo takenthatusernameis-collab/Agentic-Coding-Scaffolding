@@ -537,3 +537,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `audioop_utils.py` — audio utilities wrapping the standard library `audioop` module with input validation, the `Resampler` class, and graceful degradation when the module is removed
 - `tests/test_venv_utils.py` — unit tests for `venv_utils.py`
 - `tests/test_audioop_utils.py` — unit tests for `audioop_utils.py`
+- `ensurepip_utils.py` — bootstrap utilities wrapping the standard library `ensurepip` package (`bootstrap`, `bundled_wheel`, `pip_version`, `is_pip_installed`, `run_cli`, `is_available`) with input validation
+- `tests/test_ensurepip_utils.py` — unit tests for `ensurepip_utils.py`

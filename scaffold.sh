@@ -701,6 +701,8 @@
 #   - wsgiref_utils.py — # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 #   - antigravity_utils.py — # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url) with input validation
 #   - venv_utils.py — # Virtual environment utilities wrapping the standard library venv package (create_environment, describe_environment, read_configuration, environment_paths, environment_python, activation_scripts, is_environment, find_environments, run_cli) with input validation
+#   - audioop_utils.py — # Audio utilities wrapping the standard library audioop module (convert_sample_width, convert_to_u_law, convert_from_u_law, convert_to_a_law, convert_from_a_law, shift_bias, add_fragments, scale, average, root_mean_square, peak_value, peak_to_peak, count_zero_crossings, mix_to_mono, duplicate_to_stereo, resample, encode_adpcm, decode_adpcm, describe_fragment) with input validation
+#   - ensurepip_utils.py — # Bootstrap utilities wrapping the standard library ensurepip package (bootstrap, bundled_wheel, pip_version, is_pip_installed, run_cli, is_available) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -732,6 +734,8 @@
 #   - tests/test_wsgiref_utils.py — # Tests for wsgiref_utils.py
 #   - tests/test_antigravity_utils.py — # Tests for antigravity_utils.py
 #   - tests/test_venv_utils.py — # Tests for venv_utils.py
+#   - tests/test_audioop_utils.py — # Tests for audioop_utils.py
+#   - tests/test_ensurepip_utils.py — # Tests for ensurepip_utils.py
 set -euo pipefail
 
 usage() {
@@ -4543,6 +4547,8 @@ py_modules = [
     "antigravity_utils",
     "cprofile_utils",
     "venv_utils",
+    "audioop_utils",
+    "ensurepip_utils",
 ]
 PYPROJECT
 
@@ -29424,6 +29430,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `audioop_utils.py` — audio utilities wrapping the standard library `audioop` module with input validation, the `Resampler` class, and graceful degradation when the module is removed
 - `tests/test_venv_utils.py` — unit tests for `venv_utils.py`
 - `tests/test_audioop_utils.py` — unit tests for `audioop_utils.py`
+- `ensurepip_utils.py` — bootstrap utilities wrapping the standard library `ensurepip` package (`bootstrap`, `bundled_wheel`, `pip_version`, `is_pip_installed`, `run_cli`, `is_available`) with input validation
+- `tests/test_ensurepip_utils.py` — unit tests for `ensurepip_utils.py`
 SCAFFOLD
 
 
@@ -30746,6 +30754,13 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Add `audioop_utils.py` wrapping the standard library `audioop` module with input validation, the `Resampler` class, graceful degradation on Python 3.13 where `audioop` was removed, and conveniences like `describe_fragment`, `sample_at`, and precise measurements; plus unit tests in `tests/test_audioop_utils.py`.
 - Synchronized `audioop_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired the `audioop_utils` handover that the previous session left behind: six tests failed because they contradicted the standard library, the generator neither listed the module in its header comment nor registered it in the embedded `pyproject.toml`, and the copies of the module and of its test that the generator embeds were stale.
+- The peak to peak value of a fragment is the distance between two turning points of its waveform, so the wrapper documents the measurement the way the standard library computes it, and the tests compare with the standard library.
+- `find_scale_factor` rejects a fragment that does not hold a whole number of sixteen bit samples with a `ValueError` instead of letting the standard library fail.
+- The README section of `audioop_utils.py` lists the helpers of the wrapper instead of the names of the standard library.
+- Add `ensurepip_utils.py` wrapping the standard library `ensurepip` package (`bootstrap`, `bundled_wheel`, `pip_version`, `is_pip_installed`, `run_cli`, `is_available`) with input validation and the record `BootstrapResult`, plus unit tests in `tests/test_ensurepip_utils.py`.
+- Synchronized `ensurepip_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- The installation of the bundled `pip` returns a record of what was installed, the wheel the interpreter carries is located, the presence of `pip` is reported without importing it, and the command line interface of the standard library returns its exit code instead of terminating the interpreter.
 - Add `venv_utils.py` wrapping the standard library `venv` package (`create_environment`, `describe_environment`, `read_configuration`, `environment_paths`, `environment_python`, `activation_scripts`, `is_environment`, `find_environments`, `run_cli`) with input validation and the re-exported class `EnvBuilder`, plus unit tests in `tests/test_venv_utils.py`.
 - Synchronized `venv_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Return a description of a virtual environment when it is created, compute the directories of an environment without creating it, find the environments of a directory tree, and return the exit code of the command-line interface of the standard library.
@@ -31915,6 +31930,7 @@ pydoc_data_utils.py          # Documentation topic utilities wrapping stdlib pyd
 antigravity_utils.py         # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url) with input validation
 wsgiref_utils.py              # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 venv_utils.py                 # Virtual environment utilities wrapping the standard library venv package (create_environment, describe_environment, read_configuration, environment_paths, environment_python, activation_scripts, is_environment, find_environments, run_cli) with input validation
+ensurepip_utils.py            # Bootstrap utilities wrapping the standard library ensurepip package (bootstrap, bundled_wheel, pip_version, is_pip_installed, run_cli, is_available) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -32077,6 +32093,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_interval_utils.py      # Tests for interval_utils.py
   test_venv_utils.py          # Tests for venv_utils.py
   test_audioop_utils.py       # Tests for audioop_utils.py
+  test_ensurepip_utils.py     # Tests for ensurepip_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -33220,7 +33237,11 @@ The project includes profiling utilities in `cprofile_utils.py` wrapping the sta
 The project includes virtual environment utilities in `venv_utils.py` wrapping the standard library `venv` package: `create_environment` creates a virtual environment and returns a description of it, `describe_environment` describes an environment that already exists, `read_configuration` returns the settings of the configuration file of an environment as a mapping, `is_environment` reports whether a directory holds an environment, `environment_paths` returns the directories of an environment the way the standard library computes them, `environment_python` returns the interpreter of an environment, `activation_scripts` returns the scripts that activate an environment, `find_environments` returns the environments of a directory tree, and `run_cli` runs the command-line interface of the standard library and returns its exit code. The class `EnvBuilder` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds three conveniences to the standard library: the creation of an environment returns a description of the result instead of nothing, the directories of an environment are computed without creating it, and the environments of a directory tree are found. The helpers that create an environment write to the directory they are given and nothing else, and the helpers that only read an environment never write to it, so the tests of the project create every environment in a temporary directory of their own and the suite never installs a package and never reaches the network. The module is tested in `tests/test_venv_utils.py`.
 ## Audio Utilities Module
 
-The project includes audio utilities in `audioop_utils.py` wrapping the standard library `audioop` module (`add_fragments`, `shift_bias`, `scale`, `reverse_samples`, `byteswap`, `lin2lin`, `convert_sample_width`, `lin2ulaw`, `ulaw2lin`, `lin2alaw`, `alaw2lin`, `lin2adpcm`, `adpcm2lin`, `lin2tomono`, `add`, `mul`, `bias`, `avg`, `average`, `rms`, `root_mean_square`, `max`, `maxpp`, `peak_value`, `peak_to_peak`, `avgpp`, `average_peak_to_peak`, `cross`, `count_zero_crossings`, `ratecv`, `resample`, `tostereo`, `tomono`, `findfactor`, `find_fit`, `minmax`, `getsample`, `describe_fragment`, `find_scale_factor`, `sample_at`, `frame_count`, `duplicate_to_stereo`, `mix_to_mono`, `reverse`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_audioop_utils.py`. The class `Resampler` keeps the state of resampling. The module degrades gracefully on Python 3.13 where `audioop` was removed, raising `RuntimeError` pointing to `audioop-lts`. The wrapper validates arguments, rejects empty fragments in measurements, supports negative sample indices, and provides `describe_fragment` returning measurements together.
+The project includes audio utilities in `audioop_utils.py` wrapping the standard library `audioop` module (`frame_count`, `convert_sample_width`, `convert_to_u_law`, `convert_from_u_law`, `convert_to_a_law`, `convert_from_a_law`, `shift_bias`, `add_fragments`, `scale`, `average`, `average_peak_to_peak`, `root_mean_square`, `peak_value`, `peak_range`, `peak_to_peak`, `count_zero_crossings`, `find_scale_factor`, `mix_to_mono`, `duplicate_to_stereo`, `swap_byte_order`, `reverse_samples`, `sample_at`, `resample`, `encode_adpcm`, `decode_adpcm`, `describe_fragment`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_audioop_utils.py`. The class `Resampler` keeps the state of the resampling, the helper `is_available` reports whether the interpreter still ships the module, and the module degrades gracefully on Python 3.13 where `audioop` was removed, raising `RuntimeError` pointing at `audioop-lts`. The wrapper validates arguments, rejects empty fragments in measurements, supports negative sample indices, and provides `describe_fragment` returning measurements together.
+
+## Ensurepip Utilities Module
+
+The project includes bootstrap utilities in `ensurepip_utils.py` wrapping the standard library `ensurepip` package: `bootstrap` installs the `pip` the interpreter carries and returns a `BootstrapResult` record of the installation, `pip_version` reports the version of the bundled `pip` as text, `bundled_wheel` returns the path of the wheel the interpreter carries, `is_pip_installed` reports whether the running interpreter can import `pip` without importing it, `run_cli` runs the command-line interface of the standard library and returns its exit code, and `is_available` reports whether the interpreter ships the package. The record of an installation holds its `pip_version`, `root`, `upgrade`, `user`, `altinstall`, `default_pip`, and `verbosity`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: the installation returns a record instead of nothing, the wheel the interpreter carries is located, the presence of `pip` is reported without importing it, and the command-line interface returns its exit code instead of terminating the interpreter. The installation uses the wheel the interpreter was built with, so it never reaches the network, and the tests of the project patch the standard library instead, so the suite installs no package. The module is tested in `tests/test_ensurepip_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -87886,7 +87907,8 @@ an opaque failure.  It adds the helpers the standard library leaves to the
 caller: the measurements of a fragment are reported together, the state of a
 resampling is kept by a :class:`Resampler` instead of by the caller, the index
 of a sample may be negative, and an empty fragment is rejected by the
-measurements instead of being reported as silence.
+measurements instead of being reported as silence.  The helper
+:func:`is_available` reports whether the interpreter still ships the module.
 
 .. note::
 
@@ -87904,7 +87926,7 @@ from __future__ import annotations
 
 import math
 import warnings
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 try:
     with warnings.catch_warnings():
@@ -87932,6 +87954,7 @@ __all__ = [
     "encode_adpcm",
     "find_scale_factor",
     "frame_count",
+    "is_available",
     "mix_to_mono",
     "peak_range",
     "peak_to_peak",
@@ -87949,10 +87972,22 @@ __all__ = [
 SAMPLE_WIDTHS = (1, 2, 3, 4)
 
 #: The error the standard library raises for an invalid audio fragment.
-AudioOpError: Any = _audioop.error if _audioop is not None else RuntimeError
+AudioOpError: Type[Exception] = (
+    _audioop.error if _audioop is not None else RuntimeError  # type: ignore[union-attr]
+)
 
 #: The calling convention of the ADPCM helpers of the standard library.
 _ADPCM_CONVENTION: Optional[str] = None
+
+
+def is_available() -> bool:
+    """Return ``True`` when the interpreter ships the standard library module.
+
+    Returns:
+        ``True`` when the :mod:`audioop` module can be used, ``False`` when
+        the interpreter removed it.
+    """
+    return _audioop is not None
 
 
 def _require_available() -> None:
@@ -88201,11 +88236,11 @@ def convert_sample_width(fragment: Any, width: int, new_width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     target = _require_width(new_width, "new_width")
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.lin2lin(data, size, target)
     return result
 
@@ -88227,10 +88262,10 @@ def convert_to_u_law(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.lin2ulaw(data, size)
     return result
 
@@ -88252,10 +88287,10 @@ def convert_from_u_law(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.ulaw2lin(data, size)
     return result
 
@@ -88277,10 +88312,10 @@ def convert_to_a_law(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.lin2alaw(data, size)
     return result
 
@@ -88302,10 +88337,10 @@ def convert_from_a_law(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.alaw2lin(data, size)
     return result
 
@@ -88328,11 +88363,11 @@ def shift_bias(fragment: Any, width: int, bias: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     offset = _require_int(bias, "bias")
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.bias(data, size, offset)
     return result
 
@@ -88356,12 +88391,12 @@ def add_fragments(left: Any, right: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     first = _require_bytes(left, "left")
     second = _require_bytes(right, "right")
     size = _require_width(width)
     _require_frames(first, size, "left")
     _require_frames(second, size, "right")
+    module = _audioop_module()
     if len(first) != len(second):
         raise ValueError(
             f"both fragments must have the same length, got {len(first)} and {len(second)}"
@@ -88388,11 +88423,11 @@ def scale(fragment: Any, width: int, factor: float) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     multiplier = _require_factor(factor, "factor")
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.mul(data, size, multiplier)
     return result
 
@@ -88439,7 +88474,8 @@ def average_peak_to_peak(fragment: Any, width: int) -> float:
         width: The width of a sample of *fragment* in bytes.
 
     Returns:
-        The average peak to peak value.
+        The average of the distances between the turning points of the
+        waveform.
 
     Raises:
         TypeError: If an argument has the wrong type.
@@ -88449,11 +88485,11 @@ def average_peak_to_peak(fragment: Any, width: int) -> float:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     return float(module.avgpp(data, size))
 
 
@@ -88504,11 +88540,11 @@ def peak_value(fragment: Any, width: int) -> int:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     result: int = module.max(data, size)
     return result
 
@@ -88531,11 +88567,11 @@ def peak_range(fragment: Any, width: int) -> Tuple[int, int]:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     result: Tuple[int, int] = module.minmax(data, size)
     return result
 
@@ -88552,7 +88588,7 @@ def peak_to_peak(fragment: Any, width: int) -> int:
         width: The width of a sample of *fragment* in bytes.
 
     Returns:
-        The largest difference between two samples of the fragment.
+        The largest difference between two turning points of the fragment.
 
     Raises:
         TypeError: If an argument has the wrong type.
@@ -88562,11 +88598,11 @@ def peak_to_peak(fragment: Any, width: int) -> int:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     result: int = module.maxpp(data, size)
     return result
 
@@ -88589,11 +88625,11 @@ def count_zero_crossings(fragment: Any, width: int) -> int:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     result: int = module.cross(data, size)
     return result
 
@@ -88604,6 +88640,9 @@ def find_scale_factor(fragment: Any, reference: Any) -> float:
     The factor is the one that minimizes the root mean square of the sum of
     the fragment and the negated reference scaled by the factor.
 
+    The standard library reads the two fragments as samples of sixteen bits, so
+    both fragments have to hold an even number of bytes.
+
     Args:
         fragment: The audio fragment.
         reference: The reference audio fragment.
@@ -88613,17 +88652,22 @@ def find_scale_factor(fragment: Any, reference: Any) -> float:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If the fragments hold a different number of bytes.
+        ValueError: If the fragments hold a different number of bytes, or a
+            fragment holds an odd number of bytes.
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     other = _require_bytes(reference, "reference")
     if len(data) != len(other):
         raise ValueError(
             f"both fragments must have the same length, got {len(data)} and {len(other)}"
         )
+    if len(data) % 2:
+        raise ValueError(
+            f"both fragments must hold a whole number of 16-bit samples, got {len(data)} bytes"
+        )
+    module = _audioop_module()
     result: float = module.findfactor(data, other)
     return result
 
@@ -88653,12 +88697,12 @@ def mix_to_mono(
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     left = _require_factor(left_factor, "left_factor")
     right = _require_factor(right_factor, "right_factor")
     _require_frames(data, size)
+    module = _audioop_module()
     if (len(data) // size) % 2:
         raise ValueError("fragment must hold an even number of frames to be mixed down")
     result: bytes = module.tomono(data, size, left, right)
@@ -88689,12 +88733,12 @@ def duplicate_to_stereo(
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     left = _require_factor(left_factor, "left_factor")
     right = _require_factor(right_factor, "right_factor")
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.tostereo(data, size, left, right)
     return result
 
@@ -88716,10 +88760,10 @@ def swap_byte_order(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.byteswap(data, size)
     return result
 
@@ -88741,10 +88785,10 @@ def reverse_samples(fragment: Any, width: int) -> bytes:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
+    module = _audioop_module()
     result: bytes = module.reverse(data, size)
     return result
 
@@ -88771,11 +88815,11 @@ def sample_at(fragment: Any, width: int, index: int) -> int:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     position = _require_int(index, "index")
     _require_frames(data, size)
+    module = _audioop_module()
     frames = len(data) // size
     if position < 0:
         position += frames
@@ -88820,13 +88864,13 @@ def resample(
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     channel_count = _require_positive_int(channels, "channels")
     source_rate = _require_positive_int(input_rate, "input_rate")
     target_rate = _require_positive_int(output_rate, "output_rate")
     _require_frames(data, size * channel_count)
+    module = _audioop_module()
     result: Tuple[bytes, Any] = module.ratecv(
         data, size, channel_count, source_rate, target_rate, state
     )
@@ -88855,11 +88899,11 @@ def encode_adpcm(fragment: Any, width: int, state: Any = None, bits: int = 4) ->
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     bit_count = _require_int(bits, "bits")
     _require_frames(data, size)
+    module = _audioop_module()
     if _adpcm_convention() == "stateful":
         if bit_count != 4:
             raise ValueError(f"bits must be 4 on this interpreter, got {bit_count}")
@@ -88893,11 +88937,11 @@ def decode_adpcm(fragment: Any, width: int, state: Any = None, bits: int = 4) ->
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     bit_count = _require_int(bits, "bits")
     _require_frames(data, size)
+    module = _audioop_module()
     if _adpcm_convention() == "stateful":
         if bit_count != 4:
             raise ValueError(f"bits must be 4 on this interpreter, got {bit_count}")
@@ -88932,11 +88976,11 @@ def describe_fragment(fragment: Any, width: int) -> Dict[str, Any]:
         RuntimeError: If the interpreter no longer ships the ``audioop``
             module.
     """
-    module = _audioop_module()
     data = _require_bytes(fragment, "fragment")
     size = _require_width(width)
     _require_frames(data, size)
     _require_non_empty(data)
+    module = _audioop_module()
     smallest, largest = module.minmax(data, size)
     return {
         "width": size,
@@ -89031,16 +89075,54 @@ AUDIOOP_UTILS
 
 # --- tests/test_audioop_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_audioop_utils.py" <<'TEST_AUDIOOP_UTILS'
-"""Tests for audioop_utils."""
+"""Tests for audioop_utils.
+
+The tests work on byte strings that the test itself builds, so the suite needs
+no audio device, no file, and no network.  The tests of the standard library
+module are skipped on an interpreter that removed the module, and the tests of
+the degradation are skipped on an interpreter that still ships it.
+"""
 
 import unittest
+import warnings
+from typing import Any
 
-try:
-    import audioop as _audioop
-except ImportError:  # pragma: no cover - Python 3.13 removed the module
-    _audioop = None
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", DeprecationWarning)
+    try:
+        import audioop as _audioop
+    except ImportError:  # pragma: no cover - Python 3.13 removed the module
+        _audioop = None  # type: ignore[assignment]
 
 import audioop_utils
+
+#: The convention of the ADPCM helpers of the running interpreter.
+_STATEFUL = False
+if _audioop is not None:
+    try:
+        _audioop.lin2adpcm(b"", 2, None)
+    except TypeError:
+        _STATEFUL = False
+    else:
+        _STATEFUL = True
+
+
+def _standard_encode(fragment: bytes, width: int, bits: int = 4) -> Any:
+    """Return the ADPCM coded form of a fragment, the way the standard library does."""
+    module: Any = _audioop
+    if _STATEFUL:
+        coded, state = module.lin2adpcm(fragment, width, None)
+        return coded, state
+    return module.lin2adpcm(fragment, width, bits), None
+
+
+def _standard_decode(fragment: bytes, width: int, bits: int = 4) -> Any:
+    """Return the linear form of a coded fragment, the way the standard library does."""
+    module: Any = _audioop
+    if _STATEFUL:
+        decoded, state = module.adpcm2lin(fragment, width, None)
+        return decoded, state
+    return module.adpcm2lin(fragment, width, bits), None
 
 
 class TestModuleContract(unittest.TestCase):
@@ -89053,181 +89135,1112 @@ class TestModuleContract(unittest.TestCase):
         for name in audioop_utils.__all__:
             self.assertTrue(hasattr(audioop_utils, name), name)
 
-    def test_sample_widths(self):
+    def test_the_sample_widths_are_the_widths_of_the_standard_library(self):
         self.assertEqual(audioop_utils.SAMPLE_WIDTHS, (1, 2, 3, 4))
+
+    def test_is_available_reports_a_bool(self):
+        self.assertIsInstance(audioop_utils.is_available(), bool)
+
+    def test_is_available_matches_the_standard_library(self):
+        self.assertEqual(audioop_utils.is_available(), _audioop is not None)
+
+    @unittest.skipUnless(_audioop is not None, "audioop module not available")
+    def test_the_error_of_the_standard_library_is_reexported(self):
+        self.assertIs(audioop_utils.AudioOpError, _audioop.error)
 
 
 class TestValidation(unittest.TestCase):
-    """Verify argument validation."""
+    """Verify the validation of the arguments.
 
-    def test_add_fragments_validates_types(self):
+    The arguments are validated before the standard library is reached, so the
+    same error is raised on an interpreter that removed the module.
+    """
+
+    def test_a_fragment_must_be_bytes_like(self):
         with self.assertRaises(TypeError):
             audioop_utils.add_fragments("x", b"\x01", 1)
         with self.assertRaises(TypeError):
             audioop_utils.add_fragments(b"\x01", "x", 1)
         with self.assertRaises(TypeError):
+            audioop_utils.shift_bias("x", 1, 0)
+        with self.assertRaises(TypeError):
+            audioop_utils.scale(b"\x01", 1, "2")
+        with self.assertRaises(TypeError):
+            audioop_utils.sample_at(b"\x01", 1, "0")
+
+    def test_a_width_must_be_an_integer(self):
+        with self.assertRaises(TypeError):
             audioop_utils.add_fragments(b"\x01", b"\x01", "1")
+        with self.assertRaises(TypeError):
+            audioop_utils.frame_count(b"\x01", "1")
 
-    def test_add_fragments_validates_width(self):
-        with self.assertRaises(ValueError):
-            audioop_utils.add_fragments(b"\x01", b"\x01", 5)
-        with self.assertRaises(ValueError):
-            audioop_utils.add_fragments(b"\x01", b"\x01", 0)
+    def test_a_boolean_is_not_an_integer(self):
+        with self.assertRaises(TypeError):
+            audioop_utils.shift_bias(b"\x01", 1, True)
+        with self.assertRaises(TypeError):
+            audioop_utils.sample_at(b"\x01", 1, True)
+        with self.assertRaises(TypeError):
+            audioop_utils.scale(b"\x01", 1, True)
 
-    def test_add_fragments_validates_frame_alignment(self):
+    def test_a_width_must_be_a_width_of_the_standard_library(self):
+        for width in (0, 5, -1):
+            with self.assertRaises(ValueError):
+                audioop_utils.frame_count(b"\x01", width)
+        with self.assertRaises(ValueError):
+            audioop_utils.convert_sample_width(b"\x01", 1, 5)
+
+    def test_a_fragment_must_hold_whole_frames(self):
         with self.assertRaises(ValueError):
             audioop_utils.add_fragments(b"\x01\x02", b"\x01", 2)
-
-    def test_bias_validates_arguments(self):
-        with self.assertRaises(TypeError):
-            audioop_utils.shift_bias("x", 1, 0)
         with self.assertRaises(ValueError):
-            audioop_utils.shift_bias(b"\x01", 5, 0)
+            audioop_utils.frame_count(b"\x01\x02\x03", 2)
 
-    def test_average_rejects_empty_fragment(self):
-        if _audioop is None:
-            self.skipTest("audioop not available")
+    def test_the_measurements_reject_an_empty_fragment(self):
         with self.assertRaises(ValueError):
             audioop_utils.average(b"", 1)
-
-    def test_describe_fragment_rejects_empty_fragment(self):
-        if _audioop is None:
-            self.skipTest("audioop not available")
+        with self.assertRaises(ValueError):
+            audioop_utils.root_mean_square(b"", 1)
         with self.assertRaises(ValueError):
             audioop_utils.describe_fragment(b"", 1)
 
+    def test_two_fragments_must_hold_the_same_number_of_bytes(self):
+        with self.assertRaises(ValueError):
+            audioop_utils.add_fragments(b"\x01", b"\x01\x02", 1)
+        with self.assertRaises(ValueError):
+            audioop_utils.find_scale_factor(b"\x01", b"\x01\x02")
 
-class TestAudioOperations(unittest.TestCase):
-    """Verify audio operations when available."""
+    def test_a_rate_must_be_greater_than_zero(self):
+        with self.assertRaises(ValueError):
+            audioop_utils.resample(b"\x01", 1, 1, 0, 16000, None)
+        with self.assertRaises(ValueError):
+            audioop_utils.resample(b"\x01", 1, 1, 8000, 0, None)
 
-    def setUp(self):
-        if _audioop is None:
-            self.skipTest("audioop not available")
-        self.fragment1 = b"\x00\x01\x02\x03"
-        self.fragment2 = b"\x01\x01\x01\x01"
+    def test_the_number_of_channels_must_be_greater_than_zero(self):
+        with self.assertRaises(ValueError):
+            audioop_utils.resample(b"\x01", 1, 0, 8000, 16000, None)
 
-    def test_add_fragments(self):
-        result = audioop_utils.add_fragments(self.fragment1, self.fragment2, 1)
-        self.assertIsInstance(result, bytes)
+    def test_a_stereo_fragment_must_hold_an_even_number_of_frames(self):
+        with self.assertRaises(ValueError):
+            audioop_utils.mix_to_mono(b"\x01\x02\x03", 1)
 
-    def test_average(self):
-        result = audioop_utils.average(self.fragment1, 1)
-        self.assertIsInstance(result, (int, float))
-
-    def test_peak_value(self):
-        result = audioop_utils.peak_value(self.fragment1, 1)
-        self.assertIsInstance(result, int)
-
-    def test_root_mean_square(self):
-        result = audioop_utils.root_mean_square(self.fragment1, 1)
-        self.assertIsInstance(result, (int, float))
-
-    def test_peak_to_peak(self):
-        result = audioop_utils.peak_to_peak(self.fragment1, 1)
-        self.assertIsInstance(result, int)
-
-    def test_average_peak_to_peak(self):
-        result = audioop_utils.average_peak_to_peak(self.fragment1, 1)
-        self.assertIsInstance(result, (int, float))
-
-    def test_describe_fragment(self):
-        result = audioop_utils.describe_fragment(self.fragment1, 1)
-        self.assertIsInstance(result, dict)
-        self.assertIn("width", result)
-        self.assertIn("frames", result)
-        self.assertIn("peak", result)
-        self.assertIn("root_mean_square", result)
-
-    def test_scale(self):
-        result = audioop_utils.scale(self.fragment1, 1, 1.0)
-        self.assertIsInstance(result, bytes)
-
-    def test_reverse_samples(self):
-        result = audioop_utils.reverse_samples(self.fragment1, 1)
-        self.assertIsInstance(result, bytes)
-
-    def test_swap_byte_order(self):
-        result = audioop_utils.swap_byte_order(self.fragment1, 2)
-        self.assertIsInstance(result, bytes)
-
-    def test_mix_to_mono(self):
-        stereo = b"\x00\x01\x00\x02"
-        result = audioop_utils.mix_to_mono(stereo, 1, 2)
-        self.assertIsInstance(result, bytes)
-
-    def test_duplicate_to_stereo(self):
-        mono = b"\x00\x01\x02"
-        result = audioop_utils.duplicate_to_stereo(mono, 1)
-        self.assertIsInstance(result, bytes)
-
-    def test_convert_sample_width(self):
-        result = audioop_utils.convert_sample_width(self.fragment1, 1, 2)
-        self.assertIsInstance(result, bytes)
-
-    def test_convert_to_u_law(self):
-        result = audioop_utils.convert_to_u_law(self.fragment1, 1)
-        self.assertIsInstance(result, bytes)
-
-    def test_convert_from_u_law(self):
-        ulaw = audioop_utils.convert_to_u_law(self.fragment1, 1)
-        result = audioop_utils.convert_from_u_law(ulaw, 1)
-        self.assertIsInstance(result, bytes)
-
-    def test_convert_to_a_law(self):
-        result = audioop_utils.convert_to_a_law(self.fragment1, 1)
-        self.assertIsInstance(result, bytes)
-
-    def test_convert_from_a_law(self):
-        alaw = audioop_utils.convert_to_a_law(self.fragment1, 1)
-        result = audioop_utils.convert_from_a_law(alaw, 1)
-        self.assertIsInstance(result, bytes)
-
-    def test_resample(self):
-        result, state = audioop_utils.resample(self.fragment1, 1, 1, 8000, 16000, None)
-        self.assertIsInstance(result, bytes)
-
-    def test_find_scale_factor(self):
-        result = audioop_utils.find_scale_factor(self.fragment1, self.fragment2, 1)
-        self.assertIsInstance(result, float)
-
-
-class TestResampler(unittest.TestCase):
-    """Verify Resampler class."""
-
-    def setUp(self):
-        if _audioop is None:
-            self.skipTest("audioop not available")
-
-    def test_resampler_initialization(self):
-        resampler = audioop_utils.Resampler(1, 8000, 16000)
-        self.assertEqual(resampler.channels, 1)
-        self.assertEqual(resampler.input_rate, 8000)
-        self.assertEqual(resampler.output_rate, 16000)
-        self.assertIsNone(resampler.state)
-
-    def test_resampler_reset(self):
-        resampler = audioop_utils.Resampler(1, 8000, 16000)
-        resampler.reset()
-        self.assertIsNone(resampler.state)
-
-    def test_resampler_validates_arguments(self):
+    def test_the_resampler_validates_its_arguments(self):
         with self.assertRaises(TypeError):
             audioop_utils.Resampler("1", 8000, 16000)
         with self.assertRaises(ValueError):
             audioop_utils.Resampler(0, 8000, 16000)
         with self.assertRaises(ValueError):
             audioop_utils.Resampler(1, 0, 16000)
+        with self.assertRaises(ValueError):
+            audioop_utils.Resampler(1, 8000, 0)
 
-    def test_resampler_resample(self):
+    def test_a_sample_index_must_be_inside_the_fragment(self):
+        with self.assertRaises(IndexError):
+            audioop_utils.sample_at(b"\x01\x02", 1, 2)
+        with self.assertRaises(IndexError):
+            audioop_utils.sample_at(b"\x01\x02", 1, -3)
+
+
+class TestFrameCount(unittest.TestCase):
+    """Verify the helper that counts the frames of a fragment."""
+
+    def test_the_frames_are_counted(self):
+        self.assertEqual(audioop_utils.frame_count(b"\x01\x02\x03\x04", 2), 2)
+        self.assertEqual(audioop_utils.frame_count(b"\x01\x02\x03\x04", 1), 4)
+
+    def test_an_empty_fragment_holds_no_frame(self):
+        self.assertEqual(audioop_utils.frame_count(b"", 2), 0)
+
+
+class TestMeasurements(unittest.TestCase):
+    """Verify the helpers that measure a fragment."""
+
+    def setUp(self):
+        if _audioop is None:
+            self.skipTest("audioop module not available")
+        self.fragment = b"\x00\x01\x02\x03"
+
+    def test_the_average_is_the_exact_mean_of_the_samples(self):
+        self.assertEqual(audioop_utils.average(self.fragment, 1), 1.5)
+        self.assertEqual(audioop_utils.average(b"\x02\x04", 1), 3.0)
+
+    def test_the_root_mean_square_is_the_exact_value(self):
+        self.assertAlmostEqual(
+            audioop_utils.root_mean_square(self.fragment, 1), (3.5) ** 0.5
+        )
+
+    def test_the_peak_is_the_largest_absolute_sample(self):
+        self.assertEqual(audioop_utils.peak_value(self.fragment, 1), 3)
+        self.assertEqual(audioop_utils.peak_value(b"\xff\x01", 1), 1)
+
+    def test_the_peak_range_holds_the_smallest_and_the_largest_sample(self):
+        self.assertEqual(audioop_utils.peak_range(self.fragment, 1), (0, 3))
+        self.assertEqual(audioop_utils.peak_range(b"\xff\x01", 1), (-1, 1))
+
+    def test_the_peak_to_peak_value_is_the_distance_of_two_samples(self):
+        self.assertEqual(
+            audioop_utils.peak_to_peak(self.fragment, 1),
+            _audioop.maxpp(self.fragment, 1),
+        )
+
+    def test_the_average_peak_to_peak_value_matches_the_standard_library(self):
+        self.assertEqual(
+            audioop_utils.average_peak_to_peak(self.fragment, 1),
+            float(_audioop.avgpp(self.fragment, 1)),
+        )
+
+    def test_the_zero_crossings_are_counted(self):
+        self.assertEqual(audioop_utils.count_zero_crossings(b"\xff\x00\xff\x00", 1), 3)
+        self.assertEqual(audioop_utils.count_zero_crossings(self.fragment, 1), 0)
+
+    def test_the_description_holds_the_measurements(self):
+        description = audioop_utils.describe_fragment(self.fragment, 1)
+        self.assertEqual(description["width"], 1)
+        self.assertEqual(description["frames"], 4)
+        self.assertEqual(description["minimum"], 0)
+        self.assertEqual(description["maximum"], 3)
+        self.assertEqual(description["peak"], 3)
+        self.assertEqual(description["peak_to_peak"], _audioop.maxpp(self.fragment, 1))
+        self.assertEqual(description["average"], 1.5)
+        self.assertAlmostEqual(description["root_mean_square"], (3.5) ** 0.5)
+        self.assertEqual(description["zero_crossings"], 0)
+        self.assertEqual(
+            description["average_peak_to_peak"], float(_audioop.avgpp(self.fragment, 1))
+        )
+
+
+class TestConversions(unittest.TestCase):
+    """Verify the helpers that convert a fragment."""
+
+    def setUp(self):
+        if _audioop is None:
+            self.skipTest("audioop module not available")
+        self.fragment = b"\x00\x01\x02\x03"
+
+    def test_the_width_of_a_sample_is_converted(self):
+        self.assertEqual(
+            audioop_utils.convert_sample_width(b"\x01\x02", 1, 2), b"\x00\x01\x00\x02"
+        )
+
+    def test_the_u_law_form_holds_one_byte_per_sample(self):
+        self.assertEqual(len(audioop_utils.convert_to_u_law(self.fragment, 1)), 4)
+
+    def test_the_a_law_form_holds_one_byte_per_sample(self):
+        self.assertEqual(len(audioop_utils.convert_to_a_law(self.fragment, 1)), 4)
+
+    def test_the_u_law_form_is_read_back_within_the_step_of_the_coding(self):
+        coded = audioop_utils.convert_to_u_law(self.fragment, 1)
+        decoded = audioop_utils.convert_from_u_law(coded, 1)
+        self.assertEqual(len(decoded), len(self.fragment))
+        for original, restored in zip(self.fragment, decoded):
+            self.assertLessEqual(abs(original - restored), 2)
+
+    def test_the_a_law_form_is_read_back_within_the_step_of_the_coding(self):
+        coded = audioop_utils.convert_to_a_law(self.fragment, 1)
+        decoded = audioop_utils.convert_from_a_law(coded, 1)
+        self.assertEqual(len(decoded), len(self.fragment))
+        for original, restored in zip(self.fragment, decoded):
+            self.assertLessEqual(abs(original - restored), 2)
+
+    def test_the_small_samples_survive_the_u_law_coding(self):
+        self.assertEqual(
+            audioop_utils.convert_from_u_law(
+                audioop_utils.convert_to_u_law(self.fragment, 1), 1
+            ),
+            self.fragment,
+        )
+
+    def test_the_small_samples_survive_the_a_law_coding(self):
+        self.assertEqual(
+            audioop_utils.convert_from_a_law(
+                audioop_utils.convert_to_a_law(self.fragment, 1), 1
+            ),
+            self.fragment,
+        )
+
+
+class TestArithmetic(unittest.TestCase):
+    """Verify the helpers that compute on a fragment."""
+
+    def setUp(self):
+        if _audioop is None:
+            self.skipTest("audioop module not available")
+        self.fragment = b"\x00\x01\x02\x03"
+
+    def test_two_fragments_are_added(self):
+        self.assertEqual(
+            audioop_utils.add_fragments(self.fragment, b"\x01\x01\x01\x01", 1),
+            b"\x01\x02\x03\x04",
+        )
+
+    def test_a_bias_is_added_to_every_sample(self):
+        self.assertEqual(
+            audioop_utils.shift_bias(self.fragment, 1, 10), b"\x0a\x0b\x0c\x0d"
+        )
+
+    def test_every_sample_is_multiplied_by_a_factor(self):
+        self.assertEqual(audioop_utils.scale(self.fragment, 1, 2.0), b"\x00\x02\x04\x06")
+
+    def test_the_byte_order_of_every_sample_is_reversed(self):
+        self.assertEqual(audioop_utils.swap_byte_order(b"\x01\x02", 2), b"\x02\x01")
+
+    def test_the_samples_are_reversed(self):
+        self.assertEqual(audioop_utils.reverse_samples(b"\x01\x02\x03", 1), b"\x03\x02\x01")
+
+    def test_a_bytearray_is_accepted(self):
+        self.assertEqual(
+            audioop_utils.reverse_samples(bytearray(b"\x01\x02\x03"), 1), b"\x03\x02\x01"
+        )
+
+    def test_a_memory_view_is_accepted(self):
+        self.assertEqual(
+            audioop_utils.reverse_samples(memoryview(b"\x01\x02\x03"), 1), b"\x03\x02\x01"
+        )
+
+
+class TestChannels(unittest.TestCase):
+    """Verify the helpers that change the number of channels."""
+
+    def setUp(self):
+        if _audioop is None:
+            self.skipTest("audioop module not available")
+
+    def test_a_stereo_fragment_is_mixed_down(self):
+        self.assertEqual(
+            audioop_utils.mix_to_mono(b"\x01\x02\x03\x04", 1),
+            _audioop.tomono(b"\x01\x02\x03\x04", 1, 1.0, 1.0),
+        )
+
+    def test_a_mono_fragment_is_duplicated(self):
+        self.assertEqual(
+            audioop_utils.duplicate_to_stereo(b"\x01\x02", 1),
+            _audioop.tostereo(b"\x01\x02", 1, 1.0, 1.0),
+        )
+
+    def test_the_factors_of_the_channels_are_used(self):
+        self.assertEqual(
+            audioop_utils.mix_to_mono(b"\x01\x02\x03\x04", 1, 1.0, 0.0),
+            _audioop.tomono(b"\x01\x02\x03\x04", 1, 1.0, 0.0),
+        )
+
+    def test_the_duplicated_fragment_holds_both_channels(self):
+        self.assertEqual(len(audioop_utils.duplicate_to_stereo(b"\x01\x02", 1)), 4)
+
+
+class TestSamples(unittest.TestCase):
+    """Verify the helpers that read a single sample of a fragment."""
+
+    def setUp(self):
+        if _audioop is None:
+            self.skipTest("audioop module not available")
+        self.fragment = b"\x01\x02\x03\x04"
+
+    def test_a_sample_is_read_by_its_position(self):
+        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, 0), 1)
+        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, 2), 3)
+
+    def test_a_negative_position_counts_from_the_end(self):
+        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, -1), 4)
+        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, -4), 1)
+
+    def test_the_scale_factor_of_a_fragment_is_one_for_equal_fragments(self):
+        self.assertAlmostEqual(
+            audioop_utils.find_scale_factor(self.fragment, self.fragment), 1.0
+        )
+
+    def test_the_scale_factor_needs_whole_sixteen_bit_samples(self):
+        with self.assertRaises(ValueError):
+            audioop_utils.find_scale_factor(b"\x01\x02\x03", b"\x01\x02\x03")
+        with self.assertRaises(ValueError):
+            audioop_utils.find_scale_factor(b"\x01\x02", b"\x01\x02\x03\x04")
+
+
+class TestResampling(unittest.TestCase):
+    """Verify the helpers that resample a fragment."""
+
+    def setUp(self):
+        if _audioop is None:
+            self.skipTest("audioop module not available")
+        self.fragment = b"\x00\x01\x02\x03"
+
+    def test_the_resampled_fragment_and_the_state_are_returned(self):
+        data, state = audioop_utils.resample(self.fragment, 1, 1, 8000, 16000, None)
+        self.assertIsInstance(data, bytes)
+        self.assertIsNotNone(state)
+
+    def test_the_state_is_handed_back_to_the_standard_library(self):
+        data, state = audioop_utils.resample(self.fragment, 1, 1, 8000, 16000, None)
+        self.assertEqual(
+            data, _audioop.ratecv(self.fragment, 1, 1, 8000, 16000, None)[0]
+        )
+        self.assertIsNotNone(state)
+
+    def test_a_fragment_must_hold_whole_frames_of_every_channel(self):
+        with self.assertRaises(ValueError):
+            audioop_utils.resample(b"\x01\x02\x03", 1, 2, 8000, 16000, None)
+
+    def test_the_resampler_keeps_the_state_of_the_conversion(self):
         resampler = audioop_utils.Resampler(1, 8000, 16000)
-        fragment = b"\x00\x01\x02\x03"
-        result = resampler.resample(fragment, 1)
-        self.assertIsInstance(result, bytes)
+        first = resampler.resample(self.fragment, 1)
+        self.assertIsInstance(first, bytes)
+        self.assertIsNotNone(resampler.state)
+        second = resampler.resample(self.fragment, 1)
+        self.assertIsInstance(second, bytes)
+
+    def test_the_resampler_reports_its_settings(self):
+        resampler = audioop_utils.Resampler(2, 8000, 16000)
+        self.assertEqual(resampler.channels, 2)
+        self.assertEqual(resampler.input_rate, 8000)
+        self.assertEqual(resampler.output_rate, 16000)
+        self.assertIsNone(resampler.state)
+
+    def test_the_resampler_forgets_the_state_on_a_reset(self):
+        resampler = audioop_utils.Resampler(1, 8000, 16000)
+        resampler.resample(self.fragment, 1)
+        resampler.reset()
+        self.assertIsNone(resampler.state)
+
+    def test_the_resampler_continues_where_the_standard_library_stops(self):
+        resampler = audioop_utils.Resampler(1, 8000, 16000)
+        first = resampler.resample(self.fragment, 1)
+        second = resampler.resample(self.fragment, 1)
+        manual, state = _audioop.ratecv(self.fragment, 1, 1, 8000, 16000, None)
+        expected, _ = _audioop.ratecv(self.fragment, 1, 1, 8000, 16000, state)
+        self.assertEqual(first, manual)
+        self.assertEqual(second, expected)
+
+
+class TestAdpcm(unittest.TestCase):
+    """Verify the helpers that code a fragment with ADPCM."""
+
+    def setUp(self):
+        if _audioop is None:
+            self.skipTest("audioop module not available")
+        self.fragment = b"\x00\x10\x20\x30\x40"
+
+    def test_the_coded_fragment_and_the_state_are_returned(self):
+        coded, state = audioop_utils.encode_adpcm(self.fragment, 1)
+        self.assertIsInstance(coded, bytes)
+        self.assertIsNotNone(state)
+
+    def test_the_coded_fragment_holds_four_bits_per_sample(self):
+        coded, _ = audioop_utils.encode_adpcm(self.fragment, 1)
+        self.assertLessEqual(len(coded), len(self.fragment) // 2)
+
+    def test_the_coded_fragment_matches_the_standard_library(self):
+        coded, _ = audioop_utils.encode_adpcm(self.fragment, 1)
+        self.assertEqual(coded, _standard_encode(self.fragment, 1)[0])
+
+    def test_the_decoded_fragment_matches_the_standard_library(self):
+        coded, _ = _standard_encode(self.fragment, 1)
+        decoded, _ = audioop_utils.decode_adpcm(coded, 1)
+        self.assertEqual(decoded, _standard_decode(coded, 1)[0])
+
+    def test_the_decoded_fragment_is_read_as_bytes(self):
+        coded, _ = audioop_utils.encode_adpcm(self.fragment, 1)
+        decoded, _ = audioop_utils.decode_adpcm(coded, 1)
+        self.assertIsInstance(decoded, bytes)
+
+    def test_the_number_of_bits_must_be_one_the_standard_library_understands(self):
+        with self.assertRaises(ValueError):
+            audioop_utils.encode_adpcm(self.fragment, 1, None, 9)
+        with self.assertRaises(ValueError):
+            audioop_utils.decode_adpcm(b"\x00", 1, None, 9)
+
+    def test_the_number_of_bits_must_be_an_integer(self):
+        with self.assertRaises(TypeError):
+            audioop_utils.encode_adpcm(self.fragment, 1, None, "4")
+
+
+class TestDegradation(unittest.TestCase):
+    """Verify the behaviour on an interpreter that removed the module."""
+
+    @unittest.skipIf(_audioop is not None, "audioop module available")
+    def test_the_helpers_report_the_missing_module(self):
+        with self.assertRaises(RuntimeError):
+            audioop_utils.convert_sample_width(b"\x01", 1, 2)
+        with self.assertRaises(RuntimeError):
+            audioop_utils.describe_fragment(b"\x01", 1)
+        with self.assertRaises(RuntimeError):
+            audioop_utils.resample(b"\x01", 1, 1, 8000, 16000, None)
+
+    @unittest.skipIf(_audioop is not None, "audioop module available")
+    def test_the_pure_helpers_keep_working(self):
+        self.assertEqual(audioop_utils.frame_count(b"\x01\x02", 1), 2)
+        self.assertEqual(audioop_utils.average(b"\x02\x04", 1), 3.0)
+
+
+class TestStateOfTheModule(unittest.TestCase):
+    """Verify the state the module keeps between two calls."""
+
+    def test_the_adpcm_convention_is_detected_once(self):
+        if _audioop is None:
+            self.skipTest("audioop module not available")
+        audioop_utils.encode_adpcm(b"\x00\x10", 1)
+        self.assertIn(audioop_utils._ADPCM_CONVENTION, ("stateful", "legacy"))
+
+    def test_the_convention_matches_the_running_interpreter(self):
+        if _audioop is None:
+            self.skipTest("audioop module not available")
+        audioop_utils.encode_adpcm(b"\x00\x10", 1)
+        self.assertEqual(audioop_utils._ADPCM_CONVENTION == "stateful", _STATEFUL)
 
 
 if __name__ == "__main__":
     unittest.main()
 TEST_AUDIOOP_UTILS
+
+# --- ensurepip_utils.py ---
+cat > "$OUTPUT_DIR/ensurepip_utils.py" <<'ENSUREPIP_UTILS'
+"""Bootstrap utilities wrapping the standard library :mod:`ensurepip` package.
+
+The :mod:`ensurepip` package carries the wheel of :command:`pip` that the
+interpreter was built with, and it installs that wheel into an environment
+without reaching the network.  The standard library offers two entry points:
+:func:`ensurepip.bootstrap` installs the wheel into the running environment,
+and :func:`ensurepip.version` reports the version of the bundled
+:command:`pip`.
+
+This wrapper validates every argument before the standard library is reached, so
+a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of an
+opaque failure.  It adds the helpers the standard library leaves to the caller:
+the wheel the interpreter carries is located, the installation returns a record
+of what was installed, the presence of :command:`pip` is reported without
+importing it, and the command line interface of the standard library returns
+its exit code instead of terminating the interpreter.
+
+.. note::
+
+   The :mod:`ensurepip` package is part of the standard library of every
+   CPython interpreter, but a distribution can remove it.  The import below
+   degrades gracefully: when the interpreter does not ship the package, the
+   helpers raise a :class:`RuntimeError` that names the missing package, while
+   :func:`is_available` keeps working.
+
+The helpers never install anything on their own: the wheel is only installed
+when :func:`bootstrap` or :func:`run_cli` is called.
+"""
+
+from __future__ import annotations
+
+import argparse
+import importlib.util
+import os
+from pathlib import Path
+from typing import Any, List, NamedTuple, Optional, Sequence
+
+try:
+    import ensurepip as _ensurepip
+except ImportError:  # pragma: no cover - a distribution can remove the package
+    _ensurepip = None  # type: ignore[assignment]
+
+__all__: List[str] = [
+    "BootstrapResult",
+    "bootstrap",
+    "bundled_wheel",
+    "is_available",
+    "is_pip_installed",
+    "pip_version",
+    "run_cli",
+]
+
+
+class BootstrapResult(NamedTuple):
+    """Record of an installation of the bundled :command:`pip`.
+
+    The standard library returns nothing from an installation, so the wrapper
+    returns a record of what was installed.
+
+    Attributes:
+        pip_version: The version of the :command:`pip` that was installed.
+        root: The root directory the installation was made in, or ``None``
+            when the running environment was used.
+        upgrade: Whether an installed :command:`pip` was upgraded.
+        user: Whether the installation used the user scheme.
+        altinstall: Whether only the versioned scripts were installed.
+        default_pip: Whether the unqualified :command:`pip` was installed as
+            well.
+        verbosity: The verbosity of the installation.
+    """
+
+    pip_version: str
+    root: Optional[str]
+    upgrade: bool
+    user: bool
+    altinstall: bool
+    default_pip: bool
+    verbosity: int
+
+
+def _ensurepip_module() -> Any:
+    """Return the standard library ``ensurepip`` module.
+
+    Returns:
+        The imported :mod:`ensurepip` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``ensurepip``
+            package.
+    """
+    if _ensurepip is None:  # pragma: no cover - a distribution can remove it
+        raise RuntimeError(
+            "the standard library 'ensurepip' package is not available on this interpreter"
+        )
+    return _ensurepip
+
+
+def _require_bool(value: Any, name: str) -> bool:
+    """Return *value* as a boolean, raising ``TypeError`` for other types.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as a boolean.
+
+    Raises:
+        TypeError: If *value* is not a boolean.
+    """
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def _require_root(value: Any) -> Optional[str]:
+    """Return *value* as the root directory of an installation.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        The root directory as text, or ``None`` when the running environment
+        is used.
+
+    Raises:
+        TypeError: If *value* is neither ``None`` nor a path.
+        ValueError: If *value* is an empty path.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, (str, os.PathLike)):
+        raise TypeError(f"root must be a path or None, got {type(value).__name__}")
+    text = os.fspath(value)
+    if not text:
+        raise ValueError("root must not be empty")
+    return text
+
+
+def _require_verbosity(value: Any) -> int:
+    """Return *value* as a verbosity, raising an error for other values.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        The verbosity.
+
+    Raises:
+        TypeError: If *value* is not an integer.
+        ValueError: If *value* is negative.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"verbosity must be an int, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"verbosity must be non-negative, got {value}")
+    return value
+
+
+def is_available() -> bool:
+    """Report whether the interpreter ships the :mod:`ensurepip` package.
+
+    Returns:
+        True when the standard library package is importable, False otherwise.
+    """
+    return _ensurepip is not None
+
+
+def pip_version() -> str:
+    """Return the version of the :command:`pip` the interpreter carries.
+
+    Older versions of the standard library report the version as a tuple of
+    numbers, so the wrapper always reports it as text.
+
+    Returns:
+        The version of the bundled :command:`pip`, for example ``"24.0"``.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``ensurepip``
+            package.
+    """
+    version = _ensurepip_module().version()
+    if isinstance(version, tuple):
+        return ".".join(str(part) for part in version)
+    return str(version)
+
+
+def bundled_wheel() -> Optional[str]:
+    """Return the wheel of :command:`pip` the interpreter carries.
+
+    The standard library offers no public accessor for the wheel, so the
+    directory the interpreter keeps it in is looked up instead.  ``None`` is
+    returned when no wheel is found, which happens on an interpreter that
+    installs :command:`pip` from another source.
+
+    Returns:
+        The path of the wheel of :command:`pip`, or ``None`` when there is
+        none.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``ensurepip``
+            package.
+    """
+    module = _ensurepip_module()
+    directory = getattr(module, "_WHEEL_PKG_DIR", None)
+    if directory:
+        for path in sorted(Path(directory).glob("pip-*.whl")):
+            return str(path)
+    package = getattr(module, "__file__", None)
+    if package:
+        for path in sorted(Path(package).parent.glob("_bundled/pip-*.whl")):
+            return str(path)
+    return None
+
+
+def is_pip_installed() -> bool:
+    """Report whether the running interpreter can import :command:`pip`.
+
+    The check looks the module up without importing it, so it stays cheap and
+    has no side effect.
+
+    Returns:
+        True when the interpreter can import :command:`pip`, False otherwise.
+    """
+    try:
+        return importlib.util.find_spec("pip") is not None
+    except (ImportError, ValueError):  # pragma: no cover - a broken installation
+        return False
+
+
+def bootstrap(
+    root: Any = None,
+    upgrade: bool = False,
+    user: bool = False,
+    altinstall: bool = False,
+    default_pip: bool = False,
+    verbosity: int = 0,
+) -> BootstrapResult:
+    """Install the :command:`pip` the interpreter carries.
+
+    The installation uses the wheel the interpreter was built with, so it never
+    reaches the network.
+
+    Args:
+        root: The root directory the installation is made in.  ``None``
+            installs into the running environment.
+        upgrade: Whether an installed :command:`pip` is upgraded.
+        user: Whether the installation uses the user scheme.
+        altinstall: Whether only the versioned scripts are installed.
+        default_pip: Whether the unqualified :command:`pip` is installed as
+            well.
+        verbosity: The verbosity of the installation.
+
+    Returns:
+        A record of the installation.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If the root directory is empty or the verbosity is
+            negative.
+        RuntimeError: If the interpreter does not ship the ``ensurepip``
+            package.
+    """
+    module = _ensurepip_module()
+    target = _require_root(root)
+    _require_bool(upgrade, "upgrade")
+    _require_bool(user, "user")
+    _require_bool(altinstall, "altinstall")
+    _require_bool(default_pip, "default_pip")
+    level = _require_verbosity(verbosity)
+    module.bootstrap(
+        root=target,
+        upgrade=upgrade,
+        user=user,
+        altinstall=altinstall,
+        default_pip=default_pip,
+        verbosity=level,
+    )
+    return BootstrapResult(
+        pip_version=pip_version(),
+        root=target,
+        upgrade=upgrade,
+        user=user,
+        altinstall=altinstall,
+        default_pip=default_pip,
+        verbosity=level,
+    )
+
+
+def _cli_parser() -> argparse.ArgumentParser:
+    """Return the parser of the command line interface of the standard library.
+
+    The parser accepts the options of ``python -m ensurepip``.
+
+    Returns:
+        The parser of the command line interface.
+    """
+    parser = argparse.ArgumentParser(prog="python -m ensurepip", description="Install pip")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"pip {pip_version()}",
+        help="Show the version of pip that is bundled with this Python.",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        dest="verbosity",
+        help="Give more output. Option is additive, and can be used up to 3 times.",
+    )
+    parser.add_argument(
+        "-U",
+        "--upgrade",
+        action="store_true",
+        default=False,
+        help="Upgrade pip and dependencies, even if already installed.",
+    )
+    parser.add_argument(
+        "--user",
+        action="store_true",
+        default=False,
+        help="Install using the user scheme.",
+    )
+    parser.add_argument(
+        "--root",
+        default=None,
+        help="Install everything relative to this alternate root directory.",
+    )
+    parser.add_argument(
+        "--altinstall",
+        action="store_true",
+        default=False,
+        help="Make an alternate install, installing only the X.Y versioned scripts.",
+    )
+    parser.add_argument(
+        "--default-pip",
+        action="store_true",
+        default=False,
+        help="Make a default pip install, installing the unqualified pip as well.",
+    )
+    return parser
+
+
+def run_cli(args: Optional[Sequence[str]] = None) -> int:
+    """Run the command line interface of the standard library.
+
+    The interface mirrors ``python -m ensurepip``: it accepts ``--version``,
+    ``--verbose``, ``--upgrade``, ``--user``, ``--root``, ``--altinstall``, and
+    ``--default-pip``.  The exit code of the run is returned instead of
+    terminating the interpreter, so a program that embeds the installation can
+    decide what to do next.
+
+    Args:
+        args: The arguments of the command line.  ``None`` reads the arguments
+            of the running process.
+
+    Returns:
+        The exit code of the command: zero when the installation ran, two when
+        the arguments could not be parsed.
+
+    Raises:
+        TypeError: If *args* is not a sequence of strings.
+        RuntimeError: If the interpreter does not ship the ``ensurepip``
+            package.
+    """
+    _ensurepip_module()
+    if args is None:
+        arguments: Optional[List[str]] = None
+    elif isinstance(args, (str, bytes)):
+        raise TypeError(f"args must be a sequence of strings, got {type(args).__name__}")
+    else:
+        arguments = [str(item) for item in args]
+    parser = _cli_parser()
+    try:
+        parsed = parser.parse_args(arguments)
+    except SystemExit as exit_error:
+        code = exit_error.code
+        if code is None:
+            return 0
+        return int(code)
+    bootstrap(
+        root=parsed.root,
+        upgrade=parsed.upgrade,
+        user=parsed.user,
+        altinstall=parsed.altinstall,
+        default_pip=parsed.default_pip,
+        verbosity=parsed.verbosity,
+    )
+    return 0
+ENSUREPIP_UTILS
+
+# --- tests/test_ensurepip_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_ensurepip_utils.py" <<'TEST_ENSUREPIP_UTILS'
+"""Tests for ensurepip_utils.
+
+The tests never install anything: the standard library is patched whenever the
+wrapper reaches it, so the suite installs no package, writes no file, and
+never reaches the network.
+"""
+
+import io
+import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from unittest.mock import patch
+
+import ensurepip_utils
+
+try:
+    import ensurepip as _standard_ensurepip
+except ImportError:  # pragma: no cover - a distribution can remove the package
+    _standard_ensurepip = None  # type: ignore[assignment]
+
+
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(ensurepip_utils.__all__, sorted(set(ensurepip_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in ensurepip_utils.__all__:
+            self.assertTrue(hasattr(ensurepip_utils, name), name)
+
+    def test_is_available_reports_a_bool(self):
+        self.assertIsInstance(ensurepip_utils.is_available(), bool)
+
+    def test_is_available_matches_the_standard_library(self):
+        self.assertEqual(ensurepip_utils.is_available(), _standard_ensurepip is not None)
+
+
+class TestInspection(unittest.TestCase):
+    """Verify the helpers that report what the interpreter carries."""
+
+    def setUp(self):
+        if _standard_ensurepip is None:
+            self.skipTest("ensurepip package not available")
+
+    def test_the_version_of_pip_is_reported_as_text(self):
+        version = ensurepip_utils.pip_version()
+        self.assertIsInstance(version, str)
+        self.assertTrue(version)
+
+    def test_the_version_matches_the_standard_library(self):
+        self.assertEqual(ensurepip_utils.pip_version(), str(_standard_ensurepip.version()))
+
+    def test_the_wheel_is_a_wheel_when_one_is_found(self):
+        wheel = ensurepip_utils.bundled_wheel()
+        if wheel is None:
+            self.skipTest("the interpreter carries no wheel of pip")
+        self.assertTrue(wheel.endswith(".whl"), wheel)
+
+    def test_the_presence_of_pip_is_reported_as_a_bool(self):
+        self.assertIsInstance(ensurepip_utils.is_pip_installed(), bool)
+
+    def test_the_presence_of_pip_is_not_guessed(self):
+        with patch("ensurepip_utils.importlib.util.find_spec", return_value=None):
+            self.assertFalse(ensurepip_utils.is_pip_installed())
+        with patch("ensurepip_utils.importlib.util.find_spec", return_value=object()):
+            self.assertTrue(ensurepip_utils.is_pip_installed())
+
+
+class TestValidation(unittest.TestCase):
+    """Verify the validation of the arguments.
+
+    The arguments are validated before the standard library is reached, so the
+    same error is raised on an interpreter that removed the package.
+    """
+
+    def setUp(self):
+        patcher = patch("ensurepip_utils._ensurepip")
+        self.module = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_the_flags_must_be_booleans(self):
+        for flag in ("upgrade", "user", "altinstall", "default_pip"):
+            with self.assertRaises(TypeError):
+                ensurepip_utils.bootstrap(**{flag: "yes"})
+        self.module.bootstrap.assert_not_called()
+
+    def test_the_root_must_be_a_path(self):
+        with self.assertRaises(TypeError):
+            ensurepip_utils.bootstrap(root=42)
+        self.module.bootstrap.assert_not_called()
+
+    def test_the_root_must_not_be_empty(self):
+        with self.assertRaises(ValueError):
+            ensurepip_utils.bootstrap(root="")
+        self.module.bootstrap.assert_not_called()
+
+    def test_the_verbosity_must_be_an_integer(self):
+        with self.assertRaises(TypeError):
+            ensurepip_utils.bootstrap(verbosity="2")
+        with self.assertRaises(TypeError):
+            ensurepip_utils.bootstrap(verbosity=True)
+        self.module.bootstrap.assert_not_called()
+
+    def test_the_verbosity_must_not_be_negative(self):
+        with self.assertRaises(ValueError):
+            ensurepip_utils.bootstrap(verbosity=-1)
+        self.module.bootstrap.assert_not_called()
+
+    def test_the_arguments_of_the_command_line_must_be_a_sequence(self):
+        with self.assertRaises(TypeError):
+            ensurepip_utils.run_cli("--version")
+        self.module.bootstrap.assert_not_called()
+
+
+class TestBootstrap(unittest.TestCase):
+    """Verify the helper that installs the bundled pip."""
+
+    def setUp(self):
+        patcher = patch("ensurepip_utils._ensurepip")
+        self.module = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.module.version.return_value = "24.0"
+
+    def test_the_options_are_handed_to_the_standard_library(self):
+        ensurepip_utils.bootstrap()
+        self.module.bootstrap.assert_called_once_with(
+            root=None,
+            upgrade=False,
+            user=False,
+            altinstall=False,
+            default_pip=False,
+            verbosity=0,
+        )
+
+    def test_the_options_are_handed_over_as_given(self):
+        ensurepip_utils.bootstrap(
+            root="/tmp/root",
+            upgrade=True,
+            user=True,
+            altinstall=True,
+            default_pip=True,
+            verbosity=2,
+        )
+        self.module.bootstrap.assert_called_once_with(
+            root="/tmp/root",
+            upgrade=True,
+            user=True,
+            altinstall=True,
+            default_pip=True,
+            verbosity=2,
+        )
+
+    def test_the_record_holds_the_installation(self):
+        result = ensurepip_utils.bootstrap(root="/tmp/root", upgrade=True, verbosity=1)
+        self.assertEqual(result.pip_version, "24.0")
+        self.assertEqual(result.root, "/tmp/root")
+        self.assertTrue(result.upgrade)
+        self.assertFalse(result.user)
+        self.assertFalse(result.altinstall)
+        self.assertFalse(result.default_pip)
+        self.assertEqual(result.verbosity, 1)
+
+    def test_the_record_holds_the_running_environment(self):
+        result = ensurepip_utils.bootstrap()
+        self.assertIsNone(result.root)
+
+    def test_a_path_is_accepted_as_the_root(self):
+        import pathlib
+
+        ensurepip_utils.bootstrap(root=pathlib.Path("/tmp/root"))
+        self.module.bootstrap.assert_called_once_with(
+            root="/tmp/root",
+            upgrade=False,
+            user=False,
+            altinstall=False,
+            default_pip=False,
+            verbosity=0,
+        )
+
+
+class TestCommandLine(unittest.TestCase):
+    """Verify the command line interface of the wrapper."""
+
+    def setUp(self):
+        patcher = patch("ensurepip_utils._ensurepip")
+        self.module = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.module.version.return_value = "24.0"
+
+    def test_the_version_is_reported(self):
+        output = io.StringIO()
+        with redirect_stdout(output):
+            code = ensurepip_utils.run_cli(["--version"])
+        self.assertEqual(code, 0)
+        self.assertIn("24.0", output.getvalue())
+        self.module.bootstrap.assert_not_called()
+
+    def test_an_unknown_option_is_reported(self):
+        errors = io.StringIO()
+        with redirect_stderr(errors):
+            code = ensurepip_utils.run_cli(["--unknown"])
+        self.assertEqual(code, 2)
+        self.assertTrue(errors.getvalue())
+        self.module.bootstrap.assert_not_called()
+
+    def test_the_options_are_handed_to_the_standard_library(self):
+        code = ensurepip_utils.run_cli(["--upgrade", "--user", "--altinstall", "-v"])
+        self.assertEqual(code, 0)
+        self.module.bootstrap.assert_called_once_with(
+            root=None,
+            upgrade=True,
+            user=True,
+            altinstall=True,
+            default_pip=False,
+            verbosity=1,
+        )
+
+    def test_the_root_is_handed_to_the_standard_library(self):
+        code = ensurepip_utils.run_cli(["--root", "/tmp/root", "--default-pip"])
+        self.assertEqual(code, 0)
+        self.module.bootstrap.assert_called_once_with(
+            root="/tmp/root",
+            upgrade=False,
+            user=False,
+            altinstall=False,
+            default_pip=True,
+            verbosity=0,
+        )
+
+
+class TestDegradation(unittest.TestCase):
+    """Verify the behaviour on an interpreter that removed the package."""
+
+    def setUp(self):
+        patcher = patch("ensurepip_utils._ensurepip", None)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_the_helpers_report_the_missing_package(self):
+        with self.assertRaises(RuntimeError):
+            ensurepip_utils.pip_version()
+        with self.assertRaises(RuntimeError):
+            ensurepip_utils.bundled_wheel()
+        with self.assertRaises(RuntimeError):
+            ensurepip_utils.bootstrap()
+        with self.assertRaises(RuntimeError):
+            ensurepip_utils.run_cli([])
+
+    def test_the_presence_of_pip_is_still_reported(self):
+        self.assertIsInstance(ensurepip_utils.is_pip_installed(), bool)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_ENSUREPIP_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
