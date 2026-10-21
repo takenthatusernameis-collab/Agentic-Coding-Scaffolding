@@ -272,6 +272,7 @@ bdb_utils.py                 # Debugger framework utilities wrapping stdlib bdb 
 pdb_utils.py                 # Interactive debugger utilities wrapping stdlib pdb (create_pdb, set_trace, post_mortem, pm, run, runeval, runctx, runcall)
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
+wsgiref_utils.py              # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -456,6 +457,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_pdb_utils.py           # Tests for pdb_utils.py
     test_ipaddress_utils.py     # Tests for ipaddress_utils.py
     test_pydoc_utils.py          # Tests for pydoc_utils.py
+    test_wsgiref_utils.py         # Tests for wsgiref_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -1544,3 +1546,7 @@ The project includes debugger framework utilities in `bdb_utils.py` wrapping the
 ## Pdb Utilities Module
 
 The project includes interactive debugger utilities in `pdb_utils.py` wrapping the standard library `pdb` module: `create_pdb` creates an interactive debugger, `set_trace` enters the debugger at the frame of the caller, `post_mortem` enters the debugger with the frame of a traceback, and `pm` enters it with the traceback of the last exception. The helpers `run`, `runeval`, `runctx`, and `runcall` run a statement, an expression, a statement in given namespaces, and a function under the control of the debugger. The class `Pdb` together with the error `Restart` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. Every helper opens the prompt of the debugger on the standard input of the process, so a program that calls one of them has to answer the prompt; the tests of the project patch the standard library instead, so the suite never waits for a prompt. The module is tested in `tests/test_pdb_utils.py`.
+
+## Wsgiref Utilities Module
+
+The project includes WSGI utilities in `wsgiref_utils.py` wrapping the standard library `wsgiref` package: `setup_testing_defaults` fills the environment of a request with the defaults the standard library uses for tests, `guess_scheme` reports the scheme of a request, `application_uri` returns the base URI of the application, `request_uri` returns the full URI of a request, and `shift_path_info` moves the first segment of the path of a request to the name of the script. The helpers `is_hop_by_hop` reports whether a header belongs to a single connection, `build_headers` builds the collection of the headers of a response, `header_values` returns every value of a header, `encode_headers` returns the headers in the form that is sent over the wire, and `file_wrapper` reads a stream in blocks. The helpers `check_environ` checks the environment of a request against the specification, `environ_errors` collects the problems of an environment in a list, `validator` returns the middleware that checks an application against the specification, `demo_app` runs the demonstration application of the standard library, and `make_server` creates a server that serves an application. The classes `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning `WSGIWarning` are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module never opens a connection: the helpers of the environment of a request work on a dictionary, the helpers of the headers of a response work on a list, and the tests patch the standard library when they check that a server is created, so the suite never binds a socket. The module is tested in `tests/test_wsgiref_utils.py`.

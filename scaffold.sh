@@ -691,6 +691,7 @@
 #   - pdb_utils.py — # Interactive debugger utilities wrapping stdlib pdb (create_pdb, set_trace, post_mortem, pm, run, runeval, runctx, runcall)
 #   - ipaddress_utils.py — # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 #   - pydoc_utils.py — # Documentation utilities wrapping the standard library pydoc module (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
+#   - wsgiref_utils.py — # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -718,6 +719,7 @@
 #   - tests/test_pdb_utils.py — # Tests for pdb_utils.py
 #   - tests/test_ipaddress_utils.py — # Tests for ipaddress_utils.py
 #   - tests/test_pydoc_utils.py — # Tests for pydoc_utils.py
+#   - tests/test_wsgiref_utils.py — # Tests for wsgiref_utils.py
 set -euo pipefail
 
 usage() {
@@ -4523,6 +4525,7 @@ py_modules = [
     "site_utils",
     "ipaddress_utils",
     "pydoc_utils",
+    "wsgiref_utils",
 ]
 PYPROJECT
 
@@ -28947,6 +28950,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `pdb_utils.py` — interactive debugger utilities wrapping the standard library `pdb` module (`create_pdb`, `set_trace`, `post_mortem`, `pm`, `run`, `runeval`, `runctx`, `runcall`) with input validation and the re-exported class `Pdb`
 - `ipaddress_utils.py` — IP address utilities wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors
 - `pydoc_utils.py` — Documentation utilities wrapping the standard library `pydoc` module (`render_doc`, `doc`, `writedoc`, `writedocs`, `apropos`, `locate`, `resolve`, `safeimport`, `importfile`, `getdoc`, `synopsis`, `source_synopsis`, `describe`, `classify_class_attrs`, `classname`, `parentname`, `visiblename`, `isdata`, `ispackage`, `ispath`, `allmethods`, `splitdoc`, `stripid`, `replace`, `cram`, `plain`, `cli`, `help`, `getpager`, `plainpager`, `browse`) with input validation, and the re-exported classes `Doc`, `HTMLDoc`, `HTMLRepr`, `Helper`, `ModuleScanner`, `Repr`, `TextDoc`, and `TextRepr` together with the error `ErrorDuringImport`
+- `wsgiref_utils.py` — WSGI utilities wrapping the standard library `wsgiref` package (`setup_testing_defaults`, `guess_scheme`, `application_uri`, `request_uri`, `shift_path_info`, `is_hop_by_hop`, `build_headers`, `header_values`, `encode_headers`, `file_wrapper`, `check_environ`, `environ_errors`, `validator`, `demo_app`, `make_server`) with input validation, and the re-exported classes `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning `WSGIWarning`
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -29172,6 +29176,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_pdb_utils.py` — unit tests for `pdb_utils.py`
 - `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
 - `tests/test_pydoc_utils.py` — unit tests for `pydoc_utils.py`
+- `tests/test_wsgiref_utils.py` — unit tests for `wsgiref_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -30709,6 +30714,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `wsgiref_utils.py` wrapping the standard library `wsgiref` package (`setup_testing_defaults`, `guess_scheme`, `application_uri`, `request_uri`, `shift_path_info`, `is_hop_by_hop`, `build_headers`, `header_values`, `encode_headers`, `file_wrapper`, `check_environ`, `environ_errors`, `validator`, `demo_app`, `make_server`) with input validation, and the re-exported classes `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning `WSGIWarning`, plus unit tests in `tests/test_wsgiref_utils.py`.
+- Synchronized `wsgiref_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `site_utils.py` wrapping the standard library `site` module (`get_site_packages`, `get_site_prefixes`, `get_user_base`, `get_user_site_packages`, `get_enable_user_site`, `is_user_site_enabled`, `check_enable_user_site`, `make_path`, `remove_duplicate_paths`, `add_site_dir`, `add_site_packages`, `add_user_site_packages`) with input validation, plus unit tests in `tests/test_site_utils.py`.
 - Synchronized `site_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `bdb_utils.py` wrapping the standard library `bdb` module (`create_bdb`, `set_breakpoint`, `clear_breakpoint`, `clear_breakpoints`, `clear_all_breakpoints`, `get_breakpoints`, `get_breakpoint`, `get_file_breakpoints`, `enable_breakpoint`, `disable_breakpoint`, `is_breakpoint_enabled`, `breakpoint_hits`, `canonical_filename`, `effective_breakpoint`, `checkfuncname`) with input validation and the re-exported classes `Bdb` and `Breakpoint` together with the error `BdbQuit`, plus unit tests in `tests/test_bdb_utils.py`.
@@ -31856,6 +31863,7 @@ bdb_utils.py                 # Debugger framework utilities wrapping stdlib bdb 
 pdb_utils.py                 # Interactive debugger utilities wrapping stdlib pdb (create_pdb, set_trace, post_mortem, pm, run, runeval, runctx, runcall)
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
+wsgiref_utils.py              # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -32040,6 +32048,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_pdb_utils.py           # Tests for pdb_utils.py
     test_ipaddress_utils.py     # Tests for ipaddress_utils.py
     test_pydoc_utils.py          # Tests for pydoc_utils.py
+    test_wsgiref_utils.py         # Tests for wsgiref_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -33128,6 +33137,10 @@ The project includes debugger framework utilities in `bdb_utils.py` wrapping the
 ## Pdb Utilities Module
 
 The project includes interactive debugger utilities in `pdb_utils.py` wrapping the standard library `pdb` module: `create_pdb` creates an interactive debugger, `set_trace` enters the debugger at the frame of the caller, `post_mortem` enters the debugger with the frame of a traceback, and `pm` enters it with the traceback of the last exception. The helpers `run`, `runeval`, `runctx`, and `runcall` run a statement, an expression, a statement in given namespaces, and a function under the control of the debugger. The class `Pdb` together with the error `Restart` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. Every helper opens the prompt of the debugger on the standard input of the process, so a program that calls one of them has to answer the prompt; the tests of the project patch the standard library instead, so the suite never waits for a prompt. The module is tested in `tests/test_pdb_utils.py`.
+
+## Wsgiref Utilities Module
+
+The project includes WSGI utilities in `wsgiref_utils.py` wrapping the standard library `wsgiref` package: `setup_testing_defaults` fills the environment of a request with the defaults the standard library uses for tests, `guess_scheme` reports the scheme of a request, `application_uri` returns the base URI of the application, `request_uri` returns the full URI of a request, and `shift_path_info` moves the first segment of the path of a request to the name of the script. The helpers `is_hop_by_hop` reports whether a header belongs to a single connection, `build_headers` builds the collection of the headers of a response, `header_values` returns every value of a header, `encode_headers` returns the headers in the form that is sent over the wire, and `file_wrapper` reads a stream in blocks. The helpers `check_environ` checks the environment of a request against the specification, `environ_errors` collects the problems of an environment in a list, `validator` returns the middleware that checks an application against the specification, `demo_app` runs the demonstration application of the standard library, and `make_server` creates a server that serves an application. The classes `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning `WSGIWarning` are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module never opens a connection: the helpers of the environment of a request work on a dictionary, the helpers of the headers of a response work on a list, and the tests patch the standard library when they check that a server is created, so the suite never binds a socket. The module is tested in `tests/test_wsgiref_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -83703,6 +83716,931 @@ class TestSearchPath(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_SITE_UTILS
+
+# --- wsgiref_utils.py ---
+cat > "$OUTPUT_DIR/wsgiref_utils.py" <<'WSGIREF_UTILS'
+"""WSGI utilities wrapping the standard library :mod:`wsgiref` package.
+
+The :mod:`wsgiref` package is the reference implementation of the Web Server
+Gateway Interface (:pep:`3333`).  It holds the helpers that build and inspect
+the environment of a request, the collection of the headers of a response, the
+middleware that checks an application against the specification, and a small
+server that serves an application on the local machine.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure.  The classes of the standard library are re-exported, so a
+caller does not have to import :mod:`wsgiref` itself.
+
+The module never opens a connection.  The helpers of the environment of a
+request work on a dictionary, the helpers of the headers of a response work on
+a list, and a server is only created when a caller asks for one.
+"""
+
+from __future__ import annotations
+
+import warnings
+from typing import IO, Any, Callable, Dict, Iterator, List, Optional, Sequence, Tuple
+from wsgiref import simple_server as _simple_server
+from wsgiref import util as _util
+from wsgiref import validate as _validate
+from wsgiref.headers import Headers
+from wsgiref.simple_server import WSGIRequestHandler, WSGIServer
+from wsgiref.validate import WSGIWarning
+
+__all__: list[str] = [
+    "Application",
+    "Environment",
+    "FileWrapper",
+    "HOP_BY_HOP_HEADERS",
+    "Headers",
+    "WSGIRequestHandler",
+    "WSGIServer",
+    "WSGIWarning",
+    "application_uri",
+    "build_headers",
+    "check_environ",
+    "demo_app",
+    "encode_headers",
+    "environ_errors",
+    "file_wrapper",
+    "guess_scheme",
+    "header_values",
+    "is_hop_by_hop",
+    "make_server",
+    "request_uri",
+    "setup_testing_defaults",
+    "shift_path_info",
+    "validator",
+]
+
+#: The environment of a request, the variables of the specification as a mapping.
+Environment = Dict[str, Any]
+
+#: The application of a request, a callable that answers with an iterable of bytes.
+Application = Callable[..., Any]
+
+#: The headers of RFC 2616, section 13.5.1, that a proxy must not forward.
+HOP_BY_HOP_HEADERS = frozenset(
+    {
+        "connection",
+        "keep-alive",
+        "proxy-authenticate",
+        "proxy-authorization",
+        "te",
+        "trailers",
+        "transfer-encoding",
+        "upgrade",
+    }
+)
+
+#: The wrapper of the standard library that turns a file into an iterable.
+FileWrapper = _util.FileWrapper
+
+
+def _require_str(value: object, name: str) -> str:
+    """Return the value when it is a string.
+
+    Args:
+        value: The value to validate.
+        name: The name of the parameter for error messages.
+
+    Returns:
+        The validated string.
+
+    Raises:
+        TypeError: If the value is not a string.
+    """
+    if isinstance(value, bool) or not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_bool(value: object, name: str) -> bool:
+    """Return the value when it is a boolean.
+
+    Raises:
+        TypeError: If the value is not a boolean.
+    """
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def _require_int(value: object, name: str) -> int:
+    """Return the value when it is an integer.
+
+    Raises:
+        TypeError: If the value is not an integer.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def _require_callable(value: object, name: str) -> Application:
+    """Return the value when it is callable.
+
+    Raises:
+        TypeError: If the value is not callable.
+    """
+    if not callable(value):
+        raise TypeError(f"{name} must be callable, got {type(value).__name__}")
+    return value
+
+
+def _require_environment(value: object, name: str = "environ") -> Environment:
+    """Return the environment of a request when it is a dictionary.
+
+    The specification of the interface requires a plain dictionary, so a
+    mapping of another type is refused.
+
+    Raises:
+        TypeError: If the value is not a dictionary.
+    """
+    if not isinstance(value, dict):
+        raise TypeError(f"{name} must be a dict, got {type(value).__name__}")
+    return value
+
+
+def _require_keys(environ: Environment, keys: Sequence[str], name: str) -> None:
+    """Raise when the environment of a request misses one of the keys.
+
+    Raises:
+        ValueError: If one of the keys is missing.
+    """
+    missing = [key for key in keys if key not in environ]
+    if missing:
+        raise ValueError(f"{name} is missing the key {', '.join(missing)}")
+
+
+def _require_request_keys(environ: Environment) -> None:
+    """Raise when the environment misses the keys a request URI is built from."""
+    _require_keys(environ, ("wsgi.url_scheme",), "environ")
+    if not environ.get("HTTP_HOST"):
+        _require_keys(environ, ("SERVER_NAME", "SERVER_PORT"), "environ")
+
+
+def setup_testing_defaults(environ: Environment) -> Environment:
+    """Fill the environment of a request with the defaults of the standard library.
+
+    The defaults are the ones a test needs: the name and the port of the
+    server, the method of the request, the variables of the specification, and
+    the streams of the request.  The settings that the environment already
+    holds are kept, the way the standard library keeps them.
+
+    Args:
+        environ: The environment of a request.  It is changed in place.
+
+    Returns:
+        The environment of the request, so a caller can use the result.
+    """
+    environment = _require_environment(environ)
+    _util.setup_testing_defaults(environment)
+    return environment
+
+
+def guess_scheme(environ: Environment) -> str:
+    """Return the scheme of the request.
+
+    Args:
+        environ: The environment of a request.
+
+    Returns:
+        ``"https"`` when the environment reports a secure request, and
+        ``"http"`` otherwise.
+    """
+    environment = _require_environment(environ)
+    return _util.guess_scheme(environment)
+
+
+def application_uri(environ: Environment) -> str:
+    """Return the base URI of the application.
+
+    The base URI holds the scheme, the host, the port, and the name of the
+    script, but neither the path of the request nor its query string.
+
+    Args:
+        environ: The environment of a request.
+
+    Returns:
+        The base URI of the application.
+
+    Raises:
+        ValueError: If the environment misses one of the keys the URI is
+            built from.
+    """
+    environment = _require_environment(environ)
+    _require_request_keys(environment)
+    return _util.application_uri(environment)
+
+
+def request_uri(environ: Environment, include_query: bool = True) -> str:
+    """Return the full URI of the request.
+
+    Args:
+        environ: The environment of a request.
+        include_query: Whether the query string of the request is part of the
+            URI.
+
+    Returns:
+        The URI of the request.
+
+    Raises:
+        ValueError: If the environment misses one of the keys the URI is
+            built from.
+    """
+    environment = _require_environment(environ)
+    query = _require_bool(include_query, "include_query")
+    _require_request_keys(environment)
+    return _util.request_uri(environment, query)
+
+
+def shift_path_info(environ: Environment) -> Optional[str]:
+    """Move the first segment of the path of the request to the name of the script.
+
+    The environment is changed in place, the way the standard library changes
+    it, so a caller that needs the original values keeps a copy of them.
+
+    Args:
+        environ: The environment of a request.  It is changed in place.
+
+    Returns:
+        The segment that was moved, or ``None`` when the path of the request
+        is empty.
+    """
+    environment = _require_environment(environ)
+    return _util.shift_path_info(environment)
+
+
+def is_hop_by_hop(name: str) -> bool:
+    """Report whether a header is a hop-by-hop header.
+
+    A hop-by-hop header belongs to a single connection, so a proxy must not
+    forward it.  The standard library provides the check from Python 3.9 on;
+    the wrapper falls back to the list of RFC 2616, section 13.5.1, on the
+    interpreters that do not ship it.
+
+    Args:
+        name: The name of the header.
+
+    Returns:
+        ``True`` when the header is a hop-by-hop header, ``False`` otherwise.
+    """
+    text = _require_str(name, "name").lower()
+    checker = getattr(_util, "is_hop_by_hop", None)
+    if checker is None:
+        return text in HOP_BY_HOP_HEADERS
+    return bool(checker(text))
+
+
+def build_headers(items: Sequence[Tuple[str, str]]) -> Headers:
+    """Build the collection of the headers of a response.
+
+    Args:
+        items: The headers of the response as a sequence of pairs of a name
+            and a value.
+
+    Returns:
+        The collection of the headers.
+
+    Raises:
+        TypeError: If the items are not a sequence of pairs of strings.
+        ValueError: If a name or a value holds a control character.
+    """
+    if isinstance(items, (str, bytes)) or not isinstance(items, (list, tuple)):
+        raise TypeError(f"items must be a list or a tuple, got {type(items).__name__}")
+    pairs: List[Tuple[str, str]] = []
+    for item in items:
+        if not isinstance(item, (list, tuple)) or len(item) != 2:
+            raise TypeError("items entries must be pairs of a name and a value")
+        name = _require_str(item[0], "header name")
+        value = _require_str(item[1], "header value")
+        pairs.append((name, value))
+    return Headers(pairs)
+
+
+def header_values(headers: Headers, name: str) -> List[str]:
+    """Return every value of a header of a response.
+
+    A header may appear more than once in a response, so the first value
+    alone is often not enough.
+
+    Args:
+        headers: The collection of the headers of a response.
+        name: The name of the header.
+
+    Returns:
+        The values of the header, in the order they were added.
+    """
+    collection = _require_headers(headers)
+    text = _require_str(name, "name")
+    return list(collection.get_all(text))
+
+
+def encode_headers(headers: Headers) -> bytes:
+    """Return the headers of a response in the form that is sent over the wire.
+
+    Args:
+        headers: The collection of the headers of a response.
+
+    Returns:
+        The headers of the response, every line ended by a carriage return
+        and a line feed.
+    """
+    collection = _require_headers(headers)
+    return bytes(collection)
+
+
+def _require_headers(value: object) -> Headers:
+    """Return the collection of the headers when it is one.
+
+    Raises:
+        TypeError: If the value is not a collection of the headers.
+    """
+    if not isinstance(value, Headers):
+        raise TypeError(f"headers must be a Headers instance, got {type(value).__name__}")
+    return value
+
+
+def file_wrapper(stream: IO[bytes], block_size: int = 8192) -> Iterator[bytes]:
+    """Return an iterator that reads a stream in blocks.
+
+    The stream has to be opened in binary mode, because the iterator yields
+    the bytes of the stream.
+
+    Args:
+        stream: The stream that is read.
+        block_size: The number of bytes that are read at a time.
+
+    Returns:
+        An iterator over the bytes of the stream.
+
+    Raises:
+        TypeError: If the stream has no read method.
+        ValueError: If the size of a block is not positive.
+    """
+    if not hasattr(stream, "read"):
+        raise TypeError("stream must have a read method")
+    size = _require_int(block_size, "block_size")
+    if size <= 0:
+        raise ValueError(f"block_size must be positive, got {size}")
+    return iter(FileWrapper(stream, size))
+
+
+def check_environ(environ: Environment) -> None:
+    """Check the environment of a request against the specification.
+
+    The check of the standard library reports the first problem of an
+    environment by raising an :class:`AssertionError`.
+
+    Args:
+        environ: The environment of a request.
+
+    Raises:
+        AssertionError: If the environment does not follow the specification.
+    """
+    environment = _require_environment(environ)
+    checker = getattr(_validate, "check_environ", None)
+    if checker is None:  # pragma: no cover - the standard library always ships it
+        raise RuntimeError(
+            "the standard library of this interpreter does not provide "
+            "wsgiref.validate.check_environ"
+        )
+    checker(environment)
+
+
+def environ_errors(environ: Environment) -> List[str]:
+    """Return the problems of the environment of a request.
+
+    The standard library reports the first problem of an environment by
+    raising an :class:`AssertionError`, and it reports the suspicious
+    settings of an environment with a warning.  This helper collects both in
+    a list, so a caller can report every problem of an environment at once.
+
+    Args:
+        environ: The environment of a request.
+
+    Returns:
+        The messages of the problems of the environment.  The list is empty
+        when the environment follows the specification.
+    """
+    environment = _require_environment(environ)
+    messages: List[str] = []
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        try:
+            check_environ(environment)
+        except AssertionError as error:
+            messages.append(str(error))
+    messages.extend(str(entry.message) for entry in caught)
+    return messages
+
+
+def validator(application: Application) -> Application:
+    """Return the middleware that checks an application against the specification.
+
+    The middleware does not change the request or the response, it raises an
+    :class:`AssertionError` when the application breaks the specification.
+
+    Args:
+        application: The application that is checked.
+
+    Returns:
+        The middleware that checks the application.
+    """
+    checked = _require_callable(application, "application")
+    return _validate.validator(checked)
+
+
+def demo_app(environ: Environment, start_response: Application) -> List[bytes]:
+    """Return the answer of the demonstration application of the standard library.
+
+    The application answers with the variables of the environment of the
+    request, so a caller sees what a server hands to an application.
+
+    Args:
+        environ: The environment of a request.
+        start_response: The callable that starts the response.
+
+    Returns:
+        The body of the response.
+    """
+    environment = _require_environment(environ)
+    responder = _require_callable(start_response, "start_response")
+    return list(_simple_server.demo_app(environment, responder))
+
+
+def make_server(
+    host: str,
+    port: int,
+    app: Application,
+    server_class: type = WSGIServer,
+    handler_class: type = WSGIRequestHandler,
+) -> WSGIServer:
+    """Create a server that serves an application on a host and a port.
+
+    The server is not started, the caller decides when it accepts requests
+    and when it is closed.
+
+    Args:
+        host: The host the server listens on.  An empty string listens on
+            every host of the machine.
+        port: The port the server listens on.  The port zero lets the
+            operating system choose a free port.
+        app: The application the server serves.
+        server_class: The class of the server.
+        handler_class: The class of the handler of the requests.
+
+    Returns:
+        The server that serves the application.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If the port is outside the range of the ports.
+    """
+    address = _require_str(host, "host")
+    number = _require_int(port, "port")
+    if not 0 <= number <= 65535:
+        raise ValueError(f"port must be between 0 and 65535, got {number}")
+    application = _require_callable(app, "app")
+    server = _require_class(server_class, "server_class")
+    handler = _require_class(handler_class, "handler_class")
+    return _simple_server.make_server(address, number, application, server, handler)
+
+
+def _require_class(value: object, name: str) -> type:
+    """Return the value when it is a class.
+
+    Raises:
+        TypeError: If the value is not a class.
+    """
+    if not isinstance(value, type):
+        raise TypeError(f"{name} must be a class, got {type(value).__name__}")
+    return value
+WSGIREF_UTILS
+
+# --- tests/test_wsgiref_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_wsgiref_utils.py" <<'TEST_WSGIREF_UTILS'
+"""Tests for wsgiref_utils."""
+
+import io
+import unittest
+import wsgiref.headers
+import wsgiref.simple_server
+import wsgiref.util
+import wsgiref.validate
+from unittest import mock
+
+import wsgiref_utils
+from wsgiref_utils import (
+    HOP_BY_HOP_HEADERS,
+    FileWrapper,
+    Headers,
+    WSGIRequestHandler,
+    WSGIServer,
+    WSGIWarning,
+    application_uri,
+    build_headers,
+    check_environ,
+    demo_app,
+    encode_headers,
+    environ_errors,
+    file_wrapper,
+    guess_scheme,
+    header_values,
+    is_hop_by_hop,
+    make_server,
+    request_uri,
+    setup_testing_defaults,
+    shift_path_info,
+    validator,
+)
+
+
+def make_environ(**overrides):
+    """Return the environment of a request that follows the specification."""
+    environ = setup_testing_defaults({})
+    environ["QUERY_STRING"] = ""
+    environ.update(overrides)
+    return environ
+
+
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(wsgiref_utils.__all__, sorted(set(wsgiref_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in wsgiref_utils.__all__:
+            self.assertTrue(hasattr(wsgiref_utils, name), name)
+
+    def test_the_classes_are_the_classes_of_the_standard_library(self):
+        self.assertIs(Headers, wsgiref.headers.Headers)
+        self.assertIs(FileWrapper, wsgiref.util.FileWrapper)
+        self.assertIs(WSGIServer, wsgiref.simple_server.WSGIServer)
+        self.assertIs(WSGIRequestHandler, wsgiref.simple_server.WSGIRequestHandler)
+
+    def test_the_warning_is_the_warning_of_the_standard_library(self):
+        self.assertIs(WSGIWarning, wsgiref.validate.WSGIWarning)
+
+    def test_the_hop_by_hop_headers_are_the_ones_of_the_standard_library(self):
+        self.assertEqual(
+            set(HOP_BY_HOP_HEADERS),
+            {
+                "connection",
+                "keep-alive",
+                "proxy-authenticate",
+                "proxy-authorization",
+                "te",
+                "trailers",
+                "transfer-encoding",
+                "upgrade",
+            },
+        )
+
+
+class TestTestingDefaults(unittest.TestCase):
+    """Verify the helper that fills the environment of a request."""
+
+    def test_the_defaults_are_added(self):
+        environ = setup_testing_defaults({})
+        self.assertEqual(environ["REQUEST_METHOD"], "GET")
+        self.assertEqual(environ["SERVER_NAME"], "127.0.0.1")
+        self.assertEqual(environ["SERVER_PORT"], "80")
+        self.assertEqual(environ["PATH_INFO"], "/")
+        self.assertEqual(environ["SCRIPT_NAME"], "")
+        self.assertEqual(environ["wsgi.version"], (1, 0))
+        self.assertEqual(environ["wsgi.url_scheme"], "http")
+
+    def test_the_environment_is_returned(self):
+        environ = {}
+        self.assertIs(setup_testing_defaults(environ), environ)
+
+    def test_the_existing_settings_are_kept(self):
+        environ = setup_testing_defaults({"REQUEST_METHOD": "POST"})
+        self.assertEqual(environ["REQUEST_METHOD"], "POST")
+
+    def test_an_environment_that_is_not_a_dict_is_rejected(self):
+        with self.assertRaises(TypeError):
+            setup_testing_defaults([("REQUEST_METHOD", "GET")])  # type: ignore[arg-type]
+
+
+class TestRequestUri(unittest.TestCase):
+    """Verify the helpers that build the URI of a request."""
+
+    def test_guess_scheme_reports_http(self):
+        self.assertEqual(guess_scheme(make_environ()), "http")
+
+    def test_guess_scheme_reports_https(self):
+        self.assertEqual(guess_scheme(make_environ(HTTPS="on")), "https")
+
+    def test_guess_scheme_rejects_an_environment_that_is_not_a_dict(self):
+        with self.assertRaises(TypeError):
+            guess_scheme("environ")  # type: ignore[arg-type]
+
+    def test_the_application_uri_holds_the_host(self):
+        environ = make_environ(HTTP_HOST="example.com")
+        self.assertEqual(application_uri(environ), "http://example.com/")
+
+    def test_the_application_uri_holds_the_port(self):
+        environ = make_environ(SERVER_NAME="example.com", SERVER_PORT="8080")
+        del environ["HTTP_HOST"]
+        self.assertEqual(application_uri(environ), "http://example.com:8080/")
+
+    def test_the_application_uri_omits_the_default_port(self):
+        environ = make_environ(SERVER_NAME="example.com", SERVER_PORT="80")
+        del environ["HTTP_HOST"]
+        self.assertEqual(application_uri(environ), "http://example.com/")
+
+    def test_the_application_uri_reports_a_missing_key(self):
+        environ = make_environ()
+        del environ["wsgi.url_scheme"]
+        with self.assertRaises(ValueError) as caught:
+            application_uri(environ)
+        self.assertIn("wsgi.url_scheme", str(caught.exception))
+
+    def test_the_request_uri_holds_the_path(self):
+        environ = make_environ(HTTP_HOST="example.com", PATH_INFO="/a/b")
+        self.assertEqual(request_uri(environ), "http://example.com/a/b")
+
+    def test_the_request_uri_escapes_the_path(self):
+        environ = make_environ(HTTP_HOST="example.com", PATH_INFO="/a b")
+        self.assertEqual(request_uri(environ), "http://example.com/a%20b")
+
+    def test_the_request_uri_holds_the_query_string(self):
+        environ = make_environ(HTTP_HOST="example.com", QUERY_STRING="x=1")
+        self.assertEqual(request_uri(environ), "http://example.com/?x=1")
+
+    def test_the_query_string_can_be_left_out(self):
+        environ = make_environ(HTTP_HOST="example.com", QUERY_STRING="x=1")
+        self.assertEqual(request_uri(environ, include_query=False), "http://example.com/")
+
+    def test_the_request_uri_rejects_a_flag_that_is_not_a_bool(self):
+        with self.assertRaises(TypeError):
+            request_uri(make_environ(), include_query="yes")  # type: ignore[arg-type]
+
+    def test_the_request_uri_rejects_an_environment_that_is_not_a_dict(self):
+        with self.assertRaises(TypeError):
+            request_uri(None)  # type: ignore[arg-type]
+
+
+class TestShiftPathInfo(unittest.TestCase):
+    """Verify the helper that moves a segment of the path of a request."""
+
+    def test_the_first_segment_is_moved(self):
+        environ = make_environ(PATH_INFO="/foo/bar")
+        self.assertEqual(shift_path_info(environ), "foo")
+        self.assertEqual(environ["SCRIPT_NAME"], "/foo")
+        self.assertEqual(environ["PATH_INFO"], "/bar")
+
+    def test_the_path_of_a_request_without_a_segment_is_empty(self):
+        environ = make_environ(PATH_INFO="")
+        self.assertIsNone(shift_path_info(environ))
+
+    def test_the_environment_is_changed_in_place(self):
+        environ = make_environ(PATH_INFO="/foo")
+        shift_path_info(environ)
+        self.assertEqual(environ["SCRIPT_NAME"], "/foo")
+        self.assertEqual(environ["PATH_INFO"], "")
+
+    def test_an_environment_that_is_not_a_dict_is_rejected(self):
+        with self.assertRaises(TypeError):
+            shift_path_info([])  # type: ignore[arg-type]
+
+
+class TestHopByHopHeaders(unittest.TestCase):
+    """Verify the helper that recognizes a hop-by-hop header."""
+
+    def test_a_hop_by_hop_header_is_recognized(self):
+        for name in ("Connection", "keep-alive", "TE", "Transfer-Encoding"):
+            self.assertTrue(is_hop_by_hop(name), name)
+
+    def test_an_ordinary_header_is_not_a_hop_by_hop_header(self):
+        for name in ("Content-Type", "Host", "Accept"):
+            self.assertFalse(is_hop_by_hop(name), name)
+
+    def test_a_name_that_is_not_a_string_is_rejected(self):
+        with self.assertRaises(TypeError):
+            is_hop_by_hop(42)  # type: ignore[arg-type]
+
+
+class TestHeaders(unittest.TestCase):
+    """Verify the helpers of the headers of a response."""
+
+    def test_the_headers_are_built(self):
+        headers = build_headers([("Content-Type", "text/plain")])
+        self.assertIsInstance(headers, Headers)
+        self.assertEqual(headers.get("Content-Type"), "text/plain")
+
+    def test_the_headers_keep_their_order(self):
+        headers = build_headers([("X-Test", "one"), ("X-Test", "two")])
+        self.assertEqual(header_values(headers, "X-Test"), ["one", "two"])
+
+    def test_the_headers_reject_a_single_string(self):
+        with self.assertRaises(TypeError):
+            build_headers("Content-Type")  # type: ignore[arg-type]
+
+    def test_the_headers_reject_a_bad_container(self):
+        with self.assertRaises(TypeError):
+            build_headers(42)  # type: ignore[arg-type]
+
+    def test_the_headers_reject_a_bad_pair(self):
+        with self.assertRaises(TypeError):
+            build_headers([("Content-Type",)])  # type: ignore[list-item]
+
+    def test_the_headers_reject_a_name_that_is_not_a_string(self):
+        with self.assertRaises(TypeError):
+            build_headers([(1, "text/plain")])  # type: ignore[list-item]
+
+    def test_the_headers_reject_a_control_character(self):
+        with self.assertRaises(ValueError):
+            build_headers([("Content-Type", "text/plain\n")])
+
+    def test_the_values_of_a_missing_header_are_empty(self):
+        headers = build_headers([("Content-Type", "text/plain")])
+        self.assertEqual(header_values(headers, "X-Missing"), [])
+
+    def test_the_values_reject_a_collection_that_is_not_a_headers(self):
+        with self.assertRaises(TypeError):
+            header_values([("Content-Type", "text/plain")], "Content-Type")  # type: ignore[arg-type]
+
+    def test_the_values_reject_a_name_that_is_not_a_string(self):
+        headers = build_headers([("Content-Type", "text/plain")])
+        with self.assertRaises(TypeError):
+            header_values(headers, 42)  # type: ignore[arg-type]
+
+    def test_the_headers_are_encoded_for_the_wire(self):
+        headers = build_headers([("Content-Type", "text/plain")])
+        self.assertEqual(encode_headers(headers), b"Content-Type: text/plain\r\n\r\n")
+
+    def test_the_encoding_rejects_a_collection_that_is_not_a_headers(self):
+        with self.assertRaises(TypeError):
+            encode_headers([])  # type: ignore[arg-type]
+
+
+class TestFileWrapper(unittest.TestCase):
+    """Verify the helper that reads a stream in blocks."""
+
+    def test_the_stream_is_read_in_blocks(self):
+        stream = io.BytesIO(b"abcdef")
+        self.assertEqual(list(file_wrapper(stream, 2)), [b"ab", b"cd", b"ef"])
+
+    def test_the_whole_stream_is_read_by_default(self):
+        stream = io.BytesIO(b"abcdef")
+        self.assertEqual(list(file_wrapper(stream)), [b"abcdef"])
+
+    def test_a_stream_without_a_read_method_is_rejected(self):
+        with self.assertRaises(TypeError):
+            file_wrapper(object())  # type: ignore[arg-type]
+
+    def test_a_block_size_that_is_not_an_integer_is_rejected(self):
+        with self.assertRaises(TypeError):
+            file_wrapper(io.BytesIO(b""), "2")  # type: ignore[arg-type]
+
+    def test_a_block_size_that_is_not_positive_is_rejected(self):
+        with self.assertRaises(ValueError):
+            file_wrapper(io.BytesIO(b""), 0)
+
+
+class TestValidation(unittest.TestCase):
+    """Verify the helpers that check an application against the specification."""
+
+    def test_a_valid_environment_is_accepted(self):
+        check_environ(make_environ())
+
+    def test_a_broken_environment_is_refused(self):
+        environ = make_environ()
+        del environ["REQUEST_METHOD"]
+        with self.assertRaises(AssertionError):
+            check_environ(environ)
+
+    def test_an_environment_that_is_not_a_dict_is_rejected(self):
+        with self.assertRaises(TypeError):
+            check_environ("environ")  # type: ignore[arg-type]
+
+    def test_a_valid_environment_has_no_errors(self):
+        self.assertEqual(environ_errors(make_environ()), [])
+
+    def test_the_errors_of_the_environment_are_reported(self):
+        environ = make_environ()
+        del environ["REQUEST_METHOD"]
+        errors = environ_errors(environ)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("REQUEST_METHOD", errors[0])
+
+    def test_the_warnings_of_the_environment_are_reported(self):
+        environ = make_environ()
+        del environ["QUERY_STRING"]
+        errors = environ_errors(environ)
+        self.assertTrue(any("QUERY_STRING" in message for message in errors), errors)
+
+    def test_a_conforming_application_passes_the_middleware(self):
+        def application(environ, start_response):
+            start_response("200 OK", [("Content-Type", "text/plain")])
+            return [b"hello"]
+
+        checked = validator(application)
+        result = checked(make_environ(), lambda status, headers: None)
+        self.assertEqual(list(result), [b"hello"])
+        result.close()
+
+    def test_an_application_that_breaks_the_specification_is_refused(self):
+        def application(environ, start_response):
+            start_response("200 OK", [("Content-Type", "text/plain")])
+            return "hello"
+
+        checked = validator(application)
+        with self.assertRaises(AssertionError):
+            checked(make_environ(), lambda status, headers: None)
+
+    def test_the_middleware_rejects_an_application_that_is_not_callable(self):
+        with self.assertRaises(TypeError):
+            validator(42)  # type: ignore[arg-type]
+
+
+class TestDemoApp(unittest.TestCase):
+    """Verify the helper that runs the demonstration application."""
+
+    def test_the_application_answers_with_the_environment(self):
+        recorded = {}
+
+        def start_response(status, headers, exc_info=None):
+            recorded["status"] = status
+            recorded["headers"] = headers
+            return lambda data: None
+
+        body = demo_app(make_environ(HTTP_HOST="example.com"), start_response)
+        self.assertEqual(recorded["status"], "200 OK")
+        self.assertEqual(len(body), 1)
+        self.assertIn(b"Hello world!", body[0])
+        self.assertIn(b"example.com", body[0])
+
+    def test_the_application_rejects_an_environment_that_is_not_a_dict(self):
+        with self.assertRaises(TypeError):
+            demo_app("environ", lambda status, headers: None)  # type: ignore[arg-type]
+
+    def test_the_application_rejects_a_responder_that_is_not_callable(self):
+        with self.assertRaises(TypeError):
+            demo_app(make_environ(), None)  # type: ignore[arg-type]
+
+
+class TestMakeServer(unittest.TestCase):
+    """Verify the helper that creates a server.
+
+    The tests never bind a socket, so the standard library is patched and the
+    server is never opened.
+    """
+
+    def test_the_server_is_created_by_the_standard_library(self):
+        def application(environ, start_response):
+            return []
+
+        with mock.patch.object(wsgiref_utils._simple_server, "make_server") as mocked:
+            mocked.return_value = "server"
+            server = make_server("127.0.0.1", 0, application)
+        self.assertEqual(server, "server")
+        mocked.assert_called_once_with("127.0.0.1", 0, application, WSGIServer, WSGIRequestHandler)
+
+    def test_a_host_that_is_not_a_string_is_rejected(self):
+        with self.assertRaises(TypeError):
+            make_server(None, 0, lambda environ, start_response: [])  # type: ignore[arg-type]
+
+    def test_a_port_that_is_not_an_integer_is_rejected(self):
+        with self.assertRaises(TypeError):
+            make_server("127.0.0.1", "0", lambda environ, start_response: [])  # type: ignore[arg-type]
+
+    def test_a_port_that_is_out_of_range_is_rejected(self):
+        with self.assertRaises(ValueError):
+            make_server("127.0.0.1", 70000, lambda environ, start_response: [])
+
+    def test_an_application_that_is_not_callable_is_rejected(self):
+        with self.assertRaises(TypeError):
+            make_server("127.0.0.1", 0, None)  # type: ignore[arg-type]
+
+    def test_a_server_class_that_is_not_a_class_is_rejected(self):
+        with self.assertRaises(TypeError):
+            make_server(
+                "127.0.0.1",
+                0,
+                lambda environ, start_response: [],
+                server_class="WSGIServer",  # type: ignore[arg-type]
+            )
+
+    def test_a_handler_class_that_is_not_a_class_is_rejected(self):
+        with self.assertRaises(TypeError):
+            make_server(
+                "127.0.0.1",
+                0,
+                lambda environ, start_response: [],
+                handler_class=42,  # type: ignore[arg-type]
+            )
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_WSGIREF_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

@@ -1,4 +1,90 @@
-## Latest Session (2026-10-21) — site_utils finished and synchronized across every surface
+## Latest Session (2026-10-21) — wsgiref_utils added and synchronized across every surface
+
+The board held no task, so this session added the next standard library wrapper module and
+synchronized it across every surface of the project.
+
+Completed in the latest session:
+
+- Added `wsgiref_utils.py` wrapping the standard library `wsgiref` package (`setup_testing_defaults`,
+  `guess_scheme`, `application_uri`, `request_uri`, `shift_path_info`, `is_hop_by_hop`,
+  `build_headers`, `header_values`, `encode_headers`, `file_wrapper`, `check_environ`,
+  `environ_errors`, `validator`, `demo_app`, `make_server`) with typed signatures, docstrings,
+  `__all__`, and input validation, plus unit tests in `tests/test_wsgiref_utils.py`. The classes
+  `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning
+  `WSGIWarning` are re-exported.
+- The wrapper adds the conveniences that the standard library leaves to the caller.
+  `setup_testing_defaults` returns the environment it filled, `environ_errors` collects the problems
+  of an environment in a list instead of raising only the first one, `build_headers` and
+  `header_values` build and read the collection of the headers of a response, `encode_headers`
+  returns the headers in the form that is sent over the wire, and `file_wrapper` reads a stream in
+  blocks without a call to the class of the standard library. `make_server` checks the range of the
+  port and the types of its arguments, which the standard library leaves to the operating system.
+- The standard library reports the first problem of an environment by raising an `AssertionError`,
+  and it reports the suspicious settings of an environment with a warning. `environ_errors` collects
+  both, so a caller can report every problem of an environment at once.
+- The `is_hop_by_hop` helper prefers the check of the standard library and falls back to the list of
+  RFC 2616, section 13.5.1, on the interpreters that do not ship it, so the helper works on every
+  supported interpreter.
+- The test suite is hermetic. The helpers of the environment of a request work on a dictionary, the
+  helpers of the headers of a response work on a list, and the test that checks that a server is
+  created patches the standard library, so the suite never binds a socket and never opens a
+  connection.
+- Synchronized the new module across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh`
+  header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README
+  and changelog, the README tree and module section, `.kilo/command/scaffold-project.md`, the
+  `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `wsgiref_utils.py` and `tests/test_wsgiref_utils.py`, both byte identical to the repository
+  copies, the 4494 tests of the generated project pass, and the embedded refresh tool reports that
+  all embedded copies are in sync inside the generated project.
+- The repository suite now runs 4594 tests, and `make lint` and `make typecheck` are green.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `antigravity`, `audioop`, `cgi`, `cgitb`, `chunk`, `crypt`, `ensurepip`, `idlelib`,
+  `imghdr`, `lib2to3`, `msilib`, `msvcrt`, `nis`, `nntplib`, `ossaudiodev`, `pipes`, `posix`,
+  `pydoc_data`, `pyexpat`, `readline`, `sndhdr`, `spwd`, `sre_compile`, `sre_constants`,
+  `sre_parse`, `sunau`, `telnetlib`, `tkinter`, `turtle`, `turtledemo`, `urllib`, `venv`, `winreg`,
+  and `winsound`. The `pydoc_data` module is the natural next candidate: it holds the topics of the
+  documentation of the standard library, so the module is pure data and the tests only compare
+  strings. The `urllib` module is the alternative: it is a package of helpers for the web, but
+  `urllib.request` opens connections, so the connection helpers would have to be patched.
+- Keep every new wrapper hermetic: the test suite must never open a network connection, write to a
+  system service, or block on a subprocess. `imaplib_utils.py` is the reference — its connection
+  helpers are exercised with `unittest.mock.patch` instead of real servers. `smtplib_utils.py`
+  follows it: the tests replay scripted server replies through a fake socket and never touch the
+  network. `xmlrpc_utils.py` follows it as well: the server helpers are patched and the encoding
+  helpers only compare strings. `syslog_utils.py` follows it too: every call into the system logger
+  is patched. `resource_utils.py` follows it as well: the tests only read the limits of the running
+  process and patch the write. `termios_utils.py` follows it as well: the tests work on a pseudo
+  terminal that the test itself opens. `fcntl_utils.py` follows it as well: the tests lock the files
+  of a temporary directory that the test itself creates, and they use the non blocking operations so
+  that no test ever waits for a lock. `pty_utils.py` follows it as well: the tests exercise `fork`
+  and `spawn` through a patched standard library module and never fork or spawn a process.
+  `zipimport_utils.py` follows it as well: the tests build a Zip archive of their own in a
+  temporary directory and never read an archive that the interpreter ships. `ipaddress_utils.py`
+  follows it as well: the module is pure computation, so the tests only compare addresses and
+  networks. `ntpath_utils.py` follows it as well: the module is pure computation apart from the
+  helpers that read the file system, and the tests only look at a file that the test itself creates.
+  `pdb_utils.py` follows it as well: every helper that opens the prompt of the debugger is patched,
+  so the suite never waits for a command. `site_utils.py` follows it as well: the helpers that
+  change the search path of the interpreter work on a copy of `sys.path`, so the suite never changes
+  the search path of the interpreter that runs it. `wsgiref_utils.py` follows it as well: the
+  helpers of the environment of a request work on a dictionary and the test that checks that a
+  server is created patches the standard library, so the suite never binds a socket.
+  The same rule applies to the compiler wrappers: `compileall_utils.py` narrows `sys.path` with
+  `unittest.mock.patch` so the suite never byte-compiles the interpreter's own import path.
+  `modulefinder_utils.py` follows the rule as well: the analysis is static, so the analysed script is
+  never imported or executed, and the tests restrict the search path to a temporary directory so the
+  suite never scans the whole import path. `optparse_utils.py` follows it too: the parser never
+  touches the network, and the tests parse command lines from lists instead of `sys.argv`, except for
+  one test that patches `sys.argv` with `unittest.mock.patch`. `xdrlib_utils.py` follows it as well:
+  the XDR encoding is pure computation, so the tests only compare byte strings.
+- Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new
+  module must not reintroduce any drift.
+
+## Previous Session (2026-10-21) — site_utils finished and synchronized across every surface
 
 The board held no task, so this session finished the site wrapper module the previous session had
 started and synchronized it across every surface of the project.
