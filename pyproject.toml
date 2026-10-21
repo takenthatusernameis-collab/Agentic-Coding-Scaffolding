@@ -275,4 +275,5 @@ py_modules = [
     "pdb_utils",
     "site_utils",
     "wsgiref_utils",
+    "pydoc_data_utils",
 ]

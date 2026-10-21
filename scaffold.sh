@@ -691,6 +691,7 @@
 #   - pdb_utils.py — # Interactive debugger utilities wrapping stdlib pdb (create_pdb, set_trace, post_mortem, pm, run, runeval, runctx, runcall)
 #   - ipaddress_utils.py — # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 #   - pydoc_utils.py — # Documentation utilities wrapping the standard library pydoc module (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
+#   - pydoc_data_utils.py — # Documentation topic utilities wrapping the standard library pydoc_data package (count_topics, get_topic, get_topic_names, get_topic_section, get_topic_sections, get_topic_title, get_topics, get_topics_subset, has_topic, search_topics, wrap_topic) with input validation
 #   - wsgiref_utils.py — # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
@@ -719,6 +720,7 @@
 #   - tests/test_pdb_utils.py — # Tests for pdb_utils.py
 #   - tests/test_ipaddress_utils.py — # Tests for ipaddress_utils.py
 #   - tests/test_pydoc_utils.py — # Tests for pydoc_utils.py
+#   - tests/test_pydoc_data_utils.py — # Tests for pydoc_data_utils.py
 #   - tests/test_wsgiref_utils.py — # Tests for wsgiref_utils.py
 set -euo pipefail
 
@@ -4525,6 +4527,7 @@ py_modules = [
     "site_utils",
     "ipaddress_utils",
     "pydoc_utils",
+    "pydoc_data_utils",
     "wsgiref_utils",
 ]
 PYPROJECT
@@ -28951,6 +28954,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ipaddress_utils.py` — IP address utilities wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors
 - `pydoc_utils.py` — Documentation utilities wrapping the standard library `pydoc` module (`render_doc`, `doc`, `writedoc`, `writedocs`, `apropos`, `locate`, `resolve`, `safeimport`, `importfile`, `getdoc`, `synopsis`, `source_synopsis`, `describe`, `classify_class_attrs`, `classname`, `parentname`, `visiblename`, `isdata`, `ispackage`, `ispath`, `allmethods`, `splitdoc`, `stripid`, `replace`, `cram`, `plain`, `cli`, `help`, `getpager`, `plainpager`, `browse`) with input validation, and the re-exported classes `Doc`, `HTMLDoc`, `HTMLRepr`, `Helper`, `ModuleScanner`, `Repr`, `TextDoc`, and `TextRepr` together with the error `ErrorDuringImport`
 - `wsgiref_utils.py` — WSGI utilities wrapping the standard library `wsgiref` package (`setup_testing_defaults`, `guess_scheme`, `application_uri`, `request_uri`, `shift_path_info`, `is_hop_by_hop`, `build_headers`, `header_values`, `encode_headers`, `file_wrapper`, `check_environ`, `environ_errors`, `validator`, `demo_app`, `make_server`) with input validation, and the re-exported classes `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning `WSGIWarning`
+- `pydoc_data_utils.py` — documentation topic utilities wrapping the standard library `pydoc_data` package (`count_topics`, `get_topic`, `get_topic_names`, `get_topic_section`, `get_topic_sections`, `get_topic_title`, `get_topics`, `get_topics_subset`, `has_topic`, `search_topics`, `wrap_topic`) with input validation
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -29177,6 +29181,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
 - `tests/test_pydoc_utils.py` — unit tests for `pydoc_utils.py`
 - `tests/test_wsgiref_utils.py` — unit tests for `wsgiref_utils.py`
+- `tests/test_pydoc_data_utils.py` — unit tests for `pydoc_data_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -30714,6 +30719,7 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `pydoc_data_utils.py` wrapping the standard library `pydoc_data` package (`count_topics`, `get_topic`, `get_topic_names`, `get_topic_section`, `get_topic_sections`, `get_topic_title`, `get_topics`, `get_topics_subset`, `has_topic`, `search_topics`, `wrap_topic`) with input validation, plus unit tests in `tests/test_pydoc_data_utils.py`.
 - Add `wsgiref_utils.py` wrapping the standard library `wsgiref` package (`setup_testing_defaults`, `guess_scheme`, `application_uri`, `request_uri`, `shift_path_info`, `is_hop_by_hop`, `build_headers`, `header_values`, `encode_headers`, `file_wrapper`, `check_environ`, `environ_errors`, `validator`, `demo_app`, `make_server`) with input validation, and the re-exported classes `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning `WSGIWarning`, plus unit tests in `tests/test_wsgiref_utils.py`.
 - Synchronized `wsgiref_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `site_utils.py` wrapping the standard library `site` module (`get_site_packages`, `get_site_prefixes`, `get_user_base`, `get_user_site_packages`, `get_enable_user_site`, `is_user_site_enabled`, `check_enable_user_site`, `make_path`, `remove_duplicate_paths`, `add_site_dir`, `add_site_packages`, `add_user_site_packages`) with input validation, plus unit tests in `tests/test_site_utils.py`.
@@ -31863,6 +31869,7 @@ bdb_utils.py                 # Debugger framework utilities wrapping stdlib bdb 
 pdb_utils.py                 # Interactive debugger utilities wrapping stdlib pdb (create_pdb, set_trace, post_mortem, pm, run, runeval, runctx, runcall)
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
+pydoc_data_utils.py          # Documentation topic utilities wrapping stdlib pydoc_data (count_topics, get_topic, get_topic_names, get_topic_section, get_topic_sections, get_topic_title, get_topics, get_topics_subset, has_topic, search_topics, wrap_topic) with input validation
 wsgiref_utils.py              # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
@@ -32048,6 +32055,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_pdb_utils.py           # Tests for pdb_utils.py
     test_ipaddress_utils.py     # Tests for ipaddress_utils.py
     test_pydoc_utils.py          # Tests for pydoc_utils.py
+    test_pydoc_data_utils.py     # Tests for pydoc_data_utils.py
     test_wsgiref_utils.py         # Tests for wsgiref_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
@@ -33141,6 +33149,10 @@ The project includes interactive debugger utilities in `pdb_utils.py` wrapping t
 ## Wsgiref Utilities Module
 
 The project includes WSGI utilities in `wsgiref_utils.py` wrapping the standard library `wsgiref` package: `setup_testing_defaults` fills the environment of a request with the defaults the standard library uses for tests, `guess_scheme` reports the scheme of a request, `application_uri` returns the base URI of the application, `request_uri` returns the full URI of a request, and `shift_path_info` moves the first segment of the path of a request to the name of the script. The helpers `is_hop_by_hop` reports whether a header belongs to a single connection, `build_headers` builds the collection of the headers of a response, `header_values` returns every value of a header, `encode_headers` returns the headers in the form that is sent over the wire, and `file_wrapper` reads a stream in blocks. The helpers `check_environ` checks the environment of a request against the specification, `environ_errors` collects the problems of an environment in a list, `validator` returns the middleware that checks an application against the specification, `demo_app` runs the demonstration application of the standard library, and `make_server` creates a server that serves an application. The classes `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning `WSGIWarning` are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module never opens a connection: the helpers of the environment of a request work on a dictionary, the helpers of the headers of a response work on a list, and the tests patch the standard library when they check that a server is created, so the suite never binds a socket. The module is tested in `tests/test_wsgiref_utils.py`.
+
+## Pydoc Data Utilities Module
+
+The project includes documentation topic utilities in `pydoc_data_utils.py` wrapping the standard library `pydoc_data` package: `get_topics` returns a copy of the topics of the Python Language Reference, `get_topics_subset` returns the topics of the given names, `get_topic` returns the text of a single topic, `get_topic_names` returns the names of the topics, `count_topics` returns the number of the topics, and `has_topic` reports whether a topic exists. The helper `get_topic_title` returns the title of a topic, `get_topic_sections` returns the headings of the sections of a topic, and `get_topic_section` returns the text of a single section. The helper `search_topics` returns the topics that hold a text, and `wrap_topic` returns the text of a topic, wrapped for a terminal. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the network, the file system, or a process. The module is tested in `tests/test_pydoc_data_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -84641,6 +84653,606 @@ class TestMakeServer(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_WSGIREF_UTILS
+
+# --- pydoc_data_utils.py ---
+cat > "$OUTPUT_DIR/pydoc_data_utils.py" <<'PYDOC_DATA_UTILS'
+"""Documentation topic utilities wrapping the standard library :mod:`pydoc_data` package.
+
+The :mod:`pydoc_data` package holds the topics of the Python Language
+Reference: the text of every topic of the language, keyed by the name of the
+topic.  The :mod:`pydoc` module reads that data when it answers a question of
+the interactive help.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure.  It never hands out the mapping of the standard library
+itself, so a caller cannot change the documentation of the interpreter, and it
+adds the helpers the standard library leaves to the caller: the names of the
+topics, the title of a topic, the sections of a topic, the text of a single
+section, a search over the topics, and a text that is wrapped for a terminal.
+
+The module is pure computation, so it works on every platform and never
+touches the network, the file system, or a process.
+"""
+
+from __future__ import annotations
+
+import textwrap
+from typing import Dict, List, Sequence
+
+try:
+    from pydoc_data import topics as _topics
+except ImportError:  # pragma: no cover - the package ships with the interpreter
+    _topics = None  # type: ignore[assignment]
+
+__all__: list[str] = [
+    "count_topics",
+    "get_topic",
+    "get_topic_names",
+    "get_topic_section",
+    "get_topic_sections",
+    "get_topic_title",
+    "get_topics",
+    "get_topics_subset",
+    "has_topic",
+    "search_topics",
+    "wrap_topic",
+]
+
+#: The characters a heading of a topic is underlined with.
+_HEADING_MARKS = "=-~"
+
+#: The characters the title of a topic is underlined with.
+_TITLE_MARKS = "*"
+
+
+def _require_str(value: object, name: str) -> str:
+    """Return *value* when it is a string, and raise :class:`TypeError` otherwise."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_non_empty_str(value: object, name: str) -> str:
+    """Return *value* when it is a string that is not empty."""
+    text = _require_str(value, name)
+    if not text:
+        raise ValueError(f"{name} must not be empty")
+    return text
+
+
+def _require_positive_int(value: object, name: str) -> int:
+    """Return *value* when it is a positive integer."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value <= 0:
+        raise ValueError(f"{name} must be positive, got {value}")
+    return value
+
+
+def _require_sequence(value: object, name: str) -> Sequence[str]:
+    """Return *value* when it is a sequence of strings."""
+    if isinstance(value, (str, bytes)):
+        raise TypeError(f"{name} must be a sequence of strings, not a single string")
+    if not isinstance(value, (list, tuple)):
+        raise TypeError(f"{name} must be a list or a tuple, got {type(value).__name__}")
+    for entry in value:
+        if not isinstance(entry, str):
+            raise TypeError(f"{name} entries must be strings, got {type(entry).__name__}")
+    return value
+
+
+def _standard_topics() -> Dict[str, str]:
+    """Return the topics of the standard library.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pydoc_data``
+            package.
+    """
+    if _topics is None:
+        raise RuntimeError("the standard library module 'pydoc_data' is not available")
+    return _topics.topics
+
+
+def _heading_positions(lines: Sequence[str]) -> List[int]:
+    """Return the indexes of the lines that carry a heading.
+
+    A heading is a line that is underlined with the characters of
+    :data:`_HEADING_MARKS`.  The title of a topic is underlined with the
+    characters of :data:`_TITLE_MARKS`, so it is not a heading.
+    """
+    positions: List[int] = []
+    for index in range(len(lines) - 1):
+        title = lines[index].strip()
+        underline = lines[index + 1].strip()
+        if not title or len(underline) < 3:
+            continue
+        if set(underline) <= set(_HEADING_MARKS):
+            positions.append(index)
+    return positions
+
+
+def _headings(lines: Sequence[str]) -> List[str]:
+    """Return the headings of the lines of a topic."""
+    return [lines[index].strip() for index in _heading_positions(lines)]
+
+
+def count_topics() -> int:
+    """Return the number of topics the standard library holds.
+
+    Returns:
+        The number of topics of the documentation of the language.
+    """
+    return len(_standard_topics())
+
+
+def get_topics() -> Dict[str, str]:
+    """Return the topics of the documentation of the language.
+
+    The mapping of the standard library is copied, so a caller that changes the
+    returned mapping does not change the documentation of the interpreter.
+
+    Returns:
+        A copy of the mapping of the names of the topics to their text.
+    """
+    return dict(_standard_topics())
+
+
+def get_topic_names() -> List[str]:
+    """Return the names of the topics of the documentation of the language.
+
+    Returns:
+        The names of the topics, in ascending order.
+    """
+    return sorted(_standard_topics())
+
+
+def get_topics_subset(names: Sequence[str]) -> Dict[str, str]:
+    """Return the topics of the given names.
+
+    Args:
+        names: The names of the topics.
+
+    Returns:
+        A mapping of the names of the topics to their text, in the order of the
+        given names.
+
+    Raises:
+        TypeError: If *names* is not a sequence of strings.
+        ValueError: If a name is empty or names no topic.
+    """
+    _require_sequence(names, "names")
+    topics = _standard_topics()
+    selected: Dict[str, str] = {}
+    for name in names:
+        _require_non_empty_str(name, "names entries")
+        if name not in topics:
+            raise ValueError(f"unknown topic: {name!r}")
+        selected[name] = topics[name]
+    return selected
+
+
+def has_topic(name: str) -> bool:
+    """Report whether the standard library holds a topic.
+
+    Args:
+        name: The name of the topic.
+
+    Returns:
+        ``True`` when the topic exists, ``False`` otherwise.
+    """
+    _require_non_empty_str(name, "name")
+    return name in _standard_topics()
+
+
+def get_topic(name: str) -> str:
+    """Return the text of a topic.
+
+    Args:
+        name: The name of the topic.
+
+    Returns:
+        The text of the topic, the way the standard library stores it.
+
+    Raises:
+        TypeError: If *name* is not a string.
+        ValueError: If *name* is empty or names no topic.
+    """
+    _require_non_empty_str(name, "name")
+    topics = _standard_topics()
+    try:
+        return topics[name]
+    except KeyError:
+        raise ValueError(f"unknown topic: {name!r}") from None
+
+
+def get_topic_title(name: str) -> str:
+    """Return the title of a topic.
+
+    The title of a topic is the first line of its text, the way the standard
+    library writes it.
+
+    Args:
+        name: The name of the topic.
+
+    Returns:
+        The title of the topic.
+    """
+    text = get_topic(name)
+    return text.split("\n", 1)[0].strip()
+
+
+def get_topic_sections(name: str) -> List[str]:
+    """Return the sections of a topic.
+
+    A section of a topic is a part of the text that carries a heading of its
+    own.  The title of the topic is not one of them.
+
+    Args:
+        name: The name of the topic.
+
+    Returns:
+        The headings of the sections of the topic, in the order of the text.
+    """
+    return _headings(get_topic(name).split("\n"))
+
+
+def get_topic_section(name: str, section: str) -> str:
+    """Return the text of a section of a topic.
+
+    Args:
+        name: The name of the topic.
+        section: The heading of the section.
+
+    Returns:
+        The text of the section, without its heading.
+
+    Raises:
+        TypeError: If an argument is not a string.
+        ValueError: If an argument is empty, names no topic, or names no
+            section of the topic.
+    """
+    _require_non_empty_str(section, "section")
+    lines = get_topic(name).split("\n")
+    positions = _heading_positions(lines)
+    for index in positions:
+        if lines[index].strip() != section:
+            continue
+        end = len(lines)
+        for later in positions:
+            if later > index:
+                end = later
+                break
+        body = lines[index + 2 : end]
+        while body and not body[0].strip():
+            body.pop(0)
+        while body and not body[-1].strip():
+            body.pop()
+        return "\n".join(body)
+    raise ValueError(f"unknown section: {section!r} in topic {name!r}")
+
+
+def search_topics(query: str) -> List[str]:
+    """Return the topics that hold a text.
+
+    The name of a topic and its text are searched, and the search ignores the
+    case of the text.
+
+    Args:
+        query: The text to look for.
+
+    Returns:
+        The names of the topics that hold the text, in ascending order.
+    """
+    _require_non_empty_str(query, "query")
+    needle = query.lower()
+    topics = _standard_topics()
+    return [
+        name
+        for name in sorted(topics)
+        if needle in name.lower() or needle in topics[name].lower()
+    ]
+
+
+def wrap_topic(name: str, width: int = 76) -> str:
+    """Return the text of a topic, wrapped for a terminal.
+
+    The prose of the topic is wrapped again, and the parts of the text that
+    are indented, such as the grammar of the language, are kept as they are.
+
+    Args:
+        name: The name of the topic.
+        width: The width of the wrapped text.
+
+    Returns:
+        The text of the topic, wrapped to the given width.
+    """
+    _require_positive_int(width, "width")
+    lines: List[str] = []
+    paragraph: List[str] = []
+
+    def flush() -> None:
+        """Write the collected prose of a paragraph to the lines of the text."""
+        if not paragraph:
+            return
+        lines.extend(textwrap.wrap(" ".join(paragraph), width=width))
+        paragraph.clear()
+
+    for line in get_topic(name).split("\n"):
+        stripped = line.strip()
+        if not stripped:
+            flush()
+            lines.append("")
+            continue
+        if line[:1].isspace() or set(stripped) <= set(_HEADING_MARKS + _TITLE_MARKS):
+            flush()
+            lines.append(line)
+            continue
+        paragraph.append(stripped)
+    flush()
+    return "\n".join(lines)
+PYDOC_DATA_UTILS
+
+# --- tests/test_pydoc_data_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_pydoc_data_utils.py" <<'TEST_PYDOC_DATA_UTILS'
+"""Tests for pydoc_data_utils."""
+
+import unittest
+from pydoc_data import topics as stdlib_topics
+from typing import List
+
+import pydoc_data_utils
+from pydoc_data_utils import (
+    count_topics,
+    get_topic,
+    get_topic_names,
+    get_topic_section,
+    get_topic_sections,
+    get_topic_title,
+    get_topics,
+    get_topics_subset,
+    has_topic,
+    search_topics,
+    wrap_topic,
+)
+
+
+def standard_topics() -> dict:
+    """Return the topics of the standard library."""
+    return stdlib_topics.topics
+
+
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(pydoc_data_utils.__all__, sorted(set(pydoc_data_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in pydoc_data_utils.__all__:
+            self.assertTrue(hasattr(pydoc_data_utils, name), name)
+
+    def test_the_module_reads_the_standard_library(self):
+        self.assertEqual(get_topics(), standard_topics())
+
+
+class TestTopicCollection(unittest.TestCase):
+    """Verify the helpers that report the topics of the standard library."""
+
+    def test_count_topics_matches_the_standard_library(self):
+        self.assertEqual(count_topics(), len(standard_topics()))
+
+    def test_get_topic_names_matches_the_standard_library(self):
+        self.assertEqual(get_topic_names(), sorted(standard_topics()))
+
+    def test_get_topic_names_is_sorted(self):
+        names = get_topic_names()
+        self.assertEqual(names, sorted(names))
+
+    def test_get_topics_holds_every_topic(self):
+        topics = get_topics()
+        self.assertEqual(len(topics), len(standard_topics()))
+        for name, text in topics.items():
+            self.assertEqual(text, standard_topics()[name])
+
+    def test_get_topics_returns_a_copy(self):
+        topics = get_topics()
+        topics["lambda"] = "changed"
+        self.assertNotEqual(standard_topics()["lambda"], "changed")
+        self.assertEqual(get_topics()["lambda"], standard_topics()["lambda"])
+
+    def test_get_topics_subset_returns_the_given_topics(self):
+        subset = get_topics_subset(["lambda", "assert"])
+        self.assertEqual(list(subset), ["lambda", "assert"])
+        self.assertEqual(subset["lambda"], standard_topics()["lambda"])
+
+    def test_get_topics_subset_accepts_a_tuple(self):
+        subset = get_topics_subset(("lambda",))
+        self.assertEqual(list(subset), ["lambda"])
+
+    def test_get_topics_subset_rejects_a_single_string(self):
+        with self.assertRaises(TypeError):
+            get_topics_subset("lambda")
+
+    def test_get_topics_subset_rejects_a_bad_container(self):
+        with self.assertRaises(TypeError):
+            get_topics_subset(42)
+
+    def test_get_topics_subset_rejects_a_bad_entry(self):
+        with self.assertRaises(TypeError):
+            get_topics_subset([42])
+
+    def test_get_topics_subset_rejects_an_unknown_topic(self):
+        with self.assertRaises(ValueError):
+            get_topics_subset(["lambda", "nowhere"])
+
+    def test_get_topics_subset_rejects_an_empty_name(self):
+        with self.assertRaises(ValueError):
+            get_topics_subset([""])
+
+
+class TestSingleTopic(unittest.TestCase):
+    """Verify the helpers that work on a single topic."""
+
+    def test_has_topic_reports_an_existing_topic(self):
+        self.assertTrue(has_topic("lambda"))
+
+    def test_has_topic_reports_an_unknown_topic(self):
+        self.assertFalse(has_topic("nowhere"))
+
+    def test_has_topic_rejects_a_bad_name(self):
+        with self.assertRaises(TypeError):
+            has_topic(42)
+        with self.assertRaises(ValueError):
+            has_topic("")
+
+    def test_get_topic_matches_the_standard_library(self):
+        self.assertEqual(get_topic("lambda"), standard_topics()["lambda"])
+
+    def test_get_topic_rejects_an_unknown_topic(self):
+        with self.assertRaises(ValueError):
+            get_topic("nowhere")
+
+    def test_get_topic_rejects_a_bad_name(self):
+        with self.assertRaises(TypeError):
+            get_topic(42)
+        with self.assertRaises(ValueError):
+            get_topic("")
+
+    def test_get_topic_title_is_the_first_line(self):
+        title = get_topic_title("lambda")
+        self.assertEqual(title, standard_topics()["lambda"].split("\n", 1)[0])
+        self.assertTrue(title)
+        self.assertNotIn("\n", title)
+
+    def test_get_topic_sections_returns_the_headings(self):
+        sections = get_topic_sections("assignment")
+        self.assertIn("Augmented assignment statements", sections)
+        self.assertIn("Annotated assignment statements", sections)
+
+    def test_get_topic_sections_is_empty_for_a_topic_without_sections(self):
+        self.assertEqual(get_topic_sections("lambda"), [])
+
+    def test_get_topic_sections_rejects_an_unknown_topic(self):
+        with self.assertRaises(ValueError):
+            get_topic_sections("nowhere")
+
+
+class TestTopicSection(unittest.TestCase):
+    """Verify the helper that returns the text of a section."""
+
+    def test_get_topic_section_returns_the_body(self):
+        body = get_topic_section("assignment", "Augmented assignment statements")
+        self.assertTrue(body.startswith("Augmented assignment is the combination"))
+        self.assertNotIn("Augmented assignment statements\n", body)
+
+    def test_get_topic_section_stops_at_the_next_section(self):
+        body = get_topic_section("assignment", "Augmented assignment statements")
+        self.assertNotIn("Annotated assignment statements", body)
+
+    def test_get_topic_section_rejects_an_unknown_section(self):
+        with self.assertRaises(ValueError):
+            get_topic_section("assignment", "Nowhere")
+
+    def test_get_topic_section_rejects_the_title_of_the_topic(self):
+        with self.assertRaises(ValueError):
+            get_topic_section("lambda", "Lambdas")
+
+    def test_get_topic_section_rejects_an_unknown_topic(self):
+        with self.assertRaises(ValueError):
+            get_topic_section("nowhere", "Overview")
+
+    def test_get_topic_section_rejects_a_bad_section(self):
+        with self.assertRaises(TypeError):
+            get_topic_section("assignment", 42)
+        with self.assertRaises(ValueError):
+            get_topic_section("assignment", "")
+
+
+class TestSearch(unittest.TestCase):
+    """Verify the helper that searches the topics."""
+
+    def test_search_topics_finds_a_topic_by_name(self):
+        self.assertIn("lambda", search_topics("lambda"))
+
+    def test_search_topics_finds_a_topic_by_text(self):
+        names = search_topics("augmented assignment")
+        self.assertIn("assignment", names)
+
+    def test_search_topics_ignores_the_case(self):
+        self.assertEqual(search_topics("LAMBDA"), search_topics("lambda"))
+
+    def test_search_topics_is_sorted(self):
+        names = search_topics("a")
+        self.assertEqual(names, sorted(names))
+
+    def test_search_topics_returns_nothing_for_an_unknown_text(self):
+        self.assertEqual(search_topics("nowhere-at-all"), [])
+
+    def test_search_topics_rejects_a_bad_query(self):
+        with self.assertRaises(TypeError):
+            search_topics(42)
+        with self.assertRaises(ValueError):
+            search_topics("")
+
+
+class TestWrapTopic(unittest.TestCase):
+    """Verify the helper that wraps the text of a topic."""
+
+    def test_wrap_topic_wraps_the_prose(self):
+        wrapped = wrap_topic("lambda", 40)
+        for line in wrapped.split("\n"):
+            if line[:1].isspace():
+                continue
+            self.assertLessEqual(len(line), 40)
+
+    def test_wrap_topic_keeps_the_indented_parts(self):
+        wrapped = wrap_topic("lambda", 40)
+        self.assertIn("   lambda_expr ::= \"lambda\" [parameter_list] \":\" expression", wrapped)
+
+    def test_wrap_topic_keeps_the_title(self):
+        wrapped = wrap_topic("lambda", 40)
+        self.assertTrue(wrapped.startswith(get_topic_title("lambda")))
+
+    def test_wrap_topic_keeps_every_word_of_the_prose(self):
+        wrapped = wrap_topic("lambda", 40)
+        words = [word for word in get_topic("lambda").split() if word.isalnum()]
+        for word in set(words):
+            self.assertIn(word, wrapped)
+
+    def test_wrap_topic_rejects_a_bad_width(self):
+        with self.assertRaises(TypeError):
+            wrap_topic("lambda", "wide")
+        with self.assertRaises(ValueError):
+            wrap_topic("lambda", 0)
+
+    def test_wrap_topic_rejects_an_unknown_topic(self):
+        with self.assertRaises(ValueError):
+            wrap_topic("nowhere", 40)
+
+
+class TestHeadingDetection(unittest.TestCase):
+    """Verify that the headings of a topic are found in the text of the topic."""
+
+    def headings(self, name: str) -> List[str]:
+        """Return the headings of a topic of the standard library."""
+        return pydoc_data_utils._headings(standard_topics()[name].split("\n"))
+
+    def test_the_title_of_a_topic_is_not_a_heading(self):
+        self.assertEqual(self.headings("lambda"), [])
+
+    def test_the_headings_of_a_topic_are_found(self):
+        self.assertIn("Overview", self.headings("compound"))
+
+    def test_every_heading_is_part_of_the_text(self):
+        text = standard_topics()["assignment"]
+        for heading in pydoc_data_utils.get_topic_sections("assignment"):
+            self.assertIn(heading, text)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_PYDOC_DATA_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
