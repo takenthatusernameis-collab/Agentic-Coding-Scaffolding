@@ -271,4 +271,5 @@ py_modules = [
     "ntpath_utils",
     "nturl2path_utils",
     "curses_utils",
+    "pdb_utils",
 ]
