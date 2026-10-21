@@ -703,6 +703,7 @@
 #   - venv_utils.py — # Virtual environment utilities wrapping the standard library venv package (create_environment, describe_environment, read_configuration, environment_paths, environment_python, activation_scripts, is_environment, find_environments, run_cli) with input validation
 #   - audioop_utils.py — # Audio utilities wrapping the standard library audioop module (convert_sample_width, convert_to_u_law, convert_from_u_law, convert_to_a_law, convert_from_a_law, shift_bias, add_fragments, scale, average, root_mean_square, peak_value, peak_to_peak, count_zero_crossings, mix_to_mono, duplicate_to_stereo, resample, encode_adpcm, decode_adpcm, describe_fragment) with input validation
 #   - ensurepip_utils.py — # Bootstrap utilities wrapping the standard library ensurepip package (bootstrap, bundled_wheel, pip_version, is_pip_installed, run_cli, is_available) with input validation
+#   - readline_utils.py — # Command line editing utilities wrapping the standard library readline module (add_history, append_history_file, clear_history, get_history_item, remove_history_item, replace_history_item, history_items, search_history, make_completer, is_available) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -736,6 +737,7 @@
 #   - tests/test_venv_utils.py — # Tests for venv_utils.py
 #   - tests/test_audioop_utils.py — # Tests for audioop_utils.py
 #   - tests/test_ensurepip_utils.py — # Tests for ensurepip_utils.py
+#   - tests/test_readline_utils.py — # Tests for readline_utils.py
 set -euo pipefail
 
 usage() {
@@ -4549,6 +4551,7 @@ py_modules = [
     "venv_utils",
     "audioop_utils",
     "ensurepip_utils",
+    "readline_utils",
 ]
 PYPROJECT
 
@@ -29432,6 +29435,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_audioop_utils.py` — unit tests for `audioop_utils.py`
 - `ensurepip_utils.py` — bootstrap utilities wrapping the standard library `ensurepip` package (`bootstrap`, `bundled_wheel`, `pip_version`, `is_pip_installed`, `run_cli`, `is_available`) with input validation
 - `tests/test_ensurepip_utils.py` — unit tests for `ensurepip_utils.py`
+- `readline_utils.py` — command line editing utilities wrapping the standard library `readline` module (`add_history`, `append_history_file`, `clear_history`, `default_history_file`, `get_history_item`, `history_items`, `make_completer`, `read_history_file`, `remove_history_item`, `replace_history_item`, `search_history`, `write_history_file`, `is_available`) with input validation
+- `tests/test_readline_utils.py` — unit tests for `readline_utils.py`
 SCAFFOLD
 
 
@@ -30752,6 +30757,12 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `readline_utils.py` wrapping the standard library `readline` module (`add_history`, `append_history_file`, `clear_history`, `default_history_file`, `get_history_item`, `history_items`, `make_completer`, `read_history_file`, `remove_history_item`, `replace_history_item`, `search_history`, `write_history_file`, `is_available`) with input validation, plus unit tests in `tests/test_readline_utils.py`.
+- Synchronized `readline_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- The history is returned as a list, the positions of the history are numbered the same way everywhere, the helpers that touch a file always name the file they touch, and a completer for a list of words is offered.
+- The standard library reads an entry of the history by its one-based position but removes and replaces it by its zero-based position, so the wrapper numbers every position the same way, with the one-based number.
+- The `readline` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise `RuntimeError` when the module is missing.
+
 - Add `audioop_utils.py` wrapping the standard library `audioop` module with input validation, the `Resampler` class, graceful degradation on Python 3.13 where `audioop` was removed, and conveniences like `describe_fragment`, `sample_at`, and precise measurements; plus unit tests in `tests/test_audioop_utils.py`.
 - Synchronized `audioop_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Repaired the `audioop_utils` handover that the previous session left behind: six tests failed because they contradicted the standard library, the generator neither listed the module in its header comment nor registered it in the embedded `pyproject.toml`, and the copies of the module and of its test that the generator embeds were stale.
@@ -31931,6 +31942,7 @@ antigravity_utils.py         # Antigravity utilities wrapping the standard libra
 wsgiref_utils.py              # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 venv_utils.py                 # Virtual environment utilities wrapping the standard library venv package (create_environment, describe_environment, read_configuration, environment_paths, environment_python, activation_scripts, is_environment, find_environments, run_cli) with input validation
 ensurepip_utils.py            # Bootstrap utilities wrapping the standard library ensurepip package (bootstrap, bundled_wheel, pip_version, is_pip_installed, run_cli, is_available) with input validation
+readline_utils.py             # Command line editing utilities wrapping the standard library readline module (add_history, append_history_file, clear_history, get_history_item, remove_history_item, replace_history_item, history_items, search_history, make_completer, is_available) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -32094,6 +32106,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_venv_utils.py          # Tests for venv_utils.py
   test_audioop_utils.py       # Tests for audioop_utils.py
   test_ensurepip_utils.py     # Tests for ensurepip_utils.py
+  test_readline_utils.py      # Tests for readline_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -33242,6 +33255,10 @@ The project includes audio utilities in `audioop_utils.py` wrapping the standard
 ## Ensurepip Utilities Module
 
 The project includes bootstrap utilities in `ensurepip_utils.py` wrapping the standard library `ensurepip` package: `bootstrap` installs the `pip` the interpreter carries and returns a `BootstrapResult` record of the installation, `pip_version` reports the version of the bundled `pip` as text, `bundled_wheel` returns the path of the wheel the interpreter carries, `is_pip_installed` reports whether the running interpreter can import `pip` without importing it, `run_cli` runs the command-line interface of the standard library and returns its exit code, and `is_available` reports whether the interpreter ships the package. The record of an installation holds its `pip_version`, `root`, `upgrade`, `user`, `altinstall`, `default_pip`, and `verbosity`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: the installation returns a record instead of nothing, the wheel the interpreter carries is located, the presence of `pip` is reported without importing it, and the command-line interface returns its exit code instead of terminating the interpreter. The installation uses the wheel the interpreter was built with, so it never reaches the network, and the tests of the project patch the standard library instead, so the suite installs no package. The module is tested in `tests/test_ensurepip_utils.py`.
+
+## Readline Utilities Module
+
+The project includes command line editing utilities in `readline_utils.py` wrapping the standard library `readline` module: `add_history` adds a line to the history, `clear_history` removes every entry, `get_history_item` reads the entry at a position, `remove_history_item` removes the entry at a position and returns it, `replace_history_item` replaces the entry at a position and returns the entry it replaced, `history_items` returns every entry of the history as a list, and `search_history` returns the entries that start with a prefix. The helpers that touch a file always name the file they touch: `read_history_file` loads a history file, `write_history_file` writes the history to a file, `append_history_file` appends the last entries of the history to a file, and `read_init_file` executes an init file, while `default_history_file` reports the history file the standard library uses by default. The helpers of the editor are `parse_and_bind`, `set_history_length`, `get_history_length`, `get_current_history_length`, `set_completer`, `get_completer`, `set_completer_delims`, `get_completer_delims`, `set_startup_hook`, `set_pre_input_hook`, `set_completion_display_matches_hook`, `get_completion_type`, `get_begidx`, `get_endidx`, `get_line_buffer`, `insert_text`, `redisplay`, and `set_auto_history`. The helper `make_completer` returns a completer for a fixed list of words, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: the history is returned as a list, the positions of the history are numbered the same way everywhere, the helpers that touch a file always name the file they touch, and a completer for a list of words is offered. The standard library reads an entry by its one-based position but removes and replaces it by its zero-based position, so the wrapper numbers every position the same way, with the one-based number. The `readline` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The helpers that touch a file only touch the file they are given, so the tests of the project create every file in a temporary directory of their own and the suite never reads the history file of the user. The module is tested in `tests/test_readline_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -90241,6 +90258,1259 @@ class TestDegradation(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_ENSUREPIP_UTILS
+
+# --- readline_utils.py ---
+cat > "$OUTPUT_DIR/readline_utils.py" <<'READLINE_UTILS'
+"""Command line editing utilities wrapping the standard library :mod:`readline` module.
+
+The :mod:`readline` module gives an interactive program the line editing of
+GNU readline: a history of the lines that were entered, key bindings, and tab
+completion.  The standard library offers the functions that drive the editor:
+the history is read from a file and written to a file, entries are added,
+read, removed, and replaced, a completer is registered, and the hooks of the
+editor are set.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure.  It adds the helpers the standard library leaves to the
+caller: the history is returned as a list, the positions of the history are
+numbered the same way everywhere, the helpers that touch a file always name
+the file they touch, and a completer for a fixed list of words is offered.
+
+.. note::
+
+   The :mod:`readline` module only exists on Unix-like platforms.  The import
+   below degrades gracefully: when the interpreter does not ship the module,
+   the helpers raise a :class:`RuntimeError` that names the missing module,
+   while :func:`is_available` keeps working.
+
+The standard library numbers the history twice: :func:`readline.get_history_item`
+reads an entry by its one-based position, while
+:func:`readline.remove_history_item` and :func:`readline.replace_history_item`
+work on a zero-based position.  The wrapper numbers every position the same
+way, with the one-based number the standard library uses to read an entry, so
+a position that can be read can also be removed and replaced.
+"""
+
+from __future__ import annotations
+
+import os
+from typing import Any, Callable, List, Optional, cast
+
+try:
+    import readline as _readline
+except ImportError:  # pragma: no cover - the module is Unix-only
+    _readline = None  # type: ignore[assignment]
+
+__all__: List[str] = [
+    "add_history",
+    "append_history_file",
+    "clear_history",
+    "default_history_file",
+    "get_begidx",
+    "get_completer",
+    "get_completer_delims",
+    "get_completion_type",
+    "get_current_history_length",
+    "get_endidx",
+    "get_history_item",
+    "get_history_length",
+    "get_line_buffer",
+    "history_items",
+    "insert_text",
+    "is_available",
+    "make_completer",
+    "parse_and_bind",
+    "read_history_file",
+    "read_init_file",
+    "redisplay",
+    "remove_history_item",
+    "replace_history_item",
+    "search_history",
+    "set_auto_history",
+    "set_completer",
+    "set_completer_delims",
+    "set_completion_display_matches_hook",
+    "set_history_length",
+    "set_pre_input_hook",
+    "set_startup_hook",
+    "write_history_file",
+]
+
+
+def _readline_module() -> Any:
+    """Return the standard library ``readline`` module.
+
+    Returns:
+        The imported :mod:`readline` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    if _readline is None:  # pragma: no cover - the module is Unix-only
+        raise RuntimeError(
+            "the standard library module 'readline' is not available on this interpreter"
+        )
+    return _readline
+
+
+def _require_function(name: str) -> Any:
+    """Return the standard library function *name*.
+
+    Some functions of the standard library are only compiled into the module
+    when the platform supports them, so a caller gets a clear message instead
+    of an :class:`AttributeError`.
+
+    Args:
+        name: The name of the function of the standard library.
+
+    Returns:
+        The function of the standard library.
+
+    Raises:
+        RuntimeError: If the standard library does not provide the function.
+    """
+    function = getattr(_readline_module(), name, None)
+    if function is None:  # pragma: no cover - a platform specific build
+        raise RuntimeError(
+            f"the standard library module 'readline' does not provide '{name}'"
+        )
+    return function
+
+
+def _require_text(value: Any, name: str) -> str:
+    """Return *value* as text, raising ``TypeError`` for other types.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as text.
+
+    Raises:
+        TypeError: If *value* is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_path(value: Any, name: str) -> str:
+    """Return *value* as the path of a file.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The path as text.
+
+    Raises:
+        TypeError: If *value* is neither a string nor a path.
+        ValueError: If *value* is an empty path.
+    """
+    if not isinstance(value, (str, os.PathLike)):
+        raise TypeError(f"{name} must be a path, got {type(value).__name__}")
+    text = os.fspath(value)
+    if not isinstance(text, str):
+        raise TypeError(f"{name} must be a text path, got {type(value).__name__}")
+    if not text:
+        raise ValueError(f"{name} must not be empty")
+    return text
+
+
+def _require_position(value: Any, name: str = "position") -> int:
+    """Return *value* as the position of a history entry.
+
+    The positions of the wrapper start at one, the way the standard library
+    numbers the entries it reads.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The position.
+
+    Raises:
+        TypeError: If *value* is not an integer.
+        ValueError: If *value* is smaller than one.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value < 1:
+        raise ValueError(f"{name} must be at least 1, got {value}")
+    return value
+
+
+def _require_count(value: Any, name: str = "count") -> int:
+    """Return *value* as a number of history entries.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The number of entries.
+
+    Raises:
+        TypeError: If *value* is not an integer.
+        ValueError: If *value* is negative.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"{name} must not be negative, got {value}")
+    return value
+
+
+def _require_hook(value: Any, name: str) -> Optional[Callable[..., Any]]:
+    """Return *value* as a hook of the editor.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The hook, or ``None`` when the hook is removed.
+
+    Raises:
+        TypeError: If *value* is neither ``None`` nor a callable.
+    """
+    if value is None:
+        return None
+    if not callable(value):
+        raise TypeError(f"{name} must be callable or None, got {type(value).__name__}")
+    return cast(Callable[..., Any], value)
+
+
+def is_available() -> bool:
+    """Report whether the interpreter ships the :mod:`readline` module.
+
+    Returns:
+        True when the standard library module is importable, False otherwise.
+    """
+    return _readline is not None
+
+
+def default_history_file() -> str:
+    """Return the history file the standard library uses by default.
+
+    The standard library reads and writes the history of the user when no file
+    is named.  The wrapper always names the file it touches, so this helper
+    returns the path the standard library would use.
+
+    Returns:
+        The path of the history file of the user.
+    """
+    return os.path.expanduser("~/.history")
+
+
+def parse_and_bind(key_sequence: Any) -> None:
+    """Execute the key sequence *key_sequence*.
+
+    The key sequence is the syntax of an init file of readline, for example
+    ``"set editing-mode emacs"``.
+
+    Args:
+        key_sequence: The key sequence to execute.
+
+    Raises:
+        TypeError: If *key_sequence* is not a string.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    sequence = _require_text(key_sequence, "key_sequence")
+    _require_function("parse_and_bind")(sequence)
+
+
+def read_init_file(filename: Any) -> str:
+    """Execute the init file *filename*.
+
+    The file holds the key bindings and the settings of the editor.
+
+    Args:
+        filename: The path of the init file.
+
+    Returns:
+        The path of the file that was read.
+
+    Raises:
+        TypeError: If *filename* is not a path.
+        ValueError: If *filename* is an empty path.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+        OSError: If the file cannot be read.
+    """
+    path = _require_path(filename, "filename")
+    _require_function("read_init_file")(path)
+    return path
+
+
+def read_history_file(filename: Any) -> str:
+    """Load the history of the file *filename*.
+
+    The entries of the file are added to the history of the editor.
+
+    Args:
+        filename: The path of the history file.
+
+    Returns:
+        The path of the file that was read.
+
+    Raises:
+        TypeError: If *filename* is not a path.
+        ValueError: If *filename* is an empty path.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+        OSError: If the file cannot be read.
+    """
+    path = _require_path(filename, "filename")
+    _require_function("read_history_file")(path)
+    return path
+
+
+def write_history_file(filename: Any) -> str:
+    """Write the history of the editor to the file *filename*.
+
+    Args:
+        filename: The path of the history file.
+
+    Returns:
+        The path of the file that was written.
+
+    Raises:
+        TypeError: If *filename* is not a path.
+        ValueError: If *filename* is an empty path.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+        OSError: If the file cannot be written.
+    """
+    path = _require_path(filename, "filename")
+    _require_function("write_history_file")(path)
+    return path
+
+
+def append_history_file(count: Any, filename: Any) -> str:
+    """Append the last *count* entries of the history to the file *filename*.
+
+    The file has to exist, the way the standard library expects it.
+
+    Args:
+        count: The number of entries that are appended.
+        filename: The path of the history file.
+
+    Returns:
+        The path of the file the entries were appended to.
+
+    Raises:
+        TypeError: If *count* is not an integer or *filename* is not a path.
+        ValueError: If *count* is negative or *filename* is an empty path.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+        OSError: If the file cannot be written.
+    """
+    number = _require_count(count)
+    path = _require_path(filename, "filename")
+    _require_function("append_history_file")(number, path)
+    return path
+
+
+def set_history_length(length: Any) -> None:
+    """Set the maximal number of lines that are written to the history file.
+
+    A negative length inhibits the truncation of the history file, which is
+    what the standard library does by default.
+
+    Args:
+        length: The maximal number of lines.
+
+    Raises:
+        TypeError: If *length* is not an integer.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    if isinstance(length, bool) or not isinstance(length, int):
+        raise TypeError(f"length must be an int, got {type(length).__name__}")
+    _require_function("set_history_length")(length)
+
+
+def get_history_length() -> int:
+    """Return the maximal number of lines that are written to the history file.
+
+    Returns:
+        The maximal number of lines, or a negative number when the truncation
+        of the history file is inhibited.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    return int(_require_function("get_history_length")())
+
+
+def get_current_history_length() -> int:
+    """Return the number of entries the history holds.
+
+    Returns:
+        The number of entries of the history.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    return int(_require_function("get_current_history_length")())
+
+
+def add_history(line: Any) -> None:
+    """Add the line *line* to the history.
+
+    Args:
+        line: The line that is added.
+
+    Raises:
+        TypeError: If *line* is not a string.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    text = _require_text(line, "line")
+    _require_function("add_history")(text)
+
+
+def clear_history() -> None:
+    """Remove every entry from the history.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    _require_function("clear_history")()
+
+
+def get_history_item(position: Any) -> Optional[str]:
+    """Return the entry of the history at *position*.
+
+    The positions start at one, the way the standard library numbers the
+    entries it reads.
+
+    Args:
+        position: The position of the entry.
+
+    Returns:
+        The entry, or ``None`` when the history holds no entry at the
+        position.
+
+    Raises:
+        TypeError: If *position* is not an integer.
+        ValueError: If *position* is smaller than one.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    number = _require_position(position)
+    item = _require_function("get_history_item")(number)
+    return None if item is None else str(item)
+
+
+def remove_history_item(position: Any) -> str:
+    """Remove the entry of the history at *position* and return it.
+
+    The positions start at one, the way the standard library numbers the
+    entries it reads.  The standard library counts the entries it removes from
+    zero, so the wrapper converts the position before it removes the entry.
+
+    Args:
+        position: The position of the entry.
+
+    Returns:
+        The entry that was removed.
+
+    Raises:
+        TypeError: If *position* is not an integer.
+        ValueError: If *position* is smaller than one or the history holds no
+            entry at the position.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    number = _require_position(position)
+    module = _readline_module()
+    entry = module.get_history_item(number)
+    try:
+        module.remove_history_item(number - 1)
+    except ValueError as error:
+        raise ValueError(f"the history holds no entry at position {number}") from error
+    return "" if entry is None else str(entry)
+
+
+def replace_history_item(position: Any, line: Any) -> str:
+    """Replace the entry of the history at *position* and return it.
+
+    The positions start at one, the way the standard library numbers the
+    entries it reads.  The standard library counts the entries it replaces
+    from zero, so the wrapper converts the position before it replaces the
+    entry.
+
+    Args:
+        position: The position of the entry.
+        line: The line that replaces the entry.
+
+    Returns:
+        The entry that was replaced.
+
+    Raises:
+        TypeError: If *position* is not an integer or *line* is not a string.
+        ValueError: If *position* is smaller than one or the history holds no
+            entry at the position.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    number = _require_position(position)
+    text = _require_text(line, "line")
+    module = _readline_module()
+    entry = module.get_history_item(number)
+    try:
+        module.replace_history_item(number - 1, text)
+    except ValueError as error:
+        raise ValueError(f"the history holds no entry at position {number}") from error
+    return "" if entry is None else str(entry)
+
+
+def history_items() -> List[str]:
+    """Return every entry of the history, the oldest one first.
+
+    The standard library offers no way to read the history at once, so the
+    wrapper reads the entries one by one.
+
+    Returns:
+        The entries of the history.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    module = _readline_module()
+    length = int(module.get_current_history_length())
+    items: List[str] = []
+    for number in range(1, length + 1):
+        entry = module.get_history_item(number)
+        if entry is not None:
+            items.append(str(entry))
+    return items
+
+
+def search_history(prefix: Any) -> List[str]:
+    """Return the entries of the history that start with *prefix*.
+
+    Args:
+        prefix: The text the entries start with.
+
+    Returns:
+        The matching entries of the history, the oldest one first.
+
+    Raises:
+        TypeError: If *prefix* is not a string.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    text = _require_text(prefix, "prefix")
+    return [entry for entry in history_items() if entry.startswith(text)]
+
+
+def set_completer(function: Any) -> None:
+    """Set the completer of the editor.
+
+    The completer is called with the text that is completed and the number of
+    the match that is wanted, and it returns the match or ``None`` when there
+    is no further match.  Passing ``None`` removes the completer.
+
+    Args:
+        function: The completer, or ``None``.
+
+    Raises:
+        TypeError: If *function* is neither ``None`` nor a callable.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    completer = _require_hook(function, "function")
+    _require_function("set_completer")(completer)
+
+
+def get_completer() -> Optional[Callable[..., Any]]:
+    """Return the completer of the editor.
+
+    Returns:
+        The completer, or ``None`` when no completer is set.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    completer = _require_function("get_completer")()
+    return None if completer is None else completer
+
+
+def set_completer_delims(delimiters: Any) -> None:
+    """Set the delimiters the editor splits a word at.
+
+    Args:
+        delimiters: The delimiters as text.
+
+    Raises:
+        TypeError: If *delimiters* is not a string.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    text = _require_text(delimiters, "delimiters")
+    _require_function("set_completer_delims")(text)
+
+
+def get_completer_delims() -> str:
+    """Return the delimiters the editor splits a word at.
+
+    Returns:
+        The delimiters as text.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    return str(_require_function("get_completer_delims")())
+
+
+def set_startup_hook(function: Any) -> None:
+    """Set the hook that runs before the first prompt is printed.
+
+    The hook is called without arguments.  Passing ``None`` removes it.
+
+    Args:
+        function: The hook, or ``None``.
+
+    Raises:
+        TypeError: If *function* is neither ``None`` nor a callable.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    hook = _require_hook(function, "function")
+    _require_function("set_startup_hook")(hook)
+
+
+def set_pre_input_hook(function: Any) -> None:
+    """Set the hook that runs before the editor reads a character.
+
+    The hook is called without arguments.  Passing ``None`` removes it.
+
+    Args:
+        function: The hook, or ``None``.
+
+    Raises:
+        TypeError: If *function* is neither ``None`` nor a callable.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    hook = _require_hook(function, "function")
+    _require_function("set_pre_input_hook")(hook)
+
+
+def set_completion_display_matches_hook(function: Any) -> None:
+    """Set the hook that displays the matches of a completion.
+
+    The hook is called with the text that is completed, the list of the
+    matches, and the length of the longest match.  Passing ``None`` removes
+    it.
+
+    Args:
+        function: The hook, or ``None``.
+
+    Raises:
+        TypeError: If *function* is neither ``None`` nor a callable.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    hook = _require_hook(function, "function")
+    _require_function("set_completion_display_matches_hook")(hook)
+
+
+def get_completion_type() -> int:
+    """Return the type of the completion that is attempted.
+
+    Returns:
+        Zero when no completion is attempted, one for a completion of a file
+        name, and two for a completion of a host name.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    return int(_require_function("get_completion_type")())
+
+
+def get_begidx() -> int:
+    """Return the index the completion scope starts at.
+
+    Returns:
+        The index the completion scope starts at.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    return int(_require_function("get_begidx")())
+
+
+def get_endidx() -> int:
+    """Return the index the completion scope ends at.
+
+    Returns:
+        The index the completion scope ends at.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    return int(_require_function("get_endidx")())
+
+
+def get_line_buffer() -> str:
+    """Return the contents of the line buffer of the editor.
+
+    Returns:
+        The contents of the line buffer.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    return str(_require_function("get_line_buffer")())
+
+
+def insert_text(text: Any) -> None:
+    """Insert *text* into the line buffer at the cursor.
+
+    Args:
+        text: The text that is inserted.
+
+    Raises:
+        TypeError: If *text* is not a string.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    content = _require_text(text, "text")
+    _require_function("insert_text")(content)
+
+
+def redisplay() -> None:
+    """Redraw the line buffer of the editor.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    _require_function("redisplay")()
+
+
+def set_auto_history(enabled: Any) -> None:
+    """Enable or disable the automatic history.
+
+    When the automatic history is enabled, the line the user entered is added
+    to the history by the editor itself.
+
+    Args:
+        enabled: Whether the automatic history is enabled.
+
+    Raises:
+        TypeError: If *enabled* is not a boolean.
+        RuntimeError: If the interpreter does not ship the ``readline``
+            module.
+    """
+    if not isinstance(enabled, bool):
+        raise TypeError(f"enabled must be a bool, got {type(enabled).__name__}")
+    _require_function("set_auto_history")(enabled)
+
+
+def make_completer(words: Any) -> Callable[[str, int], Optional[str]]:
+    """Return a completer for the words *words*.
+
+    The completer follows the protocol of the standard library: it is called
+    with the text that is completed and the number of the match that is
+    wanted, and it returns the match or ``None`` when there is no further
+    match.  The matches are sorted, so the completer offers the same match
+    for the same text every time.
+
+    Args:
+        words: The words the completer offers.
+
+    Returns:
+        The completer.
+
+    Raises:
+        TypeError: If *words* is not an iterable of strings.
+    """
+    if isinstance(words, (str, bytes)):
+        raise TypeError(f"words must be an iterable of strings, got {type(words).__name__}")
+    try:
+        candidates: List[str] = list(words)
+    except TypeError as error:
+        raise TypeError(
+            f"words must be an iterable of strings, got {type(words).__name__}"
+        ) from error
+    for word in candidates:
+        if not isinstance(word, str):
+            raise TypeError(f"words must hold strings, got {type(word).__name__}")
+    matches = sorted(set(candidates))
+
+    def completer(text: str, state: int) -> Optional[str]:
+        """Return the *state*-th match of *text*.
+
+        Args:
+            text: The text that is completed.
+            state: The number of the match that is wanted.
+
+        Returns:
+            The match, or ``None`` when there is no further match.
+
+        Raises:
+            TypeError: If *text* is not a string or *state* is not an
+                integer.
+            ValueError: If *state* is negative.
+        """
+        prefix = _require_text(text, "text")
+        if isinstance(state, bool) or not isinstance(state, int):
+            raise TypeError(f"state must be an int, got {type(state).__name__}")
+        if state < 0:
+            raise ValueError(f"state must not be negative, got {state}")
+        found = [word for word in matches if word.startswith(prefix)]
+        if state >= len(found):
+            return None
+        return found[state]
+
+    return completer
+READLINE_UTILS
+
+# --- tests/test_readline_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_readline_utils.py" <<'TEST_READLINE_UTILS'
+"""Tests for readline_utils.
+
+The tests never touch the history file or the init file of the user: every
+file is created in a temporary directory the test owns, and the state the
+standard library keeps between two calls is restored after every test.  The
+suite needs no terminal and no network.
+"""
+
+import os
+import tempfile
+import unittest
+from unittest import mock
+
+import readline_utils
+
+try:
+    import readline as _readline
+except ImportError:  # pragma: no cover - the module is Unix-only
+    _readline = None  # type: ignore[assignment]
+
+
+@unittest.skipUnless(readline_utils.is_available(), "readline module not available")
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(readline_utils.__all__, sorted(set(readline_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in readline_utils.__all__:
+            self.assertTrue(hasattr(readline_utils, name), name)
+
+    def test_is_available_reports_a_bool(self):
+        self.assertIsInstance(readline_utils.is_available(), bool)
+
+    def test_is_available_matches_the_standard_library(self):
+        self.assertEqual(readline_utils.is_available(), _readline is not None)
+
+    def test_the_default_history_file_is_the_history_of_the_user(self):
+        self.assertEqual(
+            readline_utils.default_history_file(),
+            os.path.expanduser("~/.history"),
+        )
+
+
+@unittest.skipUnless(readline_utils.is_available(), "readline module not available")
+class TestValidation(unittest.TestCase):
+    """Verify the validation of the arguments.
+
+    The arguments are validated before the standard library is reached, so the
+    same error is raised on an interpreter that does not ship the module.
+    """
+
+    def setUp(self):
+        patcher = mock.patch("readline_utils._readline")
+        self.module = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_the_text_arguments_must_be_strings(self):
+        for call in (
+            lambda: readline_utils.parse_and_bind(42),
+            lambda: readline_utils.add_history(42),
+            lambda: readline_utils.insert_text(42),
+            lambda: readline_utils.set_completer_delims(42),
+            lambda: readline_utils.search_history(42),
+            lambda: readline_utils.replace_history_item(1, 42),
+        ):
+            with self.assertRaises(TypeError):
+                call()
+
+    def test_the_file_arguments_must_be_paths(self):
+        for call in (
+            lambda: readline_utils.read_init_file(42),
+            lambda: readline_utils.read_history_file(42),
+            lambda: readline_utils.write_history_file(42),
+            lambda: readline_utils.append_history_file(1, 42),
+        ):
+            with self.assertRaises(TypeError):
+                call()
+
+    def test_the_file_arguments_must_not_be_empty(self):
+        for call in (
+            lambda: readline_utils.read_init_file(""),
+            lambda: readline_utils.read_history_file(""),
+            lambda: readline_utils.write_history_file(""),
+            lambda: readline_utils.append_history_file(1, ""),
+        ):
+            with self.assertRaises(ValueError):
+                call()
+
+    def test_the_positions_must_be_integers(self):
+        for call in (
+            lambda: readline_utils.get_history_item("1"),
+            lambda: readline_utils.remove_history_item("1"),
+            lambda: readline_utils.replace_history_item("1", "line"),
+        ):
+            with self.assertRaises(TypeError):
+                call()
+
+    def test_the_positions_must_not_be_booleans(self):
+        with self.assertRaises(TypeError):
+            readline_utils.get_history_item(True)
+
+    def test_the_positions_must_start_at_one(self):
+        for call in (
+            lambda: readline_utils.get_history_item(0),
+            lambda: readline_utils.remove_history_item(0),
+            lambda: readline_utils.replace_history_item(0, "line"),
+        ):
+            with self.assertRaises(ValueError):
+                call()
+
+    def test_the_count_must_be_an_integer(self):
+        with self.assertRaises(TypeError):
+            readline_utils.append_history_file("1", "history")
+        with self.assertRaises(TypeError):
+            readline_utils.append_history_file(True, "history")
+
+    def test_the_count_must_not_be_negative(self):
+        with self.assertRaises(ValueError):
+            readline_utils.append_history_file(-1, "history")
+
+    def test_the_length_of_the_history_must_be_an_integer(self):
+        with self.assertRaises(TypeError):
+            readline_utils.set_history_length("10")
+        with self.assertRaises(TypeError):
+            readline_utils.set_history_length(True)
+
+    def test_the_automatic_history_must_be_a_boolean(self):
+        with self.assertRaises(TypeError):
+            readline_utils.set_auto_history("yes")
+
+    def test_the_hooks_must_be_callable(self):
+        for call in (
+            lambda: readline_utils.set_completer("completer"),
+            lambda: readline_utils.set_startup_hook("hook"),
+            lambda: readline_utils.set_pre_input_hook("hook"),
+            lambda: readline_utils.set_completion_display_matches_hook("hook"),
+        ):
+            with self.assertRaises(TypeError):
+                call()
+
+    def test_the_standard_library_is_not_reached(self):
+        with self.assertRaises(TypeError):
+            readline_utils.add_history(42)
+        self.module.add_history.assert_not_called()
+        with self.assertRaises(ValueError):
+            readline_utils.get_history_item(0)
+        self.module.get_history_item.assert_not_called()
+
+
+@unittest.skipUnless(readline_utils.is_available(), "readline module not available")
+class TestDegradation(unittest.TestCase):
+    """Verify the behavior on an interpreter that does not ship the module."""
+
+    def setUp(self):
+        patcher = mock.patch("readline_utils._readline", None)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_the_helpers_report_the_missing_module(self):
+        for call in (
+            lambda: readline_utils.parse_and_bind("set editing-mode emacs"),
+            lambda: readline_utils.read_init_file("inputrc"),
+            lambda: readline_utils.read_history_file("history"),
+            lambda: readline_utils.write_history_file("history"),
+            lambda: readline_utils.append_history_file(1, "history"),
+            lambda: readline_utils.set_history_length(10),
+            lambda: readline_utils.get_history_length(),
+            lambda: readline_utils.get_current_history_length(),
+            lambda: readline_utils.add_history("line"),
+            lambda: readline_utils.clear_history(),
+            lambda: readline_utils.get_history_item(1),
+            lambda: readline_utils.remove_history_item(1),
+            lambda: readline_utils.replace_history_item(1, "line"),
+            lambda: readline_utils.history_items(),
+            lambda: readline_utils.search_history("line"),
+            lambda: readline_utils.set_completer(print),
+            lambda: readline_utils.get_completer(),
+            lambda: readline_utils.set_completer_delims(" "),
+            lambda: readline_utils.get_completer_delims(),
+            lambda: readline_utils.set_startup_hook(print),
+            lambda: readline_utils.set_pre_input_hook(print),
+            lambda: readline_utils.set_completion_display_matches_hook(print),
+            lambda: readline_utils.get_completion_type(),
+            lambda: readline_utils.get_begidx(),
+            lambda: readline_utils.get_endidx(),
+            lambda: readline_utils.get_line_buffer(),
+            lambda: readline_utils.insert_text("text"),
+            lambda: readline_utils.redisplay(),
+            lambda: readline_utils.set_auto_history(True),
+        ):
+            with self.assertRaises(RuntimeError):
+                call()
+
+
+class TestHistory(unittest.TestCase):
+    """Verify the helpers that work on the history of the editor."""
+
+    def setUp(self):
+        if not readline_utils.is_available():
+            self.skipTest("readline module not available")
+        readline_utils.clear_history()
+        self.addCleanup(readline_utils.clear_history)
+
+    def test_the_history_starts_empty(self):
+        self.assertEqual(readline_utils.get_current_history_length(), 0)
+        self.assertEqual(readline_utils.history_items(), [])
+
+    def test_an_added_line_is_the_last_entry(self):
+        readline_utils.add_history("first")
+        readline_utils.add_history("second")
+        self.assertEqual(readline_utils.get_current_history_length(), 2)
+        self.assertEqual(readline_utils.get_history_item(1), "first")
+        self.assertEqual(readline_utils.get_history_item(2), "second")
+
+    def test_the_history_is_returned_as_a_list(self):
+        readline_utils.add_history("first")
+        readline_utils.add_history("second")
+        self.assertEqual(readline_utils.history_items(), ["first", "second"])
+
+    def test_an_entry_outside_the_history_is_none(self):
+        readline_utils.add_history("first")
+        self.assertIsNone(readline_utils.get_history_item(2))
+
+    def test_the_history_is_cleared(self):
+        readline_utils.add_history("first")
+        readline_utils.clear_history()
+        self.assertEqual(readline_utils.get_current_history_length(), 0)
+        self.assertIsNone(readline_utils.get_history_item(1))
+
+    def test_an_entry_is_removed_by_its_position(self):
+        readline_utils.add_history("first")
+        readline_utils.add_history("second")
+        removed = readline_utils.remove_history_item(1)
+        self.assertEqual(removed, "first")
+        self.assertEqual(readline_utils.history_items(), ["second"])
+
+    def test_an_entry_outside_the_history_cannot_be_removed(self):
+        readline_utils.add_history("first")
+        with self.assertRaises(ValueError):
+            readline_utils.remove_history_item(2)
+
+    def test_an_entry_is_replaced_by_its_position(self):
+        readline_utils.add_history("first")
+        readline_utils.add_history("second")
+        replaced = readline_utils.replace_history_item(2, "other")
+        self.assertEqual(replaced, "second")
+        self.assertEqual(readline_utils.history_items(), ["first", "other"])
+
+    def test_an_entry_outside_the_history_cannot_be_replaced(self):
+        readline_utils.add_history("first")
+        with self.assertRaises(ValueError):
+            readline_utils.replace_history_item(5, "other")
+
+    def test_the_entries_that_start_with_a_prefix_are_found(self):
+        readline_utils.add_history("first")
+        readline_utils.add_history("second")
+        readline_utils.add_history("first again")
+        self.assertEqual(
+            readline_utils.search_history("first"),
+            ["first", "first again"],
+        )
+
+    def test_the_entries_that_start_with_an_unknown_prefix_are_empty(self):
+        readline_utils.add_history("first")
+        self.assertEqual(readline_utils.search_history("other"), [])
+
+    def test_the_maximal_length_of_the_history_is_reported(self):
+        readline_utils.set_history_length(5)
+        self.addCleanup(readline_utils.set_history_length, -1)
+        self.assertEqual(readline_utils.get_history_length(), 5)
+
+    def test_the_truncation_of_the_history_file_is_inhibited_by_default(self):
+        self.assertLess(readline_utils.get_history_length(), 0)
+
+
+class TestFiles(unittest.TestCase):
+    """Verify the helpers that read and write files."""
+
+    def setUp(self):
+        if not readline_utils.is_available():
+            self.skipTest("readline module not available")
+        readline_utils.clear_history()
+        self.addCleanup(readline_utils.clear_history)
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.path = os.path.join(self.directory.name, "history")
+
+    def test_the_history_is_written_and_read_again(self):
+        readline_utils.add_history("first")
+        readline_utils.add_history("second")
+        written = readline_utils.write_history_file(self.path)
+        self.assertEqual(written, self.path)
+        readline_utils.clear_history()
+        readline_utils.read_history_file(self.path)
+        self.assertEqual(readline_utils.history_items(), ["first", "second"])
+
+    def test_the_entries_are_appended_to_the_file(self):
+        readline_utils.add_history("first")
+        readline_utils.add_history("second")
+        readline_utils.write_history_file(self.path)
+        readline_utils.add_history("third")
+        appended = readline_utils.append_history_file(1, self.path)
+        self.assertEqual(appended, self.path)
+        with open(self.path, encoding="utf-8") as handle:
+            self.assertEqual(handle.read().splitlines(), ["first", "second", "third"])
+
+    def test_a_missing_history_file_is_reported(self):
+        with self.assertRaises(OSError):
+            readline_utils.read_history_file(self.path)
+
+    def test_an_init_file_is_executed(self):
+        path = os.path.join(self.directory.name, "inputrc")
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write("set editing-mode emacs\n")
+        self.assertEqual(readline_utils.read_init_file(path), path)
+
+    def test_a_missing_init_file_is_reported(self):
+        with self.assertRaises(OSError):
+            readline_utils.read_init_file(os.path.join(self.directory.name, "missing"))
+
+
+class TestCompletion(unittest.TestCase):
+    """Verify the helpers of the tab completion."""
+
+    def setUp(self):
+        if not readline_utils.is_available():
+            self.skipTest("readline module not available")
+        delimiters = readline_utils.get_completer_delims()
+        self.addCleanup(readline_utils.set_completer_delims, delimiters)
+        self.addCleanup(readline_utils.set_completer, None)
+
+    def test_the_completer_is_set_and_removed(self):
+        def completer(text, state):
+            return None
+
+        readline_utils.set_completer(completer)
+        self.assertIs(readline_utils.get_completer(), completer)
+        readline_utils.set_completer(None)
+        self.assertIsNone(readline_utils.get_completer())
+
+    def test_the_delimiters_are_set(self):
+        readline_utils.set_completer_delims(" .")
+        self.assertEqual(readline_utils.get_completer_delims(), " .")
+
+    def test_a_completer_is_made_for_a_list_of_words(self):
+        completer = readline_utils.make_completer(["gamma", "alpha", "beta"])
+        self.assertEqual(completer("a", 0), "alpha")
+        self.assertIsNone(completer("a", 1))
+
+    def test_the_matches_of_a_completer_are_sorted(self):
+        completer = readline_utils.make_completer(["beta", "alpha"])
+        self.assertEqual(completer("", 0), "alpha")
+        self.assertEqual(completer("", 1), "beta")
+        self.assertIsNone(completer("", 2))
+
+    def test_a_completer_ignores_a_duplicate_word(self):
+        completer = readline_utils.make_completer(["alpha", "alpha"])
+        self.assertEqual(completer("", 0), "alpha")
+        self.assertIsNone(completer("", 1))
+
+    def test_a_completer_validates_its_arguments(self):
+        completer = readline_utils.make_completer(["alpha"])
+        with self.assertRaises(TypeError):
+            completer(42, 0)
+        with self.assertRaises(TypeError):
+            completer("a", "0")
+        with self.assertRaises(ValueError):
+            completer("a", -1)
+
+    def test_the_words_must_be_strings(self):
+        with self.assertRaises(TypeError):
+            readline_utils.make_completer([42])
+        with self.assertRaises(TypeError):
+            readline_utils.make_completer("alpha")
+
+    def test_the_type_of_the_completion_is_reported(self):
+        self.assertIn(readline_utils.get_completion_type(), (0, 1, 2))
+
+
+class TestEditor(unittest.TestCase):
+    """Verify the helpers of the line editor."""
+
+    def setUp(self):
+        if not readline_utils.is_available():
+            self.skipTest("readline module not available")
+        self.addCleanup(readline_utils.set_auto_history, True)
+
+    def test_the_line_buffer_is_reported(self):
+        self.assertIsInstance(readline_utils.get_line_buffer(), str)
+
+    def test_the_scope_of_the_completion_is_reported(self):
+        self.assertIsInstance(readline_utils.get_begidx(), int)
+        self.assertIsInstance(readline_utils.get_endidx(), int)
+
+    def test_a_key_sequence_is_executed(self):
+        self.assertIsNone(readline_utils.parse_and_bind("set editing-mode emacs"))
+
+    def test_the_automatic_history_is_disabled_and_enabled(self):
+        readline_utils.set_auto_history(False)
+        readline_utils.set_auto_history(True)
+
+    def test_the_hooks_of_the_editor_are_set_and_removed(self):
+        readline_utils.set_startup_hook(lambda: None)
+        readline_utils.set_startup_hook(None)
+        if hasattr(_readline, "set_pre_input_hook"):
+            readline_utils.set_pre_input_hook(lambda: None)
+            readline_utils.set_pre_input_hook(None)
+        readline_utils.set_completion_display_matches_hook(
+            lambda substitution, matches, length: None
+        )
+        readline_utils.set_completion_display_matches_hook(None)
+
+    def test_text_is_inserted_into_the_line_buffer(self):
+        readline_utils.insert_text("text")
+        readline_utils.redisplay()
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_READLINE_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

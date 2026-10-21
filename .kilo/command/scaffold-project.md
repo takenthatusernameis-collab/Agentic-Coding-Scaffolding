@@ -539,3 +539,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_audioop_utils.py` — unit tests for `audioop_utils.py`
 - `ensurepip_utils.py` — bootstrap utilities wrapping the standard library `ensurepip` package (`bootstrap`, `bundled_wheel`, `pip_version`, `is_pip_installed`, `run_cli`, `is_available`) with input validation
 - `tests/test_ensurepip_utils.py` — unit tests for `ensurepip_utils.py`
+- `readline_utils.py` — command line editing utilities wrapping the standard library `readline` module (`add_history`, `append_history_file`, `clear_history`, `default_history_file`, `get_history_item`, `history_items`, `make_completer`, `read_history_file`, `remove_history_item`, `replace_history_item`, `search_history`, `write_history_file`, `is_available`) with input validation
+- `tests/test_readline_utils.py` — unit tests for `readline_utils.py`
