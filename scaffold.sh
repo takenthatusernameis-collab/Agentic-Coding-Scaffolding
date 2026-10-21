@@ -678,6 +678,7 @@
 #   - fcntl_utils.py — # File control utilities wrapping the standard library fcntl (flock, lockf, control, ioctl, duplicate_fd, file_lock)
 #   - pty_utils.py — # Pseudo-terminal utilities wrapping the standard library pty (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available)
 #   - stringprep_utils.py — # String preparation utilities wrapping the standard library stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
+#   - site_utils.py — # Site configuration utilities wrapping the standard library site module (get_site_packages, get_user_base, get_user_site_packages, is_user_site_enabled)
 #   - tabnanny_utils.py — # Tabnanny utilities wrapping the standard library tabnanny (check, process_tokens, NannyNag)
 #   - encodings_utils.py — # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 #   - zipimport_utils.py — # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
@@ -83228,6 +83229,91 @@ class TestRunningUnderTheDebugger(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_PDB_UTILS
+
+# --- site_utils.py ---
+cat > "$OUTPUT_DIR/site_utils.py" <<'SITE_UTILS'
+"""Site configuration and user-site directory utilities.
+
+This module provides helpers for inspecting the Python site configuration
+using only the standard library ``site`` module.
+"""
+
+from __future__ import annotations
+
+import site
+from typing import List
+
+__all__: list[str] = [
+    "get_site_packages",
+    "get_user_base",
+    "get_user_site_packages",
+    "is_user_site_enabled",
+]
+
+
+def get_site_packages() -> List[str]:
+    """Return the list of site-packages directories.
+
+    Returns:
+        A list of absolute directory paths.
+    """
+    return list(site.getsitepackages())
+
+
+def get_user_base() -> str:
+    """Return the base directory for user-specific installations.
+
+    Returns:
+        The absolute path to the user base directory.
+    """
+    return site.getuserbase()
+
+
+def get_user_site_packages() -> str:
+    """Return the user site-packages directory.
+
+    Returns:
+        The absolute path to the user site-packages directory.
+    """
+    return site.getusersitepackages()
+
+
+def is_user_site_enabled() -> bool:
+    """Return whether user site-packages are enabled.
+
+    Returns:
+        ``True`` when user site-packages are enabled, ``False`` otherwise.
+    """
+    return bool(site.ENABLE_USER_SITE)
+SITE_UTILS
+
+# --- tests/test_site_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_site_utils.py" <<'TEST_SITE_UTILS'
+import site
+
+from site_utils import (
+    get_site_packages,
+    get_user_base,
+    get_user_site_packages,
+    is_user_site_enabled,
+)
+
+
+def test_get_site_packages():
+    assert get_site_packages() == list(site.getsitepackages())
+
+
+def test_get_user_base():
+    assert get_user_base() == site.getuserbase()
+
+
+def test_get_user_site_packages():
+    assert get_user_site_packages() == site.getusersitepackages()
+
+
+def test_is_user_site_enabled():
+    assert is_user_site_enabled() == bool(site.ENABLE_USER_SITE)
+TEST_SITE_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

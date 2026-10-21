@@ -273,4 +273,5 @@ py_modules = [
     "curses_utils",
     "bdb_utils",
     "pdb_utils",
+    "site_utils",
 ]
