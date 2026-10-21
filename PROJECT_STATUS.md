@@ -26,19 +26,35 @@ Completed in the latest session:
 
 Next Planned:
 
-- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
-  are `aifc`, `builtins`, `cgi`, `cgitb`, `chunk`, `crypt`, `idlelib`, `imghdr`, `lib2to3`,
-  `msilib`, `msvcrt`, `nis`, `nntplib`, `ossaudiodev`, `pipes`, `posix`, `pyexpat`, `sndhdr`,
-  `spwd`, `sre_compile`, `sre_constants`, `sre_parse`, `sunau`, `telnetlib`, `tkinter`, `turtle`,
-  `turtledemo`, `winreg`, and `winsound`. Most of them were removed in Python 3.13 as part of
-  :pep:`594`, and the ones that remain are either platform specific (`msvcrt`, `winreg`, `winsound`,
-  `spwd`, `nis`, `posix`, `ossaudiodev`) or need a graphical toolkit that the interpreter of the CI
-  does not ship (`tkinter`, `idlelib`, `turtle`, `turtledemo`). The `pyexpat` module is the natural
-  next candidate: it is the binding of the expat parser, it ships with the interpreter of the CI on
-  every platform, it offers a parser that a caller drives with handlers, and the tests only parse
-  documents the test itself writes in a temporary directory of its own. The `builtins` module is the
-  alternative: it ships with every interpreter, and its helpers are pure computation apart from the
-  ones that read or write a file.
+- Add the next stdlib wrapper module: `pyexpat_utils.py`, wrapping the standard library `pyexpat`
+  module, the binding of the expat parser that is importable as `pyexpat` and as
+  `xml.parsers.expat`. It is the natural next candidate: it ships with the interpreter of the CI on
+  every platform, it is not deprecated, and it was not removed in Python 3.13. The public standard
+  library modules that still lack a wrapper are `aifc`, `builtins`, `cgi`, `cgitb`, `chunk`,
+  `crypt`, `idlelib`, `imghdr`, `lib2to3`, `msilib`, `msvcrt`, `nis`, `nntplib`, `ossaudiodev`,
+  `pipes`, `posix`, `pyexpat`, `sndhdr`, `spwd`, `sre_compile`, `sre_constants`, `sre_parse`,
+  `sunau`, `telnetlib`, `tkinter`, `turtle`, `turtledemo`, `winreg`, and `winsound`. Most of them
+  were removed in Python 3.13 as part of :pep:`594`, and the ones that remain are either platform
+  specific (`msvcrt`, `winreg`, `winsound`, `spwd`, `nis`, `posix`, `ossaudiodev`) or need a
+  graphical toolkit that the interpreter of the CI does not ship (`tkinter`, `idlelib`, `turtle`,
+  `turtledemo`). The `builtins` module is the alternative: it ships with every interpreter, and its
+  helpers are pure computation apart from the ones that read or write a file.
+- Write the module in the conventions of the existing wrappers: typed signatures, Google style
+  docstrings, an `__all__` that is sorted and unique, and input validation that raises
+  `TypeError` or `ValueError` before the standard library is reached. `readline_utils.py` and
+  `ensurepip_utils.py` are the reference. The standard library offers `ParserCreate`,
+  `ErrorString`, `ExpatError`, `version_info`, `EXPAT_VERSION`, the `XML_PARAM_ENTITY_PARSING_*`
+  constants, and a `Parser` with 46 methods, among them `Parse`, `ParseFile`, `SetBase`,
+  `GetBase`, `SetParamEntityParsing`, `CurrentByteIndex`, `CurrentLineNumber`,
+  `CurrentColumnNumber`, `ErrorCode`, `ErrorLineNumber`, `ErrorColumnNumber`,
+  `GetIdAttributeIndex`, `GetSpecifiedAttributeCount`, `GetAttributeInfo`, the `*Handler`
+  setters, and `ExternalEntityParserCreate`. Wrap a useful subset of them and re-export
+  `ExpatError` and `ParserCreate`.
+- Add the conveniences the standard library leaves to the caller, in the spirit of the other
+  wrappers: the parser reports the position of an error as one record instead of three calls, the
+  attributes of an element are returned as a mapping, the parser is created with the options of
+  expat behind one validated call, and a document is parsed from text or from a file behind one
+  helper that names the file it reads.
 - Keep every new wrapper hermetic: the test suite must never open a network connection, install a
   package, write to a system service, or block on a subprocess. `imaplib_utils.py` is the reference
   — its connection helpers are exercised with `unittest.mock.patch` instead of real servers,
@@ -46,7 +62,22 @@ Next Planned:
   its server helpers, and `syslog_utils.py` patches every call into the system logger.
   `readline_utils.py` follows the rule as well: the helpers that touch a file only touch the file
   they are given, so the tests create every file in a temporary directory of their own and the suite
-  never reads the history file of the user.
+  never reads the history file of the user. The tests of `pyexpat_utils.py` must only parse
+  documents the test itself writes in a temporary directory it owns.
+- Synchronize the new module across every surface: the `py_modules` list of `pyproject.toml`, the
+  header comment of `scaffold.sh`, the module and test heredocs of the generator, the embedded
+  `pyproject.toml`, the embedded README tree and module section, the embedded CHANGELOG, the
+  README tree and module section, `.kilo/command/scaffold-project.md`, the three assertion lists
+  of `tests/test_scaffold.py`, `CHANGELOG.md`, and this file. This is the step that broke in the
+  earlier sessions, so do all of it. After editing a file that `scaffold.sh` embeds, run
+  `make refresh-scaffold` so the embedded copies stay byte identical, and
+  `python tools/refresh_scaffold.py --check` to prove they are in sync. The header comment of the
+  generator, the embedded `pyproject.toml`, the README tree, and the changelog are maintained by
+  hand.
+- Verify the work before it is committed: `make test`, `make lint`, and `make typecheck` are green;
+  `./scaffold.sh demo-project <tmpdir>` generates a project that ships `pyexpat_utils.py` and
+  `tests/test_pyexpat_utils.py`, byte identical to the repository copies, and its tests pass;
+  `python tools/refresh_scaffold.py --check` reports that all embedded copies are in sync.
 - Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new
   module must not reintroduce any drift.
 
