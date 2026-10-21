@@ -38,6 +38,7 @@ tools/                       # Maintainer tools
 hello.py                     # Sample application entry point
 abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
+audioop_utils.py             # Audio utilities wrapping the standard library audioop module
 gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
 mailcap_utils.py            # Mailcap utilities wrapping stdlib mailcap
 pickle_utils.py              # Object serialization utilities wrapping stdlib pickle
@@ -439,6 +440,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_semver_utils.py        # Tests for semver_utils.py
   test_interval_utils.py      # Tests for interval_utils.py
   test_venv_utils.py          # Tests for venv_utils.py
+  test_audioop_utils.py       # Tests for audioop_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -1580,3 +1582,6 @@ The project includes profiling utilities in `cprofile_utils.py` wrapping the sta
 ## Venv Utilities Module
 
 The project includes virtual environment utilities in `venv_utils.py` wrapping the standard library `venv` package: `create_environment` creates a virtual environment and returns a description of it, `describe_environment` describes an environment that already exists, `read_configuration` returns the settings of the configuration file of an environment as a mapping, `is_environment` reports whether a directory holds an environment, `environment_paths` returns the directories of an environment the way the standard library computes them, `environment_python` returns the interpreter of an environment, `activation_scripts` returns the scripts that activate an environment, `find_environments` returns the environments of a directory tree, and `run_cli` runs the command-line interface of the standard library and returns its exit code. The class `EnvBuilder` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds three conveniences to the standard library: the creation of an environment returns a description of the result instead of nothing, the directories of an environment are computed without creating it, and the environments of a directory tree are found. The helpers that create an environment write to the directory they are given and nothing else, and the helpers that only read an environment never write to it, so the tests of the project create every environment in a temporary directory of their own and the suite never installs a package and never reaches the network. The module is tested in `tests/test_venv_utils.py`.
+## Audio Utilities Module
+
+The project includes audio utilities in `audioop_utils.py` wrapping the standard library `audioop` module (`add_fragments`, `shift_bias`, `scale`, `reverse_samples`, `byteswap`, `lin2lin`, `convert_sample_width`, `lin2ulaw`, `ulaw2lin`, `lin2alaw`, `alaw2lin`, `lin2adpcm`, `adpcm2lin`, `lin2tomono`, `add`, `mul`, `bias`, `avg`, `average`, `rms`, `root_mean_square`, `max`, `maxpp`, `peak_value`, `peak_to_peak`, `avgpp`, `average_peak_to_peak`, `cross`, `count_zero_crossings`, `ratecv`, `resample`, `tostereo`, `tomono`, `findfactor`, `find_fit`, `minmax`, `getsample`, `describe_fragment`, `find_scale_factor`, `sample_at`, `frame_count`, `duplicate_to_stereo`, `mix_to_mono`, `reverse`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_audioop_utils.py`. The class `Resampler` keeps the state of resampling. The module degrades gracefully on Python 3.13 where `audioop` was removed, raising `RuntimeError` pointing to `audioop-lts`. The wrapper validates arguments, rejects empty fragments in measurements, supports negative sample indices, and provides `describe_fragment` returning measurements together.
