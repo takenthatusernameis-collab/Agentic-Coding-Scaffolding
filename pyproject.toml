@@ -269,4 +269,5 @@ py_modules = [
     "ipaddress_utils",
     "genericpath_utils",
     "ntpath_utils",
+    "nturl2path_utils",
 ]
