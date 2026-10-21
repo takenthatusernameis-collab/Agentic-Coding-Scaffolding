@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Add `zipimport_utils.py` wrapping the standard library `zipimport` module (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches) with input validation and the re-exported `ZipImportError`, plus unit tests in `tests/test_zipimport_utils.py`.
+- Synchronized `zipimport_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `encodings_utils.py` wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping, plus unit tests in `tests/test_encodings_utils.py`.
 - Synchronized `encodings_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `tabnanny_utils.py` wrapping the standard library `tabnanny` module (check, process_tokens, NannyNag) with input validation, plus unit tests in `tests/test_tabnanny_utils.py`.

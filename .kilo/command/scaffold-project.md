@@ -69,6 +69,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `stringprep_utils.py` — string preparation utilities wrapping the standard library `stringprep` module (table_names, map_table_names, in_table, map_table, is_unassigned, is_mapped_to_nothing, is_prohibited, is_allowed, is_bidi_allowed, map_text, find_problems, is_preparable) with input validation and read-only table mappings
 - `tabnanny_utils.py` — tabnanny utilities wrapping the standard library `tabnanny` module (check, process_tokens, NannyNag) with input validation
 - `encodings_utils.py` — encoding name utilities wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping
+- `zipimport_utils.py` — Zip archive import utilities wrapping the standard library `zipimport` module (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches) with input validation and the re-exported `ZipImportError`
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -283,6 +284,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_stringprep_utils.py` — unit tests for `stringprep_utils.py`
 - `tests/test_tabnanny_utils.py` — unit tests for `tabnanny_utils.py`
 - `tests/test_encodings_utils.py` — unit tests for `encodings_utils.py`
+- `tests/test_zipimport_utils.py` — unit tests for `zipimport_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`

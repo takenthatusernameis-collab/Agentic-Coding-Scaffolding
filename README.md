@@ -261,6 +261,7 @@ pty_utils.py                 # Pseudo-terminal utilities wrapping stdlib pty (op
 stringprep_utils.py          # String preparation utilities wrapping stdlib stringprep (in_table, map_table, is_prohibited, is_allowed, map_text)
 tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (check, process_tokens, NannyNag)
 encodings_utils.py           # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
+zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -434,6 +435,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_pty_utils.py            # Tests for pty_utils.py
     test_stringprep_utils.py     # Tests for stringprep_utils.py
     test_tabnanny_utils.py       # Tests for tabnanny_utils.py
+    test_zipimport_utils.py      # Tests for zipimport_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -1465,3 +1467,7 @@ The project includes tabnanny utilities in `tabnanny_utils.py` wrapping the stan
 ## Encodings Utilities Module
 
 The project includes encoding name utilities in `encodings_utils.py` wrapping the standard library `encodings` module: `normalize_encoding` returns the canonical form of an encoding name, `is_known_encoding` reports whether a name is a known alias or canonical name, `is_alias` reports whether a name is an alias, `encoding_aliases` lists the aliases of an encoding, `all_aliases` exposes the read-only alias mapping, and `all_encodings` lists every canonical encoding name. The alias mapping is exposed as the read-only mapping `ALIASES`. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_encodings_utils.py`.
+
+## Zipimport Utilities Module
+
+The project includes Zip archive import utilities in `zipimport_utils.py` wrapping the standard library `zipimport` module: `zip_importer` returns an importer for a Zip archive, `archive_names` lists the members of an archive, `get_source` returns the source code of a module inside an archive, `get_code` returns the code object of that module, `get_filename` returns the path the module would be loaded from, `get_data` returns the bytes of a member of the archive, `is_package` reports whether a module is a package, `find_spec` returns the import specification of a module, and `invalidate_caches` drops the cached directory information of the archives. :class:`ZipImportError` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module only reads the archive the caller points it at, so it never touches the network or a process. The module is tested in `tests/test_zipimport_utils.py`.
