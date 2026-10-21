@@ -668,6 +668,8 @@
 #   - tests/test_optparse_utils.py — # Tests for optparse_utils.py
 #   - pyclbr_utils.py — # Pyclbr utilities wrapping the standard library pyclbr module (read_module, read_module_ex, class_names, function_names, find_class, find_function, has_class, has_function, is_class, is_function)
 #   - tests/test_pyclbr_utils.py — # Tests for pyclbr_utils.py
+#   - pyexpat_utils.py — # XML parsing utilities wrapping the standard library pyexpat module (ParserCreate, ExpatError, parse, parse_text, parse_file, error_string, version_info, is_available, ErrorPosition, CurrentPosition, set_base, get_base, set_param_entity_parsing, external_entity_parser, set_start_element_handler, set_end_element_handler, set_character_data_handler, set_processing_instruction_handler, attribute_mapping) with input validation
+#   - tests/test_pyexpat_utils.py — # Tests for pyexpat_utils.py
 #   - xdrlib_utils.py — # Xdrlib utilities wrapping the standard library xdrlib module (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array)
 #   - tests/test_xdrlib_utils.py — # Tests for xdrlib_utils.py
 #   - smtplib_utils.py — # Smtplib utilities wrapping the standard library smtplib module (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text)
@@ -4505,6 +4507,7 @@ py_modules = [
     "modulefinder_utils",
     "optparse_utils",
     "pyclbr_utils",
+    "pyexpat_utils",
     "xdrlib_utils",
     "ftplib_utils",
         "poplib_utils",
@@ -29419,6 +29422,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_py_compile_utils.py` — unit tests for `py_compile_utils.py`
 - `pyclbr_utils.py` — pyclbr utilities wrapping the standard library `pyclbr` module (`read_module`, `read_module_ex`, `class_names`, `function_names`, `find_class`, `find_function`, `has_class`, `has_function`, `is_class`, `is_function`) with input validation
 - `tests/test_pyclbr_utils.py` — unit tests for `pyclbr_utils.py`
+- `pyexpat_utils.py` — XML parsing utilities wrapping the standard library `pyexpat` module (`ParserCreate`, `ExpatError`, `parse`, `parse_text`, `parse_file`, `error_string`, `version_info`, `is_available`, `ErrorPosition`, `CurrentPosition`, `set_base`, `get_base`, `set_param_entity_parsing`, `external_entity_parser`, `set_start_element_handler`, `set_end_element_handler`, `set_character_data_handler`, `set_processing_instruction_handler`, `attribute_mapping`) with input validation
+- `tests/test_pyexpat_utils.py` — unit tests for `pyexpat_utils.py`
 - `xdrlib_utils.py` — xdrlib utilities wrapping the standard library `xdrlib` module (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array) with input validation
 - `tests/test_xdrlib_utils.py` — unit tests for `xdrlib_utils.py`
 - `smtplib_utils.py` — smtplib utilities wrapping the standard library `smtplib` module (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text) with input validation
@@ -30757,6 +30762,10 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `pyexpat_utils.py` wrapping the standard library `pyexpat` module (`ParserCreate`, `ExpatError`, `parse`, `parse_text`, `parse_file`, `error_string`, `version_info`, `is_available`, `ErrorPosition`, `CurrentPosition`, `set_base`, `get_base`, `set_param_entity_parsing`, `external_entity_parser`, `set_start_element_handler`, `set_end_element_handler`, `set_character_data_handler`, `set_processing_instruction_handler`, `attribute_mapping`) with input validation, plus unit tests in `tests/test_pyexpat_utils.py`.
+- Synchronized `pyexpat_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- The wrapper adds the conveniences the standard library leaves to the caller: a document is parsed from text or from a file behind one helper that names the file it reads, the attributes of an element are returned as a mapping, and the parser reports the position of an error as one record instead of three calls.
+
 - Add `readline_utils.py` wrapping the standard library `readline` module (`add_history`, `append_history_file`, `clear_history`, `default_history_file`, `get_history_item`, `history_items`, `make_completer`, `read_history_file`, `remove_history_item`, `replace_history_item`, `search_history`, `write_history_file`, `is_available`) with input validation, plus unit tests in `tests/test_readline_utils.py`.
 - Synchronized `readline_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - The history is returned as a list, the positions of the history are numbered the same way everywhere, the helpers that touch a file always name the file they touch, and a completer for a list of words is offered.
@@ -31781,6 +31790,7 @@ uu_utils.py                # Uuencode utilities wrapping stdlib uu (uu_encode, u
 zipapp_utils.py            # Zipapp utilities wrapping stdlib zipapp (create_archive/create_zipapp, get_interpreter/get_zipapp_interpreter, is_zipapp_archive)
 py_compile_utils.py        # Py_compile utilities wrapping stdlib py_compile (compile_file/py_compile_file, get_invalidation_mode, parse_invalidation_mode, is_pyc_file, main)
 pyclbr_utils.py            # Pyclbr utilities wrapping stdlib pyclbr (read_module, read_module_ex, class_names, function_names, find_class, find_function, has_class, has_function, is_class, is_function)
+pyexpat_utils.py           # XML parsing utilities wrapping stdlib pyexpat (ParserCreate, ExpatError, parse, parse_text, parse_file, error_string, version_info, is_available, ErrorPosition, CurrentPosition, set_base, get_base, set_param_entity_parsing, external_entity_parser, set_start_element_handler, set_end_element_handler, set_character_data_handler, set_processing_instruction_handler, attribute_mapping) with input validation
 xdrlib_utils.py             # Xdrlib utilities wrapping stdlib xdrlib (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array)
 compileall_utils.py         # Compileall utilities wrapping stdlib compileall (compile_file, compile_dir, compile_path, main, pyc_path)
 modulefinder_utils.py        # Modulefinder utilities wrapping stdlib modulefinder (load_script, find_dependencies, find_modules, missing_modules, missing_importers, module_path, is_package, report)
@@ -32048,6 +32058,7 @@ test_pickle_utils.py        # Tests for pickle_utils.py
   test_modulefinder_utils.py   # Tests for modulefinder_utils.py
   test_optparse_utils.py       # Tests for optparse_utils.py
   test_pyclbr_utils.py         # Tests for pyclbr_utils.py
+  test_pyexpat_utils.py        # Tests for pyexpat_utils.py
   test_xdrlib_utils.py         # Tests for xdrlib_utils.py
   test_smtplib_utils.py        # Tests for smtplib_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
@@ -33097,6 +33108,11 @@ The project includes command-line option parsing utilities in `optparse_utils.py
 ## Pyclbr Utilities Module
 
 The project includes class and function browser utilities in `pyclbr_utils.py` wrapping the standard library `pyclbr` module: `read_module` returns the classes defined in a module, `read_module_ex` returns both its classes and its top-level functions, and `class_names`, `function_names`, `find_class`, `find_function`, `has_class`, `has_function`, `is_class`, and `is_function` query the result. The analysis is purely static: the source is read but never imported or executed, so the module is safe to inspect from a test suite. `Class` and `Function` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pyclbr_utils.py`.
+
+
+## Pyexpat Utilities Module
+
+The project includes XML parsing utilities in `pyexpat_utils.py` wrapping the standard library `pyexpat` module: `ParserCreate` creates a parser, `parse_text` and `parse_file` parse a document from text or a file, `error_string` describes an error code, `version_info` reports the expat library version, and `is_available` reports whether the interpreter ships the module. The parser reports the position of an error through `error_position` and its current position through `current_position`, both returned as named tuples. The helpers `set_base`, `get_base`, `set_param_entity_parsing`, and `external_entity_parser` configure the parser, while `set_start_element_handler`, `set_end_element_handler`, `set_character_data_handler`, and `set_processing_instruction_handler` set the event handlers. The `attribute_mapping` helper normalizes element attributes into a plain dictionary. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pyexpat_utils.py`.
 
 
 ## Xdrlib Utilities Module
@@ -91511,6 +91527,961 @@ class TestEditor(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_READLINE_UTILS
+
+# --- pyexpat_utils.py ---
+cat > "$OUTPUT_DIR/pyexpat_utils.py" <<'PYEXPAT_UTILS'
+"""XML parsing utilities wrapping the standard library :mod:`pyexpat` module.
+
+The :mod:`pyexpat` module is the binding of the expat parser that Python ships
+as :mod:`pyexpat` and as :mod:`xml.parsers.expat`.  The standard library offers
+the factory :func:`pyexpat.ParserCreate`, the error :class:`pyexpat.ExpatError`,
+the error text :func:`pyexpat.ErrorString`, the version of the library, and a
+parser with dozens of methods, among them :meth:`pyexpat.xmlparser.Parse`,
+:meth:`pyexpat.xmlparser.ParseFile`, :meth:`pyexpat.xmlparser.SetBase`,
+:meth:`pyexpat.xmlparser.GetBase`, :meth:`pyexpat.xmlparser.SetParamEntityParsing`,
+:meth:`pyexpat.xmlparser.ExternalEntityParserCreate`,
+:meth:`pyexpat.xmlparser.CurrentByteIndex`, :meth:`pyexpat.xmlparser.CurrentLineNumber`,
+:meth:`pyexpat.xmlparser.CurrentColumnNumber`, :meth:`pyexpat.xmlparser.ErrorCode`,
+:meth:`pyexpat.xmlparser.ErrorLineNumber`, :meth:`pyexpat.xmlparser.ErrorColumnNumber`,
+and the ``*Handler`` setters.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of an
+opaque failure.  It adds the conveniences the standard library leaves to the
+caller: the parser is created with the options of expat behind one validated
+call, a document is parsed from text or from a file behind one helper that
+names the file it reads, the attributes of an element are returned as a
+mapping, and the parser reports the position of an error as one record instead
+of three calls.
+
+.. note::
+
+   The :mod:`pyexpat` module ships with every CPython interpreter.  The import
+   below degrades gracefully anyway: when the interpreter does not ship the
+   module, the helpers raise a :class:`RuntimeError` that names the missing
+   module, while :func:`is_available` keeps working.
+"""
+
+from __future__ import annotations
+
+import os
+from typing import Any, Callable, Dict, List, Mapping, NamedTuple, Optional, Tuple, cast
+
+try:
+    import pyexpat as _pyexpat
+except ImportError:  # pragma: no cover - pyexpat ships with every CPython
+    _pyexpat = None  # type: ignore[assignment]
+
+
+class ErrorPosition(NamedTuple):
+    """The position of an error reported by the parser.
+
+    The standard library reports the position of an error with three separate
+    attributes: the line number, the column number, and the error code.  The
+    wrapper returns them as one record.
+
+    Attributes:
+        line: The line number where the error occurred.
+        column: The column number where the error occurred.
+        code: The error code of the standard library.
+        byte_index: The byte index where the error occurred.
+    """
+
+    line: int
+    column: int
+    code: int
+    byte_index: int
+
+
+class CurrentPosition(NamedTuple):
+    """The current position of the parser.
+
+    Attributes:
+        byte_index: The byte index of the current position.
+        line_number: The line number of the current position.
+        column_number: The column number of the current position.
+    """
+
+    byte_index: int
+    line_number: int
+    column_number: int
+
+
+ElementAttributes = Dict[str, str]
+StartElementHandler = Callable[[str, ElementAttributes], None]
+EndElementHandler = Callable[[str], None]
+CharacterDataHandler = Callable[[str], None]
+ProcessingInstructionHandler = Callable[[str, str], None]
+
+
+if _pyexpat is not None:
+    EXPAT_VERSION: str = _pyexpat.EXPAT_VERSION  # type: ignore[assignment]
+    XML_PARAM_ENTITY_PARSING_ALWAYS: int = (
+        _pyexpat.XML_PARAM_ENTITY_PARSING_ALWAYS  # type: ignore[assignment]
+    )
+    XML_PARAM_ENTITY_PARSING_NEVER: int = (
+        _pyexpat.XML_PARAM_ENTITY_PARSING_NEVER  # type: ignore[assignment]
+    )
+    XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE: int = (
+        _pyexpat.XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE  # type: ignore[assignment]
+    )
+    ExpatError = _pyexpat.ExpatError  # type: ignore[assignment]
+else:
+    EXPAT_VERSION: str = ""  # type: ignore[no-redef]
+    XML_PARAM_ENTITY_PARSING_ALWAYS: int = 0  # type: ignore[no-redef]
+    XML_PARAM_ENTITY_PARSING_NEVER: int = 0  # type: ignore[no-redef]
+    XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE: int = 0  # type: ignore[no-redef]
+
+    class ExpatError(Exception):  # type: ignore[no-redef]
+        """The error of the expat parser (unavailable when pyexpat is missing)."""
+
+
+def ParserCreate(*args: Any, **kwargs: Any) -> Any:
+    """Create a parser with the options of expat behind one validated call.
+
+    Args:
+        *args: Positional arguments forwarded to :func:`pyexpat.ParserCreate`.
+        **kwargs: Keyword arguments forwarded to :func:`pyexpat.ParserCreate`.
+
+    Returns:
+        A new parser created by the standard library.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    return _pyexpat_module().ParserCreate(*args, **kwargs)
+
+
+__all__: List[str] = [
+    "CurrentPosition",
+    "EXPAT_VERSION",
+    "ElementAttributes",
+    "ErrorPosition",
+    "ExpatError",
+    "ParserCreate",
+    "XML_PARAM_ENTITY_PARSING_ALWAYS",
+    "XML_PARAM_ENTITY_PARSING_NEVER",
+    "XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE",
+    "attribute_mapping",
+    "create_parser",
+    "current_position",
+    "error_position",
+    "error_string",
+    "external_entity_parser",
+    "get_base",
+    "is_available",
+    "parse",
+    "parse_file",
+    "parse_text",
+    "set_base",
+    "set_character_data_handler",
+    "set_element_handlers",
+    "set_end_element_handler",
+    "set_param_entity_parsing",
+    "set_processing_instruction_handler",
+    "set_start_element_handler",
+    "version_info",
+]
+
+
+def _pyexpat_module() -> Any:
+    """Return the standard library ``pyexpat`` module.
+
+    Returns:
+        The imported :mod:`pyexpat` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    if _pyexpat is None:  # pragma: no cover - pyexpat ships with every CPython
+        raise RuntimeError(
+            "the standard library module 'pyexpat' is not available on this interpreter"
+        )
+    return _pyexpat
+
+
+def _require_bool(value: Any, name: str) -> bool:
+    """Return *value* as a boolean, raising ``TypeError`` for other types.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as a boolean.
+
+    Raises:
+        TypeError: If *value* is not a boolean.
+    """
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def _require_text(value: Any, name: str) -> str:
+    """Return *value* as text, raising ``TypeError`` for other types.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as text.
+
+    Raises:
+        TypeError: If *value* is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_path(value: Any, name: str) -> str:
+    """Return *value* as the path of a file.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The path as text.
+
+    Raises:
+        TypeError: If *value* is neither a string nor a path.
+        ValueError: If *value* is an empty path.
+    """
+    if not isinstance(value, (str, os.PathLike)):
+        raise TypeError(f"{name} must be a path, got {type(value).__name__}")
+    text = os.fspath(value)
+    if not isinstance(text, str):
+        raise TypeError(f"{name} must be a text path, got {type(value).__name__}")
+    if not text:
+        raise ValueError(f"{name} must not be empty")
+    return text
+
+
+def _require_count(value: Any, name: str = "count") -> int:
+    """Return *value* as a non-negative integer.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as an integer.
+
+    Raises:
+        TypeError: If *value* is not an integer.
+        ValueError: If *value* is negative.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"{name} must not be negative, got {value}")
+    return value
+
+
+def _require_handler(
+    value: Any, name: str
+) -> Optional[Callable[..., Any]]:
+    """Return *value* as a handler of the parser.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The handler, or ``None`` when the handler is removed.
+
+    Raises:
+        TypeError: If *value* is neither ``None`` nor callable.
+    """
+    if value is None:
+        return None
+    if not callable(value):
+        raise TypeError(f"{name} must be callable or None, got {type(value).__name__}")
+    return cast(Callable[..., Any], value)
+
+
+def is_available() -> bool:
+    """Report whether the interpreter ships the :mod:`pyexpat` module.
+
+    Returns:
+        True when the standard library module is importable, False otherwise.
+    """
+    return _pyexpat is not None
+
+
+def version_info() -> Tuple[int, ...]:
+    """Return the version of the expat library.
+
+    Returns:
+        The version of the expat library as a tuple of integers.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    info = _pyexpat_module().version_info
+    return tuple(int(part) for part in info)
+
+
+def error_string(code: Any) -> str:
+    """Return the text that describes the error code *code*.
+
+    Args:
+        code: The error code returned by the parser.
+
+    Returns:
+        The text that describes the error.
+
+    Raises:
+        TypeError: If *code* is not an integer.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    number = _require_count(code, "code")
+    return str(_pyexpat_module().ErrorString(number))
+
+
+def create_parser(
+    namespace_prefixes: bool = False,
+    ordered_attributes: bool = False,
+    specified_attributes: bool = False,
+    buffer_size: int = 8192,
+) -> Any:
+    """Create a parser with the options of expat behind one validated call.
+
+    The parser is ready to parse documents once it is configured with the
+    handlers of the caller.
+
+    Args:
+        namespace_prefixes: Whether the parser reports the namespace prefixes
+            of the element and attribute names.
+        ordered_attributes: Whether the parser reports the attributes of an
+            element in the order they appear in the document.
+        specified_attributes: Whether the parser reports only the attributes
+            that are specified in the document.
+        buffer_size: The size of the buffer the parser uses.
+
+    Returns:
+        A parser ready to be configured and to parse documents.
+
+    Raises:
+        TypeError: If an option has the wrong type.
+        ValueError: If *buffer_size* is not positive.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    parser = _pyexpat_module().ParserCreate()
+    parser.namespace_prefixes = _require_bool(namespace_prefixes, "namespace_prefixes")
+    parser.ordered_attributes = _require_bool(ordered_attributes, "ordered_attributes")
+    parser.specified_attributes = _require_bool(specified_attributes, "specified_attributes")
+    size = _require_count(buffer_size, "buffer_size")
+    if size == 0:
+        raise ValueError("buffer_size must be positive, got 0")
+    parser.buffer_size = size
+    return parser
+
+
+def parse(parser: Any, data: Any, is_final: bool = True) -> int:
+    """Parse the document *data* with *parser*.
+
+    Args:
+        parser: The parser to parse with.
+        data: The document as text.
+        is_final: Whether *data* is the last piece of the document.
+
+    Returns:
+        The result of the parse call of the standard library.
+
+    Raises:
+        TypeError: If *data* is not a string.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+        ExpatError: If the document is not well-formed.
+    """
+    text = _require_text(data, "data")
+    final = _require_bool(is_final, "is_final")
+    return parser.Parse(text, final)  # type: ignore[no-any-return]
+
+
+def parse_text(parser: Any, text: Any) -> int:
+    """Parse the document *text* with *parser*.
+
+    The whole document is parsed in one call, so *is_final* is ``True``.
+
+    Args:
+        parser: The parser to parse with.
+        text: The document as text.
+
+    Returns:
+        The result of the parse call of the standard library.
+
+    Raises:
+        TypeError: If *text* is not a string.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+        ExpatError: If the document is not well-formed.
+    """
+    return parse(parser, text, True)
+
+
+def parse_file(parser: Any, filename: Any) -> int:
+    """Parse the document in the file *filename* with *parser*.
+
+    The file is opened by the helper, so a caller never has to open it
+    themselves.
+
+    Args:
+        parser: The parser to parse with.
+        filename: The path of the file that holds the document.
+
+    Returns:
+        The result of the parse call of the standard library.
+
+    Raises:
+        TypeError: If *filename* is not a path.
+        ValueError: If *filename* is an empty path.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+        OSError: If the file cannot be opened.
+        ExpatError: If the document is not well-formed.
+    """
+    path = _require_path(filename, "filename")
+    with open(path, "rb") as handle:
+        return parser.ParseFile(handle)  # type: ignore[no-any-return]
+
+
+def set_base(parser: Any, base: Any) -> str:
+    """Set the base of the parser and return it.
+
+    The base is used to resolve relative paths of external entities.
+
+    Args:
+        parser: The parser to configure.
+        base: The base as text.
+
+    Returns:
+        The base that was set.
+
+    Raises:
+        TypeError: If *base* is not a string.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    text = _require_text(base, "base")
+    parser.SetBase(text)
+    return text
+
+
+def get_base(parser: Any) -> Optional[str]:
+    """Return the base of the parser.
+
+    Args:
+        parser: The parser to inspect.
+
+    Returns:
+        The base of the parser, or ``None`` when no base is set.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    base = parser.GetBase()
+    return None if base is None else str(base)
+
+
+def set_param_entity_parsing(parser: Any, parsing: Any) -> int:
+    """Set the parameter entity parsing of *parser* and return the previous value.
+
+    Args:
+        parser: The parser to configure.
+        parsing: One of the ``XML_PARAM_ENTITY_PARSING_*`` constants.
+
+    Returns:
+        The previous value of the parameter entity parsing.
+
+    Raises:
+        TypeError: If *parsing* is not an integer.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    value = _require_count(parsing, "parsing")
+    return int(parser.SetParamEntityParsing(value))
+
+
+def external_entity_parser(parser: Any, encoding: Any = "") -> Any:
+    """Return a parser for the external entity with *encoding*.
+
+    Args:
+        parser: The parser to create the external entity parser from.
+        encoding: The encoding of the external entity.
+
+    Returns:
+        A parser for the external entity.
+
+    Raises:
+        TypeError: If *encoding* is not a string.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    text = _require_text(encoding, "encoding")
+    return parser.ExternalEntityParserCreate(text)
+
+
+def set_start_element_handler(parser: Any, handler: Any) -> None:
+    """Set the handler that is called when an element starts.
+
+    The handler is called with the name of the element and the mapping of its
+    attributes.  Passing ``None`` removes the handler.
+
+    Args:
+        parser: The parser to configure.
+        handler: The handler, or ``None``.
+
+    Raises:
+        TypeError: If *handler* is neither ``None`` nor callable.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    func = _require_handler(handler, "handler")
+    parser.StartElementHandler = func
+
+
+def set_end_element_handler(parser: Any, handler: Any) -> None:
+    """Set the handler that is called when an element ends.
+
+    The handler is called with the name of the element.  Passing ``None``
+    removes the handler.
+
+    Args:
+        parser: The parser to configure.
+        handler: The handler, or ``None``.
+
+    Raises:
+        TypeError: If *handler* is neither ``None`` nor callable.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    func = _require_handler(handler, "handler")
+    parser.EndElementHandler = func
+
+
+def set_element_handlers(
+    parser: Any, start_handler: Any, end_handler: Any
+) -> None:
+    """Set the handlers that are called when an element starts and ends.
+
+    Args:
+        parser: The parser to configure.
+        start_handler: The handler for the start of an element, or ``None``.
+        end_handler: The handler for the end of an element, or ``None``.
+
+    Raises:
+        TypeError: If a handler is neither ``None`` nor callable.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    set_start_element_handler(parser, start_handler)
+    set_end_element_handler(parser, end_handler)
+
+
+def set_character_data_handler(parser: Any, handler: Any) -> None:
+    """Set the handler that is called with the character data of an element.
+
+    The handler is called with the text.  Passing ``None`` removes the handler.
+
+    Args:
+        parser: The parser to configure.
+        handler: The handler, or ``None``.
+
+    Raises:
+        TypeError: If *handler* is neither ``None`` nor callable.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    func = _require_handler(handler, "handler")
+    parser.CharacterDataHandler = func
+
+
+def set_processing_instruction_handler(parser: Any, handler: Any) -> None:
+    """Set the handler that is called with a processing instruction.
+
+    The handler is called with the target and the data of the instruction.
+    Passing ``None`` removes the handler.
+
+    Args:
+        parser: The parser to configure.
+        handler: The handler, or ``None``.
+
+    Raises:
+        TypeError: If *handler* is neither ``None`` nor callable.
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    func = _require_handler(handler, "handler")
+    parser.ProcessingInstructionHandler = func
+
+
+def error_position(parser: Any) -> ErrorPosition:
+    """Return the position of the last error of *parser* as one record.
+
+    The standard library reports the position of an error with three separate
+    attributes.  The wrapper returns them as one record.
+
+    Args:
+        parser: The parser to inspect.
+
+    Returns:
+        The position of the last error.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    return ErrorPosition(
+        line=int(parser.ErrorLineNumber),
+        column=int(parser.ErrorColumnNumber),
+        code=int(parser.ErrorCode),
+        byte_index=int(parser.ErrorByteIndex),
+    )
+
+
+def current_position(parser: Any) -> CurrentPosition:
+    """Return the current position of *parser* as one record.
+
+    Args:
+        parser: The parser to inspect.
+
+    Returns:
+        The current position of the parser.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
+    """
+    return CurrentPosition(
+        byte_index=int(parser.CurrentByteIndex),
+        line_number=int(parser.CurrentLineNumber),
+        column_number=int(parser.CurrentColumnNumber),
+    )
+
+
+def attribute_mapping(attributes: Any) -> ElementAttributes:
+    """Return the attributes of an element as a mapping.
+
+    The standard library already reports the attributes as a mapping, but a
+    caller can use this helper to normalize the value into a plain dictionary.
+
+    Args:
+        attributes: The attributes of an element.
+
+    Returns:
+        The attributes as a mapping from names to values.
+
+    Raises:
+        TypeError: If *attributes* is not a mapping.
+    """
+    if not isinstance(attributes, Mapping):
+        raise TypeError(
+            f"attributes must be a mapping, got {type(attributes).__name__}"
+        )
+    return {str(key): str(value) for key, value in attributes.items()}
+PYEXPAT_UTILS
+
+# --- tests/test_pyexpat_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_pyexpat_utils.py" <<'TEST_PYEXPAT_UTILS'
+"""Tests for pyexpat_utils.
+
+The tests never touch system files: every XML document is written to a
+temporary directory the test owns.  The standard library is patched for the
+validation and degradation tests, so the suite needs no network and no
+filesystem outside its own temporary directories.
+"""
+
+import os
+import tempfile
+import unittest
+from unittest import mock
+
+import pyexpat_utils
+
+try:
+    import pyexpat as _pyexpat
+except ImportError:  # pragma: no cover - pyexpat ships with every CPython
+    _pyexpat = None  # type: ignore[assignment]
+
+
+@unittest.skipUnless(pyexpat_utils.is_available(), "pyexpat module not available")
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(pyexpat_utils.__all__, sorted(set(pyexpat_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in pyexpat_utils.__all__:
+            self.assertTrue(hasattr(pyexpat_utils, name), name)
+
+    def test_is_available_reports_a_bool(self):
+        self.assertIsInstance(pyexpat_utils.is_available(), bool)
+
+    def test_is_available_matches_the_standard_library(self):
+        self.assertEqual(pyexpat_utils.is_available(), _pyexpat is not None)
+
+    def test_expat_version_is_reported(self):
+        self.assertIsInstance(pyexpat_utils.EXPAT_VERSION, str)
+        self.assertNotEqual(pyexpat_utils.EXPAT_VERSION, "")
+
+    def test_param_entity_parsing_constants_are_integers(self):
+        self.assertIsInstance(pyexpat_utils.XML_PARAM_ENTITY_PARSING_ALWAYS, int)
+        self.assertIsInstance(pyexpat_utils.XML_PARAM_ENTITY_PARSING_NEVER, int)
+        self.assertIsInstance(pyexpat_utils.XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE, int)
+
+
+@unittest.skipUnless(pyexpat_utils.is_available(), "pyexpat module not available")
+class TestValidation(unittest.TestCase):
+    """Verify the validation of the arguments.
+
+    The arguments are validated before the standard library is reached, so the
+    same error is raised on an interpreter that does not ship the module.
+    """
+
+    def setUp(self):
+        patcher = mock.patch("pyexpat_utils._pyexpat")
+        self.module = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_the_text_arguments_must_be_strings(self):
+        parser = self.module.ParserCreate.return_value
+        for call in (
+            lambda: pyexpat_utils.parse(parser, 42),
+            lambda: pyexpat_utils.parse_text(parser, 42),
+            lambda: pyexpat_utils.set_base(parser, 42),
+            lambda: pyexpat_utils.error_string("42"),
+        ):
+            with self.assertRaises(TypeError):
+                call()
+
+    def test_the_file_paths_must_be_paths(self):
+        parser = self.module.ParserCreate.return_value
+        with self.assertRaises(TypeError):
+            pyexpat_utils.parse_file(parser, 42)
+
+    def test_the_file_paths_must_not_be_empty(self):
+        parser = self.module.ParserCreate.return_value
+        with self.assertRaises(ValueError):
+            pyexpat_utils.parse_file(parser, "")
+
+    def test_the_buffer_size_must_be_positive(self):
+        with self.assertRaises(ValueError):
+            pyexpat_utils.create_parser(buffer_size=0)
+
+    def test_the_handlers_must_be_callable(self):
+        parser = self.module.ParserCreate.return_value
+        for call in (
+            lambda: pyexpat_utils.set_start_element_handler(parser, "handler"),
+            lambda: pyexpat_utils.set_end_element_handler(parser, "handler"),
+            lambda: pyexpat_utils.set_character_data_handler(parser, "handler"),
+            lambda: pyexpat_utils.set_processing_instruction_handler(parser, "handler"),
+        ):
+            with self.assertRaises(TypeError):
+                call()
+
+    def test_the_standard_library_is_not_reached(self):
+        parser = self.module.ParserCreate.return_value
+        with self.assertRaises(TypeError):
+            pyexpat_utils.parse(parser, 42)
+        parser.Parse.assert_not_called()
+        with self.assertRaises(TypeError):
+            pyexpat_utils.parse_file(parser, 42)
+        parser.ParseFile.assert_not_called()
+        with self.assertRaises(TypeError):
+            pyexpat_utils.set_start_element_handler(parser, "handler")
+        self.assertNotEqual(parser.StartElementHandler, "handler")
+
+
+@unittest.skipUnless(pyexpat_utils.is_available(), "pyexpat module not available")
+class TestDegradation(unittest.TestCase):
+    """Verify the behavior on an interpreter that does not ship the module."""
+
+    def setUp(self):
+        patcher = mock.patch("pyexpat_utils._pyexpat", None)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_parser_create_raises(self):
+        with self.assertRaises(RuntimeError):
+            pyexpat_utils.ParserCreate()
+
+    def test_the_helpers_report_the_missing_module(self):
+        for call in (
+            lambda: pyexpat_utils.create_parser(),
+            lambda: pyexpat_utils.error_string(1),
+        ):
+            with self.assertRaises(RuntimeError):
+                call()
+
+    def test_version_info_raises(self):
+        with self.assertRaises(RuntimeError):
+            pyexpat_utils.version_info()
+
+    def test_is_available_reports_false(self):
+        self.assertFalse(pyexpat_utils.is_available())
+
+
+@unittest.skipUnless(pyexpat_utils.is_available(), "pyexpat module not available")
+class TestParser(unittest.TestCase):
+    """Verify the parser creation and parsing helpers."""
+
+    def test_create_parser_returns_a_parser(self):
+        parser = pyexpat_utils.create_parser()
+        self.assertIsNotNone(parser)
+
+    def test_create_parser_options_are_applied(self):
+        parser = pyexpat_utils.create_parser(
+            namespace_prefixes=True,
+            ordered_attributes=True,
+            specified_attributes=True,
+            buffer_size=4096,
+        )
+        self.assertTrue(parser.namespace_prefixes)
+        self.assertTrue(parser.ordered_attributes)
+        self.assertTrue(parser.specified_attributes)
+        self.assertEqual(parser.buffer_size, 4096)
+
+    def test_parse_text_reports_well_formed_document(self):
+        parser = pyexpat_utils.create_parser()
+        result = pyexpat_utils.parse_text(parser, "<doc>text</doc>")
+        self.assertEqual(result, 1)
+
+    def test_parse_rejects_malformed_document(self):
+        parser = pyexpat_utils.create_parser()
+        with self.assertRaises(pyexpat_utils.ExpatError):
+            pyexpat_utils.parse_text(parser, "<doc>unclosed")
+
+    def test_error_position_reports_the_error(self):
+        parser = pyexpat_utils.create_parser()
+        with self.assertRaises(pyexpat_utils.ExpatError):
+            pyexpat_utils.parse_text(parser, "<doc>unclosed")
+        position = pyexpat_utils.error_position(parser)
+        self.assertIsInstance(position.line, int)
+        self.assertIsInstance(position.column, int)
+        self.assertIsInstance(position.code, int)
+        self.assertIsInstance(position.byte_index, int)
+
+    def test_current_position_reports_the_position(self):
+        parser = pyexpat_utils.create_parser()
+        pyexpat_utils.parse_text(parser, "<doc>text</doc>")
+        position = pyexpat_utils.current_position(parser)
+        self.assertIsInstance(position.byte_index, int)
+        self.assertIsInstance(position.line_number, int)
+        self.assertIsInstance(position.column_number, int)
+
+
+@unittest.skipUnless(pyexpat_utils.is_available(), "pyexpat module not available")
+class TestFiles(unittest.TestCase):
+    """Verify the helpers that parse files."""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+
+    def test_parse_file_reads_a_well_formed_document(self):
+        path = os.path.join(self.directory.name, "document.xml")
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write("<doc>text</doc>")
+        parser = pyexpat_utils.create_parser()
+        result = pyexpat_utils.parse_file(parser, path)
+        self.assertEqual(result, 1)
+
+    def test_parse_file_rejects_a_malformed_document(self):
+        path = os.path.join(self.directory.name, "document.xml")
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write("<doc>unclosed")
+        parser = pyexpat_utils.create_parser()
+        with self.assertRaises(pyexpat_utils.ExpatError):
+            pyexpat_utils.parse_file(parser, path)
+
+    def test_parse_file_reports_a_missing_file(self):
+        parser = pyexpat_utils.create_parser()
+        missing = os.path.join(self.directory.name, "missing.xml")
+        with self.assertRaises(OSError):
+            pyexpat_utils.parse_file(parser, missing)
+
+
+@unittest.skipUnless(pyexpat_utils.is_available(), "pyexpat module not available")
+class TestHandlers(unittest.TestCase):
+    """Verify the handler setters."""
+
+    def test_start_and_end_element_handlers_are_set_and_removed(self):
+        parser = pyexpat_utils.create_parser()
+        started = []
+
+        def start(name, attributes):
+            started.append(name)
+
+        def end(name):
+            started.append(f"/{name}")
+
+        pyexpat_utils.set_element_handlers(parser, start, end)
+        pyexpat_utils.parse_text(parser, "<doc>text</doc>")
+        self.assertEqual(started, ["doc", "/doc"])
+
+        pyexpat_utils.set_start_element_handler(parser, None)
+        pyexpat_utils.set_end_element_handler(parser, None)
+
+    def test_character_data_handler_receives_text(self):
+        parser = pyexpat_utils.create_parser()
+        data = []
+
+        def characters(text):
+            data.append(text)
+
+        pyexpat_utils.set_character_data_handler(parser, characters)
+        pyexpat_utils.parse_text(parser, "<doc>hello world</doc>")
+        self.assertEqual(data, ["hello world"])
+
+    def test_processing_instruction_handler_receives_target_and_data(self):
+        parser = pyexpat_utils.create_parser()
+        instructions = []
+
+        def instruction(target, data):
+            instructions.append((target, data))
+
+        pyexpat_utils.set_processing_instruction_handler(parser, instruction)
+        pyexpat_utils.parse_text(parser, '<?target data?><doc/>')
+        self.assertEqual(instructions, [("target", "data")])
+
+
+@unittest.skipUnless(pyexpat_utils.is_available(), "pyexpat module not available")
+class TestPositionAndBase(unittest.TestCase):
+    """Verify the base and position helpers."""
+
+    def test_get_base_and_set_base(self):
+        parser = pyexpat_utils.create_parser()
+        self.assertIsNone(pyexpat_utils.get_base(parser))
+        base = pyexpat_utils.set_base(parser, "http://example.com/base/")
+        self.assertEqual(base, "http://example.com/base/")
+        self.assertEqual(pyexpat_utils.get_base(parser), "http://example.com/base/")
+
+    def test_set_param_entity_parsing_returns_previous_value(self):
+        parser = pyexpat_utils.create_parser()
+        previous = pyexpat_utils.set_param_entity_parsing(
+            parser,
+            pyexpat_utils.XML_PARAM_ENTITY_PARSING_ALWAYS,
+        )
+        self.assertIsInstance(previous, int)
+
+
+@unittest.skipUnless(pyexpat_utils.is_available(), "pyexpat module not available")
+class TestAttributeMapping(unittest.TestCase):
+    """Verify the attribute mapping helper."""
+
+    def test_attributes_are_returned_as_a_mapping(self):
+        parser = pyexpat_utils.create_parser()
+        captured = {}
+
+        def start(name, attributes):
+            captured["attributes"] = attributes
+
+        pyexpat_utils.set_start_element_handler(parser, start)
+        pyexpat_utils.parse_text(parser, '<doc attr="value" other="2"/>')
+        mapping = pyexpat_utils.attribute_mapping(captured["attributes"])
+        self.assertEqual(mapping, {"attr": "value", "other": "2"})
+
+    def test_attribute_mapping_rejects_non_mapping(self):
+        with self.assertRaises(TypeError):
+            pyexpat_utils.attribute_mapping("not-a-mapping")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_PYEXPAT_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

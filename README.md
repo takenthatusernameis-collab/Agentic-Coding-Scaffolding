@@ -119,6 +119,7 @@ uu_utils.py                # Uuencode utilities wrapping stdlib uu (uu_encode, u
 zipapp_utils.py            # Zipapp utilities wrapping stdlib zipapp (create_archive/create_zipapp, get_interpreter/get_zipapp_interpreter, is_zipapp_archive)
 py_compile_utils.py        # Py_compile utilities wrapping stdlib py_compile (compile_file/py_compile_file, get_invalidation_mode, parse_invalidation_mode, is_pyc_file, main)
 pyclbr_utils.py            # Pyclbr utilities wrapping stdlib pyclbr (read_module, read_module_ex, class_names, function_names, find_class, find_function, has_class, has_function, is_class, is_function)
+pyexpat_utils.py           # XML parsing utilities wrapping stdlib pyexpat (ParserCreate, ExpatError, parse, parse_text, parse_file, error_string, version_info, is_available, ErrorPosition, CurrentPosition, set_base, get_base, set_param_entity_parsing, external_entity_parser, set_start_element_handler, set_end_element_handler, set_character_data_handler, set_processing_instruction_handler, attribute_mapping) with input validation
 xdrlib_utils.py             # Xdrlib utilities wrapping stdlib xdrlib (pack_uint, unpack_uint, pack_int, unpack_int, pack_enum, unpack_enum, pack_bool, unpack_bool, pack_uhyper, unpack_uhyper, pack_hyper, unpack_hyper, pack_float, unpack_float, pack_double, unpack_double, pack_string, unpack_string, pack_bytes, unpack_bytes, pack_opaque, unpack_opaque, pack_fstring, unpack_fstring, pack_fopaque, unpack_fopaque, pack_array, unpack_array, pack_farray, unpack_farray, pack_list, unpack_list, pack_uint_array, unpack_uint_array)
 compileall_utils.py         # Compileall utilities wrapping stdlib compileall (compile_file, compile_dir, compile_path, main, pyc_path)
 modulefinder_utils.py        # Modulefinder utilities wrapping stdlib modulefinder (load_script, find_dependencies, find_modules, missing_modules, missing_importers, module_path, is_package, report)
@@ -386,6 +387,7 @@ test_pickle_utils.py        # Tests for pickle_utils.py
   test_modulefinder_utils.py   # Tests for modulefinder_utils.py
   test_optparse_utils.py       # Tests for optparse_utils.py
   test_pyclbr_utils.py         # Tests for pyclbr_utils.py
+  test_pyexpat_utils.py        # Tests for pyexpat_utils.py
   test_xdrlib_utils.py         # Tests for xdrlib_utils.py
   test_smtplib_utils.py        # Tests for smtplib_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
@@ -1435,6 +1437,11 @@ The project includes command-line option parsing utilities in `optparse_utils.py
 ## Pyclbr Utilities Module
 
 The project includes class and function browser utilities in `pyclbr_utils.py` wrapping the standard library `pyclbr` module: `read_module` returns the classes defined in a module, `read_module_ex` returns both its classes and its top-level functions, and `class_names`, `function_names`, `find_class`, `find_function`, `has_class`, `has_function`, `is_class`, and `is_function` query the result. The analysis is purely static: the source is read but never imported or executed, so the module is safe to inspect from a test suite. `Class` and `Function` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pyclbr_utils.py`.
+
+
+## Pyexpat Utilities Module
+
+The project includes XML parsing utilities in `pyexpat_utils.py` wrapping the standard library `pyexpat` module: `ParserCreate` creates a parser, `parse_text` and `parse_file` parse a document from text or a file, `error_string` describes an error code, `version_info` reports the expat library version, and `is_available` reports whether the interpreter ships the module. The parser reports the position of an error through `error_position` and its current position through `current_position`, both returned as named tuples. The helpers `set_base`, `get_base`, `set_param_entity_parsing`, and `external_entity_parser` configure the parser, while `set_start_element_handler`, `set_end_element_handler`, `set_character_data_handler`, and `set_processing_instruction_handler` set the event handlers. The `attribute_mapping` helper normalizes element attributes into a plain dictionary. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pyexpat_utils.py`.
 
 
 ## Xdrlib Utilities Module

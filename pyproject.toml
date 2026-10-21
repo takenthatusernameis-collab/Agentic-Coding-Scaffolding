@@ -249,6 +249,7 @@ py_modules = [
     "zipapp_utils",
     "py_compile_utils",
     "pyclbr_utils",
+    "pyexpat_utils",
     "xdrlib_utils",
     "compileall_utils",
     "modulefinder_utils",
