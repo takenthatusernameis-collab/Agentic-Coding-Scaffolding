@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add `ipaddress_utils.py` wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors, plus unit tests in `tests/test_ipaddress_utils.py`.
+- Synchronized `ipaddress_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Extend `tools/refresh_scaffold.py` so that it also creates the heredoc of a wrapper module that the generator does not embed yet, so a new module no longer has to be added to `scaffold.sh` by hand.
 - Add `zipimport_utils.py` wrapping the standard library `zipimport` module (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches) with input validation and the re-exported `ZipImportError`, plus unit tests in `tests/test_zipimport_utils.py`.
 - Synchronized `zipimport_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `encodings_utils.py` wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping, plus unit tests in `tests/test_encodings_utils.py`.

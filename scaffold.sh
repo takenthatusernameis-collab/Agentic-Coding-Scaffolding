@@ -681,6 +681,7 @@
 #   - tabnanny_utils.py — # Tabnanny utilities wrapping the standard library tabnanny (check, process_tokens, NannyNag)
 #   - encodings_utils.py — # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 #   - zipimport_utils.py — # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
+#   - ipaddress_utils.py — # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -698,6 +699,7 @@
 #   - tests/test_tabnanny_utils.py — # Tests for tabnanny_utils.py
 #   - tests/test_encodings_utils.py — # Tests for encodings_utils.py
 #   - tests/test_zipimport_utils.py — # Tests for zipimport_utils.py
+#   - tests/test_ipaddress_utils.py — # Tests for ipaddress_utils.py
 set -euo pipefail
 
 usage() {
@@ -790,14 +792,16 @@ drift out of sync whenever a module is edited in the repository without
 refreshing the generator.
 
 This script rewrites every heredoc whose target path exists in the repository
-with the current contents of that file. Run it after editing any module or
-test, then re-run the test suite to confirm the invariant holds.
+with the current contents of that file, and it creates the heredoc of a
+wrapper module that the generator does not embed yet. Run it after adding or
+editing a module or test, then re-run the test suite to confirm the invariant
+holds.
 
 Usage:
     python tools/refresh_scaffold.py [--check]
 
-``--check`` reports stale copies and exits with a non-zero status instead of
-rewriting the generator.
+``--check`` reports stale and missing copies and exits with a non-zero status
+instead of rewriting the generator.
 """
 
 from __future__ import annotations
@@ -841,6 +845,99 @@ def repository_body(relative: str) -> str | None:
     return path.read_text().rstrip("\n")
 
 
+def wrapper_copies() -> list[str]:
+    """Return the repository files the generator has to embed, in a stable order.
+
+    Every wrapper module and its test are copied into a scaffolded project, so
+    the generator embeds both. The module comes before its test, so a module
+    and its test are added next to each other.
+    """
+    relatives: list[str] = []
+    stems = sorted(path.stem for path in ROOT.glob("*_utils.py") if path.is_file())
+    for stem in stems:
+        for relative in (f"{stem}.py", f"tests/test_{stem}.py"):
+            if (ROOT / relative).is_file():
+                relatives.append(relative)
+    return relatives
+
+
+def heredoc_delimiter(relative: str) -> str:
+    """Return the heredoc delimiter that belongs to *relative*.
+
+    The delimiter follows the convention of the generator: the name of the
+    file in upper case, with the characters a shell delimiter cannot hold
+    replaced by an underscore.
+    """
+    return re.sub(r"[^A-Z0-9_]", "_", Path(relative).stem.upper())
+
+
+def unique_delimiter(relative: str, body: str) -> str:
+    """Return a delimiter that no line of *body* closes the heredoc with.
+
+    A file whose body happens to hold a line that equals the derived
+    delimiter would end the heredoc early, so the delimiter is extended until
+    it is unique.
+    """
+    delimiter = heredoc_delimiter(relative)
+    lines = set(body.split("\n"))
+    while delimiter in lines:
+        delimiter = f"{delimiter}_COPY"
+    return delimiter
+
+
+def missing_copies(scaffold_text: str) -> list[str]:
+    """Return the wrapper files the generator does not embed yet."""
+    embedded = {match.group("path") for match in embedded_blocks(scaffold_text)}
+    return [relative for relative in wrapper_copies() if relative not in embedded]
+
+
+def render_block(relative: str) -> str:
+    """Return the generator block that writes *relative* into the output directory.
+
+    The block starts with a blank line, so the new file is separated from the
+    block that precedes it by exactly one empty line, the way the blocks of
+    the generator are laid out.
+    """
+    body = repository_body(relative) or ""
+    delimiter = unique_delimiter(relative, body)
+    return (
+        f"\n# --- {relative} ---\n"
+        f"cat > \"$OUTPUT_DIR/{relative}\" <<'{delimiter}'\n"
+        f"{body}\n"
+        f"{delimiter}\n"
+    )
+
+
+def anchor_for(relative: str, scaffold_text: str) -> int:
+    """Return the offset in *scaffold_text* where a new block is inserted.
+
+    The test of a module is placed right behind the module it belongs to, and
+    a module that the generator does not embed yet is placed behind the last
+    block of the generator.
+    """
+    stem = Path(relative).stem
+    if stem.startswith("test_"):
+        module = f"{stem[len('test_'):]}.py"
+        for match in embedded_blocks(scaffold_text):
+            if match.group("path") == module:
+                return match.end()
+    blocks = embedded_blocks(scaffold_text)
+    if blocks:
+        return blocks[-1].end()
+    return len(scaffold_text)
+
+
+def add_missing_copies(scaffold_text: str) -> tuple[str, list[str]]:
+    """Return the generator with the missing wrapper blocks added."""
+    added: list[str] = []
+    text = scaffold_text
+    for relative in missing_copies(text):
+        anchor = anchor_for(relative, text)
+        text = text[:anchor] + render_block(relative) + text[anchor:]
+        added.append(relative)
+    return text, added
+
+
 def refresh(scaffold_text: str) -> tuple[str, list[str], list[str]]:
     """Return the refreshed generator text together with the changed and stale paths."""
     changed: list[str] = []
@@ -880,23 +977,28 @@ def main(argv: list[str] | None = None) -> int:
 
     scaffold_text = SCAFFOLD.read_text()
     refreshed, changed, stale = refresh(scaffold_text)
+    refreshed, added = add_missing_copies(refreshed)
 
     if args.check:
         for relative in changed:
             print(f"stale: {relative}")
-        if changed:
-            print(f"{len(changed)} embedded copies are out of sync")
+        for relative in added:
+            print(f"missing: {relative}")
+        if changed or added:
+            print(f"{len(changed) + len(added)} embedded copies are out of sync")
             return 1
         print("all embedded copies are in sync")
         return 0
 
-    if changed:
+    if changed or added:
         SCAFFOLD.write_text(refreshed)
     for relative in changed:
         print(f"refreshed: {relative}")
+    for relative in added:
+        print(f"added: {relative}")
     for relative in stale:
         print(f"no repository copy: {relative}")
-    print(f"{len(changed)} embedded copies refreshed")
+    print(f"{len(changed) + len(added)} embedded copies refreshed")
     return 0
 
 
@@ -4331,6 +4433,7 @@ py_modules = [
     "tabnanny_utils",
     "encodings_utils",
     "zipimport_utils",
+    "ipaddress_utils",
 ]
 PYPROJECT
 
@@ -26903,6 +27006,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tabnanny_utils.py` — tabnanny utilities wrapping the standard library `tabnanny` module (check, process_tokens, NannyNag) with input validation
 - `encodings_utils.py` — encoding name utilities wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping
 - `zipimport_utils.py` — Zip archive import utilities wrapping the standard library `zipimport` module (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches) with input validation and the re-exported `ZipImportError`
+- `ipaddress_utils.py` — IP address utilities wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
 - `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
@@ -27118,6 +27222,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_tabnanny_utils.py` — unit tests for `tabnanny_utils.py`
 - `tests/test_encodings_utils.py` — unit tests for `encodings_utils.py`
 - `tests/test_zipimport_utils.py` — unit tests for `zipimport_utils.py`
+- `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
 - `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
@@ -28089,6 +28194,11 @@ This repository is a self-evolving scaffolding project for autonomous agentic co
 so the embedded copies stay byte-identical to the repository sources. Use
 `python tools/refresh_scaffold.py --check` to report stale copies without rewriting the generator.
 
+The tool also creates the heredoc of a wrapper module that the generator does not embed yet, so a
+new module and its test are added to `scaffold.sh` by running the tool instead of by hand. The
+header comment of the generator, the embedded `pyproject.toml`, the README tree, and the changelog
+are still maintained by hand.
+
 ## Coding Conventions
 
 - Write clean, well-documented code
@@ -28403,6 +28513,7 @@ stringprep_utils.py          # String preparation utilities wrapping stdlib stri
 tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (check, process_tokens, NannyNag)
 encodings_utils.py           # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
+ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -28579,6 +28690,7 @@ test_weakref_utils.py       # Tests for weakref_utils.py
     test_stringprep_utils.py     # Tests for stringprep_utils.py
     test_tabnanny_utils.py       # Tests for tabnanny_utils.py
     test_zipimport_utils.py      # Tests for zipimport_utils.py
+    test_ipaddress_utils.py      # Tests for ipaddress_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -29572,6 +29684,12 @@ The project includes encoding name utilities in `encodings_utils.py` wrapping th
 
 The project includes Zip archive import utilities in `zipimport_utils.py` wrapping the standard library `zipimport` module: `zip_importer` returns an importer for a Zip archive, `archive_names` lists the members of an archive, `get_source` returns the source code of a module inside an archive, `get_code` returns the code object of that module, `get_filename` returns the path the module would be loaded from, `get_data` returns the bytes of a member of the archive, `is_package` reports whether a module is a package, `find_spec` returns the import specification of a module, and `invalidate_caches` drops the cached directory information of the archives. :class:`ZipImportError` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module only reads the archive the caller points it at, so it never touches the network or a process. The module is tested in `tests/test_zipimport_utils.py`.
 
+tests/test_ipaddress_utils.py - Tests for ipaddress_utils module
+
+## IP Address Utilities Module
+
+The project includes IP address utilities in `ipaddress_utils.py` wrapping the standard library `ipaddress` module: `ip_address` returns the address object of a text, an integer, or a packed byte string, `ip_network` returns the network object of a network, `ip_interface` returns the interface object of an address that carries a prefix length, `is_valid_address` reports whether a value names a valid address, `is_valid_network` reports whether a value names a valid network, `is_valid_interface` reports whether a value names a valid interface, `address_version` returns the version of an address, `to_packed` returns the packed bytes of an address, `from_packed` returns the address that a packed byte string holds, `network_hosts` returns the usable hosts of a network, `subnets` splits a network into its subnets, `summarize_addresses` returns the smallest set of networks that still covers a list of networks, `network_overlaps` reports whether two networks overlap, `address_within` reports whether an address lies inside a network, `common_prefix_length` returns the length of the common prefix of a list of addresses, `next_address` returns the address that follows an address, `previous_address` returns the address that precedes an address, and `sort_addresses` returns the addresses of a list in ascending order. The classes `IPv4Address`, `IPv6Address`, `IPv4Network`, `IPv6Network`, `IPv4Interface`, and `IPv6Interface` are re-exported from the standard library, and so are the errors `AddressValueError` and `NetmaskValueError`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_ipaddress_utils.py`.
+
 tests/test_opcode_utils.py - Tests for opcode_utils module
 
 ## Opcode Utilities Module
@@ -29608,6 +29726,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
+- Add `ipaddress_utils.py` wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors, plus unit tests in `tests/test_ipaddress_utils.py`.
+- Synchronized `ipaddress_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `encodings_utils.py` wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping, plus unit tests in `tests/test_encodings_utils.py`.
 - Synchronized `encodings_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Add `zipimport_utils.py` wrapping the standard library `zipimport` module (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches) with input validation and the re-exported `ZipImportError`, plus unit tests in `tests/test_zipimport_utils.py`.
@@ -75252,6 +75372,1056 @@ class TestModuleContract(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_ZIPIMPORT_UTILS
+
+# --- ipaddress_utils.py ---
+cat > "$OUTPUT_DIR/ipaddress_utils.py" <<'IPADDRESS_UTILS'
+"""IP address utilities wrapping the standard library :mod:`ipaddress` module.
+
+The :mod:`ipaddress` module turns the text of an IPv4 or IPv6 address into an
+object that compares, sorts, and computes with the address.  An address object
+knows the network it belongs to, whether it is private or public, and how it
+looks in its packed form.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure.  It also adds the conveniences that the standard library
+leaves to the caller: a validity check that never raises, the smallest set of
+networks that still covers a list of networks, the length of the common
+prefix of a list of addresses, the neighbour of an address, and a packed form
+that can be read back.
+
+The module is pure computation, so it works on every platform and never
+touches the file system, the network, or a process.
+"""
+
+from __future__ import annotations
+
+import ipaddress as _ipaddress
+from typing import Iterable, Union
+
+__all__: list[str] = [
+    "AddressValueError",
+    "IPv4Address",
+    "IPv4Interface",
+    "IPv4Network",
+    "IPv6Address",
+    "IPv6Interface",
+    "IPv6Network",
+    "NetmaskValueError",
+    "address_version",
+    "address_within",
+    "common_prefix_length",
+    "from_packed",
+    "ip_address",
+    "ip_interface",
+    "ip_network",
+    "is_valid_address",
+    "is_valid_interface",
+    "is_valid_network",
+    "network_hosts",
+    "network_overlaps",
+    "next_address",
+    "previous_address",
+    "sort_addresses",
+    "subnets",
+    "summarize_addresses",
+    "to_packed",
+]
+
+#: An address of either version.
+Address = Union[_ipaddress.IPv4Address, _ipaddress.IPv6Address]
+
+#: A network of either version.
+Network = Union[_ipaddress.IPv4Network, _ipaddress.IPv6Network]
+
+#: An interface of either version.
+Interface = Union[_ipaddress.IPv4Interface, _ipaddress.IPv6Interface]
+
+# The errors of the standard library are re-exported, so a caller can catch
+# them without importing the standard library module.
+AddressValueError = _ipaddress.AddressValueError
+NetmaskValueError = _ipaddress.NetmaskValueError
+
+# The address, network, and interface classes are re-exported, so a caller can
+# build an object and check its type without importing the standard library.
+IPv4Address = _ipaddress.IPv4Address
+IPv6Address = _ipaddress.IPv6Address
+IPv4Network = _ipaddress.IPv4Network
+IPv6Network = _ipaddress.IPv6Network
+IPv4Interface = _ipaddress.IPv4Interface
+IPv6Interface = _ipaddress.IPv6Interface
+
+
+def _check_address_like(value: object, name: str) -> None:
+    """Raise when *value* is not a text, an integer, or a packed byte address.
+
+    A boolean is rejected as well: it is an integer in Python, but it never
+    names an address.
+    """
+    if isinstance(value, bool) or not isinstance(value, (str, int, bytes)):
+        raise TypeError(
+            f"{name} must be a str, an int, or bytes, got {type(value).__name__}"
+        )
+
+
+def _check_address_pair(value: object, name: str) -> None:
+    """Raise when *value* is not an address or a pair of an address and a prefix length."""
+    if not isinstance(value, tuple):
+        _check_address_like(value, name)
+        return
+    if len(value) != 2:
+        raise ValueError(f"{name} must hold two items, got {len(value)}")
+    _check_address_like(value[0], name)
+    if isinstance(value[1], bool) or not isinstance(value[1], int):
+        raise TypeError(
+            f"the prefix length must be an int, got {type(value[1]).__name__}"
+        )
+
+
+def _check_address(value: object, name: str) -> None:
+    """Raise when *value* is not an address object of the standard library."""
+    if not isinstance(value, (IPv4Address, IPv6Address)):
+        raise TypeError(
+            f"{name} must be an IPv4Address or an IPv6Address, got {type(value).__name__}"
+        )
+
+
+def _check_network(value: object, name: str) -> None:
+    """Raise when *value* is not a network object of the standard library."""
+    if not isinstance(value, (IPv4Network, IPv6Network)):
+        raise TypeError(
+            f"{name} must be an IPv4Network or an IPv6Network, got {type(value).__name__}"
+        )
+
+
+def _check_optional_count(value: object, name: str) -> None:
+    """Raise when *value* is neither ``None`` nor a non-negative integer."""
+    if value is None:
+        return
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int or None, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"{name} must not be negative, got {value}")
+
+
+def ip_address(address: str | int | bytes) -> Address:
+    """Return the address object of *address*.
+
+    Args:
+        address: The address as text, such as ``"192.0.2.1"`` or ``"::1"``, as
+            an integer, or as the packed bytes of the address.
+
+    Returns:
+        An :class:`IPv4Address` or an :class:`IPv6Address`.
+
+    Raises:
+        TypeError: If *address* is not a string, an integer, or bytes.
+        ValueError: If *address* does not name a valid address.
+    """
+    _check_address_like(address, "address")
+    return _ipaddress.ip_address(address)
+
+
+def ip_network(
+    address: str | int | bytes | tuple[str | int | bytes, int],
+    strict: bool = True,
+) -> Network:
+    """Return the network object of *address*.
+
+    Args:
+        address: The network as text, such as ``"192.0.2.0/24"``, as an
+            integer, as the packed bytes of the address, or as a pair of an
+            address and a prefix length.
+        strict: When ``True`` (the default) a network whose address holds
+            bits outside of its prefix length is rejected.  When ``False``
+            the address is masked with the prefix length instead.
+
+    Returns:
+        An :class:`IPv4Network` or an :class:`IPv6Network`.
+
+    Raises:
+        TypeError: If *address* has an unsupported type, or if *strict* is
+            not a boolean.
+        ValueError: If *address* does not name a valid network.
+    """
+    if not isinstance(strict, bool):
+        raise TypeError(f"strict must be a bool, got {type(strict).__name__}")
+    _check_address_pair(address, "address")
+    return _ipaddress.ip_network(address, strict)
+
+
+def ip_interface(address: str | int | bytes | tuple[str | int | bytes, int]) -> Interface:
+    """Return the interface object of *address*.
+
+    An interface is an address together with the prefix length of the network
+    it belongs to, so ``"192.0.2.1/24"`` names the address ``192.0.2.1`` in
+    the network ``192.0.2.0/24``.
+
+    Args:
+        address: The interface as text, as an integer, as the packed bytes of
+            the address, or as a pair of an address and a prefix length.
+
+    Returns:
+        An :class:`IPv4Interface` or an :class:`IPv6Interface`.
+
+    Raises:
+        TypeError: If *address* has an unsupported type.
+        ValueError: If *address* does not name a valid interface.
+    """
+    _check_address_pair(address, "address")
+    return _ipaddress.ip_interface(address)
+
+
+def is_valid_address(address: object) -> bool:
+    """Report whether *address* names a valid address.
+
+    Unlike :func:`ip_address` this check never raises, so it can be used on
+    a value that comes from the outside without a guard around the call.
+
+    Args:
+        address: The value to check.
+
+    Returns:
+        ``True`` when *address* names a valid IPv4 or IPv6 address.
+    """
+    if isinstance(address, bool) or not isinstance(address, (str, int, bytes)):
+        return False
+    try:
+        _ipaddress.ip_address(address)
+    except ValueError:
+        return False
+    return True
+
+
+def is_valid_network(address: object) -> bool:
+    """Report whether *address* names a valid network.
+
+    The check follows the strict rule of the standard library, so a network
+    whose address holds bits outside of its prefix length is rejected.
+
+    Args:
+        address: The value to check.
+
+    Returns:
+        ``True`` when *address* names a valid IPv4 or IPv6 network.
+    """
+    if isinstance(address, bool) or not isinstance(address, (str, int, bytes)):
+        return False
+    try:
+        _ipaddress.ip_network(address)
+    except ValueError:
+        return False
+    return True
+
+
+def is_valid_interface(address: object) -> bool:
+    """Report whether *address* names a valid interface.
+
+    Args:
+        address: The value to check.
+
+    Returns:
+        ``True`` when *address* names a valid IPv4 or IPv6 interface.
+    """
+    if isinstance(address, bool) or not isinstance(address, (str, int, bytes)):
+        return False
+    try:
+        _ipaddress.ip_interface(address)
+    except ValueError:
+        return False
+    return True
+
+
+def address_version(address: str | int | bytes) -> int:
+    """Return the version of *address*.
+
+    Args:
+        address: The address as text, as an integer, or as packed bytes.
+
+    Returns:
+        ``4`` for an IPv4 address and ``6`` for an IPv6 address.
+
+    Raises:
+        TypeError: If *address* is not a string, an integer, or bytes.
+        ValueError: If *address* does not name a valid address.
+    """
+    return ip_address(address).version
+
+
+def to_packed(address: str | int | bytes) -> bytes:
+    """Return the packed form of *address*.
+
+    The packed form of an IPv4 address holds four bytes and the packed form of
+    an IPv6 address holds sixteen bytes, in the network byte order.
+
+    Args:
+        address: The address as text, as an integer, or as packed bytes.
+
+    Returns:
+        The packed bytes of the address.
+
+    Raises:
+        TypeError: If *address* is not a string, an integer, or bytes.
+        ValueError: If *address* does not name a valid address.
+    """
+    return ip_address(address).packed
+
+
+def from_packed(packed: bytes) -> Address:
+    """Return the address that *packed* holds.
+
+    Args:
+        packed: The packed bytes of the address, four bytes for IPv4 and
+            sixteen bytes for IPv6.
+
+    Returns:
+        An :class:`IPv4Address` or an :class:`IPv6Address`.
+
+    Raises:
+        TypeError: If *packed* is not a bytes-like object.
+        ValueError: If *packed* does not hold four or sixteen bytes.
+    """
+    if not isinstance(packed, (bytes, bytearray)):
+        raise TypeError(f"packed must be bytes, got {type(packed).__name__}")
+    if len(packed) == 4:
+        return IPv4Address(bytes(packed))
+    if len(packed) == 16:
+        return IPv6Address(bytes(packed))
+    raise ValueError(f"a packed address holds 4 or 16 bytes, got {len(packed)}")
+
+
+def network_hosts(network: Network, limit: int | None = None) -> list[Address]:
+    """Return the usable hosts of *network*.
+
+    The network address and the broadcast address of an IPv4 network are not
+    usable hosts.  A network of a single address and a network of two
+    addresses hold no address that may be excluded, so every address of such a
+    network is returned.
+
+    Args:
+        network: The network whose hosts are returned.
+        limit: The largest number of hosts to return.  ``None`` (the default)
+            returns every host, which materializes the whole range of a large
+            network.
+
+    Returns:
+        The addresses of the hosts of the network, in ascending order.
+
+    Raises:
+        TypeError: If *network* is not a network object, or if *limit* is
+            neither an integer nor ``None``.
+        ValueError: If *limit* is negative.
+    """
+    _check_network(network, "network")
+    _check_optional_count(limit, "limit")
+    hosts: list[Address] = []
+    for host in network.hosts():
+        if limit is not None and len(hosts) >= limit:
+            break
+        hosts.append(host)
+    return hosts
+
+
+def subnets(
+    network: Network,
+    prefixlen_diff: int = 1,
+    new_prefix: int | None = None,
+) -> list[Network]:
+    """Return the subnets of *network*.
+
+    Args:
+        network: The network that is split.
+        prefixlen_diff: The number of bits the prefix length of the subnets
+            grows by.  It must not be combined with *new_prefix*.
+        new_prefix: The prefix length that every subnet of the network has.
+            It must not be combined with *prefixlen_diff*.
+
+    Returns:
+        The subnets of the network, in ascending order.
+
+    Raises:
+        TypeError: If *network* is not a network object, or if one of the
+            prefix lengths is neither an integer nor ``None``.
+        ValueError: If *new_prefix* is shorter than the prefix length of the
+            network, or if both prefix lengths are given.
+    """
+    _check_network(network, "network")
+    if isinstance(prefixlen_diff, bool) or not isinstance(prefixlen_diff, int):
+        raise TypeError(
+            f"prefixlen_diff must be an int, got {type(prefixlen_diff).__name__}"
+        )
+    if new_prefix is not None and (
+        isinstance(new_prefix, bool) or not isinstance(new_prefix, int)
+    ):
+        raise TypeError(f"new_prefix must be an int or None, got {type(new_prefix).__name__}")
+    if new_prefix is not None and prefixlen_diff != 1:
+        raise ValueError("prefixlen_diff and new_prefix must not be set together")
+    if isinstance(network, IPv4Network):
+        return list(network.subnets(prefixlen_diff=prefixlen_diff, new_prefix=new_prefix))
+    return list(network.subnets(prefixlen_diff=prefixlen_diff, new_prefix=new_prefix))
+
+
+def summarize_addresses(addresses: Iterable[Address | Network]) -> list[Network]:
+    """Return the smallest set of networks that still covers *addresses*.
+
+    A network that holds another network of the list is replaced by the
+    larger one, and two networks that are the halves of a common network are
+    replaced by that network.  An address is turned into the network that
+    holds it alone.
+
+    Args:
+        addresses: The addresses and networks to summarize.
+
+    Returns:
+        The networks that cover the input, in ascending order.
+
+    Raises:
+        TypeError: If the list holds a value that is neither an address nor a
+            network.
+        ValueError: If the list holds addresses of different versions.
+    """
+    collected = list(addresses)
+    if not collected:
+        return []
+    versions: set[int] = set()
+    networks: list[Network] = []
+    for item in collected:
+        if isinstance(item, (IPv4Network, IPv6Network)):
+            versions.add(item.version)
+            networks.append(item)
+        elif isinstance(item, (IPv4Address, IPv6Address)):
+            versions.add(item.version)
+            networks.append(_ipaddress.ip_network(f"{item}/{item.max_prefixlen}"))
+        else:
+            raise TypeError(
+                f"addresses must hold addresses or networks, got {type(item).__name__}"
+            )
+    if len(versions) > 1:
+        raise ValueError("addresses of different versions cannot be summarized together")
+    summarized: list[Network] = []
+    if versions == {4}:
+        summarized.extend(
+            _ipaddress.collapse_addresses(
+                [item for item in networks if isinstance(item, IPv4Network)]
+            )
+        )
+    else:
+        summarized.extend(
+            _ipaddress.collapse_addresses(
+                [item for item in networks if isinstance(item, IPv6Network)]
+            )
+        )
+    return summarized
+
+
+def network_overlaps(first: Network, second: Network) -> bool:
+    """Report whether two networks overlap.
+
+    Two networks of different versions never overlap, because an IPv4 network
+    and an IPv6 network hold disjoint addresses.
+
+    Args:
+        first: The first network.
+        second: The second network.
+
+    Returns:
+        ``True`` when the networks hold at least one address in common.
+
+    Raises:
+        TypeError: If one of the networks is not a network object.
+    """
+    _check_network(first, "first")
+    _check_network(second, "second")
+    if first.version != second.version:
+        return False
+    return bool(first.overlaps(second))
+
+
+def address_within(address: Address, network: Network) -> bool:
+    """Report whether *address* lies inside *network*.
+
+    An address of a different version never lies inside a network, because an
+    IPv4 address and an IPv6 network hold disjoint addresses.
+
+    Args:
+        address: The address to look for.
+        network: The network to look in.
+
+    Returns:
+        ``True`` when the network holds the address.
+
+    Raises:
+        TypeError: If *address* is not an address object, or if *network* is
+            not a network object.
+    """
+    _check_address(address, "address")
+    _check_network(network, "network")
+    if address.version != network.version:
+        return False
+    return bool(address in network)
+
+
+def common_prefix_length(addresses: Iterable[Address]) -> int:
+    """Return the length of the common prefix of *addresses*.
+
+    The common prefix is the longest sequence of leading bits that every
+    address of the list shares.  Its length is the prefix length of the
+    smallest network that holds every address of the list.
+
+    Args:
+        addresses: The addresses to compare.
+
+    Returns:
+        The number of leading bits the addresses share, which is 32 for IPv4
+        and 128 for IPv6 at most.
+
+    Raises:
+        TypeError: If the list holds a value that is not an address object.
+        ValueError: If the list is empty or holds addresses of different
+            versions.
+    """
+    collected = list(addresses)
+    if not collected:
+        raise ValueError("at least one address is required")
+    for item in collected:
+        _check_address(item, "addresses")
+    versions = {item.version for item in collected}
+    if len(versions) > 1:
+        raise ValueError("addresses of different versions have no common prefix")
+    width = 32 if versions.pop() == 4 else 128
+    base = int(collected[0])
+    difference = 0
+    for item in collected[1:]:
+        difference |= base ^ int(item)
+    return width - difference.bit_length()
+
+
+def next_address(address: Address) -> Address:
+    """Return the address that follows *address*.
+
+    Args:
+        address: The address to step from.
+
+    Returns:
+        The next address of the same version.
+
+    Raises:
+        TypeError: If *address* is not an address object.
+        ValueError: If *address* is the last address of its version.
+    """
+    _check_address(address, "address")
+    value = int(address) + 1
+    if value >= 1 << address.max_prefixlen:
+        raise ValueError(f"{address} is the last address of its version")
+    if address.version == 4:
+        return IPv4Address(value)
+    return IPv6Address(value)
+
+
+def previous_address(address: Address) -> Address:
+    """Return the address that precedes *address*.
+
+    Args:
+        address: The address to step from.
+
+    Returns:
+        The previous address of the same version.
+
+    Raises:
+        TypeError: If *address* is not an address object.
+        ValueError: If *address* is the first address of its version.
+    """
+    _check_address(address, "address")
+    value = int(address) - 1
+    if value < 0:
+        raise ValueError(f"{address} is the first address of its version")
+    if address.version == 4:
+        return IPv4Address(value)
+    return IPv6Address(value)
+
+
+def sort_addresses(addresses: Iterable[Address]) -> list[Address]:
+    """Return the addresses of *addresses* in ascending order.
+
+    The addresses are sorted by their version first, so every IPv4 address
+    comes before every IPv6 address, and by their numeric value afterwards.
+
+    Args:
+        addresses: The addresses to sort.
+
+    Returns:
+        The sorted addresses, as a new list.
+
+    Raises:
+        TypeError: If the list holds a value that is not an address object.
+    """
+    collected = list(addresses)
+    for item in collected:
+        _check_address(item, "addresses")
+    return sorted(collected, key=lambda item: (item.version, int(item)))
+IPADDRESS_UTILS
+
+# --- tests/test_ipaddress_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_ipaddress_utils.py" <<'TEST_IPADDRESS_UTILS'
+"""Tests for ipaddress_utils."""
+
+import unittest
+
+import ipaddress_utils
+from ipaddress_utils import (
+    AddressValueError,
+    IPv4Address,
+    IPv4Interface,
+    IPv4Network,
+    IPv6Address,
+    IPv6Interface,
+    IPv6Network,
+    NetmaskValueError,
+    address_version,
+    address_within,
+    common_prefix_length,
+    from_packed,
+    ip_address,
+    ip_interface,
+    ip_network,
+    is_valid_address,
+    is_valid_interface,
+    is_valid_network,
+    network_hosts,
+    network_overlaps,
+    next_address,
+    previous_address,
+    sort_addresses,
+    subnets,
+    summarize_addresses,
+    to_packed,
+)
+
+LAST_IPV4 = "255.255.255.255"
+FIRST_IPV4 = "0.0.0.0"
+LAST_IPV6 = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
+FIRST_IPV6 = "::"
+
+
+class TestAddressParsing(unittest.TestCase):
+    """Verify the helpers that build the objects of the standard library."""
+
+    def test_ip_address_reads_a_text(self):
+        address = ip_address("192.0.2.1")
+        self.assertIsInstance(address, IPv4Address)
+        self.assertEqual(str(address), "192.0.2.1")
+
+    def test_ip_address_reads_an_ipv6_text(self):
+        address = ip_address("2001:db8::1")
+        self.assertIsInstance(address, IPv6Address)
+        self.assertEqual(str(address), "2001:db8::1")
+
+    def test_ip_address_reads_an_integer(self):
+        self.assertEqual(str(ip_address(3221225985)), "192.0.2.1")
+
+    def test_ip_address_reads_packed_bytes(self):
+        self.assertEqual(str(ip_address(b"\xc0\x00\x02\x01")), "192.0.2.1")
+
+    def test_ip_address_rejects_an_unknown_type(self):
+        with self.assertRaises(TypeError):
+            ip_address(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ip_address(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ip_address(["192.0.2.1"])  # type: ignore[list-item]
+
+    def test_ip_address_rejects_a_boolean(self):
+        with self.assertRaises(TypeError):
+            ip_address(True)  # type: ignore[arg-type]
+
+    def test_ip_address_rejects_an_invalid_text(self):
+        with self.assertRaises(ValueError):
+            ip_address("192.0.2.300")
+        with self.assertRaises(ValueError):
+            ip_address("not an address")
+
+    def test_ip_network_reads_a_text(self):
+        network = ip_network("192.0.2.0/24")
+        self.assertIsInstance(network, IPv4Network)
+        self.assertEqual(str(network), "192.0.2.0/24")
+
+    def test_ip_network_reads_a_pair(self):
+        network = ip_network(("192.0.2.0", 24))
+        self.assertEqual(str(network), "192.0.2.0/24")
+
+    def test_ip_network_masks_the_host_bits_when_it_is_not_strict(self):
+        network = ip_network("192.0.2.1/24", strict=False)
+        self.assertEqual(str(network), "192.0.2.0/24")
+
+    def test_ip_network_rejects_the_host_bits_when_it_is_strict(self):
+        with self.assertRaises(ValueError):
+            ip_network("192.0.2.1/24")
+
+    def test_ip_network_rejects_an_unknown_type(self):
+        with self.assertRaises(TypeError):
+            ip_network(None)  # type: ignore[arg-type]
+
+    def test_ip_network_rejects_a_non_boolean_strict_flag(self):
+        with self.assertRaises(TypeError):
+            ip_network("192.0.2.0/24", strict="yes")  # type: ignore[arg-type]
+
+    def test_ip_network_rejects_a_pair_of_the_wrong_size(self):
+        with self.assertRaises(ValueError):
+            ip_network(("192.0.2.0", 24, 1))  # type: ignore[arg-type]
+
+    def test_ip_network_rejects_a_prefix_length_that_is_not_an_integer(self):
+        with self.assertRaises(TypeError):
+            ip_network(("192.0.2.0", "24"))  # type: ignore[arg-type]
+
+    def test_ip_interface_reads_a_text(self):
+        interface = ip_interface("192.0.2.1/24")
+        self.assertIsInstance(interface, IPv4Interface)
+        self.assertEqual(str(interface), "192.0.2.1/24")
+
+    def test_ip_interface_reads_an_ipv6_text(self):
+        interface = ip_interface("2001:db8::1/64")
+        self.assertIsInstance(interface, IPv6Interface)
+        self.assertEqual(str(interface), "2001:db8::1/64")
+
+    def test_ip_interface_reads_a_pair(self):
+        self.assertEqual(str(ip_interface(("192.0.2.1", 24))), "192.0.2.1/24")
+
+    def test_ip_interface_rejects_an_unknown_type(self):
+        with self.assertRaises(TypeError):
+            ip_interface(None)  # type: ignore[arg-type]
+
+
+class TestValidityChecks(unittest.TestCase):
+    """Verify the checks that never raise."""
+
+    def test_is_valid_address_accepts_a_valid_address(self):
+        self.assertTrue(is_valid_address("192.0.2.1"))
+        self.assertTrue(is_valid_address("2001:db8::1"))
+        self.assertTrue(is_valid_address(3232235777))
+        self.assertTrue(is_valid_address(b"\xc0\x00\x02\x01"))
+
+    def test_is_valid_address_rejects_an_invalid_address(self):
+        self.assertFalse(is_valid_address("192.0.2.300"))
+        self.assertFalse(is_valid_address(""))
+        self.assertFalse(is_valid_address(None))
+        self.assertFalse(is_valid_address(True))
+        self.assertFalse(is_valid_address(1.5))
+
+    def test_is_valid_network_accepts_a_valid_network(self):
+        self.assertTrue(is_valid_network("192.0.2.0/24"))
+        self.assertTrue(is_valid_network("2001:db8::/32"))
+
+    def test_is_valid_network_rejects_a_network_with_host_bits(self):
+        self.assertFalse(is_valid_network("192.0.2.1/24"))
+
+    def test_is_valid_network_rejects_an_unknown_type(self):
+        self.assertFalse(is_valid_network(None))
+        self.assertFalse(is_valid_network(True))
+
+    def test_is_valid_interface_accepts_a_valid_interface(self):
+        self.assertTrue(is_valid_interface("192.0.2.1/24"))
+        self.assertTrue(is_valid_interface("2001:db8::1/64"))
+
+    def test_is_valid_interface_rejects_an_invalid_interface(self):
+        self.assertFalse(is_valid_interface("192.0.2.1/99"))
+        self.assertFalse(is_valid_interface(None))
+
+
+class TestPackedForm(unittest.TestCase):
+    """Verify the packed form of an address."""
+
+    def test_to_packed_returns_four_bytes_for_ipv4(self):
+        packed = to_packed("192.0.2.1")
+        self.assertEqual(packed, b"\xc0\x00\x02\x01")
+        self.assertEqual(len(packed), 4)
+
+    def test_to_packed_returns_sixteen_bytes_for_ipv6(self):
+        packed = to_packed("2001:db8::1")
+        self.assertEqual(len(packed), 16)
+
+    def test_to_packed_rejects_an_invalid_address(self):
+        with self.assertRaises(ValueError):
+            to_packed("not an address")
+
+    def test_from_packed_reads_an_ipv4_address(self):
+        address = from_packed(b"\xc0\x00\x02\x01")
+        self.assertIsInstance(address, IPv4Address)
+        self.assertEqual(str(address), "192.0.2.1")
+
+    def test_from_packed_reads_an_ipv6_address(self):
+        address = from_packed(b"\x00" * 15 + b"\x01")
+        self.assertIsInstance(address, IPv6Address)
+        self.assertEqual(str(address), "::1")
+
+    def test_from_packed_round_trips_an_address(self):
+        self.assertEqual(from_packed(to_packed("2001:db8::1")), ip_address("2001:db8::1"))
+
+    def test_from_packed_rejects_a_wrong_length(self):
+        with self.assertRaises(ValueError):
+            from_packed(b"\x00" * 5)
+
+    def test_from_packed_rejects_an_unknown_type(self):
+        with self.assertRaises(TypeError):
+            from_packed("192.0.2.1")  # type: ignore[arg-type]
+
+
+class TestVersion(unittest.TestCase):
+    """Verify the version of an address."""
+
+    def test_address_version_reports_four(self):
+        self.assertEqual(address_version("192.0.2.1"), 4)
+
+    def test_address_version_reports_six(self):
+        self.assertEqual(address_version("2001:db8::1"), 6)
+
+    def test_address_version_rejects_an_invalid_address(self):
+        with self.assertRaises(ValueError):
+            address_version("not an address")
+
+
+class TestNetworkHosts(unittest.TestCase):
+    """Verify the hosts of a network."""
+
+    def test_network_hosts_skips_the_network_and_the_broadcast_address(self):
+        hosts = network_hosts(ip_network("192.0.2.0/29"))
+        expected = [f"192.0.2.{index}" for index in range(1, 7)]
+        self.assertEqual([str(host) for host in hosts], expected)
+
+    def test_network_hosts_of_a_network_of_two_addresses_holds_both(self):
+        hosts = network_hosts(ip_network("192.0.2.0/31"))
+        self.assertEqual([str(host) for host in hosts], ["192.0.2.0", "192.0.2.1"])
+
+    def test_network_hosts_of_a_single_address_holds_that_address(self):
+        hosts = network_hosts(ip_network("192.0.2.1/32"))
+        self.assertEqual([str(host) for host in hosts], ["192.0.2.1"])
+
+    def test_network_hosts_of_an_ipv6_network(self):
+        hosts = network_hosts(ip_network("2001:db8::/126"))
+        self.assertEqual(
+            [str(host) for host in hosts],
+            ["2001:db8::1", "2001:db8::2", "2001:db8::3"],
+        )
+
+    def test_network_hosts_stops_at_the_limit(self):
+        hosts = network_hosts(ip_network("192.0.2.0/24"), limit=3)
+        self.assertEqual([str(host) for host in hosts], ["192.0.2.1", "192.0.2.2", "192.0.2.3"])
+
+    def test_network_hosts_of_an_empty_limit_holds_nothing(self):
+        self.assertEqual(network_hosts(ip_network("192.0.2.0/24"), limit=0), [])
+
+    def test_network_hosts_rejects_a_value_that_is_not_a_network(self):
+        with self.assertRaises(TypeError):
+            network_hosts("192.0.2.0/24")  # type: ignore[arg-type]
+
+    def test_network_hosts_rejects_an_unknown_limit(self):
+        with self.assertRaises(TypeError):
+            network_hosts(ip_network("192.0.2.0/24"), limit="3")  # type: ignore[arg-type]
+
+    def test_network_hosts_rejects_a_negative_limit(self):
+        with self.assertRaises(ValueError):
+            network_hosts(ip_network("192.0.2.0/24"), limit=-1)
+
+
+class TestSubnets(unittest.TestCase):
+    """Verify the subnets of a network."""
+
+    def test_subnets_splits_the_network_by_one_bit(self):
+        found = subnets(ip_network("192.0.2.0/24"))
+        self.assertEqual([str(network) for network in found], ["192.0.2.0/25", "192.0.2.128/25"])
+
+    def test_subnets_splits_the_network_by_two_bits(self):
+        found = subnets(ip_network("192.0.2.0/24"), prefixlen_diff=2)
+        self.assertEqual(len(found), 4)
+        self.assertEqual(str(found[0]), "192.0.2.0/26")
+
+    def test_subnets_accepts_a_new_prefix_length(self):
+        found = subnets(ip_network("192.0.2.0/24"), new_prefix=26)
+        self.assertEqual(len(found), 4)
+        self.assertEqual(str(found[-1]), "192.0.2.192/26")
+
+    def test_subnets_of_an_ipv6_network(self):
+        found = subnets(ip_network("2001:db8::/32"))
+        self.assertEqual(
+            [str(network) for network in found],
+            ["2001:db8::/33", "2001:db8:8000::/33"],
+        )
+
+    def test_subnets_rejects_both_prefix_arguments(self):
+        with self.assertRaises(ValueError):
+            subnets(ip_network("192.0.2.0/24"), prefixlen_diff=2, new_prefix=26)
+
+    def test_subnets_rejects_a_value_that_is_not_a_network(self):
+        with self.assertRaises(TypeError):
+            subnets("192.0.2.0/24")  # type: ignore[arg-type]
+
+    def test_subnets_rejects_a_prefix_length_that_is_not_an_integer(self):
+        with self.assertRaises(TypeError):
+            subnets(ip_network("192.0.2.0/24"), prefixlen_diff="2")  # type: ignore[arg-type]
+
+
+class TestSummarizeAddresses(unittest.TestCase):
+    """Verify the summary of a list of networks."""
+
+    def test_summarize_addresses_merges_two_sibling_networks(self):
+        found = summarize_addresses([ip_network("192.0.2.0/24"), ip_network("192.0.3.0/24")])
+        self.assertEqual([str(network) for network in found], ["192.0.2.0/23"])
+
+    def test_summarize_addresses_replaces_a_network_that_holds_another(self):
+        found = summarize_addresses([ip_network("192.0.2.0/24"), ip_network("192.0.2.0/25")])
+        self.assertEqual([str(network) for network in found], ["192.0.2.0/24"])
+
+    def test_summarize_addresses_turns_an_address_into_a_single_host_network(self):
+        found = summarize_addresses([ip_address("192.0.2.1")])
+        self.assertEqual([str(network) for network in found], ["192.0.2.1/32"])
+
+    def test_summarize_addresses_of_an_empty_list_holds_nothing(self):
+        self.assertEqual(summarize_addresses([]), [])
+
+    def test_summarize_addresses_rejects_mixed_versions(self):
+        with self.assertRaises(ValueError):
+            summarize_addresses([ip_network("192.0.2.0/24"), ip_network("2001:db8::/32")])
+
+    def test_summarize_addresses_rejects_an_unknown_type(self):
+        with self.assertRaises(TypeError):
+            summarize_addresses(["192.0.2.0/24"])  # type: ignore[list-item]
+
+
+class TestComparisons(unittest.TestCase):
+    """Verify the comparisons between addresses and networks."""
+
+    def test_network_overlaps_of_two_networks_of_the_same_range(self):
+        self.assertTrue(network_overlaps(ip_network("192.0.2.0/24"), ip_network("192.0.2.128/25")))
+        self.assertFalse(network_overlaps(ip_network("192.0.2.0/24"), ip_network("192.0.3.0/24")))
+
+    def test_network_overlaps_of_two_versions_is_false(self):
+        self.assertFalse(network_overlaps(ip_network("192.0.2.0/24"), ip_network("2001:db8::/32")))
+
+    def test_network_overlaps_rejects_a_value_that_is_not_a_network(self):
+        with self.assertRaises(TypeError):
+            network_overlaps("192.0.2.0/24", ip_network("192.0.3.0/24"))  # type: ignore[arg-type]
+
+    def test_address_within_finds_the_address(self):
+        self.assertTrue(address_within(ip_address("192.0.2.1"), ip_network("192.0.2.0/24")))
+        self.assertFalse(address_within(ip_address("192.0.3.1"), ip_network("192.0.2.0/24")))
+
+    def test_address_within_of_two_versions_is_false(self):
+        self.assertFalse(address_within(ip_address("2001:db8::1"), ip_network("192.0.2.0/24")))
+
+    def test_address_within_rejects_a_value_that_is_not_an_address(self):
+        with self.assertRaises(TypeError):
+            address_within("192.0.2.1", ip_network("192.0.2.0/24"))  # type: ignore[arg-type]
+
+    def test_common_prefix_length_of_one_address_is_the_whole_address(self):
+        self.assertEqual(common_prefix_length([ip_address("192.0.2.1")]), 32)
+
+    def test_common_prefix_length_of_neighbours(self):
+        found = common_prefix_length([ip_address("192.0.2.1"), ip_address("192.0.2.2")])
+        self.assertEqual(found, 30)
+
+    def test_common_prefix_length_of_an_ipv6_pair(self):
+        found = common_prefix_length([ip_address("2001:db8::1"), ip_address("2001:db8::2")])
+        self.assertEqual(found, 126)
+
+    def test_common_prefix_length_of_different_addresses(self):
+        found = common_prefix_length([ip_address("10.0.0.1"), ip_address("11.0.0.1")])
+        self.assertEqual(found, 7)
+
+    def test_common_prefix_length_rejects_an_empty_list(self):
+        with self.assertRaises(ValueError):
+            common_prefix_length([])
+
+    def test_common_prefix_length_rejects_mixed_versions(self):
+        with self.assertRaises(ValueError):
+            common_prefix_length([ip_address("192.0.2.1"), ip_address("2001:db8::1")])
+
+    def test_common_prefix_length_rejects_a_value_that_is_not_an_address(self):
+        with self.assertRaises(TypeError):
+            common_prefix_length(["192.0.2.1"])  # type: ignore[list-item]
+
+
+class TestNeighbours(unittest.TestCase):
+    """Verify the neighbours of an address."""
+
+    def test_next_address_steps_forward(self):
+        self.assertEqual(str(next_address(ip_address("192.0.2.1"))), "192.0.2.2")
+
+    def test_next_address_of_an_ipv6_address(self):
+        self.assertEqual(str(next_address(ip_address("2001:db8::1"))), "2001:db8::2")
+
+    def test_next_address_of_the_last_address_raises(self):
+        with self.assertRaises(ValueError):
+            next_address(ip_address(LAST_IPV4))
+        with self.assertRaises(ValueError):
+            next_address(ip_address(LAST_IPV6))
+
+    def test_previous_address_steps_back(self):
+        self.assertEqual(str(previous_address(ip_address("192.0.2.1"))), "192.0.2.0")
+
+    def test_previous_address_of_an_ipv6_address(self):
+        self.assertEqual(str(previous_address(ip_address("2001:db8::1"))), "2001:db8::")
+
+    def test_previous_address_of_the_first_address_raises(self):
+        with self.assertRaises(ValueError):
+            previous_address(ip_address(FIRST_IPV4))
+        with self.assertRaises(ValueError):
+            previous_address(ip_address(FIRST_IPV6))
+
+    def test_the_neighbours_reject_a_value_that_is_not_an_address(self):
+        with self.assertRaises(TypeError):
+            next_address("192.0.2.1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            previous_address("192.0.2.1")  # type: ignore[arg-type]
+
+
+class TestSortAddresses(unittest.TestCase):
+    """Verify the order of a list of addresses."""
+
+    def test_sort_addresses_orders_by_version_and_value(self):
+        found = sort_addresses(
+            [ip_address("2001:db8::1"), ip_address("192.0.2.1"), ip_address("10.0.0.1")]
+        )
+        self.assertEqual(
+            [str(address) for address in found],
+            ["10.0.0.1", "192.0.2.1", "2001:db8::1"],
+        )
+
+    def test_sort_addresses_of_an_empty_list_holds_nothing(self):
+        self.assertEqual(sort_addresses([]), [])
+
+    def test_sort_addresses_rejects_a_value_that_is_not_an_address(self):
+        with self.assertRaises(TypeError):
+            sort_addresses(["192.0.2.1"])  # type: ignore[list-item]
+
+
+class TestModuleContract(unittest.TestCase):
+    """Verify the public interface of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(len(ipaddress_utils.__all__), len(set(ipaddress_utils.__all__)))
+        self.assertEqual(ipaddress_utils.__all__, sorted(ipaddress_utils.__all__))
+        for name in ipaddress_utils.__all__:
+            self.assertTrue(hasattr(ipaddress_utils, name), name)
+
+    def test_the_classes_are_the_classes_of_the_standard_library(self):
+        import ipaddress
+
+        self.assertIs(IPv4Address, ipaddress.IPv4Address)
+        self.assertIs(IPv6Address, ipaddress.IPv6Address)
+        self.assertIs(IPv4Network, ipaddress.IPv4Network)
+        self.assertIs(IPv6Network, ipaddress.IPv6Network)
+        self.assertIs(IPv4Interface, ipaddress.IPv4Interface)
+        self.assertIs(IPv6Interface, ipaddress.IPv6Interface)
+
+    def test_the_errors_are_the_errors_of_the_standard_library(self):
+        import ipaddress
+
+        self.assertIs(AddressValueError, ipaddress.AddressValueError)
+        self.assertIs(NetmaskValueError, ipaddress.NetmaskValueError)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_IPADDRESS_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

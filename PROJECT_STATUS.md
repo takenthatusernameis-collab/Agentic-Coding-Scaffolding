@@ -1,4 +1,97 @@
-## Latest Session (2026-10-21) — zipimport_utils completed, scaffold generator hardened
+## Latest Session (2026-10-21) — ipaddress_utils added, refresh tool completes the generator
+
+The board held no task, so this session added the next standard library wrapper module and removed the
+manual step of the handover that broke in the previous sessions.
+
+Completed in the latest session:
+
+- Added `ipaddress_utils.py` wrapping the standard library `ipaddress` module (`ip_address`,
+  `ip_network`, `ip_interface`, `is_valid_address`, `is_valid_network`, `is_valid_interface`,
+  `address_version`, `to_packed`, `from_packed`, `network_hosts`, `subnets`,
+  `summarize_addresses`, `network_overlaps`, `address_within`, `common_prefix_length`,
+  `next_address`, `previous_address`, `sort_addresses`) with typed signatures, docstrings, `__all__`,
+  and input validation, plus unit tests in `tests/test_ipaddress_utils.py`. The classes
+  `IPv4Address`, `IPv6Address`, `IPv4Network`, `IPv6Network`, `IPv4Interface`, and `IPv6Interface`
+  are re-exported, and so are the errors `AddressValueError` and `NetmaskValueError`.
+- The wrapper adds the conveniences that the standard library leaves to the caller. The three
+  `is_valid_*` checks never raise, so a value that comes from the outside can be checked without a
+  guard around the call. `summarize_addresses` returns the smallest set of networks that still
+  covers a list of networks, and it turns a plain address into the network that holds it alone.
+  `common_prefix_length` returns the length of the leading bits that a list of addresses shares,
+  which is the prefix length of the smallest network that holds all of them. `next_address` and
+  `previous_address` step to the neighbour of an address and refuse to step past the first or the
+  last address of a version. `network_hosts` takes a limit, so a caller never materializes the
+  whole range of a large network by accident.
+- The wrapper rejects a boolean as an address. A boolean is an integer in Python, so the standard
+  library reads `True` as the address `0.0.0.1`; the wrapper raises a `TypeError` instead.
+- The module is pure computation, so it works on every platform and never touches the file system,
+  the network, or a process. The test suite is hermetic for the same reason: it only compares
+  addresses and networks.
+- Extended `tools/refresh_scaffold.py` so that it also creates the heredoc of a wrapper module that
+  the generator does not embed yet. The tool derives the delimiter from the name of the file, places
+  the test of a module right behind the module it belongs to, and keeps the one-blank-line layout of
+  the generator. The hand-written step that broke the handover of the last three sessions is gone.
+  The `--check` mode reports a missing copy as well as a stale one, and the tool still refreshes
+  the copy of a file that the generator already embeds.
+- Extended `tests/test_refresh_scaffold.py` with the checks of the new behaviour: the delimiter that
+  belongs to a file, the detection of a module that the generator lacks, the creation of its block,
+  the placement of the test behind its module, and the separation of two blocks by exactly one empty
+  line.
+- Synchronized the new module across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh`
+  header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README
+  tree and module section, the embedded CHANGELOG, the README tree and module section,
+  `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `ipaddress_utils.py` and `tests/test_ipaddress_utils.py`, both byte identical to the repository
+  copies, its 4025 tests, ruff, and mypy all pass, and the embedded refresh tool reports that all
+  embedded copies are in sync inside the generated project.
+- The repository suite now runs 4115 tests, and `make lint` and `make typecheck` are green.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `antigravity`, `audioop`, `bdb`, `cgi`, `cgitb`, `chunk`, `crypt`, `curses`,
+  `ensurepip`, `genericpath`, `idlelib`, `imghdr`, `lib2to3`, `msilib`, `msvcrt`, `nis`, `nntplib`,
+  `nt`, `ntpath`, `nturl2path`, `ossaudiodev`, `pdb`, `pipes`, `posix`, `posixpath`, `pydoc`,
+  `pydoc_data`, `pyexpat`, `readline`, `site`, `sndhdr`, `spwd`, `sre_compile`, `sre_constants`,
+  `sre_parse`, `sunau`, `telnetlib`, `tkinter`, `turtle`, `turtledemo`, `urllib`, `venv`, `winreg`,
+  `winsound`, and `wsgiref`. The `genericpath` module is the natural next candidate: it holds the
+  path operations that the `os.path` module of every platform shares, so it is pure computation and
+  the tests only compare path strings. The `curses` module is the alternative: it is Unix-only, so
+  the import has to degrade gracefully and raise a `RuntimeError` on the platforms that do not ship
+  it, the way `fcntl_utils.py` and `termios_utils.py` do.
+- Keep every new wrapper hermetic: the test suite must never open a network connection, write to a
+  system service, or block on a subprocess. `imaplib_utils.py` is the reference — its connection
+  helpers are exercised with `unittest.mock.patch` instead of real servers. `smtplib_utils.py`
+  follows it: the tests replay scripted server replies through a fake socket and never touch the
+  network. `xmlrpc_utils.py` follows it as well: the server helpers are patched and the encoding
+  helpers only compare strings. `syslog_utils.py` follows it too: every call into the system logger
+  is patched. `resource_utils.py` follows it as well: the tests only read the limits of the running
+  process and patch the write. `termios_utils.py` follows it as well: the tests work on a pseudo
+  terminal that the test itself opens. `fcntl_utils.py` follows it as well: the tests lock the files
+  of a temporary directory that the test itself creates, and they use the non blocking operations so
+  that no test ever waits for a lock. `pty_utils.py` follows it as well: the tests exercise `fork`
+  and `spawn` through a patched standard library module and never fork or spawn a process.
+  `zipimport_utils.py` follows it as well: the tests build a Zip archive of their own in a
+  temporary directory and never read an archive that the interpreter ships. `ipaddress_utils.py`
+  follows it as well: the module is pure computation, so the tests only compare addresses and
+  networks. The same rule applies to the compiler wrappers: `compileall_utils.py` narrows
+  `sys.path` with `unittest.mock.patch` so the suite never byte-compiles the interpreter's own
+  import path. `modulefinder_utils.py` follows the rule as well: the analysis is static, so the
+  analysed script is never imported or executed, and the tests restrict the search path to a
+  temporary directory so the suite never scans the whole import path. `optparse_utils.py` follows it
+  too: the parser never touches the network, and the tests parse command lines from lists instead
+  of `sys.argv`, except for one test that patches `sys.argv` with `unittest.mock.patch`.
+  `xdrlib_utils.py` follows it as well: the XDR encoding is pure computation, so the tests only
+  compare byte strings.
+- Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new
+  module must not reintroduce any drift.
+- Consider extending `tools/refresh_scaffold.py` further. The tool now creates the heredoc of a
+  module, but the header comment of the generator, the embedded package metadata, the tree of the
+  README, and the changelog still have to be edited by hand. A mode that appends the new module to
+  those lists as well would remove the rest of the manual work of a handover.
+
+## Previous Session (2026-10-21) — zipimport_utils completed, scaffold generator hardened
 
 The board held no task, so this session completed the handover that the previous session left unfinished.
 

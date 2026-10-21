@@ -264,4 +264,5 @@ py_modules = [
     "stringprep_utils",
     "tabnanny_utils",
     "encodings_utils",
+    "ipaddress_utils",
 ]

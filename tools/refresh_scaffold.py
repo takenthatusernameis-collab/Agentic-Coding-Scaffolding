@@ -8,14 +8,16 @@ drift out of sync whenever a module is edited in the repository without
 refreshing the generator.
 
 This script rewrites every heredoc whose target path exists in the repository
-with the current contents of that file. Run it after editing any module or
-test, then re-run the test suite to confirm the invariant holds.
+with the current contents of that file, and it creates the heredoc of a
+wrapper module that the generator does not embed yet. Run it after adding or
+editing a module or test, then re-run the test suite to confirm the invariant
+holds.
 
 Usage:
     python tools/refresh_scaffold.py [--check]
 
-``--check`` reports stale copies and exits with a non-zero status instead of
-rewriting the generator.
+``--check`` reports stale and missing copies and exits with a non-zero status
+instead of rewriting the generator.
 """
 
 from __future__ import annotations
@@ -59,6 +61,99 @@ def repository_body(relative: str) -> str | None:
     return path.read_text().rstrip("\n")
 
 
+def wrapper_copies() -> list[str]:
+    """Return the repository files the generator has to embed, in a stable order.
+
+    Every wrapper module and its test are copied into a scaffolded project, so
+    the generator embeds both. The module comes before its test, so a module
+    and its test are added next to each other.
+    """
+    relatives: list[str] = []
+    stems = sorted(path.stem for path in ROOT.glob("*_utils.py") if path.is_file())
+    for stem in stems:
+        for relative in (f"{stem}.py", f"tests/test_{stem}.py"):
+            if (ROOT / relative).is_file():
+                relatives.append(relative)
+    return relatives
+
+
+def heredoc_delimiter(relative: str) -> str:
+    """Return the heredoc delimiter that belongs to *relative*.
+
+    The delimiter follows the convention of the generator: the name of the
+    file in upper case, with the characters a shell delimiter cannot hold
+    replaced by an underscore.
+    """
+    return re.sub(r"[^A-Z0-9_]", "_", Path(relative).stem.upper())
+
+
+def unique_delimiter(relative: str, body: str) -> str:
+    """Return a delimiter that no line of *body* closes the heredoc with.
+
+    A file whose body happens to hold a line that equals the derived
+    delimiter would end the heredoc early, so the delimiter is extended until
+    it is unique.
+    """
+    delimiter = heredoc_delimiter(relative)
+    lines = set(body.split("\n"))
+    while delimiter in lines:
+        delimiter = f"{delimiter}_COPY"
+    return delimiter
+
+
+def missing_copies(scaffold_text: str) -> list[str]:
+    """Return the wrapper files the generator does not embed yet."""
+    embedded = {match.group("path") for match in embedded_blocks(scaffold_text)}
+    return [relative for relative in wrapper_copies() if relative not in embedded]
+
+
+def render_block(relative: str) -> str:
+    """Return the generator block that writes *relative* into the output directory.
+
+    The block starts with a blank line, so the new file is separated from the
+    block that precedes it by exactly one empty line, the way the blocks of
+    the generator are laid out.
+    """
+    body = repository_body(relative) or ""
+    delimiter = unique_delimiter(relative, body)
+    return (
+        f"\n# --- {relative} ---\n"
+        f"cat > \"$OUTPUT_DIR/{relative}\" <<'{delimiter}'\n"
+        f"{body}\n"
+        f"{delimiter}\n"
+    )
+
+
+def anchor_for(relative: str, scaffold_text: str) -> int:
+    """Return the offset in *scaffold_text* where a new block is inserted.
+
+    The test of a module is placed right behind the module it belongs to, and
+    a module that the generator does not embed yet is placed behind the last
+    block of the generator.
+    """
+    stem = Path(relative).stem
+    if stem.startswith("test_"):
+        module = f"{stem[len('test_'):]}.py"
+        for match in embedded_blocks(scaffold_text):
+            if match.group("path") == module:
+                return match.end()
+    blocks = embedded_blocks(scaffold_text)
+    if blocks:
+        return blocks[-1].end()
+    return len(scaffold_text)
+
+
+def add_missing_copies(scaffold_text: str) -> tuple[str, list[str]]:
+    """Return the generator with the missing wrapper blocks added."""
+    added: list[str] = []
+    text = scaffold_text
+    for relative in missing_copies(text):
+        anchor = anchor_for(relative, text)
+        text = text[:anchor] + render_block(relative) + text[anchor:]
+        added.append(relative)
+    return text, added
+
+
 def refresh(scaffold_text: str) -> tuple[str, list[str], list[str]]:
     """Return the refreshed generator text together with the changed and stale paths."""
     changed: list[str] = []
@@ -98,23 +193,28 @@ def main(argv: list[str] | None = None) -> int:
 
     scaffold_text = SCAFFOLD.read_text()
     refreshed, changed, stale = refresh(scaffold_text)
+    refreshed, added = add_missing_copies(refreshed)
 
     if args.check:
         for relative in changed:
             print(f"stale: {relative}")
-        if changed:
-            print(f"{len(changed)} embedded copies are out of sync")
+        for relative in added:
+            print(f"missing: {relative}")
+        if changed or added:
+            print(f"{len(changed) + len(added)} embedded copies are out of sync")
             return 1
         print("all embedded copies are in sync")
         return 0
 
-    if changed:
+    if changed or added:
         SCAFFOLD.write_text(refreshed)
     for relative in changed:
         print(f"refreshed: {relative}")
+    for relative in added:
+        print(f"added: {relative}")
     for relative in stale:
         print(f"no repository copy: {relative}")
-    print(f"{len(changed)} embedded copies refreshed")
+    print(f"{len(changed) + len(added)} embedded copies refreshed")
     return 0
 
 

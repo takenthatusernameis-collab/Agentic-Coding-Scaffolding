@@ -28,6 +28,11 @@ This repository is a self-evolving scaffolding project for autonomous agentic co
 so the embedded copies stay byte-identical to the repository sources. Use
 `python tools/refresh_scaffold.py --check` to report stale copies without rewriting the generator.
 
+The tool also creates the heredoc of a wrapper module that the generator does not embed yet, so a
+new module and its test are added to `scaffold.sh` by running the tool instead of by hand. The
+header comment of the generator, the embedded `pyproject.toml`, the README tree, and the changelog
+are still maintained by hand.
+
 ## Coding Conventions
 
 - Write clean, well-documented code

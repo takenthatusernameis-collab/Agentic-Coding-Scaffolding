@@ -262,6 +262,7 @@ stringprep_utils.py          # String preparation utilities wrapping stdlib stri
 tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (check, process_tokens, NannyNag)
 encodings_utils.py           # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
+ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -436,6 +437,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_stringprep_utils.py     # Tests for stringprep_utils.py
     test_tabnanny_utils.py       # Tests for tabnanny_utils.py
     test_zipimport_utils.py      # Tests for zipimport_utils.py
+    test_ipaddress_utils.py      # Tests for ipaddress_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
 test_multiprocessing_utils.py # Tests for multiprocessing_utils.py
@@ -1471,3 +1473,7 @@ The project includes encoding name utilities in `encodings_utils.py` wrapping th
 ## Zipimport Utilities Module
 
 The project includes Zip archive import utilities in `zipimport_utils.py` wrapping the standard library `zipimport` module: `zip_importer` returns an importer for a Zip archive, `archive_names` lists the members of an archive, `get_source` returns the source code of a module inside an archive, `get_code` returns the code object of that module, `get_filename` returns the path the module would be loaded from, `get_data` returns the bytes of a member of the archive, `is_package` reports whether a module is a package, `find_spec` returns the import specification of a module, and `invalidate_caches` drops the cached directory information of the archives. :class:`ZipImportError` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module only reads the archive the caller points it at, so it never touches the network or a process. The module is tested in `tests/test_zipimport_utils.py`.
+
+## IP Address Utilities Module
+
+The project includes IP address utilities in `ipaddress_utils.py` wrapping the standard library `ipaddress` module: `ip_address` returns the address object of a text, an integer, or a packed byte string, `ip_network` returns the network object of a network, `ip_interface` returns the interface object of an address that carries a prefix length, `is_valid_address` reports whether a value names a valid address, `is_valid_network` reports whether a value names a valid network, `is_valid_interface` reports whether a value names a valid interface, `address_version` returns the version of an address, `to_packed` returns the packed bytes of an address, `from_packed` returns the address that a packed byte string holds, `network_hosts` returns the usable hosts of a network, `subnets` splits a network into its subnets, `summarize_addresses` returns the smallest set of networks that still covers a list of networks, `network_overlaps` reports whether two networks overlap, `address_within` reports whether an address lies inside a network, `common_prefix_length` returns the length of the common prefix of a list of addresses, `next_address` returns the address that follows an address, `previous_address` returns the address that precedes an address, and `sort_addresses` returns the addresses of a list in ascending order. The classes `IPv4Address`, `IPv6Address`, `IPv4Network`, `IPv6Network`, `IPv4Interface`, and `IPv6Interface` are re-exported from the standard library, and so are the errors `AddressValueError` and `NetmaskValueError`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_ipaddress_utils.py`.
