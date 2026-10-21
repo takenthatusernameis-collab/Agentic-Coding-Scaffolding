@@ -75,6 +75,7 @@ py_modules = [
     "fileinput_utils",
     "fnmatch_utils",
     "url_utils",
+    "urllib_utils",
     "random_utils",
     "tempfile_utils",
     "re_utils",

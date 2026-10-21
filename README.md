@@ -57,6 +57,7 @@ dbm_utils.py                 # Database utilities wrapping stdlib dbm (open/clos
 template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
 file_utils.py               # File and path utility functions
 url_utils.py                # URL and web utility functions
+urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
 prompt_utils.py             # Prompt utility functions for working with text prompts
 random_utils.py             # Random number generation and sampling utilities
@@ -273,7 +274,7 @@ pdb_utils.py                 # Interactive debugger utilities wrapping stdlib pd
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
 pydoc_data_utils.py          # Documentation topic utilities wrapping stdlib pydoc_data (count_topics, get_topic, get_topic_names, get_topic_section, get_topic_sections, get_topic_title, get_topics, get_topics_subset, has_topic, search_topics, wrap_topic) with input validation
-antigravity_utils.py          # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url)
+antigravity_utils.py         # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url) with input validation
 wsgiref_utils.py              # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
@@ -427,6 +428,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
   test_url_utils.py           # Tests for url_utils.py
+  test_urllib_utils.py        # Tests for urllib_utils.py
   test_utils.py               # Tests for utils.py
   test_uuid_utils.py          # Tests for uuid_utils.py
   test_validation_utils.py    # Tests for validation_utils.py
@@ -460,7 +462,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_ipaddress_utils.py     # Tests for ipaddress_utils.py
     test_pydoc_utils.py          # Tests for pydoc_utils.py
     test_pydoc_data_utils.py     # Tests for pydoc_data_utils.py
-    test_antigravity_utils.py  # Tests for antigravity_utils.py
+    test_antigravity_utils.py    # Tests for antigravity_utils.py
     test_wsgiref_utils.py         # Tests for wsgiref_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
@@ -644,6 +646,10 @@ The project includes file input utilities in `fileinput_utils.py` wrapping the s
 ## URL Utilities Module
 
 The project includes a URL and web utilities module in `url_utils.py` with functions for URL validation and manipulation: `is_valid_url`, `extract_domain`, `get_query_params`, `get_query_param`, `add_query_param`, `remove_query_param`, and `build_url`. The module is tested in `tests/test_url_utils.py`.
+
+## URL Parsing Utilities Module
+
+The project includes URL parsing utilities in `urllib_utils.py` wrapping the standard library `urllib.parse` module: `parse_url` splits a URL into its scheme, netloc, path, parameters, query, and fragment, `build_url` and `urlunsplit` assemble a URL from its components, `urlsplit` splits a URL without separating the parameters, `join_url` resolves a relative reference against a base URL, `quote` and `quote_plus` percent-encode text, `unquote`, `unquote_plus`, and `unquote_to_bytes` decode percent-encoded text, `urlencode` encodes a mapping or a sequence of pairs into a query string, `parse_qs` and `parse_qsl` parse a query string, and `defrag` removes the fragment from a URL. Every helper validates its arguments before the standard library is reached. The module is tested in `tests/test_urllib_utils.py`.
 
 ## Configuration Utilities Module
 
@@ -1558,3 +1564,7 @@ The project includes WSGI utilities in `wsgiref_utils.py` wrapping the standard 
 ## Pydoc Data Utilities Module
 
 The project includes documentation topic utilities in `pydoc_data_utils.py` wrapping the standard library `pydoc_data` package: `get_topics` returns a copy of the topics of the Python Language Reference, `get_topics_subset` returns the topics of the given names, `get_topic` returns the text of a single topic, `get_topic_names` returns the names of the topics, `count_topics` returns the number of the topics, and `has_topic` reports whether a topic exists. The helper `get_topic_title` returns the title of a topic, `get_topic_sections` returns the headings of the sections of a topic, and `get_topic_section` returns the text of a single section. The helper `search_topics` returns the topics that hold a text, and `wrap_topic` returns the text of a topic, wrapped for a terminal. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the network, the file system, or a process. The module is tested in `tests/test_pydoc_data_utils.py`.
+
+## Antigravity Utilities Module
+
+The project includes antigravity utilities in `antigravity_utils.py` wrapping the standard library `antigravity` module: `geohash` returns the geohash of a coordinate with the Munroe algorithm of https://xkcd.com/426/, `fly` opens the XKCD comic about Python in a browser, and `get_xkcd_url` returns the address of the comic. The constant `XKCD_URL` holds the address of the comic as well. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The standard library module opens a browser when it is imported, so the wrapper re-implements the algorithm of the standard library with :mod:`hashlib` instead of importing it, and a browser is only started by `fly`. The module is tested in `tests/test_antigravity_utils.py`.

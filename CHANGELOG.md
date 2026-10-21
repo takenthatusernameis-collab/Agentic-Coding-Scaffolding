@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add `urllib_utils.py` wrapping the standard library `urllib.parse` module (`parse_url`, `build_url`, `urlsplit`, `urlunsplit`, `join_url`, `quote`, `quote_plus`, `unquote`, `unquote_plus`, `unquote_to_bytes`, `urlencode`, `parse_qs`, `parse_qsl`, `defrag`) with input validation, plus unit tests in `tests/test_urllib_utils.py`.
+- Synchronized `urllib_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+
 - Add `antigravity_utils.py` wrapping the standard library `antigravity` module (`geohash`, `fly`, `get_xkcd_url`) with input validation, plus unit tests in `tests/test_antigravity_utils.py`.
 - Synchronized `antigravity_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 

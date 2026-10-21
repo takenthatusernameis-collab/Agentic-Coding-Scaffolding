@@ -108,6 +108,8 @@
 
 #   - url_utils.py — # URL and web utility functions
 
+#   - urllib_utils.py — # URL parsing utilities wrapping stdlib urllib.parse (parse_url, build_url, join_url, quote, unquote, urlencode)
+
 #   - uuid_utils.py — # UUID utility functions for generating and validating UUIDs
 
 #   - prompt_utils.py — # Prompt utility functions for working with text prompts
@@ -628,6 +630,8 @@
 
 #   - test_url_utils.py — # Tests for url_utils.py
 
+#   - test_urllib_utils.py — # Tests for urllib_utils.py
+
 #   - test_utils.py — # Tests for utils.py
 
 #   - test_uuid_utils.py — # Tests for uuid_utils.py
@@ -693,6 +697,7 @@
 #   - pydoc_utils.py — # Documentation utilities wrapping the standard library pydoc module (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
 #   - pydoc_data_utils.py — # Documentation topic utilities wrapping the standard library pydoc_data package (count_topics, get_topic, get_topic_names, get_topic_section, get_topic_sections, get_topic_title, get_topics, get_topics_subset, has_topic, search_topics, wrap_topic) with input validation
 #   - wsgiref_utils.py — # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
+#   - antigravity_utils.py — # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -722,6 +727,7 @@
 #   - tests/test_pydoc_utils.py — # Tests for pydoc_utils.py
 #   - tests/test_pydoc_data_utils.py — # Tests for pydoc_data_utils.py
 #   - tests/test_wsgiref_utils.py — # Tests for wsgiref_utils.py
+#   - tests/test_antigravity_utils.py — # Tests for antigravity_utils.py
 set -euo pipefail
 
 usage() {
@@ -4318,6 +4324,7 @@ py_modules = [
     "dbm_utils",
     "file_utils",
     "url_utils",
+    "urllib_utils",
     "random_utils",
     "re_utils",
     "rlcompleter_utils",
@@ -4529,6 +4536,7 @@ py_modules = [
     "pydoc_utils",
     "pydoc_data_utils",
     "wsgiref_utils",
+    "antigravity_utils",
 ]
 PYPROJECT
 
@@ -28993,6 +29001,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `dbm_utils.py` — database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
 - `file_utils.py` — file and path utility functions
 - `url_utils.py` — URL and web utility functions
+- `urllib_utils.py` — URL parsing utilities wrapping the standard library `urllib.parse` module
 - `uuid_utils.py` — UUID utility functions for generating and validating UUIDs
 - `prompt_utils.py` — Prompt utility functions for working with text prompts
 - `random_utils.py` — random number generation and sampling utilities
@@ -29102,6 +29111,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_dbm_utils.py` — unit tests for `dbm_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
 - `tests/test_url_utils.py` — unit tests for `url_utils.py`
+- `tests/test_urllib_utils.py` — unit tests for `urllib_utils.py`
 - `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
 - `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
 - `tests/test_random_utils.py` — unit tests for `random_utils.py`
@@ -30721,6 +30731,9 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `urllib_utils.py` wrapping the standard library `urllib.parse` module (`parse_url`, `build_url`, `urlsplit`, `urlunsplit`, `join_url`, `quote`, `quote_plus`, `unquote`, `unquote_plus`, `unquote_to_bytes`, `urlencode`, `parse_qs`, `parse_qsl`, `defrag`) with input validation, plus unit tests in `tests/test_urllib_utils.py`.
+- Synchronized `urllib_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+
 - Add `antigravity_utils.py` wrapping the standard library `antigravity` module (`geohash`, `fly`, `get_xkcd_url`) with input validation, plus unit tests in `tests/test_antigravity_utils.py`.
 - Synchronized `antigravity_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 
@@ -31659,6 +31672,7 @@ dbm_utils.py                 # Database utilities wrapping stdlib dbm (open/clos
 template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
 file_utils.py               # File and path utility functions
 url_utils.py                # URL and web utility functions
+urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
 prompt_utils.py             # Prompt utility functions for working with text prompts
 random_utils.py             # Random number generation and sampling utilities
@@ -31875,7 +31889,7 @@ pdb_utils.py                 # Interactive debugger utilities wrapping stdlib pd
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
 pydoc_data_utils.py          # Documentation topic utilities wrapping stdlib pydoc_data (count_topics, get_topic, get_topic_names, get_topic_section, get_topic_sections, get_topic_title, get_topics, get_topics_subset, has_topic, search_topics, wrap_topic) with input validation
-antigravity_utils.py          # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url)
+antigravity_utils.py         # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url) with input validation
 wsgiref_utils.py              # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
@@ -32029,6 +32043,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
   test_url_utils.py           # Tests for url_utils.py
+  test_urllib_utils.py        # Tests for urllib_utils.py
   test_utils.py               # Tests for utils.py
   test_uuid_utils.py          # Tests for uuid_utils.py
   test_validation_utils.py    # Tests for validation_utils.py
@@ -32062,7 +32077,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_ipaddress_utils.py     # Tests for ipaddress_utils.py
     test_pydoc_utils.py          # Tests for pydoc_utils.py
     test_pydoc_data_utils.py     # Tests for pydoc_data_utils.py
-    test_antigravity_utils.py  # Tests for antigravity_utils.py
+    test_antigravity_utils.py    # Tests for antigravity_utils.py
     test_wsgiref_utils.py         # Tests for wsgiref_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
@@ -32246,6 +32261,10 @@ The project includes file input utilities in `fileinput_utils.py` wrapping the s
 ## URL Utilities Module
 
 The project includes a URL and web utilities module in `url_utils.py` with functions for URL validation and manipulation: `is_valid_url`, `extract_domain`, `get_query_params`, `get_query_param`, `add_query_param`, `remove_query_param`, and `build_url`. The module is tested in `tests/test_url_utils.py`.
+
+## URL Parsing Utilities Module
+
+The project includes URL parsing utilities in `urllib_utils.py` wrapping the standard library `urllib.parse` module: `parse_url` splits a URL into its scheme, netloc, path, parameters, query, and fragment, `build_url` and `urlunsplit` assemble a URL from its components, `urlsplit` splits a URL without separating the parameters, `join_url` resolves a relative reference against a base URL, `quote` and `quote_plus` percent-encode text, `unquote`, `unquote_plus`, and `unquote_to_bytes` decode percent-encoded text, `urlencode` encodes a mapping or a sequence of pairs into a query string, `parse_qs` and `parse_qsl` parse a query string, and `defrag` removes the fragment from a URL. Every helper validates its arguments before the standard library is reached. The module is tested in `tests/test_urllib_utils.py`.
 
 ## Configuration Utilities Module
 
@@ -33160,6 +33179,10 @@ The project includes WSGI utilities in `wsgiref_utils.py` wrapping the standard 
 ## Pydoc Data Utilities Module
 
 The project includes documentation topic utilities in `pydoc_data_utils.py` wrapping the standard library `pydoc_data` package: `get_topics` returns a copy of the topics of the Python Language Reference, `get_topics_subset` returns the topics of the given names, `get_topic` returns the text of a single topic, `get_topic_names` returns the names of the topics, `count_topics` returns the number of the topics, and `has_topic` reports whether a topic exists. The helper `get_topic_title` returns the title of a topic, `get_topic_sections` returns the headings of the sections of a topic, and `get_topic_section` returns the text of a single section. The helper `search_topics` returns the topics that hold a text, and `wrap_topic` returns the text of a topic, wrapped for a terminal. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the network, the file system, or a process. The module is tested in `tests/test_pydoc_data_utils.py`.
+
+## Antigravity Utilities Module
+
+The project includes antigravity utilities in `antigravity_utils.py` wrapping the standard library `antigravity` module: `geohash` returns the geohash of a coordinate with the Munroe algorithm of https://xkcd.com/426/, `fly` opens the XKCD comic about Python in a browser, and `get_xkcd_url` returns the address of the comic. The constant `XKCD_URL` holds the address of the comic as well. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The standard library module opens a browser when it is imported, so the wrapper re-implements the algorithm of the standard library with :mod:`hashlib` instead of importing it, and a browser is only started by `fly`. The module is tested in `tests/test_antigravity_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -85263,70 +85286,938 @@ TEST_PYDOC_DATA_UTILS
 
 # --- antigravity_utils.py ---
 cat > "$OUTPUT_DIR/antigravity_utils.py" <<'ANTIGRAVITY_UTILS'
-"""Utilities for the :mod:`antigravity` module."""
+"""Antigravity utilities wrapping the standard library :mod:`antigravity` module.
+
+The standard library module computes the geohash of a coordinate with the
+Munroe algorithm of https://xkcd.com/426/ and opens the XKCD comic about
+Python in a browser.
+
+The standard library module opens a browser when it is imported, so this
+wrapper does not import it: the algorithm of the standard library is
+re-implemented with :mod:`hashlib`, and a browser is only started by
+:func:`fly`.  Every helper validates its arguments before the computation
+starts, so a caller gets a clear :class:`TypeError` or :class:`ValueError`
+instead of an opaque failure.
+
+The module is pure computation, with the single exception of :func:`fly`,
+which asks the browser of the system to open a page.
+"""
 
 from __future__ import annotations
 
-import antigravity as _antigravity
+import hashlib
+import webbrowser
 
-# Re-export the geohash function
-geohash = _antigravity.geohash
+__all__: list[str] = [
+    "XKCD_URL",
+    "fly",
+    "geohash",
+    "get_xkcd_url",
+]
+
+#: The address of the XKCD comic about Python.
+XKCD_URL = "https://xkcd.com/353/"
+
+#: The number of hexadecimal characters of the digest that carry a coordinate.
+_DIGEST_HALF = 16
 
 
-def fly():
-    """Open the XKCD comic about Python."""
-    import webbrowser
+def _require_coordinate(value: object, name: str) -> float:
+    """Return *value* when it is a finite number.
 
-    webbrowser.open("https://xkcd.com/353/")
-    return "https://xkcd.com/353/"
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value, as a float.
+
+    Raises:
+        TypeError: If the value is not a number.
+        ValueError: If the value is not finite.
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"{name} must be an int or a float, got {type(value).__name__}")
+    number = float(value)
+    if number != number or number in (float("inf"), float("-inf")):
+        raise ValueError(f"{name} must be a finite number")
+    return number
+
+
+def _require_datedow(value: object) -> bytes:
+    """Return *value* when it is the bytes the algorithm hashes.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        The bytes to hash.
+
+    Raises:
+        TypeError: If the value is not a bytes object.
+    """
+    if not isinstance(value, bytes):
+        raise TypeError(f"datedow must be bytes, got {type(value).__name__}")
+    return value
+
+
+def _md5_hexdigest(data: bytes) -> str:
+    """Return the hexadecimal digest of *data*.
+
+    The digest is computed for a lookup, never for a security decision, so
+    the call asks the standard library for a digest that is not used for
+    security.  Builds of the standard library that do not know the flag fall
+    back to the plain digest.
+    """
+    try:
+        return hashlib.md5(data, usedforsecurity=False).hexdigest()
+    except (TypeError, ValueError):  # pragma: no cover - depends on the build
+        return hashlib.md5(data).hexdigest()
+
+
+def _fraction(digest: str) -> str:
+    """Return the fraction a digest carries.
+
+    The standard library reads the first half of the digest as a hexadecimal
+    fraction and writes the digits that follow the leading zero.
+    """
+    return ("%f" % float.fromhex("0." + digest))[1:]
+
+
+def geohash(latitude: float, longitude: float, datedow: bytes) -> str:
+    """Return the geohash of a coordinate.
+
+    The geohash is computed with the Munroe algorithm of https://xkcd.com/426/:
+    the digest of *datedow* carries the fractions of the coordinate.
+
+    Args:
+        latitude: The latitude of the coordinate.
+        longitude: The longitude of the coordinate.
+        datedow: The bytes that are hashed to compute the geohash.
+
+    Returns:
+        The geohash of the coordinate, for example ``"37.857713 -122.544543"``.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If a coordinate is not a finite number.
+    """
+    lat = _require_coordinate(latitude, "latitude")
+    lon = _require_coordinate(longitude, "longitude")
+    data = _require_datedow(datedow)
+    digest = _md5_hexdigest(data)
+    first = _fraction(digest[:_DIGEST_HALF])
+    second = _fraction(digest[_DIGEST_HALF:])
+    return f"{int(lat)}{first} {int(lon)}{second}"
 
 
 def get_xkcd_url() -> str:
-    """Return the URL of the XKCD comic about Python."""
-    return "https://xkcd.com/353/"
+    """Return the address of the XKCD comic about Python.
+
+    Returns:
+        The address of the comic.
+    """
+    return XKCD_URL
 
 
-__all__ = ["geohash", "fly", "get_xkcd_url"]
+def fly() -> str:
+    """Open the XKCD comic about Python in a browser.
+
+    The browser of the system is asked to open the page, and the address of
+    the comic is returned, so a caller that only wants the address uses
+    :func:`get_xkcd_url` instead.
+
+    Returns:
+        The address of the comic, the one that was opened.
+    """
+    url = get_xkcd_url()
+    webbrowser.open(url)
+    return url
 ANTIGRAVITY_UTILS
 
 # --- tests/test_antigravity_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_antigravity_utils.py" <<'TEST_ANTIGRAVITY_UTILS'
-"""Tests for antigravity_utils module."""
+"""Tests for antigravity_utils."""
 
+import inspect
+import re
 import unittest
-from unittest import mock
+from unittest.mock import patch
 
 import antigravity_utils
+from antigravity_utils import (
+    XKCD_URL,
+    fly,
+    geohash,
+    get_xkcd_url,
+)
+
+#: The geohash the standard library documents for its example.
+DOCUMENTED_GEOHASH = "37.857713 -122.544543"
+
+#: The bytes the standard library documents for its example.
+DOCUMENTED_DATEDOW = b"2005-05-26-10458.68"
 
 
-class TestAntigravityUtils(unittest.TestCase):
-    def test_geohash_reexported(self):
-        # Test that geohash is properly re-exported
-        result = antigravity_utils.geohash(37.421542, -122.085589, b'2005-05-26-10458.68')
-        # geohash prints, so we need to capture stdout
-        pass
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
 
-    def test_geohash_callable(self):
-        self.assertTrue(callable(antigravity_utils.geohash))
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(antigravity_utils.__all__, sorted(set(antigravity_utils.__all__)))
 
-    def test_fly_opens_browser(self):
-        with mock.patch('webbrowser.open') as mock_open:
-            result = antigravity_utils.fly()
-            mock_open.assert_called_once_with("https://xkcd.com/353/")
-            self.assertEqual(result, "https://xkcd.com/353/")
+    def test_every_name_exists(self):
+        for name in antigravity_utils.__all__:
+            self.assertTrue(hasattr(antigravity_utils, name), name)
 
-    def test_get_xkcd_url(self):
-        self.assertEqual(antigravity_utils.get_xkcd_url(), "https://xkcd.com/353/")
-
-    def test_all_exports(self):
-        self.assertIn('geohash', antigravity_utils.__all__)
-        self.assertIn('fly', antigravity_utils.__all__)
-        self.assertIn('get_xkcd_url', antigravity_utils.__all__)
+    def test_the_standard_library_module_is_not_imported(self):
+        """The standard library module opens a browser when it is imported."""
+        source = inspect.getsource(antigravity_utils)
+        self.assertIsNone(re.search(r"^\s*import\s+antigravity\b", source, re.MULTILINE))
 
 
-if __name__ == '__main__':
+class TestGeohash(unittest.TestCase):
+    """Verify the computation of the geohash."""
+
+    def test_the_documented_geohash_is_computed(self):
+        self.assertEqual(
+            geohash(37.421542, -122.085589, DOCUMENTED_DATEDOW),
+            DOCUMENTED_GEOHASH,
+        )
+
+    def test_the_geohash_holds_the_integer_parts_of_the_coordinates(self):
+        result = geohash(-12, 34, DOCUMENTED_DATEDOW)
+        latitude, longitude = result.split(" ")
+        self.assertTrue(latitude.startswith("-12"))
+        self.assertTrue(longitude.startswith("34"))
+
+    def test_the_fractions_are_six_digits_long(self):
+        result = geohash(37.421542, -122.085589, DOCUMENTED_DATEDOW)
+        latitude, longitude = result.split(" ")
+        self.assertEqual(len(latitude.split(".")[1]), 6)
+        self.assertEqual(len(longitude.split(".")[1]), 6)
+
+    def test_the_geohash_depends_on_the_bytes(self):
+        first = geohash(37.421542, -122.085589, b"2005-05-26-10458.68")
+        second = geohash(37.421542, -122.085589, b"2005-05-26-10458.69")
+        self.assertNotEqual(first, second)
+
+    def test_integers_are_accepted(self):
+        self.assertEqual(
+            geohash(37, -122, DOCUMENTED_DATEDOW),
+            geohash(37.0, -122.0, DOCUMENTED_DATEDOW),
+        )
+
+    def test_a_latitude_that_is_not_a_number_is_rejected(self):
+        with self.assertRaises(TypeError):
+            geohash("37.421542", -122.085589, DOCUMENTED_DATEDOW)
+        with self.assertRaises(TypeError):
+            geohash(None, -122.085589, DOCUMENTED_DATEDOW)
+        with self.assertRaises(TypeError):
+            geohash(True, -122.085589, DOCUMENTED_DATEDOW)
+
+    def test_a_longitude_that_is_not_a_number_is_rejected(self):
+        with self.assertRaises(TypeError):
+            geohash(37.421542, "-122.085589", DOCUMENTED_DATEDOW)
+        with self.assertRaises(TypeError):
+            geohash(37.421542, None, DOCUMENTED_DATEDOW)
+        with self.assertRaises(TypeError):
+            geohash(37.421542, False, DOCUMENTED_DATEDOW)
+
+    def test_a_coordinate_that_is_not_finite_is_rejected(self):
+        with self.assertRaises(ValueError):
+            geohash(float("nan"), -122.085589, DOCUMENTED_DATEDOW)
+        with self.assertRaises(ValueError):
+            geohash(37.421542, float("inf"), DOCUMENTED_DATEDOW)
+        with self.assertRaises(ValueError):
+            geohash(float("-inf"), -122.085589, DOCUMENTED_DATEDOW)
+
+    def test_bytes_that_are_not_bytes_are_rejected(self):
+        with self.assertRaises(TypeError):
+            geohash(37.421542, -122.085589, "2005-05-26-10458.68")
+        with self.assertRaises(TypeError):
+            geohash(37.421542, -122.085589, None)
+
+
+class TestXkcdComic(unittest.TestCase):
+    """Verify the helpers that open the comic about Python."""
+
+    def test_the_address_of_the_comic_is_returned(self):
+        self.assertEqual(get_xkcd_url(), "https://xkcd.com/353/")
+
+    def test_the_constant_holds_the_address_of_the_comic(self):
+        self.assertEqual(XKCD_URL, get_xkcd_url())
+
+    @patch("webbrowser.open")
+    def test_the_comic_is_opened_in_a_browser(self, mock_open):
+        self.assertEqual(fly(), "https://xkcd.com/353/")
+        mock_open.assert_called_once_with("https://xkcd.com/353/")
+
+
+if __name__ == "__main__":
     unittest.main()
 TEST_ANTIGRAVITY_UTILS
+
+# --- urllib_utils.py ---
+cat > "$OUTPUT_DIR/urllib_utils.py" <<'URLLIB_UTILS'
+"""URL parsing utilities wrapping the standard library :mod:`urllib.parse` module.
+
+The :mod:`urllib.parse` module takes URLs apart and puts them back together:
+it splits a URL into its scheme, netloc, path, parameters, query, and fragment,
+joins a base URL with a relative reference, and percent-encodes and decodes
+query strings and form data.
+
+Every helper validates its arguments before the standard library is reached, so
+a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of an
+opaque failure.  The wrappers are pure computation: they never open a network
+connection.
+"""
+
+from __future__ import annotations
+
+import urllib.parse as _urllib_parse
+from typing import Any, Mapping, Optional, Sequence, Tuple, Union, cast
+
+__all__: list[str] = [
+    "defrag",
+    "join_url",
+    "parse_qs",
+    "parse_qsl",
+    "parse_url",
+    "quote",
+    "quote_plus",
+    "unquote",
+    "unquote_plus",
+    "unquote_to_bytes",
+    "urlencode",
+    "urlsplit",
+    "urlunsplit",
+]
+
+#: The characters that :func:`quote` leaves untouched by default.
+_DEFAULT_SAFE = "/"
+
+#: The encoding used to turn text into bytes before percent-encoding.
+_DEFAULT_ENCODING = "utf-8"
+
+
+def _require_str(value: object, name: str) -> str:
+    """Return *value* when it is a string.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The string value.
+
+    Raises:
+        TypeError: If the value is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_mapping_or_pairs(
+    value: object, name: str
+) -> Union[Mapping[str, Any], Sequence[Tuple[str, Any]]]:
+    """Return *value* when it is a mapping or a sequence of pairs.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value unchanged.
+
+    Raises:
+        TypeError: If the value is not a mapping or a sequence of pairs.
+    """
+    if isinstance(value, (str, bytes)):
+        raise TypeError(f"{name} must be a mapping or a sequence of pairs, not a single string")
+    if isinstance(value, Mapping):
+        return value
+    if isinstance(value, Sequence):
+        for entry in value:
+            if not isinstance(entry, (tuple, list)) or len(entry) != 2:
+                raise TypeError(f"{name} entries must be pairs of two items, got {entry!r}")
+            key, item = entry
+            if not isinstance(key, str):
+                raise TypeError(f"{name} keys must be strings, got {type(key).__name__}")
+        return value
+    raise TypeError(f"{name} must be a mapping or a sequence of pairs, got {type(value).__name__}")
+
+
+def parse_url(url: str) -> _urllib_parse.ParseResult:
+    """Split a URL into its components.
+
+    Args:
+        url: The URL to split.
+
+    Returns:
+        The parsed components of the URL.
+
+    Raises:
+        TypeError: If *url* is not a string.
+    """
+    _require_str(url, "url")
+    return _urllib_parse.urlparse(url)
+
+
+def build_url(components: Sequence[str]) -> str:
+    """Build a URL from its components.
+
+    Args:
+        components: The scheme, netloc, path, parameters, query, and fragment
+            of the URL.
+
+    Returns:
+        The assembled URL.
+
+    Raises:
+        TypeError: If *components* is not a sequence of strings.
+        ValueError: If *components* does not hold exactly six items.
+    """
+    if isinstance(components, str):
+        raise TypeError("components must be a sequence of strings, not a single string")
+    if not isinstance(components, (list, tuple)) or len(components) != 6:
+        raise ValueError("components must hold exactly six items")
+    for index, item in enumerate(components):
+        if not isinstance(item, str):
+            raise TypeError(f"components entry {index} must be a str, got {type(item).__name__}")
+    return cast(str, _urllib_parse.urlunparse(tuple(components)))
+
+
+def urlsplit(url: str) -> _urllib_parse.SplitResult:
+    """Split a URL into its components without separating the parameters.
+
+    Args:
+        url: The URL to split.
+
+    Returns:
+        The split components of the URL.
+
+    Raises:
+        TypeError: If *url* is not a string.
+    """
+    _require_str(url, "url")
+    return _urllib_parse.urlsplit(url)
+
+
+def urlunsplit(components: Sequence[str]) -> str:
+    """Build a URL from its split components.
+
+    Args:
+        components: The scheme, netloc, path, query, and fragment of the URL.
+
+    Returns:
+        The assembled URL.
+
+    Raises:
+        TypeError: If *components* is not a sequence of strings.
+        ValueError: If *components* does not hold exactly five items.
+    """
+    if isinstance(components, str):
+        raise TypeError("components must be a sequence of strings, not a single string")
+    if not isinstance(components, (list, tuple)) or len(components) != 5:
+        raise ValueError("components must hold exactly five items")
+    for index, item in enumerate(components):
+        if not isinstance(item, str):
+            raise TypeError(f"components entry {index} must be a str, got {type(item).__name__}")
+    return cast(str, _urllib_parse.urlunsplit(tuple(components)))
+
+
+def join_url(base: str, url: str) -> str:
+    """Join a base URL with a relative URL.
+
+    Args:
+        base: The base URL.
+        url: The relative URL to resolve against the base.
+
+    Returns:
+        The absolute URL.
+
+    Raises:
+        TypeError: If an argument is not a string.
+    """
+    base_text = _require_str(base, "base")
+    url_text = _require_str(url, "url")
+    return _urllib_parse.urljoin(base_text, url_text)
+
+
+def quote(
+    text: str,
+    safe: str = _DEFAULT_SAFE,
+    encoding: str = _DEFAULT_ENCODING,
+    errors: str = "replace",
+) -> str:
+    """Percent-encode a string.
+
+    Args:
+        text: The string to encode.
+        safe: The ASCII characters that should never be encoded.
+        encoding: The encoding used to turn the string into bytes.
+        errors: The error handler used when encoding the string.
+
+    Returns:
+        The percent-encoded string.
+
+    Raises:
+        TypeError: If *text* or *safe* is not a string.
+    """
+    text_value = _require_str(text, "text")
+    safe_value = _require_str(safe, "safe")
+    return _urllib_parse.quote(text_value, safe=safe_value, encoding=encoding, errors=errors)
+
+
+def quote_plus(
+    text: str,
+    safe: str = "",
+    encoding: str = _DEFAULT_ENCODING,
+    errors: str = "replace",
+) -> str:
+    """Percent-encode a string, replacing spaces with plus signs.
+
+    Args:
+        text: The string to encode.
+        safe: The ASCII characters that should never be encoded.
+        encoding: The encoding used to turn the string into bytes.
+        errors: The error handler used when encoding the string.
+
+    Returns:
+        The percent-encoded string.
+
+    Raises:
+        TypeError: If *text* or *safe* is not a string.
+    """
+    text_value = _require_str(text, "text")
+    safe_value = _require_str(safe, "safe")
+    return _urllib_parse.quote_plus(text_value, safe=safe_value, encoding=encoding, errors=errors)
+
+
+def unquote(text: str, encoding: str = _DEFAULT_ENCODING, errors: str = "replace") -> str:
+    """Decode a percent-encoded string.
+
+    Args:
+        text: The string to decode.
+        encoding: The encoding used to turn bytes back into text.
+        errors: The error handler used when decoding the bytes.
+
+    Returns:
+        The decoded string.
+
+    Raises:
+        TypeError: If *text* is not a string.
+    """
+    _require_str(text, "text")
+    return _urllib_parse.unquote(text, encoding=encoding, errors=errors)
+
+
+def unquote_plus(text: str, encoding: str = _DEFAULT_ENCODING, errors: str = "replace") -> str:
+    """Decode a percent-encoded string, turning plus signs into spaces.
+
+    Args:
+        text: The string to decode.
+        encoding: The encoding used to turn bytes back into text.
+        errors: The error handler used when decoding the bytes.
+
+    Returns:
+        The decoded string.
+
+    Raises:
+        TypeError: If *text* is not a string.
+    """
+    _require_str(text, "text")
+    return _urllib_parse.unquote_plus(text, encoding=encoding, errors=errors)
+
+
+def unquote_to_bytes(text: str) -> bytes:
+    """Decode a percent-encoded string into bytes.
+
+    Args:
+        text: The string to decode.
+
+    Returns:
+        The decoded bytes.
+
+    Raises:
+        TypeError: If *text* is not a string.
+    """
+    _require_str(text, "text")
+    return _urllib_parse.unquote_to_bytes(text)
+
+
+def urlencode(
+    query: Union[Mapping[str, Any], Sequence[Tuple[str, Any]]],
+    doseq: bool = False,
+    safe: str = "",
+    encoding: Optional[str] = None,
+    errors: Optional[str] = None,
+) -> str:
+    """Encode a mapping or a sequence of pairs into a query string.
+
+    Args:
+        query: The mapping or sequence of pairs to encode.
+        doseq: Whether to encode sequences of values as repeated keys.
+        safe: The ASCII characters that should never be encoded.
+        encoding: The encoding used to turn text into bytes.
+        errors: The error handler used when encoding text.
+
+    Returns:
+        The encoded query string.
+
+    Raises:
+        TypeError: If *query* or *safe* is not of the expected type.
+    """
+    resolved = _require_mapping_or_pairs(query, "query")
+    _require_str(safe, "safe")
+    return _urllib_parse.urlencode(
+        resolved, doseq=doseq, safe=safe, encoding=encoding, errors=errors
+    )
+
+
+def parse_qs(qs: str, **kwargs: Any) -> dict[str, list[Any]]:
+    """Parse a query string into a mapping of names to lists of values.
+
+    Args:
+        qs: The query string to parse.
+        kwargs: Additional options forwarded to the standard library.
+
+    Returns:
+        A mapping of names to lists of values.
+
+    Raises:
+        TypeError: If *qs* is not a string.
+    """
+    _require_str(qs, "qs")
+    return _urllib_parse.parse_qs(qs, **kwargs)
+
+
+def parse_qsl(qs: str, **kwargs: Any) -> list[tuple[str, str]]:
+    """Parse a query string into a list of name/value pairs.
+
+    Args:
+        qs: The query string to parse.
+        kwargs: Additional options forwarded to the standard library.
+
+    Returns:
+        A list of name/value pairs.
+
+    Raises:
+        TypeError: If *qs* is not a string.
+    """
+    _require_str(qs, "qs")
+    return _urllib_parse.parse_qsl(qs, **kwargs)
+
+
+def defrag(url: str) -> Tuple[str, Optional[str]]:
+    """Remove the fragment from a URL.
+
+    Args:
+        url: The URL to defragment.
+
+    Returns:
+        The URL without its fragment and the fragment itself, or ``None`` when
+        the URL has no fragment.
+
+    Raises:
+        TypeError: If *url* is not a string.
+    """
+    _require_str(url, "url")
+    result = _urllib_parse.urldefrag(url)
+    fragment: Optional[str] = result.fragment if result.fragment else None
+    return result.url, fragment
+URLLIB_UTILS
+
+# --- tests/test_urllib_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_urllib_utils.py" <<'TEST_URLLIB_UTILS'
+"""Tests for urllib_utils."""
+
+import unittest
+from urllib import parse as _urllib_parse
+
+import urllib_utils
+from urllib_utils import (
+    build_url,
+    defrag,
+    join_url,
+    parse_qs,
+    parse_qsl,
+    parse_url,
+    quote,
+    quote_plus,
+    unquote,
+    unquote_plus,
+    unquote_to_bytes,
+    urlencode,
+    urlsplit,
+    urlunsplit,
+)
+
+
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(urllib_utils.__all__, sorted(set(urllib_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in urllib_utils.__all__:
+            self.assertTrue(hasattr(urllib_utils, name), name)
+
+
+class TestParseUrl(unittest.TestCase):
+    """Verify parsing a URL into its components."""
+
+    def test_parse_url_matches_the_standard_library(self):
+        self.assertEqual(parse_url("https://example.com:8080/path;params?q=1#frag"), _urllib_parse.urlparse("https://example.com:8080/path;params?q=1#frag"))
+
+    def test_parse_url_reports_the_components(self):
+        result = parse_url("https://user:pass@example.com:8080/path;params?key=value#fragment")
+        self.assertEqual(result.scheme, "https")
+        self.assertEqual(result.netloc, "user:pass@example.com:8080")
+        self.assertEqual(result.path, "/path")
+        self.assertEqual(result.params, "params")
+        self.assertEqual(result.query, "key=value")
+        self.assertEqual(result.fragment, "fragment")
+
+    def test_parse_url_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            parse_url(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            parse_url(None)  # type: ignore[arg-type]
+
+
+class TestBuildUrl(unittest.TestCase):
+    """Verify building a URL from its components."""
+
+    def test_build_url_matches_the_standard_library(self):
+        components = ["https", "example.com", "/path", "params", "q=1", "frag"]
+        self.assertEqual(build_url(components), _urllib_parse.urlunparse(components))
+
+    def test_build_url_accepts_a_tuple(self):
+        self.assertEqual(
+            build_url(("https", "example.com", "/path", "", "q=1", "")),
+            "https://example.com/path?q=1",
+        )
+
+    def test_build_url_rejects_a_single_string(self):
+        with self.assertRaises(TypeError):
+            build_url("https://example.com")  # type: ignore[arg-type]
+
+    def test_build_url_rejects_the_wrong_number_of_components(self):
+        with self.assertRaises(ValueError):
+            build_url(["https", "example.com", "/path"])
+        with self.assertRaises(ValueError):
+            build_url(["https", "example.com", "/path", "", "q=1", "frag", "extra"])
+
+    def test_build_url_rejects_a_non_string_component(self):
+        with self.assertRaises(TypeError):
+            build_url(["https", "example.com", "/path", "", "q=1", 42])  # type: ignore[list-item]
+
+
+class TestUrlsplit(unittest.TestCase):
+    """Verify splitting a URL without separating the parameters."""
+
+    def test_urlsplit_matches_the_standard_library(self):
+        self.assertEqual(urlsplit("https://example.com/path;params?q=1#frag"), _urllib_parse.urlsplit("https://example.com/path;params?q=1#frag"))
+
+    def test_urlsplit_reports_the_components(self):
+        result = urlsplit("https://example.com/path?q=1#frag")
+        self.assertEqual(result.scheme, "https")
+        self.assertEqual(result.netloc, "example.com")
+        self.assertEqual(result.path, "/path")
+        self.assertEqual(result.query, "q=1")
+        self.assertEqual(result.fragment, "frag")
+
+    def test_urlsplit_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            urlsplit(None)  # type: ignore[arg-type]
+
+
+class TestUrlunsplit(unittest.TestCase):
+    """Verify building a URL from its split components."""
+
+    def test_urlunsplit_matches_the_standard_library(self):
+        components = ["https", "example.com", "/path", "q=1", "frag"]
+        self.assertEqual(urlunsplit(components), _urllib_parse.urlunsplit(components))
+
+    def test_urlunsplit_rejects_the_wrong_number_of_components(self):
+        with self.assertRaises(ValueError):
+            urlunsplit(["https", "example.com", "/path"])
+
+
+class TestJoinUrl(unittest.TestCase):
+    """Verify joining a base URL with a relative URL."""
+
+    def test_join_url_resolves_a_relative_reference(self):
+        self.assertEqual(
+            join_url("https://example.com/base/", "extra"),
+            _urllib_parse.urljoin("https://example.com/base/", "extra"),
+        )
+
+    def test_join_url_ignores_the_base_for_an_absolute_url(self):
+        self.assertEqual(
+            join_url("https://example.com/base/", "https://other.com/absolute"),
+            "https://other.com/absolute",
+        )
+
+    def test_join_url_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            join_url(42, "extra")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            join_url("https://example.com/", None)  # type: ignore[arg-type]
+
+
+class TestQuote(unittest.TestCase):
+    """Verify percent-encoding a string."""
+
+    def test_quote_matches_the_standard_library(self):
+        self.assertEqual(quote("/a b/c"), _urllib_parse.quote("/a b/c"))
+        self.assertEqual(quote("a&b=c"), _urllib_parse.quote("a&b=c"))
+
+    def test_quote_leaves_the_safe_characters_untouched(self):
+        self.assertEqual(quote("/a b/c", safe="/"), "/a%20b/c")
+
+    def test_quote_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            quote(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            quote("a b", safe=42)  # type: ignore[arg-type]
+
+
+class TestQuotePlus(unittest.TestCase):
+    """Verify percent-encoding a string with plus signs for spaces."""
+
+    def test_quote_plus_matches_the_standard_library(self):
+        self.assertEqual(quote_plus("a b c"), _urllib_parse.quote_plus("a b c"))
+
+    def test_quote_plus_replaces_spaces_with_plus_signs(self):
+        self.assertEqual(quote_plus("a b c"), "a+b+c")
+
+    def test_quote_plus_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            quote_plus(None)  # type: ignore[arg-type]
+
+
+class TestUnquote(unittest.TestCase):
+    """Verifying decoding a percent-encoded string."""
+
+    def test_unquote_matches_the_standard_library(self):
+        self.assertEqual(unquote("/a%20b/c"), _urllib_parse.unquote("/a%20b/c"))
+
+    def test_unquote_decodes_percent_encoded_text(self):
+        self.assertEqual(unquote("a%20b%20c"), "a b c")
+
+    def test_unquote_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            unquote(42)  # type: ignore[arg-type]
+
+
+class TestUnquotePlus(unittest.TestCase):
+    """Verify decoding a percent-encoded string with plus signs as spaces."""
+
+    def test_unquote_plus_matches_the_standard_library(self):
+        self.assertEqual(unquote_plus("a+b+c"), _urllib_parse.unquote_plus("a+b+c"))
+
+    def test_unquote_plus_turns_plus_signs_into_spaces(self):
+        self.assertEqual(unquote_plus("a+b+c"), "a b c")
+
+    def test_unquote_plus_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            unquote_plus(None)  # type: ignore[arg-type]
+
+
+class TestUnquoteToBytes(unittest.TestCase):
+    """Verify decoding a percent-encoded string into bytes."""
+
+    def test_unquote_to_bytes_matches_the_standard_library(self):
+        self.assertEqual(unquote_to_bytes("a%20b"), _urllib_parse.unquote_to_bytes("a%20b"))
+
+    def test_unquote_to_bytes_returns_bytes(self):
+        self.assertIsInstance(unquote_to_bytes("a%20b"), bytes)
+
+    def test_unquote_to_bytes_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            unquote_to_bytes(42)  # type: ignore[arg-type]
+
+
+class TestUrlencode(unittest.TestCase):
+    """Verify encoding a query into a string."""
+
+    def test_urlencode_matches_the_standard_library(self):
+        self.assertEqual(
+            urlencode({"q": "a b", "n": 1}), _urllib_parse.urlencode({"q": "a b", "n": 1})
+        )
+        self.assertEqual(
+            urlencode([("q", "a b"), ("n", "1")]),
+            _urllib_parse.urlencode([("q", "a b"), ("n", "1")]),
+        )
+
+    def test_urlencode_encodes_spaces_as_plus_signs_by_default(self):
+        self.assertEqual(urlencode({"q": "a b"}), "q=a+b")
+
+    def test_urlencode_accepts_a_sequence_of_pairs(self):
+        self.assertEqual(urlencode([("a", "1"), ("b", "2")]), "a=1&b=2")
+
+    def test_urlencode_rejects_bad_arguments(self):
+        with self.assertRaises(TypeError):
+            urlencode("a=1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            urlencode({"a": 1}, safe=42)  # type: ignore[arg-type]
+
+
+class TestParseQs(unittest.TestCase):
+    """Verify parsing a query string into names and lists of values."""
+
+    def test_parse_qs_matches_the_standard_library(self):
+        self.assertEqual(parse_qs("a=1&b=2&a=3"), _urllib_parse.parse_qs("a=1&b=2&a=3"))
+
+    def test_parse_qs_returns_lists_of_values(self):
+        self.assertEqual(parse_qs("a=1&a=2&b=3"), {"a": ["1", "2"], "b": ["3"]})
+
+    def test_parse_qs_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            parse_qs(42)  # type: ignore[arg-type]
+
+
+class TestParseQsl(unittest.TestCase):
+    """Verify parsing a query string into name/value pairs."""
+
+    def test_parse_qsl_matches_the_standard_library(self):
+        self.assertEqual(parse_qsl("a=1&b=2"), _urllib_parse.parse_qsl("a=1&b=2"))
+
+    def test_parse_qsl_returns_pairs(self):
+        self.assertEqual(parse_qsl("a=1&a=2&b=3"), [("a", "1"), ("a", "2"), ("b", "3")])
+
+    def test_parse_qsl_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            parse_qsl(None)  # type: ignore[arg-type]
+
+
+class TestDefrag(unittest.TestCase):
+    """Verify removing the fragment from a URL."""
+
+    def test_defrag_matches_the_standard_library(self):
+        self.assertEqual(defrag("https://example.com/path#frag"), _urllib_parse.urldefrag("https://example.com/path#frag"))
+
+    def test_defrag_returns_the_url_and_the_fragment(self):
+        self.assertEqual(
+            defrag("https://example.com/path#frag"),
+            ("https://example.com/path", "frag"),
+        )
+
+    def test_defrag_returns_none_for_a_missing_fragment(self):
+        self.assertEqual(defrag("https://example.com/path"), ("https://example.com/path", None))
+
+    def test_defrag_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            defrag(42)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_URLLIB_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
