@@ -1,85 +1,48 @@
-## Latest Session (2026-10-21) — readline_utils finished and synchronized across every surface
+## Latest Session (2026-10-21) — pyexpat_utils finished and synchronized across every surface
 
-The board held no task, so this session finished the readline wrapper module that the previous
-session had started and synchronized it across every surface of the project.
+The board held no task, so this session recorded the `pyexpat_utils` wrapper module that the
+previous checkpoint session had added, and synchronized it across every surface of the project.
 
 Completed in the latest session:
 
-- The previous session left `readline_utils.py` and `tests/test_readline_utils.py` in the working
-  tree and had already synchronized `scaffold.sh`, `pyproject.toml`, the README,
-  `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and `CHANGELOG.md`, but it never
-  committed the work and it never wrote the status of the project. This session verified the work
-  instead of rewriting it: the module is written against the real interface of the standard
-  library, the copies of the generator are in sync, and the suite, the linter, and the type checker
-  are green.
-- Verified the semantics of the standard library against the interpreter of the CI:
-  `readline.get_history_item` reads an entry by its one-based position, while
-  `readline.remove_history_item` and `readline.replace_history_item` work on a zero-based position.
-  The wrapper numbers every position the same way, with the one-based number, so a position that
-  can be read can also be removed and replaced.
-- Removed the unused constant `_DEFAULT_DELIMITERS` from `tests/test_readline_utils.py`. It was the
-  only dead module level constant in the tests of the project.
-- Verified that a scaffolded project is still a faithful copy: the generated tree ships
-  `readline_utils.py` and `tests/test_readline_utils.py`, both byte identical to the repository
-  copies, and the 50 tests of the module pass inside the generated project.
-- The repository suite now runs 4688 tests, and `make lint` and `make typecheck` are green.
+- `pyexpat_utils.py` wrapping the standard library `pyexpat` module (`ParserCreate`, `ExpatError`,
+  `parse`, `parse_text`, `parse_file`, `error_string`, `version_info`, `is_available`,
+  `ErrorPosition`, `CurrentPosition`, `set_base`, `get_base`, `set_param_entity_parsing`,
+  `external_entity_parser`, `set_start_element_handler`, `set_end_element_handler`,
+  `set_character_data_handler`, `set_processing_instruction_handler`, `attribute_mapping`) with
+  typed signatures, Google style docstrings, a sorted and unique `__all__`, and input validation,
+  plus unit tests in `tests/test_pyexpat_utils.py`. The exception `ExpatError` and the factory
+  `ParserCreate` are re-exported.
+- The wrapper adds the conveniences the standard library leaves to the caller: the parser is
+  created with the expat options behind one validated call, a document is parsed from text or from
+  a file behind one helper that names the file it reads, the attributes of an element are returned
+  as a mapping, and the parser reports the position of an error as one record instead of three
+  calls.
+- The test suite is hermetic: every XML document is written to a temporary directory the test owns,
+  and the standard library is patched for the validation and degradation tests, so the suite needs
+  no network and no filesystem outside its own temporary directories.
+- Synchronized the new module across every surface: the `py_modules` list of `pyproject.toml`, the
+  `scaffold.sh` header comment, the module and test heredocs of the generator, the embedded
+  `pyproject.toml`, the embedded README tree and module section, the embedded CHANGELOG, the README
+  tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py`
+  assertions, and `CHANGELOG.md`.
+- Verified the work before it is committed: `make test`, `make lint`, and `make typecheck` are
+  green; `python tools/refresh_scaffold.py --check` reports that all embedded copies are in sync.
+- The repository suite now runs 4975 tests, and `make lint` and `make typecheck` are green.
 
 Next Planned:
 
-- Add the next stdlib wrapper module: `pyexpat_utils.py`, wrapping the standard library `pyexpat`
-  module, the binding of the expat parser that is importable as `pyexpat` and as
-  `xml.parsers.expat`. It is the natural next candidate: it ships with the interpreter of the CI on
-  every platform, it is not deprecated, and it was not removed in Python 3.13. The public standard
-  library modules that still lack a wrapper are `aifc`, `builtins`, `cgi`, `cgitb`, `chunk`,
-  `crypt`, `idlelib`, `imghdr`, `lib2to3`, `msilib`, `msvcrt`, `nis`, `nntplib`, `ossaudiodev`,
-  `pipes`, `posix`, `pyexpat`, `sndhdr`, `spwd`, `sre_compile`, `sre_constants`, `sre_parse`,
-  `sunau`, `telnetlib`, `tkinter`, `turtle`, `turtledemo`, `winreg`, and `winsound`. Most of them
-  were removed in Python 3.13 as part of :pep:`594`, and the ones that remain are either platform
-  specific (`msvcrt`, `winreg`, `winsound`, `spwd`, `nis`, `posix`, `ossaudiodev`) or need a
-  graphical toolkit that the interpreter of the CI does not ship (`tkinter`, `idlelib`, `turtle`,
-  `turtledemo`). The `builtins` module is the alternative: it ships with every interpreter, and its
-  helpers are pure computation apart from the ones that read or write a file.
-- Write the module in the conventions of the existing wrappers: typed signatures, Google style
-  docstrings, an `__all__` that is sorted and unique, and input validation that raises
-  `TypeError` or `ValueError` before the standard library is reached. `readline_utils.py` and
-  `ensurepip_utils.py` are the reference. The standard library offers `ParserCreate`,
-  `ErrorString`, `ExpatError`, `version_info`, `EXPAT_VERSION`, the `XML_PARAM_ENTITY_PARSING_*`
-  constants, and a `Parser` with 46 methods, among them `Parse`, `ParseFile`, `SetBase`,
-  `GetBase`, `SetParamEntityParsing`, `CurrentByteIndex`, `CurrentLineNumber`,
-  `CurrentColumnNumber`, `ErrorCode`, `ErrorLineNumber`, `ErrorColumnNumber`,
-  `GetIdAttributeIndex`, `GetSpecifiedAttributeCount`, `GetAttributeInfo`, the `*Handler`
-  setters, and `ExternalEntityParserCreate`. Wrap a useful subset of them and re-export
-  `ExpatError` and `ParserCreate`.
-- Add the conveniences the standard library leaves to the caller, in the spirit of the other
-  wrappers: the parser reports the position of an error as one record instead of three calls, the
-  attributes of an element are returned as a mapping, the parser is created with the options of
-  expat behind one validated call, and a document is parsed from text or from a file behind one
-  helper that names the file it reads.
-- Keep every new wrapper hermetic: the test suite must never open a network connection, install a
-  package, write to a system service, or block on a subprocess. `imaplib_utils.py` is the reference
-  — its connection helpers are exercised with `unittest.mock.patch` instead of real servers,
-  `smtplib_utils.py` replays scripted server replies through a fake socket, `xmlrpc_utils.py` patches
-  its server helpers, and `syslog_utils.py` patches every call into the system logger.
-  `readline_utils.py` follows the rule as well: the helpers that touch a file only touch the file
-  they are given, so the tests create every file in a temporary directory of their own and the suite
-  never reads the history file of the user. The tests of `pyexpat_utils.py` must only parse
-  documents the test itself writes in a temporary directory it owns.
-- Synchronize the new module across every surface: the `py_modules` list of `pyproject.toml`, the
-  header comment of `scaffold.sh`, the module and test heredocs of the generator, the embedded
-  `pyproject.toml`, the embedded README tree and module section, the embedded CHANGELOG, the
-  README tree and module section, `.kilo/command/scaffold-project.md`, the three assertion lists
-  of `tests/test_scaffold.py`, `CHANGELOG.md`, and this file. This is the step that broke in the
-  earlier sessions, so do all of it. After editing a file that `scaffold.sh` embeds, run
-  `make refresh-scaffold` so the embedded copies stay byte identical, and
-  `python tools/refresh_scaffold.py --check` to prove they are in sync. The header comment of the
-  generator, the embedded `pyproject.toml`, the README tree, and the changelog are maintained by
-  hand.
-- Verify the work before it is committed: `make test`, `make lint`, and `make typecheck` are green;
-  `./scaffold.sh demo-project <tmpdir>` generates a project that ships `pyexpat_utils.py` and
-  `tests/test_pyexpat_utils.py`, byte identical to the repository copies, and its tests pass;
-  `python tools/refresh_scaffold.py --check` reports that all embedded copies are in sync.
-- Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new
-  module must not reintroduce any drift.
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `builtins`, `cgi`, `cgitb`, `chunk`, `crypt`, `idlelib`, `imghdr`, `lib2to3`,
+  `msilib`, `msvcrt`, `nis`, `nntplib`, `ossaudiodev`, `pipes`, `posix`, `sndhdr`, `spwd`,
+  `sre_compile`, `sre_constants`, `sre_parse`, `sunau`, `telnetlib`, `tkinter`, `turtle`,
+  `turtledemo`, `winreg`, and `winsound`. Most of them were removed in Python 3.13 as part of
+  :pep:`594`, and the ones that remain are either platform specific (`msvcrt`, `winreg`, `winsound`,
+  `spwd`, `nis`, `posix`, `ossaudiodev`) or need a graphical toolkit that the interpreter of the CI
+  does not ship (`tkinter`, `idlelib`, `turtle`, `turtledemo`). The `builtins` module is the
+  alternative: it ships with every interpreter, and its helpers are pure computation apart from the
+  ones that read or write a file.
+- Keep every new wrapper hermetic and keep `make lint` and `make typecheck` green.
 
 ## Previous Session (2026-10-21) — ensurepip_utils added, the interrupted audioop handover repaired
 
