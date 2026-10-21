@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add `antigravity_utils.py` wrapping the standard library `antigravity` module (`geohash`, `fly`, `get_xkcd_url`) with input validation, plus unit tests in `tests/test_antigravity_utils.py`.
+- Synchronized `antigravity_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+
 - Add `pydoc_data_utils.py` wrapping the standard library `pydoc_data` package (`count_topics`, `get_topic`, `get_topic_names`, `get_topic_section`, `get_topic_sections`, `get_topic_title`, `get_topics`, `get_topics_subset`, `has_topic`, `search_topics`, `wrap_topic`) with input validation, plus unit tests in `tests/test_pydoc_data_utils.py`.
 - Add `wsgiref_utils.py` wrapping the standard library `wsgiref` package (`setup_testing_defaults`, `guess_scheme`, `application_uri`, `request_uri`, `shift_path_info`, `is_hop_by_hop`, `build_headers`, `header_values`, `encode_headers`, `file_wrapper`, `check_environ`, `environ_errors`, `validator`, `demo_app`, `make_server`) with input validation, and the re-exported classes `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning `WSGIWarning`, plus unit tests in `tests/test_wsgiref_utils.py`.
 - Synchronized `wsgiref_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.

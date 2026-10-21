@@ -532,6 +532,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "pydoc_utils.py",
             "pydoc_data_utils.py",
             "wsgiref_utils.py",
+            "antigravity_utils.py",
             "tests/test_fcntl_utils.py",
             "tests/test_pty_utils.py",
             "tests/test_stringprep_utils.py",
@@ -600,6 +601,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "mmap_utils.py",
             "tests/test_mmap_utils.py",
             "wsgiref_utils.py",
+            "antigravity_utils.py",
             "tests/test_wsgiref_utils.py",
         ]
         for rel in expected:
@@ -965,6 +967,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "pydoc_utils.py",
             "pydoc_data_utils.py",
             "wsgiref_utils.py",
+            "antigravity_utils.py",
             "tests/test_fcntl_utils.py",
             "tests/test_pty_utils.py",
             "tests/test_stringprep_utils.py",
@@ -1029,6 +1032,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "zlib_utils.py",
             "tests/test_zlib_utils.py",
             "wsgiref_utils.py",
+            "antigravity_utils.py",
             "tests/test_wsgiref_utils.py",
         ]:
             self.assertIn(module, content, f"scaffold-project.md missing {module}")
@@ -1501,6 +1505,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "pydoc_utils.py",
             "pydoc_data_utils.py",
             "wsgiref_utils.py",
+            "antigravity_utils.py",
             "tests/test_fcntl_utils.py",
             "tests/test_pty_utils.py",
             "tests/test_stringprep_utils.py",
@@ -1567,6 +1572,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "zlib_utils.py",
             "tests/test_zlib_utils.py",
             "wsgiref_utils.py",
+            "antigravity_utils.py",
             "tests/test_wsgiref_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")

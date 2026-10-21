@@ -273,6 +273,7 @@ pdb_utils.py                 # Interactive debugger utilities wrapping stdlib pd
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
 pydoc_data_utils.py          # Documentation topic utilities wrapping stdlib pydoc_data (count_topics, get_topic, get_topic_names, get_topic_section, get_topic_sections, get_topic_title, get_topics, get_topics_subset, has_topic, search_topics, wrap_topic) with input validation
+antigravity_utils.py          # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url)
 wsgiref_utils.py              # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
@@ -459,6 +460,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_ipaddress_utils.py     # Tests for ipaddress_utils.py
     test_pydoc_utils.py          # Tests for pydoc_utils.py
     test_pydoc_data_utils.py     # Tests for pydoc_data_utils.py
+    test_antigravity_utils.py  # Tests for antigravity_utils.py
     test_wsgiref_utils.py         # Tests for wsgiref_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py

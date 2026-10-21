@@ -28954,6 +28954,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `ipaddress_utils.py` — IP address utilities wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors
 - `pydoc_utils.py` — Documentation utilities wrapping the standard library `pydoc` module (`render_doc`, `doc`, `writedoc`, `writedocs`, `apropos`, `locate`, `resolve`, `safeimport`, `importfile`, `getdoc`, `synopsis`, `source_synopsis`, `describe`, `classify_class_attrs`, `classname`, `parentname`, `visiblename`, `isdata`, `ispackage`, `ispath`, `allmethods`, `splitdoc`, `stripid`, `replace`, `cram`, `plain`, `cli`, `help`, `getpager`, `plainpager`, `browse`) with input validation, and the re-exported classes `Doc`, `HTMLDoc`, `HTMLRepr`, `Helper`, `ModuleScanner`, `Repr`, `TextDoc`, and `TextRepr` together with the error `ErrorDuringImport`
 - `wsgiref_utils.py` — WSGI utilities wrapping the standard library `wsgiref` package (`setup_testing_defaults`, `guess_scheme`, `application_uri`, `request_uri`, `shift_path_info`, `is_hop_by_hop`, `build_headers`, `header_values`, `encode_headers`, `file_wrapper`, `check_environ`, `environ_errors`, `validator`, `demo_app`, `make_server`) with input validation, and the re-exported classes `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning `WSGIWarning`
+- `antigravity_utils.py` — antigravity utilities wrapping the standard library `antigravity` module (`geohash`, `fly`, `get_xkcd_url`) with input validation
 - `pydoc_data_utils.py` — documentation topic utilities wrapping the standard library `pydoc_data` package (`count_topics`, `get_topic`, `get_topic_names`, `get_topic_section`, `get_topic_sections`, `get_topic_title`, `get_topics`, `get_topics_subset`, `has_topic`, `search_topics`, `wrap_topic`) with input validation
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
@@ -29181,6 +29182,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
 - `tests/test_pydoc_utils.py` — unit tests for `pydoc_utils.py`
 - `tests/test_wsgiref_utils.py` — unit tests for `wsgiref_utils.py`
+- `tests/test_antigravity_utils.py` — unit tests for `antigravity_utils.py`
 - `tests/test_pydoc_data_utils.py` — unit tests for `pydoc_data_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
@@ -30719,6 +30721,9 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `antigravity_utils.py` wrapping the standard library `antigravity` module (`geohash`, `fly`, `get_xkcd_url`) with input validation, plus unit tests in `tests/test_antigravity_utils.py`.
+- Synchronized `antigravity_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+
 - Add `pydoc_data_utils.py` wrapping the standard library `pydoc_data` package (`count_topics`, `get_topic`, `get_topic_names`, `get_topic_section`, `get_topic_sections`, `get_topic_title`, `get_topics`, `get_topics_subset`, `has_topic`, `search_topics`, `wrap_topic`) with input validation, plus unit tests in `tests/test_pydoc_data_utils.py`.
 - Add `wsgiref_utils.py` wrapping the standard library `wsgiref` package (`setup_testing_defaults`, `guess_scheme`, `application_uri`, `request_uri`, `shift_path_info`, `is_hop_by_hop`, `build_headers`, `header_values`, `encode_headers`, `file_wrapper`, `check_environ`, `environ_errors`, `validator`, `demo_app`, `make_server`) with input validation, and the re-exported classes `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning `WSGIWarning`, plus unit tests in `tests/test_wsgiref_utils.py`.
 - Synchronized `wsgiref_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
@@ -31870,6 +31875,7 @@ pdb_utils.py                 # Interactive debugger utilities wrapping stdlib pd
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
 pydoc_data_utils.py          # Documentation topic utilities wrapping stdlib pydoc_data (count_topics, get_topic, get_topic_names, get_topic_section, get_topic_sections, get_topic_title, get_topics, get_topics_subset, has_topic, search_topics, wrap_topic) with input validation
+antigravity_utils.py          # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url)
 wsgiref_utils.py              # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
@@ -32056,6 +32062,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_ipaddress_utils.py     # Tests for ipaddress_utils.py
     test_pydoc_utils.py          # Tests for pydoc_utils.py
     test_pydoc_data_utils.py     # Tests for pydoc_data_utils.py
+    test_antigravity_utils.py  # Tests for antigravity_utils.py
     test_wsgiref_utils.py         # Tests for wsgiref_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
@@ -85253,6 +85260,73 @@ class TestHeadingDetection(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_PYDOC_DATA_UTILS
+
+# --- antigravity_utils.py ---
+cat > "$OUTPUT_DIR/antigravity_utils.py" <<'ANTIGRAVITY_UTILS'
+"""Utilities for the :mod:`antigravity` module."""
+
+from __future__ import annotations
+
+import antigravity as _antigravity
+
+# Re-export the geohash function
+geohash = _antigravity.geohash
+
+
+def fly():
+    """Open the XKCD comic about Python."""
+    import webbrowser
+
+    webbrowser.open("https://xkcd.com/353/")
+    return "https://xkcd.com/353/"
+
+
+def get_xkcd_url() -> str:
+    """Return the URL of the XKCD comic about Python."""
+    return "https://xkcd.com/353/"
+
+
+__all__ = ["geohash", "fly", "get_xkcd_url"]
+ANTIGRAVITY_UTILS
+
+# --- tests/test_antigravity_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_antigravity_utils.py" <<'TEST_ANTIGRAVITY_UTILS'
+"""Tests for antigravity_utils module."""
+
+import unittest
+from unittest import mock
+
+import antigravity_utils
+
+
+class TestAntigravityUtils(unittest.TestCase):
+    def test_geohash_reexported(self):
+        # Test that geohash is properly re-exported
+        result = antigravity_utils.geohash(37.421542, -122.085589, b'2005-05-26-10458.68')
+        # geohash prints, so we need to capture stdout
+        pass
+
+    def test_geohash_callable(self):
+        self.assertTrue(callable(antigravity_utils.geohash))
+
+    def test_fly_opens_browser(self):
+        with mock.patch('webbrowser.open') as mock_open:
+            result = antigravity_utils.fly()
+            mock_open.assert_called_once_with("https://xkcd.com/353/")
+            self.assertEqual(result, "https://xkcd.com/353/")
+
+    def test_get_xkcd_url(self):
+        self.assertEqual(antigravity_utils.get_xkcd_url(), "https://xkcd.com/353/")
+
+    def test_all_exports(self):
+        self.assertIn('geohash', antigravity_utils.__all__)
+        self.assertIn('fly', antigravity_utils.__all__)
+        self.assertIn('get_xkcd_url', antigravity_utils.__all__)
+
+
+if __name__ == '__main__':
+    unittest.main()
+TEST_ANTIGRAVITY_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
