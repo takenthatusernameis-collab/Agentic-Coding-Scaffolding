@@ -1,5 +1,11 @@
 ## Unreleased
 
+- Add `ntpath_utils.py` wrapping the standard library `ntpath` module (abspath, basename, commonpath, commonprefix, dirname, exists, expanduser, expandvars, isabs, isdevdrive, isjunction, join, normcase, normpath, realpath, relpath, split, splitdrive, splitroot, splitext) with input validation, the re-exported constants, and the helpers `has_drive`, `is_unc_path`, `is_device_path`, `to_slashes`, and `to_backslashes`, plus unit tests in `tests/test_ntpath_utils.py`.
+- Synchronized `ntpath_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired the end of `scaffold.sh`, which lost the summary of the generated project and the post-scaffold smoke test, so a scaffolded project no longer reported its files and the `--no-test` flag had no effect.
+- Added the table of the developer commands to the README, so the generated project documents the targets of its `Makefile`.
+- Extended `tools/refresh_scaffold.py` so that it also refreshes the documents that are embedded as templates (`README.md`, `AGENTS.md`, and `CHANGELOG.md`), with the name of the project replaced by the placeholder the generator substitutes.
+- Repaired `posixpath_utils.py` and `genericpath_utils.py`, which failed the lint and the type check of the repository: the imports of the constants were placed between the definitions of the module, several lines were longer than the limit of the linter, and the calls into the standard library returned an untyped value.
 - Add `posixpath_utils.py` wrapping the standard library `posixpath` module with POSIX path operations, plus unit tests in `tests/test_posixpath_utils.py`.
 
 - Add `genericpath_utils.py` wrapping the standard library `genericpath` module (exists, isfile, isdir, islink, getsize, getmtime, getatime, getctime, commonprefix, samefile, sameopenfile, samestat, ALLOW_MISSING) with input validation and re-exports, plus unit tests in `tests/test_genericpath_utils.py`.

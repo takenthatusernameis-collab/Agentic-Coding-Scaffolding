@@ -15,11 +15,13 @@ from __future__ import annotations
 
 import genericpath as _genericpath
 import os
-import stat
-from typing import List, Sequence, Tuple, Union
+from typing import Any, Callable, List, Sequence, Tuple, Union
 
 #: Special value for use in realpath() indicating missing paths are allowed.
 ALLOW_MISSING = _genericpath.ALLOW_MISSING
+
+#: The predicate that reports whether a path is a symbolic link.
+_ISLINK: Callable[[Any], bool] = getattr(_genericpath, "islink", os.path.islink)
 
 __all__: List[str] = [
     "ALLOW_MISSING",
@@ -53,7 +55,9 @@ def _check_path_like(path: object, name: str) -> Union[str, bytes]:
     """
     if isinstance(path, (str, bytes, os.PathLike)):
         return path  # type: ignore[return-value]
-    raise TypeError(f"{name} must be str, bytes, or os.PathLike object, not {type(path).__name__!r}")
+    raise TypeError(
+        f"{name} must be str, bytes, or os.PathLike object, not {type(path).__name__!r}"
+    )
 
 
 def _check_two_paths(path1: object, path2: object) -> Tuple[Union[str, bytes], Union[str, bytes]]:
@@ -235,7 +239,7 @@ def islink(path: Union[str, bytes, os.PathLike]) -> bool:
         TypeError: If *path* is not path-like.
     """
     _check_path_like(path, "path")
-    return _genericpath.islink(path)
+    return _ISLINK(path)
 
 
 def samefile(f1: Union[str, bytes, os.PathLike], f2: Union[str, bytes, os.PathLike]) -> bool:

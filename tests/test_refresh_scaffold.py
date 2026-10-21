@@ -47,6 +47,47 @@ class TestIsVerbatimCopy(unittest.TestCase):
         self.assertFalse(refresh_scaffold.is_verbatim_copy("CHANGELOG.md"))
 
 
+class TestTemplatedCopies(unittest.TestCase):
+    """Verify the documents that are embedded as templates."""
+
+    def test_the_documents_are_templates(self):
+        self.assertTrue(refresh_scaffold.is_templated_copy("README.md"))
+        self.assertTrue(refresh_scaffold.is_templated_copy("AGENTS.md"))
+        self.assertTrue(refresh_scaffold.is_templated_copy("CHANGELOG.md"))
+
+    def test_an_unmanaged_document_is_no_template(self):
+        self.assertFalse(refresh_scaffold.is_templated_copy("LICENSE"))
+
+    def test_the_project_name_comes_from_the_title_of_the_readme(self):
+        title = (ROOT / "README.md").read_text().split("\n", 1)[0]
+        self.assertEqual(refresh_scaffold.project_name(), title.removeprefix("# "))
+
+    def test_the_readme_holds_the_placeholder(self):
+        body = refresh_scaffold.templated_body("README.md")
+        assert body is not None
+        self.assertIn("${PROJECT_NAME}", body)
+        self.assertNotIn(refresh_scaffold.project_name(), body)
+
+    def test_the_agent_instructions_hold_the_placeholder(self):
+        body = refresh_scaffold.templated_body("AGENTS.md")
+        assert body is not None
+        self.assertIn("${PROJECT_NAME}", body)
+        self.assertNotIn(refresh_scaffold.project_name(), body)
+
+    def test_the_changelog_holds_the_repository_copy(self):
+        body = refresh_scaffold.templated_body("CHANGELOG.md")
+        self.assertEqual(body, refresh_scaffold.repository_body("CHANGELOG.md"))
+
+    def test_a_word_that_starts_with_the_name_of_the_project_is_kept(self):
+        name = refresh_scaffold.project_name()
+        body = refresh_scaffold.templated_body("README.md")
+        assert body is not None
+        self.assertNotIn(f"{name}s", body)
+
+    def test_an_unmanaged_file_has_no_expected_body(self):
+        self.assertIsNone(refresh_scaffold.expected_body("LICENSE"))
+
+
 class TestRefresh(unittest.TestCase):
     """Verify the rewrite of the embedded copies."""
 
@@ -57,11 +98,37 @@ class TestRefresh(unittest.TestCase):
         self.assertEqual(changed, ["doctest_utils.py"])
         self.assertEqual(stale, [])
 
-    def test_refresh_keeps_the_templates(self):
+    def test_refresh_rewrites_a_template_with_the_placeholder(self):
         text = (
             "cat > \"$OUTPUT_DIR/README.md\" <<'__README__'\n"
-            "# ${PROJECT_NAME}\n"
+            "# an outdated title\n"
             "__README__\n"
+        )
+        refreshed, changed, stale = refresh_scaffold.refresh(text)
+        expected = refresh_scaffold.templated_body("README.md")
+        assert expected is not None
+        self.assertIn(f"{expected}\n__README__\n", refreshed)
+        self.assertEqual(changed, ["README.md"])
+        self.assertEqual(stale, [])
+
+    def test_refresh_keeps_a_current_template(self):
+        expected = refresh_scaffold.templated_body("README.md")
+        assert expected is not None
+        text = (
+            "cat > \"$OUTPUT_DIR/README.md\" <<'__README__'\n"
+            f"{expected}\n"
+            "__README__\n"
+        )
+        refreshed, changed, stale = refresh_scaffold.refresh(text)
+        self.assertEqual(refreshed, text)
+        self.assertEqual(changed, [])
+        self.assertEqual(stale, [])
+
+    def test_refresh_leaves_an_unmanaged_file_untouched(self):
+        text = (
+            "cat > \"$OUTPUT_DIR/LICENSE\" <<'__LICENSE__'\n"
+            "a body the tool does not manage\n"
+            "__LICENSE__\n"
         )
         refreshed, changed, stale = refresh_scaffold.refresh(text)
         self.assertEqual(refreshed, text)

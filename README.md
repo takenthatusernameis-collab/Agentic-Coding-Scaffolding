@@ -264,6 +264,7 @@ encodings_utils.py           # Encoding name utilities wrapping stdlib encodings
 zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
 genericpath_utils.py         # Generic path utilities wrapping stdlib genericpath (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile)
 posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
+ntpath_utils.py              # Windows path utilities wrapping stdlib ntpath (splitdrive, splitroot, normcase, normpath, has_drive, is_unc_path, is_device_path, to_slashes)
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
@@ -440,6 +441,8 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_tabnanny_utils.py       # Tests for tabnanny_utils.py
     test_zipimport_utils.py      # Tests for zipimport_utils.py
     test_genericpath_utils.py    # Tests for genericpath_utils.py
+    test_posixpath_utils.py      # Tests for posixpath_utils.py
+    test_ntpath_utils.py         # Tests for ntpath_utils.py
     test_ipaddress_utils.py      # Tests for ipaddress_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
@@ -554,6 +557,23 @@ Install the Kilo CLI and run:
 ```bash
 kilo run --auto "Execute the task assigned by the previous agent and prepare a task for the next agent!"
 ```
+
+### Developer Commands
+
+The `Makefile` bundles the common development tasks:
+
+| Command | Description |
+| --- | --- |
+| `make test` | Run the Python test suite (pytest, with a unittest fallback) |
+| `make lint` | Run the ruff code style checker |
+| `make typecheck` | Run the mypy static type checker |
+| `make run` | Run `hello.py` (`make run NAME=Alice` passes a name) |
+| `make scaffold` | Scaffold a new project using `scaffold.sh` |
+| `make refresh-scaffold` | Refresh the file copies embedded in `scaffold.sh` from the repository sources |
+| `make pre-commit-install` | Install the pre-commit hooks into `.git/hooks` |
+| `make pre-commit-run` | Run all pre-commit hooks against the tracked files |
+| `make clean` | Remove the build artifacts |
+| `make help` | Show all available targets |
 
 ## Calculator Module
 
@@ -1483,6 +1503,10 @@ The project includes generic path utilities in `genericpath_utils.py` wrapping t
 
 ## Posixpath Utilities Module
 
-The project includes posixpath utilities in `posixpath_utils.py` wrapping the standard library `posixpath` module: `abspath`, `basename`, `commonpath`, `commonprefix`, `dirname`, `exists`, `expanduser`, `expandvars`, `getatime`, `getctime`, `getmtime`, `getsize`, `isabs`, `isdir`, `isfile`, `isjunction`, `islink`, `ismount`, `join`, `lexists`, `normcase`, `normpath`, `realpath`, `relpath`, `samefile`, `sameopenfile`, `samestat`, `split`, `splitdrive`, `splitext`, `splitroot`. The constants `ALLOW_MISSING`, `sep`, `altsep`, `curdir`, `pardir`, `extsep`, `pathsep`, `defpath`, `devnull`, and `supports_unicode_filenames` are re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is tested in `tests/test_posixpath_utils.py`.
+The project includes posixpath utilities in `posixpath_utils.py` wrapping the standard library `posixpath` module: `abspath`, `basename`, `commonpath`, `commonprefix`, `dirname`, `exists`, `expanduser`, `expandvars`, `getatime`, `getctime`, `getmtime`, `getsize`, `isabs`, `isdir`, `isfile`, `isjunction`, `islink`, `ismount`, `join`, `lexists`, `normcase`, `normpath`, `realpath`, `relpath`, `samefile`, `sameopenfile`, `samestat`, `split`, `splitdrive`, `splitext`, `splitroot`. The wrapper adds the helper `is_rooted`, which reports whether a path starts at the root of the file system. The constants `ALLOW_MISSING`, `sep`, `altsep`, `curdir`, `pardir`, `extsep`, `pathsep`, `defpath`, `devnull`, and `supports_unicode_filenames` are re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is tested in `tests/test_posixpath_utils.py`.
+
+## Ntpath Utilities Module
+
+The project includes Windows path utilities in `ntpath_utils.py` wrapping the standard library `ntpath` module: `abspath`, `basename`, `commonpath`, `commonprefix`, `dirname`, `exists`, `expanduser`, `expandvars`, `getatime`, `getctime`, `getmtime`, `getsize`, `isabs`, `isdevdrive`, `isdir`, `isfile`, `isjunction`, `islink`, `ismount`, `join`, `lexists`, `normcase`, `normpath`, `realpath`, `relpath`, `samefile`, `sameopenfile`, `samestat`, `split`, `splitdrive`, `splitroot`, `splitext`. The wrapper adds the helpers the standard library leaves to the caller: `has_drive` reports whether a path carries a drive specification, `is_unc_path` reports whether a path names a share of a network, `is_device_path` reports whether a path names a device, and `to_slashes` and `to_backslashes` convert the separators of a path. The constants `ALLOW_MISSING`, `sep`, `altsep`, `curdir`, `pardir`, `extsep`, `pathsep`, `defpath`, `devnull`, and `supports_unicode_filenames` are re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is written in pure Python, so it works on every platform and a caller can work with Windows paths on a machine that runs a different operating system. The module is tested in `tests/test_ntpath_utils.py`.
 
 The project includes IP address utilities in `ipaddress_utils.py` wrapping the standard library `ipaddress` module: `ip_address` returns the address object of a text, an integer, or a packed byte string, `ip_network` returns the network object of a network, `ip_interface` returns the interface object of an address that carries a prefix length, `is_valid_address` reports whether a value names a valid address, `is_valid_network` reports whether a value names a valid network, `is_valid_interface` reports whether a value names a valid interface, `address_version` returns the version of an address, `to_packed` returns the packed bytes of an address, `from_packed` returns the address that a packed byte string holds, `network_hosts` returns the usable hosts of a network, `subnets` splits a network into its subnets, `summarize_addresses` returns the smallest set of networks that still covers a list of networks, `network_overlaps` reports whether two networks overlap, `address_within` reports whether an address lies inside a network, `common_prefix_length` returns the length of the common prefix of a list of addresses, `next_address` returns the address that follows an address, `previous_address` returns the address that precedes an address, and `sort_addresses` returns the addresses of a list in ascending order. The classes `IPv4Address`, `IPv6Address`, `IPv4Network`, `IPv6Network`, `IPv4Interface`, and `IPv6Interface` are re-exported from the standard library, and so are the errors `AddressValueError` and `NetmaskValueError`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_ipaddress_utils.py`.

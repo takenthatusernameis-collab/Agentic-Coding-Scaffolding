@@ -7,6 +7,10 @@ generated it. Those copies live in heredoc blocks inside ``scaffold.sh`` and
 drift out of sync whenever a module is edited in the repository without
 refreshing the generator.
 
+The documents that name the project are embedded as templates: the name of the
+project is replaced with the ``${PROJECT_NAME}`` placeholder, which the
+generator substitutes in the scaffolded project.
+
 This script rewrites every heredoc whose target path exists in the repository
 with the current contents of that file, and it creates the heredoc of a
 wrapper module that the generator does not embed yet. Run it after adding or
@@ -30,6 +34,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SCAFFOLD = ROOT / "scaffold.sh"
 
+#: The documents that are embedded as templates instead of verbatim copies.
+TEMPLATED_COPIES = ("README.md", "AGENTS.md", "CHANGELOG.md")
+
+#: The placeholder the generator substitutes with the name of the project.
+PROJECT_NAME_PLACEHOLDER = "${PROJECT_NAME}"
+
 HEREDOC = re.compile(
     r"cat > \"\$OUTPUT_DIR/(?P<path>[A-Za-z0-9_./-]+)\" <<'(?P<delim>[A-Z0-9_]+)'\n"
     r"(?P<body>.*?)\n(?P=delim)\n",
@@ -46,11 +56,19 @@ def is_verbatim_copy(relative: str) -> bool:
     """Return ``True`` when *relative* is embedded as a verbatim repository copy.
 
     Only Python sources and the scaffold command documentation are copied
-    verbatim. The README, the changelog, and the agent instructions are
-    embedded as templates that use ``${PROJECT_NAME}`` placeholders, so they
-    are maintained separately and never overwritten here.
+    verbatim. The documents that name the project are embedded as templates,
+    and the agent instructions are maintained separately.
     """
     return relative.endswith(".py") or relative == ".kilo/command/scaffold-project.md"
+
+
+def is_templated_copy(relative: str) -> bool:
+    """Return ``True`` when *relative* is embedded as a template.
+
+    A template holds the repository document with the name of the project
+    replaced by the placeholder the generator substitutes.
+    """
+    return relative in TEMPLATED_COPIES
 
 
 def repository_body(relative: str) -> str | None:
@@ -59,6 +77,51 @@ def repository_body(relative: str) -> str | None:
     if not path.is_file():
         return None
     return path.read_text().rstrip("\n")
+
+
+def project_name() -> str:
+    """Return the name of the project, taken from the title of the README.
+
+    The title of the README is the single line that names the project, so it
+    is the source the templates are derived from.
+    """
+    readme = ROOT / "README.md"
+    if not readme.is_file():
+        return ""
+    first_line = readme.read_text().split("\n", 1)[0]
+    if not first_line.startswith("# "):
+        return ""
+    return first_line[2:].strip()
+
+
+def templated_body(relative: str) -> str | None:
+    """Return the template of *relative*, or ``None`` when it is absent.
+
+    The template is the repository document with the name of the project
+    replaced by the placeholder the generator substitutes in the scaffolded
+    project. The name is only replaced where it stands on its own, so a word
+    that starts with the name of the project is left alone.
+    """
+    body = repository_body(relative)
+    if body is None:
+        return None
+    name = project_name()
+    if not name:
+        return body
+    return re.sub(rf"\b{re.escape(name)}\b", PROJECT_NAME_PLACEHOLDER, body)
+
+
+def expected_body(relative: str) -> str | None:
+    """Return the body the generator has to hold for *relative*.
+
+    ``None`` is returned for a file the tool does not manage, so the caller
+    leaves its block untouched.
+    """
+    if is_templated_copy(relative):
+        return templated_body(relative)
+    if is_verbatim_copy(relative):
+        return repository_body(relative)
+    return None
 
 
 def wrapper_copies() -> list[str]:
@@ -162,11 +225,10 @@ def refresh(scaffold_text: str) -> tuple[str, list[str], list[str]]:
     cursor = 0
     for match in embedded_blocks(scaffold_text):
         relative = match.group("path")
-        if not is_verbatim_copy(relative):
-            continue
-        expected = repository_body(relative)
+        expected = expected_body(relative)
         if expected is None:
-            stale.append(relative)
+            if is_verbatim_copy(relative) or is_templated_copy(relative):
+                stale.append(relative)
             continue
         if match.group("body") != expected:
             changed.append(relative)

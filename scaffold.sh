@@ -683,6 +683,7 @@
 #   - zipimport_utils.py — # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
 #   - genericpath_utils.py — # Generic path utilities wrapping the standard library genericpath (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile, sameopenfile, samestat, ALLOW_MISSING) with input validation
 #   - posixpath_utils.py — # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
+#   - ntpath_utils.py — # Windows path utilities wrapping stdlib ntpath (splitdrive, splitroot, normcase, normpath, has_drive, is_unc_path, is_device_path, to_slashes)
 #   - ipaddress_utils.py — # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
@@ -703,6 +704,7 @@
 #   - tests/test_zipimport_utils.py — # Tests for zipimport_utils.py
 #   - tests/test_genericpath_utils.py — # Tests for genericpath_utils.py
 #   - tests/test_posixpath_utils.py — # Tests for posixpath_utils.py
+#   - tests/test_ntpath_utils.py — # Tests for ntpath_utils.py
 #   - tests/test_ipaddress_utils.py — # Tests for ipaddress_utils.py
 set -euo pipefail
 
@@ -795,6 +797,10 @@ generated it. Those copies live in heredoc blocks inside ``scaffold.sh`` and
 drift out of sync whenever a module is edited in the repository without
 refreshing the generator.
 
+The documents that name the project are embedded as templates: the name of the
+project is replaced with the ``${PROJECT_NAME}`` placeholder, which the
+generator substitutes in the scaffolded project.
+
 This script rewrites every heredoc whose target path exists in the repository
 with the current contents of that file, and it creates the heredoc of a
 wrapper module that the generator does not embed yet. Run it after adding or
@@ -818,6 +824,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SCAFFOLD = ROOT / "scaffold.sh"
 
+#: The documents that are embedded as templates instead of verbatim copies.
+TEMPLATED_COPIES = ("README.md", "AGENTS.md", "CHANGELOG.md")
+
+#: The placeholder the generator substitutes with the name of the project.
+PROJECT_NAME_PLACEHOLDER = "${PROJECT_NAME}"
+
 HEREDOC = re.compile(
     r"cat > \"\$OUTPUT_DIR/(?P<path>[A-Za-z0-9_./-]+)\" <<'(?P<delim>[A-Z0-9_]+)'\n"
     r"(?P<body>.*?)\n(?P=delim)\n",
@@ -834,11 +846,19 @@ def is_verbatim_copy(relative: str) -> bool:
     """Return ``True`` when *relative* is embedded as a verbatim repository copy.
 
     Only Python sources and the scaffold command documentation are copied
-    verbatim. The README, the changelog, and the agent instructions are
-    embedded as templates that use ``${PROJECT_NAME}`` placeholders, so they
-    are maintained separately and never overwritten here.
+    verbatim. The documents that name the project are embedded as templates,
+    and the agent instructions are maintained separately.
     """
     return relative.endswith(".py") or relative == ".kilo/command/scaffold-project.md"
+
+
+def is_templated_copy(relative: str) -> bool:
+    """Return ``True`` when *relative* is embedded as a template.
+
+    A template holds the repository document with the name of the project
+    replaced by the placeholder the generator substitutes.
+    """
+    return relative in TEMPLATED_COPIES
 
 
 def repository_body(relative: str) -> str | None:
@@ -847,6 +867,51 @@ def repository_body(relative: str) -> str | None:
     if not path.is_file():
         return None
     return path.read_text().rstrip("\n")
+
+
+def project_name() -> str:
+    """Return the name of the project, taken from the title of the README.
+
+    The title of the README is the single line that names the project, so it
+    is the source the templates are derived from.
+    """
+    readme = ROOT / "README.md"
+    if not readme.is_file():
+        return ""
+    first_line = readme.read_text().split("\n", 1)[0]
+    if not first_line.startswith("# "):
+        return ""
+    return first_line[2:].strip()
+
+
+def templated_body(relative: str) -> str | None:
+    """Return the template of *relative*, or ``None`` when it is absent.
+
+    The template is the repository document with the name of the project
+    replaced by the placeholder the generator substitutes in the scaffolded
+    project. The name is only replaced where it stands on its own, so a word
+    that starts with the name of the project is left alone.
+    """
+    body = repository_body(relative)
+    if body is None:
+        return None
+    name = project_name()
+    if not name:
+        return body
+    return re.sub(rf"\b{re.escape(name)}\b", PROJECT_NAME_PLACEHOLDER, body)
+
+
+def expected_body(relative: str) -> str | None:
+    """Return the body the generator has to hold for *relative*.
+
+    ``None`` is returned for a file the tool does not manage, so the caller
+    leaves its block untouched.
+    """
+    if is_templated_copy(relative):
+        return templated_body(relative)
+    if is_verbatim_copy(relative):
+        return repository_body(relative)
+    return None
 
 
 def wrapper_copies() -> list[str]:
@@ -950,11 +1015,10 @@ def refresh(scaffold_text: str) -> tuple[str, list[str], list[str]]:
     cursor = 0
     for match in embedded_blocks(scaffold_text):
         relative = match.group("path")
-        if not is_verbatim_copy(relative):
-            continue
-        expected = repository_body(relative)
+        expected = expected_body(relative)
         if expected is None:
-            stale.append(relative)
+            if is_verbatim_copy(relative) or is_templated_copy(relative):
+                stale.append(relative)
             continue
         if match.group("body") != expected:
             changed.append(relative)
@@ -4439,7 +4503,7 @@ py_modules = [
     "zipimport_utils",
     "genericpath_utils",
     "posixpath_utils",
-    "posixpath_utils",
+    "ntpath_utils",
     "ipaddress_utils",
 ]
 PYPROJECT
@@ -28856,7 +28920,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `encodings_utils.py` — encoding name utilities wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping
 - `zipimport_utils.py` — Zip archive import utilities wrapping the standard library `zipimport` module (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches) with input validation and the re-exported `ZipImportError`
 - `genericpath_utils.py` — Generic path utilities wrapping the standard library `genericpath` module (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile, sameopenfile, samestat, ALLOW_MISSING) with input validation
-- `posixpath_utils.py` — Posixpath utilities wrapping the standard library `posixpath` module with POSIX path operations
+- `posixpath_utils.py` — Posixpath utilities wrapping the standard library `posixpath` module with POSIX path operations and the helper `is_rooted`
+- `ntpath_utils.py` — Windows path utilities wrapping the standard library `ntpath` module (abspath, basename, commonpath, commonprefix, dirname, join, normcase, normpath, realpath, relpath, split, splitdrive, splitroot, splitext, expanduser, expandvars, has_drive, is_unc_path, is_device_path, to_slashes, to_backslashes) with input validation
 - `ipaddress_utils.py` — IP address utilities wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors
 - `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
 - `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
@@ -29075,6 +29140,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_zipimport_utils.py` — unit tests for `zipimport_utils.py`
 - `tests/test_genericpath_utils.py` — unit tests for `genericpath_utils.py`
 - `tests/test_posixpath_utils.py` — unit tests for `posixpath_utils.py`
+- `tests/test_ntpath_utils.py` — unit tests for `ntpath_utils.py`
 - `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
 - `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
 - `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
@@ -30613,6 +30679,12 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `ntpath_utils.py` wrapping the standard library `ntpath` module (abspath, basename, commonpath, commonprefix, dirname, exists, expanduser, expandvars, isabs, isdevdrive, isjunction, join, normcase, normpath, realpath, relpath, split, splitdrive, splitroot, splitext) with input validation, the re-exported constants, and the helpers `has_drive`, `is_unc_path`, `is_device_path`, `to_slashes`, and `to_backslashes`, plus unit tests in `tests/test_ntpath_utils.py`.
+- Synchronized `ntpath_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Repaired the end of `scaffold.sh`, which lost the summary of the generated project and the post-scaffold smoke test, so a scaffolded project no longer reported its files and the `--no-test` flag had no effect.
+- Added the table of the developer commands to the README, so the generated project documents the targets of its `Makefile`.
+- Extended `tools/refresh_scaffold.py` so that it also refreshes the documents that are embedded as templates (`README.md`, `AGENTS.md`, and `CHANGELOG.md`), with the name of the project replaced by the placeholder the generator substitutes.
+- Repaired `posixpath_utils.py` and `genericpath_utils.py`, which failed the lint and the type check of the repository: the imports of the constants were placed between the definitions of the module, several lines were longer than the limit of the linter, and the calls into the standard library returned an untyped value.
 - Add `posixpath_utils.py` wrapping the standard library `posixpath` module with POSIX path operations, plus unit tests in `tests/test_posixpath_utils.py`.
 
 - Add `genericpath_utils.py` wrapping the standard library `genericpath` module (exists, isfile, isdir, islink, getsize, getmtime, getatime, getctime, commonprefix, samefile, sameopenfile, samestat, ALLOW_MISSING) with input validation and re-exports, plus unit tests in `tests/test_genericpath_utils.py`.
@@ -31461,7 +31533,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_tty_utils.py` — unit tests for `tty_utils.py`
 profile_utils.py
 tests/test_profile_utils.py
-
 CHANGELOG
 
 # Substitute project name in templated documents
@@ -31737,7 +31808,7 @@ encodings_utils.py           # Encoding name utilities wrapping stdlib encodings
 zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
 genericpath_utils.py         # Generic path utilities wrapping stdlib genericpath (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile)
 posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
-posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
+ntpath_utils.py              # Windows path utilities wrapping stdlib ntpath (splitdrive, splitroot, normcase, normpath, has_drive, is_unc_path, is_device_path, to_slashes)
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
@@ -31915,7 +31986,7 @@ test_sort_utils.py          # Tests for sort_utils.py
     test_zipimport_utils.py      # Tests for zipimport_utils.py
     test_genericpath_utils.py    # Tests for genericpath_utils.py
     test_posixpath_utils.py      # Tests for posixpath_utils.py
-    test_posixpath_utils.py      # Tests for posixpath_utils.py
+    test_ntpath_utils.py         # Tests for ntpath_utils.py
     test_ipaddress_utils.py      # Tests for ipaddress_utils.py
    test_importlib_utils.py     # Tests for importlib_utils.py
 test_atexit_utils.py        # Tests for atexit_utils.py
@@ -32030,6 +32101,23 @@ Install the Kilo CLI and run:
 ```bash
 kilo run --auto "Execute the task assigned by the previous agent and prepare a task for the next agent!"
 ```
+
+### Developer Commands
+
+The `Makefile` bundles the common development tasks:
+
+| Command | Description |
+| --- | --- |
+| `make test` | Run the Python test suite (pytest, with a unittest fallback) |
+| `make lint` | Run the ruff code style checker |
+| `make typecheck` | Run the mypy static type checker |
+| `make run` | Run `hello.py` (`make run NAME=Alice` passes a name) |
+| `make scaffold` | Scaffold a new project using `scaffold.sh` |
+| `make refresh-scaffold` | Refresh the file copies embedded in `scaffold.sh` from the repository sources |
+| `make pre-commit-install` | Install the pre-commit hooks into `.git/hooks` |
+| `make pre-commit-run` | Run all pre-commit hooks against the tracked files |
+| `make clean` | Remove the build artifacts |
+| `make help` | Show all available targets |
 
 ## Calculator Module
 
@@ -32959,10 +33047,13 @@ The project includes generic path utilities in `genericpath_utils.py` wrapping t
 
 ## Posixpath Utilities Module
 
-The project includes posixpath utilities in `posixpath_utils.py` wrapping the standard library `posixpath` module: `abspath`, `basename`, `commonpath`, `commonprefix`, `dirname`, `exists`, `expanduser`, `expandvars`, `getatime`, `getctime`, `getmtime`, `getsize`, `isabs`, `isdir`, `isfile`, `isjunction`, `islink`, `ismount`, `join`, `lexists`, `normcase`, `normpath`, `realpath`, `relpath`, `samefile`, `sameopenfile`, `samestat`, `split`, `splitdrive`, `splitext`, `splitroot`. The constants `ALLOW_MISSING`, `sep`, `altsep`, `curdir`, `pardir`, `extsep`, `pathsep`, `defpath`, `devnull`, and `supports_unicode_filenames` are re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is tested in `tests/test_posixpath_utils.py`.
+The project includes posixpath utilities in `posixpath_utils.py` wrapping the standard library `posixpath` module: `abspath`, `basename`, `commonpath`, `commonprefix`, `dirname`, `exists`, `expanduser`, `expandvars`, `getatime`, `getctime`, `getmtime`, `getsize`, `isabs`, `isdir`, `isfile`, `isjunction`, `islink`, `ismount`, `join`, `lexists`, `normcase`, `normpath`, `realpath`, `relpath`, `samefile`, `sameopenfile`, `samestat`, `split`, `splitdrive`, `splitext`, `splitroot`. The wrapper adds the helper `is_rooted`, which reports whether a path starts at the root of the file system. The constants `ALLOW_MISSING`, `sep`, `altsep`, `curdir`, `pardir`, `extsep`, `pathsep`, `defpath`, `devnull`, and `supports_unicode_filenames` are re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is tested in `tests/test_posixpath_utils.py`.
+
+## Ntpath Utilities Module
+
+The project includes Windows path utilities in `ntpath_utils.py` wrapping the standard library `ntpath` module: `abspath`, `basename`, `commonpath`, `commonprefix`, `dirname`, `exists`, `expanduser`, `expandvars`, `getatime`, `getctime`, `getmtime`, `getsize`, `isabs`, `isdevdrive`, `isdir`, `isfile`, `isjunction`, `islink`, `ismount`, `join`, `lexists`, `normcase`, `normpath`, `realpath`, `relpath`, `samefile`, `sameopenfile`, `samestat`, `split`, `splitdrive`, `splitroot`, `splitext`. The wrapper adds the helpers the standard library leaves to the caller: `has_drive` reports whether a path carries a drive specification, `is_unc_path` reports whether a path names a share of a network, `is_device_path` reports whether a path names a device, and `to_slashes` and `to_backslashes` convert the separators of a path. The constants `ALLOW_MISSING`, `sep`, `altsep`, `curdir`, `pardir`, `extsep`, `pathsep`, `defpath`, `devnull`, and `supports_unicode_filenames` are re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module is written in pure Python, so it works on every platform and a caller can work with Windows paths on a machine that runs a different operating system. The module is tested in `tests/test_ntpath_utils.py`.
 
 The project includes IP address utilities in `ipaddress_utils.py` wrapping the standard library `ipaddress` module: `ip_address` returns the address object of a text, an integer, or a packed byte string, `ip_network` returns the network object of a network, `ip_interface` returns the interface object of an address that carries a prefix length, `is_valid_address` reports whether a value names a valid address, `is_valid_network` reports whether a value names a valid network, `is_valid_interface` reports whether a value names a valid interface, `address_version` returns the version of an address, `to_packed` returns the packed bytes of an address, `from_packed` returns the address that a packed byte string holds, `network_hosts` returns the usable hosts of a network, `subnets` splits a network into its subnets, `summarize_addresses` returns the smallest set of networks that still covers a list of networks, `network_overlaps` reports whether two networks overlap, `address_within` reports whether an address lies inside a network, `common_prefix_length` returns the length of the common prefix of a list of addresses, `next_address` returns the address that follows an address, `previous_address` returns the address that precedes an address, and `sort_addresses` returns the addresses of a list in ascending order. The classes `IPv4Address`, `IPv6Address`, `IPv4Network`, `IPv6Network`, `IPv4Interface`, and `IPv6Interface` are re-exported from the standard library, and so are the errors `AddressValueError` and `NetmaskValueError`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the file system, the network, or a process. The module is tested in `tests/test_ipaddress_utils.py`.
-
 README_MD
 
 # --- LICENSE ---
@@ -33087,7 +33178,7 @@ Use the following Makefile targets during development:
 - This project uses the `kilo/kilo-auto/free` model
 - Sessions have an idle timeout of 900 seconds
 - The overall CI job has a 355-minute safety cutoff
-
+- All tests, ruff, and mypy pass as of the latest bootstrap session
 __AGENTS__
 
 # --- argparse_utils.py ---
@@ -41726,11 +41817,13 @@ from __future__ import annotations
 
 import genericpath as _genericpath
 import os
-import stat
-from typing import List, Sequence, Tuple, Union
+from typing import Any, Callable, List, Sequence, Tuple, Union
 
 #: Special value for use in realpath() indicating missing paths are allowed.
 ALLOW_MISSING = _genericpath.ALLOW_MISSING
+
+#: The predicate that reports whether a path is a symbolic link.
+_ISLINK: Callable[[Any], bool] = getattr(_genericpath, "islink", os.path.islink)
 
 __all__: List[str] = [
     "ALLOW_MISSING",
@@ -41764,7 +41857,9 @@ def _check_path_like(path: object, name: str) -> Union[str, bytes]:
     """
     if isinstance(path, (str, bytes, os.PathLike)):
         return path  # type: ignore[return-value]
-    raise TypeError(f"{name} must be str, bytes, or os.PathLike object, not {type(path).__name__!r}")
+    raise TypeError(
+        f"{name} must be str, bytes, or os.PathLike object, not {type(path).__name__!r}"
+    )
 
 
 def _check_two_paths(path1: object, path2: object) -> Tuple[Union[str, bytes], Union[str, bytes]]:
@@ -41946,7 +42041,7 @@ def islink(path: Union[str, bytes, os.PathLike]) -> bool:
         TypeError: If *path* is not path-like.
     """
     _check_path_like(path, "path")
-    return _genericpath.islink(path)
+    return _ISLINK(path)
 
 
 def samefile(f1: Union[str, bytes, os.PathLike], f2: Union[str, bytes, os.PathLike]) -> bool:
@@ -42251,47 +42346,51 @@ TEST_GENERICPATH_UTILS
 cat > "$OUTPUT_DIR/posixpath_utils.py" <<'POSIXPATH_UTILS'
 """Posixpath utilities wrapping the standard library :mod:`posixpath` module.
 
-The :mod:`posixpath` module implements POSIX pathname operations. This
-wrapper validates every argument before the standard library is reached,
-so a caller gets a clear :class:`TypeError` instead of an opaque failure
-from the standard library. It re-exports the constants and functions from
-:mod:`posixpath` with the same behavior, while adding input validation for
-defensive programming.
+The :mod:`posixpath` module implements the pathname operations of POSIX: it
+splits a path into a head and a tail, it joins the components of a path with
+a slash, and it collapses the redundant parts of a path.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` instead of an opaque failure from
+the standard library. It re-exports the constants and the functions of
+:mod:`posixpath` with the same behavior, and it adds the helpers the standard
+library leaves to the caller: a caller can ask whether a path is rooted, and
+it can compare two paths the way the operating system compares them.
 """
 
 from __future__ import annotations
 
 import os
 import posixpath as _posixpath
-from typing import Any, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union, cast
 
+#: The separator of a POSIX path.
+sep: str = _posixpath.sep
+#: The alternative separator of a POSIX path, which is None on POSIX.
+altsep: Optional[str] = _posixpath.altsep
+#: The current directory of a POSIX path.
+curdir: str = _posixpath.curdir
+#: The parent directory of a POSIX path.
+pardir: str = _posixpath.pardir
+#: The separator between the name and the extension of a file.
+extsep: str = _posixpath.extsep
+#: The separator of the entries of the search path.
+pathsep: str = _posixpath.pathsep
+#: The default search path of the commands.
+defpath: str = _posixpath.defpath
+#: The name of the device of the null file.
+devnull: str = _posixpath.devnull
+#: Whether the file names of the platform support the Unicode characters.
+supports_unicode_filenames: bool = _posixpath.supports_unicode_filenames
+#: Special value for use in realpath() indicating missing paths are allowed.
+ALLOW_MISSING: Any = _posixpath.ALLOW_MISSING
 
-# Re-export all public names from posixpath for compatibility
-# Constants
-sep = _posixpath.sep
-altsep = _posixpath.altsep
-curdir = _posixpath.curdir
-pardir = _posixpath.pardir
-extsep = _posixpath.extsep
-pathsep = _posixpath.pathsep
-defpath = _posixpath.defpath
-devnull = _posixpath.devnull
-supports_unicode_filenames = _posixpath.supports_unicode_filenames
-
-# Re-export from genericpath
-from posixpath import ALLOW_MISSING  # noqa: F401
-from posixpath import commonprefix  # noqa: F401
-from posixpath import exists  # noqa: F401
-from posixpath import getatime  # noqa: F401
-from posixpath import getctime  # noqa: F401
-from posixpath import getmtime  # noqa: F401
-from posixpath import getsize  # noqa: F401
-from posixpath import isdir  # noqa: F401
-from posixpath import isfile  # noqa: F401
-from posixpath import islink  # noqa: F401
-from posixpath import samefile  # noqa: F401
-from posixpath import sameopenfile  # noqa: F401
-from posixpath import samestat  # noqa: F401
+#: The splitter of a path into a drive, a root, and a tail.
+_SPLITROOT: Optional[Callable[[Any], Tuple[Any, Any, Any]]] = getattr(
+    _posixpath, "splitroot", None
+)
+#: The predicate that reports whether a path is a junction.
+_ISJUNCTION: Optional[Callable[[Any], bool]] = getattr(_posixpath, "isjunction", None)
 
 __all__: List[str] = [
     "ALLOW_MISSING",
@@ -42312,6 +42411,7 @@ __all__: List[str] = [
     "getctime",
     "getmtime",
     "getsize",
+    "is_rooted",
     "isabs",
     "isdir",
     "isfile",
@@ -42339,169 +42439,658 @@ __all__: List[str] = [
 
 
 def _check_path_like(path: object, name: str) -> Union[str, bytes]:
+    """Validate that *path* is a string, bytes, or path-like object.
+
+    Args:
+        path: The path object to validate.
+        name: The name of the parameter for error messages.
+
+    Returns:
+        The validated path.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
     if isinstance(path, (str, bytes, os.PathLike)):
         return path  # type: ignore[return-value]
-    raise TypeError(f"{name} must be str, bytes, or os.PathLike object, not {type(path).__name__!r}")
-
-
-def _check_path_or_none(path: object, name: str) -> Union[str, bytes, None]:
-    if path is None:
-        return None
-    return _check_path_like(path, name)
-
-
-def abspath(path: Union[str, bytes, os.PathLike]) -> str:
-    """Return a normalized absolutized version of the pathname path."""
-    _check_path_like(path, "path")
-    return _posixpath.abspath(path)
-
-
-def basename(p: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
-    """Return the final component of a pathname."""
-    _check_path_like(p, "p")
-    return _posixpath.basename(p)
-
-
-def commonpath(paths: Sequence[Union[str, bytes, os.PathLike]]) -> str:
-    """Return the longest common sub-path of each pathname in the sequence paths."""
-    if not isinstance(paths, (list, tuple, set)):
-        raise TypeError("commonpath() argument 1 must be an iterable, not %s" % type(paths).__name__)
-    # Validate each element
-    paths_list = list(paths)
-    for item in paths_list:
-        if not isinstance(item, (str, bytes, os.PathLike)):
-            raise TypeError(f"Can't mix strings and bytes in path components: {item!r}")
-    return _posixpath.commonpath(paths_list)
-
-
-def dirname(p: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
-    """Return the directory component of a pathname."""
-    _check_path_like(p, "p")
-    return _posixpath.dirname(p)
-
-
-def expanduser(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
-    """Expand ~ and ~user constructions."""
-    _check_path_like(path, "path")
-    return _posixpath.expanduser(path)
-
-
-def expandvars(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
-    """Expand shell variables of form $var and ${var}."""
-    _check_path_like(path, "path")
-    return _posixpath.expandvars(path)
-
-
-def isabs(s: Union[str, bytes, os.PathLike]) -> bool:
-    """Test whether a path is absolute."""
-    _check_path_like(s, "s")
-    return _posixpath.isabs(s)
-
-
-def isjunction(path: Union[str, bytes, os.PathLike]) -> bool:
-    """Test whether a path is a junction."""
-    _check_path_like(path, "path")
-    return _posixpath.isjunction(path)
-
-
-def ismount(path: Union[str, bytes, os.PathLike]) -> bool:
-    """Test whether a path is a mount point."""
-    _check_path_like(path, "path")
-    return _posixpath.ismount(path)
-
-
-def join(a: Union[str, bytes, os.PathLike], *p: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
-    """Join two or more pathname components, inserting '/' as needed."""
-    _check_path_like(a, "a")
-    for i, item in enumerate(p):
-        _check_path_like(item, f"p[{i}]")
-    return _posixpath.join(a, *p)
-
-
-def lexists(path: Union[str, bytes, os.PathLike]) -> bool:
-    """Test whether a path exists. Returns True for broken symbolic links."""
-    _check_path_like(path, "path")
-    return _posixpath.lexists(path)
-
-
-def normcase(s: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
-    """Normalize the case of a pathname."""
-    _check_path_like(s, "s")
-    return _posixpath.normcase(s)
-
-
-def normpath(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
-    """Normalize a pathname by collapsing redundant separators and up-level references."""
-    _check_path_like(path, "path")
-    return _posixpath.normpath(path)
-
-
-def realpath(filename: Union[str, bytes, os.PathLike], strict: bool = False) -> str:
-    """Return the canonical path of the specified filename."""
-    _check_path_like(filename, "filename")
-    if not isinstance(strict, bool):
-        raise TypeError(f"strict must be bool, not {type(strict).__name__!r}")
-    return _posixpath.realpath(filename, strict=strict)
-
-
-def relpath(path: Union[str, bytes, os.PathLike], start: Optional[Union[str, bytes, os.PathLike]] = None) -> str:
-    """Return a relative version of a path."""
-    _check_path_like(path, "path")
-    if start is not None:
-        _check_path_like(start, "start")
-    return _posixpath.relpath(path, start=start)
-
-
-def split(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
-    """Split a pathname into (tail) and (head)."""
-    _check_path_like(p, "p")
-    return _posixpath.split(p)
-
-
-def splitdrive(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
-    """Split the pathname into a drive specification and the rest of the path."""
-    _check_path_like(p, "p")
-    return _posixpath.splitdrive(p)
-
-
-def splitext(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
-    """Split the extension from a pathname."""
-    _check_path_like(p, "p")
-    return _posixpath.splitext(p)
-
-
-def splitroot(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes], Union[str, bytes]]:
-    """Split a pathname into drive, root and tail."""
-    _check_path_like(p, "p")
-    return _posixpath.splitroot(p)
-
-
-def samefile(f1: Union[str, bytes, os.PathLike], f2: Union[str, bytes, os.PathLike]) -> bool:
-    """Test whether two pathnames reference the same actual file or directory."""
-    _check_two_paths(f1, f2)
-    return _posixpath.samefile(f1, f2)
-
-
-def sameopenfile(fp1: int, fp2: int) -> bool:
-    """Test whether two open file objects reference the same file."""
-    if not isinstance(fp1, int) or isinstance(fp1, bool):
-        raise TypeError(f"sameopenfile() argument 1 must be int, not {type(fp1).__name__!r}")
-    if not isinstance(fp2, int) or isinstance(fp2, bool):
-        raise TypeError(f"sameopenfile() argument 2 must be int, not {type(fp2).__name__!r}")
-    return _posixpath.sameopenfile(fp1, fp2)
-
-
-def samestat(s1: os.stat_result, s2: os.stat_result) -> bool:
-    """Test whether two stat buffers reference the same file."""
-    if not isinstance(s1, os.stat_result):
-        raise TypeError(f"samestat() argument 1 must be stat_result, not {type(s1).__name__!r}")
-    if not isinstance(s2, os.stat_result):
-        raise TypeError(f"samestat() argument 2 must be stat_result, not {type(s2).__name__!r}")
-    return _posixpath.samestat(s1, s2)
+    raise TypeError(
+        f"{name} must be str, bytes, or os.PathLike object, not {type(path).__name__!r}"
+    )
 
 
 def _check_two_paths(path1: object, path2: object) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    """Validate two path objects.
+
+    Args:
+        path1: The first path.
+        path2: The second path.
+
+    Returns:
+        The validated paths.
+
+    Raises:
+        TypeError: If either path is not path-like.
+    """
     return _check_path_like(path1, "path1"), _check_path_like(path2, "path2")
+
+
+def abspath(path: Union[str, bytes, os.PathLike]) -> str:
+    """Return the absolute version of a path.
+
+    The path is resolved against the current working directory when it is
+    relative.
+
+    Args:
+        path: The path to resolve.
+
+    Returns:
+        The absolute path.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(str, _posixpath.abspath(path))
+
+
+def basename(p: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Return the final component of a path.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The final component of the path.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+    """
+    _check_path_like(p, "p")
+    return cast(Union[str, bytes], _posixpath.basename(p))
+
+
+def commonpath(paths: Sequence[Union[str, bytes, os.PathLike]]) -> str:
+    """Return the longest common sub-path of a sequence of paths.
+
+    The paths must not mix an absolute path with a relative one.
+
+    Args:
+        paths: The sequence of paths.
+
+    Returns:
+        The longest common sub-path.
+
+    Raises:
+        TypeError: If *paths* is not a sequence of path-like objects.
+        ValueError: If *paths* is empty or the paths cannot be compared.
+    """
+    if not isinstance(paths, (list, tuple)):
+        raise TypeError(f"commonpath() argument must be a sequence, not {type(paths).__name__}")
+    if not paths:
+        raise ValueError("commonpath() arg is an empty sequence")
+    for item in paths:
+        _check_path_like(item, "path")
+    return cast(str, _posixpath.commonpath(cast(Any, list(paths))))
+
+
+def commonprefix(m: Sequence[Union[str, bytes, os.PathLike]]) -> str:
+    """Return the longest common leading part of a list of paths.
+
+    The comparison is made character by character, so the result does not
+    have to be a path.
+
+    Args:
+        m: The list of paths.
+
+    Returns:
+        The longest common leading part, or an empty string when the list is
+        empty.
+
+    Raises:
+        TypeError: If *m* is not a sequence of path-like objects.
+    """
+    if not isinstance(m, (list, tuple)):
+        raise TypeError(f"commonprefix() argument must be a sequence, not {type(m).__name__}")
+    for item in m:
+        _check_path_like(item, "path")
+    return cast(str, _posixpath.commonprefix(cast(Any, list(m))))
+
+
+def dirname(p: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Return the directory component of a path.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The directory component of the path.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+    """
+    _check_path_like(p, "p")
+    return cast(Union[str, bytes], _posixpath.dirname(p))
+
+
+def exists(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path exists.
+
+    A broken symbolic link does not exist.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path exists, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(bool, _posixpath.exists(path))
+
+
+def expanduser(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Expand a leading ``~`` or ``~user`` in a path.
+
+    The path is left unchanged when the home directory cannot be found.
+
+    Args:
+        path: The path to expand.
+
+    Returns:
+        The expanded path, or the path itself when it cannot be expanded.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(Union[str, bytes], _posixpath.expanduser(path))
+
+
+def expandvars(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Expand the shell variables of a path.
+
+    The variables of the form ``$var`` and ``${var}`` are replaced with their
+    value, and an unknown variable is left unchanged.
+
+    Args:
+        path: The path to expand.
+
+    Returns:
+        The expanded path.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(Union[str, bytes], _posixpath.expandvars(path))
+
+
+def getatime(filename: Union[str, bytes, os.PathLike]) -> float:
+    """Return the last access time of a file.
+
+    Args:
+        filename: The path of the file.
+
+    Returns:
+        The time of the last access in seconds since the epoch.
+
+    Raises:
+        TypeError: If *filename* is not path-like.
+        OSError: If the file does not exist or cannot be accessed.
+    """
+    _check_path_like(filename, "filename")
+    return cast(float, _posixpath.getatime(filename))
+
+
+def getctime(filename: Union[str, bytes, os.PathLike]) -> float:
+    """Return the metadata change time of a file.
+
+    Args:
+        filename: The path of the file.
+
+    Returns:
+        The time of the metadata change in seconds since the epoch.
+
+    Raises:
+        TypeError: If *filename* is not path-like.
+        OSError: If the file does not exist or cannot be accessed.
+    """
+    _check_path_like(filename, "filename")
+    return cast(float, _posixpath.getctime(filename))
+
+
+def getmtime(filename: Union[str, bytes, os.PathLike]) -> float:
+    """Return the last modification time of a file.
+
+    Args:
+        filename: The path of the file.
+
+    Returns:
+        The time of the last modification in seconds since the epoch.
+
+    Raises:
+        TypeError: If *filename* is not path-like.
+        OSError: If the file does not exist or cannot be accessed.
+    """
+    _check_path_like(filename, "filename")
+    return cast(float, _posixpath.getmtime(filename))
+
+
+def getsize(filename: Union[str, bytes, os.PathLike]) -> int:
+    """Return the size of a file.
+
+    Args:
+        filename: The path of the file.
+
+    Returns:
+        The size of the file in bytes.
+
+    Raises:
+        TypeError: If *filename* is not path-like.
+        OSError: If the file does not exist or cannot be accessed.
+    """
+    _check_path_like(filename, "filename")
+    return cast(int, _posixpath.getsize(filename))
+
+
+def is_rooted(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path starts at the root of the file system.
+
+    A path that starts with a separator is rooted even when it is relative,
+    so the helper tells a rooted path apart from an absolute one.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path starts at the root, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    text = os.fspath(path)
+    if isinstance(text, bytes):
+        return text.startswith(b"/")
+    return text.startswith("/")
+
+
+def isabs(s: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is absolute.
+
+    Args:
+        s: The path to test.
+
+    Returns:
+        True if the path is absolute, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not path-like.
+    """
+    _check_path_like(s, "s")
+    return cast(bool, _posixpath.isabs(s))
+
+
+def isdir(s: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is an existing directory.
+
+    The symbolic links are followed, so a link and its target can both be
+    directories.
+
+    Args:
+        s: The path to test.
+
+    Returns:
+        True if the path is an existing directory, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not path-like.
+    """
+    _check_path_like(s, "s")
+    return cast(bool, _posixpath.isdir(s))
+
+
+def isfile(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is a regular file.
+
+    The symbolic links are followed.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path is a regular file, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(bool, _posixpath.isfile(path))
+
+
+def isjunction(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is a junction.
+
+    The standard library answers the question on Windows only, and it
+    reports False on the other platforms.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path is a junction, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+        RuntimeError: If the interpreter does not ship the helper.
+    """
+    _check_path_like(path, "path")
+    predicate = _ISJUNCTION
+    if predicate is None:
+        raise RuntimeError("isjunction() requires Python 3.12 or newer")
+    return predicate(path)
+
+
+def islink(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is a symbolic link.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path is a symbolic link, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(bool, _posixpath.islink(path))
+
+
+def ismount(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is a mount point.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path is a mount point, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(bool, _posixpath.ismount(path))
+
+
+def join(
+    a: Union[str, bytes, os.PathLike], *p: Union[str, bytes, os.PathLike]
+) -> Union[str, bytes]:
+    """Join the components of a path.
+
+    A slash is inserted between the components when it is missing, and a
+    component that starts with a slash starts a new path on its own.
+
+    Args:
+        a: The first component of the path.
+        *p: The remaining components of the path.
+
+    Returns:
+        The joined path.
+
+    Raises:
+        TypeError: If a component is not path-like.
+    """
+    _check_path_like(a, "a")
+    for index, item in enumerate(p):
+        _check_path_like(item, f"p[{index}]")
+    return cast(Union[str, bytes], _posixpath.join(cast(Any, a), *cast(Any, p)))
+
+
+def lexists(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path exists, including a broken symbolic link.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path exists, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(bool, _posixpath.lexists(path))
+
+
+def normcase(s: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Normalize the case of a path.
+
+    The case of a path is left unchanged on the platforms that have no case,
+    so two paths that name the same file compare equal.
+
+    Args:
+        s: The path to normalize.
+
+    Returns:
+        The normalized path.
+
+    Raises:
+        TypeError: If *s* is not path-like.
+    """
+    _check_path_like(s, "s")
+    return cast(Union[str, bytes], _posixpath.normcase(s))
+
+
+def normpath(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Normalize a path.
+
+    The redundant separators and the components that name the current or the
+    parent directory are collapsed.
+
+    Args:
+        path: The path to normalize.
+
+    Returns:
+        The normalized path.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(Union[str, bytes], _posixpath.normpath(path))
+
+
+def realpath(path: Union[str, bytes, os.PathLike], strict: bool = False) -> str:
+    """Return the canonical path of a file.
+
+    The symbolic links of the path are resolved.
+
+    Args:
+        path: The path to resolve.
+        strict: Whether a missing file is an error.
+
+    Returns:
+        The canonical path.
+
+    Raises:
+        TypeError: If *path* is not path-like or *strict* is not a bool.
+        OSError: If *strict* is set and the file does not exist.
+    """
+    _check_path_like(path, "path")
+    if not isinstance(strict, bool):
+        raise TypeError(f"strict must be bool, not {type(strict).__name__!r}")
+    return cast(str, _posixpath.realpath(cast(Any, path), strict=strict))
+
+
+def relpath(
+    path: Union[str, bytes, os.PathLike],
+    start: Optional[Union[str, bytes, os.PathLike]] = None,
+) -> str:
+    """Return the relative form of a path.
+
+    Args:
+        path: The path to make relative.
+        start: The directory the path is made relative to. The current
+            working directory is used when it is not given.
+
+    Returns:
+        The relative path.
+
+    Raises:
+        TypeError: If *path* or *start* is not path-like.
+        ValueError: If the path is empty.
+    """
+    _check_path_like(path, "path")
+    if start is not None:
+        _check_path_like(start, "start")
+    return cast(str, _posixpath.relpath(cast(Any, path), cast(Any, start)))
+
+
+def samefile(f1: Union[str, bytes, os.PathLike], f2: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether two paths name the same file.
+
+    The comparison uses the device number and the inode number of the files,
+    so it fails when one of the files does not exist.
+
+    Args:
+        f1: The first path.
+        f2: The second path.
+
+    Returns:
+        True if both paths name the same file, False otherwise.
+
+    Raises:
+        TypeError: If either path is not path-like.
+        OSError: If one of the files does not exist.
+    """
+    _check_two_paths(f1, f2)
+    return cast(bool, _posixpath.samefile(f1, f2))
+
+
+def sameopenfile(fp1: int, fp2: int) -> bool:
+    """Report whether two open files name the same file.
+
+    Args:
+        fp1: The descriptor of the first file.
+        fp2: The descriptor of the second file.
+
+    Returns:
+        True if both descriptors name the same file, False otherwise.
+
+    Raises:
+        TypeError: If a descriptor is not an int.
+        OSError: If a descriptor cannot be inspected.
+    """
+    if not isinstance(fp1, int) or isinstance(fp1, bool):
+        raise TypeError(f"sameopenfile() argument 1 must be int, not {type(fp1).__name__}")
+    if not isinstance(fp2, int) or isinstance(fp2, bool):
+        raise TypeError(f"sameopenfile() argument 2 must be int, not {type(fp2).__name__}")
+    return cast(bool, _posixpath.sameopenfile(fp1, fp2))
+
+
+def samestat(s1: os.stat_result, s2: os.stat_result) -> bool:
+    """Report whether two stat buffers name the same file.
+
+    Args:
+        s1: The first stat buffer.
+        s2: The second stat buffer.
+
+    Returns:
+        True if both buffers name the same file, False otherwise.
+
+    Raises:
+        TypeError: If a buffer is not a stat result.
+    """
+    if not isinstance(s1, os.stat_result):
+        raise TypeError(f"samestat() argument 1 must be stat_result, not {type(s1).__name__}")
+    if not isinstance(s2, os.stat_result):
+        raise TypeError(f"samestat() argument 2 must be stat_result, not {type(s2).__name__}")
+    return cast(bool, _posixpath.samestat(s1, s2))
+
+
+def split(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    """Split a path into a head and a tail.
+
+    The tail is everything that follows the last separator, and the head is
+    everything that comes before it.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The head and the tail of the path.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+    """
+    _check_path_like(p, "p")
+    return cast(Tuple[Union[str, bytes], Union[str, bytes]], _posixpath.split(p))
+
+
+def splitdrive(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    """Split a path into a drive and the rest of the path.
+
+    A POSIX path has no drive, so the drive is always empty.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The drive and the rest of the path.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+    """
+    _check_path_like(p, "p")
+    return cast(Tuple[Union[str, bytes], Union[str, bytes]], _posixpath.splitdrive(p))
+
+
+def splitroot(
+    p: Union[str, bytes, os.PathLike]
+) -> Tuple[Union[str, bytes], Union[str, bytes], Union[str, bytes]]:
+    """Split a path into a drive, a root, and a tail.
+
+    The drive of a POSIX path is always empty, the root is the separator
+    that starts the path, and the tail is everything that comes after it.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The drive, the root, and the tail of the path.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+        RuntimeError: If the interpreter does not ship the helper.
+    """
+    _check_path_like(p, "p")
+    splitter = _SPLITROOT
+    if splitter is None:
+        raise RuntimeError("splitroot() requires Python 3.12 or newer")
+    return cast(
+        Tuple[Union[str, bytes], Union[str, bytes], Union[str, bytes]],
+        splitter(p),
+    )
+
+
+def splitext(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    """Split the extension from a path.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The path without the extension and the extension itself, which
+        includes the leading dot.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+    """
+    _check_path_like(p, "p")
+    return cast(Tuple[Union[str, bytes], Union[str, bytes]], _posixpath.splitext(p))
 POSIXPATH_UTILS
 
 # --- tests/test_posixpath_utils.py ---
@@ -42642,6 +43231,19 @@ class TestIsAbs(unittest.TestCase):
     def test_isabs(self):
         self.assertTrue(isabs("/foo"))
         self.assertFalse(isabs("foo"))
+
+
+class TestMountsAndJunctions(unittest.TestCase):
+    def test_ismount_reports_the_root(self):
+        self.assertTrue(ismount("/"))
+
+    def test_ismount_reports_a_directory_that_is_not_a_mount_point(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertFalse(ismount(directory))
+
+    def test_isjunction_reports_a_directory_that_is_not_a_junction(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertFalse(isjunction(directory))
 
 
 class TestExpand(unittest.TestCase):
@@ -77138,10 +77740,1448 @@ class TestZoneinfoAvailableTimezones(unittest.TestCase):
         self.assertIn("UTC", tzs)
 TEST_ZONEINFO_UTILS
 
-# --- README.md ---
-# Substitute project name in templated documents
-if [[ -n "$PROJECT_NAME" ]]; then
-    perl -pi -e "s/\$\{PROJECT_NAME\}/$PROJECT_NAME/g" "$OUTPUT_DIR/README.md" "$OUTPUT_DIR/AGENTS.md" "$OUTPUT_DIR/CHANGELOG.md" 2>/dev/null || \
-    sed -i "s/\${PROJECT_NAME}/$PROJECT_NAME/g" "$OUTPUT_DIR/README.md" "$OUTPUT_DIR/AGENTS.md" "$OUTPUT_DIR/CHANGELOG.md" 2>/dev/null || true
+# --- ntpath_utils.py ---
+cat > "$OUTPUT_DIR/ntpath_utils.py" <<'NTPATH_UTILS'
+"""Windows path utilities wrapping the standard library :mod:`ntpath` module.
+
+The :mod:`ntpath` module implements the pathname operations of Windows: it
+splits a path into a drive, a root, and a tail, it joins the components of a
+path with a backslash, and it folds the case of a path. The module is written
+in pure Python, so it works on every platform and a caller can work with
+Windows paths on a machine that runs a different operating system.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` instead of an opaque failure from
+the standard library. It re-exports the constants and the functions of
+:mod:`ntpath` with the same behavior, and it adds the helpers the standard
+library leaves to the caller: a caller can ask whether a path carries a
+drive, whether it names a share or a device, and it can convert the
+separators of a path with a single call.
+"""
+
+from __future__ import annotations
+
+import inspect
+import ntpath as _ntpath
+import os
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union, cast
+
+#: The separator of a Windows path.
+sep: str = _ntpath.sep
+#: The alternative separator of a Windows path.
+altsep: str = _ntpath.altsep
+#: The current directory of a Windows path.
+curdir: str = _ntpath.curdir
+#: The parent directory of a Windows path.
+pardir: str = _ntpath.pardir
+#: The separator between the name and the extension of a file.
+extsep: str = _ntpath.extsep
+#: The separator of the entries of the search path.
+pathsep: str = _ntpath.pathsep
+#: The default search path of the commands.
+defpath: str = _ntpath.defpath
+#: The name of the device of the null file.
+devnull: str = _ntpath.devnull
+#: Whether the file names of the platform support the Unicode characters.
+supports_unicode_filenames: bool = _ntpath.supports_unicode_filenames
+#: Special value for use in realpath() indicating missing paths are allowed.
+ALLOW_MISSING: Any = _ntpath.ALLOW_MISSING
+
+#: The splitter of a path into a drive, a root, and a tail.
+_SPLITROOT: Optional[Callable[[Any], Tuple[Any, Any, Any]]] = getattr(
+    _ntpath, "splitroot", None
+)
+#: The predicate that reports whether a path is a junction.
+_ISJUNCTION: Optional[Callable[[Any], bool]] = getattr(_ntpath, "isjunction", None)
+#: The predicate that reports whether a path is on a development drive.
+_ISDEVDRIVE: Optional[Callable[[Any], bool]] = getattr(_ntpath, "isdevdrive", None)
+
+__all__: List[str] = [
+    "ALLOW_MISSING",
+    "abspath",
+    "altsep",
+    "basename",
+    "commonpath",
+    "commonprefix",
+    "curdir",
+    "defpath",
+    "devnull",
+    "dirname",
+    "exists",
+    "expanduser",
+    "expandvars",
+    "extsep",
+    "getatime",
+    "getctime",
+    "getmtime",
+    "getsize",
+    "has_drive",
+    "is_device_path",
+    "is_unc_path",
+    "isabs",
+    "isdevdrive",
+    "isdir",
+    "isfile",
+    "isjunction",
+    "islink",
+    "ismount",
+    "join",
+    "lexists",
+    "normcase",
+    "normpath",
+    "pardir",
+    "pathsep",
+    "realpath",
+    "relpath",
+    "samefile",
+    "sameopenfile",
+    "samestat",
+    "sep",
+    "split",
+    "splitdrive",
+    "splitext",
+    "splitroot",
+    "supports_unicode_filenames",
+    "to_backslashes",
+    "to_slashes",
+]
+
+
+def _check_path_like(path: object, name: str) -> Union[str, bytes]:
+    """Validate that *path* is a string, bytes, or path-like object.
+
+    Args:
+        path: The path object to validate.
+        name: The name of the parameter for error messages.
+
+    Returns:
+        The validated path.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    if isinstance(path, (str, bytes, os.PathLike)):
+        return path  # type: ignore[return-value]
+    raise TypeError(
+        f"{name} must be str, bytes, or os.PathLike object, not {type(path).__name__!r}"
+    )
+
+
+def _check_two_paths(path1: object, path2: object) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    """Validate two path objects.
+
+    Args:
+        path1: The first path.
+        path2: The second path.
+
+    Returns:
+        The validated paths.
+
+    Raises:
+        TypeError: If either path is not path-like.
+    """
+    return _check_path_like(path1, "path1"), _check_path_like(path2, "path2")
+
+
+def _strict_resolver() -> Optional[Callable[[Any], str]]:
+    """Return the resolver of the standard library that accepts ``strict``.
+
+    The ``strict`` argument of :func:`ntpath.realpath` is only accepted by
+    the resolver of the platform the module is written for, so the helper
+    reports whether the interpreter ships a resolver that takes it.
+
+    Returns:
+        The resolver, or ``None`` when the interpreter does not support the
+        argument.
+    """
+    try:
+        parameters = inspect.signature(_ntpath.realpath).parameters
+    except (TypeError, ValueError):  # pragma: no cover - a resolver without a signature
+        return None
+    if "strict" not in parameters:
+        return None
+    return cast(Callable[[Any], str], _ntpath.realpath)
+
+
+def abspath(path: Union[str, bytes, os.PathLike]) -> str:
+    """Return the absolute version of a path.
+
+    The path is resolved against the current working directory when it is
+    relative.
+
+    Args:
+        path: The path to resolve.
+
+    Returns:
+        The absolute path.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(str, _ntpath.abspath(path))
+
+
+def basename(p: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Return the final component of a path.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The final component of the path.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+    """
+    _check_path_like(p, "p")
+    return cast(Union[str, bytes], _ntpath.basename(p))
+
+
+def commonpath(paths: Sequence[Union[str, bytes, os.PathLike]]) -> str:
+    """Return the longest common sub-path of a sequence of paths.
+
+    The paths have to share the same drive, and they must not mix an
+    absolute path with a relative one.
+
+    Args:
+        paths: The sequence of paths.
+
+    Returns:
+        The longest common sub-path.
+
+    Raises:
+        TypeError: If *paths* is not a sequence of path-like objects.
+        ValueError: If *paths* is empty or the paths do not share a drive.
+    """
+    if isinstance(paths, (str, bytes, os.PathLike)):
+        raise TypeError(f"commonpath() argument must be a sequence, not {type(paths).__name__}")
+    if not isinstance(paths, (list, tuple)):
+        raise TypeError(f"commonpath() argument must be a sequence, not {type(paths).__name__}")
+    if not paths:
+        raise ValueError("commonpath() arg is an empty sequence")
+    for item in paths:
+        _check_path_like(item, "path")
+    return cast(str, _ntpath.commonpath(list(paths)))
+
+
+def commonprefix(m: Sequence[Union[str, bytes, os.PathLike]]) -> str:
+    """Return the longest common leading part of a list of paths.
+
+    The comparison is made character by character, so the result does not
+    have to be a path.
+
+    Args:
+        m: The list of paths.
+
+    Returns:
+        The longest common leading part, or an empty string when the list is
+        empty.
+
+    Raises:
+        TypeError: If *m* is not a sequence of path-like objects.
+    """
+    if not isinstance(m, (list, tuple)):
+        raise TypeError(f"commonprefix() argument must be a sequence, not {type(m).__name__}")
+    for item in m:
+        _check_path_like(item, "path")
+    return cast(str, _ntpath.commonprefix(list(m)))
+
+
+def dirname(p: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Return the directory component of a path.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The directory component of the path.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+    """
+    _check_path_like(p, "p")
+    return cast(Union[str, bytes], _ntpath.dirname(p))
+
+
+def exists(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path exists.
+
+    A broken symbolic link does not exist.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path exists, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(bool, _ntpath.exists(path))
+
+
+def expanduser(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Expand a leading ``~`` or ``~user`` in a path.
+
+    The standard library of Windows reads the home directory from the
+    ``USERPROFILE`` and ``HOMEPATH`` variables of the environment, and it
+    leaves the path unchanged when they are not set.
+
+    Args:
+        path: The path to expand.
+
+    Returns:
+        The expanded path, or the path itself when it cannot be expanded.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(Union[str, bytes], _ntpath.expanduser(path))
+
+
+def expandvars(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Expand the shell variables of a path.
+
+    The variables of the form ``$var``, ``${var}`` and ``%var%`` are replaced
+    with their value, and an unknown variable is left unchanged.
+
+    Args:
+        path: The path to expand.
+
+    Returns:
+        The expanded path.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(Union[str, bytes], _ntpath.expandvars(path))
+
+
+def getatime(filename: Union[str, bytes, os.PathLike]) -> float:
+    """Return the last access time of a file.
+
+    Args:
+        filename: The path of the file.
+
+    Returns:
+        The time of the last access in seconds since the epoch.
+
+    Raises:
+        TypeError: If *filename* is not path-like.
+        OSError: If the file does not exist or cannot be accessed.
+    """
+    _check_path_like(filename, "filename")
+    return cast(float, _ntpath.getatime(filename))
+
+
+def getctime(filename: Union[str, bytes, os.PathLike]) -> float:
+    """Return the metadata change time of a file.
+
+    Args:
+        filename: The path of the file.
+
+    Returns:
+        The time of the metadata change in seconds since the epoch.
+
+    Raises:
+        TypeError: If *filename* is not path-like.
+        OSError: If the file does not exist or cannot be accessed.
+    """
+    _check_path_like(filename, "filename")
+    return cast(float, _ntpath.getctime(filename))
+
+
+def getmtime(filename: Union[str, bytes, os.PathLike]) -> float:
+    """Return the last modification time of a file.
+
+    Args:
+        filename: The path of the file.
+
+    Returns:
+        The time of the last modification in seconds since the epoch.
+
+    Raises:
+        TypeError: If *filename* is not path-like.
+        OSError: If the file does not exist or cannot be accessed.
+    """
+    _check_path_like(filename, "filename")
+    return cast(float, _ntpath.getmtime(filename))
+
+
+def getsize(filename: Union[str, bytes, os.PathLike]) -> int:
+    """Return the size of a file.
+
+    Args:
+        filename: The path of the file.
+
+    Returns:
+        The size of the file in bytes.
+
+    Raises:
+        TypeError: If *filename* is not path-like.
+        OSError: If the file does not exist or cannot be accessed.
+    """
+    _check_path_like(filename, "filename")
+    return cast(int, _ntpath.getsize(filename))
+
+
+def _drive_of(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Return the drive of a path with its separators normalized.
+
+    The standard library returns the drive as it was written, so a share
+    that is written with forward slashes keeps them. The helper folds the
+    separators, so the callers can compare the drive with a prefix.
+
+    Args:
+        path: The path to split.
+
+    Returns:
+        The drive of the path, or an empty string when it has none.
+    """
+    drive, _ = _ntpath.splitdrive(path)
+    if isinstance(drive, bytes):
+        return drive.replace(b"/", b"\\")
+    return drive.replace("/", "\\")
+
+
+def has_drive(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path carries a drive specification.
+
+    A drive specification is a drive letter such as ``C:``, a share of a
+    network such as ``\\\\server\\share``, or a device such as
+    ``\\\\?\\C:``.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path carries a drive, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return bool(_drive_of(path))
+
+
+def is_device_path(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path names a device.
+
+    A device path starts with the prefix ``\\\\.\\`` or with the prefix
+    ``\\\\?\\`` that the standard library uses to reach a device without
+    interpreting the path.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path names a device, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    drive = _drive_of(path)
+    if isinstance(drive, bytes):
+        return drive.startswith(b"\\\\.\\") or drive.startswith(b"\\\\?\\")
+    return drive.startswith("\\\\.\\") or drive.startswith("\\\\?\\")
+
+
+def is_unc_path(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path names a share of a network.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path names a share, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    drive = _drive_of(path)
+    if isinstance(drive, bytes):
+        return drive.startswith(b"\\\\")
+    return drive.startswith("\\\\")
+
+
+def isabs(s: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is absolute.
+
+    A path that starts with a drive or with a separator is absolute, and so
+    is the path that starts with the separator of a share.
+
+    Args:
+        s: The path to test.
+
+    Returns:
+        True if the path is absolute, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not path-like.
+    """
+    _check_path_like(s, "s")
+    return cast(bool, _ntpath.isabs(s))
+
+
+def isdevdrive(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is on a development drive.
+
+    The standard library answers the question on Windows only, and it
+    reports False on the other platforms.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path is on a development drive, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+        RuntimeError: If the interpreter does not ship the helper.
+    """
+    _check_path_like(path, "path")
+    predicate = _ISDEVDRIVE
+    if predicate is None:
+        raise RuntimeError("isdevdrive() requires Python 3.12 or newer")
+    return predicate(path)
+
+
+def isdir(s: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is an existing directory.
+
+    The symbolic links are followed, so a link and its target can both be
+    directories.
+
+    Args:
+        s: The path to test.
+
+    Returns:
+        True if the path is an existing directory, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not path-like.
+    """
+    _check_path_like(s, "s")
+    return cast(bool, _ntpath.isdir(s))
+
+
+def isfile(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is a regular file.
+
+    The symbolic links are followed.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path is a regular file, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(bool, _ntpath.isfile(path))
+
+
+def isjunction(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is a junction.
+
+    The standard library answers the question on Windows only, and it
+    reports False on the other platforms.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path is a junction, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+        RuntimeError: If the interpreter does not ship the helper.
+    """
+    _check_path_like(path, "path")
+    predicate = _ISJUNCTION
+    if predicate is None:
+        raise RuntimeError("isjunction() requires Python 3.12 or newer")
+    return predicate(path)
+
+
+def islink(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is a symbolic link.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path is a symbolic link, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(bool, _ntpath.islink(path))
+
+
+def ismount(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path is a mount point.
+
+    A mount point is the root of a drive, the root of a share, or a volume
+    that is mounted on a directory of the file system.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path is a mount point, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(bool, _ntpath.ismount(path))
+
+
+def join(
+    a: Union[str, bytes, os.PathLike], *p: Union[str, bytes, os.PathLike]
+) -> Union[str, bytes]:
+    """Join the components of a path.
+
+    A backslash is inserted between the components when it is missing, and a
+    component that carries a drive starts a new path on its own.
+
+    Args:
+        a: The first component of the path.
+        *p: The remaining components of the path.
+
+    Returns:
+        The joined path.
+
+    Raises:
+        TypeError: If a component is not path-like.
+    """
+    _check_path_like(a, "a")
+    for index, item in enumerate(p):
+        _check_path_like(item, f"p[{index}]")
+    return cast(Union[str, bytes], _ntpath.join(cast(Any, a), *cast(Any, p)))
+
+
+def lexists(path: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether a path exists, including a broken symbolic link.
+
+    Args:
+        path: The path to test.
+
+    Returns:
+        True if the path exists, False otherwise.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(bool, _ntpath.lexists(path))
+
+
+def normcase(s: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Fold the case of a path and normalize its separators.
+
+    The letters of the path are lowercased and the forward slashes are
+    replaced with backslashes, so two paths that name the same file compare
+    equal.
+
+    Args:
+        s: The path to normalize.
+
+    Returns:
+        The normalized path.
+
+    Raises:
+        TypeError: If *s* is not path-like.
+    """
+    _check_path_like(s, "s")
+    return cast(Union[str, bytes], _ntpath.normcase(s))
+
+
+def normpath(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Normalize a path.
+
+    The redundant separators and the components that name the current or the
+    parent directory are collapsed.
+
+    Args:
+        path: The path to normalize.
+
+    Returns:
+        The normalized path.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    return cast(Union[str, bytes], _ntpath.normpath(path))
+
+
+def realpath(path: Union[str, bytes, os.PathLike], strict: bool = False) -> str:
+    """Return the canonical path of a file.
+
+    The symbolic links of the path are resolved. The standard library of
+    Windows resolves them with the help of the operating system, and the
+    standard library of the other platforms returns the absolute path.
+
+    Args:
+        path: The path to resolve.
+        strict: Whether a missing file is an error.
+
+    Returns:
+        The canonical path.
+
+    Raises:
+        TypeError: If *path* is not path-like or *strict* is not a bool.
+        RuntimeError: If *strict* is set and the interpreter does not accept
+            the argument.
+        OSError: If *strict* is set and the file does not exist.
+    """
+    _check_path_like(path, "path")
+    if not isinstance(strict, bool):
+        raise TypeError(f"strict must be bool, not {type(strict).__name__!r}")
+    if not strict:
+        return cast(str, _ntpath.realpath(path))
+    resolver = _strict_resolver()
+    if resolver is None:
+        raise RuntimeError("realpath() with strict=True requires Python 3.12 or newer")
+    return resolver(path)
+
+
+def relpath(
+    path: Union[str, bytes, os.PathLike],
+    start: Optional[Union[str, bytes, os.PathLike]] = None,
+) -> str:
+    """Return the relative form of a path.
+
+    Args:
+        path: The path to make relative.
+        start: The directory the path is made relative to. The current
+            working directory is used when it is not given.
+
+    Returns:
+        The relative path.
+
+    Raises:
+        TypeError: If *path* or *start* is not path-like.
+        ValueError: If the path is empty or the paths are on different
+            drives.
+    """
+    _check_path_like(path, "path")
+    if start is not None:
+        _check_path_like(start, "start")
+    return cast(str, _ntpath.relpath(cast(Any, path), cast(Any, start)))
+
+
+def samefile(f1: Union[str, bytes, os.PathLike], f2: Union[str, bytes, os.PathLike]) -> bool:
+    """Report whether two paths name the same file.
+
+    The comparison uses the device number and the inode number of the files,
+    so it fails when one of the files does not exist.
+
+    Args:
+        f1: The first path.
+        f2: The second path.
+
+    Returns:
+        True if both paths name the same file, False otherwise.
+
+    Raises:
+        TypeError: If either path is not path-like.
+        OSError: If one of the files does not exist.
+    """
+    _check_two_paths(f1, f2)
+    return cast(bool, _ntpath.samefile(f1, f2))
+
+
+def sameopenfile(fp1: int, fp2: int) -> bool:
+    """Report whether two open files name the same file.
+
+    Args:
+        fp1: The descriptor of the first file.
+        fp2: The descriptor of the second file.
+
+    Returns:
+        True if both descriptors name the same file, False otherwise.
+
+    Raises:
+        TypeError: If a descriptor is not an int.
+        OSError: If a descriptor cannot be inspected.
+    """
+    if not isinstance(fp1, int) or isinstance(fp1, bool):
+        raise TypeError(f"sameopenfile() argument 1 must be int, not {type(fp1).__name__}")
+    if not isinstance(fp2, int) or isinstance(fp2, bool):
+        raise TypeError(f"sameopenfile() argument 2 must be int, not {type(fp2).__name__}")
+    return cast(bool, _ntpath.sameopenfile(fp1, fp2))
+
+
+def samestat(s1: os.stat_result, s2: os.stat_result) -> bool:
+    """Report whether two stat buffers name the same file.
+
+    Args:
+        s1: The first stat buffer.
+        s2: The second stat buffer.
+
+    Returns:
+        True if both buffers name the same file, False otherwise.
+
+    Raises:
+        TypeError: If a buffer is not a stat result.
+    """
+    if not isinstance(s1, os.stat_result):
+        raise TypeError(f"samestat() argument 1 must be stat_result, not {type(s1).__name__}")
+    if not isinstance(s2, os.stat_result):
+        raise TypeError(f"samestat() argument 2 must be stat_result, not {type(s2).__name__}")
+    return cast(bool, _ntpath.samestat(s1, s2))
+
+
+def split(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    """Split a path into a head and a tail.
+
+    The tail is everything that follows the last separator, and the head is
+    everything that comes before it.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The head and the tail of the path.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+    """
+    _check_path_like(p, "p")
+    return cast(Tuple[Union[str, bytes], Union[str, bytes]], _ntpath.split(p))
+
+
+def splitdrive(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    """Split a path into a drive and the rest of the path.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The drive and the rest of the path.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+    """
+    _check_path_like(p, "p")
+    return cast(Tuple[Union[str, bytes], Union[str, bytes]], _ntpath.splitdrive(p))
+
+
+def splitroot(
+    p: Union[str, bytes, os.PathLike]
+) -> Tuple[Union[str, bytes], Union[str, bytes], Union[str, bytes]]:
+    """Split a path into a drive, a root, and a tail.
+
+    The drive is the drive specification of the path, the root is the
+    separator that follows it, and the tail is everything that comes after
+    the root.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The drive, the root, and the tail of the path.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+        RuntimeError: If the interpreter does not ship the helper.
+    """
+    _check_path_like(p, "p")
+    splitter = _SPLITROOT
+    if splitter is None:
+        raise RuntimeError("splitroot() requires Python 3.12 or newer")
+    return cast(
+        Tuple[Union[str, bytes], Union[str, bytes], Union[str, bytes]],
+        splitter(p),
+    )
+
+
+def splitext(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Union[str, bytes]]:
+    """Split the extension from a path.
+
+    Args:
+        p: The path to split.
+
+    Returns:
+        The path without the extension and the extension itself, which
+        includes the leading dot.
+
+    Raises:
+        TypeError: If *p* is not path-like.
+    """
+    _check_path_like(p, "p")
+    return cast(Tuple[Union[str, bytes], Union[str, bytes]], _ntpath.splitext(p))
+
+
+def to_backslashes(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Return a path whose forward slashes are backslashes.
+
+    Args:
+        path: The path to convert.
+
+    Returns:
+        The path with backslashes as the only separator.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    text = os.fspath(path)
+    if isinstance(text, bytes):
+        return text.replace(b"/", b"\\")
+    return text.replace("/", "\\")
+
+
+def to_slashes(path: Union[str, bytes, os.PathLike]) -> Union[str, bytes]:
+    """Return a path whose backslashes are forward slashes.
+
+    A path that uses forward slashes is understood by Windows, so the
+    conversion makes a path portable without changing its meaning.
+
+    Args:
+        path: The path to convert.
+
+    Returns:
+        The path with forward slashes as the only separator.
+
+    Raises:
+        TypeError: If *path* is not path-like.
+    """
+    _check_path_like(path, "path")
+    text = os.fspath(path)
+    if isinstance(text, bytes):
+        return text.replace(b"\\", b"/")
+    return text.replace("\\", "/")
+NTPATH_UTILS
+
+# --- tests/test_ntpath_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_ntpath_utils.py" <<'TEST_NTPATH_UTILS'
+"""Tests for ntpath_utils."""
+
+import ntpath
+import os
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+import ntpath_utils
+from ntpath_utils import (
+    abspath,
+    basename,
+    commonpath,
+    commonprefix,
+    dirname,
+    exists,
+    expanduser,
+    expandvars,
+    getatime,
+    getctime,
+    getmtime,
+    getsize,
+    has_drive,
+    is_device_path,
+    is_unc_path,
+    isabs,
+    isdevdrive,
+    isdir,
+    isfile,
+    isjunction,
+    islink,
+    ismount,
+    join,
+    lexists,
+    normcase,
+    normpath,
+    realpath,
+    relpath,
+    samefile,
+    sameopenfile,
+    samestat,
+    split,
+    splitdrive,
+    splitext,
+    splitroot,
+    to_backslashes,
+    to_slashes,
+)
+
+
+class TestModuleContract(unittest.TestCase):
+    """Test the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(ntpath_utils.__all__, sorted(set(ntpath_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in ntpath_utils.__all__:
+            self.assertTrue(hasattr(ntpath_utils, name), name)
+
+    def test_the_constants_are_the_constants_of_the_standard_library(self):
+        self.assertEqual(ntpath_utils.sep, ntpath.sep)
+        self.assertEqual(ntpath_utils.altsep, ntpath.altsep)
+        self.assertEqual(ntpath_utils.curdir, ntpath.curdir)
+        self.assertEqual(ntpath_utils.pardir, ntpath.pardir)
+        self.assertEqual(ntpath_utils.extsep, ntpath.extsep)
+        self.assertEqual(ntpath_utils.pathsep, ntpath.pathsep)
+        self.assertEqual(ntpath_utils.defpath, ntpath.defpath)
+        self.assertEqual(ntpath_utils.devnull, ntpath.devnull)
+        self.assertEqual(
+            ntpath_utils.supports_unicode_filenames,
+            ntpath.supports_unicode_filenames,
+        )
+        self.assertIs(ntpath_utils.ALLOW_MISSING, ntpath.ALLOW_MISSING)
+
+
+class TestSplitting(unittest.TestCase):
+    """Test the functions that split a path."""
+
+    def test_split_returns_a_head_and_a_tail(self):
+        self.assertEqual(split("C:\\Users\\Barney\\file.txt"), ("C:\\Users\\Barney", "file.txt"))
+
+    def test_split_of_a_root_returns_an_empty_tail(self):
+        self.assertEqual(split("C:\\"), ("C:\\", ""))
+
+    def test_split_accepts_bytes(self):
+        self.assertEqual(split(b"C:\\Users\\file.txt"), (b"C:\\Users", b"file.txt"))
+
+    def test_split_accepts_a_path_like_object(self):
+        self.assertEqual(split(Path("C:/Users")), ntpath.split("C:/Users"))
+
+    def test_splitdrive_returns_the_drive(self):
+        self.assertEqual(splitdrive("C:\\Users\\Barney"), ("C:", "\\Users\\Barney"))
+
+    def test_splitdrive_of_a_relative_path_returns_an_empty_drive(self):
+        self.assertEqual(splitdrive("Users\\Barney"), ("", "Users\\Barney"))
+
+    def test_splitroot_returns_the_drive_the_root_and_the_tail(self):
+        self.assertEqual(splitroot("C:/Users/Barney"), ("C:", "/", "Users/Barney"))
+
+    def test_splitroot_of_a_share_returns_the_share_as_the_drive(self):
+        self.assertEqual(splitroot("//server/share/"), ("//server/share", "/", ""))
+
+    def test_splitroot_of_a_relative_path_returns_empty_parts(self):
+        self.assertEqual(splitroot("Windows/notepad"), ("", "", "Windows/notepad"))
+
+    def test_splitext_returns_the_extension(self):
+        self.assertEqual(splitext("C:\\Users\\file.txt"), ("C:\\Users\\file", ".txt"))
+
+    def test_splitext_of_a_file_without_an_extension(self):
+        self.assertEqual(splitext("C:\\Users\\file"), ("C:\\Users\\file", ""))
+
+    def test_dirname_returns_the_directory(self):
+        self.assertEqual(dirname("C:\\Users\\Barney\\file.txt"), "C:\\Users\\Barney")
+
+    def test_basename_returns_the_final_component(self):
+        self.assertEqual(basename("C:\\Users\\Barney\\file.txt"), "file.txt")
+
+    def test_the_splitting_functions_reject_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            split(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            splitdrive(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            splitext(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            dirname(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            basename(123)  # type: ignore[arg-type]
+
+
+class TestJoining(unittest.TestCase):
+    """Test the function that joins the components of a path."""
+
+    def test_join_inserts_a_backslash(self):
+        self.assertEqual(join("C:\\Users", "Barney"), "C:\\Users\\Barney")
+
+    def test_join_keeps_the_separator_that_is_there(self):
+        self.assertEqual(join("C:/Users", "Barney"), "C:/Users\\Barney")
+
+    def test_join_of_a_single_component(self):
+        self.assertEqual(join("C:\\Users"), "C:\\Users")
+
+    def test_join_accepts_bytes(self):
+        self.assertEqual(join(b"C:\\Users", b"Barney"), b"C:\\Users\\Barney")
+
+    def test_join_rejects_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            join(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            join("C:\\Users", 123)  # type: ignore[arg-type]
+
+
+class TestNormalization(unittest.TestCase):
+    """Test the functions that normalize a path."""
+
+    def test_normpath_collapses_the_redundant_parts(self):
+        self.assertEqual(normpath("A//B/./C"), "A\\B\\C")
+
+    def test_normpath_resolves_the_parent_directory(self):
+        self.assertEqual(normpath("A\\B\\..\\C"), "A\\C")
+
+    def test_normcase_lowercases_the_path(self):
+        self.assertEqual(normcase("C:/Foo/Bar"), "c:\\foo\\bar")
+
+    def test_normcase_accepts_bytes(self):
+        self.assertEqual(normcase(b"C:/Foo"), b"c:\\foo")
+
+    def test_abspath_resolves_a_relative_path(self):
+        self.assertEqual(abspath("file.txt"), ntpath.abspath("file.txt"))
+
+    def test_abspath_keeps_an_absolute_path(self):
+        self.assertEqual(abspath("C:\\Users"), "C:\\Users")
+
+    def test_relpath_returns_the_path_relative_to_the_start(self):
+        self.assertEqual(relpath("C:\\Users\\Barney\\file.txt", "C:\\Users"), "Barney\\file.txt")
+
+    def test_relpath_of_the_same_path_returns_a_dot(self):
+        self.assertEqual(relpath("C:\\Users", "C:\\Users"), ".")
+
+    def test_relpath_rejects_paths_of_different_drives(self):
+        with self.assertRaises(ValueError):
+            relpath("C:\\Users", "D:\\Users")
+
+    def test_relpath_rejects_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            relpath(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            relpath("C:\\Users", 123)  # type: ignore[arg-type]
+
+    def test_commonpath_returns_the_shared_part(self):
+        self.assertEqual(commonpath(["C:\\Users\\a", "C:\\Users\\b"]), "C:\\Users")
+
+    def test_commonpath_of_a_single_path(self):
+        self.assertEqual(commonpath(["C:\\Users"]), "C:\\Users")
+
+    def test_commonpath_rejects_an_empty_sequence(self):
+        with self.assertRaises(ValueError):
+            commonpath([])
+
+    def test_commonpath_rejects_a_sequence_of_different_drives(self):
+        with self.assertRaises(ValueError):
+            commonpath(["C:\\Users", "D:\\Users"])
+
+    def test_commonpath_rejects_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            commonpath("C:\\Users")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            commonpath([123])  # type: ignore[list-item]
+
+    def test_commonprefix_returns_the_shared_characters(self):
+        self.assertEqual(commonprefix(["C:\\Users\\a", "C:\\Users\\b"]), "C:\\Users\\")
+
+    def test_commonprefix_of_an_empty_sequence(self):
+        self.assertEqual(commonprefix([]), "")
+
+    def test_commonprefix_rejects_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            commonprefix(123)  # type: ignore[arg-type]
+
+    def test_the_normalizing_functions_reject_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            normpath(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            normcase(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            abspath(123)  # type: ignore[arg-type]
+
+
+class TestWindowsHelpers(unittest.TestCase):
+    """Test the helpers that report the shape of a Windows path."""
+
+    def test_has_drive_reports_a_drive_letter(self):
+        self.assertTrue(has_drive("C:\\Users"))
+        self.assertTrue(has_drive("C:Users"))
+
+    def test_has_drive_reports_a_relative_path(self):
+        self.assertFalse(has_drive("Users\\Barney"))
+
+    def test_has_drive_reports_a_share(self):
+        self.assertTrue(has_drive("\\\\server\\share\\file.txt"))
+
+    def test_is_unc_path_reports_a_share(self):
+        self.assertTrue(is_unc_path("\\\\server\\share\\file.txt"))
+
+    def test_is_unc_path_reports_a_share_that_uses_forward_slashes(self):
+        self.assertTrue(is_unc_path("//server/share/file.txt"))
+
+    def test_is_unc_path_reports_a_drive_letter(self):
+        self.assertFalse(is_unc_path("C:\\Users"))
+
+    def test_is_device_path_reports_a_device(self):
+        self.assertTrue(is_device_path("\\\\?\\C:\\Users"))
+        self.assertTrue(is_device_path("\\\\.\\COM1"))
+
+    def test_is_device_path_reports_a_drive_letter(self):
+        self.assertFalse(is_device_path("C:\\Users"))
+
+    def test_to_slashes_replaces_the_backslashes(self):
+        self.assertEqual(to_slashes("C:\\Users\\Barney"), "C:/Users/Barney")
+
+    def test_to_slashes_accepts_bytes(self):
+        self.assertEqual(to_slashes(b"C:\\Users"), b"C:/Users")
+
+    def test_to_backslashes_replaces_the_forward_slashes(self):
+        self.assertEqual(to_backslashes("C:/Users/Barney"), "C:\\Users\\Barney")
+
+    def test_the_helpers_reject_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            has_drive(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_unc_path(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_device_path(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            to_slashes(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            to_backslashes(123)  # type: ignore[arg-type]
+
+
+class TestExpansion(unittest.TestCase):
+    """Test the functions that expand a path."""
+
+    def test_expanduser_replaces_the_tilde_with_the_profile(self):
+        environment = {"USERPROFILE": "C:\\Users\\tester"}
+        with mock.patch.dict(os.environ, environment, clear=False):
+            self.assertEqual(expanduser("~/documents"), "C:\\Users\\tester/documents")
+
+    def test_expanduser_keeps_a_path_without_a_tilde(self):
+        self.assertEqual(expanduser("C:\\Users"), "C:\\Users")
+
+    def test_expandvars_replaces_a_variable(self):
+        environment = {"NTPATH_TEST_VARIABLE": "value"}
+        with mock.patch.dict(os.environ, environment, clear=False):
+            self.assertEqual(expandvars("$NTPATH_TEST_VARIABLE/file.txt"), "value/file.txt")
+
+    def test_expandvars_keeps_an_unknown_variable(self):
+        self.assertEqual(
+            expandvars("$NTPATH_TEST_UNKNOWN_VARIABLE/file.txt"),
+            "$NTPATH_TEST_UNKNOWN_VARIABLE/file.txt",
+        )
+
+    def test_the_expanding_functions_reject_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            expanduser(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            expandvars(123)  # type: ignore[arg-type]
+
+
+class TestFileSystemHelpers(unittest.TestCase):
+    """Test the helpers that look at the file system."""
+
+    def test_exists_reports_an_existing_file(self):
+        with tempfile.NamedTemporaryFile(delete=False) as handle:
+            path = handle.name
+        try:
+            self.assertTrue(exists(path))
+        finally:
+            os.unlink(path)
+
+    def test_exists_reports_a_missing_file(self):
+        self.assertFalse(exists(os.path.join(tempfile.gettempdir(), "ntpath-missing-file")))
+
+    def test_isfile_and_isdir_report_the_kind_of_a_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertTrue(isdir(directory))
+            self.assertFalse(isfile(directory))
+            file_path = os.path.join(directory, "file.txt")
+            with open(file_path, "w", encoding="utf-8") as handle:
+                handle.write("hello")
+            self.assertTrue(isfile(file_path))
+            self.assertFalse(isdir(file_path))
+
+    def test_islink_reports_a_regular_file(self):
+        with tempfile.NamedTemporaryFile(delete=False) as handle:
+            path = handle.name
+        try:
+            self.assertFalse(islink(path))
+        finally:
+            os.unlink(path)
+
+    def test_lexists_reports_a_missing_file(self):
+        self.assertFalse(lexists(os.path.join(tempfile.gettempdir(), "ntpath-missing-file")))
+
+    def test_getsize_returns_the_size_of_a_file(self):
+        with tempfile.NamedTemporaryFile(delete=False, mode="w") as handle:
+            handle.write("hello")
+            path = handle.name
+        try:
+            self.assertEqual(getsize(path), 5)
+        finally:
+            os.unlink(path)
+
+    def test_getmtime_and_getatime_and_getctime_return_a_number(self):
+        with tempfile.NamedTemporaryFile(delete=False) as handle:
+            path = handle.name
+        try:
+            self.assertIsInstance(getmtime(path), float)
+            self.assertIsInstance(getatime(path), float)
+            self.assertIsInstance(getctime(path), float)
+        finally:
+            os.unlink(path)
+
+    def test_getsize_raises_for_a_missing_file(self):
+        with self.assertRaises(OSError):
+            getsize(os.path.join(tempfile.gettempdir(), "ntpath-missing-file"))
+
+    def test_samefile_reports_the_same_file(self):
+        with tempfile.NamedTemporaryFile(delete=False) as handle:
+            path = handle.name
+        try:
+            self.assertTrue(samefile(path, path))
+        finally:
+            os.unlink(path)
+
+    def test_samestat_reports_the_same_file(self):
+        with tempfile.NamedTemporaryFile(delete=False) as handle:
+            path = handle.name
+        try:
+            self.assertTrue(samestat(os.stat(path), os.stat(path)))
+        finally:
+            os.unlink(path)
+
+    def test_sameopenfile_reports_the_same_file(self):
+        with tempfile.NamedTemporaryFile(delete=False) as handle:
+            path = handle.name
+        try:
+            with open(path, "r") as first, open(path, "r") as second:
+                self.assertTrue(sameopenfile(first.fileno(), second.fileno()))
+        finally:
+            os.unlink(path)
+
+    def test_sameopenfile_rejects_a_bool(self):
+        with self.assertRaises(TypeError):
+            sameopenfile(True, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sameopenfile(1, False)  # type: ignore[arg-type]
+
+    def test_samestat_rejects_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            samestat("not a stat", os.stat("."))  # type: ignore[arg-type]
+
+    def test_ismount_reports_the_root_of_a_drive(self):
+        self.assertTrue(ismount("C:/"))
+
+    def test_ismount_reports_a_directory_that_is_not_a_mount_point(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertFalse(ismount(directory))
+
+    def test_isjunction_reports_a_directory_that_is_not_a_junction(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertFalse(isjunction(directory))
+
+    def test_isdevdrive_answers_with_a_bool(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertIsInstance(isdevdrive(directory), bool)
+
+    def test_realpath_returns_an_absolute_path(self):
+        self.assertEqual(realpath("C:\\Users"), ntpath.realpath("C:\\Users"))
+
+    def test_realpath_rejects_a_strict_argument_that_is_not_a_bool(self):
+        with self.assertRaises(TypeError):
+            realpath("C:\\Users", strict="yes")  # type: ignore[arg-type]
+
+    def test_the_file_system_helpers_reject_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            exists(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            isdir(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            isfile(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            islink(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lexists(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            getsize(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            getmtime(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            getatime(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            getctime(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ismount(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            isjunction(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            isdevdrive(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            realpath(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            samefile(123, "C:\\Users")  # type: ignore[arg-type]
+
+
+class TestIsAbs(unittest.TestCase):
+    """Test the predicate that reports an absolute path."""
+
+    def test_isabs_reports_a_drive(self):
+        self.assertTrue(isabs("C:\\Users"))
+
+    def test_isabs_reports_a_relative_path(self):
+        self.assertFalse(isabs("Users\\Barney"))
+
+    def test_isabs_rejects_an_invalid_type(self):
+        with self.assertRaises(TypeError):
+            isabs(123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_NTPATH_UTILS
+
+# --- substitute the project name in the templated documents ---
+# The README and the agent instructions are written from quoted heredocs so
+# that their content is copied verbatim; the project name placeholder is
+# replaced here, after every file has been written.
+placeholder_name=${PROJECT_NAME//\\/\\\\}
+placeholder_name=${placeholder_name//&/\\&}
+placeholder_name=${placeholder_name//|/\\|}
+for template in "$OUTPUT_DIR/README.md" "$OUTPUT_DIR/AGENTS.md" "$OUTPUT_DIR/CHANGELOG.md"; do
+  if [[ -f "$template" ]]; then
+    sed "s|\${PROJECT_NAME}|${placeholder_name}|g" "$template" > "$template.tmp"
+    mv "$template.tmp" "$template"
+  fi
+done
+
+# --- report the generated project ---
+# The summary and the smoke test run at the very end of the generator so the
+# file listing covers every generated file and the smoke test sees the
+# complete project, including the substituted project name.
+echo ""
+echo "Scaffolded project '$PROJECT_NAME' at: $OUTPUT_DIR"
+echo ""
+echo "Created files:"
+find "$OUTPUT_DIR" -type f | sort | sed "s/^/  /"
+echo ""
+
+if [[ "$SMOKE_TEST" == "1" ]] && command -v python >/dev/null 2>&1; then
+  echo "Running smoke test in $OUTPUT_DIR ..."
+  if (cd "$OUTPUT_DIR" && python -m unittest discover tests/ -v); then
+    echo "Smoke test passed."
+  else
+    echo "Warning: smoke test failed. The scaffold may be incomplete." >&2
+  fi
+else
+  echo "Smoke test skipped (pass --no-test to skip intentionally)."
 fi
+
+echo ""
+echo "Next steps:"
+echo "  cd $OUTPUT_DIR"
+echo "  git init"
+echo "  git add -A"
+echo "  git commit -m 'Initial commit'"
 

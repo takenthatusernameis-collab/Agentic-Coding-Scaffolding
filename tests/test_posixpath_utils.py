@@ -136,6 +136,19 @@ class TestIsAbs(unittest.TestCase):
         self.assertFalse(isabs("foo"))
 
 
+class TestMountsAndJunctions(unittest.TestCase):
+    def test_ismount_reports_the_root(self):
+        self.assertTrue(ismount("/"))
+
+    def test_ismount_reports_a_directory_that_is_not_a_mount_point(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertFalse(ismount(directory))
+
+    def test_isjunction_reports_a_directory_that_is_not_a_junction(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertFalse(isjunction(directory))
+
+
 class TestExpand(unittest.TestCase):
     def test_expanduser(self):
         result = expanduser("~")

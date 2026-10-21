@@ -1,4 +1,109 @@
-## Latest Session (2026-10-21) — ipaddress_utils added, refresh tool completes the generator
+## Latest Session (2026-10-21) — ntpath_utils added, the generator and the documents repaired
+
+The board held no task, so this session repaired the state the previous sessions left behind and added the
+next standard library wrapper module.
+
+Completed in the latest session:
+
+- Repaired the end of `scaffold.sh`, which had lost the summary of the generated project and the
+  post-scaffold smoke test. The generator now reports the files it wrote, and it runs the tests of the
+  generated project unless the `--no-test` flag is given, in which case it reports that the smoke test
+  was skipped. Two checks of `tests/test_scaffold.py` failed before the repair, because the flag had no
+  effect at all.
+- Repaired the name substitution of the generated documents. The generator now replaces the name of the
+  project in the README, the agent instructions, and the changelog with a substitution that escapes the
+  characters that are special to `sed`, so a project name that holds a backslash, an ampersand, or a
+  pipe does not corrupt the generated documents.
+- Added the table of the developer commands to the README, so a scaffolded project documents the targets
+  of its `Makefile`. The check of `tests/test_scaffold.py` that reads the table failed before the repair,
+  because the table was missing from the document that the generator embeds.
+- Extended `tools/refresh_scaffold.py` so that it also refreshes the documents that the generator embeds
+  as templates: the README, the agent instructions, and the changelog. The name of the project is
+  replaced with the placeholder that the generator substitutes, so the embedded copy can no longer drift
+  away from the repository copy. The `--check` mode reports such a copy as stale, and the tool rewrites
+  it. The header comment of the generator, the embedded package metadata, and the tree of the README are
+  still maintained by hand.
+- Repaired `posixpath_utils.py` and `genericpath_utils.py`, which failed the lint and the type check of
+  the repository: the imports of the constants were placed between the definitions of the module, several
+  lines were longer than the limit of the linter, the calls into the standard library returned an untyped
+  value, and the names of the re-exported functions collided with the wrappers of the same name. The
+  `posixpath` module also gained the helper `is_rooted`, which reports whether a path starts at the root
+  of the file system.
+- Added `ntpath_utils.py` wrapping the standard library `ntpath` module (`abspath`, `basename`,
+  `commonpath`, `commonprefix`, `dirname`, `exists`, `expanduser`, `expandvars`, `getatime`, `getctime`,
+  `getmtime`, `getsize`, `isabs`, `isdevdrive`, `isdir`, `isfile`, `isjunction`, `islink`, `ismount`,
+  `join`, `lexists`, `normcase`, `normpath`, `realpath`, `relpath`, `samefile`, `sameopenfile`,
+  `samestat`, `split`, `splitdrive`, `splitroot`, `splitext`) with typed signatures, docstrings, `__all__`,
+  and input validation, plus unit tests in `tests/test_ntpath_utils.py`. The constants `ALLOW_MISSING`,
+  `sep`, `altsep`, `curdir`, `pardir`, `extsep`, `pathsep`, `defpath`, `devnull`, and
+  `supports_unicode_filenames` are re-exported.
+- The wrapper adds the helpers the standard library leaves to the caller. `has_drive` reports whether a
+  path carries a drive specification, `is_unc_path` reports whether it names a share of a network, and
+  `is_device_path` reports whether it names a device. The three helpers fold the separators of the drive
+  before they compare it, so a share that is written with forward slashes is recognized as well.
+  `to_slashes` and `to_backslashes` convert the separators of a path with a single call.
+- The helpers that the standard library added in Python 3.12 (`splitroot`, `isjunction`) and the one it
+  added in Python 3.12 for the development drives (`isdevdrive`) degrade gracefully: the wrapper raises a
+  `RuntimeError` that names the version the interpreter needs, the way `fcntl_utils.py` and
+  `termios_utils.py` do for a module that only exists on some platforms.
+- The module is written in pure Python, so it works on every platform and a caller can work with Windows
+  paths on a machine that runs a different operating system. The test suite is hermetic: it only compares
+  path strings, and the two helpers that read the environment expand a variable of a patched environment.
+- Synchronized the new module across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh`
+  header comment, the module and test heredocs, the embedded `pyproject.toml`, the embedded README tree
+  and module section, the embedded CHANGELOG, the README tree and module section,
+  `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships `ntpath_utils.py`
+  and `tests/test_ntpath_utils.py`, both byte identical to the repository copies, its 3914 tests, ruff,
+  and mypy all pass, and the embedded refresh tool reports that all embedded copies are in sync inside the
+  generated project.
+- The repository suite now runs 4266 tests, and `make lint` and `make typecheck` are green.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `antigravity`, `audioop`, `bdb`, `cgi`, `cgitb`, `chunk`, `crypt`, `curses`,
+  `ensurepip`, `idlelib`, `imghdr`, `lib2to3`, `msilib`, `msvcrt`, `nis`, `nntplib`, `nturl2path`,
+  `ossaudiodev`, `pdb`, `pipes`, `pydoc`, `pydoc_data`, `pyexpat`, `readline`, `site`, `sndhdr`, `spwd`,
+  `sre_compile`, `sre_constants`, `sre_parse`, `sunau`, `telnetlib`, `tkinter`, `turtle`, `turtledemo`,
+  `urllib`, `venv`, `winreg`, `winsound`, and `wsgiref`. The `curses` module is the natural next
+  candidate: it is Unix-only, so the import has to degrade gracefully and raise a `RuntimeError` on the
+  platforms that do not ship it, the way `fcntl_utils.py` and `termios_utils.py` do. The `pydoc` module
+  is the alternative: it documents the objects of the running interpreter, so the tests have to compare
+  the text that the standard library returns.
+- Consider extending `tools/refresh_scaffold.py` further. The tool now refreshes the copies of the
+  wrapper modules, of their tests, of the command documentation, and of the documents that the generator
+  embeds as templates. The header comment of the generator, the embedded package metadata, and the tree
+  of the README are still maintained by hand.
+- Keep every new wrapper hermetic: the test suite must never open a network connection, write to a
+  system service, or block on a subprocess. `imaplib_utils.py` is the reference — its connection
+  helpers are exercised with `unittest.mock.patch` instead of real servers. `smtplib_utils.py`
+  follows it: the tests replay scripted server replies through a fake socket and never touch the
+  network. `xmlrpc_utils.py` follows it as well: the server helpers are patched and the encoding
+  helpers only compare strings. `syslog_utils.py` follows it too: every call into the system logger
+  is patched. `resource_utils.py` follows it as well: the tests only read the limits of the running
+  process and patch the write. `termios_utils.py` follows it as well: the tests work on a pseudo
+  terminal that the test itself opens. `fcntl_utils.py` follows it as well: the tests lock the files
+  of a temporary directory that the test itself creates, and they use the non blocking operations so
+  that no test ever waits for a lock. `pty_utils.py` follows it as well: the tests exercise `fork`
+  and `spawn` through a patched standard library module and never fork or spawn a process.
+  `zipimport_utils.py` follows it as well: the tests build a Zip archive of their own in a
+  temporary directory and never read an archive that the interpreter ships. `ipaddress_utils.py`
+  follows it as well: the module is pure computation, so the tests only compare addresses and
+  networks. `ntpath_utils.py` follows it as well: the module is pure computation apart from the
+  helpers that read the file system, and the tests only look at a file that the test itself creates.
+  The same rule applies to the compiler wrappers: `compileall_utils.py` narrows `sys.path` with
+  `unittest.mock.patch` so the suite never byte-compiles the interpreter's own import path.
+  `modulefinder_utils.py` follows the rule as well: the analysis is static, so the analysed script is
+  never imported or executed, and the tests restrict the search path to a temporary directory so the
+  suite never scans the whole import path. `optparse_utils.py` follows it too: the parser never
+  touches the network, and the tests parse command lines from lists instead of `sys.argv`, except for
+  one test that patches `sys.argv` with `unittest.mock.patch`. `xdrlib_utils.py` follows it as well:
+  the XDR encoding is pure computation, so the tests only compare byte strings.
+- Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new
+  module must not reintroduce any drift.
+
+## Previous Session (2026-10-21) — ipaddress_utils added, refresh tool completes the generator
 
 The board held no task, so this session added the next standard library wrapper module and removed the
 manual step of the handover that broke in the previous sessions.

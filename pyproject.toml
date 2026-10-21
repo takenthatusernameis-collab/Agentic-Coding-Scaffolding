@@ -267,4 +267,5 @@ py_modules = [
     "encodings_utils",
     "ipaddress_utils",
     "genericpath_utils",
+    "ntpath_utils",
 ]
