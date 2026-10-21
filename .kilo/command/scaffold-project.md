@@ -533,3 +533,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_modulefinder_utils.py` — unit tests for `modulefinder_utils.py`
 - `optparse_utils.py` — optparse utilities wrapping the standard library `optparse` module (`make_parser`, `add_option`, `add_flag`, `add_count_option`, `add_option_group`, `parse_args`, `get_option`, `has_option`, `remove_option`, `get_default_values`, `set_defaults`, `get_usage`, `format_usage`, `format_help`, `format_option_help`, `get_prog_name`, `dest_for`, `string_type`, `int_type`, `float_type`, `choice_type`, `values_to_dict`) with input validation
 - `tests/test_optparse_utils.py` — unit tests for `optparse_utils.py`
+- `venv_utils.py` — virtual environment utilities wrapping the standard library `venv` package (`create_environment`, `describe_environment`, `read_configuration`, `environment_paths`, `environment_python`, `activation_scripts`, `is_environment`, `find_environments`, `run_cli`) with input validation
+- `tests/test_venv_utils.py` — unit tests for `venv_utils.py`

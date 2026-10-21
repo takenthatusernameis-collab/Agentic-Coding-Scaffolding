@@ -279,4 +279,5 @@ py_modules = [
     "antigravity_utils",
     "pydoc_data_utils",
     "cprofile_utils",
+    "venv_utils",
 ]

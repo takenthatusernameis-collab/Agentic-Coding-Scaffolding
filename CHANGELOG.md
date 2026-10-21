@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add `venv_utils.py` wrapping the standard library `venv` package (`create_environment`, `describe_environment`, `read_configuration`, `environment_paths`, `environment_python`, `activation_scripts`, `is_environment`, `find_environments`, `run_cli`) with input validation and the re-exported class `EnvBuilder`, plus unit tests in `tests/test_venv_utils.py`.
+- Synchronized `venv_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Return a description of a virtual environment when it is created, compute the directories of an environment without creating it, find the environments of a directory tree, and return the exit code of the command-line interface of the standard library.
 - Add `cprofile_utils.py` wrapping the standard library `cProfile` module (`new_profiler`, `run`, `runctx`, `runcall`, `profile_call`, `collect_stats`, `format_report`, `dump_stats`, `main`) with input validation and the re-exported class `Profile`, plus unit tests in `tests/test_cprofile_utils.py`.
 - Synchronized `cprofile_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Return the report of a profiling run as text instead of printing it to the standard output, let a profiled call return its statistics together with its result, and reject a timer that does not return the integer number of ticks the profiler needs with a clear message instead of a failure inside the profiler.

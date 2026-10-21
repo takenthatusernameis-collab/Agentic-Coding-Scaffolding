@@ -1,4 +1,85 @@
-## Latest Session (2026-10-21) — wsgiref_utils added and synchronized across every surface
+## Latest Session (2026-10-21) — venv_utils added and synchronized across every surface
+
+The board held no task, so this session added the next standard library wrapper module and
+synchronized it across every surface of the project.
+
+Completed in the latest session:
+
+- Added `venv_utils.py` wrapping the standard library `venv` package (`create_environment`,
+  `describe_environment`, `read_configuration`, `environment_paths`, `environment_python`,
+  `activation_scripts`, `is_environment`, `find_environments`, `run_cli`) with typed signatures,
+  docstrings, `__all__`, and input validation, plus unit tests in `tests/test_venv_utils.py`. The
+  class `EnvBuilder` is re-exported from the standard library.
+- The wrapper adds four conveniences to the standard library: the creation of an environment returns
+  a description of the result instead of nothing, the directories of an environment are computed the
+  way the standard library computes them without creating it, the environments of a directory tree
+  are found, and the command line interface of the standard library returns its exit code instead of
+  raising `SystemExit`.
+- The configuration file of an environment is read as a mapping, and the quotes the standard library
+  writes around the prompt of an environment are removed, so a caller never has to parse the file
+  itself.
+- The test suite is hermetic. Every environment is created in a temporary directory that the test
+  owns, the environments are created without `pip`, and the helpers that read an environment never
+  write to it, so the suite installs no package and never reaches the network.
+- Synchronized the new module across every surface: `pyproject.toml` `py_modules`, the `scaffold.sh`
+  header comment, the embedded `pyproject.toml`, the module and test heredocs, the embedded README
+  and changelog, the README tree and module section, `.kilo/command/scaffold-project.md`, the
+  `tests/test_scaffold.py` assertions, and `CHANGELOG.md`.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `venv_utils.py` and `tests/test_venv_utils.py`, both byte identical to the repository copies, the
+  4701 tests of the generated project pass, and the embedded refresh tool reports that all embedded
+  copies are in sync inside the generated project.
+- The repository suite now runs 4801 tests, and `make lint` and `make typecheck` are green.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `cgi`, `cgitb`, `chunk`, `crypt`, `ensurepip`, `idlelib`, `imghdr`, `lib2to3`,
+  `msilib`, `msvcrt`, `nis`, `nntplib`, `ossaudiodev`, `pipes`, `posix`, `pyexpat`, `readline`,
+  `sndhdr`, `spwd`, `sre_compile`, `sre_constants`, `sre_parse`, `sunau`, `telnetlib`, `tkinter`,
+  `turtle`, `turtledemo`, `winreg`, and `winsound`. Most of them are deprecated or removed in Python
+  3.13, so the ones that are worth a wrapper are `ensurepip`, which ships with every interpreter and
+  installs `pip` from the wheel the interpreter carries, and `readline`, which the wrapper can offer
+  with the graceful degradation that `curses_utils.py` uses for a module that only exists on
+  Unix-like platforms. `tkinter` and `idlelib` are not installed in the interpreter of the CI, so a
+  wrapper for them cannot be tested here.
+- Keep every new wrapper hermetic: the test suite must never open a network connection, install a
+  package, write to a system service, or block on a subprocess. `venv_utils.py` follows the rule as
+  well: the tests create every environment in a temporary directory of their own and the environments
+  are created without `pip`. `imaplib_utils.py` is the reference — its connection helpers are
+  exercised with `unittest.mock.patch` instead of real servers. `smtplib_utils.py` follows it: the
+  tests replay scripted server replies through a fake socket and never touch the network.
+  `xmlrpc_utils.py` follows it as well: the server helpers are patched and the encoding helpers only
+  compare strings. `syslog_utils.py` follows it too: every call into the system logger is patched.
+  `resource_utils.py` follows it as well: the tests only read the limits of the running process and
+  patch the write. `termios_utils.py` follows it as well: the tests work on a pseudo terminal that
+  the test itself opens. `fcntl_utils.py` follows it as well: the tests lock the files of a
+  temporary directory that the test itself creates, and they use the non blocking operations so that
+  no test ever waits for a lock. `pty_utils.py` follows it as well: the tests exercise `fork` and
+  `spawn` through a patched standard library module and never fork or spawn a process.
+  `zipimport_utils.py` follows it as well: the tests build a Zip archive of their own in a
+  temporary directory and never read an archive that the interpreter ships. `ipaddress_utils.py`
+  follows it as well: the module is pure computation, so the tests only compare addresses and
+  networks. `ntpath_utils.py` follows it as well: the module is pure computation apart from the
+  helpers that read the file system, and the tests only look at a file that the test itself creates.
+  `pdb_utils.py` follows it as well: every helper that opens the prompt of the debugger is patched,
+  so the suite never waits for a command. `site_utils.py` follows it as well: the helpers that
+  change the search path of the interpreter work on a copy of `sys.path`, so the suite never changes
+  the search path of the interpreter that runs it. `wsgiref_utils.py` follows it as well: the
+  helpers of the environment of a request work on a dictionary and the test that checks that a
+  server is created patches the standard library, so the suite never binds a socket.
+  The same rule applies to the compiler wrappers: `compileall_utils.py` narrows `sys.path` with
+  `unittest.mock.patch` so the suite never byte-compiles the interpreter's own import path.
+  `modulefinder_utils.py` follows the rule as well: the analysis is static, so the analysed script is
+  never imported or executed, and the tests restrict the search path to a temporary directory so the
+  suite never scans the whole import path. `optparse_utils.py` follows it too: the parser never
+  touches the network, and the tests parse command lines from lists instead of `sys.argv`, except for
+  one test that patches `sys.argv` with `unittest.mock.patch`. `xdrlib_utils.py` follows it as well:
+  the XDR encoding is pure computation, so the tests only compare byte strings.
+- Keep `make lint` and `make typecheck` green. The latest session left no known failures, so a new
+  module must not reintroduce any drift.
+
+## Previous Session (2026-10-21) — wsgiref_utils added and synchronized across every surface
 
 The board held no task, so this session added the next standard library wrapper module and
 synchronized it across every surface of the project.
@@ -646,7 +727,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 4496 tests across all wrapper modules (3279 subtests)
+- 4801 tests across all wrapper modules (3377 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -657,14 +738,14 @@ The project foundation is established:
   asserted in `tests/test_scaffold.py`; the `pyproject.toml` template embedded in `scaffold.sh` has to
   register every module as well
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 4396 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 4701 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 470 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 484 source files
 
 ## Keeping the Scaffold Synchronized
 

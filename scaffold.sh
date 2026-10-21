@@ -700,6 +700,7 @@
 #   - pydoc_data_utils.py — # Documentation topic utilities wrapping the standard library pydoc_data package (count_topics, get_topic, get_topic_names, get_topic_section, get_topic_sections, get_topic_title, get_topics, get_topics_subset, has_topic, search_topics, wrap_topic) with input validation
 #   - wsgiref_utils.py — # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 #   - antigravity_utils.py — # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url) with input validation
+#   - venv_utils.py — # Virtual environment utilities wrapping the standard library venv package (create_environment, describe_environment, read_configuration, environment_paths, environment_python, activation_scripts, is_environment, find_environments, run_cli) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -730,6 +731,7 @@
 #   - tests/test_pydoc_data_utils.py — # Tests for pydoc_data_utils.py
 #   - tests/test_wsgiref_utils.py — # Tests for wsgiref_utils.py
 #   - tests/test_antigravity_utils.py — # Tests for antigravity_utils.py
+#   - tests/test_venv_utils.py — # Tests for venv_utils.py
 set -euo pipefail
 
 usage() {
@@ -4540,6 +4542,7 @@ py_modules = [
     "wsgiref_utils",
     "antigravity_utils",
     "cprofile_utils",
+    "venv_utils",
 ]
 PYPROJECT
 
@@ -29417,6 +29420,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_modulefinder_utils.py` — unit tests for `modulefinder_utils.py`
 - `optparse_utils.py` — optparse utilities wrapping the standard library `optparse` module (`make_parser`, `add_option`, `add_flag`, `add_count_option`, `add_option_group`, `parse_args`, `get_option`, `has_option`, `remove_option`, `get_default_values`, `set_defaults`, `get_usage`, `format_usage`, `format_help`, `format_option_help`, `get_prog_name`, `dest_for`, `string_type`, `int_type`, `float_type`, `choice_type`, `values_to_dict`) with input validation
 - `tests/test_optparse_utils.py` — unit tests for `optparse_utils.py`
+- `venv_utils.py` — virtual environment utilities wrapping the standard library `venv` package (`create_environment`, `describe_environment`, `read_configuration`, `environment_paths`, `environment_python`, `activation_scripts`, `is_environment`, `find_environments`, `run_cli`) with input validation
+- `tests/test_venv_utils.py` — unit tests for `venv_utils.py`
 SCAFFOLD
 
 
@@ -30737,6 +30742,9 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `venv_utils.py` wrapping the standard library `venv` package (`create_environment`, `describe_environment`, `read_configuration`, `environment_paths`, `environment_python`, `activation_scripts`, `is_environment`, `find_environments`, `run_cli`) with input validation and the re-exported class `EnvBuilder`, plus unit tests in `tests/test_venv_utils.py`.
+- Synchronized `venv_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Return a description of a virtual environment when it is created, compute the directories of an environment without creating it, find the environments of a directory tree, and return the exit code of the command-line interface of the standard library.
 - Add `cprofile_utils.py` wrapping the standard library `cProfile` module (`new_profiler`, `run`, `runctx`, `runcall`, `profile_call`, `collect_stats`, `format_report`, `dump_stats`, `main`) with input validation and the re-exported class `Profile`, plus unit tests in `tests/test_cprofile_utils.py`.
 - Synchronized `cprofile_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - Return the report of a profiling run as text instead of printing it to the standard output, let a profiled call return its statistics together with its result, and reject a timer that does not return the integer number of ticks the profiler needs with a clear message instead of a failure inside the profiler.
@@ -31901,6 +31909,7 @@ pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (re
 pydoc_data_utils.py          # Documentation topic utilities wrapping stdlib pydoc_data (count_topics, get_topic, get_topic_names, get_topic_section, get_topic_sections, get_topic_title, get_topics, get_topics_subset, has_topic, search_topics, wrap_topic) with input validation
 antigravity_utils.py         # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url) with input validation
 wsgiref_utils.py              # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
+venv_utils.py                 # Virtual environment utilities wrapping the standard library venv package (create_environment, describe_environment, read_configuration, environment_paths, environment_python, activation_scripts, is_environment, find_environments, run_cli) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -32061,6 +32070,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_version_utils.py       # Tests for version_utils.py
   test_semver_utils.py        # Tests for semver_utils.py
   test_interval_utils.py      # Tests for interval_utils.py
+  test_venv_utils.py          # Tests for venv_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -33198,6 +33208,10 @@ The project includes antigravity utilities in `antigravity_utils.py` wrapping th
 ## Cprofile Utilities Module
 
 The project includes profiling utilities in `cprofile_utils.py` wrapping the standard library `cProfile` module: `new_profiler` creates a profiler, `run` profiles a single statement, `runctx` profiles a statement in given namespaces, `runcall` profiles a single call and returns its result, and `profile_call` returns the result of a profiled call together with its statistics. The helper `collect_stats` returns the statistics a profiler collected, `format_report` returns the report of a profiling run as text, `dump_stats` writes the statistics of a profiling run to a file, and `main` runs the command-line interface of the standard library. The class `Profile` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds three conveniences to the standard library: the report of a profiling run is returned as text instead of being printed to the standard output, a profiled call returns its statistics together with its result, and a timer that does not return the integer number of ticks the profiler needs is rejected with a clear message instead of failing inside the profiler. The module is tested in `tests/test_cprofile_utils.py`.
+
+## Venv Utilities Module
+
+The project includes virtual environment utilities in `venv_utils.py` wrapping the standard library `venv` package: `create_environment` creates a virtual environment and returns a description of it, `describe_environment` describes an environment that already exists, `read_configuration` returns the settings of the configuration file of an environment as a mapping, `is_environment` reports whether a directory holds an environment, `environment_paths` returns the directories of an environment the way the standard library computes them, `environment_python` returns the interpreter of an environment, `activation_scripts` returns the scripts that activate an environment, `find_environments` returns the environments of a directory tree, and `run_cli` runs the command-line interface of the standard library and returns its exit code. The class `EnvBuilder` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds three conveniences to the standard library: the creation of an environment returns a description of the result instead of nothing, the directories of an environment are computed without creating it, and the environments of a directory tree are found. The helpers that create an environment write to the directory they are given and nothing else, and the helpers that only read an environment never write to it, so the tests of the project create every environment in a temporary directory of their own and the suite never installs a package and never reaches the network. The module is tested in `tests/test_venv_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -87037,6 +87051,808 @@ class TestMain(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_CPROFILE_UTILS
+
+# --- venv_utils.py ---
+cat > "$OUTPUT_DIR/venv_utils.py" <<'VENV_UTILS'
+"""Virtual environment utilities wrapping the standard library :mod:`venv` package.
+
+The :mod:`venv` package creates a virtual environment: a directory that holds
+its own copy of the interpreter, its own library directory, and a configuration
+file that records where the interpreter came from.  The package also offers a
+command line interface that does the same work from a terminal.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure.  It adds the helpers the standard library leaves to the
+caller: the configuration of an environment is read as a mapping, the
+directories of an environment are computed without creating it, the
+interpreter of an environment is located, the environments of a directory tree
+are found, and the creation of an environment returns a description of the
+result instead of nothing.
+
+The helpers that create an environment write to the directory they are given
+and nothing else, so a caller decides where the environment is created.  The
+helpers that only read an environment never write to it.
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+import sysconfig
+from typing import Any, Dict, List, Optional, Sequence
+
+try:
+    import venv as _venv
+except ImportError:  # pragma: no cover - the package ships with the interpreter
+    _venv = None  # type: ignore[assignment]
+
+__all__: list[str] = [
+    "EnvBuilder",
+    "activation_scripts",
+    "create_environment",
+    "describe_environment",
+    "environment_paths",
+    "environment_python",
+    "find_environments",
+    "is_environment",
+    "read_configuration",
+    "run_cli",
+]
+
+#: The name of the configuration file of an environment.
+CONFIGURATION_FILE = "pyvenv.cfg"
+
+#: The description of a virtual environment.
+Environment = Dict[str, Any]
+
+#: The names of the interpreters of an environment, in the order they are tried.
+_INTERPRETER_NAMES = ("python", "python3", "python.exe", "pythonw.exe")
+
+#: The names of the scripts that activate an environment.
+_ACTIVATION_NAMES = ("activate", "activate.bat", "activate.ps1", "Activate.ps1")
+
+
+def _venv_module() -> Any:
+    """Return the standard library ``venv`` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``venv`` package.
+    """
+    if _venv is None:
+        raise RuntimeError("the standard library package 'venv' is not available")
+    return _venv
+
+
+def _require_directory(value: object, name: str) -> str:
+    """Return *value* as an absolute path of a directory.
+
+    Args:
+        value: The path of the directory.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The absolute path of the directory.
+
+    Raises:
+        TypeError: If *value* is not a path.
+        ValueError: If *value* is an empty path.
+    """
+    if isinstance(value, (str, bytes, os.PathLike)):
+        text = os.fspath(value)
+        if isinstance(text, bytes):
+            text = os.fsdecode(text)
+    else:
+        raise TypeError(f"{name} must be a path, got {type(value).__name__}")
+    if not text.strip():
+        raise ValueError(f"{name} must not be empty")
+    return os.path.abspath(text)
+
+
+def _require_bool(value: object, name: str) -> bool:
+    """Return *value* when it is a boolean.
+
+    Raises:
+        TypeError: If *value* is not a boolean.
+    """
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def _require_optional_text(value: object, name: str) -> Optional[str]:
+    """Return *value* when it is a string or ``None``.
+
+    Raises:
+        TypeError: If *value* is neither a string nor ``None``.
+        ValueError: If *value* is a string that is empty.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    if not value.strip():
+        raise ValueError(f"{name} must not be empty")
+    return value
+
+
+def _require_non_negative_int(value: object, name: str) -> int:
+    """Return *value* when it is an integer that is not negative.
+
+    Raises:
+        TypeError: If *value* is not an integer.
+        ValueError: If *value* is negative.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"{name} must not be negative, got {value}")
+    return value
+
+
+def _require_sequence(value: object, name: str) -> List[str]:
+    """Return *value* as a list of strings.
+
+    Raises:
+        TypeError: If *value* is not a sequence of strings.
+    """
+    if isinstance(value, (str, bytes)):
+        raise TypeError(f"{name} must be a sequence of strings, not a single string")
+    if not isinstance(value, (list, tuple)):
+        raise TypeError(f"{name} must be a list or a tuple, got {type(value).__name__}")
+    entries: List[str] = []
+    for entry in value:
+        if not isinstance(entry, str):
+            raise TypeError(f"{name} entries must be strings, got {type(entry).__name__}")
+        entries.append(entry)
+    return entries
+
+
+def _scheme_vars(directory: str) -> Dict[str, str]:
+    """Return the variables that place the paths of an installation scheme."""
+    return {
+        "base": directory,
+        "platbase": directory,
+        "installed_base": directory,
+        "installed_platbase": directory,
+    }
+
+
+def _path_of(directory: str, name: str) -> str:
+    """Return the path of the *name* directory of an environment."""
+    return sysconfig.get_path(name, scheme="venv", vars=_scheme_vars(directory))
+
+
+def _configuration_path(directory: str) -> str:
+    """Return the path of the configuration file of an environment."""
+    return os.path.join(directory, CONFIGURATION_FILE)
+
+
+def _strip_quotes(value: str) -> str:
+    """Return *value* without the quotes the standard library writes around it."""
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+        return value[1:-1]
+    return value
+
+
+def is_environment(directory: object) -> bool:
+    """Report whether a directory holds a virtual environment.
+
+    Args:
+        directory: The path of the directory.
+
+    Returns:
+        ``True`` when the directory holds the configuration file of an
+        environment, ``False`` otherwise.
+    """
+    path = _require_directory(directory, "directory")
+    return os.path.isfile(_configuration_path(path))
+
+
+def read_configuration(directory: object) -> Dict[str, str]:
+    """Return the configuration of a virtual environment.
+
+    The configuration file of an environment records the directory of the
+    interpreter the environment was built from, the version of that
+    interpreter, whether the environment sees the packages of the system, the
+    prompt of the environment, and the command that created it.
+
+    Args:
+        directory: The path of the environment.
+
+    Returns:
+        A mapping of the names of the settings to their values.
+
+    Raises:
+        TypeError: If *directory* is not a path.
+        ValueError: If *directory* is empty or holds no environment.
+    """
+    path = _require_directory(directory, "directory")
+    configuration = _configuration_path(path)
+    if not os.path.isfile(configuration):
+        raise ValueError(f"no virtual environment in {path!r}")
+    settings: Dict[str, str] = {}
+    with open(configuration, encoding="utf-8") as stream:
+        for line in stream:
+            text = line.strip()
+            if not text or text.startswith("#"):
+                continue
+            name, separator, value = text.partition("=")
+            if not separator:
+                continue
+            settings[name.strip()] = _strip_quotes(value.strip())
+    return settings
+
+
+def environment_paths(directory: object) -> Dict[str, str]:
+    """Return the directories of a virtual environment.
+
+    The directories are computed the way the standard library computes them
+    when it creates an environment, so the result describes an environment
+    that does not exist yet as well as one that does.
+
+    Args:
+        directory: The path of the environment.
+
+    Returns:
+        A mapping of the names of the directories to their paths.  The names
+        are ``scripts``, ``include``, ``platinclude``, ``purelib``,
+        ``platlib``, ``stdlib``, ``platstdlib``, and ``data``.
+
+    Raises:
+        TypeError: If *directory* is not a path.
+        ValueError: If *directory* is empty.
+    """
+    path = _require_directory(directory, "directory")
+    names = (
+        "scripts",
+        "include",
+        "platinclude",
+        "purelib",
+        "platlib",
+        "stdlib",
+        "platstdlib",
+        "data",
+    )
+    return {name: _path_of(path, name) for name in names}
+
+
+def environment_python(directory: object) -> str:
+    """Return the interpreter of a virtual environment.
+
+    Args:
+        directory: The path of the environment.
+
+    Returns:
+        The path of the interpreter of the environment.  When the environment
+        holds no interpreter, the path the interpreter would have is returned.
+    """
+    path = _require_directory(directory, "directory")
+    scripts = _path_of(path, "scripts")
+    candidates = list(_INTERPRETER_NAMES)
+    candidates.append(f"python{sys.version_info[0]}.{sys.version_info[1]}")
+    for name in candidates:
+        candidate = os.path.join(scripts, name)
+        if os.path.exists(candidate):
+            return candidate
+    return os.path.join(scripts, "python.exe" if os.name == "nt" else "python")
+
+
+def activation_scripts(directory: object) -> List[str]:
+    """Return the scripts that activate a virtual environment.
+
+    Args:
+        directory: The path of the environment.
+
+    Returns:
+        The paths of the activation scripts that exist, in ascending order.
+        The list is empty when the environment holds no activation script.
+    """
+    path = _require_directory(directory, "directory")
+    scripts = _path_of(path, "scripts")
+    found = [os.path.join(scripts, name) for name in _ACTIVATION_NAMES]
+    return sorted(script for script in found if os.path.exists(script))
+
+
+def describe_environment(directory: object) -> Environment:
+    """Return a description of a virtual environment.
+
+    Args:
+        directory: The path of the environment.
+
+    Returns:
+        A mapping that holds the path of the environment, the path of its
+        interpreter, its configuration, its directories, and its activation
+        scripts.
+
+    Raises:
+        TypeError: If *directory* is not a path.
+        ValueError: If *directory* is empty or holds no environment.
+    """
+    path = _require_directory(directory, "directory")
+    if not is_environment(path):
+        raise ValueError(f"no virtual environment in {path!r}")
+    return {
+        "directory": path,
+        "python": environment_python(path),
+        "configuration": read_configuration(path),
+        "paths": environment_paths(path),
+        "activation_scripts": activation_scripts(path),
+    }
+
+
+def create_environment(
+    directory: object,
+    with_pip: bool = False,
+    prompt: Optional[str] = None,
+    system_site_packages: bool = False,
+    clear: bool = False,
+    symlinks: Optional[bool] = None,
+    upgrade: bool = False,
+) -> Environment:
+    """Create a virtual environment and describe it.
+
+    The environment is created the way the standard library creates it when
+    the command ``python -m venv`` runs, and the description of the result is
+    returned, so a caller learns where the interpreter, the configuration, and
+    the directories of the environment are.
+
+    Args:
+        directory: The path of the environment.  The directory is created when
+            it does not exist.
+        with_pip: Whether the standard library installs ``pip`` into the
+            environment.  The packages are taken from the wheel the
+            interpreter ships, so no network is used.
+        prompt: The prefix of the prompt of the environment.  The name of the
+            directory is used when no prefix is given.
+        system_site_packages: Whether the environment sees the packages that
+            are installed for the interpreter of the system.
+        clear: Whether the content of the directory is deleted before the
+            environment is created.
+        symlinks: Whether the interpreter is linked instead of copied.  The
+            default of the platform is used when no choice is given.
+        upgrade: Whether an existing environment is upgraded instead of
+            created.
+
+    Returns:
+        The description of the environment, in the same shape as the
+        description of :func:`describe_environment`.
+
+    Raises:
+        TypeError: If an argument has the wrong type.
+        ValueError: If an argument has an unusable value.
+        RuntimeError: If the interpreter does not ship the ``venv`` package.
+    """
+    module = _venv_module()
+    path = _require_directory(directory, "directory")
+    _require_bool(with_pip, "with_pip")
+    _require_bool(system_site_packages, "system_site_packages")
+    _require_bool(clear, "clear")
+    _require_bool(upgrade, "upgrade")
+    prompt = _require_optional_text(prompt, "prompt")
+    use_symlinks = os.name != "nt" if symlinks is None else _require_bool(symlinks, "symlinks")
+    builder = module.EnvBuilder(
+        system_site_packages=system_site_packages,
+        clear=clear,
+        symlinks=use_symlinks,
+        upgrade=upgrade,
+        with_pip=with_pip,
+        prompt=prompt,
+    )
+    builder.create(path)
+    return describe_environment(path)
+
+
+def find_environments(root: object, max_depth: int = 2) -> List[str]:
+    """Return the virtual environments of a directory tree.
+
+    Args:
+        root: The path of the directory to search.
+        max_depth: The number of levels of the tree that are searched.  The
+            root itself is always reported when it holds an environment.
+
+    Returns:
+        The paths of the environments that were found, in ascending order.
+    """
+    path = _require_directory(root, "root")
+    depth = _require_non_negative_int(max_depth, "max_depth")
+    found: List[str] = []
+    if is_environment(path):
+        found.append(path)
+    for current, directories, _files in os.walk(path):
+        level = current[len(path) :].count(os.sep)
+        if level >= depth:
+            directories[:] = []
+            continue
+        for name in sorted(directories):
+            candidate = os.path.join(current, name)
+            if is_environment(candidate):
+                found.append(candidate)
+                directories.remove(name)
+    return sorted(found)
+
+
+def run_cli(args: Optional[Sequence[str]] = None) -> int:
+    """Run the command line interface of the standard library.
+
+    The interface is the one of the command ``python -m venv``: it creates an
+    environment in every directory it is given.
+
+    Args:
+        args: The arguments of the command.  The arguments of the process are
+            used when no argument is given.
+
+    Returns:
+        The exit code of the command.  The code is ``0`` when every
+        environment was created.
+    """
+    module = _venv_module()
+    try:
+        module.main(_require_sequence(args, "args") if args is not None else None)
+    except SystemExit as error:
+        code = error.code
+        if code is None:
+            return 0
+        if isinstance(code, int):
+            return code
+        return 1
+    return 0
+
+
+#: The builder of the standard library, re-exported for callers that extend it.
+EnvBuilder: Any = _venv.EnvBuilder if _venv is not None else None
+VENV_UTILS
+
+# --- tests/test_venv_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_venv_utils.py" <<'TEST_VENV_UTILS'
+"""Tests for venv_utils."""
+
+import contextlib
+import io
+import os
+import sys
+import tempfile
+import unittest
+import venv
+from typing import Any, Dict
+
+import venv_utils
+from venv_utils import (
+    EnvBuilder,
+    activation_scripts,
+    create_environment,
+    describe_environment,
+    environment_paths,
+    environment_python,
+    find_environments,
+    is_environment,
+    read_configuration,
+    run_cli,
+)
+
+
+class ModuleTestCase(unittest.TestCase):
+    """Provide a temporary directory for the tests that need one."""
+
+    def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = self.temporary.name
+
+    def write_configuration(self, directory: str, body: str) -> str:
+        """Write a configuration file into a directory and return the directory."""
+        os.makedirs(directory, exist_ok=True)
+        with open(os.path.join(directory, "pyvenv.cfg"), "w", encoding="utf-8") as stream:
+            stream.write(body)
+        return directory
+
+    def create(self, name: str = "demo", **kwargs: Any) -> Dict[str, Any]:
+        """Create an environment in the temporary directory and return its report."""
+        return create_environment(os.path.join(self.root, name), **kwargs)
+
+
+class TestModuleContract(unittest.TestCase):
+    """Verify the contract of the module."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(venv_utils.__all__, sorted(set(venv_utils.__all__)))
+
+    def test_every_name_exists(self):
+        for name in venv_utils.__all__:
+            self.assertTrue(hasattr(venv_utils, name), name)
+
+    def test_the_module_reexports_the_builder_of_the_standard_library(self):
+        self.assertIs(EnvBuilder, venv.EnvBuilder)
+
+
+class TestConfiguration(ModuleTestCase):
+    """Verify the helpers that read the configuration of an environment."""
+
+    def test_is_environment_reports_an_environment(self):
+        directory = self.write_configuration(
+            os.path.join(self.root, "env"), "home = /usr/bin\nversion = 3.12.3\n"
+        )
+        self.assertTrue(is_environment(directory))
+
+    def test_is_environment_reports_a_plain_directory(self):
+        self.assertFalse(is_environment(self.root))
+
+    def test_is_environment_rejects_a_bad_directory(self):
+        with self.assertRaises(TypeError):
+            is_environment(42)
+        with self.assertRaises(ValueError):
+            is_environment("")
+
+    def test_read_configuration_returns_the_settings(self):
+        directory = self.write_configuration(
+            os.path.join(self.root, "env"),
+            "home = /usr/bin\ninclude-system-site-packages = false\nversion = 3.12.3\n",
+        )
+        configuration = read_configuration(directory)
+        self.assertEqual(configuration["home"], "/usr/bin")
+        self.assertEqual(configuration["include-system-site-packages"], "false")
+        self.assertEqual(configuration["version"], "3.12.3")
+
+    def test_read_configuration_strips_the_quotes_of_the_prompt(self):
+        directory = self.write_configuration(os.path.join(self.root, "env"), "prompt = 'my env'\n")
+        self.assertEqual(read_configuration(directory)["prompt"], "my env")
+
+    def test_read_configuration_ignores_comments_and_blank_lines(self):
+        directory = self.write_configuration(
+            os.path.join(self.root, "env"), "# a comment\n\nhome = /usr/bin\n"
+        )
+        self.assertEqual(read_configuration(directory), {"home": "/usr/bin"})
+
+    def test_read_configuration_ignores_a_line_without_a_setting(self):
+        directory = self.write_configuration(
+            os.path.join(self.root, "env"), "home = /usr/bin\nnonsense\n"
+        )
+        self.assertEqual(read_configuration(directory), {"home": "/usr/bin"})
+
+    def test_read_configuration_rejects_a_plain_directory(self):
+        with self.assertRaises(ValueError):
+            read_configuration(self.root)
+
+    def test_read_configuration_rejects_a_bad_directory(self):
+        with self.assertRaises(TypeError):
+            read_configuration(42)
+        with self.assertRaises(ValueError):
+            read_configuration("")
+
+
+class TestPaths(ModuleTestCase):
+    """Verify the helpers that report the directories of an environment."""
+
+    def test_environment_paths_holds_the_directories_of_the_standard_library(self):
+        paths = environment_paths(os.path.join(self.root, "env"))
+        self.assertIn("scripts", paths)
+        self.assertIn("purelib", paths)
+        self.assertIn("include", paths)
+        for path in paths.values():
+            self.assertTrue(path.startswith(self.root))
+
+    def test_environment_paths_places_the_scripts_inside_the_environment(self):
+        paths = environment_paths(os.path.join(self.root, "env"))
+        self.assertTrue(paths["scripts"].startswith(os.path.join(self.root, "env")))
+
+    def test_environment_paths_rejects_a_bad_directory(self):
+        with self.assertRaises(TypeError):
+            environment_paths(42)
+        with self.assertRaises(ValueError):
+            environment_paths("")
+
+    def test_environment_python_finds_the_interpreter_of_an_environment(self):
+        report = self.create()
+        python = environment_python(report["directory"])
+        self.assertTrue(os.path.exists(python))
+        self.assertIn("python", os.path.basename(python))
+
+    def test_environment_python_falls_back_to_a_path_for_a_missing_interpreter(self):
+        python = environment_python(os.path.join(self.root, "nowhere"))
+        self.assertTrue(python.startswith(self.root))
+        self.assertFalse(os.path.exists(python))
+
+    def test_activation_scripts_lists_the_scripts_of_an_environment(self):
+        report = self.create()
+        scripts = activation_scripts(report["directory"])
+        self.assertTrue(scripts)
+        for script in scripts:
+            self.assertTrue(os.path.exists(script))
+
+    def test_activation_scripts_is_empty_for_a_plain_directory(self):
+        self.assertEqual(activation_scripts(self.root), [])
+
+    def test_activation_scripts_rejects_a_bad_directory(self):
+        with self.assertRaises(TypeError):
+            activation_scripts(42)
+
+
+class TestCreation(ModuleTestCase):
+    """Verify the helper that creates a virtual environment."""
+
+    def test_create_environment_creates_the_environment(self):
+        report = self.create()
+        self.assertTrue(os.path.isdir(report["directory"]))
+        self.assertTrue(is_environment(report["directory"]))
+
+    def test_create_environment_describes_the_environment(self):
+        report = self.create()
+        self.assertEqual(report["directory"], os.path.join(self.root, "demo"))
+        self.assertIn("configuration", report)
+        self.assertIn("paths", report)
+        self.assertIn("python", report)
+
+    def test_create_environment_records_the_version_of_the_interpreter(self):
+        report = self.create()
+        version = report["configuration"]["version"]
+        self.assertEqual(version, ".".join(str(part) for part in sys.version_info[:3]))
+
+    def test_create_environment_hides_the_packages_of_the_system(self):
+        report = self.create()
+        self.assertEqual(report["configuration"]["include-system-site-packages"], "false")
+
+    def test_create_environment_can_show_the_packages_of_the_system(self):
+        report = self.create(name="shared", system_site_packages=True)
+        self.assertEqual(report["configuration"]["include-system-site-packages"], "true")
+
+    def test_create_environment_records_the_prompt(self):
+        report = self.create(prompt="my env")
+        self.assertEqual(report["configuration"]["prompt"], "my env")
+
+    def test_create_environment_names_the_prompt_after_the_directory(self):
+        report = self.create(name="named")
+        self.assertNotIn("prompt", report["configuration"])
+
+    def test_create_environment_creates_the_directories_of_the_environment(self):
+        report = self.create()
+        for name in ("scripts", "purelib", "include"):
+            self.assertTrue(os.path.isdir(report["paths"][name]), name)
+
+    def test_create_environment_records_the_command_that_created_it(self):
+        report = self.create()
+        command = report["configuration"]["command"]
+        self.assertIn("-m venv", command)
+        self.assertIn(report["directory"], command)
+
+    def test_create_environment_creates_an_interpreter(self):
+        report = self.create()
+        python = report["python"]
+        self.assertTrue(os.path.exists(python))
+        self.assertTrue(os.access(python, os.X_OK))
+
+    def test_create_environment_clears_the_directory_when_asked(self):
+        target = os.path.join(self.root, "old")
+        os.makedirs(target)
+        with open(os.path.join(target, "leftover.txt"), "w", encoding="utf-8") as stream:
+            stream.write("left over")
+        create_environment(target, clear=True)
+        self.assertFalse(os.path.exists(os.path.join(target, "leftover.txt")))
+
+    def test_create_environment_keeps_the_directory_when_not_clearing(self):
+        target = os.path.join(self.root, "old")
+        os.makedirs(target)
+        with open(os.path.join(target, "leftover.txt"), "w", encoding="utf-8") as stream:
+            stream.write("left over")
+        create_environment(target)
+        self.assertTrue(os.path.exists(os.path.join(target, "leftover.txt")))
+
+    def test_create_environment_rejects_a_bad_directory(self):
+        with self.assertRaises(TypeError):
+            create_environment(42)
+        with self.assertRaises(ValueError):
+            create_environment("")
+
+    def test_create_environment_rejects_a_bad_flag(self):
+        with self.assertRaises(TypeError):
+            create_environment(os.path.join(self.root, "demo"), with_pip="yes")
+        with self.assertRaises(TypeError):
+            create_environment(os.path.join(self.root, "demo"), clear=1)
+        with self.assertRaises(TypeError):
+            create_environment(os.path.join(self.root, "demo"), upgrade="yes")
+        with self.assertRaises(TypeError):
+            create_environment(os.path.join(self.root, "demo"), system_site_packages="yes")
+
+    def test_create_environment_rejects_a_bad_symlink_flag(self):
+        with self.assertRaises(TypeError):
+            create_environment(os.path.join(self.root, "demo"), symlinks="yes")
+
+    def test_create_environment_rejects_a_bad_prompt(self):
+        with self.assertRaises(TypeError):
+            create_environment(os.path.join(self.root, "demo"), prompt=42)
+        with self.assertRaises(ValueError):
+            create_environment(os.path.join(self.root, "demo"), prompt="  ")
+
+
+class TestDescription(ModuleTestCase):
+    """Verify the helper that describes an existing environment."""
+
+    def test_describe_environment_reports_the_environment(self):
+        report = self.create()
+        described = describe_environment(report["directory"])
+        self.assertEqual(described["directory"], report["directory"])
+        self.assertEqual(described["configuration"], report["configuration"])
+        self.assertEqual(described["paths"], report["paths"])
+
+    def test_describe_environment_rejects_a_plain_directory(self):
+        with self.assertRaises(ValueError):
+            describe_environment(self.root)
+
+    def test_describe_environment_rejects_a_bad_directory(self):
+        with self.assertRaises(TypeError):
+            describe_environment(42)
+
+
+class TestDiscovery(ModuleTestCase):
+    """Verify the helper that finds the environments of a directory tree."""
+
+    def test_find_environments_finds_an_environment(self):
+        report = self.create()
+        self.assertEqual(find_environments(self.root), [report["directory"]])
+
+    def test_find_environments_finds_the_environments_of_a_tree(self):
+        first = self.create(name="first")
+        second = self.create(name="second")
+        found = find_environments(self.root)
+        self.assertEqual(found, sorted([first["directory"], second["directory"]]))
+
+    def test_find_environments_reports_the_root_itself(self):
+        report = self.create()
+        self.assertEqual(find_environments(report["directory"]), [report["directory"]])
+
+    def test_find_environments_respects_the_depth(self):
+        nested = os.path.join(self.root, "one", "two")
+        report = create_environment(nested)
+        self.assertEqual(find_environments(self.root, max_depth=1), [])
+        self.assertEqual(find_environments(self.root, max_depth=2), [report["directory"]])
+
+    def test_find_environments_is_empty_for_a_plain_tree(self):
+        self.assertEqual(find_environments(self.root), [])
+
+    def test_find_environments_rejects_a_bad_depth(self):
+        with self.assertRaises(TypeError):
+            find_environments(self.root, max_depth="deep")
+        with self.assertRaises(ValueError):
+            find_environments(self.root, max_depth=-1)
+
+    def test_find_environments_rejects_a_bad_root(self):
+        with self.assertRaises(TypeError):
+            find_environments(42)
+
+
+class TestCommandLine(ModuleTestCase):
+    """Verify the helper that runs the command line interface of the standard library."""
+
+    def test_run_cli_creates_an_environment(self):
+        target = os.path.join(self.root, "cli")
+        self.assertEqual(run_cli(["--without-pip", target]), 0)
+        self.assertTrue(is_environment(target))
+
+    def test_run_cli_reports_a_bad_argument(self):
+        stream = io.StringIO()
+        with contextlib.redirect_stderr(stream):
+            code = run_cli(["--nowhere"])
+        self.assertNotEqual(code, 0)
+
+    def test_run_cli_rejects_a_bad_argument_list(self):
+        with self.assertRaises(TypeError):
+            run_cli("--nowhere")
+        with self.assertRaises(TypeError):
+            run_cli([42])
+
+
+class TestStandardLibrary(unittest.TestCase):
+    """Verify that the wrapper agrees with the standard library."""
+
+    def test_the_builder_of_the_standard_library_is_reexported(self):
+        self.assertIs(venv_utils.EnvBuilder, venv.EnvBuilder)
+
+    def test_the_wrapper_uses_the_builder_of_the_standard_library(self):
+        self.assertTrue(issubclass(venv_utils.EnvBuilder, venv.EnvBuilder))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_VENV_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
