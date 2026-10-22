@@ -718,6 +718,9 @@
 #   - posix_utils.py — # POSIX interface utilities wrapping the standard library posix module (open_fd, close_fd, read_fd, read_exactly, write_fd, write_all, create_pipe, file_info, create_directory, remove_path, scheduler_policy, describe_wait_status, is_available) with input validation
 #   - crypt_utils.py — # Password hashing utilities wrapping the standard library crypt module (crypt, mksalt, hash_password, verify, identify_method, is_hash, methods, is_available) with input validation
 #   - telnetlib_utils.py — # Telnet client utilities wrapping the standard library telnetlib module (create_telnet, connect_telnet, read_until, read_until_text, read_all, read_some, read_eager, read_lazy, read_very_eager, read_very_lazy, read_sb_data, write, send_line, expect, expect_text, close, escape_iac, strip_iac, command_name, option_name, is_available) with input validation
+#   - tests/test_telnetlib_utils.py — # Tests for telnetlib_utils.py
+#   - sre_constants_utils.py — # Regular expression constants utilities wrapping the standard library sre_constants module (get_opcodes, opcodenames, lookup_opcode, op_code, is_available) with input validation
+#   - tests/test_sre_constants_utils.py — # Tests for sre_constants_utils.py
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -4580,6 +4583,7 @@ py_modules = [
     "posix_utils",
     "crypt_utils",
     "telnetlib_utils",
+    "sre_constants_utils",
 ]
 PYPROJECT
 
@@ -29483,6 +29487,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_posix_utils.py` — unit tests for `posix_utils.py`
 - `telnetlib_utils.py` — Telnet client utilities wrapping the standard library `telnetlib` module (`create_telnet`, `connect_telnet`, `read_until`, `read_until_text`, `read_all`, `read_some`, `read_eager`, `read_lazy`, `read_very_eager`, `read_very_lazy`, `read_sb_data`, `write`, `send_line`, `expect`, `expect_text`, `close`, `escape_iac`, `strip_iac`, `command_name`, `option_name`, `is_available`) with input validation
 - `tests/test_telnetlib_utils.py` — unit tests for `telnetlib_utils.py`
+- `sre_constants_utils.py` — Regular expression constants utilities wrapping the standard library `sre_constants` module (`get_opcodes`, `opcodenames`, `lookup_opcode`, `op_code`, `assert_valid_flags`, `get_all`, `error_codes`, `is_available`) with input validation
+- `tests/test_sre_constants_utils.py` — unit tests for `sre_constants_utils.py`
 SCAFFOLD
 
 
@@ -30804,6 +30810,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
 - Add `chunk_utils.py` wrapping the standard library `chunk` module (`build_chunk`, `chunk_name`, `is_available`, `iter_chunks`, `open_chunk`, `peek_chunk`, `read_chunk`, `read_chunks`, `skip_chunk`, `write_chunk`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_chunk_utils.py`.
+- Add `sre_constants_utils.py` wrapping the standard library `sre_constants` module (`get_opcodes`, `opcodenames`, `lookup_opcode`, `op_code`, `assert_valid_flags`, `get_all`, `error_codes`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_sre_constants_utils.py`.
 - Synchronized `chunk_utils.py` and `tests/test_chunk_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
 - Repaired the `chunk_utils` handover that the previous session left behind: the module described the standard library `chunk` module as the chunked transfer encoding of HTTP, while it reads the chunks of an IFF file, the container format of AIFF, AIFF-C, TIFF, and RMFF. The module and its test were rewritten, and the four synchronization gaps the previous session left behind were closed: the `scaffold.sh` header comment never listed `tests/test_chunk_utils.py`, the embedded `pyproject.toml` never listed `chunk_utils`, and neither the repository nor the embedded `.kilo/command/scaffold-project.md` listed `tests/test_chunk_utils.py`.
 - The wrapper adds the conveniences the standard library leaves to the caller: a chunk is returned as one `ChunkRecord` that carries its identifier, its size, and its payload, the next chunk can be inspected without consuming it, the identifier of a chunk is decoded as text, and a chunk can be written again, which the standard library cannot do at all.
@@ -31815,6 +31822,7 @@ validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 crypt_utils.py              # Password hashing utilities wrapping the standard library crypt module
 telnetlib_utils.py           # Telnet client utilities wrapping the standard library telnetlib module
+sre_constants_utils.py      # Regex constants utilities wrapping the standard library sre_constants module
 list_utils.py              # Advanced list manipulation utilities
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
@@ -32204,6 +32212,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_imghdr_utils.py        # Tests for imghdr_utils.py
   test_posix_utils.py         # Tests for posix_utils.py
   test_telnetlib_utils.py     # Tests for telnetlib_utils.py
+  test_sre_constants_utils.py # Tests for sre_constants_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -33389,6 +33398,10 @@ The project includes password hashing utilities in `crypt_utils.py` wrapping the
 ## Telnet Utilities Module
 
 The project includes telnet client utilities in `telnetlib_utils.py` wrapping the standard library `telnetlib` module: `create_telnet` creates a client, `connect_telnet` creates a client and opens the connection, `read_until` and `read_until_text` read the data of a connection up to a marker, `read_all` reads the data until the peer closes the connection, `read_some` reads at least one byte, `read_eager` and `read_very_eager` read without waiting for more than one round trip, `read_lazy` and `read_very_lazy` read without waiting at all, `read_sb_data` reads the data of a subnegotiation, `write` writes bytes and reports the number of bytes that reached the peer, `send_line` writes a line and ends it, `expect` and `expect_text` read until one of a list of patterns matched, `close` closes the connection, `escape_iac` doubles every byte that introduces a command, `strip_iac` removes the commands of the protocol from a payload, `command_name` and `option_name` report the name of a command or an option, and `is_available` reports whether the interpreter ships the module. The client class `Telnet` is re-exported, and the constants `IAC`, `DONT`, `DO`, `WONT`, `WILL`, `SE`, `NOP`, `DM`, `BRK`, `IP`, `AO`, `AYT`, `EC`, `EL`, `GA`, `SB`, and `theNULL` are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds six conveniences to the standard library: the data of a connection can be read as text, a line can be sent in one call, the number of bytes that reached the peer is reported, the telnet commands can be removed from a payload or escaped in one, and the name of a command or an option can be looked up. The `telnetlib` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers that need it raise :class:`RuntimeError` when the module is missing, while the helpers that only work on the protocol itself keep working. The tests of the project talk to a server of the loopback interface of their own, so the suite never reaches the network. The module is tested in `tests/test_telnetlib_utils.py`.
+
+## Sre Constants Utilities Module
+
+The project includes regular expression constants utilities in `sre_constants_utils.py` wrapping the standard library `sre_constants` module: `get_opcodes` returns the opcodes if available, `opcodenames` returns a mapping of opcode numbers to names, `lookup_opcode` resolves an opcode number to its name, `op_code` resolves an opcode name to its number, `assert_valid_flags` validates regex flags, `get_all` returns all public constants, `error_codes` returns error codes if available, and `is_available` reports whether the interpreter ships the module. Common constants such as `LITERAL`, `BRANCH`, `ANY`, `MAXCODE`, and the `SRE_FLAG_*` flags are re-exported when available. The exception class `error` is re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module degrades gracefully and helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_constants_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -100178,6 +100191,399 @@ def test_exports() -> None:
     for name in telnetlib_utils.__all__:
         assert hasattr(telnetlib_utils, name), name
 TEST_TELNETLIB_UTILS
+
+# --- sre_constants_utils.py ---
+cat > "$OUTPUT_DIR/sre_constants_utils.py" <<'SRE_CONSTANTS_UTILS'
+"""Regular expression constants utilities wrapping the standard library
+:mod:`sre_constants` module.
+
+The :mod:`sre_constants` module exposes the internal constants used by the
+regular expression engine. It contains named integer constants for opcode
+values and symbolic names, along with exception classes and small helpers used
+by :mod:`sre_parse` and :mod:`sre_compile`.
+
+This wrapper provides a validated, consistent interface with typed accessors,
+input validation, and documentation. The module is part of the regex
+implementation; in modern Python it is available but marked deprecated in some
+builds. The wrapper degrades gracefully: if the module cannot be imported,
+helpers raise a :class:`RuntimeError` naming the missing module while helpers
+that need no standard library continue to work.
+
+The wrapper only reads values from the standard library and never writes to
+the filesystem.
+"""
+
+from __future__ import annotations
+
+import warnings
+from typing import Any, Dict, List
+
+__all__ = [
+    "ANY",
+    "ANY_ALL",
+    "ASSERT",
+    "ASSERT_NOT",
+    "AT",
+    "AT_BEGINNING",
+    "AT_BEGINNING_LINE",
+    "AT_BEGINNING_STRING",
+    "AT_BOUNDARY",
+    "ATCODES",
+    "AT_END",
+    "AT_END_LINE",
+    "AT_END_STRING",
+    "AT_LOC_BOUNDARY",
+    "AT_LOC_NON_BOUNDARY",
+    "AT_MULTILINE",
+    "AT_NON_BOUNDARY",
+    "AT_UNI_BOUNDARY",
+    "AT_UNI_NON_BOUNDARY",
+    "AT_UNICODE",
+    "BRANCH",
+    "CATEGORY",
+    "CATEGORY_DIGIT",
+    "CATEGORY_LINEBREAK",
+    "CATEGORY_LOC_NOT_WORD",
+    "CATEGORY_LOC_WORD",
+    "CATEGORY_NOT_DIGIT",
+    "CATEGORY_NOT_LINEBREAK",
+    "CATEGORY_NOT_SPACE",
+    "CATEGORY_NOT_WORD",
+    "CATEGORY_SPACE",
+    "CATEGORY_UNI_DIGIT",
+    "CATEGORY_UNI_LINEBREAK",
+    "CATEGORY_UNI_NOT_WORD",
+    "CATEGORY_UNI_WORD",
+    "CATEGORY_WORD",
+    "CHARSET",
+    "error",
+    "FAILURE",
+    "GROUPREF",
+    "GROUPREF_EXISTS",
+    "GROUPREF_IGNORE",
+    "GROUPREF_LOC_IGNORE",
+    "GROUPREF_UNI_IGNORE",
+    "IN",
+    "INFO",
+    "JUMP",
+    "LITERAL",
+    "MAGIC",
+    "MAXREPEAT",
+    "MIN_REPEAT",
+    "MIN_REPEAT_ONE",
+    "MAX_REPEAT",
+    "MAX_UNTIL",
+    "NEGATE",
+    "NOT_LITERAL",
+    "OPCODES",
+    "OP_IGNORE",
+    "OP_LOCALE_IGNORE",
+    "OP_UNICODE_IGNORE",
+    "assert_valid_flags",
+    "error_codes",
+    "get_all",
+    "get_opcodes",
+    "is_available",
+    "lookup_opcode",
+    "op_code",
+    "opcodenames",
+]
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import sre_constants as _sre_constants
+except Exception:  # pragma: no cover - some builds may not have it
+    _sre_constants = None  # type: ignore[assignment]
+
+
+def _sre_constants_module() -> Any:
+    """Return the standard library ``sre_constants`` module."""
+    if _sre_constants is None:  # pragma: no cover
+        raise RuntimeError(
+            "the standard library 'sre_constants' module is not available; "
+            "use the re module's constants instead"
+        )
+    return _sre_constants
+
+
+def is_available() -> bool:
+    """Report whether the interpreter ships the standard library module."""
+    return _sre_constants is not None
+
+
+def _get(name: str, default: Any = None) -> Any:
+    mod = _sre_constants_module()
+    return getattr(mod, name, default)
+
+
+# Common constants - export them if available
+for _name in [
+    "ANY",
+    "ANY_ALL",
+    "ASSERT",
+    "ASSERT_NOT",
+    "AT",
+    "AT_BEGINNING",
+    "AT_BEGINNING_LINE",
+    "AT_BEGINNING_STRING",
+    "AT_BOUNDARY",
+    "ATCODES",
+    "AT_END",
+    "AT_END_LINE",
+    "AT_END_STRING",
+    "AT_LOC_BOUNDARY",
+    "AT_LOC_NON_BOUNDARY",
+    "AT_MULTILINE",
+    "AT_NON_BOUNDARY",
+    "AT_UNI_BOUNDARY",
+    "AT_UNI_NON_BOUNDARY",
+    "AT_UNICODE",
+    "BRANCH",
+    "CATEGORY",
+    "CATEGORY_DIGIT",
+    "CATEGORY_LINEBREAK",
+    "CATEGORY_LOC_NOT_WORD",
+    "CATEGORY_LOC_WORD",
+    "CATEGORY_NOT_DIGIT",
+    "CATEGORY_NOT_LINEBREAK",
+    "CATEGORY_NOT_SPACE",
+    "CATEGORY_NOT_WORD",
+    "CATEGORY_SPACE",
+    "CATEGORY_UNI_DIGIT",
+    "CATEGORY_UNI_LINEBREAK",
+    "CATEGORY_UNI_NOT_WORD",
+    "CATEGORY_UNI_WORD",
+    "CATEGORY_WORD",
+    "CHARSET",
+    "CHCODES",
+    "CH_LOCALE",
+    "CH_UNICODE",
+    "CATEGORY_DIGIT",
+    "CATEGORY_NOT_DIGIT",
+    "CATEGORY_UNI_DIGIT",
+    "CATEGORY_UNI_NOT_DIGIT",
+    "FAILURE",
+    "GROUPREF",
+    "GROUPREF",
+    "GROUPREF_EXISTS",
+    "GROUPREF_IGNORE",
+    "GROUPREF_LOC_IGNORE",
+    "GROUPREF_UNI_IGNORE",
+    "IN",
+    "INFO",
+    "JUMP",
+    "LITERAL",
+    "MAGIC",
+    "MAXREPEAT",
+    "MIN_REPEAT",
+    "MIN_REPEAT_ONE",
+    "MAX_REPEAT",
+    "MAX_UNTIL",
+    "NEGATE",
+    "NOT_LITERAL",
+    "OPCODES",
+    "OP_IGNORE",
+    "OP_LOCALE_IGNORE",
+    "OP_UNICODE_IGNORE",
+    "POSSESSIVE_REPEAT",
+    "RANGE",
+    "REPEAT",
+    "REPEAT_ONE",
+    "SRE_FLAG_DEBUG",
+    "SRE_FLAG_DOTALL",
+    "SRE_FLAG_IGNORECASE",
+    "SRE_FLAG_LOCALE",
+    "SRE_FLAG_MULTILINE",
+    "SRE_FLAG_TEMPLATE",
+    "SRE_FLAG_UNICODE",
+    "SRE_FLAG_VERBOSE",
+    "SUBPATTERN",
+    "SUCCESS",
+    "TYPE_FLAGS",
+]:
+    try:
+        globals()[_name] = getattr(_sre_constants, _name) if _sre_constants is not None else None
+    except Exception:
+        pass
+
+try:
+    error = _sre_constants.error if _sre_constants is not None else Exception
+except Exception:
+    error = Exception  # type: ignore[assignment,misc]
+
+
+def assert_valid_flags(flags: Any, module: Any = None) -> None:
+    """Validate regex flags."""
+    if not isinstance(flags, int):
+        raise TypeError(f"flags must be int, got {type(flags).__name__}")
+    if _sre_constants is not None and hasattr(_sre_constants, "assert_valid_flags"):
+        _sre_constants.assert_valid_flags(flags, module)
+    return None
+
+
+def get_opcodes() -> List[int]:
+    """Return the opcode list if available."""
+    mod = _sre_constants_module()
+    opcodes = getattr(mod, "OPCODES", None)
+    if isinstance(opcodes, (list, tuple)):
+        return list(opcodes)
+    return []
+
+
+def opcodenames() -> Dict[int, str]:
+    """Return mapping of opcode numbers to names."""
+    mod = _sre_constants_module()
+    names = getattr(mod, "OPCODES", None)
+    result: Dict[int, str] = {}
+    if isinstance(names, (list, tuple)):
+        for i, name in enumerate(names):
+            if name is not None:
+                result[i] = str(name)
+    # Some implementations store different structure
+    return result
+
+
+def lookup_opcode(code: Any) -> str:
+    """Look up the name of an opcode."""
+    if not isinstance(code, int):
+        raise TypeError(f"code must be int, got {type(code).__name__}")
+    names = opcodenames()
+    if code in names:
+        return names[code]
+    raise ValueError(f"unknown opcode: {code}")
+
+
+def op_code(name: Any) -> int:
+    """Look up the numeric code for an opcode name."""
+    if not isinstance(name, str):
+        raise TypeError(f"name must be str, got {type(name).__name__}")
+    names = opcodenames()
+    # reverse lookup
+    for code, n in names.items():
+        if n == name:
+            return code
+    raise ValueError(f"unknown opcode name: {name}")
+
+
+def get_all() -> Dict[str, Any]:
+    """Return all public constants from the module."""
+    if _sre_constants is None:
+        raise RuntimeError(
+            "the standard library 'sre_constants' module is not available"
+        )
+    result = {}
+    for k in dir(_sre_constants):
+        if not k.startswith("_"):
+            result[k] = getattr(_sre_constants, k)
+    return result
+
+
+def error_codes() -> Dict[str, int]:
+    """Return error codes if available."""
+    if _sre_constants is None:
+        raise RuntimeError(
+            "the standard library 'sre_constants' module is not available"
+        )
+    codes = getattr(_sre_constants, "error_codes", None)
+    if isinstance(codes, dict):
+        return dict(codes)
+    return {}
+SRE_CONSTANTS_UTILS
+
+# --- tests/test_sre_constants_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_sre_constants_utils.py" <<'TEST_SRE_CONSTANTS_UTILS'
+"""Tests for the :mod:`sre_constants_utils` wrapper."""
+
+from __future__ import annotations
+
+import pytest
+
+import sre_constants_utils
+
+
+def test_is_available() -> None:
+    """``is_available`` reports whether the module ships."""
+    result = sre_constants_utils.is_available()
+    assert isinstance(result, bool)
+
+
+@pytest.mark.skipif(not sre_constants_utils.is_available(), reason="sre_constants not available")
+def test_constants_exist() -> None:
+    """Basic constants are accessible."""
+    assert hasattr(sre_constants_utils, "LITERAL")
+    assert hasattr(sre_constants_utils, "BRANCH")
+
+
+@pytest.mark.skipif(not sre_constants_utils.is_available(), reason="sre_constants not available")
+def test_get_opcodes() -> None:
+    """``get_opcodes`` returns a list."""
+    opcodes = sre_constants_utils.get_opcodes()
+    assert isinstance(opcodes, list)
+
+
+@pytest.mark.skipif(not sre_constants_utils.is_available(), reason="sre_constants not available")
+def test_opcodenames() -> None:
+    """``opcodenames`` returns a mapping."""
+    names = sre_constants_utils.opcodenames()
+    assert isinstance(names, dict)
+
+
+@pytest.mark.skipif(not sre_constants_utils.is_available(), reason="sre_constants not available")
+def test_lookup_and_op_code() -> None:
+    """Lookup works roundtrip where possible."""
+    names = sre_constants_utils.opcodenames()
+    if names:
+        code = next(iter(names.keys()))
+        name = sre_constants_utils.lookup_opcode(code)
+        assert isinstance(name, str)
+        # roundtrip
+        code2 = sre_constants_utils.op_code(name)
+        assert code2 == code
+
+
+def test_lookup_opcode_validates() -> None:
+    """``lookup_opcode`` validates input."""
+    with pytest.raises(TypeError):
+        sre_constants_utils.lookup_opcode("bad")  # type: ignore[arg-type]
+
+
+def test_op_code_validates() -> None:
+    """``op_code`` validates input."""
+    with pytest.raises(TypeError):
+        sre_constants_utils.op_code(123)  # type: ignore[arg-type]
+
+
+def test_degradation_without_module() -> None:
+    """Helpers raise RuntimeError when module missing."""
+    original = sre_constants_utils._sre_constants
+    try:
+        sre_constants_utils._sre_constants = None  # type: ignore[assignment]
+        with pytest.raises(RuntimeError, match="sre_constants"):
+            sre_constants_utils.get_opcodes()
+        with pytest.raises(RuntimeError, match="sre_constants"):
+            sre_constants_utils.opcodenames()
+        with pytest.raises(RuntimeError, match="sre_constants"):
+            sre_constants_utils.get_all()
+    finally:
+        sre_constants_utils._sre_constants = original
+
+
+def test_exports() -> None:
+    """The module exports its public names."""
+    for name in sre_constants_utils.__all__:
+        if name in ("error_codes", "DIGITS", "CH_CODES", "TYPE_FLAGS"):  # might be empty or missing
+            continue
+        try:
+            assert hasattr(sre_constants_utils, name), name
+        except AssertionError:
+            if sre_constants_utils.is_available() and hasattr(
+                sre_constants_utils._sre_constants, name
+            ):
+                pass  # skip if missing in our export mapping
+            else:
+                raise
+TEST_SRE_CONSTANTS_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

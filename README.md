@@ -71,6 +71,7 @@ validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 crypt_utils.py              # Password hashing utilities wrapping the standard library crypt module
 telnetlib_utils.py           # Telnet client utilities wrapping the standard library telnetlib module
+sre_constants_utils.py      # Regex constants utilities wrapping the standard library sre_constants module
 list_utils.py              # Advanced list manipulation utilities
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
@@ -460,6 +461,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_imghdr_utils.py        # Tests for imghdr_utils.py
   test_posix_utils.py         # Tests for posix_utils.py
   test_telnetlib_utils.py     # Tests for telnetlib_utils.py
+  test_sre_constants_utils.py # Tests for sre_constants_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -1645,3 +1647,7 @@ The project includes password hashing utilities in `crypt_utils.py` wrapping the
 ## Telnet Utilities Module
 
 The project includes telnet client utilities in `telnetlib_utils.py` wrapping the standard library `telnetlib` module: `create_telnet` creates a client, `connect_telnet` creates a client and opens the connection, `read_until` and `read_until_text` read the data of a connection up to a marker, `read_all` reads the data until the peer closes the connection, `read_some` reads at least one byte, `read_eager` and `read_very_eager` read without waiting for more than one round trip, `read_lazy` and `read_very_lazy` read without waiting at all, `read_sb_data` reads the data of a subnegotiation, `write` writes bytes and reports the number of bytes that reached the peer, `send_line` writes a line and ends it, `expect` and `expect_text` read until one of a list of patterns matched, `close` closes the connection, `escape_iac` doubles every byte that introduces a command, `strip_iac` removes the commands of the protocol from a payload, `command_name` and `option_name` report the name of a command or an option, and `is_available` reports whether the interpreter ships the module. The client class `Telnet` is re-exported, and the constants `IAC`, `DONT`, `DO`, `WONT`, `WILL`, `SE`, `NOP`, `DM`, `BRK`, `IP`, `AO`, `AYT`, `EC`, `EL`, `GA`, `SB`, and `theNULL` are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds six conveniences to the standard library: the data of a connection can be read as text, a line can be sent in one call, the number of bytes that reached the peer is reported, the telnet commands can be removed from a payload or escaped in one, and the name of a command or an option can be looked up. The `telnetlib` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers that need it raise :class:`RuntimeError` when the module is missing, while the helpers that only work on the protocol itself keep working. The tests of the project talk to a server of the loopback interface of their own, so the suite never reaches the network. The module is tested in `tests/test_telnetlib_utils.py`.
+
+## Sre Constants Utilities Module
+
+The project includes regular expression constants utilities in `sre_constants_utils.py` wrapping the standard library `sre_constants` module: `get_opcodes` returns the opcodes if available, `opcodenames` returns a mapping of opcode numbers to names, `lookup_opcode` resolves an opcode number to its name, `op_code` resolves an opcode name to its number, `assert_valid_flags` validates regex flags, `get_all` returns all public constants, `error_codes` returns error codes if available, and `is_available` reports whether the interpreter ships the module. Common constants such as `LITERAL`, `BRANCH`, `ANY`, `MAXCODE`, and the `SRE_FLAG_*` flags are re-exported when available. The exception class `error` is re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module degrades gracefully and helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_constants_utils.py`.

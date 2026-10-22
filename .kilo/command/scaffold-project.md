@@ -559,3 +559,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_posix_utils.py` — unit tests for `posix_utils.py`
 - `telnetlib_utils.py` — Telnet client utilities wrapping the standard library `telnetlib` module (`create_telnet`, `connect_telnet`, `read_until`, `read_until_text`, `read_all`, `read_some`, `read_eager`, `read_lazy`, `read_very_eager`, `read_very_lazy`, `read_sb_data`, `write`, `send_line`, `expect`, `expect_text`, `close`, `escape_iac`, `strip_iac`, `command_name`, `option_name`, `is_available`) with input validation
 - `tests/test_telnetlib_utils.py` — unit tests for `telnetlib_utils.py`
+- `sre_constants_utils.py` — Regular expression constants utilities wrapping the standard library `sre_constants` module (`get_opcodes`, `opcodenames`, `lookup_opcode`, `op_code`, `assert_valid_flags`, `get_all`, `error_codes`, `is_available`) with input validation
+- `tests/test_sre_constants_utils.py` — unit tests for `sre_constants_utils.py`
