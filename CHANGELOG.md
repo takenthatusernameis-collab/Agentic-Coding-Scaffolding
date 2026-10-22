@@ -5,7 +5,7 @@
 - The wrapper adds the conveniences the standard library leaves to the caller: a document is parsed from text or from a file behind one helper that names the file it reads, the attributes of an element are returned as a mapping, and the parser reports the position of an error as one record instead of three calls.
 
 - Add `readline_utils.py` wrapping the standard library `readline` module (`add_history`, `append_history_file`, `clear_history`, `default_history_file`, `get_history_item`, `history_items`, `make_completer`, `read_history_file`, `remove_history_item`, `replace_history_item`, `search_history`, `write_history_file`, `is_available`) with input validation, plus unit tests in `tests/test_readline_utils.py`.
-- Synchronized `readline_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Synchronized `readline_utils.py`, `builtins_utils.py`, `tests/test_readline_utils.py`, and `tests/test_builtins_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - The history is returned as a list, the positions of the history are numbered the same way everywhere, the helpers that touch a file always name the file they touch, and a completer for a list of words is offered.
 - The standard library reads an entry of the history by its one-based position but removes and replaces it by its zero-based position, so the wrapper numbers every position the same way, with the one-based number.
 - The `readline` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise `RuntimeError` when the module is missing.

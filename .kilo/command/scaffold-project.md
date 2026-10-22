@@ -543,3 +543,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_ensurepip_utils.py` — unit tests for `ensurepip_utils.py`
 - `readline_utils.py` — command line editing utilities wrapping the standard library `readline` module (`add_history`, `append_history_file`, `clear_history`, `default_history_file`, `get_history_item`, `history_items`, `make_completer`, `read_history_file`, `remove_history_item`, `replace_history_item`, `search_history`, `write_history_file`, `is_available`) with input validation
 - `tests/test_readline_utils.py` — unit tests for `readline_utils.py`
+- `builtins_utils.py` — builtin utilities wrapping the standard library `builtins` module (`absolute`, `all_true`, `any_true`, `ascii_str`, `binary_string`, `boolean`, `callable_object`, `character`, `divmod_pair`, `format_value`, `get_hash`, `hex_string`, `is_instance`, `is_subclass`, `iterator`, `length`, `maximum`, `minimum`, `octal_string`, `ordinal`, `power`, `representation`, `round_number`, `sorted_list`, `summation`) with input validation
+- `tests/test_builtins_utils.py` — unit tests for `builtins_utils.py`

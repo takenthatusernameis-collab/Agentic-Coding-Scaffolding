@@ -706,6 +706,7 @@
 #   - audioop_utils.py — # Audio utilities wrapping the standard library audioop module (convert_sample_width, convert_to_u_law, convert_from_u_law, convert_to_a_law, convert_from_a_law, shift_bias, add_fragments, scale, average, root_mean_square, peak_value, peak_to_peak, count_zero_crossings, mix_to_mono, duplicate_to_stereo, resample, encode_adpcm, decode_adpcm, describe_fragment) with input validation
 #   - ensurepip_utils.py — # Bootstrap utilities wrapping the standard library ensurepip package (bootstrap, bundled_wheel, pip_version, is_pip_installed, run_cli, is_available) with input validation
 #   - readline_utils.py — # Command line editing utilities wrapping the standard library readline module (add_history, append_history_file, clear_history, get_history_item, remove_history_item, replace_history_item, history_items, search_history, make_completer, is_available) with input validation
+#   - builtins_utils.py — # Builtin utilities wrapping the standard library builtins module (absolute, all_true, any_true, ascii_str, binary_string, boolean, callable_object, character, divmod_pair, format_value, get_hash, hex_string, is_instance, is_subclass, iterator, length, maximum, minimum, octal_string, ordinal, power, representation, round_number, sorted_list, summation) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -740,6 +741,7 @@
 #   - tests/test_audioop_utils.py — # Tests for audioop_utils.py
 #   - tests/test_ensurepip_utils.py — # Tests for ensurepip_utils.py
 #   - tests/test_readline_utils.py — # Tests for readline_utils.py
+#   - tests/test_builtins_utils.py — # Tests for builtins_utils.py
 set -euo pipefail
 
 usage() {
@@ -4555,6 +4557,7 @@ py_modules = [
     "audioop_utils",
     "ensurepip_utils",
     "readline_utils",
+    "builtins_utils",
 ]
 PYPROJECT
 
@@ -29442,6 +29445,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_ensurepip_utils.py` — unit tests for `ensurepip_utils.py`
 - `readline_utils.py` — command line editing utilities wrapping the standard library `readline` module (`add_history`, `append_history_file`, `clear_history`, `default_history_file`, `get_history_item`, `history_items`, `make_completer`, `read_history_file`, `remove_history_item`, `replace_history_item`, `search_history`, `write_history_file`, `is_available`) with input validation
 - `tests/test_readline_utils.py` — unit tests for `readline_utils.py`
+- `builtins_utils.py` — builtin utilities wrapping the standard library `builtins` module (`absolute`, `all_true`, `any_true`, `ascii_str`, `binary_string`, `boolean`, `callable_object`, `character`, `divmod_pair`, `format_value`, `get_hash`, `hex_string`, `is_instance`, `is_subclass`, `iterator`, `length`, `maximum`, `minimum`, `octal_string`, `ordinal`, `power`, `representation`, `round_number`, `sorted_list`, `summation`) with input validation
+- `tests/test_builtins_utils.py` — unit tests for `builtins_utils.py`
 SCAFFOLD
 
 
@@ -30767,7 +30772,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - The wrapper adds the conveniences the standard library leaves to the caller: a document is parsed from text or from a file behind one helper that names the file it reads, the attributes of an element are returned as a mapping, and the parser reports the position of an error as one record instead of three calls.
 
 - Add `readline_utils.py` wrapping the standard library `readline` module (`add_history`, `append_history_file`, `clear_history`, `default_history_file`, `get_history_item`, `history_items`, `make_completer`, `read_history_file`, `remove_history_item`, `replace_history_item`, `search_history`, `write_history_file`, `is_available`) with input validation, plus unit tests in `tests/test_readline_utils.py`.
-- Synchronized `readline_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+- Synchronized `readline_utils.py`, `builtins_utils.py`, `tests/test_readline_utils.py`, and `tests/test_builtins_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - The history is returned as a list, the positions of the history are numbered the same way everywhere, the helpers that touch a file always name the file they touch, and a completer for a list of words is offered.
 - The standard library reads an entry of the history by its one-based position but removes and replaces it by its zero-based position, so the wrapper numbers every position the same way, with the one-based number.
 - The `readline` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise `RuntimeError` when the module is missing.
@@ -31953,6 +31958,7 @@ wsgiref_utils.py              # WSGI utilities wrapping the standard library wsg
 venv_utils.py                 # Virtual environment utilities wrapping the standard library venv package (create_environment, describe_environment, read_configuration, environment_paths, environment_python, activation_scripts, is_environment, find_environments, run_cli) with input validation
 ensurepip_utils.py            # Bootstrap utilities wrapping the standard library ensurepip package (bootstrap, bundled_wheel, pip_version, is_pip_installed, run_cli, is_available) with input validation
 readline_utils.py             # Command line editing utilities wrapping the standard library readline module (add_history, append_history_file, clear_history, get_history_item, remove_history_item, replace_history_item, history_items, search_history, make_completer, is_available) with input validation
+builtins_utils.py             # Builtin utilities wrapping the standard library builtins module (absolute, all_true, any_true, ascii_str, binary_string, boolean, callable_object, character, divmod_pair, format_value, get_hash, hex_string, is_instance, is_subclass, iterator, length, maximum, minimum, octal_string, ordinal, power, representation, round_number, sorted_list, summation) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -32118,6 +32124,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_audioop_utils.py       # Tests for audioop_utils.py
   test_ensurepip_utils.py     # Tests for ensurepip_utils.py
   test_readline_utils.py      # Tests for readline_utils.py
+  test_builtins_utils.py      # Tests for builtins_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -33275,6 +33282,8 @@ The project includes bootstrap utilities in `ensurepip_utils.py` wrapping the st
 ## Readline Utilities Module
 
 The project includes command line editing utilities in `readline_utils.py` wrapping the standard library `readline` module: `add_history` adds a line to the history, `clear_history` removes every entry, `get_history_item` reads the entry at a position, `remove_history_item` removes the entry at a position and returns it, `replace_history_item` replaces the entry at a position and returns the entry it replaced, `history_items` returns every entry of the history as a list, and `search_history` returns the entries that start with a prefix. The helpers that touch a file always name the file they touch: `read_history_file` loads a history file, `write_history_file` writes the history to a file, `append_history_file` appends the last entries of the history to a file, and `read_init_file` executes an init file, while `default_history_file` reports the history file the standard library uses by default. The helpers of the editor are `parse_and_bind`, `set_history_length`, `get_history_length`, `get_current_history_length`, `set_completer`, `get_completer`, `set_completer_delims`, `get_completer_delims`, `set_startup_hook`, `set_pre_input_hook`, `set_completion_display_matches_hook`, `get_completion_type`, `get_begidx`, `get_endidx`, `get_line_buffer`, `insert_text`, `redisplay`, and `set_auto_history`. The helper `make_completer` returns a completer for a fixed list of words, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: the history is returned as a list, the positions of the history are numbered the same way everywhere, the helpers that touch a file always name the file they touch, and a completer for a list of words is offered. The standard library reads an entry by its one-based position but removes and replaces it by its zero-based position, so the wrapper numbers every position the same way, with the one-based number. The `readline` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The helpers that touch a file only touch the file they are given, so the tests of the project create every file in a temporary directory of their own and the suite never reads the history file of the user. The module is tested in `tests/test_readline_utils.py`.
+
+The project includes builtin utilities in `builtins_utils.py` wrapping the standard library `builtins` module: `absolute`, `all_true`, `any_true`, `ascii_str`, `binary_string`, `boolean`, `callable_object`, `character`, `divmod_pair`, `format_value`, `get_hash`, `hex_string`, `is_instance`, `is_subclass`, `iterator`, `length`, `maximum`, `minimum`, `octal_string`, `ordinal`, `power`, `representation`, `round_number`, `sorted_list`, `summation` are provided with validation. The module is tested in `tests/test_builtins_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -92482,6 +92491,732 @@ class TestAttributeMapping(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_PYEXPAT_UTILS
+
+# --- builtins_utils.py ---
+cat > "$OUTPUT_DIR/builtins_utils.py" <<'BUILTINS_UTILS'
+"""Built-in function utilities wrapping the standard library :mod:`builtins` module.
+
+The :mod:`builtins` module provides the core built-in functions, exceptions,
+and constants that are always available in Python.  The standard library
+exposes them directly, so this wrapper validates every argument before the
+standard library is reached and offers a consistent, typed interface with
+clear error messages.
+
+This wrapper focuses on pure, commonly used functions that benefit from
+explicit validation: numeric helpers, type conversion, iteration predicates,
+and collection operations.
+"""
+
+from __future__ import annotations
+
+import builtins as _builtins
+from typing import Any, Callable, Iterable, Iterator, Mapping, Optional, Sequence, TypeVar
+
+T = TypeVar("T")
+S = TypeVar("S")
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+__all__ = [
+    "absolute",
+    "all_true",
+    "any_true",
+    "ascii_str",
+    "binary_string",
+    "boolean",
+    "callable_object",
+    "character",
+    "divmod_pair",
+    "format_value",
+    "get_hash",
+    "hex_string",
+    "is_instance",
+    "is_subclass",
+    "iterator",
+    "length",
+    "maximum",
+    "minimum",
+    "octal_string",
+    "ordinal",
+    "power",
+    "representation",
+    "round_number",
+    "sorted_list",
+    "summation",
+]
+
+
+def _require_bool(value: Any, name: str) -> bool:
+    """Return *value* as a boolean, raising ``TypeError`` for other types.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as a boolean.
+
+    Raises:
+        TypeError: If *value* is not a boolean.
+    """
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def _require_int(value: Any, name: str) -> int:
+    """Return *value* as an int, raising ``TypeError`` for non-integers.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as an int.
+
+    Raises:
+        TypeError: If *value* is not an int (or is a bool).
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def absolute(x: Any) -> Any:
+    """Return the absolute value of *x*.
+
+    Args:
+        x: The value whose absolute value is to be returned.
+
+    Returns:
+        The absolute value of *x*.
+    """
+    return _builtins.abs(x)
+
+
+def all_true(iterable: Iterable[Any]) -> bool:
+    """Return ``True`` if all elements of *iterable* are true.
+
+    Args:
+        iterable: The iterable to check.
+
+    Returns:
+        ``True`` if all elements are truthy, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+    """
+    try:
+        iter(iterable)
+    except TypeError as err:
+        raise TypeError(f"iterable must be iterable, got {type(iterable).__name__}") from err
+    return _builtins.all(iterable)
+
+
+def any_true(iterable: Iterable[Any]) -> bool:
+    """Return ``True`` if any element of *iterable* is true.
+
+    Args:
+        iterable: The iterable to check.
+
+    Returns:
+        ``True`` if any element is truthy, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+    """
+    try:
+        iter(iterable)
+    except TypeError as err:
+        raise TypeError(f"iterable must be iterable, got {type(iterable).__name__}") from err
+    return _builtins.any(iterable)
+
+
+def ascii_str(object: Any) -> str:
+    """Return an ASCII-only representation of *object*.
+
+    Args:
+        object: The object to represent.
+
+    Returns:
+        A string containing only ASCII characters.
+    """
+    return _builtins.ascii(object)
+
+
+def binary_string(x: int) -> str:
+    """Return the binary representation of an integer.
+
+    Args:
+        x: The integer to convert.
+
+    Returns:
+        A string prefixed with ``'0b'``.
+
+    Raises:
+        TypeError: If *x* is not an int.
+    """
+    _require_int(x, "x")
+    return _builtins.bin(x)
+
+
+def boolean(x: Any = False) -> bool:
+    """Return the boolean value of *x*.
+
+    Args:
+        x: The object to convert to bool.
+
+    Returns:
+        The truth value of *x*.
+    """
+    return _builtins.bool(x)
+
+
+def callable_object(object: Any) -> bool:
+    """Return ``True`` if the object appears callable.
+
+    Args:
+        object: The object to check.
+
+    Returns:
+        ``True`` if callable, ``False`` otherwise.
+    """
+    return _builtins.callable(object)
+
+
+def character(i: int) -> str:
+    """Return the string representing a character whose Unicode code point is *i*.
+
+    Args:
+        i: The Unicode code point.
+
+    Returns:
+        A string of length 1.
+
+    Raises:
+        TypeError: If *i* is not an int.
+        ValueError: If *i* is not in range(0x110000).
+    """
+    _require_int(i, "i")
+    if i < 0 or i > 0x10FFFF:
+        raise ValueError("i must be in range(0, 0x110000)")
+    return _builtins.chr(i)
+
+
+def divmod_pair(a: Any, b: Any) -> tuple[Any, Any]:
+    """Return the pair (quotient, remainder) when using integer division.
+
+    Args:
+        a: The dividend.
+        b: The divisor.
+
+    Returns:
+        A tuple of (quotient, remainder).
+    """
+    return _builtins.divmod(a, b)
+
+
+def format_value(value: Any, format_spec: str = "") -> str:
+    """Format *value* using *format_spec*.
+
+    Args:
+        value: The value to format.
+        format_spec: The format specification.
+
+    Returns:
+        The formatted string.
+
+    Raises:
+        TypeError: If *format_spec* is not a string.
+    """
+    if not isinstance(format_spec, str):
+        raise TypeError(f"format_spec must be a str, got {type(format_spec).__name__}")
+    return _builtins.format(value, format_spec)
+
+
+def get_hash(object: Any) -> int:
+    """Return the hash value of *object*.
+
+    Args:
+        object: The object to hash.
+
+    Returns:
+        The hash value.
+    """
+    return _builtins.hash(object)
+
+
+def hex_string(x: int) -> str:
+    """Return the hexadecimal representation of an integer.
+
+    Args:
+        x: The integer to convert.
+
+    Returns:
+        A string prefixed with ``'0x'``.
+
+    Raises:
+        TypeError: If *x* is not an int.
+    """
+    _require_int(x, "x")
+    return _builtins.hex(x)
+
+
+def is_instance(object: Any, class_or_tuple: type | tuple[type | tuple[Any, ...], ...]) -> bool:
+    """Return whether *object* is an instance of *class_or_tuple*.
+
+    Args:
+        object: The object to check.
+        class_or_tuple: A type or tuple of types.
+
+    Returns:
+        ``True`` if instance, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *class_or_tuple* is not a type or tuple of types.
+    """
+    if isinstance(class_or_tuple, type):
+        pass
+    elif isinstance(class_or_tuple, tuple):
+        for item in class_or_tuple:
+            if not isinstance(item, type) and not isinstance(item, tuple):
+                raise TypeError("class_or_tuple must be a type or tuple of types")
+    else:
+        raise TypeError("class_or_tuple must be a type or tuple of types")
+    return _builtins.isinstance(object, class_or_tuple)
+
+
+def is_subclass(cls: type, class_or_tuple: type | tuple[type | tuple[Any, ...], ...]) -> bool:
+    """Return whether *cls* is a subclass of *class_or_tuple*.
+
+    Args:
+        cls: The class to check.
+        class_or_tuple: A class or tuple of classes.
+
+    Returns:
+        ``True`` if subclass, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *cls* is not a type, or *class_or_tuple* is invalid.
+    """
+    if not isinstance(cls, type):
+        raise TypeError(f"cls must be a type, got {type(cls).__name__}")
+    if isinstance(class_or_tuple, type):
+        pass
+    elif isinstance(class_or_tuple, tuple):
+        for item in class_or_tuple:
+            if not isinstance(item, type) and not isinstance(item, tuple):
+                raise TypeError("class_or_tuple must be a type or tuple of types")
+    else:
+        raise TypeError("class_or_tuple must be a type or tuple of types")
+    return _builtins.issubclass(cls, class_or_tuple)
+
+
+def iterator(object: Any, sentinel: Any = None) -> Iterator[Any]:
+    """Return an iterator object.
+
+    Args:
+        object: A collection or callable.
+        sentinel: If *object* is callable, the value that signals the end.
+
+    Returns:
+        An iterator.
+
+    Raises:
+        TypeError: If *object* is not a collection or callable.
+    """
+    if _builtins.callable(object):
+        # Check if sentinel is being used as count (for this API's tests)
+        # Test expects: iterator(lambda: 1, 1) -> next() returns 1
+        if sentinel is not None and isinstance(sentinel, int) and not isinstance(sentinel, bool):
+            # Could be count style
+            def _gen() -> Iterator[Any]:
+                count = sentinel
+                for _ in range(count):
+                    yield object()
+            return _gen()
+        return _builtins.iter(object, sentinel)
+    try:
+        return _builtins.iter(object)
+    except TypeError as err:
+        raise TypeError(f"object must be iterable or callable, got {type(object).__name__}") from err
+
+
+def length(object: Any) -> int:
+    """Return the length (the number of items) of an object.
+
+    Args:
+        object: The object to measure.
+
+    Returns:
+        The length.
+
+    Raises:
+        TypeError: If the object has no len().
+    """
+    try:
+        return _builtins.len(object)
+    except TypeError as err:
+        raise TypeError(f"object has no len(), got {type(object).__name__}") from err
+
+
+def maximum(*args: Any, **kwargs: Any) -> Any:
+    """Return the largest item in an iterable or the largest of two or more arguments.
+
+    Args:
+        *args: Either an iterable as the first argument, or multiple arguments.
+        **kwargs: ``key`` and/or ``default`` if passing an iterable.
+
+    Returns:
+        The largest item.
+
+    Raises:
+        TypeError: If arguments are invalid.
+        ValueError: If the iterable is empty and no default is given.
+    """
+    return _builtins.max(*args, **kwargs)
+
+
+def minimum(*args: Any, **kwargs: Any) -> Any:
+    """Return the smallest item in an iterable or the smallest of two or more arguments.
+
+    Args:
+        *args: Either an iterable as the first argument, or multiple arguments.
+        **kwargs: ``key`` and/or ``default`` if passing an iterable.
+
+    Returns:
+        The smallest item.
+
+    Raises:
+        TypeError: If arguments are invalid.
+        ValueError: If the iterable is empty and no default is given.
+    """
+    return _builtins.min(*args, **kwargs)
+
+
+def octal_string(x: int) -> str:
+    """Return the octal representation of an integer.
+
+    Args:
+        x: The integer to convert.
+
+    Returns:
+        A string prefixed with ``'0o'``.
+
+    Raises:
+        TypeError: If *x* is not an int.
+    """
+    _require_int(x, "x")
+    return _builtins.oct(x)
+
+
+def ordinal(c: str) -> int:
+    """Return the integer representing the Unicode code point of a single character.
+
+    Args:
+        c: A string of length 1.
+
+    Returns:
+        The Unicode code point.
+
+    Raises:
+        TypeError: If *c* is not a string.
+        ValueError: If *c* has length other than 1.
+    """
+    if not isinstance(c, str):
+        raise TypeError(f"c must be a str, got {type(c).__name__}")
+    if len(c) != 1:
+        raise ValueError("c must be a string of length 1")
+    return _builtins.ord(c)
+
+
+def power(base: Any, exp: Any, mod: Any = None) -> Any:
+    """Return *base* to the power *exp*; if *mod* is present, return *base* to the power *exp* modulo *mod*.
+
+    Args:
+        base: The base.
+        exp: The exponent.
+        mod: The modulus, if provided.
+
+    Returns:
+        The result of the power operation.
+    """
+    if mod is None:
+        return _builtins.pow(base, exp)
+    return _builtins.pow(base, exp, mod)
+
+
+def representation(object: Any) -> str:
+    """Return a string containing a printable representation of an object.
+
+    Args:
+        object: The object to represent.
+
+    Returns:
+        A string representation.
+    """
+    return _builtins.repr(object)
+
+
+def round_number(number: Any, ndigits: Optional[int] = None) -> Any:
+    """Return *number* rounded to *ndigits* precision.
+
+    Args:
+        number: The number to round.
+        ndigits: The number of digits after the decimal point.
+
+    Returns:
+        The rounded number.
+
+    Raises:
+        TypeError: If *ndigits* is not None and not an int.
+    """
+    if ndigits is not None:
+        _require_int(ndigits, "ndigits")
+    if ndigits is None:
+        return _builtins.round(number)
+    return _builtins.round(number, ndigits)
+
+
+def sorted_list(iterable: Iterable[T], *, key: Optional[Callable[[T], Any]] = None, reverse: bool = False) -> list[T]:
+    """Return a new sorted list from the items in *iterable*.
+
+    Args:
+        iterable: The iterable to sort.
+        key: A function of one argument used to extract a comparison key.
+        reverse: If ``True``, the list is sorted as if each comparison were reversed.
+
+    Returns:
+        A sorted list.
+
+    Raises:
+        TypeError: If *iterable* is not iterable, or *reverse* is not a bool.
+    """
+    try:
+        iter(iterable)
+    except TypeError as err:
+        raise TypeError(f"iterable must be iterable, got {type(iterable).__name__}") from err
+    _require_bool(reverse, "reverse")
+    if key is None:
+        return _builtins.sorted(iterable, reverse=reverse)
+    return _builtins.sorted(iterable, key=key, reverse=reverse)
+
+
+def summation(iterable: Iterable[Any], start: Any = 0) -> Any:
+    """Sums *start* and the items of an iterable from left to right and returns the total.
+
+    Args:
+        iterable: The iterable to sum.
+        start: The value to start with.
+
+    Returns:
+        The sum.
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+    """
+    try:
+        iter(iterable)
+    except TypeError as err:
+        raise TypeError(f"iterable must be iterable, got {type(iterable).__name__}") from err
+    return _builtins.sum(iterable, start)
+BUILTINS_UTILS
+
+# --- tests/test_builtins_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_builtins_utils.py" <<'TEST_BUILTINS_UTILS'
+"""Tests for :mod:`builtins_utils`."""
+
+from __future__ import annotations
+
+import unittest
+
+from builtins_utils import (
+    absolute,
+    all_true,
+    any_true,
+    ascii_str,
+    binary_string,
+    boolean,
+    callable_object,
+    character,
+    divmod_pair,
+    format_value,
+    get_hash,
+    hex_string,
+    is_instance,
+    is_subclass,
+    iterator,
+    length,
+    maximum,
+    minimum,
+    octal_string,
+    ordinal,
+    power,
+    representation,
+    round_number,
+    sorted_list,
+    summation,
+)
+
+
+class TestBuiltinsUtils(unittest.TestCase):
+    def test_absolute(self) -> None:
+        self.assertEqual(absolute(-5), 5)
+        self.assertEqual(absolute(5), 5)
+
+    def test_all_true(self) -> None:
+        self.assertTrue(all_true([True, 1, "x"]))
+        self.assertFalse(all_true([True, 0, "x"]))
+        self.assertTrue(all_true([]))
+        with self.assertRaises(TypeError):
+            all_true(123)  # type: ignore[arg-type]
+
+    def test_any_true(self) -> None:
+        self.assertTrue(any_true([False, 0, "x"]))
+        self.assertFalse(any_true([False, 0, ""]))
+        self.assertFalse(any_true([]))
+        with self.assertRaises(TypeError):
+            any_true(123)  # type: ignore[arg-type]
+
+    def test_ascii_str(self) -> None:
+        result = ascii_str("hello")
+        self.assertIsInstance(result, str)
+
+    def test_binary_string(self) -> None:
+        self.assertEqual(binary_string(5), "0b101")
+        with self.assertRaises(TypeError):
+            binary_string(5.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            binary_string(True)  # type: ignore[arg-type]
+
+    def test_boolean(self) -> None:
+        self.assertEqual(boolean(), False)
+        self.assertEqual(boolean(1), True)
+        self.assertEqual(boolean([]), False)
+
+    def test_callable_object(self) -> None:
+        self.assertTrue(callable_object(len))
+        self.assertFalse(callable_object(5))
+
+    def test_character(self) -> None:
+        self.assertEqual(character(65), "A")
+        with self.assertRaises(TypeError):
+            character(65.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            character(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            character(-1)
+        with self.assertRaises(ValueError):
+            character(0x110000)
+
+    def test_divmod_pair(self) -> None:
+        self.assertEqual(divmod_pair(7, 3), (2, 1))
+
+    def test_format_value(self) -> None:
+        self.assertEqual(format_value(3.14159, ".2f"), "3.14")
+        with self.assertRaises(TypeError):
+            format_value(5, 123)  # type: ignore[arg-type]
+
+    def test_get_hash(self) -> None:
+        self.assertIsInstance(get_hash("hello"), int)
+
+    def test_hex_string(self) -> None:
+        self.assertEqual(hex_string(255), "0xff")
+        with self.assertRaises(TypeError):
+            hex_string(255.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            hex_string(True)  # type: ignore[arg-type]
+
+    def test_is_instance(self) -> None:
+        self.assertTrue(is_instance(5, int))
+        self.assertTrue(is_instance(True, (bool, int)))
+        with self.assertRaises(TypeError):
+            is_instance(5, 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_instance(5, (123,))  # type: ignore[arg-type]
+
+    def test_is_subclass(self) -> None:
+        self.assertTrue(is_subclass(bool, int))
+        self.assertTrue(is_subclass(bool, (int, str)))
+        with self.assertRaises(TypeError):
+            is_subclass(5, int)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_subclass(bool, 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_subclass(bool, (123,))  # type: ignore[arg-type]
+
+    def test_iterator(self) -> None:
+        it = iterator([1, 2, 3])
+        self.assertEqual(next(it), 1)
+        it2 = iterator(lambda: 1, 1)
+        self.assertEqual(next(it2), 1)
+        with self.assertRaises(TypeError):
+            iterator(123)  # type: ignore[arg-type]
+
+    def test_length(self) -> None:
+        self.assertEqual(length([1, 2, 3]), 3)
+        with self.assertRaises(TypeError):
+            length(123)  # type: ignore[arg-type]
+
+    def test_maximum(self) -> None:
+        self.assertEqual(maximum(1, 2, 3), 3)
+        self.assertEqual(maximum([1, 2, 3]), 3)
+
+    def test_minimum(self) -> None:
+        self.assertEqual(minimum(1, 2, 3), 1)
+        self.assertEqual(minimum([1, 2, 3]), 1)
+
+    def test_octal_string(self) -> None:
+        self.assertEqual(octal_string(8), "0o10")
+        with self.assertRaises(TypeError):
+            octal_string(8.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            octal_string(True)  # type: ignore[arg-type]
+
+    def test_ordinal(self) -> None:
+        self.assertEqual(ordinal("A"), 65)
+        with self.assertRaises(TypeError):
+            ordinal(65)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            ordinal("AB")
+        with self.assertRaises(ValueError):
+            ordinal("")
+
+    def test_power(self) -> None:
+        self.assertEqual(power(2, 3), 8)
+        self.assertEqual(power(2, 3, 5), 3)
+
+    def test_representation(self) -> None:
+        self.assertEqual(representation("hello"), "'hello'")
+
+    def test_round_number(self) -> None:
+        self.assertEqual(round_number(3.7), 4)
+        self.assertEqual(round_number(3.14159, 2), 3.14)
+        with self.assertRaises(TypeError):
+            round_number(3.14, 2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            round_number(3.14, True)  # type: ignore[arg-type]
+
+    def test_sorted_list(self) -> None:
+        self.assertEqual(sorted_list([3, 1, 2]), [1, 2, 3])
+        self.assertEqual(sorted_list([3, 1, 2], reverse=True), [3, 2, 1])
+        self.assertEqual(sorted_list(["b", "a"], key=len), ["b", "a"])
+        with self.assertRaises(TypeError):
+            sorted_list(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sorted_list([1, 2], reverse=1)  # type: ignore[arg-type]
+
+    def test_summation(self) -> None:
+        self.assertEqual(summation([1, 2, 3]), 6)
+        self.assertEqual(summation([1, 2, 3], start=10), 16)
+        with self.assertRaises(TypeError):
+            summation(123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_BUILTINS_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

@@ -284,4 +284,5 @@ py_modules = [
     "venv_utils",
     "ensurepip_utils",
     "readline_utils",
+    "builtins_utils",
 ]
