@@ -163,7 +163,7 @@ py_modules = [
     "contextlib_utils",
     "contextvars_utils",
     "netrc_utils",
-    "calendar_utils",
+    "nntplib_utils",    "calendar_utils",
     "cgi_utils",
     "chunk_utils",
     "pipes_utils",
