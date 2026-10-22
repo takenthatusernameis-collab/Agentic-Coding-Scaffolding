@@ -1658,3 +1658,5 @@ The project includes regular expression constants utilities in `sre_constants_ut
 ## Cgi Utilities Module
 
 The project includes CGI utilities in `cgi_utils.py` wrapping the standard library `cgi` module: `FieldStorage` and `MiniFieldStorage` parse form data, `parse_header` parses MIME headers, `parse` parses a query string or form data, `parse_qs` and `parse_qsl` parse query strings, `parse_multipart` parses multipart form data, `escape` replaces special HTML characters, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds validation and conveniences while degrading gracefully when the module is missing. The `cgi` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_cgi_utils.py`.
+
+Deprecated-module wrappers: `cgitb_utils.py`, `nntplib_utils.py`, `sndhdr_utils.py`, `sre_compile_utils.py`.
