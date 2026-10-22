@@ -165,6 +165,7 @@ py_modules = [
     "netrc_utils",
     "nntplib_utils",    "calendar_utils",
     "cgi_utils",
+    "cgitb_utils",
     "chunk_utils",
     "pipes_utils",
     "cmath_utils",
