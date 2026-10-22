@@ -101277,6 +101277,97 @@ if __name__ == "__main__":
     unittest.main()
 TEST_SNDHDR_UTILS
 
+# --- sre_compile_utils.py ---
+cat > "$OUTPUT_DIR/sre_compile_utils.py" <<'SRE_COMPILE_UTILS'
+"""Regular expression compile utilities wrapping the standard library
+:mod:`sre_compile` module.
+
+The :mod:`sre_compile` module compiles regular expression patterns into the
+internal code representation used by the :mod:`re` engine. This wrapper
+provides a validated, consistent interface with typed accessors and input
+validation, and degrades gracefully when the module is unavailable.
+
+The wrapper only reads from the standard library and never writes to the
+filesystem.
+"""
+
+from __future__ import annotations
+
+import warnings
+from typing import Any
+
+__all__ = [
+    "compile_pattern",
+    "is_available",
+]
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import sre_compile as _sre_compile
+except Exception:  # pragma: no cover
+    _sre_compile = None  # type: ignore[assignment]
+
+
+def _sre_compile_module() -> Any:
+    """Return the standard library ``sre_compile`` module."""
+    if _sre_compile is None:  # pragma: no cover
+        raise RuntimeError(
+            "the standard library 'sre_compile' module is not available"
+        )
+    return _sre_compile
+
+
+def is_available() -> bool:
+    """Report whether the interpreter ships the standard library module."""
+    return _sre_compile is not None
+
+
+def compile_pattern(pattern: Any, flags: int = 0) -> Any:
+    """Compile a pattern using :func:`sre_compile.compile`."""
+    if not isinstance(flags, int):
+        raise TypeError(f"flags must be int, got {type(flags).__name__}")
+    mod = _sre_compile_module()
+    return mod.compile(pattern, flags)
+SRE_COMPILE_UTILS
+
+# --- tests/test_sre_compile_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_sre_compile_utils.py" <<'TEST_SRE_COMPILE_UTILS'
+"""Tests for the :mod:`sre_compile_utils` wrapper."""
+
+from __future__ import annotations
+
+import pytest
+
+import sre_compile_utils
+
+
+def test_is_available() -> None:
+    result = sre_compile_utils.is_available()
+    assert isinstance(result, bool)
+
+
+@pytest.mark.skipif(not sre_compile_utils.is_available(), reason="sre_compile not available")
+def test_compile_pattern() -> None:
+    code = sre_compile_utils.compile_pattern("abc")
+    assert code is not None
+
+
+def test_compile_pattern_validates_flags() -> None:
+    with pytest.raises(TypeError):
+        sre_compile_utils.compile_pattern("abc", "bad")  # type: ignore[arg-type]
+
+
+def test_degradation_without_module() -> None:
+    original = sre_compile_utils._sre_compile
+    try:
+        sre_compile_utils._sre_compile = None  # type: ignore[assignment]
+        with pytest.raises(RuntimeError, match="sre_compile"):
+            sre_compile_utils.compile_pattern("abc")
+    finally:
+        sre_compile_utils._sre_compile = original
+TEST_SRE_COMPILE_UTILS
+
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
 # that their content is copied verbatim; the project name placeholder is
