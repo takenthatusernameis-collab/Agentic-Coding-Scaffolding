@@ -1,4 +1,67 @@
-## Latest Session (2026-10-21) — pyexpat_utils finished and synchronized across every surface
+## Latest Session (2026-10-22) — imghdr_utils finished and synchronized across every surface
+
+The board held no task, so this session repaired the `imghdr_utils` handover that the previous
+checkpoint session had left behind, and synchronized the module across every surface of the project.
+
+Completed in the latest session:
+
+- Rewrote `imghdr_utils.py` to the conventions of the other wrappers: typed signatures, Google
+  style docstrings, a sorted `__all__`, and input validation that raises `TypeError` or
+  `ValueError` before the standard library is reached. The previous checkpoint session left a
+  twenty-six line stub without validation, without docstrings, and with a helper that was missing
+  from `__all__`.
+- The stub imported the standard library `imghdr` module at the top level, so the wrapper failed
+  to import on Python 3.13, where the module was removed as part of :pep:`594`. The import now
+  degrades gracefully the way `uu_utils.py` does it: the helpers raise a `RuntimeError` that names
+  the missing module, and `is_available` reports whether the interpreter still ships it.
+- The public API is `what`, `detect`, `matching_formats`, `is_image`, `read_header`,
+  `supported_formats`, `register_test`, `unregister_test`, and `is_available`. The wrapper adds
+  the conveniences the standard library leaves to the caller: a header can be inspected without a
+  file, every matching format can be listed instead of only the first one, the formats the
+  interpreter knows can be listed, and a detection function can be registered and removed again.
+- `register_test` validates the signature of the function it registers, so a function that does not
+  accept the header and the file is rejected before it can break the detection of the standard
+  library. `unregister_test` removes a function from the registry of the standard library instead of
+  only hiding it.
+- Rewrote `tests/test_imghdr_utils.py` with full coverage of the wrapper: every format the
+  standard library recognizes, the unknown header, the path and the stream, the explicit header,
+  the position of a stream, the registration and the removal of a detection function, and the
+  degradation on an interpreter without the standard library module. The suite is hermetic: every
+  file is created in a temporary directory the test owns, the standard library is patched for the
+  degradation test, and the suite never writes outside its own temporary directories.
+- Synchronized the module across every surface: the `py_modules` list of `pyproject.toml`, the
+  `scaffold.sh` header comment, the module and test heredocs of the generator, the embedded
+  `pyproject.toml`, the embedded README tree and module section, the embedded CHANGELOG, the README
+  tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py`
+  assertions, and `CHANGELOG.md`.
+- Closed two gaps that the previous session left behind. The `pyproject.toml` of the repository
+  listed `"imghdr_utils"` on the same line as `"inspect_utils"`, and the copy of
+  `builtins_utils.py` that the generator embeds was stale: the previous session had fixed the
+  handling of a generator and of a reversed sort in the repository file without refreshing the
+  generator, so a scaffolded project shipped the older module.
+- Verified the work before it is committed: `make test`, `make lint`, and `make typecheck` are
+  green, and `python tools/refresh_scaffold.py --check` reports that all embedded copies are in
+  sync.
+- The repository suite now runs 5031 tests, and `make lint` and `make typecheck` are green.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `cgi`, `cgitb`, `chunk`, `crypt`, `idlelib`, `lib2to3`, `msilib`, `msvcrt`, `nis`,
+  `nntplib`, `ossaudiodev`, `pipes`, `posix`, `sndhdr`, `spwd`, `sre_compile`, `sre_constants`,
+  `sre_parse`, `sunau`, `telnetlib`, `tkinter`, `turtle`, `turtledemo`, `winreg`, and `winsound`.
+  Most of them were removed in Python 3.13 as part of :pep:`594`, and the ones that remain are
+  either platform specific (`msvcrt`, `winreg`, `winsound`, `msilib`, `ossaudiodev`, `spwd`,
+  `posix`) or need a graphical toolkit that the interpreter of the CI does not ship (`tkinter`,
+  `idlelib`, `turtle`, `turtledemo`). The `posix` module is the natural next candidate: it ships
+  with every Unix interpreter, and the CI runs on Linux. The import has to degrade gracefully and
+  raise a `RuntimeError` on the platforms that do not ship it, the way `fcntl_utils.py` and
+  `termios_utils.py` do. The `crypt` module is the alternative: it is a small module of three
+  helpers, but it was removed in Python 3.13, so its helpers would only work on the older
+  interpreters.
+- Keep every new wrapper hermetic and keep `make lint` and `make typecheck` green.
+
+## Previous Session (2026-10-21) — pyexpat_utils finished and synchronized across every surface
 
 The board held no task, so this session recorded the `pyexpat_utils` wrapper module that the
 previous checkpoint session had added, and synchronized it across every surface of the project.
@@ -839,7 +902,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 4893 tests across all wrapper modules (3405 subtests)
+- 5031 tests across all wrapper modules (3500 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -850,14 +913,14 @@ The project foundation is established:
   asserted in `tests/test_scaffold.py`; the `pyproject.toml` template embedded in `scaffold.sh` has to
   register every module as well
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 4793 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 4931 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 488 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 496 source files
 
 ## Keeping the Scaffold Synchronized
 

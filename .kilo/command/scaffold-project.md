@@ -545,3 +545,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_readline_utils.py` — unit tests for `readline_utils.py`
 - `builtins_utils.py` — builtin utilities wrapping the standard library `builtins` module (`absolute`, `all_true`, `any_true`, `ascii_str`, `binary_string`, `boolean`, `callable_object`, `character`, `divmod_pair`, `format_value`, `get_hash`, `hex_string`, `is_instance`, `is_subclass`, `iterator`, `length`, `maximum`, `minimum`, `octal_string`, `ordinal`, `power`, `representation`, `round_number`, `sorted_list`, `summation`) with input validation
 - `tests/test_builtins_utils.py` — unit tests for `builtins_utils.py`
+- `imghdr_utils.py` — image format detection utilities wrapping the standard library `imghdr` module (`detect`, `is_available`, `is_image`, `matching_formats`, `read_header`, `register_test`, `supported_formats`, `unregister_test`, `what`) with input validation
+- `tests/test_imghdr_utils.py` — unit tests for `imghdr_utils.py`

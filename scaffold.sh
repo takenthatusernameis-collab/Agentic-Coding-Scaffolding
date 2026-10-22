@@ -707,6 +707,7 @@
 #   - ensurepip_utils.py — # Bootstrap utilities wrapping the standard library ensurepip package (bootstrap, bundled_wheel, pip_version, is_pip_installed, run_cli, is_available) with input validation
 #   - readline_utils.py — # Command line editing utilities wrapping the standard library readline module (add_history, append_history_file, clear_history, get_history_item, remove_history_item, replace_history_item, history_items, search_history, make_completer, is_available) with input validation
 #   - builtins_utils.py — # Builtin utilities wrapping the standard library builtins module (absolute, all_true, any_true, ascii_str, binary_string, boolean, callable_object, character, divmod_pair, format_value, get_hash, hex_string, is_instance, is_subclass, iterator, length, maximum, minimum, octal_string, ordinal, power, representation, round_number, sorted_list, summation) with input validation
+#   - imghdr_utils.py — # Image format detection utilities wrapping the standard library imghdr module (detect, is_available, is_image, matching_formats, read_header, register_test, supported_formats, unregister_test, what) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -742,6 +743,7 @@
 #   - tests/test_ensurepip_utils.py — # Tests for ensurepip_utils.py
 #   - tests/test_readline_utils.py — # Tests for readline_utils.py
 #   - tests/test_builtins_utils.py — # Tests for builtins_utils.py
+#   - tests/test_imghdr_utils.py — # Tests for imghdr_utils.py
 set -euo pipefail
 
 usage() {
@@ -4558,6 +4560,7 @@ py_modules = [
     "ensurepip_utils",
     "readline_utils",
     "builtins_utils",
+    "imghdr_utils",
 ]
 PYPROJECT
 
@@ -29447,6 +29450,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_readline_utils.py` — unit tests for `readline_utils.py`
 - `builtins_utils.py` — builtin utilities wrapping the standard library `builtins` module (`absolute`, `all_true`, `any_true`, `ascii_str`, `binary_string`, `boolean`, `callable_object`, `character`, `divmod_pair`, `format_value`, `get_hash`, `hex_string`, `is_instance`, `is_subclass`, `iterator`, `length`, `maximum`, `minimum`, `octal_string`, `ordinal`, `power`, `representation`, `round_number`, `sorted_list`, `summation`) with input validation
 - `tests/test_builtins_utils.py` — unit tests for `builtins_utils.py`
+- `imghdr_utils.py` — image format detection utilities wrapping the standard library `imghdr` module (`detect`, `is_available`, `is_image`, `matching_formats`, `read_header`, `register_test`, `supported_formats`, `unregister_test`, `what`) with input validation
+- `tests/test_imghdr_utils.py` — unit tests for `imghdr_utils.py`
 SCAFFOLD
 
 
@@ -30767,6 +30772,13 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `imghdr_utils.py` wrapping the standard library `imghdr` module (`what`, `detect`, `matching_formats`, `is_image`, `read_header`, `supported_formats`, `register_test`, `unregister_test`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_imghdr_utils.py`.
+- Synchronized `imghdr_utils.py` and `tests/test_imghdr_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py` assertions, and this CHANGELOG.
+- Repaired the `imghdr_utils` handover that the previous session left behind: the module was a stub without the validation, the docstrings, and the typed signatures the other wrappers carry, it imported the standard library module at the top level so it failed to import on Python 3.13, and it was missing from every surface but `pyproject.toml`.
+- The wrapper adds the conveniences the standard library leaves to the caller: a header can be inspected without a file, every matching format can be listed instead of only the first one, the formats the interpreter knows can be listed, and a detection function can be registered and removed again.
+- The `imghdr` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise a `RuntimeError` that names the missing module.
+- The test suite is hermetic: every file is created in a temporary directory the test owns, the standard library is patched for the degradation tests, and the suite never writes outside its own temporary directories.
+
 - Add `pyexpat_utils.py` wrapping the standard library `pyexpat` module (`ParserCreate`, `ExpatError`, `parse`, `parse_text`, `parse_file`, `error_string`, `version_info`, `is_available`, `ErrorPosition`, `CurrentPosition`, `set_base`, `get_base`, `set_param_entity_parsing`, `external_entity_parser`, `set_start_element_handler`, `set_end_element_handler`, `set_character_data_handler`, `set_processing_instruction_handler`, `attribute_mapping`) with input validation, plus unit tests in `tests/test_pyexpat_utils.py`.
 - Synchronized `pyexpat_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 - The wrapper adds the conveniences the standard library leaves to the caller: a document is parsed from text or from a file behind one helper that names the file it reads, the attributes of an element are returned as a mapping, and the parser reports the position of an error as one record instead of three calls.
@@ -31959,6 +31971,7 @@ venv_utils.py                 # Virtual environment utilities wrapping the stand
 ensurepip_utils.py            # Bootstrap utilities wrapping the standard library ensurepip package (bootstrap, bundled_wheel, pip_version, is_pip_installed, run_cli, is_available) with input validation
 readline_utils.py             # Command line editing utilities wrapping the standard library readline module (add_history, append_history_file, clear_history, get_history_item, remove_history_item, replace_history_item, history_items, search_history, make_completer, is_available) with input validation
 builtins_utils.py             # Builtin utilities wrapping the standard library builtins module (absolute, all_true, any_true, ascii_str, binary_string, boolean, callable_object, character, divmod_pair, format_value, get_hash, hex_string, is_instance, is_subclass, iterator, length, maximum, minimum, octal_string, ordinal, power, representation, round_number, sorted_list, summation) with input validation
+imghdr_utils.py               # Image format detection utilities wrapping the standard library imghdr module (detect, is_available, is_image, matching_formats, read_header, register_test, supported_formats, unregister_test, what) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -32125,6 +32138,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_ensurepip_utils.py     # Tests for ensurepip_utils.py
   test_readline_utils.py      # Tests for readline_utils.py
   test_builtins_utils.py      # Tests for builtins_utils.py
+  test_imghdr_utils.py        # Tests for imghdr_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -33284,6 +33298,10 @@ The project includes bootstrap utilities in `ensurepip_utils.py` wrapping the st
 The project includes command line editing utilities in `readline_utils.py` wrapping the standard library `readline` module: `add_history` adds a line to the history, `clear_history` removes every entry, `get_history_item` reads the entry at a position, `remove_history_item` removes the entry at a position and returns it, `replace_history_item` replaces the entry at a position and returns the entry it replaced, `history_items` returns every entry of the history as a list, and `search_history` returns the entries that start with a prefix. The helpers that touch a file always name the file they touch: `read_history_file` loads a history file, `write_history_file` writes the history to a file, `append_history_file` appends the last entries of the history to a file, and `read_init_file` executes an init file, while `default_history_file` reports the history file the standard library uses by default. The helpers of the editor are `parse_and_bind`, `set_history_length`, `get_history_length`, `get_current_history_length`, `set_completer`, `get_completer`, `set_completer_delims`, `get_completer_delims`, `set_startup_hook`, `set_pre_input_hook`, `set_completion_display_matches_hook`, `get_completion_type`, `get_begidx`, `get_endidx`, `get_line_buffer`, `insert_text`, `redisplay`, and `set_auto_history`. The helper `make_completer` returns a completer for a fixed list of words, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: the history is returned as a list, the positions of the history are numbered the same way everywhere, the helpers that touch a file always name the file they touch, and a completer for a list of words is offered. The standard library reads an entry by its one-based position but removes and replaces it by its zero-based position, so the wrapper numbers every position the same way, with the one-based number. The `readline` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The helpers that touch a file only touch the file they are given, so the tests of the project create every file in a temporary directory of their own and the suite never reads the history file of the user. The module is tested in `tests/test_readline_utils.py`.
 
 The project includes builtin utilities in `builtins_utils.py` wrapping the standard library `builtins` module: `absolute`, `all_true`, `any_true`, `ascii_str`, `binary_string`, `boolean`, `callable_object`, `character`, `divmod_pair`, `format_value`, `get_hash`, `hex_string`, `is_instance`, `is_subclass`, `iterator`, `length`, `maximum`, `minimum`, `octal_string`, `ordinal`, `power`, `representation`, `round_number`, `sorted_list`, `summation` are provided with validation. The module is tested in `tests/test_builtins_utils.py`.
+
+## Imghdr Utilities Module
+
+The project includes image format detection utilities in `imghdr_utils.py` wrapping the standard library `imghdr` module: `what` returns the format of an image that is given as a path or as a binary stream, `detect` returns the format of a header that is already in memory, `matching_formats` returns every format a header matches instead of only the first one, `is_image` reports whether a file holds an image, `read_header` reads the header of a file and restores the position of a stream, `supported_formats` lists the formats the interpreter recognizes, `register_test` registers a detection function, `unregister_test` removes one again, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: a header can be inspected without a file, every matching format can be listed, the formats the interpreter knows can be listed, and a detection function can be registered and removed again. The standard library recognizes the format `jpeg`, `png`, `gif`, `tiff`, `rgb`, `pbm`, `pgm`, `ppm`, `rast`, `xbm`, `bmp`, `webp`, and `exr`. The `imghdr` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The wrapper only reads the file it is given and never writes to the filesystem, so the tests of the project create every file in a temporary directory of their own. The module is tested in `tests/test_imghdr_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -92510,7 +92528,7 @@ and collection operations.
 from __future__ import annotations
 
 import builtins as _builtins
-from typing import Any, Callable, Iterable, Iterator, Mapping, Optional, Sequence, TypeVar
+from typing import Any, Callable, Iterable, Iterator, Optional, TypeVar
 
 T = TypeVar("T")
 S = TypeVar("S")
@@ -92714,7 +92732,8 @@ def divmod_pair(a: Any, b: Any) -> tuple[Any, Any]:
     Returns:
         A tuple of (quotient, remainder).
     """
-    return _builtins.divmod(a, b)
+    result = _builtins.divmod(a, b)
+    return (result[0], result[1])
 
 
 def format_value(value: Any, format_spec: str = "") -> str:
@@ -92840,7 +92859,9 @@ def iterator(object: Any, sentinel: Any = None) -> Iterator[Any]:
     try:
         return _builtins.iter(object)
     except TypeError as err:
-        raise TypeError(f"object must be iterable or callable, got {type(object).__name__}") from err
+        raise TypeError(
+            f"object must be iterable or callable, got {type(object).__name__}"
+        ) from err
 
 
 def length(object: Any) -> int:
@@ -92932,7 +92953,8 @@ def ordinal(c: str) -> int:
 
 
 def power(base: Any, exp: Any, mod: Any = None) -> Any:
-    """Return *base* to the power *exp*; if *mod* is present, return *base* to the power *exp* modulo *mod*.
+    """Return *base* to the power *exp*; if *mod* is present, return
+    *base* to the power *exp* modulo *mod*.
 
     Args:
         base: The base.
@@ -92979,7 +93001,9 @@ def round_number(number: Any, ndigits: Optional[int] = None) -> Any:
     return _builtins.round(number, ndigits)
 
 
-def sorted_list(iterable: Iterable[T], *, key: Optional[Callable[[T], Any]] = None, reverse: bool = False) -> list[T]:
+def sorted_list(
+    iterable: Iterable[Any], *, key: Optional[Callable[[Any], Any]] = None, reverse: bool = False
+) -> list[Any]:
     """Return a new sorted list from the items in *iterable*.
 
     Args:
@@ -92999,8 +93023,10 @@ def sorted_list(iterable: Iterable[T], *, key: Optional[Callable[[T], Any]] = No
         raise TypeError(f"iterable must be iterable, got {type(iterable).__name__}") from err
     _require_bool(reverse, "reverse")
     if key is None:
-        return _builtins.sorted(iterable, reverse=reverse)
-    return _builtins.sorted(iterable, key=key, reverse=reverse)
+        result = _builtins.sorted(list(iterable), reverse=reverse)
+    else:
+        result = _builtins.sorted(list(iterable), key=key, reverse=reverse)
+    return result
 
 
 def summation(iterable: Iterable[Any], start: Any = 0) -> Any:
@@ -93217,6 +93243,656 @@ class TestBuiltinsUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_BUILTINS_UTILS
+
+# --- imghdr_utils.py ---
+cat > "$OUTPUT_DIR/imghdr_utils.py" <<'IMGHDR_UTILS'
+"""Image format detection utilities wrapping the standard library :mod:`imghdr` module.
+
+The :mod:`imghdr` module recognizes an image format from the first bytes of a
+file or a byte stream.  It reads a small header, compares it against the magic
+number of every format it knows, and returns the name of the first format that
+matches.
+
+This wrapper validates every argument before the standard library is reached, so
+a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of an
+opaque failure from the standard library.  It adds the conveniences the
+standard library leaves to the caller: a header can be inspected without a
+file, every matching format can be listed instead of only the first one, the
+formats the interpreter knows can be listed, and a detection function can be
+registered and removed again.
+
+.. note::
+
+   The :mod:`imghdr` module was deprecated in Python 3.11 and removed in Python
+   3.13 as part of :pep:`594`.  The import below degrades gracefully: when the
+   interpreter no longer ships the module, the helpers raise a
+   :class:`RuntimeError` that names the missing module, while the helpers that
+   need no standard library keep working.
+
+The wrapper only reads the file it is given and never writes to the filesystem.
+"""
+
+from __future__ import annotations
+
+import inspect
+import os
+import warnings
+from typing import Any, Callable, List, Optional, Union, cast
+
+__all__ = [
+    "DEFAULT_HEADER_SIZE",
+    "detect",
+    "is_available",
+    "is_image",
+    "matching_formats",
+    "read_header",
+    "register_test",
+    "supported_formats",
+    "unregister_test",
+    "what",
+]
+
+#: The number of bytes the standard library reads to recognize an image.
+DEFAULT_HEADER_SIZE = 32
+
+#: The type of a detection function of the standard library.
+DetectionFunction = Callable[[bytes, Any], Optional[str]]
+
+PathLike = Union[str, "os.PathLike[str]"]
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import imghdr as _imghdr
+except ImportError:  # pragma: no cover - Python 3.13 removed the module
+    _imghdr = None  # type: ignore[assignment]
+
+
+def _imghdr_module() -> Any:
+    """Return the standard library ``imghdr`` module.
+
+    Returns:
+        The imported :mod:`imghdr` module.
+
+    Raises:
+        RuntimeError: If the interpreter no longer ships the ``imghdr`` module.
+    """
+    if _imghdr is None:  # pragma: no cover - Python 3.13 removed the module
+        raise RuntimeError(
+            "the standard library 'imghdr' module was removed in Python 3.13; "
+            "recognize the format from the magic number of the file instead"
+        )
+    return _imghdr
+
+
+def _require_bytes(value: Any, name: str) -> bytes:
+    """Return *value* as bytes, raising ``TypeError`` for other types.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as bytes.
+
+    Raises:
+        TypeError: If *value* is not bytes-like.
+    """
+    if isinstance(value, bytes):
+        return value
+    if isinstance(value, (bytearray, memoryview)):
+        return bytes(value)
+    raise TypeError(f"{name} must be bytes, got {type(value).__name__}")
+
+
+def _require_text(value: Any, name: str) -> str:
+    """Return *value* as text, raising ``TypeError`` for other types.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as text.
+
+    Raises:
+        TypeError: If *value* is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_size(value: Any, name: str) -> int:
+    """Return *value* as a positive number of bytes.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as an int.
+
+    Raises:
+        TypeError: If *value* is not an int (or is a bool).
+        ValueError: If *value* is not positive.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value <= 0:
+        raise ValueError(f"{name} must be positive, got {value}")
+    return value
+
+
+def _require_source(value: Any, name: str) -> None:
+    """Raise ``TypeError`` unless *value* is a path or a binary stream.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Raises:
+        TypeError: If *value* is neither a path nor a readable stream.
+    """
+    if isinstance(value, (str, os.PathLike)):
+        return
+    if hasattr(value, "read"):
+        return
+    raise TypeError(
+        f"{name} must be a path or a binary stream, got {type(value).__name__}"
+    )
+
+
+def _require_detection_function(value: Any, name: str) -> DetectionFunction:
+    """Return *value* as a detection function of the standard library.
+
+    A detection function receives the header of an image and the open file, and
+    returns the name of the format it recognizes or ``None``.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as a detection function.
+
+    Raises:
+        TypeError: If *value* is not callable or does not accept the header and
+            the file.
+    """
+    if not callable(value):
+        raise TypeError(f"{name} must be callable, got {type(value).__name__}")
+    try:
+        signature = inspect.signature(value)
+    except (TypeError, ValueError):  # pragma: no cover - builtins without a signature
+        return cast(DetectionFunction, value)
+    accepts_varargs = any(
+        parameter.kind is inspect.Parameter.VAR_POSITIONAL
+        for parameter in signature.parameters.values()
+    )
+    positional = [
+        parameter
+        for parameter in signature.parameters.values()
+        if parameter.kind
+        in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        )
+    ]
+    if len(positional) < 2 and not accepts_varargs:
+        raise TypeError(
+            f"{name} must accept the header and the file, got {value!r}"
+        )
+    return cast(DetectionFunction, value)
+
+
+def is_available() -> bool:
+    """Return ``True`` if the interpreter ships the ``imghdr`` module.
+
+    Returns:
+        ``True`` when the standard library module could be imported.
+    """
+    return _imghdr is not None
+
+
+def supported_formats() -> List[str]:
+    """Return the names of the formats the interpreter can recognize.
+
+    The detection functions of the standard library are named ``test_<format>``,
+    so the prefix is removed to name the format a function recognizes.
+
+    Returns:
+        The names of the formats, in the order the functions are tried.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``imghdr`` module.
+    """
+    module = _imghdr_module()
+    formats: List[str] = []
+    for function in module.tests:
+        name = getattr(function, "__name__", "")
+        formats.append(name[len("test_") :] if name.startswith("test_") else name)
+    return formats
+
+
+def matching_formats(data: bytes) -> List[str]:
+    """Return the names of every format the header matches.
+
+    The standard library stops at the first format it recognizes, so this
+    helper reports all of them.  The order is the order the detection functions
+    are tried in.
+
+    Args:
+        data: The header bytes of an image.
+
+    Returns:
+        The names of the matching formats, empty when nothing matches.
+
+    Raises:
+        TypeError: If *data* is not bytes-like.
+        RuntimeError: If the interpreter does not ship the ``imghdr`` module.
+    """
+    header = _require_bytes(data, "data")
+    module = _imghdr_module()
+    formats: List[str] = []
+    for function in module.tests:
+        result = function(header, None)
+        if result:
+            formats.append(str(result))
+    return formats
+
+
+def detect(data: bytes) -> Optional[str]:
+    """Return the name of the format the header matches.
+
+    Args:
+        data: The header bytes of an image.
+
+    Returns:
+        The name of the first matching format, or ``None`` when nothing
+        matches.
+
+    Raises:
+        TypeError: If *data* is not bytes-like.
+        RuntimeError: If the interpreter does not ship the ``imghdr`` module.
+    """
+    formats = matching_formats(data)
+    return formats[0] if formats else None
+
+
+def what(file: Union[PathLike, Any], h: Optional[bytes] = None) -> Optional[str]:
+    """Return the type of image contained in a file or byte stream.
+
+    Args:
+        file: The path of the image, or an open binary stream.
+        h: The header bytes of the image.  When they are given, the file is not
+            read.
+
+    Returns:
+        The name of the detected format, or ``None`` when no format matches.
+
+    Raises:
+        TypeError: If *file* is neither a path nor a binary stream, or if *h* is
+            not bytes-like.
+        RuntimeError: If the interpreter does not ship the ``imghdr`` module.
+    """
+    module = _imghdr_module()
+    header = None if h is None else _require_bytes(h, "h")
+    if header is None:
+        _require_source(file, "file")
+    return cast(Optional[str], module.what(file, h=header))
+
+
+def is_image(file: Union[PathLike, Any]) -> bool:
+    """Return ``True`` if the file holds an image the interpreter recognizes.
+
+    Args:
+        file: The path of the image, or an open binary stream.
+
+    Returns:
+        ``True`` when a format is recognized, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *file* is neither a path nor a binary stream.
+        RuntimeError: If the interpreter does not ship the ``imghdr`` module.
+    """
+    return what(file) is not None
+
+
+def read_header(file: Union[PathLike, Any], size: int = DEFAULT_HEADER_SIZE) -> bytes:
+    """Return the first bytes of a file or byte stream.
+
+    The position of a stream is restored, so reading the header never changes
+    what the caller reads next.
+
+    Args:
+        file: The path of the image, or an open binary stream.
+        size: The number of bytes to read.
+
+    Returns:
+        The header bytes, shorter than *size* when the file is shorter.
+
+    Raises:
+        TypeError: If *file* is neither a path nor a binary stream, or if *size*
+            is not an int.
+        ValueError: If *size* is not positive.
+    """
+    _require_size(size, "size")
+    _require_source(file, "file")
+    if isinstance(file, (str, os.PathLike)):
+        with open(cast(str, os.fspath(file)), "rb") as handle:
+            return handle.read(size)
+    stream = cast(Any, file)
+    location = stream.tell()
+    try:
+        return cast(bytes, stream.read(size))
+    finally:
+        stream.seek(location)
+
+
+def register_test(function: DetectionFunction) -> str:
+    """Register a detection function and return the name it is registered under.
+
+    The registered function is tried after the functions of the standard
+    library, so it only recognizes a format no other function recognizes.
+
+    Args:
+        function: The detection function to register.  It receives the header of
+            an image and the open file, and returns the name of the format it
+            recognizes or ``None``.
+
+    Returns:
+        The name the function is registered under.
+
+    Raises:
+        TypeError: If *function* is not callable or does not accept the header
+            and the file.
+        RuntimeError: If the interpreter does not ship the ``imghdr`` module.
+    """
+    module = _imghdr_module()
+    detection = _require_detection_function(function, "function")
+    module.tests.append(detection)
+    return str(getattr(detection, "__name__", repr(detection)))
+
+
+def unregister_test(name: str) -> bool:
+    """Remove a registered detection function.
+
+    Args:
+        name: The name of the detection function to remove.
+
+    Returns:
+        ``True`` when a function was removed, ``False`` when no function is
+        registered under that name.
+
+    Raises:
+        TypeError: If *name* is not a string.
+        RuntimeError: If the interpreter does not ship the ``imghdr`` module.
+    """
+    module = _imghdr_module()
+    _require_text(name, "name")
+    tests = module.tests
+    for index, function in enumerate(tests):
+        if getattr(function, "__name__", None) == name:
+            del tests[index]
+            return True
+    return False
+IMGHDR_UTILS
+
+# --- tests/test_imghdr_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_imghdr_utils.py" <<'TEST_IMGHDR_UTILS'
+"""Tests for imghdr_utils."""
+
+import io
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+import imghdr_utils
+
+HAVE_IMGHDR = imghdr_utils.is_available()
+
+#: The headers of the formats the standard library recognizes.
+HEADERS = {
+    "png": b"\x89PNG\r\n\x1a\n" + b"\x00" * 24,
+    "jpeg": b"\xff\xd8\xff\xdb" + b"\x00" * 28,
+    "gif": b"GIF89a" + b"\x00" * 26,
+    "tiff": b"MM\x00\x2a" + b"\x00" * 28,
+    "rgb": b"\x01\xda" + b"\x00" * 30,
+    "pbm": b"P1 4 4" + b"\x00" * 26,
+    "pgm": b"P2 4 4" + b"\x00" * 26,
+    "ppm": b"P3 4 4" + b"\x00" * 26,
+    "rast": b"\x59\xa6\x6a\x95" + b"\x00" * 28,
+    "xbm": b"#define x_width 4" + b"\x00" * 16,
+    "bmp": b"BM" + b"\x00" * 30,
+    "webp": b"RIFF" + b"\x00" * 4 + b"WEBP" + b"\x00" * 20,
+    "exr": b"\x76\x2f\x31\x01" + b"\x00" * 28,
+}
+
+#: Bytes that no format of the standard library recognizes.
+UNKNOWN = b"hello world" + b"\x00" * 21
+
+
+class TestAvailability(unittest.TestCase):
+    """The wrapper reports whether the interpreter ships the module."""
+
+    def test_is_available_matches_the_import(self):
+        self.assertEqual(imghdr_utils.is_available(), HAVE_IMGHDR)
+
+    def test_helpers_raise_when_the_module_is_missing(self):
+        with mock.patch.object(imghdr_utils, "_imghdr", None):
+            self.assertFalse(imghdr_utils.is_available())
+            with self.assertRaises(RuntimeError):
+                imghdr_utils.what(io.BytesIO(HEADERS["png"]))
+            with self.assertRaises(RuntimeError):
+                imghdr_utils.detect(HEADERS["png"])
+            with self.assertRaises(RuntimeError):
+                imghdr_utils.supported_formats()
+
+
+class TestWhat(unittest.TestCase):
+    """The wrapper recognizes the formats of the standard library."""
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_every_format_is_recognized(self):
+        for name, header in HEADERS.items():
+            with self.subTest(format=name):
+                self.assertEqual(imghdr_utils.what(io.BytesIO(header)), name)
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_unknown_data_is_not_an_image(self):
+        self.assertIsNone(imghdr_utils.what(io.BytesIO(UNKNOWN)))
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_a_path_is_accepted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "image.png"
+            path.write_bytes(HEADERS["png"])
+            self.assertEqual(imghdr_utils.what(str(path)), "png")
+            self.assertEqual(imghdr_utils.what(path), "png")
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_the_stream_position_is_restored(self):
+        stream = io.BytesIO(HEADERS["png"])
+        self.assertEqual(imghdr_utils.what(stream), "png")
+        self.assertEqual(stream.tell(), 0)
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_the_header_is_read_from_the_current_position(self):
+        stream = io.BytesIO(b"skip" + HEADERS["png"])
+        stream.read(4)
+        self.assertEqual(imghdr_utils.what(stream), "png")
+        self.assertEqual(stream.tell(), 4)
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_an_explicit_header_is_used(self):
+        self.assertEqual(imghdr_utils.what("unused.png", h=HEADERS["gif"]), "gif")
+
+    def test_an_unsupported_file_is_rejected(self):
+        with self.assertRaises(TypeError):
+            imghdr_utils.what(42)
+        with self.assertRaises(TypeError):
+            imghdr_utils.what(b"\x89PNG")
+
+    def test_an_unsupported_header_is_rejected(self):
+        with self.assertRaises(TypeError):
+            imghdr_utils.what("image.png", h="not bytes")
+
+
+class TestDetect(unittest.TestCase):
+    """The wrapper recognizes a header without a file."""
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_every_format_is_recognized(self):
+        for name, header in HEADERS.items():
+            with self.subTest(format=name):
+                self.assertEqual(imghdr_utils.detect(header), name)
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_unknown_data_matches_nothing(self):
+        self.assertIsNone(imghdr_utils.detect(UNKNOWN))
+        self.assertEqual(imghdr_utils.matching_formats(UNKNOWN), [])
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_a_bytearray_is_accepted(self):
+        self.assertEqual(imghdr_utils.detect(bytearray(HEADERS["png"])), "png")
+
+    def test_unsupported_data_is_rejected(self):
+        with self.assertRaises(TypeError):
+            imghdr_utils.detect("not bytes")
+        with self.assertRaises(TypeError):
+            imghdr_utils.matching_formats(None)
+
+
+class TestIsImage(unittest.TestCase):
+    """The wrapper reports whether a file holds an image."""
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_an_image_is_recognized(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "image.png"
+            path.write_bytes(HEADERS["png"])
+            self.assertTrue(imghdr_utils.is_image(path))
+            self.assertTrue(imghdr_utils.is_image(io.BytesIO(HEADERS["png"])))
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_other_data_is_not_an_image(self):
+        self.assertFalse(imghdr_utils.is_image(io.BytesIO(UNKNOWN)))
+
+    def test_an_unsupported_file_is_rejected(self):
+        with self.assertRaises(TypeError):
+            imghdr_utils.is_image(object())
+
+
+class TestReadHeader(unittest.TestCase):
+    """The wrapper reads the header of a file."""
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_the_default_size_is_used(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "image.png"
+            path.write_bytes(HEADERS["png"])
+            header = imghdr_utils.read_header(path)
+            self.assertEqual(len(header), imghdr_utils.DEFAULT_HEADER_SIZE)
+            self.assertEqual(header, HEADERS["png"])
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_a_shorter_header_is_read(self):
+        header = imghdr_utils.read_header(io.BytesIO(HEADERS["png"]), 8)
+        self.assertEqual(header, HEADERS["png"][:8])
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_the_stream_position_is_restored(self):
+        stream = io.BytesIO(HEADERS["png"])
+        stream.read(4)
+        position = stream.tell()
+        imghdr_utils.read_header(stream)
+        self.assertEqual(stream.tell(), position)
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_a_short_file_is_read_entirely(self):
+        self.assertEqual(imghdr_utils.read_header(io.BytesIO(b"abc"), 32), b"abc")
+
+    def test_an_invalid_size_is_rejected(self):
+        with self.assertRaises(TypeError):
+            imghdr_utils.read_header(io.BytesIO(HEADERS["png"]), "8")
+        with self.assertRaises(ValueError):
+            imghdr_utils.read_header(io.BytesIO(HEADERS["png"]), 0)
+
+    def test_an_unsupported_file_is_rejected(self):
+        with self.assertRaises(TypeError):
+            imghdr_utils.read_header(42)
+
+
+class TestSupportedFormats(unittest.TestCase):
+    """The wrapper lists the formats the interpreter knows."""
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_the_formats_of_the_standard_library_are_listed(self):
+        formats = imghdr_utils.supported_formats()
+        for name in HEADERS:
+            with self.subTest(format=name):
+                self.assertIn(name, formats)
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_the_list_has_no_duplicates(self):
+        formats = imghdr_utils.supported_formats()
+        self.assertEqual(len(formats), len(set(formats)))
+
+
+class TestRegisterTest(unittest.TestCase):
+    """The wrapper registers and removes detection functions."""
+
+    def setUp(self):
+        self.addCleanup(self._restore)
+
+    def _restore(self):
+        if HAVE_IMGHDR:
+            imghdr_utils.unregister_test("test_custom")
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_a_custom_function_recognizes_a_format(self):
+        def test_custom(header, file):
+            if header.startswith(b"CUSTOM"):
+                return "custom"
+            return None
+
+        name = imghdr_utils.register_test(test_custom)
+        self.assertEqual(name, "test_custom")
+        self.assertIn("custom", imghdr_utils.supported_formats())
+        self.assertEqual(imghdr_utils.detect(b"CUSTOM" + b"\x00" * 26), "custom")
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_a_registered_function_is_removed_again(self):
+        def test_custom(header, file):
+            return None
+
+        imghdr_utils.register_test(test_custom)
+        self.assertTrue(imghdr_utils.unregister_test("test_custom"))
+        self.assertNotIn("custom", imghdr_utils.supported_formats())
+        self.assertFalse(imghdr_utils.unregister_test("test_custom"))
+
+    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
+    def test_the_standard_library_keeps_working(self):
+        self.assertEqual(imghdr_utils.detect(HEADERS["png"]), "png")
+
+    def test_an_unsupported_function_is_rejected(self):
+        with self.assertRaises(TypeError):
+            imghdr_utils.register_test("not callable")
+
+    def test_a_function_with_the_wrong_signature_is_rejected(self):
+        with self.assertRaises(TypeError):
+            imghdr_utils.register_test(lambda header: None)
+
+    def test_an_unsupported_name_is_rejected(self):
+        with self.assertRaises(TypeError):
+            imghdr_utils.unregister_test(42)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_IMGHDR_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
