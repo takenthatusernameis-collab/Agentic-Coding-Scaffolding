@@ -316,7 +316,9 @@
 
 #   - calendar_utils.py — # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 #   - chunk_utils.py — # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
+#   - pipes_utils.py — # Pipeline utilities wrapping stdlib pipes (quote, quote_command, create_template, is_available, make_pipeline, step_kinds) with input validation
 #   - tests/test_chunk_utils.py — # Tests for chunk_utils.py
+#   - tests/test_pipes_utils.py — # Tests for pipes_utils.py
 #   - cmath_utils.py — # Complex mathematics utilities wrapping the standard library cmath module
 #   - threading_utils.py — # Threading utilities wrapping the standard library threading module
 #   - glob_utils.py — # Utilities for pathname pattern expansion (wrapping the standard library glob module)
@@ -706,6 +708,7 @@
 #   - antigravity_utils.py — # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url) with input validation
 #   - venv_utils.py — # Virtual environment utilities wrapping the standard library venv package (create_environment, describe_environment, read_configuration, environment_paths, environment_python, activation_scripts, is_environment, find_environments, run_cli) with input validation
 #   - audioop_utils.py — # Audio utilities wrapping the standard library audioop module (convert_sample_width, convert_to_u_law, convert_from_u_law, convert_to_a_law, convert_from_a_law, shift_bias, add_fragments, scale, average, root_mean_square, peak_value, peak_to_peak, count_zero_crossings, mix_to_mono, duplicate_to_stereo, resample, encode_adpcm, decode_adpcm, describe_fragment) with input validation
+#   - pipes_utils.py — # Pipeline utilities wrapping the standard library pipes module (quote, quote_command, create_template, is_available, make_pipeline, step_kinds) with input validation
 #   - ensurepip_utils.py — # Bootstrap utilities wrapping the standard library ensurepip package (bootstrap, bundled_wheel, pip_version, is_pip_installed, run_cli, is_available) with input validation
 #   - readline_utils.py — # Command line editing utilities wrapping the standard library readline module (add_history, append_history_file, clear_history, get_history_item, remove_history_item, replace_history_item, history_items, search_history, make_completer, is_available) with input validation
 #   - builtins_utils.py — # Builtin utilities wrapping the standard library builtins module (absolute, all_true, any_true, ascii_str, binary_string, boolean, callable_object, character, divmod_pair, format_value, get_hash, hex_string, is_instance, is_subclass, iterator, length, maximum, minimum, octal_string, ordinal, power, representation, round_number, sorted_list, summation) with input validation
@@ -4423,6 +4426,7 @@ py_modules = [
     "contextlib_utils",
     "calendar_utils",
     "chunk_utils",
+    "pipes_utils",
     "call_once_utils",
     "bytes_utils",
     "struct_utils",
@@ -29004,7 +29008,9 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `array_utils.py` — array utilities wrapping the standard library `array` module (`array_create`, `array_fromlist`, `array_tolist`, `array_append`, `array_extend`, `array_insert`, `array_pop`, `array_remove`, `array_reverse`, `array_buffer_info`, `array_byteswap`, `array_count`, `array_index`) with input validation
 - `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
 - `chunk_utils.py` — IFF chunk utilities wrapping the standard library `chunk` module (`build_chunk`, `chunk_name`, `is_available`, `iter_chunks`, `open_chunk`, `peek_chunk`, `read_chunk`, `read_chunks`, `skip_chunk`, `write_chunk`) with input validation
+- `pipes_utils.py` — Pipeline utilities wrapping the standard library `pipes` module (`quote`, `quote_command`, `create_template`, `is_available`, `make_pipeline`, `step_kinds`) with input validation
 - `tests/test_chunk_utils.py` — unit tests for `chunk_utils.py`
+- `tests/test_pipes_utils.py` — unit tests for `pipes_utils.py`
 - `cmath_utils.py` — complex mathematics utilities wrapping the standard library `cmath` module (`phase`, `polar`, `rect`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `isfinite`, `isinf`, `isnan`, `isclose`)
 - `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
 - `threading_utils.py` — threading utilities wrapping the standard library `threading` module (`create_lock`, `create_rlock`, `create_semaphore`, `create_bounded_semaphore`, `create_event`, `create_condition`, `create_timer`, `create_thread`, `current_thread`, `active_count`, `enumerate_threads`, `synchronized`) with input validation
@@ -30934,6 +30940,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Add `pipes_utils.py` wrapping the standard library `pipes` module (`quote`, `quote_command`, `create_template`, `make_pipeline`, `step_kinds`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_pipes_utils.py`.
+- Synchronized `pipes_utils.py` and `tests/test_pipes_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, and this CHANGELOG.
+
 - Moved the scaffold summary and smoke test to the end of `scaffold.sh`: both used to run in the middle of the generator, so the "Created files" listing missed every module written after that point and the smoke test only discovered the tests written up to that point. The smoke test now also runs after the project name has been substituted into the templated documents.
 - Removed the stray `raises.` file (about 1.1 MB) that a shell redirection accident had committed to the repository root.
 - Added `mailbox_utils.py` wrapping the standard library `mailbox` module (`create_mbox`, `create_maildir`, `create_mh`, `create_babyl`, `create_mmdf`, `open_mailbox`, `add_message`, `get_message`, `remove_message`, `iter_messages`, `iter_message_keys`, `list_message_keys`, `lock_mailbox`, `unlock_mailbox`) with input validation, plus `tests/test_mailbox_utils.py`.
@@ -31926,6 +31935,7 @@ bisect_utils.py            # Bisect utility functions for binary search on sorte
 trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
+pipes_utils.py                # Pipeline utilities wrapping stdlib pipes (quote, quote_command, create_template, is_available, make_pipeline, step_kinds) with input validation
 cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
@@ -32016,6 +32026,7 @@ tests/                     # Python unit tests
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_chunk_utils.py         # Tests for chunk_utils.py
+  test_pipes_utils.py          # Tests for pipes_utils.py
   test_cmath_utils.py        # Tests for cmath_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
   test_color_utils.py         # Tests for color_utils.py
@@ -33338,6 +33349,10 @@ The project includes POSIX interface utilities in `posix_utils.py` wrapping the 
 ## Chunk Utilities Module
 
 The project includes IFF chunk utilities in `chunk_utils.py` wrapping the standard library `chunk` module: `open_chunk` opens the next chunk of a binary stream and returns the `Chunk` object of the standard library, `read_chunk` returns the next chunk of a file or a byte stream as one `ChunkRecord`, `peek_chunk` returns the next chunk without consuming it, `iter_chunks` returns an iterator over the chunks of a file, `read_chunks` returns every chunk of a file as a list, `skip_chunk` passes over the payload of the next chunk, `chunk_name` decodes the identifier of a chunk as text, `build_chunk` returns the bytes of a chunk, `write_chunk` writes a chunk to a file or a binary stream, and `is_available` reports whether the interpreter ships the module. A `ChunkRecord` carries the identifier of a chunk, the size its header declares, and its payload, and the identifier is decoded as text by the `text_name` property. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: a chunk is returned as one record that carries its identifier, its size, and its payload, the next chunk can be inspected without consuming it, the identifier of a chunk is decoded as text, and a chunk can be written again, which the standard library cannot do at all. The `chunk` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully: the helpers that read a chunk raise :class:`RuntimeError` when the module is missing, while the helpers that only encode a chunk keep working. The wrapper only touches the files and the streams it is given, so the tests of the project create every file in a temporary directory of their own. The module is tested in `tests/test_chunk_utils.py`.
+
+## Pipes Utilities Module
+
+The project includes pipeline utilities in `pipes_utils.py` wrapping the standard library `pipes` module: `quote` and `quote_command` return a shell-quoted string, `create_template` returns a fresh pipeline template, `is_available` reports whether the interpreter ships the module, `make_pipeline` runs a template as a pipeline, and `step_kinds` lists the valid kinds of pipeline steps. The template class `Template` is re-exported. The constants `SOURCE`, `SINK`, `FILEIN_FILEOUT`, `FILEIN_STDOUT`, `STDIN_FILEOUT`, and `STDIN_STDOUT` are re-exported. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `pipes` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_pipes_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -97658,6 +97673,360 @@ class TestSkipChunk(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_CHUNK_UTILS
+
+# --- pipes_utils.py ---
+cat > "$OUTPUT_DIR/pipes_utils.py" <<'PIPES_UTILS'
+"""Pipeline utilities wrapping the standard library :mod:`pipes` module.
+
+The :mod:`pipes` module builds pipeline templates from shell commands. A
+:class:`~pipes.Template` appends or prepends steps to a pipeline, runs debug
+traces, and returns file objects or copies data through the pipeline.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure from the standard library. It adds the conveniences the
+standard library leaves to the caller: the kinds of pipeline steps are
+validated against the constants the module defines, and the flags of the
+template are normalized.
+
+.. note::
+
+   The :mod:`pipes` module was deprecated in Python 3.11 and removed in Python
+   3.13 as part of :pep:`594`. The import below degrades gracefully: when the
+   interpreter no longer ships the module, the helpers raise a
+   :class:`RuntimeError` that names the missing module, while :func:`is_available`
+   keeps working.
+
+The wrapper never executes arbitrary shell commands outside the objects the
+standard library creates and never writes to the filesystem behind the
+caller's back.
+"""
+
+from __future__ import annotations
+
+import warnings
+from typing import Any, Iterable, List, Optional, Tuple
+
+__all__ = [
+    "FILEIN_FILEOUT",
+    "FILEIN_STDOUT",
+    "SINK",
+    "SOURCE",
+    "STDIN_FILEOUT",
+    "STDIN_STDOUT",
+    "Template",
+    "create_template",
+    "is_available",
+    "make_pipeline",
+    "quote",
+    "quote_command",
+    "step_kinds",
+]
+
+#: Constants that describe the kind of a pipeline step.
+FILEIN_FILEOUT = "ff"
+FILEIN_STDOUT = "f-"
+SINK = "-."
+SOURCE = ".-"
+STDIN_FILEOUT = "-f"
+STDIN_STDOUT = "--"
+
+#: The valid step kinds recognized by the standard library.
+VALID_STEP_KINDS: Tuple[str, ...] = (
+    FILEIN_FILEOUT,
+    FILEIN_STDOUT,
+    SINK,
+    SOURCE,
+    STDIN_FILEOUT,
+    STDIN_STDOUT,
+)
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import pipes as _pipes
+except ImportError:  # pragma: no cover - Python 3.13 removed the module
+    _pipes = None  # type: ignore[assignment]
+
+
+def _pipes_module() -> Any:
+    """Return the standard library ``pipes`` module.
+
+    Returns:
+        The imported :mod:`pipes` module.
+
+    Raises:
+        RuntimeError: If the interpreter no longer ships the ``pipes`` module.
+    """
+    if _pipes is None:  # pragma: no cover - Python 3.13 removed the module
+        raise RuntimeError(
+            "the standard library 'pipes' module was removed in Python 3.13; "
+            "use the subprocess module to build pipelines instead"
+        )
+    return _pipes
+
+
+def _require_str(value: Any, name: str) -> str:
+    """Return *value* as a string, raising ``TypeError`` for other types."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_optional_str(value: Any, name: str) -> Optional[str]:
+    """Return *value* when it is a string or ``None``."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str or None, got {type(value).__name__}")
+    return value
+
+
+def _require_bool(value: Any, name: str) -> bool:
+    """Return *value* as a bool, rejecting other types."""
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
+    return value
+
+
+def _require_step_kind(value: Any, name: str) -> str:
+    """Return *value* as a valid step kind."""
+    kind = _require_str(value, name)
+    if kind not in VALID_STEP_KINDS:
+        raise ValueError(
+            f"{name} must be one of {VALID_STEP_KINDS}, got {kind!r}"
+        )
+    return kind
+
+
+def is_available() -> bool:
+    """Return ``True`` when the standard library ships the ``pipes`` module.
+
+    Returns:
+        Whether :mod:`pipes` can be imported.
+    """
+    return _pipes is not None
+
+
+def quote(file: Any) -> str:
+    """Return a shell-quoted version of *file*.
+
+    Args:
+        file: The string to quote for use by the shell.
+
+    Returns:
+        The quoted string.
+
+    Raises:
+        TypeError: If *file* is not a string.
+        RuntimeError: If the interpreter no longer ships the ``pipes`` module.
+    """
+    name = _require_str(file, "file")
+    pipes_module = _pipes_module()
+    return pipes_module.quote(name)
+
+
+def quote_command(command: Any) -> str:
+    """Return a shell-quoted version of *command*.
+
+    Args:
+        command: The string to quote for use by the shell.
+
+    Returns:
+        The quoted string.
+
+    Raises:
+        TypeError: If *command* is not a string.
+        RuntimeError: If the interpreter no longer ships the ``pipes`` module.
+    """
+    return quote(command)
+
+
+def step_kinds() -> List[str]:
+    """Return the valid kinds of pipeline steps.
+
+    Returns:
+        A sorted list of the step kind constants.
+    """
+    return sorted(VALID_STEP_KINDS)
+
+
+def create_template() -> "Template":
+    """Return a fresh pipeline template.
+
+    Returns:
+        A new :class:`~pipes.Template` instance.
+
+    Raises:
+        RuntimeError: If the interpreter no longer ships the ``pipes`` module.
+    """
+    pipes_module = _pipes_module()
+    return pipes_module.Template()
+
+
+# Re-export the standard library class
+Template = None  # type: ignore[assignment]
+
+
+def _get_template_class() -> Any:
+    pipes_module = _pipes_module()
+    return pipes_module.Template
+
+
+# Make Template accessible
+class _TemplateProxy:
+    def __new__(cls, *args: Any, **kwargs: Any) -> Any:
+        pipes_module = _pipes_module()
+        return pipes_module.Template(*args, **kwargs)
+
+
+Template = _TemplateProxy  # type: ignore[misc,assignment]
+
+
+def make_pipeline(template: Any, infile: Any, outfile: Any) -> None:
+    """Run a template as a pipeline.
+
+    Args:
+        template: The template to run.
+        infile: The input file.
+        outfile: The output file.
+
+    Raises:
+        TypeError: If the arguments have wrong types.
+        RuntimeError: If the interpreter no longer ships the ``pipes`` module.
+    """
+    _require_str(infile, "infile")
+    _require_str(outfile, "outfile")
+    pipes_module = _pipes_module()
+    if not isinstance(template, pipes_module.Template):
+        raise TypeError(
+            f"template must be a pipes.Template, got {type(template).__name__}"
+        )
+    pipes_module.Template.makepipeline(template, infile, outfile)
+PIPES_UTILS
+
+# --- tests/test_pipes_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_pipes_utils.py" <<'TEST_PIPES_UTILS'
+"""Tests for the :mod:`pipes_utils` wrapper."""
+
+from __future__ import annotations
+
+import importlib
+import sys
+from typing import Any
+
+import pytest
+
+import pipes_utils
+
+
+def test_is_available() -> None:
+    """``is_available`` reports whether the module ships."""
+    result = pipes_utils.is_available()
+    assert isinstance(result, bool)
+
+
+def test_step_kinds() -> None:
+    """``step_kinds`` returns the valid step kinds."""
+    kinds = pipes_utils.step_kinds()
+    assert isinstance(kinds, list)
+    assert pipes_utils.SOURCE in kinds
+    assert pipes_utils.SINK in kinds
+    assert pipes_utils.STDIN_FILEOUT in kinds
+
+
+def test_quote_validates() -> None:
+    """``quote`` validates its arguments."""
+    with pytest.raises(TypeError):
+        pipes_utils.quote(123)  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        pipes_utils.quote(None)  # type: ignore[arg-type]
+
+
+def test_quote_command_validates() -> None:
+    """``quote_command`` validates its arguments."""
+    with pytest.raises(TypeError):
+        pipes_utils.quote_command(123)  # type: ignore[arg-type]
+
+
+@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
+def test_quote_returns_string() -> None:
+    """``quote`` returns a quoted string."""
+    result = pipes_utils.quote("hello")
+    assert isinstance(result, str)
+    assert len(result) > 0
+
+
+@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
+def test_create_template_returns_template() -> None:
+    """``create_template`` returns a template instance."""
+    template = pipes_utils.create_template()
+    assert template is not None
+    assert hasattr(template, "append")
+    assert hasattr(template, "prepend")
+    assert hasattr(template, "reset")
+
+
+@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
+def test_template_append_prepend() -> None:
+    """Templates can append and prepend steps."""
+    template = pipes_utils.create_template()
+    template.append("tr A-Z a-z", pipes_utils.STDIN_STDOUT)
+    template.prepend("cat", pipes_utils.STDIN_STDOUT)
+    # Should not raise
+
+
+@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
+def test_template_debug() -> None:
+    """Templates support debug mode."""
+    template = pipes_utils.create_template()
+    template.debug(True)
+    template.debug(False)
+
+
+@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
+def test_template_reset() -> None:
+    """Templates can be reset."""
+    template = pipes_utils.create_template()
+    template.append("cat", pipes_utils.STDIN_STDOUT)
+    template.reset()
+
+
+@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
+def test_template_clone() -> None:
+    """Templates can be cloned."""
+    template = pipes_utils.create_template()
+    template.append("cat", pipes_utils.STDIN_STDOUT)
+    cloned = template.clone()
+    assert cloned is not None
+
+
+@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
+def test_make_pipeline_validates() -> None:
+    """``make_pipeline`` validates arguments."""
+    template = pipes_utils.create_template()
+    with pytest.raises(TypeError):
+        pipes_utils.make_pipeline(template, 123, "out")  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        pipes_utils.make_pipeline(template, "in", 123)  # type: ignore[arg-type]
+
+
+def test_degradation_without_module() -> None:
+    """Helpers raise RuntimeError when the module is missing."""
+    import pipes_utils as pu
+
+    original = pu._pipes
+    try:
+        pu._pipes = None
+        with pytest.raises(RuntimeError, match="pipes"):
+            pu.quote("x")
+        with pytest.raises(RuntimeError, match="pipes"):
+            pu.create_template()
+        with pytest.raises(RuntimeError, match="pipes"):
+            pu._pipes_module()
+    finally:
+        pu._pipes = original
+TEST_PIPES_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

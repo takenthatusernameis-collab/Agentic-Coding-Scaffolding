@@ -624,6 +624,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_posix_utils.py",
             "chunk_utils.py",
             "tests/test_chunk_utils.py",
+            "pipes_utils.py",
+            "tests/test_pipes_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel

@@ -214,6 +214,7 @@ bisect_utils.py            # Bisect utility functions for binary search on sorte
 trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
+pipes_utils.py                # Pipeline utilities wrapping stdlib pipes (quote, quote_command, create_template, is_available, make_pipeline, step_kinds) with input validation
 cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
@@ -304,6 +305,7 @@ tests/                     # Python unit tests
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_chunk_utils.py         # Tests for chunk_utils.py
+  test_pipes_utils.py          # Tests for pipes_utils.py
   test_cmath_utils.py        # Tests for cmath_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
   test_color_utils.py         # Tests for color_utils.py
@@ -1626,3 +1628,7 @@ The project includes POSIX interface utilities in `posix_utils.py` wrapping the 
 ## Chunk Utilities Module
 
 The project includes IFF chunk utilities in `chunk_utils.py` wrapping the standard library `chunk` module: `open_chunk` opens the next chunk of a binary stream and returns the `Chunk` object of the standard library, `read_chunk` returns the next chunk of a file or a byte stream as one `ChunkRecord`, `peek_chunk` returns the next chunk without consuming it, `iter_chunks` returns an iterator over the chunks of a file, `read_chunks` returns every chunk of a file as a list, `skip_chunk` passes over the payload of the next chunk, `chunk_name` decodes the identifier of a chunk as text, `build_chunk` returns the bytes of a chunk, `write_chunk` writes a chunk to a file or a binary stream, and `is_available` reports whether the interpreter ships the module. A `ChunkRecord` carries the identifier of a chunk, the size its header declares, and its payload, and the identifier is decoded as text by the `text_name` property. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: a chunk is returned as one record that carries its identifier, its size, and its payload, the next chunk can be inspected without consuming it, the identifier of a chunk is decoded as text, and a chunk can be written again, which the standard library cannot do at all. The `chunk` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully: the helpers that read a chunk raise :class:`RuntimeError` when the module is missing, while the helpers that only encode a chunk keep working. The wrapper only touches the files and the streams it is given, so the tests of the project create every file in a temporary directory of their own. The module is tested in `tests/test_chunk_utils.py`.
+
+## Pipes Utilities Module
+
+The project includes pipeline utilities in `pipes_utils.py` wrapping the standard library `pipes` module: `quote` and `quote_command` return a shell-quoted string, `create_template` returns a fresh pipeline template, `is_available` reports whether the interpreter ships the module, `make_pipeline` runs a template as a pipeline, and `step_kinds` lists the valid kinds of pipeline steps. The template class `Template` is re-exported. The constants `SOURCE`, `SINK`, `FILEIN_FILEOUT`, `FILEIN_STDOUT`, `STDIN_FILEOUT`, and `STDIN_STDOUT` are re-exported. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `pipes` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_pipes_utils.py`.

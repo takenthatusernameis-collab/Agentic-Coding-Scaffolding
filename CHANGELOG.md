@@ -152,6 +152,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Add `pipes_utils.py` wrapping the standard library `pipes` module (`quote`, `quote_command`, `create_template`, `make_pipeline`, `step_kinds`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_pipes_utils.py`.
+- Synchronized `pipes_utils.py` and `tests/test_pipes_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, and this CHANGELOG.
+
 - Moved the scaffold summary and smoke test to the end of `scaffold.sh`: both used to run in the middle of the generator, so the "Created files" listing missed every module written after that point and the smoke test only discovered the tests written up to that point. The smoke test now also runs after the project name has been substituted into the templated documents.
 - Removed the stray `raises.` file (about 1.1 MB) that a shell redirection accident had committed to the repository root.
 - Added `mailbox_utils.py` wrapping the standard library `mailbox` module (`create_mbox`, `create_maildir`, `create_mh`, `create_babyl`, `create_mmdf`, `open_mailbox`, `add_message`, `get_message`, `remove_message`, `iter_messages`, `iter_message_keys`, `list_message_keys`, `lock_mailbox`, `unlock_mailbox`) with input validation, plus `tests/test_mailbox_utils.py`.

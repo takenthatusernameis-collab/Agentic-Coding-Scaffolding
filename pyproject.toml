@@ -165,6 +165,7 @@ py_modules = [
     "netrc_utils",
     "calendar_utils",
     "chunk_utils",
+    "pipes_utils",
     "cmath_utils",
     "colorsys_utils",
     "dataclasses_utils",
