@@ -931,9 +931,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `tty_utils.py` — tty utilities wrapping stdlib tty with tests
 - `tests/test_tty_utils.py` — unit tests for `tty_utils.py`
-profile_utils.py
-tests/test_profile_utils.py
-
-## Bootstrap session (sync fix pending)
-
-- 4 modules (cgitb_utils, nntplib_utils, sndhdr_utils, sre_compile_utils) need scaffold sync.
+- `profile_utils.py` — profile utilities wrapping stdlib profile with tests
+- `tests/test_profile_utils.py` — unit tests for `profile_utils.py`
+- `cgitb_utils.py` — cgitb utilities wrapping stdlib cgitb with tests
+- `tests/test_cgitb_utils.py` — unit tests for `cgitb_utils.py`
+- `nntplib_utils.py` — nntplib utilities wrapping stdlib nntplib with tests
+- `tests/test_nntplib_utils.py` — unit tests for `nntplib_utils.py`
+- `sndhdr_utils.py` — sndhdr utilities wrapping stdlib sndhdr with tests
+- `tests/test_sndhdr_utils.py` — unit tests for `sndhdr_utils.py`
+- `sre_compile_utils.py` — Regular expression compile utilities wrapping the standard library `sre_compile` module (`compile_pattern`, `is_available`) with input validation
+- `tests/test_sre_compile_utils.py` — unit tests for `sre_compile_utils.py`
