@@ -4438,6 +4438,7 @@ py_modules = [
     "contextlib_utils",
     "calendar_utils",
     "cgi_utils",
+    "cgitb_utils",
     "chunk_utils",
     "pipes_utils",
     "call_once_utils",
@@ -31756,6 +31757,7 @@ fi
 
 # --- README.md ---
 cat > "$OUTPUT_DIR/README.md" <<'README_MD'
+# ${PROJECT_NAME}
 # ${PROJECT_NAME}
 
 A self-evolving scaffolding project for autonomous agentic coding loops powered by Kilo.
