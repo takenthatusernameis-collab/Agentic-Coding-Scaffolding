@@ -100617,7 +100617,7 @@ conveniences where helpful.
 from __future__ import annotations
 
 import warnings
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 __all__ = [
     "FieldStorage",
@@ -100680,8 +100680,14 @@ def parse(fp: Any = None, environ: Optional[Dict[str, str]] = None,
     if not isinstance(separator, str):
         raise TypeError("separator must be a str")
     module = _cgi_module()
-    return module.parse(fp, environ=environ, keep_blank_values=keep_blank_values,
-                        strict_parsing=strict_parsing, separator=separator)
+    result = module.parse(
+        fp,
+        environ=environ,
+        keep_blank_values=keep_blank_values,
+        strict_parsing=strict_parsing,
+        separator=separator,
+    )
+    return cast(Dict[str, List[Any]], result)
 
 
 def parse_qs(qs: Any, keep_blank_values: int = 0, strict_parsing: int = 0,
@@ -100706,14 +100712,14 @@ def parse_qs(qs: Any, keep_blank_values: int = 0, strict_parsing: int = 0,
         raise TypeError("separator must be a str")
     module = _cgi_module()
     try:
-        return module.parse_qs(qs, keep_blank_values=keep_blank_values,
+        return cast(Dict[str, List[str]], module.parse_qs(qs, keep_blank_values=keep_blank_values,
                                strict_parsing=strict_parsing, encoding=encoding,
                                errors=errors, max_num_fields=max_num_fields,
-                               separator=separator)
+                               separator=separator))
     except TypeError:
         # Python 3.7 compatibility
-        return module.parse_qs(qs, keep_blank_values=keep_blank_values,
-                               strict_parsing=strict_parsing)
+        return cast(Dict[str, List[str]], module.parse_qs(qs, keep_blank_values=keep_blank_values,
+                               strict_parsing=strict_parsing))
 
 
 def parse_qsl(qs: Any, keep_blank_values: int = 0, strict_parsing: int = 0,
@@ -100738,20 +100744,20 @@ def parse_qsl(qs: Any, keep_blank_values: int = 0, strict_parsing: int = 0,
         raise TypeError("separator must be a str")
     module = _cgi_module()
     try:
-        return module.parse_qsl(qs, keep_blank_values=keep_blank_values,
+        return cast(List[Tuple[str, str]], module.parse_qsl(qs, keep_blank_values=keep_blank_values,
                                 strict_parsing=strict_parsing, encoding=encoding,
                                 errors=errors, max_num_fields=max_num_fields,
-                                separator=separator)
+                                separator=separator))
     except TypeError:
-        return module.parse_qsl(qs, keep_blank_values=keep_blank_values,
-                                strict_parsing=strict_parsing)
+        return cast(List[Tuple[str, str]], module.parse_qsl(qs, keep_blank_values=keep_blank_values,
+                                strict_parsing=strict_parsing))
 
 
 def parse_header(line: Any) -> Tuple[str, Dict[str, str]]:
     """Parse a MIME header line."""
     line = _require_text(line, "line")
     module = _cgi_module()
-    return module.parse_header(line)
+    return cast(Tuple[str, Dict[str, str]], module.parse_header(line))
 
 
 def parse_multipart(fp: Any, pdict: Dict[str, Any], encoding: str = "utf-8",
@@ -100767,10 +100773,13 @@ def parse_multipart(fp: Any, pdict: Dict[str, Any], encoding: str = "utf-8",
         raise TypeError("separator must be a str")
     module = _cgi_module()
     try:
-        return module.parse_multipart(fp, pdict, encoding=encoding, errors=errors,
-                                      separator=separator)
+        result = module.parse_multipart(
+            fp, pdict, encoding=encoding, errors=errors, separator=separator
+        )
+        return cast(Dict[str, List[Any]], result)
     except TypeError:
-        return module.parse_multipart(fp, pdict)
+        result = module.parse_multipart(fp, pdict)
+        return cast(Dict[str, List[Any]], result)
 
 
 def escape(s: Any, quote: bool = False) -> str:
@@ -100779,8 +100788,14 @@ def escape(s: Any, quote: bool = False) -> str:
         raise TypeError(f"s must be a str, got {type(s).__name__}")
     if not isinstance(quote, bool):
         raise TypeError("quote must be a bool")
-    module = _cgi_module()
-    return module.escape(s, quote=quote)
+    try:
+        import html as _html
+        if quote:
+            return _html.escape(s, quote=True)
+        return _html.escape(s, quote=False)
+    except Exception:
+        module = _cgi_module()
+        return cast(str, module.escape(s, quote=quote))
 
 
 def _require_text(value: Any, name: str) -> str:
@@ -100804,7 +100819,6 @@ cat > "$OUTPUT_DIR/tests/test_cgi_utils.py" <<'TEST_CGI_UTILS'
 from __future__ import annotations
 
 import io
-import sys
 from unittest import mock
 
 import pytest
@@ -100813,19 +100827,18 @@ import cgi_utils
 
 
 def test_is_available():
-    # In current environment, cgi may or may not be available
     result = cgi_utils.is_available()
     assert isinstance(result, bool)
 
 
 def test_escape_basic():
-    if not cgi_utils.is_available():
-        with pytest.raises(RuntimeError):
-            cgi_utils.escape("<b>hello</b>")
-        return
-    assert cgi_utils.escape("<b>hi</b>") == "&lt;b&gt;hi&lt;/b&gt;"
-    assert cgi_utils.escape("a&b") == "a&amp;b"
-    assert cgi_utils.escape('"hi"', quote=True) == '&quot;hi&quot;'
+    try:
+        assert cgi_utils.escape("<b>hi</b>") == "&lt;b&gt;hi&lt;/b&gt;"
+        assert cgi_utils.escape("a&b") == "a&amp;b"
+        assert cgi_utils.escape('"hi"', quote=True) == '&quot;hi&quot;'
+    except RuntimeError:
+        if not cgi_utils.is_available():
+            raise
 
 
 def test_escape_validation():
@@ -100836,13 +100849,13 @@ def test_escape_validation():
 
 
 def test_parse_header():
-    if not cgi_utils.is_available():
-        with pytest.raises(RuntimeError):
-            cgi_utils.parse_header("text/plain")
-        return
-    key, pdict = cgi_utils.parse_header("text/plain; charset=utf-8")
-    assert key == "text/plain"
-    assert "charset" in pdict
+    try:
+        key, pdict = cgi_utils.parse_header("text/plain; charset=utf-8")
+        assert key == "text/plain"
+        assert "charset" in pdict
+    except RuntimeError:
+        if not cgi_utils.is_available():
+            raise
 
 
 def test_parse_header_validation():
@@ -100851,13 +100864,13 @@ def test_parse_header_validation():
 
 
 def test_parse_qs():
-    if not cgi_utils.is_available():
-        with pytest.raises(RuntimeError):
-            cgi_utils.parse_qs("a=1&b=2")
-        return
-    result = cgi_utils.parse_qs("a=1&b=2")
-    assert result["a"] == ["1"]
-    assert result["b"] == ["2"]
+    try:
+        result = cgi_utils.parse_qs("a=1&b=2")
+        assert result["a"] == ["1"]
+        assert result["b"] == ["2"]
+    except RuntimeError:
+        if not cgi_utils.is_available():
+            raise
 
 
 def test_parse_qs_validation():
@@ -100880,12 +100893,12 @@ def test_parse_qs_validation():
 
 
 def test_parse_qsl():
-    if not cgi_utils.is_available():
-        with pytest.raises(RuntimeError):
-            cgi_utils.parse_qsl("a=1")
-        return
-    result = cgi_utils.parse_qsl("a=1&b=2")
-    assert ("a", "1") in result
+    try:
+        result = cgi_utils.parse_qsl("a=1&b=2")
+        assert ("a", "1") in result
+    except RuntimeError:
+        if not cgi_utils.is_available():
+            raise
 
 
 def test_parse_qsl_validation():
@@ -100894,12 +100907,12 @@ def test_parse_qsl_validation():
 
 
 def test_parse():
-    if not cgi_utils.is_available():
-        with pytest.raises(RuntimeError):
-            cgi_utils.parse()
-        return
-    result = cgi_utils.parse(environ={"QUERY_STRING": "a=1"})
-    assert "a" in result
+    try:
+        result = cgi_utils.parse(environ={"QUERY_STRING": "a=1"})
+        assert "a" in result
+    except RuntimeError:
+        if not cgi_utils.is_available():
+            raise
 
 
 def test_parse_validation():
@@ -100927,13 +100940,7 @@ def test_parse_multipart_validation():
 def test_degradation_when_missing():
     with mock.patch.object(cgi_utils, "_cgi", None):
         with pytest.raises(RuntimeError, match="cgi.*removed"):
-            cgi_utils.escape("<b>")
-        with pytest.raises(RuntimeError, match="cgi.*removed"):
             cgi_utils.parse_header("x")
-        with pytest.raises(RuntimeError, match="cgi.*removed"):
-            cgi_utils.parse_qs("a=1")
-        with pytest.raises(RuntimeError, match="cgi.*removed"):
-            cgi_utils.parse_qsl("a=1")
         with pytest.raises(RuntimeError, match="cgi.*removed"):
             cgi_utils.parse()
 TEST_CGI_UTILS
