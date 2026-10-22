@@ -1,4 +1,72 @@
-## Latest Session (2026-10-22) — imghdr_utils finished and synchronized across every surface
+## Latest Session (2026-10-22) — posix_utils added and synchronized across every surface
+
+The board held no task, so this session added the next stdlib wrapper module, `posix_utils`, and
+synchronized it across every surface of the project.
+
+Completed in the latest session:
+
+- Added `posix_utils.py` wrapping the standard library `posix` module (`open_fd`, `close_fd`,
+  `read_fd`, `read_exactly`, `write_fd`, `write_all`, `seek_fd`, `read_at`, `write_at`,
+  `duplicate_fd`, `duplicate_fd_to`, `create_pipe`, `is_terminal`, `is_blocking`, `set_blocking`,
+  `is_inheritable`, `set_inheritable`, `sync_fd`, `sync_data`, `truncate_fd`, `terminal_size`,
+  `file_info`, `file_mode`, `file_size`, `device_number`, `make_device`, `path_accessible`,
+  `is_readable`, `is_writable`, `is_executable`, `create_directory`, `remove_directory`,
+  `delete_file`, `remove_path`, `rename_path`, `create_hard_link`, `create_symbolic_link`,
+  `read_symbolic_link`, `change_mode`, `change_owner`, `set_umask`, `read_xattr`, `write_xattr`,
+  `list_xattrs`, `remove_xattr`, `scheduler_policy`, `scheduler_policy_name`,
+  `scheduler_priorities`, `scheduler_parameters`, `affinity_mask`, `yield_cpu`, `exit_code_of`,
+  `describe_wait_status`, `uname`, `cpu_count`, `load_average`, `process_times`, `system_limit`,
+  `system_limits`, `system_configuration`, `login_name`, `terminal_device`, `error_message`,
+  `is_available`) with typed signatures, Google style docstrings, a sorted `__all__`, and input
+  validation, plus unit tests in `tests/test_posix_utils.py`.
+- The wrapper adds the conveniences the standard library leaves to the caller: `read_exactly`
+  reads a descriptor until the requested number of bytes arrived and `write_all` writes it until
+  every byte left, `create_directory` creates the missing parents of a directory, `remove_path`
+  removes a path whether it is a file, a symbolic link, or an empty directory, `file_info`
+  returns the metadata of a file as one record, `scheduler_policy_name` reports the scheduling
+  policy by name, `describe_wait_status` turns a wait status into a readable sentence, and
+  `system_limits` reports the limits of the system by name.
+- The results are returned in the named tuples `FileInfo`, `DeviceNumber`, `SchedulerParameters`,
+  `ProcessTimes`, and `SystemName`, so a caller reads a field by its name instead of by its
+  position.
+- The `posix` module only exists on Unix-like platforms, so the import degrades gracefully the way
+  `fcntl_utils.py` and `termios_utils.py` do it: the helpers raise a `RuntimeError` that names
+  the missing module, while `is_available` reports whether the interpreter still ships it.
+- The test suite is hermetic: every file is created in a temporary directory the test owns, every
+  descriptor of a test is closed again, the standard library is patched for the degradation test,
+  and the suite never writes outside its own temporary directories.
+- Synchronized the new module across every surface: the `py_modules` list of `pyproject.toml`, the
+  `scaffold.sh` header comment, the module and test heredocs of the generator, the embedded
+  `pyproject.toml`, the embedded README tree and module section, the embedded CHANGELOG, the
+  README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py`
+  assertions, and `CHANGELOG.md`.
+- Verified the work before it is committed: `make test`, `make lint`, and `make typecheck` are
+  green, and `python tools/refresh_scaffold.py --check` reports that all embedded copies are in
+  sync.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `posix_utils.py` and `tests/test_posix_utils.py`, and its 5020 tests, ruff, and mypy all pass.
+- The repository suite now runs 5120 tests, and `make lint` and `make typecheck` are green.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `cgi`, `cgitb`, `chunk`, `crypt`, `idlelib`, `lib2to3`, `msilib`, `msvcrt`, `nis`,
+  `nntplib`, `ossaudiodev`, `pipes`, `sndhdr`, `spwd`, `sre_compile`, `sre_constants`, `sre_parse`,
+  `sunau`, `telnetlib`, `tkinter`, `turtle`, `turtledemo`, `winreg`, and `winsound`. Most of them
+  were removed in Python 3.13 as part of :pep:`594`, and the ones that remain are either platform
+  specific (`msvcrt`, `winreg`, `winsound`, `msilib`, `ossaudiodev`, `spwd`, `nis`) or need a
+  graphical toolkit that the interpreter of the CI does not ship (`tkinter`, `idlelib`, `turtle`,
+  `turtledemo`). The `chunk` module is the natural next candidate: it is a small module that reads
+  and writes the chunked transfer encoding of HTTP, and it was deprecated in Python 3.11 and
+  removed in Python 3.13, so the import has to degrade gracefully the way `imghdr_utils.py` and
+  `uu_utils.py` do it. The `crypt` module is the alternative: it is a small module of three
+  helpers, but it was removed in Python 3.13 as well, so its helpers would only work on the older
+  interpreters. The `sre_constants` module is the third candidate: it holds the named groups of
+  the regular expression engine of the standard library and nothing else, so the wrapper is small
+  and every helper of it is pure.
+- Keep every new wrapper hermetic and keep `make lint` and `make typecheck` green.
+
+## Previous Session (2026-10-22) — imghdr_utils finished and synchronized across every surface
 
 The board held no task, so this session repaired the `imghdr_utils` handover that the previous
 checkpoint session had left behind, and synchronized the module across every surface of the project.
@@ -902,7 +970,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 5031 tests across all wrapper modules (3500 subtests)
+- 5120 tests across all wrapper modules (3583 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -913,14 +981,14 @@ The project foundation is established:
   asserted in `tests/test_scaffold.py`; the `pyproject.toml` template embedded in `scaffold.sh` has to
   register every module as well
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 4931 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 5020 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 496 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 498 source files
 
 ## Keeping the Scaffold Synchronized
 

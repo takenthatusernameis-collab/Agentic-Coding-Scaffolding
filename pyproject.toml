@@ -286,4 +286,5 @@ py_modules = [
     "readline_utils",
     "builtins_utils",
     "imghdr_utils",
+    "posix_utils",
 ]

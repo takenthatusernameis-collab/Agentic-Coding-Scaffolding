@@ -708,6 +708,7 @@
 #   - readline_utils.py — # Command line editing utilities wrapping the standard library readline module (add_history, append_history_file, clear_history, get_history_item, remove_history_item, replace_history_item, history_items, search_history, make_completer, is_available) with input validation
 #   - builtins_utils.py — # Builtin utilities wrapping the standard library builtins module (absolute, all_true, any_true, ascii_str, binary_string, boolean, callable_object, character, divmod_pair, format_value, get_hash, hex_string, is_instance, is_subclass, iterator, length, maximum, minimum, octal_string, ordinal, power, representation, round_number, sorted_list, summation) with input validation
 #   - imghdr_utils.py — # Image format detection utilities wrapping the standard library imghdr module (detect, is_available, is_image, matching_formats, read_header, register_test, supported_formats, unregister_test, what) with input validation
+#   - posix_utils.py — # POSIX interface utilities wrapping the standard library posix module (open_fd, close_fd, read_fd, read_exactly, write_fd, write_all, create_pipe, file_info, create_directory, remove_path, scheduler_policy, describe_wait_status, is_available) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -744,6 +745,7 @@
 #   - tests/test_readline_utils.py — # Tests for readline_utils.py
 #   - tests/test_builtins_utils.py — # Tests for builtins_utils.py
 #   - tests/test_imghdr_utils.py — # Tests for imghdr_utils.py
+#   - tests/test_posix_utils.py — # Tests for posix_utils.py
 set -euo pipefail
 
 usage() {
@@ -4561,6 +4563,7 @@ py_modules = [
     "readline_utils",
     "builtins_utils",
     "imghdr_utils",
+    "posix_utils",
 ]
 PYPROJECT
 
@@ -29452,6 +29455,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_builtins_utils.py` — unit tests for `builtins_utils.py`
 - `imghdr_utils.py` — image format detection utilities wrapping the standard library `imghdr` module (`detect`, `is_available`, `is_image`, `matching_formats`, `read_header`, `register_test`, `supported_formats`, `unregister_test`, `what`) with input validation
 - `tests/test_imghdr_utils.py` — unit tests for `imghdr_utils.py`
+- `posix_utils.py` — POSIX interface utilities wrapping the standard library `posix` module (`affinity_mask`, `change_mode`, `change_owner`, `close_fd`, `cpu_count`, `create_directory`, `create_hard_link`, `create_pipe`, `create_symbolic_link`, `delete_file`, `describe_wait_status`, `device_number`, `duplicate_fd`, `duplicate_fd_to`, `error_message`, `exit_code_of`, `file_info`, `file_mode`, `file_size`, `is_available`, `is_blocking`, `is_executable`, `is_inheritable`, `is_readable`, `is_terminal`, `is_writable`, `list_xattrs`, `load_average`, `login_name`, `make_device`, `open_fd`, `path_accessible`, `process_times`, `read_at`, `read_exactly`, `read_fd`, `read_symbolic_link`, `read_xattr`, `remove_directory`, `remove_path`, `remove_xattr`, `rename_path`, `scheduler_parameters`, `scheduler_policy`, `scheduler_policy_name`, `scheduler_priorities`, `seek_fd`, `set_blocking`, `set_inheritable`, `set_umask`, `sync_data`, `sync_fd`, `system_configuration`, `system_limit`, `system_limits`, `terminal_device`, `terminal_size`, `truncate_fd`, `uname`, `write_all`, `write_at`, `write_fd`, `write_xattr`, `yield_cpu`) with input validation
+- `tests/test_posix_utils.py` — unit tests for `posix_utils.py`
 SCAFFOLD
 
 
@@ -30772,6 +30777,13 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `posix_utils.py` wrapping the standard library `posix` module (`open_fd`, `close_fd`, `read_fd`, `read_exactly`, `write_fd`, `write_all`, `seek_fd`, `read_at`, `write_at`, `duplicate_fd`, `duplicate_fd_to`, `create_pipe`, `is_terminal`, `is_blocking`, `set_blocking`, `is_inheritable`, `set_inheritable`, `sync_fd`, `sync_data`, `truncate_fd`, `terminal_size`, `file_info`, `file_mode`, `file_size`, `device_number`, `make_device`, `path_accessible`, `is_readable`, `is_writable`, `is_executable`, `create_directory`, `remove_directory`, `delete_file`, `remove_path`, `rename_path`, `create_hard_link`, `create_symbolic_link`, `read_symbolic_link`, `change_mode`, `change_owner`, `set_umask`, `read_xattr`, `write_xattr`, `list_xattrs`, `remove_xattr`, `scheduler_policy`, `scheduler_policy_name`, `scheduler_priorities`, `scheduler_parameters`, `affinity_mask`, `yield_cpu`, `exit_code_of`, `describe_wait_status`, `uname`, `cpu_count`, `load_average`, `process_times`, `system_limit`, `system_limits`, `system_configuration`, `login_name`, `terminal_device`, `error_message`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_posix_utils.py`.
+- Synchronized `posix_utils.py` and `tests/test_posix_utils.py` across the `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, the README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
+- The wrapper adds the conveniences the standard library leaves to the caller: a descriptor is read until the requested number of bytes arrived and written until every byte left, a directory is created together with its parents, a path is removed whatever it is, the metadata of a file is returned as one record, the scheduling policy is reported by name, a wait status is turned into a readable sentence, and the limits of the system are reported by name.
+- The results are returned in the named tuples `FileInfo`, `DeviceNumber`, `SchedulerParameters`, `ProcessTimes`, and `SystemName`, so a caller reads a field by its name instead of by its position.
+- The `posix` module only exists on Unix-like platforms, so the import degrades gracefully the way `fcntl_utils.py` and `termios_utils.py` do it: the helpers raise a `RuntimeError` that names the missing module, while `is_available` reports whether the interpreter still ships it.
+- The test suite is hermetic: every file is created in a temporary directory the test owns, the descriptors of a test are closed again, the standard library is patched for the degradation test, and the suite never writes outside its own temporary directories.
+
 - Add `imghdr_utils.py` wrapping the standard library `imghdr` module (`what`, `detect`, `matching_formats`, `is_image`, `read_header`, `supported_formats`, `register_test`, `unregister_test`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_imghdr_utils.py`.
 - Synchronized `imghdr_utils.py` and `tests/test_imghdr_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py` assertions, and this CHANGELOG.
 - Repaired the `imghdr_utils` handover that the previous session left behind: the module was a stub without the validation, the docstrings, and the typed signatures the other wrappers carry, it imported the standard library module at the top level so it failed to import on Python 3.13, and it was missing from every surface but `pyproject.toml`.
@@ -31972,6 +31984,7 @@ ensurepip_utils.py            # Bootstrap utilities wrapping the standard librar
 readline_utils.py             # Command line editing utilities wrapping the standard library readline module (add_history, append_history_file, clear_history, get_history_item, remove_history_item, replace_history_item, history_items, search_history, make_completer, is_available) with input validation
 builtins_utils.py             # Builtin utilities wrapping the standard library builtins module (absolute, all_true, any_true, ascii_str, binary_string, boolean, callable_object, character, divmod_pair, format_value, get_hash, hex_string, is_instance, is_subclass, iterator, length, maximum, minimum, octal_string, ordinal, power, representation, round_number, sorted_list, summation) with input validation
 imghdr_utils.py               # Image format detection utilities wrapping the standard library imghdr module (detect, is_available, is_image, matching_formats, read_header, register_test, supported_formats, unregister_test, what) with input validation
+posix_utils.py                # POSIX interface utilities wrapping the standard library posix module (open_fd, close_fd, read_fd, read_exactly, write_fd, write_all, create_pipe, file_info, create_directory, remove_path, scheduler_policy, describe_wait_status, is_available) with input validation
 tests/                     # Python unit tests
   test_abc_utils.py          # Tests for abc_utils.py
   test_ast_utils.py          # Tests for ast_utils.py
@@ -32139,6 +32152,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_readline_utils.py      # Tests for readline_utils.py
   test_builtins_utils.py      # Tests for builtins_utils.py
   test_imghdr_utils.py        # Tests for imghdr_utils.py
+  test_posix_utils.py         # Tests for posix_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -33302,6 +33316,10 @@ The project includes builtin utilities in `builtins_utils.py` wrapping the stand
 ## Imghdr Utilities Module
 
 The project includes image format detection utilities in `imghdr_utils.py` wrapping the standard library `imghdr` module: `what` returns the format of an image that is given as a path or as a binary stream, `detect` returns the format of a header that is already in memory, `matching_formats` returns every format a header matches instead of only the first one, `is_image` reports whether a file holds an image, `read_header` reads the header of a file and restores the position of a stream, `supported_formats` lists the formats the interpreter recognizes, `register_test` registers a detection function, `unregister_test` removes one again, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: a header can be inspected without a file, every matching format can be listed, the formats the interpreter knows can be listed, and a detection function can be registered and removed again. The standard library recognizes the format `jpeg`, `png`, `gif`, `tiff`, `rgb`, `pbm`, `pgm`, `ppm`, `rast`, `xbm`, `bmp`, `webp`, and `exr`. The `imghdr` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The wrapper only reads the file it is given and never writes to the filesystem, so the tests of the project create every file in a temporary directory of their own. The module is tested in `tests/test_imghdr_utils.py`.
+
+## Posix Utilities Module
+
+The project includes POSIX interface utilities in `posix_utils.py` wrapping the standard library `posix` module: `open_fd` opens a path and returns the descriptor of the open file, `close_fd` closes a descriptor, `read_fd` reads up to a number of bytes, `read_exactly` reads until the requested number of bytes arrived, `write_fd` writes bytes, `write_all` writes until every byte left, `seek_fd` moves the position of a descriptor, `read_at` and `write_at` read and write at an offset without moving the position, `duplicate_fd` and `duplicate_fd_to` copy a descriptor, `create_pipe` creates a pipe, `is_terminal` reports whether a descriptor is a terminal, `is_blocking` and `set_blocking` report and change the blocking mode, `is_inheritable` and `set_inheritable` report and change the inheritable flag, `sync_fd` and `sync_data` write a file to the storage device, `truncate_fd` sets the length of a file, and `terminal_size` reports the size of a terminal. The filesystem is reported by `file_info`, which returns the metadata of a file as one `FileInfo` record, by `file_mode` and `file_size`, by `device_number` and `make_device`, which translate between a device number and its major and minor number, and by `path_accessible`, `is_readable`, `is_writable`, and `is_executable`. The filesystem is changed by `create_directory`, which creates the missing parents of a directory, by `remove_directory`, `delete_file`, and `remove_path`, which removes a path whatever it is, by `rename_path`, `create_hard_link`, `create_symbolic_link`, and `read_symbolic_link`, by `change_owner` and `change_mode`, and by `set_umask`, which reports the mask it replaced. The extended attributes of a file are read and written by `read_xattr`, `write_xattr`, `list_xattrs`, and `remove_xattr`. The scheduling of a process is reported by `scheduler_policy`, `scheduler_policy_name`, `scheduler_priorities`, `scheduler_parameters`, `affinity_mask`, and `yield_cpu`, and the wait status of a process is turned into an exit code by `exit_code_of` and into a readable sentence by `describe_wait_status`. The system itself is reported by `uname`, `cpu_count`, `load_average`, `process_times`, `system_limit`, `system_limits`, `system_configuration`, `login_name`, `terminal_device`, and `error_message`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds seven conveniences to the standard library: a descriptor is read until the requested number of bytes arrived and written until every byte left, a directory is created together with its parents, a path is removed whatever it is, the metadata of a file is returned as one record, the scheduling policy is reported by name, a wait status is turned into a readable sentence, and the limits of the system are reported by name. The `posix` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The wrapper never forks a process and never touches a path it was not given, so the tests of the project create every file in a temporary directory of their own. The module is tested in `tests/test_posix_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -93893,6 +93911,2577 @@ class TestRegisterTest(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_IMGHDR_UTILS
+
+# --- posix_utils.py ---
+cat > "$OUTPUT_DIR/posix_utils.py" <<'POSIX_UTILS'
+"""POSIX interface utilities wrapping the standard library :mod:`posix` module.
+
+The :mod:`posix` module exposes the low level system calls of a Unix like
+operating system.  It opens and closes file descriptors, reads and writes
+bytes, inspects the metadata of a file, creates links, asks the kernel for
+the limits of the system, and reports the scheduling policy of a process.
+
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure from the C layer.  It adds the conveniences the standard
+library leaves to the caller: a descriptor is read until the requested number
+of bytes arrived and written until every byte left, a directory is created
+together with its parents, a path is removed whatever it is, the metadata of a
+file is returned as one record, the scheduling policy is reported by name, and
+a wait status is turned into a readable sentence.
+
+.. note::
+
+   The :mod:`posix` module only exists on Unix like platforms.  The import
+   below degrades gracefully: when the interpreter does not ship the module,
+   the helpers raise a :class:`RuntimeError` that names the missing module,
+   while :func:`is_available` keeps working.
+
+The wrapper never forks a process, never replaces the current process, and
+never touches a path it was not given.
+"""
+
+from __future__ import annotations
+
+import os
+import signal
+import stat
+from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, Union
+
+__all__ = [
+    "DeviceNumber",
+    "FileInfo",
+    "ProcessTimes",
+    "SchedulerParameters",
+    "SystemName",
+    "affinity_mask",
+    "change_mode",
+    "change_owner",
+    "close_fd",
+    "cpu_count",
+    "create_directory",
+    "create_hard_link",
+    "create_pipe",
+    "create_symbolic_link",
+    "delete_file",
+    "describe_wait_status",
+    "device_number",
+    "duplicate_fd",
+    "duplicate_fd_to",
+    "error_message",
+    "exit_code_of",
+    "file_info",
+    "file_mode",
+    "file_size",
+    "is_available",
+    "is_blocking",
+    "is_executable",
+    "is_inheritable",
+    "is_readable",
+    "is_terminal",
+    "is_writable",
+    "list_xattrs",
+    "load_average",
+    "login_name",
+    "make_device",
+    "open_fd",
+    "path_accessible",
+    "process_times",
+    "read_at",
+    "read_exactly",
+    "read_fd",
+    "read_symbolic_link",
+    "read_xattr",
+    "remove_directory",
+    "remove_path",
+    "remove_xattr",
+    "rename_path",
+    "scheduler_parameters",
+    "scheduler_policy",
+    "scheduler_policy_name",
+    "scheduler_priorities",
+    "seek_fd",
+    "set_blocking",
+    "set_inheritable",
+    "set_umask",
+    "sync_data",
+    "sync_fd",
+    "system_configuration",
+    "system_limit",
+    "system_limits",
+    "terminal_device",
+    "terminal_size",
+    "truncate_fd",
+    "uname",
+    "write_all",
+    "write_at",
+    "write_fd",
+    "write_xattr",
+    "yield_cpu",
+]
+
+PathLike = Union[str, bytes, os.PathLike]
+
+#: The names of the limits :func:`system_limits` reports by default.
+DEFAULT_LIMIT_NAMES: Tuple[str, ...] = (
+    "SC_ARG_MAX",
+    "SC_CHILD_MAX",
+    "SC_HOST_NAME_MAX",
+    "SC_IOV_MAX",
+    "SC_NGROUPS_MAX",
+    "SC_NPROCESSORS",
+    "SC_OPEN_MAX",
+    "SC_PAGE_SIZE",
+    "SC_SEM_NSEMS_MAX",
+    "SC_STACK_SIZE",
+    "SC_TTY_NAME_MAX",
+)
+
+#: The names of the scheduling policies the standard library defines.
+SCHED_POLICIES: Dict[str, int] = {
+    "SCHED_OTHER": 0,
+    "SCHED_FIFO": 1,
+    "SCHED_RR": 2,
+    "SCHED_BATCH": 3,
+    "SCHED_IDLE": 5,
+    "SCHED_RESET_ON_FORK": 0x40000000,
+}
+
+try:
+    import posix as _posix
+except ImportError:  # pragma: no cover - the module is Unix only
+    _posix = None  # type: ignore[assignment]
+
+
+class SystemName(NamedTuple):
+    """The identification of the running system."""
+
+    system: str
+    node: str
+    release: str
+    version: str
+    machine: str
+
+
+class FileInfo(NamedTuple):
+    """The metadata of a file."""
+
+    mode: int
+    permissions: int
+    size: int
+    uid: int
+    gid: int
+    inode: int
+    device: int
+    hard_links: int
+    atime: float
+    mtime: float
+    ctime: float
+    is_directory: bool
+    is_regular_file: bool
+    is_symbolic_link: bool
+
+
+class DeviceNumber(NamedTuple):
+    """The major and minor number of a device."""
+
+    major: int
+    minor: int
+
+
+class SchedulerParameters(NamedTuple):
+    """The scheduling parameters of a process."""
+
+    policy: str
+    priority: int
+    minimum_priority: int
+    maximum_priority: int
+
+
+class ProcessTimes(NamedTuple):
+    """The times a process used the processor."""
+
+    user: float
+    system: float
+    children_user: float
+    children_system: float
+    elapsed: float
+
+
+def _posix_module() -> Any:
+    """Return the standard library ``posix`` module.
+
+    Returns:
+        The imported :mod:`posix` module.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    if _posix is None:  # pragma: no cover - the module is Unix only
+        raise RuntimeError(
+            "the standard library 'posix' module only exists on Unix like platforms; "
+            "use the 'os' module for the calls that every platform provides"
+        )
+    return _posix
+
+
+def _require_path(value: Any, name: str) -> Union[str, bytes]:
+    """Return *value* as a path, raising ``TypeError`` for other types.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as a path.
+
+    Raises:
+        TypeError: If *value* is not a path.
+    """
+    if isinstance(value, (str, bytes)):
+        return value
+    if isinstance(value, os.PathLike):
+        result = os.fspath(value)
+        if isinstance(result, (str, bytes)):
+            return result
+    raise TypeError(f"{name} must be a path, got {type(value).__name__}")
+
+
+def _require_fd(value: Any, name: str) -> int:
+    """Return *value* as a file descriptor, raising ``TypeError`` or ``ValueError``.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as a file descriptor.
+
+    Raises:
+        TypeError: If *value* is not an int (or is a bool).
+        ValueError: If *value* is negative.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"{name} must not be negative, got {value}")
+    return value
+
+
+def _require_count(value: Any, name: str) -> int:
+    """Return *value* as a non negative number of bytes.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as an int.
+
+    Raises:
+        TypeError: If *value* is not an int (or is a bool).
+        ValueError: If *value* is negative.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"{name} must not be negative, got {value}")
+    return value
+
+
+def _require_text(value: Any, name: str) -> str:
+    """Return *value* as text, raising ``TypeError`` for other types.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as text.
+
+    Raises:
+        TypeError: If *value* is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_bytes(value: Any, name: str) -> bytes:
+    """Return *value* as bytes, raising ``TypeError`` for other types.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as bytes.
+
+    Raises:
+        TypeError: If *value* is not bytes-like.
+    """
+    if isinstance(value, bytes):
+        return value
+    if isinstance(value, (bytearray, memoryview)):
+        return bytes(value)
+    raise TypeError(f"{name} must be bytes, got {type(value).__name__}")
+
+
+def _require_mode(value: Any, name: str) -> int:
+    """Return *value* as a file mode, raising ``TypeError`` or ``ValueError``.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as a file mode.
+
+    Raises:
+        TypeError: If *value* is not an int (or is a bool).
+        ValueError: If *value* is negative or holds bits outside the mode.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"{name} must not be negative, got {value}")
+    if value & ~0o7777:
+        raise ValueError(f"{name} must only hold the bits of a file mode, got {value}")
+    return value
+
+
+def _require_pid(value: Any, name: str) -> int:
+    """Return *value* as a process identifier.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as a process identifier.
+
+    Raises:
+        TypeError: If *value* is not an int (or is a bool).
+        ValueError: If *value* is negative.
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    if value < 0:
+        raise ValueError(f"{name} must not be negative, got {value}")
+    return value
+
+
+def is_available() -> bool:
+    """Return ``True`` if the interpreter ships the ``posix`` module.
+
+    Returns:
+        ``True`` when the standard library module could be imported.
+    """
+    return _posix is not None
+
+
+def uname() -> SystemName:
+    """Return the identification of the running system.
+
+    Returns:
+        The system, the node, the release, the version, and the machine.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    result = module.uname()
+    return SystemName(
+        system=str(result.sysname),
+        node=str(result.nodename),
+        release=str(result.release),
+        version=str(result.version),
+        machine=str(result.machine),
+    )
+
+
+def cpu_count() -> Optional[int]:
+    """Return the number of the processors of the system.
+
+    Returns:
+        The number of the processors, or ``None`` when the system does not
+        report it.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    count = module.cpu_count()
+    return None if count is None else int(count)
+
+
+def load_average() -> Tuple[float, float, float]:
+    """Return the load average of the system.
+
+    Returns:
+        The load average over one, five, and fifteen minutes.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    one, five, fifteen = module.getloadavg()
+    return (float(one), float(five), float(fifteen))
+
+
+def process_times() -> ProcessTimes:
+    """Return the times the process used the processor.
+
+    Returns:
+        The user, the system, the children user, the children system, and the
+        elapsed time.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    result = module.times()
+    return ProcessTimes(
+        user=float(result.user),
+        system=float(result.system),
+        children_user=float(result.children_user),
+        children_system=float(result.children_system),
+        elapsed=float(result.elapsed),
+    )
+
+
+def system_limit(name: str) -> int:
+    """Return the value of a limit of the system.
+
+    Args:
+        name: The name of the limit, such as ``"SC_PAGE_SIZE"``.
+
+    Returns:
+        The value of the limit.
+
+    Raises:
+        TypeError: If *name* is not a string.
+        ValueError: If the interpreter does not know the limit.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    _require_text(name, "name")
+    names = getattr(module, "sysconf_names", {})
+    if name not in names:
+        raise ValueError(f"unknown system limit {name!r}")
+    return int(module.sysconf(names[name]))
+
+
+def system_limits(names: Optional[Sequence[str]] = None) -> Dict[str, int]:
+    """Return the values of the limits of the system.
+
+    Args:
+        names: The names of the limits to report.  When it is ``None`` the
+            limits of :data:`DEFAULT_LIMIT_NAMES` the interpreter knows are
+            reported.
+
+    Returns:
+        The values of the limits, keyed by their name.
+
+    Raises:
+        TypeError: If *names* is not a sequence of strings.
+        ValueError: If a name is not a limit the interpreter knows.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    if names is None:
+        available = getattr(module, "sysconf_names", {})
+        selected = [name for name in DEFAULT_LIMIT_NAMES if name in available]
+    else:
+        if isinstance(names, (str, bytes)) or not isinstance(names, (list, tuple)):
+            raise TypeError("names must be a sequence of strings")
+        selected = []
+        for name in names:
+            _require_text(name, "name")
+            selected.append(name)
+    limits: Dict[str, int] = {}
+    for name in selected:
+        limits[name] = system_limit(name)
+    return limits
+
+
+def system_configuration(name: str) -> str:
+    """Return the value of a configuration string of the system.
+
+    Args:
+        name: The name of the configuration, such as ``"CS_PATH"``.
+
+    Returns:
+        The value of the configuration.
+
+    Raises:
+        TypeError: If *name* is not a string.
+        ValueError: If the interpreter does not know the configuration.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    _require_text(name, "name")
+    names = getattr(module, "confstr_names", {})
+    if name not in names:
+        raise ValueError(f"unknown system configuration {name!r}")
+    return str(module.confstr(name))
+
+
+def login_name() -> Optional[str]:
+    """Return the name of the user that logged in.
+
+    The standard library raises :exc:`OSError` when the process has no
+    controlling terminal, which is the normal case of a service.
+
+    Returns:
+        The name of the user, or ``None`` when the system does not report it.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    try:
+        name = module.getlogin()
+    except OSError:
+        return None
+    return str(name)
+
+
+def terminal_device() -> str:
+    """Return the path of the controlling terminal of the system.
+
+    Returns:
+        The path of the terminal.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    return str(module.ctermid())
+
+
+def open_fd(path: PathLike, flags: int, mode: int = 0o777) -> int:
+    """Open a path and return the file descriptor of the open file.
+
+    Args:
+        path: The path of the file.
+        flags: The flags of the open, such as :data:`os.O_RDONLY` combined
+            with :data:`os.O_CREAT`.
+        mode: The permissions of a file that is created.
+
+    Returns:
+        The file descriptor of the open file.
+
+    Raises:
+        TypeError: If *path* is not a path, or if *flags* or *mode* are not
+            ints.
+        ValueError: If *mode* holds bits outside the file mode.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    if isinstance(flags, bool) or not isinstance(flags, int):
+        raise TypeError(f"flags must be an int, got {type(flags).__name__}")
+    permissions = _require_mode(mode, "mode")
+    return int(module.open(location, flags, permissions))
+
+
+def close_fd(fd: int) -> None:
+    """Close a file descriptor.
+
+    Args:
+        fd: The file descriptor.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    module.close(descriptor)
+
+
+def read_fd(fd: int, size: int) -> bytes:
+    """Read up to *size* bytes from a file descriptor.
+
+    A single read returns fewer bytes than requested when the file ends or
+    when the descriptor is a pipe and no more data is ready.
+
+    Args:
+        fd: The file descriptor.
+        size: The number of bytes to read.
+
+    Returns:
+        The bytes that were read, empty at the end of the file.
+
+    Raises:
+        TypeError: If *fd* or *size* are not ints.
+        ValueError: If *fd* or *size* are negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    count = _require_count(size, "size")
+    return bytes(module.read(descriptor, count))
+
+
+def read_exactly(fd: int, size: int) -> bytes:
+    """Read exactly *size* bytes from a file descriptor.
+
+    The descriptor is read until the requested number of bytes arrived, so a
+    short read of a pipe does not lose the rest of the data.
+
+    Args:
+        fd: The file descriptor.
+        size: The number of bytes to read.
+
+    Returns:
+        The bytes that were read.
+
+    Raises:
+        EOFError: If the file ends before *size* bytes were read.
+        TypeError: If *fd* or *size* are not ints.
+        ValueError: If *fd* or *size* are negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    count = _require_count(size, "size")
+    chunks: List[bytes] = []
+    received = 0
+    while received < count:
+        chunk = bytes(module.read(descriptor, count - received))
+        if not chunk:
+            raise EOFError(
+                f"expected {count} bytes but the file ended after {received} bytes"
+            )
+        chunks.append(chunk)
+        received += len(chunk)
+    return b"".join(chunks)
+
+
+def write_fd(fd: int, data: bytes) -> int:
+    """Write bytes to a file descriptor.
+
+    A single write may write fewer bytes than requested, which the caller has
+    to handle.  Use :func:`write_all` to write every byte.
+
+    Args:
+        fd: The file descriptor.
+        data: The bytes to write.
+
+    Returns:
+        The number of bytes that were written.
+
+    Raises:
+        TypeError: If *fd* is not an int or *data* is not bytes-like.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    payload = _require_bytes(data, "data")
+    return int(module.write(descriptor, payload))
+
+
+def write_all(fd: int, data: bytes) -> int:
+    """Write every byte to a file descriptor.
+
+    The descriptor is written until the whole payload left, so a short write
+    of a pipe does not lose the rest of the data.
+
+    Args:
+        fd: The file descriptor.
+        data: The bytes to write.
+
+    Returns:
+        The number of bytes that were written.
+
+    Raises:
+        TypeError: If *fd* is not an int or *data* is not bytes-like.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    payload = _require_bytes(data, "data")
+    written = 0
+    while written < len(payload):
+        count = int(module.write(descriptor, payload[written:]))
+        if count <= 0:
+            raise OSError(f"wrote {written} of {len(payload)} bytes before the write stopped")
+        written += count
+    return written
+
+
+def seek_fd(fd: int, offset: int, whence: int = os.SEEK_SET) -> int:
+    """Move the position of a file descriptor.
+
+    Args:
+        fd: The file descriptor.
+        offset: The offset of the new position.
+        whence: The origin of the offset: :data:`os.SEEK_SET`,
+            :data:`os.SEEK_CUR`, or :data:`os.SEEK_END`.
+
+    Returns:
+        The new position of the descriptor.
+
+    Raises:
+        TypeError: If *fd*, *offset*, or *whence* are not ints.
+        ValueError: If *fd* is negative or *whence* is not a known origin.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    if isinstance(offset, bool) or not isinstance(offset, int):
+        raise TypeError(f"offset must be an int, got {type(offset).__name__}")
+    if isinstance(whence, bool) or not isinstance(whence, int):
+        raise TypeError(f"whence must be an int, got {type(whence).__name__}")
+    if whence not in (os.SEEK_SET, os.SEEK_CUR, os.SEEK_END):
+        raise ValueError(
+            "whence must be one of os.SEEK_SET, os.SEEK_CUR, os.SEEK_END, "
+            f"got {whence}"
+        )
+    return int(module.lseek(descriptor, offset, whence))
+
+
+def read_at(fd: int, size: int, offset: int) -> bytes:
+    """Read bytes from a file descriptor at a given offset.
+
+    The position of the descriptor is not changed.
+
+    Args:
+        fd: The file descriptor.
+        size: The number of bytes to read.
+        offset: The offset the read starts at.
+
+    Returns:
+        The bytes that were read, empty past the end of the file.
+
+    Raises:
+        TypeError: If *fd*, *size*, or *offset* are not ints.
+        ValueError: If *fd* is negative or *size* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    count = _require_count(size, "size")
+    if isinstance(offset, bool) or not isinstance(offset, int):
+        raise TypeError(f"offset must be an int, got {type(offset).__name__}")
+    return bytes(module.pread(descriptor, count, offset))
+
+
+def write_at(fd: int, data: bytes, offset: int) -> int:
+    """Write bytes to a file descriptor at a given offset.
+
+    The position of the descriptor is not changed.
+
+    Args:
+        fd: The file descriptor.
+        data: The bytes to write.
+        offset: The offset the write starts at.
+
+    Returns:
+        The number of bytes that were written.
+
+    Raises:
+        TypeError: If *fd* or *offset* are not ints, or *data* is not
+            bytes-like.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    payload = _require_bytes(data, "data")
+    if isinstance(offset, bool) or not isinstance(offset, int):
+        raise TypeError(f"offset must be an int, got {type(offset).__name__}")
+    return int(module.pwrite(descriptor, payload, offset))
+
+
+def duplicate_fd(fd: int) -> int:
+    """Duplicate a file descriptor.
+
+    The copy shares the file offset and the status flags with the original,
+    and it is closed when the process executes a new program.
+
+    Args:
+        fd: The file descriptor.
+
+    Returns:
+        The file descriptor of the copy.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    return int(module.dup(descriptor))
+
+
+def duplicate_fd_to(fd: int, target: int) -> int:
+    """Duplicate a file descriptor onto another one.
+
+    Args:
+        fd: The file descriptor.
+        target: The file descriptor the copy is written to.  It is closed
+            first when it is open.
+
+    Returns:
+        The file descriptor of the copy.
+
+    Raises:
+        TypeError: If *fd* or *target* are not ints.
+        ValueError: If *fd* or *target* are negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    replacement = _require_fd(target, "target")
+    return int(module.dup2(descriptor, replacement))
+
+
+def create_pipe(nonblocking: bool = False) -> Tuple[int, int]:
+    """Create a pipe and return the descriptors of its two ends.
+
+    Args:
+        nonblocking: Whether the ends of the pipe are opened in the
+            non-blocking mode.
+
+    Returns:
+        The descriptor of the reading end and the descriptor of the writing
+        end.
+
+    Raises:
+        TypeError: If *nonblocking* is not a bool.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    if not isinstance(nonblocking, bool):
+        raise TypeError(f"nonblocking must be a bool, got {type(nonblocking).__name__}")
+    if nonblocking and hasattr(module, "pipe2"):
+        flags = os.O_CLOEXEC | os.O_NONBLOCK
+        read_fd, write_fd = module.pipe2(flags)
+        return (int(read_fd), int(write_fd))
+    read_fd, write_fd = module.pipe()
+    return (int(read_fd), int(write_fd))
+
+
+def is_terminal(fd: int) -> bool:
+    """Return ``True`` if the descriptor is connected to a terminal.
+
+    Args:
+        fd: The file descriptor.
+
+    Returns:
+        ``True`` when the descriptor is a terminal.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    return bool(module.isatty(descriptor))
+
+
+def is_blocking(fd: int) -> bool:
+    """Return ``True`` if the descriptor is in the blocking mode.
+
+    Args:
+        fd: The file descriptor.
+
+    Returns:
+        ``True`` when the descriptor blocks.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    return bool(module.get_blocking(descriptor))
+
+
+def set_blocking(fd: int, blocking: bool = True) -> None:
+    """Set the blocking mode of a file descriptor.
+
+    Args:
+        fd: The file descriptor.
+        blocking: Whether the descriptor blocks.
+
+    Raises:
+        TypeError: If *fd* is not an int or *blocking* is not a bool.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    if not isinstance(blocking, bool):
+        raise TypeError(f"blocking must be a bool, got {type(blocking).__name__}")
+    module.set_blocking(descriptor, blocking)
+
+
+def is_inheritable(fd: int) -> bool:
+    """Return ``True`` if the descriptor survives the execution of a program.
+
+    Args:
+        fd: The file descriptor.
+
+    Returns:
+        ``True`` when the descriptor is inheritable.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    return bool(module.get_inheritable(descriptor))
+
+
+def set_inheritable(fd: int, inheritable: bool = True) -> None:
+    """Set whether the descriptor survives the execution of a program.
+
+    Args:
+        fd: The file descriptor.
+        inheritable: Whether the descriptor is inheritable.
+
+    Raises:
+        TypeError: If *fd* is not an int or *inheritable* is not a bool.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    if not isinstance(inheritable, bool):
+        raise TypeError(f"inheritable must be a bool, got {type(inheritable).__name__}")
+    module.set_inheritable(descriptor, inheritable)
+
+
+def sync_fd(fd: int) -> None:
+    """Write the file behind a descriptor to the storage device.
+
+    Args:
+        fd: The file descriptor.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    module.fsync(descriptor)
+
+
+def sync_data(fd: int) -> None:
+    """Write the data of a file behind a descriptor to the storage device.
+
+    Unlike :func:`sync_fd` the metadata of the file is not written.
+
+    Args:
+        fd: The file descriptor.
+
+    Raises:
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    module.fdatasync(descriptor)
+
+
+def truncate_fd(fd: int, length: int) -> None:
+    """Set the length of the file behind a descriptor.
+
+    Args:
+        fd: The file descriptor.
+        length: The new length of the file in bytes.
+
+    Raises:
+        TypeError: If *fd* or *length* are not ints.
+        ValueError: If *fd* or *length* are negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    size = _require_count(length, "length")
+    module.ftruncate(descriptor, size)
+
+
+def terminal_size(fd: int = 1) -> Tuple[int, int]:
+    """Return the size of the terminal behind a descriptor.
+
+    Args:
+        fd: The file descriptor of the terminal.
+
+    Returns:
+        The number of the columns and the number of the lines.
+
+    Raises:
+        OSError: If the descriptor is not connected to a terminal.
+        TypeError: If *fd* is not an int.
+        ValueError: If *fd* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    descriptor = _require_fd(fd, "fd")
+    size = module.get_terminal_size(descriptor)
+    return (int(size.columns), int(size.lines))
+
+
+def file_info(path: PathLike, follow_symlinks: bool = True) -> FileInfo:
+    """Return the metadata of a file as one record.
+
+    Args:
+        path: The path of the file.
+        follow_symlinks: Whether a symbolic link is resolved.  When it is
+            ``False`` the link itself is described.
+
+    Returns:
+        The metadata of the file.
+
+    Raises:
+        TypeError: If *path* is not a path or *follow_symlinks* is not a bool.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    if not isinstance(follow_symlinks, bool):
+        raise TypeError(
+            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
+        )
+    result = module.stat(location) if follow_symlinks else module.lstat(location)
+    mode = int(result.st_mode)
+    return FileInfo(
+        mode=mode,
+        permissions=stat.S_IMODE(mode),
+        size=int(result.st_size),
+        uid=int(result.st_uid),
+        gid=int(result.st_gid),
+        inode=int(result.st_ino),
+        device=int(result.st_dev),
+        hard_links=int(result.st_nlink),
+        atime=float(result.st_atime),
+        mtime=float(result.st_mtime),
+        ctime=float(result.st_ctime),
+        is_directory=stat.S_ISDIR(mode),
+        is_regular_file=stat.S_ISREG(mode),
+        is_symbolic_link=stat.S_ISLNK(mode),
+    )
+
+
+def file_mode(path: PathLike) -> int:
+    """Return the permissions of a file.
+
+    Args:
+        path: The path of the file.
+
+    Returns:
+        The permission bits of the file.
+
+    Raises:
+        TypeError: If *path* is not a path.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    return stat.S_IMODE(int(module.stat(location).st_mode))
+
+
+def file_size(path: PathLike) -> int:
+    """Return the size of a file in bytes.
+
+    Args:
+        path: The path of the file.
+
+    Returns:
+        The size of the file in bytes.
+
+    Raises:
+        TypeError: If *path* is not a path.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    return int(module.stat(location).st_size)
+
+
+def device_number(path: PathLike) -> DeviceNumber:
+    """Return the major and minor number of the device behind a file.
+
+    Args:
+        path: The path of the file.
+
+    Returns:
+        The major and the minor number of the device.
+
+    Raises:
+        TypeError: If *path* is not a path.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    device = int(module.stat(location).st_dev)
+    return DeviceNumber(major=int(module.major(device)), minor=int(module.minor(device)))
+
+
+def make_device(major: int, minor: int) -> int:
+    """Return the device number of a major and a minor number.
+
+    Args:
+        major: The major number of the device.
+        minor: The minor number of the device.
+
+    Returns:
+        The device number.
+
+    Raises:
+        TypeError: If *major* or *minor* are not ints.
+        ValueError: If *major* or *minor* are negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    major_number = _require_count(major, "major")
+    minor_number = _require_count(minor, "minor")
+    return int(module.makedev(major_number, minor_number))
+
+
+def path_accessible(path: PathLike, mode: int = os.F_OK) -> bool:
+    """Return ``True`` if the path can be used in the given way.
+
+    Args:
+        path: The path of the file.
+        mode: :data:`os.F_OK` when the existence of the path is checked,
+            :data:`os.R_OK` when it is checked for reading, :data:`os.W_OK`
+            for writing, and :data:`os.X_OK` for execution.
+
+    Returns:
+        ``True`` when the path can be used in the given way.
+
+    Raises:
+        TypeError: If *path* is not a path or *mode* is not an int.
+        ValueError: If *mode* is not a known access mode.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    if isinstance(mode, bool) or not isinstance(mode, int):
+        raise TypeError(f"mode must be an int, got {type(mode).__name__}")
+    if mode not in (os.F_OK, os.R_OK, os.W_OK, os.X_OK):
+        raise ValueError(
+            "mode must be one of os.F_OK, os.R_OK, os.W_OK, os.X_OK, " f"got {mode}"
+        )
+    return bool(module.access(location, mode))
+
+
+def is_readable(path: PathLike) -> bool:
+    """Return ``True`` if the path can be read.
+
+    Args:
+        path: The path of the file.
+
+    Returns:
+        ``True`` when the path can be read.
+
+    Raises:
+        TypeError: If *path* is not a path.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    return path_accessible(path, os.R_OK)
+
+
+def is_writable(path: PathLike) -> bool:
+    """Return ``True`` if the path can be written.
+
+    Args:
+        path: The path of the file.
+
+    Returns:
+        ``True`` when the path can be written.
+
+    Raises:
+        TypeError: If *path* is not a path.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    return path_accessible(path, os.W_OK)
+
+
+def is_executable(path: PathLike) -> bool:
+    """Return ``True`` if the path can be executed.
+
+    Args:
+        path: The path of the file.
+
+    Returns:
+        ``True`` when the path can be executed.
+
+    Raises:
+        TypeError: If *path* is not a path.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    return path_accessible(path, os.X_OK)
+
+
+def create_directory(
+    path: PathLike, mode: int = 0o777, parents: bool = False, exist_ok: bool = False
+) -> None:
+    """Create a directory.
+
+    Args:
+        path: The path of the directory.
+        mode: The permissions of the directory.
+        parents: Whether the missing parents of the directory are created.
+        exist_ok: Whether an existing directory is accepted.
+
+    Raises:
+        FileExistsError: If the directory exists and *exist_ok* is ``False``.
+        NotADirectoryError: If a parent of the directory is not a directory.
+        TypeError: If *path* is not a path, or if the other arguments have the
+            wrong type.
+        ValueError: If *mode* holds bits outside the file mode.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    permissions = _require_mode(mode, "mode")
+    if not isinstance(parents, bool):
+        raise TypeError(f"parents must be a bool, got {type(parents).__name__}")
+    if not isinstance(exist_ok, bool):
+        raise TypeError(f"exist_ok must be a bool, got {type(exist_ok).__name__}")
+    if not parents:
+        try:
+            module.mkdir(location, permissions)
+        except FileExistsError:
+            if not exist_ok:
+                raise
+        return
+    parent = os.path.dirname(location)
+    if parent and parent != location:
+        create_directory(parent, permissions, parents=True, exist_ok=True)
+    try:
+        module.mkdir(location, permissions)
+    except FileExistsError:
+        if not exist_ok:
+            raise
+
+
+def remove_directory(path: PathLike) -> None:
+    """Remove an empty directory.
+
+    Args:
+        path: The path of the directory.
+
+    Raises:
+        TypeError: If *path* is not a path.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    module.rmdir(location)
+
+
+def delete_file(path: PathLike) -> None:
+    """Remove a file or a symbolic link.
+
+    Args:
+        path: The path of the file.
+
+    Raises:
+        TypeError: If *path* is not a path.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    module.unlink(location)
+
+
+def remove_path(path: PathLike) -> None:
+    """Remove a path whatever it is.
+
+    A symbolic link is removed instead of the file it points to, a file is
+    removed, and an empty directory is removed.
+
+    Args:
+        path: The path to remove.
+
+    Raises:
+        FileNotFoundError: If the path does not exist.
+        TypeError: If *path* is not a path.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    result = module.lstat(location)
+    if stat.S_ISDIR(int(result.st_mode)):
+        module.rmdir(location)
+    else:
+        module.unlink(location)
+
+
+def rename_path(source: PathLike, target: PathLike) -> None:
+    """Move a path to another one.
+
+    Args:
+        source: The path that is moved.
+        target: The path it is moved to.
+
+    Raises:
+        TypeError: If *source* or *target* are not paths.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    old = _require_path(source, "source")
+    new = _require_path(target, "target")
+    module.rename(old, new)
+
+
+def create_hard_link(source: PathLike, target: PathLike) -> None:
+    """Create a hard link to a file.
+
+    Args:
+        source: The path of the existing file.
+        target: The path of the link that is created.
+
+    Raises:
+        TypeError: If *source* or *target* are not paths.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    existing = _require_path(source, "source")
+    link = _require_path(target, "target")
+    module.link(existing, link)
+
+
+def create_symbolic_link(source: PathLike, target: PathLike) -> None:
+    """Create a symbolic link to a path.
+
+    Args:
+        source: The path the link points to.
+        target: The path of the link that is created.
+
+    Raises:
+        TypeError: If *source* or *target* are not paths.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    destination = _require_path(source, "source")
+    link = _require_path(target, "target")
+    module.symlink(destination, link)
+
+
+def read_symbolic_link(path: PathLike) -> str:
+    """Return the path a symbolic link points to.
+
+    Args:
+        path: The path of the symbolic link.
+
+    Returns:
+        The path the link points to.
+
+    Raises:
+        TypeError: If *path* is not a path.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    return os.fsdecode(module.readlink(location))
+
+
+def change_mode(path: PathLike, mode: int) -> None:
+    """Set the permissions of a path.
+
+    Args:
+        path: The path of the file.
+        mode: The permission bits of the file.
+
+    Raises:
+        TypeError: If *path* is not a path or *mode* is not an int.
+        ValueError: If *mode* is negative or holds bits outside the file mode.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    permissions = _require_mode(mode, "mode")
+    module.chmod(location, permissions)
+
+
+def change_owner(path: PathLike, uid: int, gid: int) -> None:
+    """Set the owner and the group of a path.
+
+    Args:
+        path: The path of the file.
+        uid: The user identifier of the new owner, or ``-1`` to keep it.
+        gid: The group identifier of the new group, or ``-1`` to keep it.
+
+    Raises:
+        TypeError: If *path* is not a path or the identifiers are not ints.
+        ValueError: If an identifier is smaller than ``-1``.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    if isinstance(uid, bool) or not isinstance(uid, int):
+        raise TypeError(f"uid must be an int, got {type(uid).__name__}")
+    if isinstance(gid, bool) or not isinstance(gid, int):
+        raise TypeError(f"gid must be an int, got {type(gid).__name__}")
+    if uid < -1:
+        raise ValueError(f"uid must not be smaller than -1, got {uid}")
+    if gid < -1:
+        raise ValueError(f"gid must not be smaller than -1, got {gid}")
+    module.chown(location, uid, gid)
+
+
+def set_umask(mask: int) -> int:
+    """Set the mask of the permissions of the files that are created.
+
+    Args:
+        mask: The mask of the permissions.
+
+    Returns:
+        The mask that was set before.
+
+    Raises:
+        TypeError: If *mask* is not an int.
+        ValueError: If *mask* is negative or holds bits outside the file mode.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    permissions = _require_mode(mask, "mask")
+    return int(module.umask(permissions))
+
+
+def read_xattr(path: PathLike, name: str, follow_symlinks: bool = True) -> bytes:
+    """Return the value of an extended attribute of a path.
+
+    Args:
+        path: The path of the file.
+        name: The name of the attribute.
+        follow_symlinks: Whether a symbolic link is resolved.
+
+    Returns:
+        The value of the attribute.
+
+    Raises:
+        TypeError: If *path* is not a path, *name* is not a string, or
+            *follow_symlinks* is not a bool.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    _require_text(name, "name")
+    if not isinstance(follow_symlinks, bool):
+        raise TypeError(
+            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
+        )
+    return bytes(module.getxattr(location, name, follow_symlinks=follow_symlinks))
+
+
+def write_xattr(
+    path: PathLike, name: str, value: bytes, follow_symlinks: bool = True
+) -> None:
+    """Set the value of an extended attribute of a path.
+
+    Args:
+        path: The path of the file.
+        name: The name of the attribute.
+        value: The value of the attribute.
+        follow_symlinks: Whether a symbolic link is resolved.
+
+    Raises:
+        TypeError: If *path* is not a path, *name* is not a string, *value* is
+            not bytes-like, or *follow_symlinks* is not a bool.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    _require_text(name, "name")
+    payload = _require_bytes(value, "value")
+    if not isinstance(follow_symlinks, bool):
+        raise TypeError(
+            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
+        )
+    module.setxattr(location, name, payload, follow_symlinks=follow_symlinks)
+
+
+def list_xattrs(path: PathLike, follow_symlinks: bool = True) -> List[str]:
+    """Return the names of the extended attributes of a path.
+
+    Args:
+        path: The path of the file.
+        follow_symlinks: Whether a symbolic link is resolved.
+
+    Returns:
+        The names of the attributes.
+
+    Raises:
+        TypeError: If *path* is not a path or *follow_symlinks* is not a bool.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    if not isinstance(follow_symlinks, bool):
+        raise TypeError(
+            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
+        )
+    return [str(item) for item in module.listxattr(location, follow_symlinks=follow_symlinks)]
+
+
+def remove_xattr(path: PathLike, name: str, follow_symlinks: bool = True) -> None:
+    """Remove an extended attribute of a path.
+
+    Args:
+        path: The path of the file.
+        name: The name of the attribute.
+        follow_symlinks: Whether a symbolic link is resolved.
+
+    Raises:
+        TypeError: If *path* is not a path, *name* is not a string, or
+            *follow_symlinks* is not a bool.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    location = _require_path(path, "path")
+    _require_text(name, "name")
+    if not isinstance(follow_symlinks, bool):
+        raise TypeError(
+            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
+        )
+    module.removexattr(location, name, follow_symlinks=follow_symlinks)
+
+
+def scheduler_policy(pid: int = 0) -> int:
+    """Return the scheduling policy of a process.
+
+    Args:
+        pid: The identifier of the process, or ``0`` for the current one.
+
+    Returns:
+        The value of the policy, such as :data:`SCHED_POLICIES`.
+
+    Raises:
+        TypeError: If *pid* is not an int.
+        ValueError: If *pid* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    process = _require_pid(pid, "pid")
+    return int(module.sched_getscheduler(process))
+
+
+def scheduler_policy_name(pid: int = 0) -> str:
+    """Return the name of the scheduling policy of a process.
+
+    Args:
+        pid: The identifier of the process, or ``0`` for the current one.
+
+    Returns:
+        The name of the policy, such as ``"SCHED_OTHER"``, or ``"SCHED_<value>"``
+        when the policy is not one the standard library names.
+
+    Raises:
+        TypeError: If *pid* is not an int.
+        ValueError: If *pid* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    policy = scheduler_policy(pid)
+    for name, value in SCHED_POLICIES.items():
+        if value == policy:
+            return name
+    return f"SCHED_{policy}"
+
+
+def scheduler_priorities(policy: int) -> Tuple[int, int]:
+    """Return the lowest and the highest priority of a scheduling policy.
+
+    Args:
+        policy: The value of the policy, such as :data:`SCHED_POLICIES`.
+
+    Returns:
+        The lowest and the highest priority of the policy.
+
+    Raises:
+        TypeError: If *policy* is not an int.
+        ValueError: If *policy* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    if isinstance(policy, bool) or not isinstance(policy, int):
+        raise TypeError(f"policy must be an int, got {type(policy).__name__}")
+    if policy < 0:
+        raise ValueError(f"policy must not be negative, got {policy}")
+    lowest = int(module.sched_get_priority_min(policy))
+    highest = int(module.sched_get_priority_max(policy))
+    return (lowest, highest)
+
+
+def scheduler_parameters(pid: int = 0) -> SchedulerParameters:
+    """Return the scheduling parameters of a process.
+
+    Args:
+        pid: The identifier of the process, or ``0`` for the current one.
+
+    Returns:
+        The name of the policy, its priority, and the lowest and the highest
+        priority of the policy.
+
+    Raises:
+        TypeError: If *pid* is not an int.
+        ValueError: If *pid* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    process = _require_pid(pid, "pid")
+    parameters = module.sched_getparam(process)
+    priority = int(parameters.sched_priority)
+    policy = int(module.sched_getscheduler(process))
+    lowest = int(module.sched_get_priority_min(policy))
+    highest = int(module.sched_get_priority_max(policy))
+    return SchedulerParameters(
+        policy=scheduler_policy_name(process),
+        priority=priority,
+        minimum_priority=lowest,
+        maximum_priority=highest,
+    )
+
+
+def affinity_mask(pid: int = 0) -> Set[int]:
+    """Return the processors a process may run on.
+
+    Args:
+        pid: The identifier of the process, or ``0`` for the current one.
+
+    Returns:
+        The identifiers of the processors.
+
+    Raises:
+        TypeError: If *pid* is not an int.
+        ValueError: If *pid* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    process = _require_pid(pid, "pid")
+    return {int(item) for item in module.sched_getaffinity(process)}
+
+
+def yield_cpu() -> None:
+    """Give up the rest of the time slice of the processor.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    module.sched_yield()
+
+
+def exit_code_of(status: int) -> int:
+    """Return the exit code of a wait status.
+
+    Args:
+        status: The status the standard library reported for a process.
+
+    Returns:
+        The exit code of the process.
+
+    Raises:
+        TypeError: If *status* is not an int.
+        ValueError: If *status* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    if isinstance(status, bool) or not isinstance(status, int):
+        raise TypeError(f"status must be an int, got {type(status).__name__}")
+    if status < 0:
+        raise ValueError(f"status must not be negative, got {status}")
+    return int(module.waitstatus_to_exitcode(status))
+
+
+def describe_wait_status(status: int) -> str:
+    """Return a readable description of a wait status.
+
+    Args:
+        status: The status the standard library reported for a process.
+
+    Returns:
+        A sentence that names what happened to the process.
+
+    Raises:
+        TypeError: If *status* is not an int.
+        ValueError: If *status* is negative.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    if isinstance(status, bool) or not isinstance(status, int):
+        raise TypeError(f"status must be an int, got {type(status).__name__}")
+    if status < 0:
+        raise ValueError(f"status must not be negative, got {status}")
+    if module.WIFEXITED(status):
+        return f"exited with code {module.WEXITSTATUS(status)}"
+    if module.WIFSIGNALED(status):
+        return f"terminated by signal {_signal_name(module.WTERMSIG(status))}"
+    if module.WIFSTOPPED(status):
+        return f"stopped by signal {_signal_name(module.WSTOPSIG(status))}"
+    if module.WIFCONTINUED(status):
+        return "continued"
+    return f"unknown wait status {status}"
+
+
+def _signal_name(number: int) -> str:
+    """Return the name of a signal number.
+
+    Args:
+        number: The number of the signal.
+
+    Returns:
+        The name of the signal, or ``"signal <number>"`` when the signal is
+        not one the standard library names.
+    """
+    try:
+        return signal.Signals(number).name
+    except ValueError:
+        return f"signal {number}"
+
+
+def error_message(code: int) -> str:
+    """Return the message of an error number.
+
+    Args:
+        code: The number of the error.
+
+    Returns:
+        The message of the error.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        RuntimeError: If the interpreter does not ship the ``posix`` module.
+    """
+    module = _posix_module()
+    if isinstance(code, bool) or not isinstance(code, int):
+        raise TypeError(f"code must be an int, got {type(code).__name__}")
+    return str(module.strerror(code))
+POSIX_UTILS
+
+# --- tests/test_posix_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_posix_utils.py" <<'TEST_POSIX_UTILS'
+"""Tests for posix_utils."""
+
+import os
+import signal
+import stat
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+import posix_utils
+from posix_utils import (
+    DeviceNumber,
+    FileInfo,
+    ProcessTimes,
+    SchedulerParameters,
+    SystemName,
+    affinity_mask,
+    change_mode,
+    change_owner,
+    close_fd,
+    cpu_count,
+    create_directory,
+    create_hard_link,
+    create_pipe,
+    create_symbolic_link,
+    delete_file,
+    describe_wait_status,
+    device_number,
+    duplicate_fd,
+    duplicate_fd_to,
+    error_message,
+    exit_code_of,
+    file_info,
+    file_mode,
+    file_size,
+    is_available,
+    is_blocking,
+    is_executable,
+    is_inheritable,
+    is_readable,
+    is_terminal,
+    is_writable,
+    list_xattrs,
+    load_average,
+    login_name,
+    make_device,
+    open_fd,
+    path_accessible,
+    process_times,
+    read_at,
+    read_exactly,
+    read_fd,
+    read_symbolic_link,
+    read_xattr,
+    remove_directory,
+    remove_path,
+    remove_xattr,
+    rename_path,
+    scheduler_parameters,
+    scheduler_policy,
+    scheduler_policy_name,
+    scheduler_priorities,
+    seek_fd,
+    set_blocking,
+    set_inheritable,
+    set_umask,
+    sync_data,
+    sync_fd,
+    system_configuration,
+    system_limit,
+    system_limits,
+    terminal_device,
+    terminal_size,
+    truncate_fd,
+    uname,
+    write_all,
+    write_at,
+    write_fd,
+    write_xattr,
+    yield_cpu,
+)
+
+HAVE_POSIX = is_available()
+
+#: The status of a process that exited with the code 0.
+STATUS_EXITED = 0
+
+#: The status of a process that exited with the code 3.
+STATUS_EXITED_THREE = 3 << 8
+
+#: The status of a process that was terminated by ``SIGTERM``.
+STATUS_SIGNALED = int(signal.SIGTERM)
+
+#: The status of a process that was stopped by ``SIGSTOP``.
+STATUS_STOPPED = (int(signal.SIGSTOP) << 8) | 0x7F
+
+#: The status of a process that continued.
+STATUS_CONTINUED = 0xFFFF
+
+
+class TestAvailability(unittest.TestCase):
+    """The wrapper reports whether the interpreter ships the module."""
+
+    def test_is_available_matches_the_import(self):
+        self.assertEqual(is_available(), HAVE_POSIX)
+
+    def test_helpers_raise_when_the_module_is_missing(self):
+        with mock.patch.object(posix_utils, "_posix", None):
+            self.assertFalse(is_available())
+            with self.assertRaises(RuntimeError):
+                uname()
+            with self.assertRaises(RuntimeError):
+                create_pipe()
+            with self.assertRaises(RuntimeError):
+                file_size("/tmp")
+
+
+class TestSystemInformation(unittest.TestCase):
+    """The wrapper reports the information of the running system."""
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_uname_reports_the_five_fields(self):
+        result = uname()
+        self.assertIsInstance(result, SystemName)
+        self.assertTrue(result.system)
+        self.assertTrue(result.node)
+        self.assertTrue(result.release)
+        self.assertTrue(result.machine)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_cpu_count_is_positive(self):
+        count = cpu_count()
+        self.assertTrue(count is None or count > 0)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_load_average_has_three_values(self):
+        average = load_average()
+        self.assertEqual(len(average), 3)
+        for value in average:
+            self.assertGreaterEqual(value, 0.0)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_process_times_reports_the_five_fields(self):
+        times = process_times()
+        self.assertIsInstance(times, ProcessTimes)
+        self.assertGreaterEqual(times.elapsed, 0.0)
+        self.assertGreaterEqual(times.user, 0.0)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_system_limit_reports_a_known_limit(self):
+        self.assertGreater(system_limit("SC_PAGE_SIZE"), 0)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_system_limit_rejects_an_unknown_limit(self):
+        with self.assertRaises(ValueError):
+            system_limit("SC_NOT_A_LIMIT")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_system_limits_reports_the_default_limits(self):
+        limits = system_limits()
+        self.assertIn("SC_PAGE_SIZE", limits)
+        self.assertGreater(limits["SC_PAGE_SIZE"], 0)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_system_limits_rejects_an_unknown_limit(self):
+        with self.assertRaises(ValueError):
+            system_limits(["SC_NOT_A_LIMIT"])
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_system_limits_rejects_a_string(self):
+        with self.assertRaises(TypeError):
+            system_limits("SC_PAGE_SIZE")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_system_configuration_reports_a_known_configuration(self):
+        value = system_configuration("CS_PATH")
+        self.assertIsInstance(value, str)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_system_configuration_rejects_an_unknown_configuration(self):
+        with self.assertRaises(ValueError):
+            system_configuration("CS_NOT_A_CONFIGURATION")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_login_name_is_a_string_or_none(self):
+        name = login_name()
+        self.assertTrue(name is None or isinstance(name, str))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_terminal_device_is_a_path(self):
+        self.assertIsInstance(terminal_device(), str)
+
+
+class TestDescriptors(unittest.TestCase):
+    """The wrapper reads and writes through the file descriptors."""
+
+    def setUp(self):
+        self.descriptors = []
+
+    def tearDown(self):
+        for descriptor in self.descriptors:
+            try:
+                close_fd(descriptor)
+            except OSError:  # pragma: no cover - the descriptor is already closed
+                pass
+
+    def track(self, descriptor):
+        """Remember a descriptor so that the test closes it."""
+        self.descriptors.append(descriptor)
+        return descriptor
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_open_fd_creates_and_reads_a_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            descriptor = self.track(
+                open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600)
+            )
+            write_all(descriptor, b"hello")
+            self.assertEqual(file_size(path), 5)
+            self.assertEqual(read_at(descriptor, 5, 0), b"hello")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_read_fd_returns_what_is_available(self):
+        read_descriptor, write_descriptor = create_pipe()
+        self.track(read_descriptor)
+        self.track(write_descriptor)
+        write_all(write_descriptor, b"abc")
+        self.assertEqual(read_fd(read_descriptor, 10), b"abc")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_read_fd_rejects_a_negative_size(self):
+        with self.assertRaises(ValueError):
+            read_fd(0, -1)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_read_exactly_collects_every_byte(self):
+        read_descriptor, write_descriptor = create_pipe()
+        self.track(read_descriptor)
+        self.track(write_descriptor)
+        write_all(write_descriptor, b"0123456789")
+        self.assertEqual(read_exactly(read_descriptor, 10), b"0123456789")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_read_exactly_raises_at_the_end_of_the_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            with open(path, "wb") as handle:
+                handle.write(b"abc")
+            descriptor = self.track(open_fd(path, os.O_RDONLY))
+            with self.assertRaises(EOFError):
+                read_exactly(descriptor, 5)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_read_exactly_of_no_byte_is_empty(self):
+        read_descriptor, _ = create_pipe()
+        self.track(read_descriptor)
+        self.assertEqual(read_exactly(read_descriptor, 0), b"")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_write_fd_reports_the_number_of_bytes(self):
+        read_descriptor, write_descriptor = create_pipe()
+        self.track(read_descriptor)
+        self.track(write_descriptor)
+        self.assertEqual(write_fd(write_descriptor, b"abcd"), 4)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_write_fd_rejects_a_string(self):
+        read_descriptor, write_descriptor = create_pipe()
+        self.track(read_descriptor)
+        self.track(write_descriptor)
+        with self.assertRaises(TypeError):
+            write_fd(write_descriptor, "abcd")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_write_all_writes_every_byte(self):
+        read_descriptor, write_descriptor = create_pipe()
+        self.track(read_descriptor)
+        self.track(write_descriptor)
+        payload = b"payload"
+        self.assertEqual(write_all(write_descriptor, payload), len(payload))
+        self.assertEqual(read_exactly(read_descriptor, len(payload)), payload)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_seek_fd_moves_the_position(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            with open(path, "wb") as handle:
+                handle.write(b"abcdef")
+            descriptor = self.track(open_fd(path, os.O_RDONLY))
+            self.assertEqual(seek_fd(descriptor, 2, os.SEEK_SET), 2)
+            self.assertEqual(read_fd(descriptor, 2), b"cd")
+            self.assertEqual(seek_fd(descriptor, 0, os.SEEK_END), 6)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_seek_fd_rejects_an_unknown_origin(self):
+        with self.assertRaises(ValueError):
+            seek_fd(0, 0, 99)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_write_at_does_not_move_the_position(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            descriptor = self.track(
+                open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600)
+            )
+            write_at(descriptor, b"world", 6)
+            write_at(descriptor, b"hello ", 0)
+            self.assertEqual(read_at(descriptor, 11, 0), b"hello world")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_duplicate_fd_shares_the_position(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            with open(path, "wb") as handle:
+                handle.write(b"abcdef")
+            descriptor = self.track(open_fd(path, os.O_RDONLY))
+            copy = self.track(duplicate_fd(descriptor))
+            seek_fd(descriptor, 3, os.SEEK_SET)
+            self.assertEqual(seek_fd(copy, 0, os.SEEK_CUR), 3)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_duplicate_fd_to_replaces_the_target(self):
+        read_descriptor, write_descriptor = create_pipe()
+        self.track(read_descriptor)
+        self.track(write_descriptor)
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            with open(path, "wb") as handle:
+                handle.write(b"hello")
+            descriptor = self.track(open_fd(path, os.O_RDONLY))
+            target = duplicate_fd_to(descriptor, read_descriptor)
+            self.assertEqual(target, read_descriptor)
+            self.assertEqual(read_fd(read_descriptor, 5), b"hello")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_create_pipe_returns_two_descriptors(self):
+        read_descriptor, write_descriptor = create_pipe()
+        self.track(read_descriptor)
+        self.track(write_descriptor)
+        self.assertNotEqual(read_descriptor, write_descriptor)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_create_pipe_rejects_a_non_bool(self):
+        with self.assertRaises(TypeError):
+            create_pipe("yes")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_a_pipe_is_not_a_terminal(self):
+        read_descriptor, write_descriptor = create_pipe()
+        self.track(read_descriptor)
+        self.track(write_descriptor)
+        self.assertFalse(is_terminal(read_descriptor))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_set_blocking_changes_the_mode(self):
+        read_descriptor, write_descriptor = create_pipe()
+        self.track(read_descriptor)
+        self.track(write_descriptor)
+        set_blocking(read_descriptor, False)
+        self.assertFalse(is_blocking(read_descriptor))
+        set_blocking(read_descriptor, True)
+        self.assertTrue(is_blocking(read_descriptor))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_set_inheritable_changes_the_flag(self):
+        read_descriptor, write_descriptor = create_pipe()
+        self.track(read_descriptor)
+        self.track(write_descriptor)
+        set_inheritable(read_descriptor, False)
+        self.assertFalse(is_inheritable(read_descriptor))
+        set_inheritable(read_descriptor, True)
+        self.assertTrue(is_inheritable(read_descriptor))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_sync_fd_and_sync_data_write_the_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            descriptor = self.track(
+                open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600)
+            )
+            write_all(descriptor, b"data")
+            sync_fd(descriptor)
+            sync_data(descriptor)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_truncate_fd_sets_the_length(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            with open(path, "wb") as handle:
+                handle.write(b"abcdef")
+            descriptor = self.track(open_fd(path, os.O_RDWR))
+            truncate_fd(descriptor, 3)
+            self.assertEqual(file_size(path), 3)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_terminal_size_reports_the_size_of_a_terminal(self):
+        try:
+            import fcntl
+            import struct
+            import termios
+        except ImportError:  # pragma: no cover - the platform is not Unix like
+            self.skipTest("the platform does not provide the terminal helpers")
+        try:
+            master, slave = os.openpty()
+        except OSError:  # pragma: no cover - the platform has no pseudo terminals
+            self.skipTest("the platform does not provide pseudo terminals")
+        try:
+            fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 24, 80, 0, 0))
+            columns, lines = terminal_size(slave)
+            self.assertEqual(columns, 80)
+            self.assertEqual(lines, 24)
+        finally:
+            os.close(slave)
+            os.close(master)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_terminal_size_rejects_a_descriptor_that_is_not_a_terminal(self):
+        read_descriptor, write_descriptor = create_pipe()
+        self.track(read_descriptor)
+        self.track(write_descriptor)
+        with self.assertRaises(OSError):
+            terminal_size(read_descriptor)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_the_helpers_reject_a_descriptor_that_is_not_an_int(self):
+        with self.assertRaises(TypeError):
+            close_fd("0")
+        with self.assertRaises(TypeError):
+            read_fd(True, 1)
+        with self.assertRaises(ValueError):
+            read_fd(-1, 1)
+
+
+class TestFiles(unittest.TestCase):
+    """The wrapper inspects and changes the files of the filesystem."""
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_file_info_reports_the_metadata(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "file.txt"
+            path.write_bytes(b"hello")
+            info = file_info(path)
+            self.assertIsInstance(info, FileInfo)
+            self.assertEqual(info.size, 5)
+            self.assertTrue(info.is_regular_file)
+            self.assertFalse(info.is_directory)
+            self.assertFalse(info.is_symbolic_link)
+            self.assertEqual(info.permissions, stat.S_IMODE(os.stat(path).st_mode))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_file_info_of_a_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            info = file_info(directory)
+            self.assertTrue(info.is_directory)
+            self.assertFalse(info.is_regular_file)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_file_info_describes_a_symbolic_link(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "file.txt"
+            target.write_bytes(b"hello")
+            link = Path(directory) / "link.txt"
+            link.symlink_to(target)
+            self.assertTrue(file_info(link, follow_symlinks=False).is_symbolic_link)
+            self.assertTrue(file_info(link).is_regular_file)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_file_info_rejects_a_non_bool(self):
+        with self.assertRaises(TypeError):
+            file_info("/tmp", follow_symlinks="yes")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_file_mode_and_file_size(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "file.txt"
+            path.write_bytes(b"hello")
+            self.assertEqual(file_mode(path), stat.S_IMODE(os.stat(path).st_mode))
+            self.assertEqual(file_size(path), 5)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_device_number_reports_the_major_and_minor_number(self):
+        with tempfile.TemporaryDirectory() as directory:
+            number = device_number(directory)
+            self.assertIsInstance(number, DeviceNumber)
+            self.assertGreaterEqual(number.major, 0)
+            self.assertGreaterEqual(number.minor, 0)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_make_device_reverses_the_major_and_minor_number(self):
+        number = make_device(8, 1)
+        self.assertIsInstance(number, int)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_make_device_rejects_a_negative_number(self):
+        with self.assertRaises(ValueError):
+            make_device(-1, 0)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_path_accessible_reports_the_modes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            with open(path, "wb"):
+                pass
+            self.assertTrue(path_accessible(path, os.F_OK))
+            self.assertTrue(is_readable(path))
+            self.assertTrue(is_writable(path))
+            self.assertFalse(is_executable(path))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_path_accessible_rejects_an_unknown_mode(self):
+        with self.assertRaises(ValueError):
+            path_accessible("/tmp", 42)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_create_directory_creates_one_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "child")
+            create_directory(path)
+            self.assertTrue(os.path.isdir(path))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_create_directory_creates_the_parents(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "one", "two", "three")
+            create_directory(path, parents=True)
+            self.assertTrue(os.path.isdir(path))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_create_directory_accepts_an_existing_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "child")
+            create_directory(path)
+            create_directory(path, exist_ok=True)
+            with self.assertRaises(FileExistsError):
+                create_directory(path)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_create_directory_rejects_a_mode_with_foreign_bits(self):
+        with self.assertRaises(ValueError):
+            create_directory("/tmp/example", mode=0o10000)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_remove_directory_removes_an_empty_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "child")
+            create_directory(path)
+            remove_directory(path)
+            self.assertFalse(os.path.exists(path))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_delete_file_removes_a_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            with open(path, "wb"):
+                pass
+            delete_file(path)
+            self.assertFalse(os.path.exists(path))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_remove_path_removes_a_file_a_link_and_a_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = os.path.join(directory, "file.txt")
+            with open(target, "wb"):
+                pass
+            link = os.path.join(directory, "link.txt")
+            create_symbolic_link(target, link)
+            remove_path(link)
+            self.assertTrue(os.path.exists(target))
+            remove_path(target)
+            self.assertFalse(os.path.exists(target))
+            child = os.path.join(directory, "child")
+            create_directory(child)
+            remove_path(child)
+            self.assertFalse(os.path.exists(child))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_rename_path_moves_a_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = os.path.join(directory, "old.txt")
+            target = os.path.join(directory, "new.txt")
+            with open(source, "wb") as handle:
+                handle.write(b"data")
+            rename_path(source, target)
+            self.assertFalse(os.path.exists(source))
+            self.assertTrue(os.path.exists(target))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_create_hard_link_points_at_the_same_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = os.path.join(directory, "file.txt")
+            link = os.path.join(directory, "link.txt")
+            with open(source, "wb") as handle:
+                handle.write(b"data")
+            create_hard_link(source, link)
+            self.assertEqual(os.stat(source).st_ino, os.stat(link).st_ino)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_create_symbolic_link_and_read_it(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = os.path.join(directory, "file.txt")
+            link = os.path.join(directory, "link.txt")
+            with open(target, "wb"):
+                pass
+            create_symbolic_link(target, link)
+            self.assertEqual(read_symbolic_link(link), target)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_change_mode_sets_the_permissions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            with open(path, "wb"):
+                pass
+            change_mode(path, 0o600)
+            self.assertEqual(file_mode(path), 0o600)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_change_owner_keeps_the_owner(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "file.txt")
+            with open(path, "wb"):
+                pass
+            change_owner(path, -1, -1)
+            self.assertEqual(os.stat(path).st_uid, os.getuid())
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_change_owner_rejects_an_identifier_below_minus_one(self):
+        with self.assertRaises(ValueError):
+            change_owner("/tmp", -2, -1)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_set_umask_reports_the_previous_mask(self):
+        previous = set_umask(0o022)
+        try:
+            self.assertIsInstance(previous, int)
+            self.assertEqual(set_umask(0o022), 0o022)
+        finally:
+            set_umask(previous)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_the_helpers_reject_a_path_that_is_not_a_path(self):
+        with self.assertRaises(TypeError):
+            file_info(42)
+        with self.assertRaises(TypeError):
+            file_size(None)
+
+
+class TestExtendedAttributes(unittest.TestCase):
+    """The wrapper reads and writes the extended attributes of a file."""
+
+    def setUp(self):
+        if not HAVE_POSIX:
+            self.skipTest("the posix module is not available")
+        self.directory = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.directory.name, "file.txt")
+        with open(self.path, "wb"):
+            pass
+        try:
+            write_xattr(self.path, "user.posix_utils", b"value")
+        except OSError as error:  # pragma: no cover - the filesystem has no support
+            self.directory.cleanup()
+            self.skipTest(f"the filesystem has no extended attributes: {error}")
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def test_read_xattr_reports_the_value(self):
+        self.assertEqual(read_xattr(self.path, "user.posix_utils"), b"value")
+
+    def test_write_xattr_replaces_the_value(self):
+        write_xattr(self.path, "user.posix_utils", b"other")
+        self.assertEqual(read_xattr(self.path, "user.posix_utils"), b"other")
+
+    def test_list_xattrs_reports_the_names(self):
+        self.assertIn("user.posix_utils", list_xattrs(self.path))
+
+    def test_remove_xattr_removes_the_attribute(self):
+        remove_xattr(self.path, "user.posix_utils")
+        self.assertNotIn("user.posix_utils", list_xattrs(self.path))
+
+    def test_the_helpers_reject_a_name_that_is_not_a_string(self):
+        with self.assertRaises(TypeError):
+            read_xattr(self.path, 42)
+        with self.assertRaises(TypeError):
+            write_xattr(self.path, "user.posix_utils", "value")
+        with self.assertRaises(TypeError):
+            remove_xattr(self.path, 42)
+
+
+class TestScheduling(unittest.TestCase):
+    """The wrapper reports the scheduling of a process."""
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_scheduler_policy_reports_a_known_policy(self):
+        policy = scheduler_policy()
+        self.assertIn(policy, posix_utils.SCHED_POLICIES.values())
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_scheduler_policy_name_names_the_policy(self):
+        name = scheduler_policy_name()
+        self.assertIn(name, posix_utils.SCHED_POLICIES)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_scheduler_priorities_reports_the_range(self):
+        lowest, highest = scheduler_priorities(posix_utils.SCHED_POLICIES["SCHED_OTHER"])
+        self.assertLessEqual(lowest, highest)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_scheduler_priorities_rejects_a_negative_policy(self):
+        with self.assertRaises(ValueError):
+            scheduler_priorities(-1)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_scheduler_parameters_reports_the_policy_and_the_priority(self):
+        parameters = scheduler_parameters()
+        self.assertIsInstance(parameters, SchedulerParameters)
+        self.assertIn(parameters.policy, posix_utils.SCHED_POLICIES)
+        self.assertLessEqual(parameters.minimum_priority, parameters.maximum_priority)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_affinity_mask_reports_the_processors(self):
+        mask = affinity_mask()
+        self.assertIsInstance(mask, set)
+        for processor in mask:
+            self.assertGreaterEqual(processor, 0)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_yield_cpu_gives_up_the_time_slice(self):
+        yield_cpu()
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_the_helpers_reject_a_process_that_is_not_an_int(self):
+        with self.assertRaises(TypeError):
+            scheduler_policy("0")
+        with self.assertRaises(ValueError):
+            affinity_mask(-1)
+
+
+class TestWaitStatus(unittest.TestCase):
+    """The wrapper turns a wait status into an exit code and a sentence."""
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_exit_code_of_a_process_that_exited(self):
+        self.assertEqual(exit_code_of(STATUS_EXITED), 0)
+        self.assertEqual(exit_code_of(STATUS_EXITED_THREE), 3)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_exit_code_of_a_process_that_was_signalled(self):
+        self.assertEqual(exit_code_of(STATUS_SIGNALED), -int(signal.SIGTERM))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_exit_code_rejects_a_negative_status(self):
+        with self.assertRaises(ValueError):
+            exit_code_of(-1)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_describe_wait_status_of_a_process_that_exited(self):
+        self.assertEqual(describe_wait_status(STATUS_EXITED), "exited with code 0")
+        self.assertEqual(describe_wait_status(STATUS_EXITED_THREE), "exited with code 3")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_describe_wait_status_of_a_process_that_was_signalled(self):
+        description = describe_wait_status(STATUS_SIGNALED)
+        self.assertIn("SIGTERM", description)
+        self.assertIn("terminated by signal", description)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_describe_wait_status_of_a_process_that_was_stopped(self):
+        description = describe_wait_status(STATUS_STOPPED)
+        self.assertIn("SIGSTOP", description)
+        self.assertIn("stopped by signal", description)
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_describe_wait_status_of_a_process_that_continued(self):
+        self.assertEqual(describe_wait_status(STATUS_CONTINUED), "continued")
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_describe_wait_status_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            describe_wait_status("0")
+
+
+class TestErrorMessage(unittest.TestCase):
+    """The wrapper reports the message of an error number."""
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_error_message_of_a_known_error(self):
+        self.assertIn("No such file", error_message(2))
+
+    @unittest.skipUnless(HAVE_POSIX, "the posix module is not available")
+    def test_error_message_rejects_a_non_int(self):
+        with self.assertRaises(TypeError):
+            error_message("2")
+
+
+class TestPublicApi(unittest.TestCase):
+    """The module exposes a stable and complete public API."""
+
+    def test_all_is_sorted_and_unique(self):
+        self.assertEqual(len(posix_utils.__all__), len(set(posix_utils.__all__)))
+        self.assertEqual(posix_utils.__all__, sorted(posix_utils.__all__))
+
+    def test_every_name_of_all_exists(self):
+        for name in posix_utils.__all__:
+            with self.subTest(name=name):
+                self.assertTrue(hasattr(posix_utils, name))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_POSIX_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
