@@ -563,3 +563,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_telnetlib_utils.py` — unit tests for `telnetlib_utils.py`
 - `sre_constants_utils.py` — Regular expression constants utilities wrapping the standard library `sre_constants` module (`get_opcodes`, `opcodenames`, `lookup_opcode`, `op_code`, `assert_valid_flags`, `get_all`, `error_codes`, `is_available`) with input validation
 - `tests/test_sre_constants_utils.py` — unit tests for `sre_constants_utils.py`
+- `sre_compile_utils.py` — Regular expression compile utilities wrapping the standard library `sre_compile` module (`compile_pattern`, `is_available`) with input validation
+- `tests/test_sre_compile_utils.py` — unit tests for `sre_compile_utils.py`
