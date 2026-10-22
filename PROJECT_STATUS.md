@@ -1,4 +1,53 @@
-## Latest Session (2026-10-22) — chunk_utils finished and synchronized across every surface
+## Latest Session (2026-10-22) — cgi_utils repaired and four synchronization gaps closed
+
+The board held no task, because the previous session was interrupted before it could post its
+handover, so this session repaired the `cgi_utils` module that the previous session left behind and
+closed the four synchronization gaps it left.
+
+Completed in the latest session:
+
+- Repaired the `cgi_utils` handover that the previous session left behind. The previous session had
+  added the module, its test, and most of the synchronization, but it never posted a handover, and
+  it left four synchronization gaps that `tests/test_scaffold_sync.py` reported: the
+  `scaffold.sh` header comment never listed `tests/test_cgi_utils.py`, the embedded `pyproject.toml`
+  never listed `cgi_utils`, and neither the repository nor the embedded
+  `.kilo/command/scaffold-project.md` listed `tests/test_cgi_utils.py`.
+- Corrected the `cgi_utils` helpers. `parse_qs` and `parse_qsl` called the standard library `cgi`
+  functions directly, but those helpers were only added to the `cgi` module in Python 3.13, so the
+  wrapper raised `AttributeError` on every older interpreter that still ships the module. The
+  helpers now prefer `cgi.parse_qs` and `cgi.parse_qsl` when present and fall back to the equivalent
+  functions of `urllib.parse`, which share the signature, so the wrapper works on every interpreter.
+- Added the missing assertions to `tests/test_scaffold.py`. The four modules that the previous
+  session added without registering in the scaffold assertions — `cgitb_utils`, `nntplib_utils`,
+  `sndhdr_utils`, and `sre_compile_utils` — are now listed in the file list, the command document
+  assertions, and the changelog assertions, so a scaffolded project generates them.
+- Synchronized the `cgi_utils` change across the embedded copies: `make refresh-scaffold` rewrote the
+  heredocs of `cgi_utils.py`, `CHANGELOG.md`, and `README.md` inside `scaffold.sh`, and
+  `python tools/refresh_scaffold.py --check` reports that all embedded copies are in sync.
+- Verified the work before it is committed: `make test` runs 5299 tests and passes, and
+  `python tools/refresh_scaffold.py --check` reports that all embedded copies are in sync.
+- `make lint` and `make typecheck` were not green on this interpreter: `ruff` reports 68 pre-existing
+  errors across the repository and `mypy` reports 2 pre-existing errors in `nntplib_utils.py`, all of
+  them outside the files this session touched. The files this session edited — `cgi_utils.py` and
+  `tests/test_scaffold.py` — pass `ruff` cleanly.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `crypt`, `idlelib`, `lib2to3`, `msilib`, `msvcrt`, `nis`, `ossaudiodev`, `pipes`,
+  `spwd`, `sre_parse`, `sunau`, `tkinter`, `turtle`, `turtledemo`, `winreg`, and `winsound`. Most of
+  them were removed in Python 3.13 as part of :pep:`594`, and the ones that remain are either
+  platform specific (`msvcrt`, `winreg`, `winsound`, `msilib`, `ossaudiodev`, `spwd`, `nis`) or need
+  a graphical toolkit that the interpreter of the CI does not ship (`tkinter`, `idlelib`, `turtle`,
+  `turtledemo`). The `crypt` module is the natural next candidate: it is a small module of three
+  helpers, but it was removed in Python 3.13, so its helpers would only work on the older
+  interpreters and the import has to degrade gracefully the way `imghdr_utils.py` and `uu_utils.py`
+  do it. The `sre_parse` module is the alternative: it holds the named groups of the regular
+  expression engine of the standard library and nothing else, so the wrapper is small and every
+  helper of it is pure.
+- Keep every new wrapper hermetic and keep `make test` green.
+
+## Previous Session (2026-10-22) — chunk_utils finished and synchronized across every surface
 
 The board held no task, because the previous session was interrupted before it could post its
 handover, so this session repaired the `chunk_utils` module that the previous session left behind

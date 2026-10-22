@@ -637,6 +637,14 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_pipes_utils.py",
             "crypt_utils.py",
             "tests/test_crypt_utils.py",
+            "cgitb_utils.py",
+            "tests/test_cgitb_utils.py",
+            "nntplib_utils.py",
+            "tests/test_nntplib_utils.py",
+            "sndhdr_utils.py",
+            "tests/test_sndhdr_utils.py",
+            "sre_compile_utils.py",
+            "tests/test_sre_compile_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -1246,6 +1254,14 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_cgi_utils.py",
             "crypt_utils.py",
             "tests/test_crypt_utils.py",
+            "cgitb_utils.py",
+            "tests/test_cgitb_utils.py",
+            "nntplib_utils.py",
+            "tests/test_nntplib_utils.py",
+            "sndhdr_utils.py",
+            "tests/test_sndhdr_utils.py",
+            "sre_compile_utils.py",
+            "tests/test_sre_compile_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -1665,6 +1681,14 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_chunk_utils.py",
             "crypt_utils.py",
             "tests/test_crypt_utils.py",
+            "cgitb_utils.py",
+            "tests/test_cgitb_utils.py",
+            "nntplib_utils.py",
+            "tests/test_nntplib_utils.py",
+            "sndhdr_utils.py",
+            "tests/test_sndhdr_utils.py",
+            "sre_compile_utils.py",
+            "tests/test_sre_compile_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 

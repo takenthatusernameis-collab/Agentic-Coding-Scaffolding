@@ -36,6 +36,74 @@ try:
 except ImportError:  # pragma: no cover - Python 3.13 removed the module
     _cgi = None  # type: ignore[assignment]
 
+# ``cgi.parse_qs`` and ``cgi.parse_qsl`` were only added in Python 3.13, so on
+# the interpreters that still ship the ``cgi`` module the helpers fall back to
+# the equivalent functions of :mod:`urllib.parse`, which share the signature.
+try:
+    import urllib.parse as _urlparse
+except ImportError:  # pragma: no cover - urllib.parse is part of the core
+    _urlparse = None  # type: ignore[assignment]
+
+
+def _parse_qs(qs: str, keep_blank_values: int = 0, strict_parsing: int = 0,
+              encoding: str = "utf-8", errors: str = "replace",
+              max_num_fields: Optional[int] = None,
+              separator: str = "&") -> Dict[str, List[str]]:
+    """Parse a query string into a dictionary, preferring ``cgi`` when present."""
+    module = _cgi_module()
+    func = getattr(module, "parse_qs", None)
+    if func is not None:
+        try:
+            return cast(Dict[str, List[str]], func(
+                qs, keep_blank_values=keep_blank_values,
+                strict_parsing=strict_parsing, encoding=encoding,
+                errors=errors, max_num_fields=max_num_fields, separator=separator,
+            ))
+        except TypeError:
+            return cast(Dict[str, List[str]], func(
+                qs, keep_blank_values=keep_blank_values,
+                strict_parsing=strict_parsing,
+            ))
+    if _urlparse is None:  # pragma: no cover - urllib.parse is always present
+        raise RuntimeError(
+            "neither 'cgi.parse_qs' nor 'urllib.parse.parse_qs' is available"
+        )
+    return cast(Dict[str, List[str]], _urlparse.parse_qs(
+        qs, keep_blank_values=bool(keep_blank_values),
+        strict_parsing=bool(strict_parsing), encoding=encoding,
+        errors=errors, max_num_fields=max_num_fields, separator=separator,
+    ))
+
+
+def _parse_qsl(qs: str, keep_blank_values: int = 0, strict_parsing: int = 0,
+               encoding: str = "utf-8", errors: str = "replace",
+               max_num_fields: Optional[int] = None,
+               separator: str = "&") -> List[Tuple[str, str]]:
+    """Parse a query string into a list of tuples, preferring ``cgi`` when present."""
+    module = _cgi_module()
+    func = getattr(module, "parse_qsl", None)
+    if func is not None:
+        try:
+            return cast(List[Tuple[str, str]], func(
+                qs, keep_blank_values=keep_blank_values,
+                strict_parsing=strict_parsing, encoding=encoding,
+                errors=errors, max_num_fields=max_num_fields, separator=separator,
+            ))
+        except TypeError:
+            return cast(List[Tuple[str, str]], func(
+                qs, keep_blank_values=keep_blank_values,
+                strict_parsing=strict_parsing,
+            ))
+    if _urlparse is None:  # pragma: no cover - urllib.parse is always present
+        raise RuntimeError(
+            "neither 'cgi.parse_qsl' nor 'urllib.parse.parse_qsl' is available"
+        )
+    return cast(List[Tuple[str, str]], _urlparse.parse_qsl(
+        qs, keep_blank_values=bool(keep_blank_values),
+        strict_parsing=bool(strict_parsing), encoding=encoding,
+        errors=errors, max_num_fields=max_num_fields, separator=separator,
+    ))
+
 
 def _cgi_module() -> Any:
     """Return the standard library ``cgi`` module."""
@@ -108,16 +176,11 @@ def parse_qs(qs: Any, keep_blank_values: int = 0, strict_parsing: int = 0,
             raise ValueError("max_num_fields must be at least 1")
     if not isinstance(separator, str):
         raise TypeError("separator must be a str")
-    module = _cgi_module()
-    try:
-        return cast(Dict[str, List[str]], module.parse_qs(qs, keep_blank_values=keep_blank_values,
-                               strict_parsing=strict_parsing, encoding=encoding,
-                               errors=errors, max_num_fields=max_num_fields,
-                               separator=separator))
-    except TypeError:
-        # Python 3.7 compatibility
-        return cast(Dict[str, List[str]], module.parse_qs(qs, keep_blank_values=keep_blank_values,
-                               strict_parsing=strict_parsing))
+    return _parse_qs(
+        qs, keep_blank_values=keep_blank_values, strict_parsing=strict_parsing,
+        encoding=encoding, errors=errors, max_num_fields=max_num_fields,
+        separator=separator,
+    )
 
 
 def parse_qsl(qs: Any, keep_blank_values: int = 0, strict_parsing: int = 0,
@@ -140,15 +203,11 @@ def parse_qsl(qs: Any, keep_blank_values: int = 0, strict_parsing: int = 0,
             raise ValueError("max_num_fields must be at least 1")
     if not isinstance(separator, str):
         raise TypeError("separator must be a str")
-    module = _cgi_module()
-    try:
-        return cast(List[Tuple[str, str]], module.parse_qsl(qs, keep_blank_values=keep_blank_values,
-                                strict_parsing=strict_parsing, encoding=encoding,
-                                errors=errors, max_num_fields=max_num_fields,
-                                separator=separator))
-    except TypeError:
-        return cast(List[Tuple[str, str]], module.parse_qsl(qs, keep_blank_values=keep_blank_values,
-                                strict_parsing=strict_parsing))
+    return _parse_qsl(
+        qs, keep_blank_values=keep_blank_values, strict_parsing=strict_parsing,
+        encoding=encoding, errors=errors, max_num_fields=max_num_fields,
+        separator=separator,
+    )
 
 
 def parse_header(line: Any) -> Tuple[str, Dict[str, str]]:
