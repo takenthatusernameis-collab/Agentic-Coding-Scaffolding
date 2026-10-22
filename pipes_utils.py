@@ -23,7 +23,7 @@ interpreter ships the module, and normalizes the API.
 from __future__ import annotations
 
 import warnings
-from typing import Any, List, Optional
+from typing import Any, List
 
 __all__ = [
     "FILEIN_FILEOUT",
@@ -41,29 +41,30 @@ __all__ = [
     "step_kinds",
 ]
 
-#: Step kind constants re-exported from the standard library.
-SOURCE = "SOURCE"
-SINK = "SINK"
-FILEIN_FILEOUT = "FILEIN_FILEOUT"
-FILEIN_STDOUT = "FILEIN_STDOUT"
-STDIN_FILEOUT = "STDIN_FILEOUT"
-STDIN_STDOUT = "STDIN_STDOUT"
-
-VALID_STEP_KINDS = {
-    SOURCE,
-    SINK,
-    FILEIN_FILEOUT,
-    FILEIN_STDOUT,
-    STDIN_FILEOUT,
-    STDIN_STDOUT,
-}
-
 try:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DeprecationWarning)
         import pipes as _pipes
 except ImportError:  # pragma: no cover - Python 3.13 removed the module
     _pipes = None  # type: ignore[assignment]
+
+#: Step kind constants re-exported from the standard library.
+FILEIN_FILEOUT = getattr(_pipes, "FILEIN_FILEOUT", "ff")
+STDIN_FILEOUT = getattr(_pipes, "STDIN_FILEOUT", "-f")
+FILEIN_STDOUT = getattr(_pipes, "FILEIN_STDOUT", "f-")
+STDIN_STDOUT = getattr(_pipes, "STDIN_STDOUT", "--")
+SOURCE = getattr(_pipes, "SOURCE", ".-")
+SINK = getattr(_pipes, "SINK", "-.")
+
+#: The kinds a pipeline step can have.
+VALID_STEP_KINDS = (
+    FILEIN_FILEOUT,
+    STDIN_FILEOUT,
+    FILEIN_STDOUT,
+    STDIN_STDOUT,
+    SOURCE,
+    SINK,
+)
 
 
 def _pipes_module() -> Any:
@@ -90,30 +91,6 @@ def _require_str(value: Any, name: str) -> str:
     return value
 
 
-def _require_optional_str(value: Any, name: str) -> Optional[str]:
-    """Return *value* when it is a string or ``None``."""
-    if value is None:
-        return None
-    if not isinstance(value, str):
-        raise TypeError(f"{name} must be a str or None, got {type(value).__name__}")
-    return value
-
-
-def _require_bool(value: Any, name: str) -> bool:
-    """Return *value* as a bool, rejecting other types."""
-    if not isinstance(value, bool):
-        raise TypeError(f"{name} must be a bool, got {type(value).__name__}")
-    return value
-
-
-def _require_step_kind(value: Any, name: str) -> str:
-    """Return *value* as a valid step kind."""
-    kind = _require_str(value, name)
-    if kind not in VALID_STEP_KINDS:
-        raise ValueError(f"{name} must be one of {VALID_STEP_KINDS}, got {kind!r}")
-    return kind
-
-
 def is_available() -> bool:
     """Return ``True`` when the standard library ships the ``pipes`` module."""
     return _pipes is not None
@@ -133,7 +110,7 @@ def quote_command(command: Any) -> str:
 
 def step_kinds() -> List[str]:
     """Return the valid kinds of pipeline steps."""
-    return sorted(VALID_STEP_KINDS)
+    return list(VALID_STEP_KINDS)
 
 
 class _TemplateProxy:

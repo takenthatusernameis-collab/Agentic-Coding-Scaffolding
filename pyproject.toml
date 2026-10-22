@@ -290,4 +290,5 @@ py_modules = [
     "builtins_utils",
     "imghdr_utils",
     "posix_utils",
+    "crypt_utils",
 ]

@@ -152,6 +152,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Add `crypt_utils.py` wrapping the standard library `crypt` module (`crypt`, `mksalt`, `hash_password`, `verify`, `identify_method`, `is_hash`, `methods`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_crypt_utils.py`.
+- Synchronized `crypt_utils.py` and `tests/test_crypt_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, and this CHANGELOG.
+- Repaired the `pipes_utils` handover that the previous session left behind: the wrapper defined the step kinds `SOURCE`, `SINK`, `FILEIN_FILEOUT`, `FILEIN_STDOUT`, `STDIN_FILEOUT`, and `STDIN_STDOUT` as the names of the kinds instead of the values of the standard library, so a constant of the wrapper was rejected by the template of the standard library and three tests of `tests/test_pipes_utils.py` failed. The constants are re-exported from the standard library again, `step_kinds` returns the values of the standard library, and the three dead helpers of the module were removed.
+
 - Add `aifc_utils.py` wrapping the standard library `aifc` module (`open`, `is_available`, aliases, re-exports `Aifc_read`, `Aifc_write`, `Error`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_aifc_utils.py`.
 - Synchronized `aifc_utils.py` and `tests/test_aifc_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, and this CHANGELOG.
 

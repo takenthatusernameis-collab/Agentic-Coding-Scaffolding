@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import warnings
+
 import pytest
 
 import pipes_utils
@@ -20,6 +22,25 @@ def test_step_kinds() -> None:
     assert pipes_utils.SOURCE in kinds
     assert pipes_utils.SINK in kinds
     assert pipes_utils.STDIN_FILEOUT in kinds
+
+
+@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
+def test_step_kinds_match_the_standard_library() -> None:
+    """The re-exported kinds are the kinds of the standard library."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import pipes
+
+    for name in (
+        "SOURCE",
+        "SINK",
+        "FILEIN_FILEOUT",
+        "FILEIN_STDOUT",
+        "STDIN_FILEOUT",
+        "STDIN_STDOUT",
+    ):
+        assert getattr(pipes_utils, name) == getattr(pipes, name)
+    assert set(pipes_utils.step_kinds()) == set(getattr(pipes, "stepkinds"))
 
 
 def test_quote_validates() -> None:
@@ -58,7 +79,7 @@ def test_create_template_returns_template() -> None:
 def test_template_append_prepend() -> None:
     """Templates can append and prepend steps."""
     template = pipes_utils.create_template()
-    template.append("tr A-Z a-z", pipes_utils.STDIN_STDOUT)
+    template.append("cat", pipes_utils.STDIN_STDOUT)
     template.prepend("cat", pipes_utils.STDIN_STDOUT)
     # Should not raise
 
@@ -73,7 +94,7 @@ def test_template_debug() -> None:
 
 @pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
 def test_template_reset() -> None:
-    """Templates can be reset."""
+    """Templates can reset."""
     template = pipes_utils.create_template()
     template.append("cat", pipes_utils.STDIN_STDOUT)
     template.reset()
