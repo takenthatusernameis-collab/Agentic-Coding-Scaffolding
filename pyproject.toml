@@ -64,7 +64,7 @@ py_modules = [
     "platform_utils",
     "signal_utils",
     "id_utils",
-    "inspect_utils",
+    "imghdr_utils",    "inspect_utils",
     "bit_utils",
     "data_utils",
     "datetime_utils",
