@@ -34,6 +34,7 @@
 #   - bz2_utils.py — # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 #   - lzma_utils.py — # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 #   - signal_utils.py — # Signal utilities wrapping stdlib signal (alarm, pause, register_handler, register_int_handler, register_term_handler, set_handler, get_handler, get_signal_name, is_valid_signal, signal_names, interrupt_handler, suspend_handler, unregister_handler, signal_info)
+#   - sndhdr_utils.py — # Sound format detection utilities wrapping stdlib sndhdr (is_available, what, whathdr, SndHeaders) with input validation
 #   - pkgutil_utils.py — # Package and module discovery utilities wrapping stdlib pkgutil (iter_modules, walk_packages, get_data, read_text, resolve_name, iter_importers, extend_path, find_spec)
 #   - unicodedata_utils.py — # Unicode character database utilities wrapping stdlib unicodedata (unicodedata_lookup, unicodedata_name, unicodedata_normalize, unicodedata_category, unicodedata_bidirectional, unicodedata_combining, unicodedata_east_asian_width, unicodedata_mirrored, unicodedata_decimal, unicodedata_digit, unicodedata_numeric)
 #   - unittest_utils.py — # Utilities wrapping the standard library unittest module (TestCase, TestSuite, TestLoader, TextTestRunner, main, make_suite, run_tests)
@@ -43,6 +44,7 @@
 #   - quopri_utils.py — # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
 #   - numbers_utils.py — # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral)
 #   - netrc_utils.py — # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
+#   - nntplib_utils.py — # NNTP client utilities wrapping stdlib nntplib (create_nntp, create_nntp_ssl, is_available, NNTP, NNTP_SSL, NNTP_PORT, NNTP_SSL_PORT, GroupInfo, ArticleInfo) with input validation
 #   - getopt_utils.py — # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 #   - filecmp_utils.py — # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
 #   - errno_utils.py — # System error number utilities wrapping stdlib errno (errorcode, strerror, is_errno)
@@ -241,6 +243,7 @@
 #   - socketserver_utils.py — # Socketserver utilities wrapping the standard library socketserver module
 
 #   - sqlite3_utils.py — # SQLite database utilities (connect, execute, executemany, fetch_all, fetch_one, fetch_many, create_table, insert_row, query, table_exists) wrapping stdlib sqlite3
+#   - sre_compile_utils.py — # Regular expression compile utilities wrapping stdlib sre_compile (compile_pattern, is_available) with input validation
 
 #   - interval_utils.py — # Interval utilities (normalization, containment, overlap, intersection, union, merge)
 
@@ -318,9 +321,11 @@
 #   - calendar_utils.py — # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 #   - chunk_utils.py — # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
 #   - cgi_utils.py — CGI utilities wrapping stdlib cgi (FieldStorage, MiniFieldStorage, escape, parse, parse_header, parse_multipart, parse_qs, parse_qsl, is_available) with input validation
+#   - cgitb_utils.py — # CGI traceback utilities wrapping stdlib cgitb (enable, handler, html, text, reset, hook_class, is_available) with input validation
 #   - pipes_utils.py — # Pipeline utilities wrapping stdlib pipes (quote, quote_command, create_template, is_available, make_pipeline, step_kinds) with input validation
 #   - tests/test_chunk_utils.py — # Tests for chunk_utils.py
 #   - tests/test_cgi_utils.py — # Tests for cgi_utils.py
+#   - tests/test_cgitb_utils.py — # Tests for cgitb_utils.py
 #   - tests/test_pipes_utils.py — # Tests for pipes_utils.py
 #   - cmath_utils.py — # Complex mathematics utilities wrapping the standard library cmath module
 #   - threading_utils.py — # Threading utilities wrapping the standard library threading module
@@ -578,6 +583,7 @@
 #   - test_lzma_utils.py — # Tests for lzma_utils.py
 #   - test_multiprocessing_utils.py — # Tests for multiprocessing_utils.py
 #   - test_netrc_utils.py — # Tests for netrc_utils.py
+#   - test_nntplib_utils.py — # Tests for nntplib_utils.py
 #   - test_numbers_utils.py — # Tests for numbers_utils.py
 #   - test_pkgutil_utils.py — # Tests for pkgutil_utils.py
 #   - test_platform_utils.py — # Tests for platform_utils.py
@@ -587,6 +593,7 @@
 #   - test_reprlib_utils.py — # Tests for reprlib_utils.py
 #   - test_sched_utils.py — # Tests for sched_utils.py
 #   - test_signal_utils.py — # Tests for signal_utils.py
+#   - test_sndhdr_utils.py — # Tests for sndhdr_utils.py
 #   - test_threading_utils.py — # Tests for threading_utils.py
 #   - test_token_utils.py — # Tests for token_utils.py
 #   - test_tomllib_utils.py — # Tests for tomllib_utils.py
@@ -600,6 +607,7 @@
 #   - test_socketserver_utils.py — # Tests for socketserver_utils.py
 
 #   - test_sqlite3_utils.py — # Tests for sqlite3_utils.py
+#   - test_sre_compile_utils.py — # Tests for sre_compile_utils.py
 
 #   - test_sort_utils.py — # Tests for sort_utils.py
 
@@ -4428,6 +4436,7 @@ py_modules = [
     "hashlib_utils",
     "platform_utils",
     "signal_utils",
+    "sndhdr_utils",
     "hash_utils",
     "hmac_utils",
     "http_utils",
@@ -4488,6 +4497,7 @@ py_modules = [
     "quopri_utils",
     "numbers_utils",
     "netrc_utils",
+    "nntplib_utils",
     "getopt_utils",
     "filecmp_utils",
     "errno_utils",
@@ -4521,6 +4531,7 @@ py_modules = [
     "multiprocessing_utils",
     "marshal_utils",
     "sqlite3_utils",
+    "sre_compile_utils",
     "cmath_utils",
     "difflib_utils",
     "threading_utils",
