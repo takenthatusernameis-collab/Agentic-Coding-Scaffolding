@@ -296,5 +296,6 @@ py_modules = [
     "telnetlib_utils",
     "sre_compile_utils",
     "sre_constants_utils",
+    "sre_parse_utils",
     "sndhdr_utils",
 ]

@@ -608,6 +608,7 @@
 
 #   - test_sqlite3_utils.py — # Tests for sqlite3_utils.py
 #   - test_sre_compile_utils.py — # Tests for sre_compile_utils.py
+#   - test_sre_parse_utils.py — # Tests for sre_parse_utils.py
 
 #   - test_sort_utils.py — # Tests for sort_utils.py
 
@@ -731,6 +732,8 @@
 #   - tests/test_telnetlib_utils.py — # Tests for telnetlib_utils.py
 #   - sre_constants_utils.py — # Regular expression constants utilities wrapping the standard library sre_constants module (get_opcodes, opcodenames, lookup_opcode, op_code, is_available) with input validation
 #   - tests/test_sre_constants_utils.py — # Tests for sre_constants_utils.py
+#   - sre_parse_utils.py — # Regex parse utilities wrapping the standard library sre_parse module (parse_pattern, parse_template, pattern_width, pattern_dump, is_available) with input validation
+#   - tests/test_sre_parse_utils.py — # Tests for sre_parse_utils.py
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -4599,6 +4602,7 @@ py_modules = [
     "crypt_utils",
     "telnetlib_utils",
     "sre_constants_utils",
+    "sre_parse_utils",
 ]
 PYPROJECT
 
@@ -29506,6 +29510,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_telnetlib_utils.py` — unit tests for `telnetlib_utils.py`
 - `sre_constants_utils.py` — Regular expression constants utilities wrapping the standard library `sre_constants` module (`get_opcodes`, `opcodenames`, `lookup_opcode`, `op_code`, `assert_valid_flags`, `get_all`, `error_codes`, `is_available`) with input validation
 - `tests/test_sre_constants_utils.py` — unit tests for `sre_constants_utils.py`
+- `sre_parse_utils.py` — Regular expression parse utilities wrapping the standard library `sre_parse` module (`parse_pattern`, `parse_template`, `pattern_width`, `pattern_dump`, `is_available`) with input validation
+- `tests/test_sre_parse_utils.py` — unit tests for `sre_parse_utils.py`
 - `sre_compile_utils.py` — Regular expression compile utilities wrapping the standard library `sre_compile` module (`compile_pattern`, `is_available`) with input validation
 - `tests/test_sre_compile_utils.py` — unit tests for `sre_compile_utils.py`
 
@@ -30840,6 +30846,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Synchronized `cgi_utils.py` and `tests/test_cgi_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
 - Add `chunk_utils.py` wrapping the standard library `chunk` module (`build_chunk`, `chunk_name`, `is_available`, `iter_chunks`, `open_chunk`, `peek_chunk`, `read_chunk`, `read_chunks`, `skip_chunk`, `write_chunk`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_chunk_utils.py`.
 - Add `sre_constants_utils.py` wrapping the standard library `sre_constants` module (`get_opcodes`, `opcodenames`, `lookup_opcode`, `op_code`, `assert_valid_flags`, `get_all`, `error_codes`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_sre_constants_utils.py`.
+- Add `sre_parse_utils.py` wrapping the standard library `sre_parse` module (`parse_pattern`, `parse_template`, `pattern_width`, `pattern_dump`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_sre_parse_utils.py`.
+- Synchronized `sre_parse_utils.py` and `tests/test_sre_parse_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
 - Synchronized `chunk_utils.py` and `tests/test_chunk_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
 - Repaired the `chunk_utils` handover that the previous session left behind: the module described the standard library `chunk` module as the chunked transfer encoding of HTTP, while it reads the chunks of an IFF file, the container format of AIFF, AIFF-C, TIFF, and RMFF. The module and its test were rewritten, and the four synchronization gaps the previous session left behind were closed: the `scaffold.sh` header comment never listed `tests/test_chunk_utils.py`, the embedded `pyproject.toml` never listed `chunk_utils`, and neither the repository nor the embedded `.kilo/command/scaffold-project.md` listed `tests/test_chunk_utils.py`.
 - The wrapper adds the conveniences the standard library leaves to the caller: a chunk is returned as one `ChunkRecord` that carries its identifier, its size, and its payload, the next chunk can be inspected without consuming it, the identifier of a chunk is decoded as text, and a chunk can be written again, which the standard library cannot do at all.
@@ -31861,6 +31869,7 @@ crypto_utils.py             # Cryptographic utilities
 crypt_utils.py              # Password hashing utilities wrapping the standard library crypt module
 telnetlib_utils.py           # Telnet client utilities wrapping the standard library telnetlib module
 sre_constants_utils.py      # Regex constants utilities wrapping the standard library sre_constants module
+sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 list_utils.py              # Advanced list manipulation utilities
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
@@ -32253,6 +32262,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_posix_utils.py         # Tests for posix_utils.py
   test_telnetlib_utils.py     # Tests for telnetlib_utils.py
   test_sre_constants_utils.py # Tests for sre_constants_utils.py
+  test_sre_parse_utils.py     # Tests for sre_parse_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -33443,6 +33453,10 @@ The project includes telnet client utilities in `telnetlib_utils.py` wrapping th
 
 The project includes regular expression constants utilities in `sre_constants_utils.py` wrapping the standard library `sre_constants` module: `get_opcodes` returns the opcodes if available, `opcodenames` returns a mapping of opcode numbers to names, `lookup_opcode` resolves an opcode number to its name, `op_code` resolves an opcode name to its number, `assert_valid_flags` validates regex flags, `get_all` returns all public constants, `error_codes` returns error codes if available, and `is_available` reports whether the interpreter ships the module. Common constants such as `LITERAL`, `BRANCH`, `ANY`, `MAXCODE`, and the `SRE_FLAG_*` flags are re-exported when available. The exception class `error` is re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module degrades gracefully and helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_constants_utils.py`.
 
+## Sre Parse Utilities Module
+
+The project includes regular expression parse utilities in `sre_parse_utils.py` wrapping the standard library `sre_parse` module: `parse_pattern` parses a regular expression pattern into a `SubPattern` tree, `parse_template` parses a replacement template, `pattern_width` reports the minimum and maximum width of a pattern, `pattern_dump` returns the text dump of a parsed tree, and `is_available` reports whether the interpreter ships the module. The classes `SubPattern` and `State` together with the exception `error` are re-exported, and common constants such as `LITERAL`, `BRANCH`, `CHARSET`, `GROUPREF`, `SUBPATTERN`, and the `SRE_FLAG_*` flags are re-exported when available. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module degrades gracefully and helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_parse_utils.py`.
+
 ## Cgi Utilities Module
 
 The project includes CGI utilities in `cgi_utils.py` wrapping the standard library `cgi` module: `FieldStorage` and `MiniFieldStorage` parse form data, `parse_header` parses MIME headers, `parse` parses a query string or form data, `parse_qs` and `parse_qsl` parse query strings, `parse_multipart` parses multipart form data, `escape` replaces special HTML characters, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds validation and conveniences while degrading gracefully when the module is missing. The `cgi` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_cgi_utils.py`.
@@ -33465,7 +33479,7 @@ The project includes sound header detection utilities in `sndhdr_utils.py` wrapp
 
 The project includes sre_compile utilities in `sre_compile_utils.py` wrapping the standard library `sre_compile` module: `compile` compiles a pattern, `isstring` checks if an object is a string, `compile_pattern` compiles a regex pattern, `dis` disassembles a pattern, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `sre_compile` module is an internal implementation detail, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_compile_utils.py`.
 
-Deprecated-module wrappers: `cgitb_utils.py`, `nntplib_utils.py`, `sndhdr_utils.py`, `sre_compile_utils.py`.
+Deprecated-module wrappers: `cgitb_utils.py`, `nntplib_utils.py`, `sndhdr_utils.py`, `sre_compile_utils.py`, `sre_parse_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -101475,6 +101489,490 @@ def test_degradation_without_module() -> None:
     finally:
         sre_compile_utils._sre_compile = original
 TEST_SRE_COMPILE_UTILS
+
+# --- sre_parse_utils.py ---
+cat > "$OUTPUT_DIR/sre_parse_utils.py" <<'SRE_PARSE_UTILS'
+"""Regular expression parse utilities wrapping the standard library :mod:`sre_parse` module.
+
+The :mod:`sre_parse` module parses a regular expression pattern into a tree of
+opcodes that the regular expression engine can compile.  It exposes the
+``parse`` function, the ``parse_template`` helper, the ``SubPattern`` and
+``State`` classes, the ``error`` exception, and a large set of opcode and flag
+constants.
+
+This wrapper validates every argument before the standard library is reached, so
+a caller gets a clear :class:`TypeError` instead of an opaque failure from the
+standard library.  It adds the conveniences the standard library leaves to the
+caller: the width of a pattern is reported as a tuple, a parsed pattern can be
+dumped as text without printing to the standard output, and the parsed tree is
+returned together with its width.
+
+.. note::
+
+   The :mod:`sre_parse` module is an internal module of the regular expression
+   engine.  It is deprecated and slated for removal in Python 3.13 as part of
+   :pep:`594`.  The import below degrades gracefully: when the interpreter no
+   longer ships the module, the helpers that parse a pattern raise a
+   :class:`RuntimeError` that names the missing module, while helpers that need
+   no standard library keep working.
+
+The wrapper never writes to the filesystem.
+"""
+
+from __future__ import annotations
+
+import contextlib
+import io
+import warnings
+from typing import Any, List, Optional, Tuple, cast
+
+__all__ = [
+    "ANY",
+    "ASSERT",
+    "ASSERT_NOT",
+    "AT",
+    "BRANCH",
+    "CHARSET",
+    "GROUPREF",
+    "GROUPREF_EXISTS",
+    "GROUPREF_IGNORE",
+    "IN",
+    "LITERAL",
+    "MAXREPEAT",
+    "MIN_REPEAT",
+    "MIN_REPEAT_ONE",
+    "MAX_REPEAT",
+    "MAX_UNTIL",
+    "NEGATE",
+    "NOT_LITERAL",
+    "OPCODES",
+    "POSSESSIVE_REPEAT",
+    "POSSESSIVE_REPEAT_ONE",
+    "RANGE",
+    "REPEAT",
+    "REPEAT_ONE",
+    "SRE_FLAG_ASCII",
+    "SRE_FLAG_DEBUG",
+    "SRE_FLAG_DOTALL",
+    "SRE_FLAG_IGNORECASE",
+    "SRE_FLAG_LOCALE",
+    "SRE_FLAG_MULTILINE",
+    "SRE_FLAG_TEMPLATE",
+    "SRE_FLAG_UNICODE",
+    "SRE_FLAG_VERBOSE",
+    "SUBPATTERN",
+    "SUCCESS",
+    "SubPattern",
+    "State",
+    "error",
+    "is_available",
+    "parse_pattern",
+    "parse_template",
+    "pattern_dump",
+    "pattern_width",
+]
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import sre_parse as _sre_parse
+except Exception:  # pragma: no cover - removed in Python 3.13
+    _sre_parse = None  # type: ignore[assignment]
+
+
+def _sre_parse_module() -> Any:
+    """Return the standard library ``sre_parse`` module.
+
+    Returns:
+        The imported :mod:`sre_parse` module.
+
+    Raises:
+        RuntimeError: If the interpreter no longer ships the ``sre_parse``
+            module.
+    """
+    if _sre_parse is None:  # pragma: no cover - Python 3.13 removed the module
+        raise RuntimeError(
+            "the standard library 'sre_parse' module was removed in Python 3.13; "
+            "use the re module instead"
+        )
+    return _sre_parse
+
+
+def is_available() -> bool:
+    """Report whether the interpreter ships the standard library ``sre_parse`` module.
+
+    Returns:
+        ``True`` when the module is importable, ``False`` otherwise.
+    """
+    return _sre_parse is not None
+
+
+def _require_text(value: Any, name: str) -> str:
+    """Return *value* as text, raising ``TypeError`` for every other type."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be str, not {type(value).__name__}")
+    return value
+
+
+def _require_flags(value: Any, name: str) -> int:
+    """Return *value* as an integer flags mask, raising ``TypeError`` otherwise."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be int, not {type(value).__name__}")
+    return value
+
+
+def parse_pattern(pattern: Any, flags: int = 0) -> Any:
+    """Parse a regular expression pattern into a :class:`SubPattern` tree.
+
+    Args:
+        pattern: The regular expression pattern to parse.
+        flags: The compilation flags, as a combination of the ``SRE_FLAG_*``
+            constants or the flags of the :mod:`re` module.
+
+    Returns:
+        The parsed pattern as a :class:`SubPattern` tree.
+
+    Raises:
+        TypeError: If *pattern* is not a string or *flags* is not an integer.
+        RuntimeError: If the interpreter no longer ships the ``sre_parse``
+            module.
+        sre_parse.error: If *pattern* is not a valid regular expression.
+    """
+    pattern = _require_text(pattern, "pattern")
+    flags = _require_flags(flags, "flags")
+    module = _sre_parse_module()
+    return module.parse(pattern, flags=flags)
+
+
+def parse_template(template: Any, pattern: Any) -> List[Any]:
+    """Parse a replacement template into a list of literals and group references.
+
+    Args:
+        template: The replacement template to parse, such as ``r"\\g<1>"``.
+        pattern: A compiled :mod:`re` pattern, used to resolve group references
+            by name or number.  Must have ``groups`` and ``groupindex``.
+
+    Returns:
+        A list of literal strings and group-reference integers, as produced by
+        :func:`sre_parse.parse_template`.
+
+    Raises:
+        TypeError: If *template* is not a string or *pattern* is not a compiled
+            regular expression pattern.
+        RuntimeError: If the interpreter no longer ships the ``sre_parse``
+            module.
+        sre_parse.error: If *template* is not a valid template.
+    """
+    template = _require_text(template, "template")
+    if not hasattr(pattern, "groups") or not hasattr(pattern, "groupindex"):
+        raise TypeError(
+            f"pattern must be a compiled regular expression, not {type(pattern).__name__}"
+        )
+    module = _sre_parse_module()
+    return cast(List[Any], module.parse_template(template, pattern))
+
+
+def pattern_width(pattern: Any, flags: int = 0) -> Optional[Tuple[int, int]]:
+    """Return the minimum and maximum width of a parsed pattern.
+
+    Args:
+        pattern: The regular expression pattern to measure.
+        flags: The compilation flags, as a combination of the ``SRE_FLAG_*``
+            constants or the flags of the :mod:`re` module.
+
+    Returns:
+        A tuple of ``(min_width, max_width)``, or ``None`` when the width cannot
+        be determined.
+
+    Raises:
+        TypeError: If *pattern* is not a string or *flags* is not an integer.
+        RuntimeError: If the interpreter no longer ships the ``sre_parse``
+            module.
+        sre_parse.error: If *pattern* is not a valid regular expression.
+    """
+    parsed = parse_pattern(pattern, flags=flags)
+    width = getattr(parsed, "getwidth", None)
+    if callable(width):
+        result = width()
+        if isinstance(result, tuple) and len(result) == 2:
+            return result  # type: ignore[return-value]
+    return None
+
+
+def pattern_dump(pattern: Any, flags: int = 0) -> str:
+    """Return the text dump of a parsed pattern.
+
+    Args:
+        pattern: The regular expression pattern to dump.
+        flags: The compilation flags, as a combination of the ``SRE_FLAG_*``
+            constants or the flags of the :mod:`re` module.
+
+    Returns:
+        The text representation of the parsed pattern tree, with one opcode per
+        line.
+
+    Raises:
+        TypeError: If *pattern* is not a string or *flags* is not an integer.
+        RuntimeError: If the interpreter no longer ships the ``sre_parse``
+            module.
+        sre_parse.error: If *pattern* is not a valid regular expression.
+    """
+    parsed = parse_pattern(pattern, flags=flags)
+    dump = getattr(parsed, "dump", None)
+    if callable(dump):
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            dump()
+        return buffer.getvalue()
+    return ""
+
+
+# Re-export classes and the error exception if available.
+if _sre_parse is not None:
+    SubPattern = _sre_parse.SubPattern
+    State = _sre_parse.State
+    error = _sre_parse.error
+else:  # pragma: no cover - Python 3.13 removed the module
+
+    class SubPattern:  # type: ignore[no-redef]
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            _sre_parse_module()
+
+    class State:  # type: ignore[no-redef]
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            _sre_parse_module()
+
+    class error(Exception):  # type: ignore[no-redef]
+        pass
+
+
+# Re-export the most useful constants if available.
+for _name in [
+    "ANY",
+    "ASSERT",
+    "ASSERT_NOT",
+    "AT",
+    "BRANCH",
+    "CHARSET",
+    "GROUPREF",
+    "GROUPREF_EXISTS",
+    "GROUPREF_IGNORE",
+    "IN",
+    "LITERAL",
+    "MAXREPEAT",
+    "MIN_REPEAT",
+    "MIN_REPEAT_ONE",
+    "MAX_REPEAT",
+    "MAX_UNTIL",
+    "NEGATE",
+    "NOT_LITERAL",
+    "OPCODES",
+    "POSSESSIVE_REPEAT",
+    "POSSESSIVE_REPEAT_ONE",
+    "RANGE",
+    "REPEAT",
+    "REPEAT_ONE",
+    "SRE_FLAG_ASCII",
+    "SRE_FLAG_DEBUG",
+    "SRE_FLAG_DOTALL",
+    "SRE_FLAG_IGNORECASE",
+    "SRE_FLAG_LOCALE",
+    "SRE_FLAG_MULTILINE",
+    "SRE_FLAG_TEMPLATE",
+    "SRE_FLAG_UNICODE",
+    "SRE_FLAG_VERBOSE",
+    "SUBPATTERN",
+    "SUCCESS",
+]:
+    try:
+        _value = getattr(_sre_parse, _name) if _sre_parse is not None else None
+        globals()[_name] = _value
+    except Exception:
+        pass
+SRE_PARSE_UTILS
+
+# --- tests/test_sre_parse_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_sre_parse_utils.py" <<'TEST_SRE_PARSE_UTILS'
+"""Tests for the :mod:`sre_parse_utils` wrapper."""
+
+from __future__ import annotations
+
+import re
+
+import pytest
+
+import sre_parse_utils
+
+
+def test_is_available() -> None:
+    """``is_available`` reports whether the module ships."""
+    result = sre_parse_utils.is_available()
+    assert isinstance(result, bool)
+
+
+@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
+def test_parse_pattern_basic() -> None:
+    """``parse_pattern`` parses a literal pattern."""
+    parsed = sre_parse_utils.parse_pattern("abc")
+    assert hasattr(parsed, "data")
+    assert hasattr(parsed, "getwidth")
+
+
+@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
+def test_parse_pattern_with_flags() -> None:
+    """``parse_pattern`` accepts flags."""
+    flag = getattr(sre_parse_utils, "SRE_FLAG_IGNORECASE", 0)  # type: ignore[attr-defined]
+    parsed = sre_parse_utils.parse_pattern("abc", flags=flag)
+    assert hasattr(parsed, "data")
+
+
+@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
+def test_parse_pattern_named_group() -> None:
+    """``parse_pattern`` parses a named group."""
+    parsed = sre_parse_utils.parse_pattern(r"(?P<name>abc)")
+    assert parsed is not None
+    data = parsed.data
+    assert isinstance(data, list)
+    assert len(data) == 1
+
+
+@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
+def test_parse_template() -> None:
+    """``parse_template`` parses a replacement template."""
+    import re
+
+    pattern = re.compile(r"(?P<name>abc)")
+    parsed = sre_parse_utils.parse_template(r"\g<name>", pattern=pattern)
+    assert isinstance(parsed, list)
+
+
+@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
+def test_parse_template_with_pattern() -> None:
+    """``parse_template`` resolves numeric and named group references."""
+    import re
+
+    pattern = re.compile(r"(?P<name>abc)")
+    parsed = sre_parse_utils.parse_template(r"\g<name> and \1", pattern=pattern)
+    assert isinstance(parsed, list)
+    assert " and " in parsed
+
+
+@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
+def test_pattern_width() -> None:
+    """``pattern_width`` returns the width of a pattern."""
+    width = sre_parse_utils.pattern_width("abc")
+    assert width is not None
+    assert isinstance(width, tuple)
+    assert len(width) == 2
+    assert width == (3, 3)
+
+
+@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
+def test_pattern_width_variable() -> None:
+    """``pattern_width`` reports a variable width for repetition."""
+    width = sre_parse_utils.pattern_width(r"a*")
+    assert width is not None
+    assert isinstance(width, tuple)
+    assert len(width) == 2
+
+
+@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
+def test_pattern_dump() -> None:
+    """``pattern_dump`` returns a text dump of the parsed tree."""
+    dump = sre_parse_utils.pattern_dump("abc")
+    assert isinstance(dump, str)
+    assert "LITERAL" in dump
+
+
+def test_parse_pattern_validates() -> None:
+    """``parse_pattern`` validates its arguments."""
+    with pytest.raises(TypeError):
+        sre_parse_utils.parse_pattern(123)  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        sre_parse_utils.parse_pattern("abc", flags="x")  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        sre_parse_utils.parse_pattern("abc", flags=True)  # type: ignore[arg-type]
+
+
+def test_parse_template_validates() -> None:
+    """``parse_template`` validates its arguments."""
+    import re
+
+    with pytest.raises(TypeError):
+        sre_parse_utils.parse_template(123, re.compile(r"a"))  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        sre_parse_utils.parse_template(r"\g<1>", "not a pattern")  # type: ignore[arg-type]
+
+
+def test_pattern_width_validates() -> None:
+    """``pattern_width`` validates its arguments."""
+    with pytest.raises(TypeError):
+        sre_parse_utils.pattern_width(123)  # type: ignore[arg-type]
+
+
+def test_pattern_dump_validates() -> None:
+    """``pattern_dump`` validates its arguments."""
+    with pytest.raises(TypeError):
+        sre_parse_utils.pattern_dump(123)  # type: ignore[arg-type]
+
+
+def test_degradation_without_module() -> None:
+    """Helpers raise RuntimeError when module missing."""
+    original = sre_parse_utils._sre_parse
+    try:
+        sre_parse_utils._sre_parse = None  # type: ignore[assignment]
+        with pytest.raises(RuntimeError, match="sre_parse"):
+            sre_parse_utils.parse_pattern("abc")
+        with pytest.raises(RuntimeError, match="sre_parse"):
+            sre_parse_utils.parse_template(r"\g<1>", re.compile(r"a"))
+        with pytest.raises(RuntimeError, match="sre_parse"):
+            sre_parse_utils.pattern_width("abc")
+        with pytest.raises(RuntimeError, match="sre_parse"):
+            sre_parse_utils.pattern_dump("abc")
+    finally:
+        sre_parse_utils._sre_parse = original  # type: ignore[assignment]
+
+
+def test_exports() -> None:
+    """The module exports its public names."""
+    for name in sre_parse_utils.__all__:
+        try:
+            assert hasattr(sre_parse_utils, name), name
+        except AssertionError:
+            if sre_parse_utils.is_available() and hasattr(
+                sre_parse_utils._sre_parse, name
+            ):
+                pass
+            else:
+                raise
+
+
+def test_subpattern_and_state_exported() -> None:
+    """``SubPattern`` and ``State`` are exported when the module is available."""
+    if sre_parse_utils.is_available():
+        assert sre_parse_utils.SubPattern is not None
+        assert sre_parse_utils.State is not None
+
+
+def test_error_exported() -> None:
+    """``error`` is exported when the module is available."""
+    if sre_parse_utils.is_available():
+        assert sre_parse_utils.error is not None
+
+
+def test_constants_exported() -> None:
+    """Common constants are exported when the module is available."""
+    if sre_parse_utils.is_available():
+        assert getattr(sre_parse_utils, "LITERAL", None) is not None  # type: ignore[attr-defined]
+        assert getattr(sre_parse_utils, "BRANCH", None) is not None  # type: ignore[attr-defined]
+        assert getattr(sre_parse_utils, "SUBPATTERN", None) is not None  # type: ignore[attr-defined]
+
+
+if __name__ == "__main__":
+    import unittest
+
+    unittest.main()
+TEST_SRE_PARSE_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so

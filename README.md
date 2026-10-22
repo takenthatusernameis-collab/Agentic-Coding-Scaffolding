@@ -73,6 +73,7 @@ crypto_utils.py             # Cryptographic utilities
 crypt_utils.py              # Password hashing utilities wrapping the standard library crypt module
 telnetlib_utils.py           # Telnet client utilities wrapping the standard library telnetlib module
 sre_constants_utils.py      # Regex constants utilities wrapping the standard library sre_constants module
+sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 list_utils.py              # Advanced list manipulation utilities
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
@@ -465,6 +466,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_posix_utils.py         # Tests for posix_utils.py
   test_telnetlib_utils.py     # Tests for telnetlib_utils.py
   test_sre_constants_utils.py # Tests for sre_constants_utils.py
+  test_sre_parse_utils.py     # Tests for sre_parse_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -1655,6 +1657,10 @@ The project includes telnet client utilities in `telnetlib_utils.py` wrapping th
 
 The project includes regular expression constants utilities in `sre_constants_utils.py` wrapping the standard library `sre_constants` module: `get_opcodes` returns the opcodes if available, `opcodenames` returns a mapping of opcode numbers to names, `lookup_opcode` resolves an opcode number to its name, `op_code` resolves an opcode name to its number, `assert_valid_flags` validates regex flags, `get_all` returns all public constants, `error_codes` returns error codes if available, and `is_available` reports whether the interpreter ships the module. Common constants such as `LITERAL`, `BRANCH`, `ANY`, `MAXCODE`, and the `SRE_FLAG_*` flags are re-exported when available. The exception class `error` is re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module degrades gracefully and helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_constants_utils.py`.
 
+## Sre Parse Utilities Module
+
+The project includes regular expression parse utilities in `sre_parse_utils.py` wrapping the standard library `sre_parse` module: `parse_pattern` parses a regular expression pattern into a `SubPattern` tree, `parse_template` parses a replacement template, `pattern_width` reports the minimum and maximum width of a pattern, `pattern_dump` returns the text dump of a parsed tree, and `is_available` reports whether the interpreter ships the module. The classes `SubPattern` and `State` together with the exception `error` are re-exported, and common constants such as `LITERAL`, `BRANCH`, `CHARSET`, `GROUPREF`, `SUBPATTERN`, and the `SRE_FLAG_*` flags are re-exported when available. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module degrades gracefully and helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_parse_utils.py`.
+
 ## Cgi Utilities Module
 
 The project includes CGI utilities in `cgi_utils.py` wrapping the standard library `cgi` module: `FieldStorage` and `MiniFieldStorage` parse form data, `parse_header` parses MIME headers, `parse` parses a query string or form data, `parse_qs` and `parse_qsl` parse query strings, `parse_multipart` parses multipart form data, `escape` replaces special HTML characters, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds validation and conveniences while degrading gracefully when the module is missing. The `cgi` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_cgi_utils.py`.
@@ -1677,4 +1683,4 @@ The project includes sound header detection utilities in `sndhdr_utils.py` wrapp
 
 The project includes sre_compile utilities in `sre_compile_utils.py` wrapping the standard library `sre_compile` module: `compile` compiles a pattern, `isstring` checks if an object is a string, `compile_pattern` compiles a regex pattern, `dis` disassembles a pattern, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `sre_compile` module is an internal implementation detail, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_compile_utils.py`.
 
-Deprecated-module wrappers: `cgitb_utils.py`, `nntplib_utils.py`, `sndhdr_utils.py`, `sre_compile_utils.py`.
+Deprecated-module wrappers: `cgitb_utils.py`, `nntplib_utils.py`, `sndhdr_utils.py`, `sre_compile_utils.py`, `sre_parse_utils.py`.
