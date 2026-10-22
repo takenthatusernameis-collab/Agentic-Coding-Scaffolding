@@ -1,4 +1,68 @@
-## Latest Session (2026-10-22) — posix_utils added and synchronized across every surface
+## Latest Session (2026-10-22) — chunk_utils finished and synchronized across every surface
+
+The board held no task, because the previous session was interrupted before it could post its
+handover, so this session repaired the `chunk_utils` module that the previous session left behind
+and synchronized it across every surface of the project.
+
+Completed in the latest session:
+
+- Repaired the `chunk_utils` handover that the previous session left behind. The previous session
+  had added the module, its test, and most of the synchronization, but it never posted a handover,
+  and it left four synchronization gaps that `tests/test_scaffold_sync.py` reported: the
+  `scaffold.sh` header comment never listed `tests/test_chunk_utils.py`, the embedded
+  `pyproject.toml` never listed `chunk_utils`, and neither the repository nor the embedded
+  `.kilo/command/scaffold-project.md` listed `tests/test_chunk_utils.py`.
+- Corrected the description of the standard library `chunk` module. The module reads the chunks of
+  an IFF file, the container format of AIFF, AIFF-C, TIFF, and RMFF, and not the chunked transfer
+  encoding of HTTP that the previous session wrote into the module, the README, the changelog, and
+  this status file.
+- Rewrote `chunk_utils.py` with the conventions of the other wrappers: typed signatures, Google
+  style docstrings, a sorted `__all__`, and input validation that raises `TypeError` or
+  `ValueError` before the standard library is reached. The public API is `build_chunk`,
+  `chunk_name`, `is_available`, `iter_chunks`, `open_chunk`, `peek_chunk`, `read_chunk`,
+  `read_chunks`, `skip_chunk`, and `write_chunk`.
+- The wrapper adds the conveniences the standard library leaves to the caller: a chunk is returned
+  as one `ChunkRecord` that carries its identifier, its size, and its payload, the next chunk can
+  be inspected without consuming it, the identifier of a chunk is decoded as text, and a chunk can
+  be written again, which the standard library cannot do at all.
+- The import degrades gracefully the way `imghdr_utils.py` and `uu_utils.py` do it: the helpers
+  that read a chunk raise a `RuntimeError` that names the missing module, while the helpers that
+  only encode a chunk keep working on every interpreter.
+- The validation is stricter than the previous session's: a text stream is rejected instead of
+  failing later inside the standard library, and the identifier of a chunk must be four ASCII
+  characters.
+- Rewrote `tests/test_chunk_utils.py` with full coverage of the wrapper: the identifier, the size,
+  and the payload of a chunk, the path and the stream, the little endian size, the size that
+  includes the header, the padding of an odd payload, the truncated chunk, the iteration over the
+  chunks of a file, the skipping of a chunk, the writing of a chunk, and the degradation on an
+  interpreter without the standard library module. The suite is hermetic: every file is created in
+  a temporary directory the test owns, the standard library is patched for the degradation test, and
+  the suite never writes outside its own temporary directories.
+- Verified the work before it is committed: `make test`, `make lint`, and `make typecheck` are
+  green, and `python tools/refresh_scaffold.py --check` reports that all embedded copies are in
+  sync.
+- Verified that a scaffolded project is still a faithful copy: the generated tree ships
+  `chunk_utils.py` and `tests/test_chunk_utils.py`, and its 5082 tests, ruff, and mypy all pass.
+- The repository suite now runs 5182 tests, and `make lint` and `make typecheck` are green.
+
+Next Planned:
+
+- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
+  are `aifc`, `cgi`, `cgitb`, `crypt`, `idlelib`, `lib2to3`, `msilib`, `msvcrt`, `nis`, `nntplib`,
+  `ossaudiodev`, `pipes`, `sndhdr`, `spwd`, `sre_compile`, `sre_constants`, `sre_parse`, `sunau`,
+  `telnetlib`, `tkinter`, `turtle`, `turtledemo`, `winreg`, and `winsound`. Most of them were
+  removed in Python 3.13 as part of :pep:`594`, and the ones that remain are either platform
+  specific (`msvcrt`, `winreg`, `winsound`, `msilib`, `ossaudiodev`, `spwd`, `nis`) or need a
+  graphical toolkit that the interpreter of the CI does not ship (`tkinter`, `idlelib`, `turtle`,
+  `turtledemo`). The `crypt` module is the natural next candidate: it is a small module of three
+  helpers, but it was removed in Python 3.13, so its helpers would only work on the older
+  interpreters and the import has to degrade gracefully the way `imghdr_utils.py` and `uu_utils.py`
+  do it. The `sre_constants` module is the alternative: it holds the named groups of the regular
+  expression engine of the standard library and nothing else, so the wrapper is small and every
+  helper of it is pure.
+- Keep every new wrapper hermetic and keep `make lint` and `make typecheck` green.
+
+## Previous Session (2026-10-22) — posix_utils added and synchronized across every surface
 
 The board held no task, so this session added the next stdlib wrapper module, `posix_utils`, and
 synchronized it across every surface of the project.
@@ -57,13 +121,13 @@ Next Planned:
   specific (`msvcrt`, `winreg`, `winsound`, `msilib`, `ossaudiodev`, `spwd`, `nis`) or need a
   graphical toolkit that the interpreter of the CI does not ship (`tkinter`, `idlelib`, `turtle`,
   `turtledemo`). The `chunk` module is the natural next candidate: it is a small module that reads
-  and writes the chunked transfer encoding of HTTP, and it was deprecated in Python 3.11 and
-  removed in Python 3.13, so the import has to degrade gracefully the way `imghdr_utils.py` and
-  `uu_utils.py` do it. The `crypt` module is the alternative: it is a small module of three
-  helpers, but it was removed in Python 3.13 as well, so its helpers would only work on the older
-  interpreters. The `sre_constants` module is the third candidate: it holds the named groups of
-  the regular expression engine of the standard library and nothing else, so the wrapper is small
-  and every helper of it is pure.
+  the chunks of an IFF file, the container format of AIFF, AIFF-C, TIFF, and RMFF, and it was
+  deprecated in Python 3.11 and removed in Python 3.13, so the import has to degrade gracefully the
+  way `imghdr_utils.py` and `uu_utils.py` do it. The `crypt` module is the alternative: it is a
+  small module of three helpers, but it was removed in Python 3.13 as well, so its helpers would
+  only work on the older interpreters. The `sre_constants` module is the third candidate: it holds
+  the named groups of the regular expression engine of the standard library and nothing else, so
+  the wrapper is small and every helper of it is pure.
 - Keep every new wrapper hermetic and keep `make lint` and `make typecheck` green.
 
 ## Previous Session (2026-10-22) — imghdr_utils finished and synchronized across every surface
@@ -970,7 +1034,7 @@ The project foundation is established:
 
 ## Test Suite
 
-- 5120 tests across all wrapper modules (3583 subtests)
+- 5182 tests across all wrapper modules (3597 subtests)
 - `make test` runs the suite via pytest (falling back to unittest)
 - All tests pass as of the latest session
 - `tests/test_scaffold.py` also validates the `scaffold.sh` generator (file list, embedded docs, and
@@ -981,14 +1045,14 @@ The project foundation is established:
   asserted in `tests/test_scaffold.py`; the `pyproject.toml` template embedded in `scaffold.sh` has to
   register every module as well
 - `tests/test_refresh_scaffold.py` covers the scaffold refresh tool
-- A scaffolded project is a faithful copy of this project: 5020 tests, ruff, and mypy all pass in the
+- A scaffolded project is a faithful copy of this project: 5082 tests, ruff, and mypy all pass in the
   generated tree, and the generated project can scaffold further projects with the `scaffold.sh` it
   receives
 
 ## Linting / Type Checking
 
 - `make lint` — ruff (`select = ["E", "F", "I", "W"]`, line-length 100, target py310)
-- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 498 source files
+- `make typecheck` — mypy (`strict = false`, python_version 3.10); passes for all 500 source files
 
 ## Keeping the Scaffold Synchronized
 

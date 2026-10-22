@@ -315,7 +315,8 @@
 #   - call_once_utils.py — # Call-once execution utilities (call_once decorator)
 
 #   - calendar_utils.py — # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
-#   - chunk_utils.py — # Chunked transfer encoding utilities wrapping stdlib chunk (Chunk, open_chunk, read_chunk, is_available) with input validation
+#   - chunk_utils.py — # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
+#   - tests/test_chunk_utils.py — # Tests for chunk_utils.py
 #   - cmath_utils.py — # Complex mathematics utilities wrapping the standard library cmath module
 #   - threading_utils.py — # Threading utilities wrapping the standard library threading module
 #   - glob_utils.py — # Utilities for pathname pattern expansion (wrapping the standard library glob module)
@@ -4421,6 +4422,7 @@ py_modules = [
     "bisect_utils",
     "contextlib_utils",
     "calendar_utils",
+    "chunk_utils",
     "call_once_utils",
     "bytes_utils",
     "struct_utils",
@@ -29001,7 +29003,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `opcode_utils.py` — Opcode utilities wrapping the standard library `opcode` module (stack effect computation and opcode classification helpers)
 - `array_utils.py` — array utilities wrapping the standard library `array` module (`array_create`, `array_fromlist`, `array_tolist`, `array_append`, `array_extend`, `array_insert`, `array_pop`, `array_remove`, `array_reverse`, `array_buffer_info`, `array_byteswap`, `array_count`, `array_index`) with input validation
 - `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
-- `chunk_utils.py` — chunked transfer encoding utilities wrapping the standard library `chunk` module (`Chunk`, `open_chunk`, `read_chunk`, `is_available`) with input validation
+- `chunk_utils.py` — IFF chunk utilities wrapping the standard library `chunk` module (`build_chunk`, `chunk_name`, `is_available`, `iter_chunks`, `open_chunk`, `peek_chunk`, `read_chunk`, `read_chunks`, `skip_chunk`, `write_chunk`) with input validation
+- `tests/test_chunk_utils.py` — unit tests for `chunk_utils.py`
 - `cmath_utils.py` — complex mathematics utilities wrapping the standard library `cmath` module (`phase`, `polar`, `rect`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `isfinite`, `isinf`, `isnan`, `isclose`)
 - `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
 - `threading_utils.py` — threading utilities wrapping the standard library `threading` module (`create_lock`, `create_rlock`, `create_semaphore`, `create_bounded_semaphore`, `create_event`, `create_condition`, `create_timer`, `create_thread`, `current_thread`, `active_count`, `enumerate_threads`, `synchronized`) with input validation
@@ -30779,10 +30782,11 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
-- Add `chunk_utils.py` wrapping the standard library `chunk` module (`Chunk`, `open_chunk`, `read_chunk`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_chunk_utils.py`.
+- Add `chunk_utils.py` wrapping the standard library `chunk` module (`build_chunk`, `chunk_name`, `is_available`, `iter_chunks`, `open_chunk`, `peek_chunk`, `read_chunk`, `read_chunks`, `skip_chunk`, `write_chunk`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_chunk_utils.py`.
 - Synchronized `chunk_utils.py` and `tests/test_chunk_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
-- The wrapper adds the conveniences the standard library leaves to the caller: the payload of a chunk is read in one call and the position of a stream is restored after the chunk is read.
-- The `chunk` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise a `RuntimeError` that names the missing module.
+- Repaired the `chunk_utils` handover that the previous session left behind: the module described the standard library `chunk` module as the chunked transfer encoding of HTTP, while it reads the chunks of an IFF file, the container format of AIFF, AIFF-C, TIFF, and RMFF. The module and its test were rewritten, and the four synchronization gaps the previous session left behind were closed: the `scaffold.sh` header comment never listed `tests/test_chunk_utils.py`, the embedded `pyproject.toml` never listed `chunk_utils`, and neither the repository nor the embedded `.kilo/command/scaffold-project.md` listed `tests/test_chunk_utils.py`.
+- The wrapper adds the conveniences the standard library leaves to the caller: a chunk is returned as one `ChunkRecord` that carries its identifier, its size, and its payload, the next chunk can be inspected without consuming it, the identifier of a chunk is decoded as text, and a chunk can be written again, which the standard library cannot do at all.
+- The `chunk` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully: the helpers that read a chunk raise a `RuntimeError` that names the missing module, while the helpers that only encode a chunk keep working.
 - The test suite is hermetic: every file is created in a temporary directory the test owns, the standard library is patched for the degradation test, and the suite never writes outside its own temporary directories.
 
 - Add `posix_utils.py` wrapping the standard library `posix` module (`open_fd`, `close_fd`, `read_fd`, `read_exactly`, `write_fd`, `write_all`, `seek_fd`, `read_at`, `write_at`, `duplicate_fd`, `duplicate_fd_to`, `create_pipe`, `is_terminal`, `is_blocking`, `set_blocking`, `is_inheritable`, `set_inheritable`, `sync_fd`, `sync_data`, `truncate_fd`, `terminal_size`, `file_info`, `file_mode`, `file_size`, `device_number`, `make_device`, `path_accessible`, `is_readable`, `is_writable`, `is_executable`, `create_directory`, `remove_directory`, `delete_file`, `remove_path`, `rename_path`, `create_hard_link`, `create_symbolic_link`, `read_symbolic_link`, `change_mode`, `change_owner`, `set_umask`, `read_xattr`, `write_xattr`, `list_xattrs`, `remove_xattr`, `scheduler_policy`, `scheduler_policy_name`, `scheduler_priorities`, `scheduler_parameters`, `affinity_mask`, `yield_cpu`, `exit_code_of`, `describe_wait_status`, `uname`, `cpu_count`, `load_average`, `process_times`, `system_limit`, `system_limits`, `system_configuration`, `login_name`, `terminal_device`, `error_message`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_posix_utils.py`.
@@ -31921,7 +31925,7 @@ base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
 trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
-chunk_utils.py               # Chunked transfer encoding utilities wrapping stdlib chunk (Chunk, open_chunk, read_chunk, is_available) with input validation
+chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
 cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
 struct_utils.py            # Binary struct packing and unpacking utilities
 pattern_utils.py           # Design pattern utilities (Singleton, Factory, Observer, Strategy)
@@ -33333,7 +33337,7 @@ The project includes POSIX interface utilities in `posix_utils.py` wrapping the 
 
 ## Chunk Utilities Module
 
-The project includes chunked transfer encoding utilities in `chunk_utils.py` wrapping the standard library `chunk` module: `open_chunk` opens the next chunk of a binary stream and returns a `Chunk` object positioned at the start of its payload, `read_chunk` reads the payload of a chunk in one call and restores the position of a stream, `is_available` reports whether the interpreter ships the module, and `Chunk` is re-exported from the standard library. All functions validate their inputs and raise `TypeError` on invalid arguments. The wrapper adds two conveniences to the standard library: the payload of a chunk is read in one call, and the position of a stream is restored after the chunk is read. The `chunk` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise `RuntimeError` when the module is missing. The wrapper only reads the file it is given and never writes to the filesystem, so the tests of the project create every file in a temporary directory of their own. The module is tested in `tests/test_chunk_utils.py`.
+The project includes IFF chunk utilities in `chunk_utils.py` wrapping the standard library `chunk` module: `open_chunk` opens the next chunk of a binary stream and returns the `Chunk` object of the standard library, `read_chunk` returns the next chunk of a file or a byte stream as one `ChunkRecord`, `peek_chunk` returns the next chunk without consuming it, `iter_chunks` returns an iterator over the chunks of a file, `read_chunks` returns every chunk of a file as a list, `skip_chunk` passes over the payload of the next chunk, `chunk_name` decodes the identifier of a chunk as text, `build_chunk` returns the bytes of a chunk, `write_chunk` writes a chunk to a file or a binary stream, and `is_available` reports whether the interpreter ships the module. A `ChunkRecord` carries the identifier of a chunk, the size its header declares, and its payload, and the identifier is decoded as text by the `text_name` property. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: a chunk is returned as one record that carries its identifier, its size, and its payload, the next chunk can be inspected without consuming it, the identifier of a chunk is decoded as text, and a chunk can be written again, which the standard library cannot do at all. The `chunk` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully: the helpers that read a chunk raise :class:`RuntimeError` when the module is missing, while the helpers that only encode a chunk keep working. The wrapper only touches the files and the streams it is given, so the tests of the project create every file in a temporary directory of their own. The module is tested in `tests/test_chunk_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -96499,44 +96503,65 @@ TEST_POSIX_UTILS
 
 # --- chunk_utils.py ---
 cat > "$OUTPUT_DIR/chunk_utils.py" <<'CHUNK_UTILS'
-"""Chunked transfer encoding utilities wrapping the standard library :mod:`chunk` module.
+"""IFF chunk utilities wrapping the standard library :mod:`chunk` module.
 
-The :mod:`chunk` module reads the chunked transfer encoding used by file
-formats such as AIFF and AIFF-C.  A chunk holds a four character name, a
-size, and a payload, and the standard library reads the payload through a
-:class:`~chunk.Chunk` object.
+The :mod:`chunk` module reads the chunks of an IFF file, the container format
+of AIFF, AIFF-C, TIFF, and RMFF.  A chunk starts with a four character
+identifier and a four byte size, both stored in big endian order, and holds the
+payload that follows.  The size covers the payload only, and a chunk whose
+payload has an odd length is padded with a single zero byte.
 
-This wrapper validates every argument before the standard library is
-reached, so a caller gets a clear :class:`TypeError` or :class:`ValueError`
-instead of an opaque failure from the standard library.  It adds the
-conveniences the standard library leaves to the caller: the payload of a
-chunk is read in one call, and the position of a stream is restored after
-the chunk is read.
+This wrapper validates every argument before the standard library is reached,
+so a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of
+an opaque failure from the standard library.  It adds the conveniences the
+standard library leaves to the caller: a chunk is returned as one record that
+carries its identifier, its size, and its payload, a file is iterated chunk by
+chunk, the identifier of a chunk is decoded as text, the next chunk can be
+inspected without consuming it, and a chunk can be written again, which the
+standard library cannot do at all.
 
 .. note::
 
-   The :mod:`chunk` module was deprecated in Python 3.11 and removed in
-   Python 3.13 as part of :pep:`594`.  The import below degrades
-   gracefully: when the interpreter no longer ships the module, the helpers
-   raise a :class:`RuntimeError` that names the missing module, while
-   :func:`is_available` still reports whether the module is shipped.
+   The :mod:`chunk` module was deprecated in Python 3.11 and removed in Python
+   3.13 as part of :pep:`594`.  The import below degrades gracefully: when the
+   interpreter no longer ships the module, the helpers that read a chunk raise
+   a :class:`RuntimeError` that names the missing module, while the helpers
+   that only encode a chunk and :func:`is_available` keep working.
 
-The wrapper only reads the file it is given and never writes to the
-filesystem.
+The wrapper only touches the files and the streams it is given.  It never
+writes to the current working directory behind the caller's back.
 """
 
 from __future__ import annotations
 
+import io
 import os
+import struct
 import warnings
-from typing import Any, Union, cast
+from typing import Any, Iterator, List, NamedTuple, Union
 
 __all__ = [
-    "Chunk",
+    "ChunkRecord",
+    "build_chunk",
+    "chunk_name",
     "is_available",
+    "iter_chunks",
     "open_chunk",
+    "peek_chunk",
     "read_chunk",
+    "read_chunks",
+    "skip_chunk",
+    "write_chunk",
 ]
+
+#: The number of bytes of the identifier of a chunk.
+NAME_SIZE = 4
+
+#: The number of bytes of the header of a chunk.
+HEADER_SIZE = 8
+
+#: The largest payload a chunk can hold, because its size is a 32 bit number.
+MAX_CHUNK_SIZE = 0xFFFFFFFF
 
 PathLike = Union[str, "os.PathLike[str]"]
 
@@ -96548,7 +96573,23 @@ except ImportError:  # pragma: no cover - Python 3.13 removed the module
     _chunk = None  # type: ignore[assignment]
 
 
-Chunk = _chunk.Chunk if _chunk is not None else None  # type: ignore[assignment]
+class ChunkRecord(NamedTuple):
+    """One chunk of an IFF file.
+
+    Attributes:
+        name: The four character identifier of the chunk.
+        size: The number of payload bytes the header of the chunk declares.
+        data: The payload bytes that were read from the file.
+    """
+
+    name: bytes
+    size: int
+    data: bytes
+
+    @property
+    def text_name(self) -> str:
+        """The identifier of the chunk as text."""
+        return _decode_name(self.name)
 
 
 def _chunk_module() -> Any:
@@ -96564,44 +96605,58 @@ def _chunk_module() -> Any:
     if _chunk is None:  # pragma: no cover - Python 3.13 removed the module
         raise RuntimeError(
             "the standard library 'chunk' module was removed in Python 3.13; "
-            "parse the chunked transfer encoding from the file header instead"
+            "read the IFF chunk header of the file yourself instead"
         )
     return _chunk
 
 
-def _require_stream(value: Any, name: str) -> None:
-    """Raise ``TypeError`` unless *value* is a readable binary stream.
+def _require_bytes(value: Any, name: str) -> bytes:
+    """Return *value* as bytes, raising ``TypeError`` for other types.
 
     Args:
         value: The value to check.
         name: The name of the argument, used in the error message.
 
+    Returns:
+        The value as bytes.
+
     Raises:
-        TypeError: If *value* has no ``read`` method.
+        TypeError: If *value* is not bytes-like.
     """
-    if not hasattr(value, "read"):
-        raise TypeError(
-            f"{name} must be a binary stream, got {type(value).__name__}"
-        )
+    if isinstance(value, bytes):
+        return value
+    if isinstance(value, (bytearray, memoryview)):
+        return bytes(value)
+    raise TypeError(f"{name} must be bytes, got {type(value).__name__}")
 
 
-def _require_source(value: Any, name: str) -> None:
-    """Raise ``TypeError`` unless *value* is a path or a binary stream.
+def _require_name(value: Any, name: str) -> bytes:
+    """Return *value* as the four bytes of the identifier of a chunk.
 
     Args:
-        value: The value to check.
+        value: The identifier to check.
         name: The name of the argument, used in the error message.
 
+    Returns:
+        The identifier as four bytes.
+
     Raises:
-        TypeError: If *value* is neither a path nor a readable stream.
+        TypeError: If *value* is neither bytes nor text.
+        ValueError: If *value* is not four characters long, or is not ASCII.
     """
-    if isinstance(value, (str, os.PathLike)):
-        return
-    if hasattr(value, "read"):
-        return
-    raise TypeError(
-        f"{name} must be a path or a binary stream, got {type(value).__name__}"
-    )
+    if isinstance(value, str):
+        if len(value) != NAME_SIZE:
+            raise ValueError(
+                f"{name} must be {NAME_SIZE} characters long, got {len(value)}"
+            )
+        try:
+            return value.encode("ascii")
+        except UnicodeEncodeError:
+            raise ValueError(f"{name} must be ASCII, got {value!r}") from None
+    raw = _require_bytes(value, name)
+    if len(raw) != NAME_SIZE:
+        raise ValueError(f"{name} must be {NAME_SIZE} bytes long, got {len(raw)}")
+    return raw
 
 
 def _require_bool(value: Any, name: str) -> bool:
@@ -96622,6 +96677,145 @@ def _require_bool(value: Any, name: str) -> bool:
     return value
 
 
+def _require_reader(value: Any, name: str) -> None:
+    """Raise ``TypeError`` unless *value* is a readable binary stream.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Raises:
+        TypeError: If *value* is not a readable binary stream.
+    """
+    if isinstance(value, io.TextIOBase):
+        raise TypeError(f"{name} must be a binary stream, got a text stream")
+    if not hasattr(value, "read"):
+        raise TypeError(
+            f"{name} must be a binary stream, got {type(value).__name__}"
+        )
+
+
+def _require_writer(value: Any, name: str) -> None:
+    """Raise ``TypeError`` unless *value* is a writable binary stream.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Raises:
+        TypeError: If *value* is not a writable binary stream.
+    """
+    if isinstance(value, io.TextIOBase):
+        raise TypeError(f"{name} must be a binary stream, got a text stream")
+    if not hasattr(value, "write"):
+        raise TypeError(
+            f"{name} must be a binary stream, got {type(value).__name__}"
+        )
+
+
+def _require_source(value: Any, name: str) -> None:
+    """Raise ``TypeError`` unless *value* is a path or a binary stream.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Raises:
+        TypeError: If *value* is neither a path nor a readable binary stream.
+    """
+    if isinstance(value, (str, os.PathLike)):
+        return
+    _require_reader(value, name)
+
+
+def _decode_name(name: bytes) -> str:
+    """Return the identifier of a chunk as text.
+
+    Every byte maps to exactly one character, so an identifier that is not
+    printable is still reported instead of raising an error.
+
+    Args:
+        name: The identifier of the chunk.
+
+    Returns:
+        The identifier as text.
+    """
+    return name.decode("latin-1")
+
+
+def _record(chunk: Any) -> ChunkRecord:
+    """Return the record of an open chunk of the standard library.
+
+    Args:
+        chunk: The :class:`chunk.Chunk` object of the standard library.
+
+    Returns:
+        The record of the chunk.
+    """
+    name = chunk.getname()
+    size = chunk.getsize()
+    data = chunk.read()
+    return ChunkRecord(name=name, size=size, data=data)
+
+
+def _iter_chunks(
+    module: Any,
+    stream: Any,
+    align: bool,
+    bigendian: bool,
+    inclheader: bool,
+) -> Iterator[ChunkRecord]:
+    """Yield the chunks of a stream until it holds no chunk anymore.
+
+    Args:
+        module: The :mod:`chunk` module of the standard library.
+        stream: The binary stream to read.
+        align: Whether the chunks are padded to even sizes.
+        bigendian: Whether the size of the chunk is stored big-endian.
+        inclheader: Whether the size includes the eight byte header.
+
+    Yields:
+        The record of every chunk of the stream.
+    """
+    while True:
+        try:
+            chunk = module.Chunk(
+                stream, align=align, bigendian=bigendian, inclheader=inclheader
+            )
+        except EOFError:
+            return
+        try:
+            yield _record(chunk)
+        finally:
+            chunk.close()
+
+
+def _iter_file_chunks(
+    module: Any,
+    path: PathLike,
+    align: bool,
+    bigendian: bool,
+    inclheader: bool,
+) -> Iterator[ChunkRecord]:
+    """Yield the chunks of a file until it holds no chunk anymore.
+
+    The file is opened and closed by this helper, so the caller never leaks a
+    handle.
+
+    Args:
+        module: The :mod:`chunk` module of the standard library.
+        path: The path of the file.
+        align: Whether the chunks are padded to even sizes.
+        bigendian: Whether the size of the chunk is stored big-endian.
+        inclheader: Whether the size includes the eight byte header.
+
+    Yields:
+        The record of every chunk of the file.
+    """
+    with open(os.fspath(path), "rb") as handle:
+        yield from _iter_chunks(module, handle, align, bigendian, inclheader)
+
+
 def is_available() -> bool:
     """Return ``True`` if the interpreter ships the ``chunk`` module.
 
@@ -96631,96 +96825,377 @@ def is_available() -> bool:
     return _chunk is not None
 
 
-def open_chunk(
-    stream: Any,
-    bigendian: bool = True,
-    align: bool = True,
-    inclheader: bool = False,
-) -> Any:
-    """Open the next chunk of a binary stream and return a :class:`Chunk`.
+def chunk_name(name: Union[bytes, str]) -> str:
+    """Return the identifier of a chunk as text.
 
-    The standard library reads the four character name and the size of the
-    chunk while it is opened, so the returned object is positioned at the
-    start of the payload.
+    The identifier of an IFF chunk is four characters, and the characters that
+    are not printable are reported as they are.
 
     Args:
-        stream: An open binary stream positioned at the start of a chunk.
-        bigendian: Whether the size of the chunk is stored big-endian.
-        align: Whether the chunks are padded to even sizes.
-        inclheader: Whether the size includes the eight byte header.
+        name: The identifier of the chunk, as bytes or as text.
 
     Returns:
-        A :class:`~chunk.Chunk` object positioned at the start of the
-        payload.
+        The identifier of the chunk as text.
 
     Raises:
-        TypeError: If *stream* is not a binary stream, or if *bigendian*,
-            *align*, or *inclheader* is not a bool.
-        EOFError: If the stream holds fewer than eight bytes.
-        RuntimeError: If the interpreter does not ship the ``chunk``
-            module.
+        TypeError: If *name* is neither bytes nor text.
+        ValueError: If *name* is not four characters long, or is not ASCII.
     """
-    _require_stream(stream, "stream")
-    _require_bool(bigendian, "bigendian")
-    _require_bool(align, "align")
-    _require_bool(inclheader, "inclheader")
-    module = _chunk_module()
-    return cast(Any, module.Chunk(stream, bigendian=bigendian, align=align, inclheader=inclheader))
+    return _decode_name(_require_name(name, "name"))
 
 
-def read_chunk(
-    file: Union[PathLike, Any],
+def build_chunk(
+    name: Union[bytes, str],
+    data: Any,
     bigendian: bool = True,
     align: bool = True,
     inclheader: bool = False,
 ) -> bytes:
-    """Return the payload of the next chunk of a file or byte stream.
+    """Return the bytes of a chunk.
 
-    The position of a stream is restored, so reading a chunk never changes
-    what the caller reads next.  When *file* is a path, the file is opened
-    and closed again, so the caller never leaks a handle.
+    The bytes are the identifier of the chunk, the size of its payload, and the
+    payload itself.  A payload of an odd length is padded with a single zero
+    byte, the way the standard library expects it.
 
     Args:
-        file: The path of the file, or an open binary stream positioned at
-            the start of a chunk.
+        name: The identifier of the chunk, as bytes or as text.
+        data: The payload of the chunk.
         bigendian: Whether the size of the chunk is stored big-endian.
-        align: Whether the chunks are padded to even sizes.
+        align: Whether the payload is padded to an even length.
         inclheader: Whether the size includes the eight byte header.
 
     Returns:
-        The payload bytes of the chunk.
+        The bytes of the chunk.
 
     Raises:
-        TypeError: If *file* is neither a path nor a binary stream, or if
-            *bigendian*, *align*, or *inclheader* is not a bool.
-        EOFError: If the stream holds fewer than eight bytes.
-        RuntimeError: If the interpreter does not ship the ``chunk``
-            module.
+        TypeError: If *name* is neither bytes nor text, if *data* is not
+            bytes-like, or if a flag is not a bool.
+        ValueError: If *name* is not four characters long, is not ASCII, or if
+            the payload is too large for the size field of a chunk.
     """
-    _require_source(file, "file")
+    raw_name = _require_name(name, "name")
+    payload = _require_bytes(data, "data")
     _require_bool(bigendian, "bigendian")
     _require_bool(align, "align")
     _require_bool(inclheader, "inclheader")
+    size = len(payload) + (HEADER_SIZE if inclheader else 0)
+    if size > MAX_CHUNK_SIZE:
+        raise ValueError(
+            f"the payload of a chunk must not exceed {MAX_CHUNK_SIZE} bytes, "
+            f"got {len(payload)}"
+        )
+    prefix = ">" if bigendian else "<"
+    body = raw_name + struct.pack(prefix + "L", size) + payload
+    if align and len(payload) % 2:
+        body += b"\x00"
+    return body
+
+
+def write_chunk(
+    file: Union[PathLike, Any],
+    name: Union[bytes, str],
+    data: Any,
+    bigendian: bool = True,
+    align: bool = True,
+    inclheader: bool = False,
+) -> int:
+    """Write a chunk to a file or a binary stream.
+
+    The standard library can only read a chunk, so the bytes of the chunk are
+    built by :func:`build_chunk`.
+
+    Args:
+        file: The path of the file, or an open binary stream.
+        name: The identifier of the chunk, as bytes or as text.
+        data: The payload of the chunk.
+        bigendian: Whether the size of the chunk is stored big-endian.
+        align: Whether the payload is padded to an even length.
+        inclheader: Whether the size includes the eight byte header.
+
+    Returns:
+        The number of bytes that were written.
+
+    Raises:
+        TypeError: If *file* is neither a path nor a writable binary stream, if
+            *name* is neither bytes nor text, if *data* is not bytes-like, or
+            if a flag is not a bool.
+        ValueError: If *name* is not four characters long, is not ASCII, or if
+            the payload is too large for the size field of a chunk.
+    """
+    body = build_chunk(
+        name, data, bigendian=bigendian, align=align, inclheader=inclheader
+    )
+    if isinstance(file, (str, os.PathLike)):
+        with open(os.fspath(file), "wb") as handle:
+            handle.write(body)
+        return len(body)
+    _require_writer(file, "file")
+    file.write(body)
+    return len(body)
+
+
+def open_chunk(
+    stream: Any,
+    align: bool = True,
+    bigendian: bool = True,
+    inclheader: bool = False,
+) -> Any:
+    """Open the next chunk of a binary stream and return it.
+
+    The standard library reads the identifier and the size of the chunk while
+    it is opened, so the returned object is positioned at the start of the
+    payload.  The object is a :class:`chunk.Chunk` of the standard library, so
+    it offers ``read``, ``skip``, ``seek``, ``tell``, ``getname``,
+    ``getsize``, and ``close``.
+
+    Args:
+        stream: An open binary stream positioned at the start of a chunk.
+        align: Whether the chunks are padded to even sizes.
+        bigendian: Whether the size of the chunk is stored big-endian.
+        inclheader: Whether the size includes the eight byte header.
+
+    Returns:
+        The :class:`chunk.Chunk` object of the standard library.
+
+    Raises:
+        TypeError: If *stream* is not a binary stream, or if a flag is not a
+            bool.
+        EOFError: If the stream holds fewer than eight bytes.
+        RuntimeError: If the interpreter does not ship the ``chunk`` module.
+    """
+    _require_reader(stream, "stream")
+    _require_bool(align, "align")
+    _require_bool(bigendian, "bigendian")
+    _require_bool(inclheader, "inclheader")
+    module = _chunk_module()
+    return module.Chunk(
+        stream, align=align, bigendian=bigendian, inclheader=inclheader
+    )
+
+
+def read_chunk(
+    file: Union[PathLike, Any],
+    align: bool = True,
+    bigendian: bool = True,
+    inclheader: bool = False,
+) -> ChunkRecord:
+    """Return the next chunk of a file or a byte stream.
+
+    The record carries the identifier of the chunk, the size its header
+    declares, and its payload.  A file that ends in the middle of a chunk
+    yields fewer payload bytes than the header declares.
+
+    Args:
+        file: The path of the file, or an open binary stream positioned at the
+            start of a chunk.
+        align: Whether the chunks are padded to even sizes.
+        bigendian: Whether the size of the chunk is stored big-endian.
+        inclheader: Whether the size includes the eight byte header.
+
+    Returns:
+        The record of the chunk.
+
+    Raises:
+        TypeError: If *file* is neither a path nor a binary stream, or if a
+            flag is not a bool.
+        EOFError: If the stream holds fewer than eight bytes.
+        RuntimeError: If the interpreter does not ship the ``chunk`` module.
+    """
+    _require_source(file, "file")
+    _require_bool(align, "align")
+    _require_bool(bigendian, "bigendian")
+    _require_bool(inclheader, "inclheader")
     module = _chunk_module()
     if isinstance(file, (str, os.PathLike)):
-        with open(cast(str, os.fspath(file)), "rb") as handle:
+        with open(os.fspath(file), "rb") as handle:
             chunk = module.Chunk(
-                handle, bigendian=bigendian, align=align, inclheader=inclheader
+                handle, align=align, bigendian=bigendian, inclheader=inclheader
             )
             try:
-                return cast(bytes, chunk.read())
+                return _record(chunk)
             finally:
                 chunk.close()
-    stream = cast(Any, file)
-    location = stream.tell()
     chunk = module.Chunk(
-        stream, bigendian=bigendian, align=align, inclheader=inclheader
+        file, align=align, bigendian=bigendian, inclheader=inclheader
     )
     try:
-        return cast(bytes, chunk.read())
+        return _record(chunk)
     finally:
         chunk.close()
-        stream.seek(location)
+
+
+def peek_chunk(
+    file: Union[PathLike, Any],
+    align: bool = True,
+    bigendian: bool = True,
+    inclheader: bool = False,
+) -> ChunkRecord:
+    """Return the next chunk of a file or a byte stream without consuming it.
+
+    The position of a stream is restored, so the chunk can be read again
+    afterwards.
+
+    Args:
+        file: The path of the file, or an open binary stream positioned at the
+            start of a chunk.
+        align: Whether the chunks are padded to even sizes.
+        bigendian: Whether the size of the chunk is stored big-endian.
+        inclheader: Whether the size includes the eight byte header.
+
+    Returns:
+        The record of the chunk.
+
+    Raises:
+        TypeError: If *file* is neither a path nor a binary stream, or if a
+            flag is not a bool.
+        ValueError: If *file* is a stream that cannot be seeked.
+        EOFError: If the stream holds fewer than eight bytes.
+        RuntimeError: If the interpreter does not ship the ``chunk`` module.
+    """
+    _require_source(file, "file")
+    if isinstance(file, (str, os.PathLike)):
+        return read_chunk(
+            file, align=align, bigendian=bigendian, inclheader=inclheader
+        )
+    try:
+        location = file.tell()
+    except (OSError, ValueError) as error:
+        raise ValueError(
+            "the stream cannot be seeked, so the next chunk cannot be peeked at"
+        ) from error
+    try:
+        return read_chunk(
+            file, align=align, bigendian=bigendian, inclheader=inclheader
+        )
+    finally:
+        file.seek(location)
+
+
+def iter_chunks(
+    file: Union[PathLike, Any],
+    align: bool = True,
+    bigendian: bool = True,
+    inclheader: bool = False,
+) -> Iterator[ChunkRecord]:
+    """Return an iterator over the chunks of a file or a byte stream.
+
+    The chunks are read one after another, and the iterator stops at the end of
+    the file.  The position of a stream moves to the end of the file.
+
+    Args:
+        file: The path of the file, or an open binary stream positioned at the
+            start of a chunk.
+        align: Whether the chunks are padded to even sizes.
+        bigendian: Whether the size of the chunk is stored big-endian.
+        inclheader: Whether the size includes the eight byte header.
+
+    Returns:
+        An iterator over the records of the chunks.
+
+    Raises:
+        TypeError: If *file* is neither a path nor a binary stream, or if a
+            flag is not a bool.
+        RuntimeError: If the interpreter does not ship the ``chunk`` module.
+    """
+    _require_source(file, "file")
+    _require_bool(align, "align")
+    _require_bool(bigendian, "bigendian")
+    _require_bool(inclheader, "inclheader")
+    module = _chunk_module()
+    if isinstance(file, (str, os.PathLike)):
+        return _iter_file_chunks(module, file, align, bigendian, inclheader)
+    return _iter_chunks(module, file, align, bigendian, inclheader)
+
+
+def read_chunks(
+    file: Union[PathLike, Any],
+    align: bool = True,
+    bigendian: bool = True,
+    inclheader: bool = False,
+) -> List[ChunkRecord]:
+    """Return every chunk of a file or a byte stream.
+
+    Args:
+        file: The path of the file, or an open binary stream positioned at the
+            start of a chunk.
+        align: Whether the chunks are padded to even sizes.
+        bigendian: Whether the size of the chunk is stored big-endian.
+        inclheader: Whether the size includes the eight byte header.
+
+    Returns:
+        The records of the chunks, in the order they are stored in the file.
+
+    Raises:
+        TypeError: If *file* is neither a path nor a binary stream, or if a
+            flag is not a bool.
+        RuntimeError: If the interpreter does not ship the ``chunk`` module.
+    """
+    return list(iter_chunks(file, align=align, bigendian=bigendian, inclheader=inclheader))
+
+
+def skip_chunk(
+    file: Union[PathLike, Any],
+    align: bool = True,
+    bigendian: bool = True,
+    inclheader: bool = False,
+) -> int:
+    """Skip the payload of the next chunk of a file or a byte stream.
+
+    The position of a stream moves to the start of the next chunk, so the
+    chunks that are of no interest can be passed over quickly.
+
+    Args:
+        file: The path of the file, or an open binary stream positioned at the
+            start of a chunk.
+        align: Whether the chunks are padded to even sizes.
+        bigendian: Whether the size of the chunk is stored big-endian.
+        inclheader: Whether the size includes the eight byte header.
+
+    Returns:
+        The number of payload bytes that were skipped.
+
+    Raises:
+        TypeError: If *file* is neither a path nor a binary stream, or if a
+            flag is not a bool.
+        EOFError: If the stream holds fewer than eight bytes.
+        RuntimeError: If the interpreter does not ship the ``chunk`` module.
+    """
+    _require_source(file, "file")
+    _require_bool(align, "align")
+    _require_bool(bigendian, "bigendian")
+    _require_bool(inclheader, "inclheader")
+    module = _chunk_module()
+    if isinstance(file, (str, os.PathLike)):
+        with open(os.fspath(file), "rb") as handle:
+            return _skip_chunk(module, handle, align, bigendian, inclheader)
+    return _skip_chunk(module, file, align, bigendian, inclheader)
+
+
+def _skip_chunk(
+    module: Any,
+    stream: Any,
+    align: bool,
+    bigendian: bool,
+    inclheader: bool,
+) -> int:
+    """Skip the payload of the next chunk of a stream.
+
+    Args:
+        module: The :mod:`chunk` module of the standard library.
+        stream: The binary stream to read.
+        align: Whether the chunks are padded to even sizes.
+        bigendian: Whether the size of the chunk is stored big-endian.
+        inclheader: Whether the size includes the eight byte header.
+
+    Returns:
+        The number of payload bytes that were skipped.
+    """
+    chunk = module.Chunk(
+        stream, align=align, bigendian=bigendian, inclheader=inclheader
+    )
+    size: int = chunk.getsize()
+    chunk.skip()
+    return size
 CHUNK_UTILS
 
 # --- tests/test_chunk_utils.py ---
@@ -96739,11 +97214,14 @@ import chunk_utils
 HAVE_CHUNK = chunk_utils.is_available()
 
 
-def make_chunk(name, payload, bigendian=True, inclheader=False):
+def make_chunk(name, payload, bigendian=True, align=True, inclheader=False):
     """Build the bytes of a single chunk with the given name and payload."""
-    strflag = ">" if bigendian else "<"
+    prefix = ">" if bigendian else "<"
     size = len(payload) + (8 if inclheader else 0)
-    return name + struct.pack(strflag + "L", size) + payload
+    body = name + struct.pack(prefix + "L", size) + payload
+    if align and len(payload) % 2:
+        body += b"\x00"
+    return body
 
 
 #: A stream that holds fewer than eight bytes cannot be opened as a chunk.
@@ -96756,73 +97234,155 @@ class TestAvailability(unittest.TestCase):
     def test_is_available_matches_the_import(self):
         self.assertEqual(chunk_utils.is_available(), HAVE_CHUNK)
 
-    def test_helpers_raise_when_the_module_is_missing(self):
+    def test_the_readers_raise_when_the_module_is_missing(self):
         with mock.patch.object(chunk_utils, "_chunk", None):
             self.assertFalse(chunk_utils.is_available())
             with self.assertRaises(RuntimeError):
                 chunk_utils.open_chunk(io.BytesIO(make_chunk(b"TEXT", b"data")))
             with self.assertRaises(RuntimeError):
                 chunk_utils.read_chunk(io.BytesIO(make_chunk(b"TEXT", b"data")))
+            with self.assertRaises(RuntimeError):
+                chunk_utils.peek_chunk(io.BytesIO(make_chunk(b"TEXT", b"data")))
+            with self.assertRaises(RuntimeError):
+                chunk_utils.skip_chunk(io.BytesIO(make_chunk(b"TEXT", b"data")))
+            with self.assertRaises(RuntimeError):
+                chunk_utils.iter_chunks(io.BytesIO(make_chunk(b"TEXT", b"data")))
+            with self.assertRaises(RuntimeError):
+                chunk_utils.read_chunks(io.BytesIO(make_chunk(b"TEXT", b"data")))
+
+    def test_the_writers_keep_working_when_the_module_is_missing(self):
+        with mock.patch.object(chunk_utils, "_chunk", None):
+            self.assertEqual(chunk_utils.chunk_name(b"TEXT"), "TEXT")
+            self.assertEqual(
+                chunk_utils.build_chunk(b"TEXT", b"data"),
+                make_chunk(b"TEXT", b"data"),
+            )
+            stream = io.BytesIO()
+            written = chunk_utils.write_chunk(stream, b"TEXT", b"data")
+            self.assertEqual(written, len(make_chunk(b"TEXT", b"data")))
 
 
-class TestReadChunk(unittest.TestCase):
-    """The wrapper reads the payload of a chunk in one call."""
+class TestChunkName(unittest.TestCase):
+    """The wrapper decodes the identifier of a chunk."""
 
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_the_payload_of_a_chunk_is_returned(self):
-        data = make_chunk(b"TEXT", b"hello world")
-        self.assertEqual(chunk_utils.read_chunk(io.BytesIO(data)), b"hello world")
+    def test_bytes_are_decoded(self):
+        self.assertEqual(chunk_utils.chunk_name(b"FORM"), "FORM")
 
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_byte_stream_is_accepted(self):
-        data = make_chunk(b"FORM", b"\x00\x01\x02\x03")
-        self.assertEqual(chunk_utils.read_chunk(io.BytesIO(data)), b"\x00\x01\x02\x03")
+    def test_text_is_accepted(self):
+        self.assertEqual(chunk_utils.chunk_name("FORM"), "FORM")
 
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_the_stream_position_is_restored(self):
-        data = make_chunk(b"TEXT", b"payload")
-        stream = io.BytesIO(b"prefix" + data + b"suffix")
-        stream.read(6)
-        position = stream.tell()
-        self.assertEqual(chunk_utils.read_chunk(stream), b"payload")
-        self.assertEqual(stream.tell(), position)
+    def test_every_byte_maps_to_one_character(self):
+        self.assertEqual(chunk_utils.chunk_name(b"\x00\xffA "), "\x00ÿA ")
 
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_path_is_accepted(self):
+    def test_a_name_of_the_wrong_length_is_rejected(self):
+        with self.assertRaises(ValueError):
+            chunk_utils.chunk_name(b"TEX")
+        with self.assertRaises(ValueError):
+            chunk_utils.chunk_name("TEX")
+
+    def test_a_name_that_is_not_ascii_is_rejected(self):
+        with self.assertRaises(ValueError):
+            chunk_utils.chunk_name("TÉXT")
+
+    def test_an_unsupported_name_is_rejected(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.chunk_name(42)
+
+
+class TestBuildChunk(unittest.TestCase):
+    """The wrapper builds the bytes of a chunk."""
+
+    def test_the_bytes_of_a_chunk_are_built(self):
+        self.assertEqual(
+            chunk_utils.build_chunk(b"TEXT", b"hello"),
+            b"TEXT" + struct.pack(">L", 5) + b"hello" + b"\x00",
+        )
+
+    def test_an_even_payload_is_not_padded(self):
+        self.assertEqual(
+            chunk_utils.build_chunk(b"TEXT", b"hello!"),
+            b"TEXT" + struct.pack(">L", 6) + b"hello!",
+        )
+
+    def test_the_padding_can_be_left_out(self):
+        self.assertEqual(
+            chunk_utils.build_chunk(b"TEXT", b"hello", align=False),
+            b"TEXT" + struct.pack(">L", 5) + b"hello",
+        )
+
+    def test_a_little_endian_size_is_written(self):
+        self.assertEqual(
+            chunk_utils.build_chunk(b"TEXT", b"hello", bigendian=False),
+            b"TEXT" + struct.pack("<L", 5) + b"hello" + b"\x00",
+        )
+
+    def test_the_size_can_include_the_header(self):
+        self.assertEqual(
+            chunk_utils.build_chunk(b"TEXT", b"hello", inclheader=True),
+            b"TEXT" + struct.pack(">L", 13) + b"hello" + b"\x00",
+        )
+
+    def test_text_is_accepted_as_the_identifier(self):
+        self.assertEqual(
+            chunk_utils.build_chunk("TEXT", b"hello"),
+            chunk_utils.build_chunk(b"TEXT", b"hello"),
+        )
+
+    def test_a_bytearray_is_accepted_as_the_payload(self):
+        self.assertEqual(
+            chunk_utils.build_chunk(b"TEXT", bytearray(b"hello")),
+            chunk_utils.build_chunk(b"TEXT", b"hello"),
+        )
+
+    def test_an_unsupported_payload_is_rejected(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.build_chunk(b"TEXT", "hello")
+
+    def test_an_unsupported_identifier_is_rejected(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.build_chunk(42, b"hello")
+
+    def test_an_unsupported_flag_is_rejected(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.build_chunk(b"TEXT", b"hello", bigendian=1)
+        with self.assertRaises(TypeError):
+            chunk_utils.build_chunk(b"TEXT", b"hello", align="yes")
+        with self.assertRaises(TypeError):
+            chunk_utils.build_chunk(b"TEXT", b"hello", inclheader=None)
+
+
+class TestWriteChunk(unittest.TestCase):
+    """The wrapper writes a chunk."""
+
+    def test_a_chunk_is_written_to_a_stream(self):
+        stream = io.BytesIO()
+        written = chunk_utils.write_chunk(stream, b"TEXT", b"hello")
+        self.assertEqual(written, len(make_chunk(b"TEXT", b"hello")))
+        self.assertEqual(stream.getvalue(), make_chunk(b"TEXT", b"hello"))
+
+    def test_a_chunk_is_written_to_a_path(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "chunk.dat"
-            path.write_bytes(make_chunk(b"TEXT", b"from file"))
-            self.assertEqual(chunk_utils.read_chunk(str(path)), b"from file")
-            self.assertEqual(chunk_utils.read_chunk(path), b"from file")
+            written = chunk_utils.write_chunk(str(path), b"TEXT", b"hello")
+            self.assertEqual(written, len(make_chunk(b"TEXT", b"hello")))
+            self.assertEqual(path.read_bytes(), make_chunk(b"TEXT", b"hello"))
 
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_little_endian_chunk_is_read(self):
-        data = make_chunk(b"TEXT", b"little", bigendian=False)
-        self.assertEqual(
-            chunk_utils.read_chunk(io.BytesIO(data), bigendian=False), b"little"
-        )
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_chunk_with_an_odd_payload_is_read(self):
-        data = make_chunk(b"TEXT", b"odd")
-        self.assertEqual(
-            chunk_utils.read_chunk(io.BytesIO(data), align=True), b"odd"
-        )
+    def test_a_written_chunk_is_read_back(self):
+        stream = io.BytesIO()
+        chunk_utils.write_chunk(stream, b"TEXT", b"hello")
+        stream.seek(0)
+        record = chunk_utils.read_chunk(stream)
+        self.assertEqual(record.name, b"TEXT")
+        self.assertEqual(record.size, 5)
+        self.assertEqual(record.data, b"hello")
 
     def test_an_unsupported_file_is_rejected(self):
         with self.assertRaises(TypeError):
-            chunk_utils.read_chunk(42)
-        with self.assertRaises(TypeError):
-            chunk_utils.read_chunk(b"\x00\x00\x00\x00\x00\x00\x00\x00")
+            chunk_utils.write_chunk(42, b"TEXT", b"hello")
 
-    def test_an_unsupported_flag_is_rejected(self):
-        stream = io.BytesIO(make_chunk(b"TEXT", b"data"))
+    def test_a_text_stream_is_rejected(self):
         with self.assertRaises(TypeError):
-            chunk_utils.read_chunk(stream, bigendian=1)
-        with self.assertRaises(TypeError):
-            chunk_utils.read_chunk(stream, align="yes")
-        with self.assertRaises(TypeError):
-            chunk_utils.read_chunk(stream, inclheader=None)
+            chunk_utils.write_chunk(io.StringIO(), b"TEXT", b"hello")
 
 
 class TestOpenChunk(unittest.TestCase):
@@ -96840,7 +97400,7 @@ class TestOpenChunk(unittest.TestCase):
     def test_skip_moves_to_the_end_of_the_chunk(self):
         data = make_chunk(b"TEXT", b"skip me")
         stream = io.BytesIO(data)
-        chunk = chunk_utils.open_chunk(stream, align=False)
+        chunk = chunk_utils.open_chunk(stream)
         chunk.skip()
         self.assertEqual(stream.tell(), len(data))
 
@@ -96857,6 +97417,10 @@ class TestOpenChunk(unittest.TestCase):
         with self.assertRaises(TypeError):
             chunk_utils.open_chunk(b"not a stream")
 
+    def test_a_text_stream_is_rejected(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.open_chunk(io.StringIO())
+
     def test_an_unsupported_flag_is_rejected(self):
         stream = io.BytesIO(make_chunk(b"TEXT", b"data"))
         with self.assertRaises(TypeError):
@@ -96865,6 +97429,230 @@ class TestOpenChunk(unittest.TestCase):
             chunk_utils.open_chunk(stream, align="no")
         with self.assertRaises(TypeError):
             chunk_utils.open_chunk(stream, inclheader=1)
+
+
+class TestReadChunk(unittest.TestCase):
+    """The wrapper reads a chunk in one call."""
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_the_record_of_a_chunk_is_returned(self):
+        data = make_chunk(b"TEXT", b"hello world")
+        record = chunk_utils.read_chunk(io.BytesIO(data))
+        self.assertEqual(record.name, b"TEXT")
+        self.assertEqual(record.size, 11)
+        self.assertEqual(record.data, b"hello world")
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_the_identifier_is_decoded_as_text(self):
+        data = make_chunk(b"FORM", b"data")
+        record = chunk_utils.read_chunk(io.BytesIO(data))
+        self.assertEqual(record.text_name, "FORM")
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_byte_stream_is_accepted(self):
+        data = make_chunk(b"FORM", b"\x00\x01\x02\x03")
+        record = chunk_utils.read_chunk(io.BytesIO(data))
+        self.assertEqual(record.data, b"\x00\x01\x02\x03")
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_path_is_accepted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "chunk.dat"
+            path.write_bytes(make_chunk(b"TEXT", b"from file"))
+            self.assertEqual(chunk_utils.read_chunk(str(path)).data, b"from file")
+            self.assertEqual(chunk_utils.read_chunk(path).data, b"from file")
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_the_stream_moves_past_the_chunk(self):
+        data = make_chunk(b"TEXT", b"payload")
+        stream = io.BytesIO(data)
+        chunk_utils.read_chunk(stream)
+        self.assertEqual(stream.tell(), len(data))
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_little_endian_chunk_is_read(self):
+        data = make_chunk(b"TEXT", b"little", bigendian=False)
+        record = chunk_utils.read_chunk(io.BytesIO(data), bigendian=False)
+        self.assertEqual(record.data, b"little")
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_chunk_with_an_odd_payload_is_read(self):
+        data = make_chunk(b"TEXT", b"odd")
+        record = chunk_utils.read_chunk(io.BytesIO(data))
+        self.assertEqual(record.data, b"odd")
+        self.assertEqual(record.size, 3)
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_chunk_whose_size_includes_the_header_is_read(self):
+        data = make_chunk(b"TEXT", b"odd", inclheader=True)
+        record = chunk_utils.read_chunk(io.BytesIO(data), inclheader=True)
+        self.assertEqual(record.size, 3)
+        self.assertEqual(record.data, b"odd")
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_truncated_chunk_reports_the_bytes_it_read(self):
+        data = make_chunk(b"TEXT", b"payload")[:-3]
+        record = chunk_utils.read_chunk(io.BytesIO(data))
+        self.assertEqual(record.size, 7)
+        self.assertEqual(record.data, b"paylo")
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_short_stream_raises(self):
+        with self.assertRaises(EOFError):
+            chunk_utils.read_chunk(io.BytesIO(SHORT))
+
+    def test_an_unsupported_file_is_rejected(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.read_chunk(42)
+        with self.assertRaises(TypeError):
+            chunk_utils.read_chunk(b"\x00\x00\x00\x00\x00\x00\x00\x00")
+
+    def test_a_text_stream_is_rejected(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.read_chunk(io.StringIO())
+
+    def test_an_unsupported_flag_is_rejected(self):
+        stream = io.BytesIO(make_chunk(b"TEXT", b"data"))
+        with self.assertRaises(TypeError):
+            chunk_utils.read_chunk(stream, bigendian=1)
+        with self.assertRaises(TypeError):
+            chunk_utils.read_chunk(stream, align="yes")
+        with self.assertRaises(TypeError):
+            chunk_utils.read_chunk(stream, inclheader=None)
+
+
+class TestPeekChunk(unittest.TestCase):
+    """The wrapper inspects the next chunk without consuming it."""
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_the_stream_position_is_restored(self):
+        data = make_chunk(b"TEXT", b"payload")
+        stream = io.BytesIO(data)
+        position = stream.tell()
+        record = chunk_utils.peek_chunk(stream)
+        self.assertEqual(record.data, b"payload")
+        self.assertEqual(stream.tell(), position)
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_the_chunk_can_be_read_afterwards(self):
+        data = make_chunk(b"TEXT", b"payload")
+        stream = io.BytesIO(data)
+        chunk_utils.peek_chunk(stream)
+        self.assertEqual(chunk_utils.read_chunk(stream).data, b"payload")
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_path_is_accepted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "chunk.dat"
+            path.write_bytes(make_chunk(b"TEXT", b"from file"))
+            self.assertEqual(chunk_utils.peek_chunk(path).data, b"from file")
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_stream_that_cannot_be_seeked_is_rejected(self):
+        stream = io.BytesIO(make_chunk(b"TEXT", b"payload"))
+        with mock.patch.object(
+            stream, "tell", side_effect=io.UnsupportedOperation("tell")
+        ):
+            with self.assertRaises(ValueError):
+                chunk_utils.peek_chunk(stream)
+
+    def test_an_unsupported_file_is_rejected(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.peek_chunk(42)
+
+    def test_an_unsupported_flag_is_rejected(self):
+        stream = io.BytesIO(make_chunk(b"TEXT", b"data"))
+        with self.assertRaises(TypeError):
+            chunk_utils.peek_chunk(stream, align=1)
+
+
+class TestIterChunks(unittest.TestCase):
+    """The wrapper iterates over the chunks of a file."""
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_every_chunk_is_yielded(self):
+        data = make_chunk(b"TEXT", b"one") + make_chunk(b"FORM", b"two")
+        records = list(chunk_utils.iter_chunks(io.BytesIO(data)))
+        self.assertEqual([record.name for record in records], [b"TEXT", b"FORM"])
+        self.assertEqual([record.data for record in records], [b"one", b"two"])
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_path_is_accepted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "chunk.dat"
+            path.write_bytes(make_chunk(b"TEXT", b"one") + make_chunk(b"FORM", b"two"))
+            records = list(chunk_utils.iter_chunks(path))
+            self.assertEqual(len(records), 2)
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_an_empty_file_yields_no_chunk(self):
+        self.assertEqual(list(chunk_utils.iter_chunks(io.BytesIO(b""))), [])
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_the_arguments_are_validated_before_the_file_is_read(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.iter_chunks(42)
+        with self.assertRaises(TypeError):
+            chunk_utils.iter_chunks(io.BytesIO(b""), align=1)
+
+    def test_an_unsupported_file_is_rejected(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.iter_chunks(object())
+
+
+class TestReadChunks(unittest.TestCase):
+    """The wrapper returns every chunk of a file as a list."""
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_every_chunk_is_returned(self):
+        data = make_chunk(b"TEXT", b"one") + make_chunk(b"FORM", b"two")
+        records = chunk_utils.read_chunks(io.BytesIO(data))
+        self.assertEqual(len(records), 2)
+        self.assertIsInstance(records, list)
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_path_is_accepted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "chunk.dat"
+            path.write_bytes(make_chunk(b"TEXT", b"one"))
+            self.assertEqual(len(chunk_utils.read_chunks(path)), 1)
+
+    def test_an_unsupported_file_is_rejected(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.read_chunks(42)
+
+
+class TestSkipChunk(unittest.TestCase):
+    """The wrapper skips the payload of a chunk."""
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_the_payload_is_skipped(self):
+        data = make_chunk(b"TEXT", b"payload") + make_chunk(b"FORM", b"next")
+        stream = io.BytesIO(data)
+        skipped = chunk_utils.skip_chunk(stream)
+        self.assertEqual(skipped, 7)
+        self.assertEqual(chunk_utils.read_chunk(stream).name, b"FORM")
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_path_is_accepted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "chunk.dat"
+            path.write_bytes(make_chunk(b"TEXT", b"payload"))
+            self.assertEqual(chunk_utils.skip_chunk(path), 7)
+
+    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
+    def test_a_short_stream_raises(self):
+        with self.assertRaises(EOFError):
+            chunk_utils.skip_chunk(io.BytesIO(SHORT))
+
+    def test_an_unsupported_file_is_rejected(self):
+        with self.assertRaises(TypeError):
+            chunk_utils.skip_chunk(42)
+
+    def test_an_unsupported_flag_is_rejected(self):
+        stream = io.BytesIO(make_chunk(b"TEXT", b"data"))
+        with self.assertRaises(TypeError):
+            chunk_utils.skip_chunk(stream, inclheader="yes")
 
 
 if __name__ == "__main__":
