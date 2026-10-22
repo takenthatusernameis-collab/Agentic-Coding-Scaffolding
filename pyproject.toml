@@ -295,4 +295,5 @@ py_modules = [
     "crypt_utils",
     "telnetlib_utils",
     "sre_constants_utils",
+    "sndhdr_utils",
 ]
