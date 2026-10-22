@@ -100945,6 +100945,77 @@ def test_degradation_when_missing():
             cgi_utils.parse()
 TEST_CGI_UTILS
 
+# --- cgitb_utils.py ---
+cat > "$OUTPUT_DIR/cgitb_utils.py" <<'CGITB_UTILS'
+"""Utilities for CGI traceback reporting (wrapping :mod:`cgitb`)."""
+
+import cgitb as _cgitb
+
+
+def enable(display=1, logdir=None, context=5, format="html"):
+    """Enable CGI traceback reporting (wrapping ``cgitb.enable``)."""
+    return _cgitb.enable(display=display, logdir=logdir, context=context, format=format)
+
+
+def handler(info=None):
+    """Handle an exception (wrapping ``cgitb.handler``)."""
+    return _cgitb.handler(info=info)
+
+
+def html(info=None, context=5):
+    """Return an HTML traceback (wrapping ``cgitb.html``)."""
+    return _cgitb.html(info, context)
+
+
+def text(info=None, context=5):
+    """Return a text traceback (wrapping ``cgitb.text``)."""
+    return _cgitb.text(info, context)
+
+
+def reset():
+    """Reset the handler (wrapping ``cgitb.reset``)."""
+    return _cgitb.reset()
+
+
+def hook_class():
+    """Return the ``Hook`` class."""
+    return _cgitb.Hook
+CGITB_UTILS
+
+# --- tests/test_cgitb_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_cgitb_utils.py" <<'TEST_CGITB_UTILS'
+import unittest
+import warnings
+
+import cgitb_utils
+
+
+class TestCgitbUtils(unittest.TestCase):
+    def test_hook_class(self):
+        self.assertTrue(callable(cgitb_utils.hook_class()))
+
+    def test_html(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            out = cgitb_utils.html((ValueError, ValueError("boom"), None), 3)
+        self.assertIsInstance(out, str)
+
+    def test_text(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            out = cgitb_utils.text((ValueError, ValueError("boom"), None), 3)
+        self.assertIsInstance(out, str)
+
+    def test_reset(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            cgitb_utils.reset()
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_CGITB_UTILS
+
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
 # that their content is copied verbatim; the project name placeholder is
