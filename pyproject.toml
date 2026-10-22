@@ -291,4 +291,5 @@ py_modules = [
     "imghdr_utils",
     "posix_utils",
     "crypt_utils",
+    "telnetlib_utils",
 ]

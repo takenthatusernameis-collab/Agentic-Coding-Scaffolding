@@ -717,6 +717,7 @@
 #   - imghdr_utils.py — # Image format detection utilities wrapping the standard library imghdr module (detect, is_available, is_image, matching_formats, read_header, register_test, supported_formats, unregister_test, what) with input validation
 #   - posix_utils.py — # POSIX interface utilities wrapping the standard library posix module (open_fd, close_fd, read_fd, read_exactly, write_fd, write_all, create_pipe, file_info, create_directory, remove_path, scheduler_policy, describe_wait_status, is_available) with input validation
 #   - crypt_utils.py — # Password hashing utilities wrapping the standard library crypt module (crypt, mksalt, hash_password, verify, identify_method, is_hash, methods, is_available) with input validation
+#   - telnetlib_utils.py — # Telnet client utilities wrapping the standard library telnetlib module (create_telnet, connect_telnet, read_until, read_until_text, read_all, read_some, read_eager, read_lazy, read_very_eager, read_very_lazy, read_sb_data, write, send_line, expect, expect_text, close, escape_iac, strip_iac, command_name, option_name, is_available) with input validation
 #   - tests/test_smtplib_utils.py — # Tests for smtplib_utils.py
 #   - tests/test_ftplib_utils.py — # Tests for ftplib_utils.py
 #   - tests/test_poplib_utils.py — # Tests for poplib_utils.py
@@ -755,6 +756,7 @@
 #   - tests/test_imghdr_utils.py — # Tests for imghdr_utils.py
 #   - tests/test_posix_utils.py — # Tests for posix_utils.py
 #   - tests/test_crypt_utils.py — # Tests for crypt_utils.py
+#   - tests/test_telnetlib_utils.py — # Tests for telnetlib_utils.py
 set -euo pipefail
 
 usage() {
@@ -4577,6 +4579,7 @@ py_modules = [
     "imghdr_utils",
     "posix_utils",
     "crypt_utils",
+    "telnetlib_utils",
 ]
 PYPROJECT
 
@@ -29478,6 +29481,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_crypt_utils.py` — unit tests for `crypt_utils.py`
 - `posix_utils.py` — POSIX interface utilities wrapping the standard library `posix` module (`affinity_mask`, `change_mode`, `change_owner`, `close_fd`, `cpu_count`, `create_directory`, `create_hard_link`, `create_pipe`, `create_symbolic_link`, `delete_file`, `describe_wait_status`, `device_number`, `duplicate_fd`, `duplicate_fd_to`, `error_message`, `exit_code_of`, `file_info`, `file_mode`, `file_size`, `is_available`, `is_blocking`, `is_executable`, `is_inheritable`, `is_readable`, `is_terminal`, `is_writable`, `list_xattrs`, `load_average`, `login_name`, `make_device`, `open_fd`, `path_accessible`, `process_times`, `read_at`, `read_exactly`, `read_fd`, `read_symbolic_link`, `read_xattr`, `remove_directory`, `remove_path`, `remove_xattr`, `rename_path`, `scheduler_parameters`, `scheduler_policy`, `scheduler_policy_name`, `scheduler_priorities`, `seek_fd`, `set_blocking`, `set_inheritable`, `set_umask`, `sync_data`, `sync_fd`, `system_configuration`, `system_limit`, `system_limits`, `terminal_device`, `terminal_size`, `truncate_fd`, `uname`, `write_all`, `write_at`, `write_fd`, `write_xattr`, `yield_cpu`) with input validation
 - `tests/test_posix_utils.py` — unit tests for `posix_utils.py`
+- `telnetlib_utils.py` — Telnet client utilities wrapping the standard library `telnetlib` module (`create_telnet`, `connect_telnet`, `read_until`, `read_until_text`, `read_all`, `read_some`, `read_eager`, `read_lazy`, `read_very_eager`, `read_very_lazy`, `read_sb_data`, `write`, `send_line`, `expect`, `expect_text`, `close`, `escape_iac`, `strip_iac`, `command_name`, `option_name`, `is_available`) with input validation
+- `tests/test_telnetlib_utils.py` — unit tests for `telnetlib_utils.py`
 SCAFFOLD
 
 
@@ -31808,6 +31813,7 @@ warnings_utils.py           # Warnings utilities
 validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 crypt_utils.py              # Password hashing utilities wrapping the standard library crypt module
+telnetlib_utils.py           # Telnet client utilities wrapping the standard library telnetlib module
 list_utils.py              # Advanced list manipulation utilities
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
@@ -32196,6 +32202,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_builtins_utils.py      # Tests for builtins_utils.py
   test_imghdr_utils.py        # Tests for imghdr_utils.py
   test_posix_utils.py         # Tests for posix_utils.py
+  test_telnetlib_utils.py     # Tests for telnetlib_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
@@ -33377,6 +33384,10 @@ The project includes pipeline utilities in `pipes_utils.py` wrapping the standar
 ## Crypt Utilities Module
 
 The project includes password hashing utilities in `crypt_utils.py` wrapping the standard library `crypt` module: `crypt` hashes a password with a salt, `mksalt` creates a salt for a method, `hash_password` hashes a password with a salt of its own, `verify` reports whether a password matches a stored hash, `identify_method` reports the method a hash was created with, `is_hash` reports whether a value looks like a hash, `methods` lists the methods the interpreter supports, and `is_available` reports whether the interpreter ships the module. The constants `METHOD_BLOWFISH`, `METHOD_CRYPT`, `METHOD_MD5`, `METHOD_SHA256`, and `METHOD_SHA512` are re-exported. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: a password is compared with a hash in constant time, the method of a hash is identified without the password, the salt is created together with the hash that uses it, and the supported methods can be listed. The `crypt` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers that hash a password raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_crypt_utils.py`.
+
+## Telnet Utilities Module
+
+The project includes telnet client utilities in `telnetlib_utils.py` wrapping the standard library `telnetlib` module: `create_telnet` creates a client, `connect_telnet` creates a client and opens the connection, `read_until` and `read_until_text` read the data of a connection up to a marker, `read_all` reads the data until the peer closes the connection, `read_some` reads at least one byte, `read_eager` and `read_very_eager` read without waiting for more than one round trip, `read_lazy` and `read_very_lazy` read without waiting at all, `read_sb_data` reads the data of a subnegotiation, `write` writes bytes and reports the number of bytes that reached the peer, `send_line` writes a line and ends it, `expect` and `expect_text` read until one of a list of patterns matched, `close` closes the connection, `escape_iac` doubles every byte that introduces a command, `strip_iac` removes the commands of the protocol from a payload, `command_name` and `option_name` report the name of a command or an option, and `is_available` reports whether the interpreter ships the module. The client class `Telnet` is re-exported, and the constants `IAC`, `DONT`, `DO`, `WONT`, `WILL`, `SE`, `NOP`, `DM`, `BRK`, `IP`, `AO`, `AYT`, `EC`, `EL`, `GA`, `SB`, and `theNULL` are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds six conveniences to the standard library: the data of a connection can be read as text, a line can be sent in one call, the number of bytes that reached the peer is reported, the telnet commands can be removed from a payload or escaped in one, and the name of a command or an option can be looked up. The `telnetlib` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers that need it raise :class:`RuntimeError` when the module is missing, while the helpers that only work on the protocol itself keep working. The tests of the project talk to a server of the loopback interface of their own, so the suite never reaches the network. The module is tested in `tests/test_telnetlib_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -98608,6 +98619,1564 @@ def test_exports() -> None:
     for name in crypt_utils.__all__:
         assert hasattr(crypt_utils, name), name
 TEST_CRYPT_UTILS
+
+# --- telnetlib_utils.py ---
+cat > "$OUTPUT_DIR/telnetlib_utils.py" <<'TELNETLIB_UTILS'
+"""Telnet client utilities wrapping the standard library :mod:`telnetlib` module.
+
+The :mod:`telnetlib` module implements a client of the telnet protocol as it is
+described in :rfc:`854`.  It opens a connection, negotiates the options of the
+protocol, and reads the data of the connection as bytes.
+
+This wrapper validates every argument before the standard library is reached, so
+a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of an
+opaque failure from the standard library.  It adds the conveniences the standard
+library leaves to the caller: the data of a connection can be read as text, a
+line can be sent in one call, the number of bytes that reached the peer is
+reported, the telnet commands can be removed from a payload or escaped in one,
+and the name of a command or an option can be looked up.
+
+.. note::
+
+   The :mod:`telnetlib` module was deprecated in Python 3.11 and removed in
+   Python 3.13 as part of :pep:`594`.  The import below degrades gracefully:
+   when the interpreter no longer ships the module, the helpers that need it
+   raise a :class:`RuntimeError` that names the missing module, while the
+   helpers that only work on the protocol itself keep working.
+"""
+
+from __future__ import annotations
+
+import re
+import socket
+import warnings
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple, Union, cast
+
+if TYPE_CHECKING:
+    # The module is imported at runtime with a guard, so the name only exists
+    # for the type checker.
+    import telnetlib
+
+__all__ = [
+    "AO",
+    "AYT",
+    "BRK",
+    "DM",
+    "DO",
+    "DONT",
+    "EC",
+    "EL",
+    "GA",
+    "IAC",
+    "IP",
+    "NOP",
+    "SB",
+    "SE",
+    "TELNET_PORT",
+    "WILL",
+    "WONT",
+    "Telnet",
+    "close",
+    "command_name",
+    "connect_telnet",
+    "create_telnet",
+    "escape_iac",
+    "expect",
+    "expect_text",
+    "is_available",
+    "option_name",
+    "read_all",
+    "read_eager",
+    "read_lazy",
+    "read_sb_data",
+    "read_some",
+    "read_until",
+    "read_until_text",
+    "read_very_eager",
+    "read_very_lazy",
+    "send_line",
+    "strip_iac",
+    "theNULL",
+    "write",
+]
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import telnetlib as _telnetlib
+except ImportError:  # pragma: no cover - Python 3.13 removed the module
+    _telnetlib = None  # type: ignore[assignment]
+
+
+def _constant(name: str, default: bytes) -> bytes:
+    """Return the constant *name* of the standard library, or *default*.
+
+    Args:
+        name: The name of the constant.
+        default: The value to use when the interpreter no longer ships the
+            module.
+
+    Returns:
+        The value of the constant as a single byte.
+    """
+    return bytes(getattr(_telnetlib, name, default))
+
+
+#: Interpret as command, the byte that introduces a telnet command.
+IAC = _constant("IAC", b"\xff")
+#: Refuse to perform the option that follows.
+DONT = _constant("DONT", b"\xfe")
+#: Ask to perform the option that follows.
+DO = _constant("DO", b"\xfd")
+#: Refuse to perform the option that follows.
+WONT = _constant("WONT", b"\xfc")
+#: Offer to perform the option that follows.
+WILL = _constant("WILL", b"\xfb")
+#: End of a subnegotiation.
+SE = _constant("SE", b"\xf0")
+#: No operation.
+NOP = _constant("NOP", b"\xf1")
+#: Data mark.
+DM = _constant("DM", b"\xf2")
+#: Break.
+BRK = _constant("BRK", b"\xf3")
+#: Interrupt process.
+IP = _constant("IP", b"\xf4")
+#: Abort output.
+AO = _constant("AO", b"\xf5")
+#: Are you there.
+AYT = _constant("AYT", b"\xf6")
+#: Erase character.
+EC = _constant("EC", b"\xf7")
+#: Erase line.
+EL = _constant("EL", b"\xf8")
+#: Go ahead.
+GA = _constant("GA", b"\xf9")
+#: Begin of a subnegotiation.
+SB = _constant("SB", b"\xfa")
+#: The null byte, which carries no data.
+theNULL = _constant("theNULL", b"\x00")
+
+#: The port the telnet protocol uses by default.
+TELNET_PORT = int(getattr(_telnetlib, "TELNET_PORT", 23))
+
+#: The sentinel the standard library uses for "use the global socket timeout".
+_GLOBAL_DEFAULT_TIMEOUT: Any = getattr(socket, "_GLOBAL_DEFAULT_TIMEOUT", None)
+
+#: The telnet commands of :rfc:`854`, by the value of the command byte.
+COMMANDS: Dict[int, str] = {
+    240: "SE",
+    241: "NOP",
+    242: "DM",
+    243: "BRK",
+    244: "IP",
+    245: "AO",
+    246: "AYT",
+    247: "EC",
+    248: "EL",
+    249: "GA",
+    250: "SB",
+    251: "WILL",
+    252: "WONT",
+    253: "DO",
+    254: "DONT",
+    255: "IAC",
+}
+
+#: The telnet options, by the value of the option byte.
+OPTIONS: Dict[int, str] = {
+    0: "BINARY",
+    1: "ECHO",
+    2: "RCP",
+    3: "SGA",
+    4: "NAMS",
+    5: "STATUS",
+    6: "TM",
+    7: "RCTE",
+    8: "NAOL",
+    9: "NAOP",
+    10: "NAOCRD",
+    11: "NAOHTS",
+    12: "NAOHTD",
+    13: "NAOFFD",
+    14: "NAOVTS",
+    15: "NAOVTD",
+    16: "NAOLFD",
+    17: "XASCII",
+    18: "LOGOUT",
+    19: "BM",
+    20: "DET",
+    21: "SUPDUP",
+    22: "SUPDUPOUTPUT",
+    23: "SNDLOC",
+    24: "TTYPE",
+    25: "EOR",
+    26: "TUID",
+    27: "OUTMRK",
+    28: "TTYLOC",
+    29: "VT3270REGIME",
+    30: "X3PAD",
+    31: "NAWS",
+    32: "TSPEED",
+    33: "LFLOW",
+    34: "LINEMODE",
+    35: "XDISPLOC",
+    36: "OLD_ENVIRON",
+    37: "AUTHENTICATION",
+    38: "ENCRYPT",
+    39: "NEW_ENVIRON",
+    40: "TN3270E",
+    41: "XAUTH",
+    42: "CHARSET",
+    43: "RSP",
+    44: "COM_PORT_OPTION",
+    45: "SUPPRESS_LOCAL_ECHO",
+    46: "TLS",
+    47: "KERMIT",
+    48: "SEND_URL",
+    49: "FORWARD_X",
+    138: "PRAGMA_LOGON",
+    139: "SSPI_LOGON",
+    140: "PRAGMA_HEARTBEAT",
+    255: "EXOPL",
+}
+
+
+def _telnetlib_module() -> Any:
+    """Return the standard library ``telnetlib`` module.
+
+    Returns:
+        The imported :mod:`telnetlib` module.
+
+    Raises:
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+    """
+    if _telnetlib is None:  # pragma: no cover - Python 3.13 removed the module
+        raise RuntimeError(
+            "the standard library 'telnetlib' module was removed in Python 3.13; "
+            "use the 'telnetlib3' package instead"
+        )
+    return _telnetlib
+
+
+def _require_text(value: Any, name: str) -> str:
+    """Return *value* as text, raising ``TypeError`` for every other type.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as text.
+
+    Raises:
+        TypeError: If *value* is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_bytes(value: Any, name: str) -> bytes:
+    """Return *value* as bytes, raising ``TypeError`` for every other type.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The value as bytes.
+
+    Raises:
+        TypeError: If *value* is not a bytes-like object.
+    """
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        return bytes(value)
+    raise TypeError(f"{name} must be bytes, got {type(value).__name__}")
+
+
+def _require_timeout(timeout: Any, name: str = "timeout") -> Optional[float]:
+    """Return *timeout* as a number of seconds, or ``None``.
+
+    Args:
+        timeout: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The timeout in seconds, or ``None`` when no timeout was given.
+
+    Raises:
+        TypeError: If *timeout* is neither a number nor ``None``.
+    """
+    if timeout is None:
+        return None
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+        raise TypeError(f"{name} must be a number or None, got {type(timeout).__name__}")
+    return float(timeout)
+
+
+def _require_port(port: Any) -> int:
+    """Return *port* as a port number.
+
+    Args:
+        port: The value to check.
+
+    Returns:
+        The port number.
+
+    Raises:
+        TypeError: If *port* is not an integer.
+        ValueError: If *port* is out of the range of a port number.
+    """
+    if isinstance(port, bool) or not isinstance(port, int):
+        raise TypeError(f"port must be an int, got {type(port).__name__}")
+    if port < 0 or port > 65535:
+        raise ValueError("port must be between 0 and 65535")
+    return port
+
+
+def _require_client(client: Any) -> Any:
+    """Return *client* when it is a telnet client.
+
+    Args:
+        client: The value to check.
+
+    Returns:
+        The client of the standard library.
+
+    Raises:
+        TypeError: If *client* is not a telnet client.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+    """
+    telnetlib_module = _telnetlib_module()
+    if not isinstance(client, telnetlib_module.Telnet):
+        raise TypeError(f"client must be a telnetlib.Telnet, got {type(client).__name__}")
+    return client
+
+
+def _require_byte(value: Any, name: str) -> int:
+    """Return *value* as the number of a single byte.
+
+    Args:
+        value: The value to check.
+        name: The name of the argument, used in the error message.
+
+    Returns:
+        The number of the byte.
+
+    Raises:
+        TypeError: If *value* is neither an integer nor a single byte.
+        ValueError: If *value* is out of the range of a byte.
+    """
+    if isinstance(value, (bytes, bytearray)):
+        if len(value) != 1:
+            raise ValueError(f"{name} must be a single byte, got {len(value)} bytes")
+        return int(value[0])
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int or a single byte, got {type(value).__name__}")
+    if value < 0 or value > 255:
+        raise ValueError(f"{name} must be between 0 and 255, got {value}")
+    return value
+
+
+def _timeout_value(timeout: Optional[float]) -> Any:
+    """Return the timeout the standard library expects.
+
+    Args:
+        timeout: The timeout in seconds, or ``None`` for the default of the
+            interpreter.
+
+    Returns:
+        The timeout to hand to the standard library.
+    """
+    if timeout is None:
+        return _GLOBAL_DEFAULT_TIMEOUT
+    return timeout
+
+
+def is_available() -> bool:
+    """Report whether the interpreter ships the standard library ``telnetlib`` module.
+
+    Returns:
+        ``True`` when the module is importable, ``False`` otherwise.
+    """
+    return _telnetlib is not None
+
+
+def create_telnet(
+    host: Optional[str] = None,
+    port: int = 0,
+    timeout: Optional[float] = None,
+) -> "telnetlib.Telnet":
+    """Create a telnet client.
+
+    Args:
+        host: The host to connect to.  The client stays unconnected when no
+            host is given.
+        port: The port to connect to.  The standard library uses the port of
+            the protocol when no port is given.
+        timeout: The timeout of the connection in seconds.  The default of the
+            interpreter is used when no timeout is given.
+
+    Returns:
+        The client of the standard library.
+
+    Raises:
+        TypeError: If *host* is not a string, *port* is not an integer, or
+            *timeout* is not a number.
+        ValueError: If *port* is out of the range of a port number.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+    """
+    if host is not None:
+        _require_text(host, "host")
+    _require_port(port)
+    _require_timeout(timeout)
+    telnetlib_module = _telnetlib_module()
+    client = telnetlib_module.Telnet(host, port, _timeout_value(timeout))
+    return cast("telnetlib.Telnet", client)
+
+
+def connect_telnet(
+    host: str,
+    port: int = TELNET_PORT,
+    timeout: Optional[float] = None,
+) -> "telnetlib.Telnet":
+    """Create a telnet client and connect it to *host*.
+
+    Args:
+        host: The host to connect to.
+        port: The port to connect to.
+        timeout: The timeout of the connection in seconds.  The default of the
+            interpreter is used when no timeout is given.
+
+    Returns:
+        The connected client of the standard library.
+
+    Raises:
+        TypeError: If *host* is not a string, *port* is not an integer, or
+            *timeout* is not a number.
+        ValueError: If *port* is out of the range of a port number.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+        OSError: If the connection cannot be opened.
+    """
+    _require_text(host, "host")
+    _require_port(port)
+    _require_timeout(timeout)
+    telnetlib_module = _telnetlib_module()
+    client = telnetlib_module.Telnet()
+    client.open(host, port, _timeout_value(timeout))
+    return cast("telnetlib.Telnet", client)
+
+
+def read_until(
+    client: Any,
+    match: bytes,
+    timeout: Optional[float] = None,
+) -> bytes:
+    """Read from *client* until *match* was received.
+
+    Args:
+        client: The telnet client to read from.
+        match: The byte sequence to read until.
+        timeout: The timeout of the read in seconds.  The read blocks until the
+            data arrives when no timeout is given.
+
+    Returns:
+        The data that was read, including the match.
+
+    Raises:
+        TypeError: If *client* is not a telnet client, *match* is not bytes, or
+            *timeout* is not a number.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+        EOFError: If the connection is closed before any data arrives.
+    """
+    _require_client(client)
+    _require_bytes(match, "match")
+    _require_timeout(timeout)
+    return cast(bytes, client.read_until(match, timeout))
+
+
+def read_until_text(
+    client: Any,
+    match: str,
+    timeout: Optional[float] = None,
+    *,
+    encoding: str = "utf-8",
+    errors: str = "replace",
+) -> str:
+    """Read from *client* until *match* was received, and return the data as text.
+
+    Args:
+        client: The telnet client to read from.
+        match: The text to read until.
+        timeout: The timeout of the read in seconds.  The read blocks until the
+            data arrives when no timeout is given.
+        encoding: The encoding of the data of the connection.
+        errors: The way undecodable bytes are handled.
+
+    Returns:
+        The data that was read, including the match, as text.
+
+    Raises:
+        TypeError: If *client* is not a telnet client, *match* is not text, or
+            *timeout* is not a number.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+        EOFError: If the connection is closed before any data arrives.
+    """
+    _require_text(match, "match")
+    _require_text(encoding, "encoding")
+    _require_text(errors, "errors")
+    data = read_until(client, match.encode(encoding), timeout)
+    return data.decode(encoding, errors)
+
+
+def read_all(client: Any) -> bytes:
+    """Read from *client* until the connection is closed.
+
+    Args:
+        client: The telnet client to read from.
+
+    Returns:
+        The data that was read.
+
+    Raises:
+        TypeError: If *client* is not a telnet client.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+    """
+    _require_client(client)
+    return cast(bytes, client.read_all())
+
+
+def read_some(client: Any) -> bytes:
+    """Read at least one byte from *client* unless the connection is closed.
+
+    Args:
+        client: The telnet client to read from.
+
+    Returns:
+        The data that was read, which is empty when the connection is closed.
+
+    Raises:
+        TypeError: If *client* is not a telnet client.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+    """
+    _require_client(client)
+    return cast(bytes, client.read_some())
+
+
+def read_eager(client: Any) -> bytes:
+    """Read from *client* without blocking for more than one round trip.
+
+    Args:
+        client: The telnet client to read from.
+
+    Returns:
+        The data that was read.
+
+    Raises:
+        TypeError: If *client* is not a telnet client.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+    """
+    _require_client(client)
+    return cast(bytes, client.read_eager())
+
+
+def read_lazy(client: Any) -> bytes:
+    """Read from *client* without blocking, unless the data is already there.
+
+    Args:
+        client: The telnet client to read from.
+
+    Returns:
+        The data that was read.
+
+    Raises:
+        TypeError: If *client* is not a telnet client.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+    """
+    _require_client(client)
+    return cast(bytes, client.read_lazy())
+
+
+def read_very_eager(client: Any) -> bytes:
+    """Read from *client* without blocking, and raise on a closed connection.
+
+    Args:
+        client: The telnet client to read from.
+
+    Returns:
+        The data that was read.
+
+    Raises:
+        TypeError: If *client* is not a telnet client.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+        EOFError: If the connection is closed.
+    """
+    _require_client(client)
+    return cast(bytes, client.read_very_eager())
+
+
+def read_very_lazy(client: Any) -> bytes:
+    """Read from *client* without blocking and without raising.
+
+    Args:
+        client: The telnet client to read from.
+
+    Returns:
+        The data that was read.
+
+    Raises:
+        TypeError: If *client* is not a telnet client.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+    """
+    _require_client(client)
+    return cast(bytes, client.read_very_lazy())
+
+
+def read_sb_data(client: Any) -> bytes:
+    """Read the data of a subnegotiation from *client*.
+
+    Args:
+        client: The telnet client to read from.
+
+    Returns:
+        The data of the subnegotiation.
+
+    Raises:
+        TypeError: If *client* is not a telnet client.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+        EOFError: If the connection is closed before the data arrives.
+    """
+    _require_client(client)
+    return cast(bytes, client.read_sb_data())
+
+
+def write(client: Any, data: bytes) -> int:
+    """Write *data* to *client* and report the number of bytes that were sent.
+
+    The standard library escapes the byte that introduces a telnet command
+    before it writes, so the number of bytes that reach the peer can be larger
+    than the number of bytes that were given.
+
+    Args:
+        client: The telnet client to write to.
+        data: The data to write.
+
+    Returns:
+        The number of bytes that reached the peer.
+
+    Raises:
+        TypeError: If *client* is not a telnet client or *data* is not bytes.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+        OSError: If the connection is closed.
+    """
+    _require_client(client)
+    payload = _require_bytes(data, "data")
+    client.write(payload)
+    return len(payload) + payload.count(IAC)
+
+
+def send_line(
+    client: Any,
+    text: str,
+    *,
+    encoding: str = "utf-8",
+    terminator: str = "\r\n",
+) -> int:
+    """Write *text* to *client* and end the line with *terminator*.
+
+    Args:
+        client: The telnet client to write to.
+        text: The line to write.
+        encoding: The encoding of the line.
+        terminator: The bytes that end the line.
+
+    Returns:
+        The number of bytes that reached the peer.
+
+    Raises:
+        TypeError: If *client* is not a telnet client, *text* is not text, or
+            *terminator* is not text.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+        OSError: If the connection is closed.
+    """
+    _require_text(text, "text")
+    _require_text(encoding, "encoding")
+    _require_text(terminator, "terminator")
+    payload = text.encode(encoding) + terminator.encode(encoding)
+    return write(client, payload)
+
+
+def expect(
+    client: Any,
+    patterns: Sequence[Union[bytes, "re.Pattern[bytes]"]],
+    timeout: Optional[float] = None,
+) -> Tuple[int, Optional["re.Match[bytes]"], bytes]:
+    """Read from *client* until one of *patterns* matched.
+
+    Args:
+        client: The telnet client to read from.
+        patterns: The patterns to look for.  The data of a telnet connection is
+            a byte string, so the patterns have to match bytes.
+        timeout: The timeout of the read in seconds.  The read blocks until the
+            data arrives when no timeout is given.
+
+    Returns:
+        The number of the pattern that matched, the match of that pattern, and
+        the data that was read up to and including the match.  The number is
+        ``-1`` and the match is ``None`` when no pattern matched.
+
+    Raises:
+        TypeError: If *client* is not a telnet client, a pattern does not match
+            bytes, or *timeout* is not a number.
+        ValueError: If no pattern was given.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+        EOFError: If the connection is closed before any data arrives.
+    """
+    _require_client(client)
+    _require_timeout(timeout)
+    compiled = _compile_patterns(patterns)
+    index, match, data = client.expect(compiled, timeout)
+    return int(index), cast(Optional["re.Match[bytes]"], match), cast(bytes, data)
+
+
+def expect_text(
+    client: Any,
+    patterns: Sequence[str],
+    timeout: Optional[float] = None,
+    *,
+    encoding: str = "utf-8",
+    errors: str = "replace",
+) -> Tuple[int, Optional["re.Match[str]"], str]:
+    """Read from *client* until one of *patterns* matched, and return the data as text.
+
+    Args:
+        client: The telnet client to read from.
+        patterns: The patterns to look for.
+        timeout: The timeout of the read in seconds.  The read blocks until the
+            data arrives when no timeout is given.
+        encoding: The encoding of the data of the connection.
+        errors: The way undecodable bytes are handled.
+
+    Returns:
+        The number of the pattern that matched, the match of that pattern, and
+        the data that was read up to and including the match, as text.  The
+        number is ``-1`` and the match is ``None`` when no pattern matched.
+
+    Raises:
+        TypeError: If *client* is not a telnet client, a pattern is not text, or
+            *timeout* is not a number.
+        ValueError: If no pattern was given.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+        EOFError: If the connection is closed before any data arrives.
+    """
+    _require_text(encoding, "encoding")
+    _require_text(errors, "errors")
+    text_patterns: List["re.Pattern[str]"] = []
+    byte_patterns: List["re.Pattern[bytes]"] = []
+    for pattern in patterns:
+        text = _require_text(pattern, "pattern")
+        text_patterns.append(re.compile(text))
+        byte_patterns.append(re.compile(text.encode(encoding)))
+    index, _, data = expect(client, byte_patterns, timeout)
+    decoded = cast(bytes, data).decode(encoding, errors)
+    match: Optional["re.Match[str]"] = None
+    if index >= 0:
+        for candidate in text_patterns:
+            found = candidate.search(decoded)
+            if found is not None:
+                match = found
+                break
+    return index, match, decoded
+
+
+def close(client: Any) -> None:
+    """Close the connection of *client*.
+
+    Args:
+        client: The telnet client to close.
+
+    Raises:
+        TypeError: If *client* is not a telnet client.
+        RuntimeError: If the interpreter no longer ships the ``telnetlib`` module.
+    """
+    _require_client(client)
+    client.close()
+
+
+def escape_iac(data: bytes) -> bytes:
+    """Return *data* with every byte that introduces a command doubled.
+
+    A payload byte of 255 is escaped as two bytes of 255, so the peer can tell
+    it apart from a command.
+
+    Args:
+        data: The data to escape.
+
+    Returns:
+        The escaped data.
+
+    Raises:
+        TypeError: If *data* is not bytes.
+    """
+    payload = _require_bytes(data, "data")
+    return payload.replace(IAC, IAC + IAC)
+
+
+def strip_iac(data: bytes) -> bytes:
+    """Return *data* without the telnet commands it holds.
+
+    The commands of the protocol are removed, a subnegotiation is removed as a
+    whole, and a payload byte of 255 is restored from the pair of bytes that
+    escaped it.
+
+    Args:
+        data: The data to strip.
+
+    Returns:
+        The payload of the data.
+
+    Raises:
+        TypeError: If *data* is not bytes.
+    """
+    payload = _require_bytes(data, "data")
+    result = bytearray()
+    index = 0
+    length = len(payload)
+    while index < length:
+        if payload[index] != IAC[0]:
+            result.append(payload[index])
+            index += 1
+            continue
+        if index + 1 >= length:
+            # A byte of 255 at the end of the data is an unfinished command.
+            break
+        command = payload[index + 1]
+        if command == IAC[0]:
+            result.append(IAC[0])
+            index += 2
+            continue
+        index += 2
+        if command in (WILL[0], WONT[0], DO[0], DONT[0]):
+            # A negotiation names the option it negotiates.
+            index += 1
+            continue
+        if command == SB[0]:
+            index = _skip_subnegotiation(payload, index)
+    return bytes(result)
+
+
+def _skip_subnegotiation(data: bytes, index: int) -> int:
+    """Return the offset behind the subnegotiation that starts at *index*.
+
+    Args:
+        data: The data that holds the subnegotiation.
+        index: The offset of the first byte of the subnegotiation.
+
+    Returns:
+        The offset behind the subnegotiation.
+    """
+    length = len(data)
+    while index < length:
+        if data[index] != IAC[0]:
+            index += 1
+            continue
+        if index + 1 >= length:
+            return length
+        following = data[index + 1]
+        if following == IAC[0]:
+            # A pair of bytes of 255 carries a payload byte of 255.
+            index += 2
+            continue
+        if following == SE[0]:
+            return index + 2
+        index += 2
+    return length
+
+
+def command_name(value: Union[int, bytes]) -> Optional[str]:
+    """Return the name of the telnet command *value* names.
+
+    Args:
+        value: The number of the command, or the command as a single byte.
+
+    Returns:
+        The name of the command, such as ``"WILL"``, or ``None`` when the value
+        does not name a command.
+
+    Raises:
+        TypeError: If *value* is neither an integer nor a single byte.
+        ValueError: If *value* is out of the range of a byte.
+    """
+    return COMMANDS.get(_require_byte(value, "value"))
+
+
+def option_name(value: Union[int, bytes]) -> Optional[str]:
+    """Return the name of the telnet option *value* names.
+
+    Args:
+        value: The number of the option, or the option as a single byte.
+
+    Returns:
+        The name of the option, such as ``"ECHO"``, or ``None`` when the value
+        does not name an option.
+
+    Raises:
+        TypeError: If *value* is neither an integer nor a single byte.
+        ValueError: If *value* is out of the range of a byte.
+    """
+    return OPTIONS.get(_require_byte(value, "value"))
+
+
+def _compile_patterns(
+    patterns: Sequence[Union[bytes, "re.Pattern[bytes]"]],
+) -> List["re.Pattern[bytes]"]:
+    """Return *patterns* as the compiled patterns of the standard library.
+
+    Args:
+        patterns: The patterns to compile.
+
+    Returns:
+        The compiled patterns.
+
+    Raises:
+        TypeError: If *patterns* is not a sequence, or a pattern does not match
+            bytes.
+        ValueError: If no pattern was given.
+    """
+    if isinstance(patterns, (str, bytes, bytearray)) or not isinstance(patterns, Sequence):
+        raise TypeError("patterns must be a sequence of patterns")
+    if not patterns:
+        raise ValueError("patterns must not be empty")
+    compiled: List["re.Pattern[bytes]"] = []
+    for index, pattern in enumerate(patterns):
+        if isinstance(pattern, (bytes, bytearray)):
+            compiled.append(re.compile(bytes(pattern)))
+            continue
+        source = getattr(pattern, "pattern", None)
+        if not isinstance(source, bytes):
+            raise TypeError(f"patterns[{index}] must be a pattern that matches bytes")
+        compiled.append(cast("re.Pattern[bytes]", pattern))
+    return compiled
+
+
+class _TelnetProxy:
+    """Stand-in for the client of the standard library when the module is missing."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Raise a :class:`RuntimeError` because the standard library is missing."""
+        _telnetlib_module()
+
+
+if _telnetlib is not None:
+    Telnet = _telnetlib.Telnet  # type: ignore[misc,assignment]
+else:  # pragma: no cover - Python 3.13 removed the module
+    Telnet = _TelnetProxy  # type: ignore[misc,assignment]
+TELNETLIB_UTILS
+
+# --- tests/test_telnetlib_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_telnetlib_utils.py" <<'TEST_TELNETLIB_UTILS'
+"""Tests for the :mod:`telnetlib_utils` wrapper."""
+
+from __future__ import annotations
+
+import socket
+import threading
+import time
+import warnings
+from typing import Callable, Iterator, List
+
+import pytest
+
+import telnetlib_utils
+
+#: Marks the tests that need the standard library module.
+requires_telnetlib = pytest.mark.skipif(
+    not telnetlib_utils.is_available(), reason="telnetlib module not available"
+)
+
+
+class _FakeTelnetServer:
+    """A local server that answers like a telnet peer.
+
+    The server binds a port of the loopback interface, so the tests never
+    reach the network.
+    """
+
+    def __init__(
+        self,
+        greeting: bytes = b"",
+        echo: bool = True,
+        close_after_greeting: bool = False,
+    ) -> None:
+        """Start the server.
+
+        Args:
+            greeting: The bytes the server sends when a client connects.
+            echo: Whether the server sends the data it received back.
+            close_after_greeting: Whether the server closes the connection
+                right after the greeting.
+        """
+        self._greeting = greeting
+        self._echo = echo
+        self._close_after_greeting = close_after_greeting
+        self._received = bytearray()
+        self._stop = threading.Event()
+        self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._server.bind(("127.0.0.1", 0))
+        self._server.listen(1)
+        self._server.settimeout(0.2)
+        self.port = int(self._server.getsockname()[1])
+        self._thread = threading.Thread(target=self._serve, daemon=True)
+        self._thread.start()
+
+    def _serve(self) -> None:
+        """Accept one client and answer it."""
+        try:
+            connection, _ = self._server.accept()
+        except OSError:
+            return
+        with connection:
+            if self._greeting:
+                try:
+                    connection.sendall(self._greeting)
+                except OSError:
+                    return
+            if self._close_after_greeting:
+                return
+            connection.settimeout(0.2)
+            while not self._stop.is_set():
+                try:
+                    data = connection.recv(4096)
+                except socket.timeout:
+                    continue
+                except OSError:
+                    break
+                if not data:
+                    break
+                self._received.extend(data)
+                if self._echo:
+                    try:
+                        connection.sendall(data)
+                    except OSError:
+                        break
+
+    @property
+    def received(self) -> bytes:
+        """Return the data the server received so far."""
+        return bytes(self._received)
+
+    def wait_for(self, size: int, timeout: float = 5.0) -> bytes:
+        """Wait until the server received *size* bytes and return them.
+
+        Args:
+            size: The number of bytes to wait for.
+            timeout: The number of seconds to wait at most.
+
+        Returns:
+            The data the server received.
+        """
+        deadline = time.monotonic() + timeout
+        while len(self._received) < size and time.monotonic() < deadline:
+            time.sleep(0.01)
+        return self.received
+
+    def close(self) -> None:
+        """Stop the server and release its port."""
+        self._stop.set()
+        try:
+            self._server.close()
+        except OSError:
+            pass
+        self._thread.join(timeout=5.0)
+
+
+@pytest.fixture
+def telnet_server() -> Iterator[Callable[..., _FakeTelnetServer]]:
+    """Yield a factory that starts servers and stops them at the end."""
+    servers: List[_FakeTelnetServer] = []
+
+    def start(
+        greeting: bytes = b"",
+        echo: bool = True,
+        close_after_greeting: bool = False,
+    ) -> _FakeTelnetServer:
+        server = _FakeTelnetServer(greeting, echo, close_after_greeting)
+        servers.append(server)
+        return server
+
+    try:
+        yield start
+    finally:
+        for server in servers:
+            server.close()
+
+
+@pytest.fixture
+def client() -> Iterator[object]:
+    """Yield a telnet client that is not connected."""
+    if not telnetlib_utils.is_available():
+        pytest.skip("telnetlib module not available")
+    connection = telnetlib_utils.create_telnet()
+    try:
+        yield connection
+    finally:
+        telnetlib_utils.close(connection)
+
+
+def test_is_available() -> None:
+    """``is_available`` reports whether the module ships."""
+    result = telnetlib_utils.is_available()
+    assert isinstance(result, bool)
+
+
+@requires_telnetlib
+def test_the_constants_match_the_standard_library() -> None:
+    """The re-exported constants are the constants of the standard library."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import telnetlib
+
+    for name in (
+        "IAC",
+        "DONT",
+        "DO",
+        "WONT",
+        "WILL",
+        "SE",
+        "NOP",
+        "DM",
+        "BRK",
+        "IP",
+        "AO",
+        "AYT",
+        "EC",
+        "EL",
+        "GA",
+        "SB",
+        "theNULL",
+    ):
+        assert getattr(telnetlib_utils, name) == getattr(telnetlib, name)
+    assert telnetlib_utils.TELNET_PORT == telnetlib.TELNET_PORT
+
+
+@requires_telnetlib
+def test_the_command_names_match_the_standard_library() -> None:
+    """Every command of the wrapper is a command of the standard library."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import telnetlib
+
+    for number, name in telnetlib_utils.COMMANDS.items():
+        assert getattr(telnetlib, name) == bytes([number])
+    for name in ("SE", "NOP", "DM", "BRK", "IP", "AO", "AYT", "EC", "EL", "GA", "SB"):
+        assert name in telnetlib_utils.COMMANDS.values()
+
+
+@requires_telnetlib
+def test_the_option_names_match_the_standard_library() -> None:
+    """Every option of the wrapper is an option of the standard library."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import telnetlib
+
+    for number, name in telnetlib_utils.OPTIONS.items():
+        assert getattr(telnetlib, name) == bytes([number])
+
+
+def test_command_name_reports_the_name_of_a_command() -> None:
+    """``command_name`` reports the name of a command."""
+    assert telnetlib_utils.command_name(251) == "WILL"
+    assert telnetlib_utils.command_name(b"\xfd") == "DO"
+
+
+def test_command_name_reports_no_name_for_an_unknown_value() -> None:
+    """A value that is no command has no name."""
+    assert telnetlib_utils.command_name(10) is None
+
+
+def test_option_name_reports_the_name_of_an_option() -> None:
+    """``option_name`` reports the name of an option."""
+    assert telnetlib_utils.option_name(1) == "ECHO"
+    assert telnetlib_utils.option_name(b"\x12") == "LOGOUT"
+
+
+def test_option_name_reports_no_name_for_an_unknown_value() -> None:
+    """A value that is no option has no name."""
+    assert telnetlib_utils.option_name(100) is None
+
+
+def test_command_name_validates_its_argument() -> None:
+    """``command_name`` rejects a value that is no byte."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.command_name("WILL")  # type: ignore[arg-type]
+    with pytest.raises(ValueError):
+        telnetlib_utils.command_name(256)
+    with pytest.raises(ValueError):
+        telnetlib_utils.command_name(b"\xff\xff")
+
+
+def test_option_name_validates_its_argument() -> None:
+    """``option_name`` rejects a value that is no byte."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.option_name("ECHO")  # type: ignore[arg-type]
+    with pytest.raises(ValueError):
+        telnetlib_utils.option_name(-1)
+
+
+def test_escape_iac_doubles_the_command_byte() -> None:
+    """``escape_iac`` doubles every byte that introduces a command."""
+    assert telnetlib_utils.escape_iac(b"a\xffb") == b"a\xff\xffb"
+    assert telnetlib_utils.escape_iac(b"plain") == b"plain"
+
+
+def test_escape_iac_validates_its_argument() -> None:
+    """``escape_iac`` rejects data that is not bytes."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.escape_iac("text")  # type: ignore[arg-type]
+
+
+def test_strip_iac_removes_a_command() -> None:
+    """``strip_iac`` removes the commands of the protocol."""
+    assert telnetlib_utils.strip_iac(b"text\xff\xf1more") == b"textmore"
+
+
+def test_strip_iac_restores_an_escaped_byte() -> None:
+    """``strip_iac`` restores a payload byte that was escaped."""
+    assert telnetlib_utils.strip_iac(b"a\xff\xffb") == b"a\xffb"
+
+
+def test_strip_iac_removes_a_negotiation() -> None:
+    """``strip_iac`` removes a negotiation with the option it names."""
+    assert telnetlib_utils.strip_iac(b"x\xff\xfb\x01y") == b"xy"
+
+
+def test_strip_iac_removes_a_subnegotiation() -> None:
+    """``strip_iac`` removes a subnegotiation as a whole."""
+    data = b"before\xff\xfa\x01\xff\xf0after"
+    assert telnetlib_utils.strip_iac(data) == b"beforeafter"
+
+
+def test_strip_iac_keeps_the_text_of_a_subnegotiation_out() -> None:
+    """A subnegotiation ends at the sequence that ends it."""
+    data = b"before\xff\xfa\x01\xff\xff\x02\xff\xf0after"
+    assert telnetlib_utils.strip_iac(data) == b"beforeafter"
+
+
+def test_strip_iac_drops_an_unfinished_command() -> None:
+    """A command byte at the end of the data is dropped."""
+    assert telnetlib_utils.strip_iac(b"text\xff") == b"text"
+
+
+def test_strip_iac_validates_its_argument() -> None:
+    """``strip_iac`` rejects data that is not bytes."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.strip_iac("text")  # type: ignore[arg-type]
+
+
+def test_create_telnet_validates_its_arguments() -> None:
+    """``create_telnet`` rejects arguments it cannot use."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.create_telnet(123)  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        telnetlib_utils.create_telnet("host", "port")  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        telnetlib_utils.create_telnet("host", 23, "fast")  # type: ignore[arg-type]
+    with pytest.raises(ValueError):
+        telnetlib_utils.create_telnet("host", 70000)
+
+
+def test_connect_telnet_validates_its_arguments() -> None:
+    """``connect_telnet`` rejects arguments it cannot use."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.connect_telnet(123)  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        telnetlib_utils.connect_telnet("host", "port")  # type: ignore[arg-type]
+    with pytest.raises(ValueError):
+        telnetlib_utils.connect_telnet("host", -1)
+
+
+def test_read_until_validates_its_arguments(client: object) -> None:
+    """``read_until`` rejects a match that is not bytes."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_until(client, "text")  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_until(client, b"text", "soon")  # type: ignore[arg-type]
+
+
+def test_read_until_text_validates_its_arguments(client: object) -> None:
+    """``read_until_text`` rejects a match that is not text."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_until_text(client, b"text")  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_until_text(client, "text", encoding=123)  # type: ignore[arg-type]
+
+
+def test_write_validates_its_arguments(client: object) -> None:
+    """``write`` rejects data that is not bytes."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.write(client, "text")  # type: ignore[arg-type]
+
+
+def test_send_line_validates_its_arguments(client: object) -> None:
+    """``send_line`` rejects a line that is not text."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.send_line(client, 123)  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        telnetlib_utils.send_line(client, "line", terminator=123)  # type: ignore[arg-type]
+
+
+def test_expect_validates_its_arguments(client: object) -> None:
+    """``expect`` rejects patterns that cannot match the data of a connection."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.expect(client, "text")  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        telnetlib_utils.expect(client, [b"ok", "text"])  # type: ignore[list-item]
+    with pytest.raises(ValueError):
+        telnetlib_utils.expect(client, [])
+    with pytest.raises(TypeError):
+        telnetlib_utils.expect(client, [b"ok"], "soon")  # type: ignore[arg-type]
+
+
+def test_expect_text_validates_its_arguments(client: object) -> None:
+    """``expect_text`` rejects patterns that are not text."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.expect_text(client, [b"ok"])  # type: ignore[list-item]
+    with pytest.raises(ValueError):
+        telnetlib_utils.expect_text(client, [])
+
+
+@requires_telnetlib
+def test_the_readers_reject_a_client_that_is_not_a_client() -> None:
+    """Every helper that needs a client rejects anything else."""
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_until(object(), b"text")
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_all(object())
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_some(object())
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_eager(object())
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_lazy(object())
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_very_eager(object())
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_very_lazy(object())
+    with pytest.raises(TypeError):
+        telnetlib_utils.read_sb_data(object())
+    with pytest.raises(TypeError):
+        telnetlib_utils.write(object(), b"text")
+    with pytest.raises(TypeError):
+        telnetlib_utils.send_line(object(), "text")
+    with pytest.raises(TypeError):
+        telnetlib_utils.expect(object(), [b"text"])
+    with pytest.raises(TypeError):
+        telnetlib_utils.close(object())
+
+
+@requires_telnetlib
+def test_connect_telnet_connects_to_the_server(
+    telnet_server: Callable[..., _FakeTelnetServer],
+) -> None:
+    """``connect_telnet`` opens a connection to the server."""
+    server = telnet_server()
+    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
+    try:
+        assert connection.get_socket() is not None
+    finally:
+        telnetlib_utils.close(connection)
+
+
+@requires_telnetlib
+def test_read_until_returns_the_data_up_to_the_match(
+    telnet_server: Callable[..., _FakeTelnetServer],
+) -> None:
+    """``read_until`` returns the data that arrived up to the match."""
+    server = telnet_server(greeting=b"welcome\r\n")
+    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
+    try:
+        data = telnetlib_utils.read_until(connection, b"\r\n", timeout=5.0)
+    finally:
+        telnetlib_utils.close(connection)
+    assert data == b"welcome\r\n"
+
+
+@requires_telnetlib
+def test_read_until_text_returns_the_data_as_text(
+    telnet_server: Callable[..., _FakeTelnetServer],
+) -> None:
+    """``read_until_text`` returns the data that arrived as text."""
+    server = telnet_server(greeting=b"welcome\r\n")
+    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
+    try:
+        data = telnetlib_utils.read_until_text(connection, "\r\n", timeout=5.0)
+    finally:
+        telnetlib_utils.close(connection)
+    assert data == "welcome\r\n"
+
+
+@requires_telnetlib
+def test_send_line_writes_the_line(
+    telnet_server: Callable[..., _FakeTelnetServer],
+) -> None:
+    """``send_line`` writes the line and ends it."""
+    server = telnet_server()
+    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
+    try:
+        sent = telnetlib_utils.send_line(connection, "hello")
+    finally:
+        telnetlib_utils.close(connection)
+    assert sent == len("hello\r\n")
+    assert server.wait_for(7) == b"hello\r\n"
+
+
+@requires_telnetlib
+def test_write_reports_the_number_of_bytes_that_were_sent(
+    telnet_server: Callable[..., _FakeTelnetServer],
+) -> None:
+    """``write`` reports the bytes that reached the peer."""
+    server = telnet_server()
+    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
+    try:
+        sent = telnetlib_utils.write(connection, b"a\xffb")
+    finally:
+        telnetlib_utils.close(connection)
+    assert sent == 4
+    assert server.wait_for(4) == b"a\xff\xffb"
+
+
+@requires_telnetlib
+def test_expect_returns_the_pattern_that_matched(
+    telnet_server: Callable[..., _FakeTelnetServer],
+) -> None:
+    """``expect`` reports the pattern that matched and the data up to it."""
+    server = telnet_server(greeting=b"login: ")
+    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
+    try:
+        index, match, data = telnetlib_utils.expect(connection, [b"denied", b"login"], 5.0)
+    finally:
+        telnetlib_utils.close(connection)
+    assert index == 1
+    assert match is not None
+    assert data == b"login"
+
+
+@requires_telnetlib
+def test_expect_text_returns_the_data_as_text(
+    telnet_server: Callable[..., _FakeTelnetServer],
+) -> None:
+    """``expect_text`` reports the pattern that matched and the data as text."""
+    server = telnet_server(greeting=b"login: ")
+    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
+    try:
+        index, match, data = telnetlib_utils.expect_text(connection, ["login"], 5.0)
+    finally:
+        telnetlib_utils.close(connection)
+    assert index == 0
+    assert match is not None
+    assert data == "login"
+
+
+@requires_telnetlib
+def test_expect_reports_no_pattern_when_none_matched(
+    telnet_server: Callable[..., _FakeTelnetServer],
+) -> None:
+    """``expect`` reports that no pattern matched when the data never did."""
+    server = telnet_server()
+    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
+    try:
+        index, match, data = telnetlib_utils.expect(connection, [b"never"], 0.2)
+    finally:
+        telnetlib_utils.close(connection)
+    assert index == -1
+    assert match is None
+    assert data == b""
+
+
+@requires_telnetlib
+def test_read_all_reads_until_the_connection_is_closed(
+    telnet_server: Callable[..., _FakeTelnetServer],
+) -> None:
+    """``read_all`` reads the data until the peer closes the connection."""
+    server = telnet_server(greeting=b"the end", close_after_greeting=True)
+    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
+    try:
+        data = telnetlib_utils.read_all(connection)
+    finally:
+        telnetlib_utils.close(connection)
+    assert data == b"the end"
+
+
+@requires_telnetlib
+def test_the_client_answers_a_negotiation(
+    telnet_server: Callable[..., _FakeTelnetServer],
+) -> None:
+    """The client of the standard library refuses the options it cannot do."""
+    server = telnet_server(greeting=b"\xff\xfd\x01hello", echo=False)
+    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
+    try:
+        data = telnetlib_utils.read_until(connection, b"hello", timeout=5.0)
+    finally:
+        telnetlib_utils.close(connection)
+    received = server.wait_for(3)
+    assert data == b"hello"
+    assert received == b"\xff\xfc\x01"
+
+
+@requires_telnetlib
+def test_close_closes_the_connection(
+    telnet_server: Callable[..., _FakeTelnetServer],
+) -> None:
+    """``close`` releases the connection of the client."""
+    server = telnet_server()
+    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
+    telnetlib_utils.close(connection)
+    assert connection.get_socket() is None
+
+
+def test_degradation_without_module() -> None:
+    """The helpers raise ``RuntimeError`` when the module is missing."""
+    original = telnetlib_utils._telnetlib
+    try:
+        telnetlib_utils._telnetlib = None  # type: ignore[assignment]
+        with pytest.raises(RuntimeError, match="telnetlib"):
+            telnetlib_utils.create_telnet()
+        with pytest.raises(RuntimeError, match="telnetlib"):
+            telnetlib_utils.connect_telnet("host")
+        with pytest.raises(RuntimeError, match="telnetlib"):
+            telnetlib_utils.read_until(object(), b"text")
+        with pytest.raises(RuntimeError, match="telnetlib"):
+            telnetlib_utils.read_all(object())
+        with pytest.raises(RuntimeError, match="telnetlib"):
+            telnetlib_utils.write(object(), b"text")
+        with pytest.raises(RuntimeError, match="telnetlib"):
+            telnetlib_utils.close(object())
+    finally:
+        telnetlib_utils._telnetlib = original
+
+
+def test_the_helpers_of_the_protocol_work_without_the_module() -> None:
+    """The helpers that only work on the protocol keep working."""
+    original = telnetlib_utils._telnetlib
+    try:
+        telnetlib_utils._telnetlib = None  # type: ignore[assignment]
+        assert not telnetlib_utils.is_available()
+        assert telnetlib_utils.escape_iac(b"\xff") == b"\xff\xff"
+        assert telnetlib_utils.strip_iac(b"a\xff\xf1b") == b"ab"
+        assert telnetlib_utils.command_name(255) == "IAC"
+        assert telnetlib_utils.option_name(1) == "ECHO"
+        assert telnetlib_utils.TELNET_PORT == 23
+    finally:
+        telnetlib_utils._telnetlib = original
+
+
+def test_exports() -> None:
+    """The module exports its public names."""
+    for name in telnetlib_utils.__all__:
+        assert hasattr(telnetlib_utils, name), name
+TEST_TELNETLIB_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
