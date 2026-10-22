@@ -29506,6 +29506,15 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_telnetlib_utils.py` — unit tests for `telnetlib_utils.py`
 - `sre_constants_utils.py` — Regular expression constants utilities wrapping the standard library `sre_constants` module (`get_opcodes`, `opcodenames`, `lookup_opcode`, `op_code`, `assert_valid_flags`, `get_all`, `error_codes`, `is_available`) with input validation
 - `tests/test_sre_constants_utils.py` — unit tests for `sre_constants_utils.py`
+- `sre_compile_utils.py` — Regular expression compile utilities wrapping the standard library `sre_compile` module (`compile_pattern`, `is_available`) with input validation
+- `tests/test_sre_compile_utils.py` — unit tests for `sre_compile_utils.py`
+
+- `cgitb_utils.py` — CGI traceback utilities wrapping the standard library `cgitb` module with input validation and graceful degradation when the module is removed
+- `tests/test_cgitb_utils.py` — unit tests for `cgitb_utils.py`
+- `nntplib_utils.py` — NNTP client utilities wrapping the standard library `nntplib` module with input validation and graceful degradation when the module is removed
+- `tests/test_nntplib_utils.py` — unit tests for `nntplib_utils.py`
+- `sndhdr_utils.py` — Sound header utilities wrapping the standard library `sndhdr` module with input validation and graceful degradation when the module is removed
+- `tests/test_sndhdr_utils.py` — unit tests for `sndhdr_utils.py`
 SCAFFOLD
 
 
