@@ -164,6 +164,7 @@ py_modules = [
     "contextvars_utils",
     "netrc_utils",
     "calendar_utils",
+    "chunk_utils",
     "cmath_utils",
     "colorsys_utils",
     "dataclasses_utils",
