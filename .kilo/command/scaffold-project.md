@@ -94,8 +94,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `array_utils.py` — array utilities wrapping the standard library `array` module (`array_create`, `array_fromlist`, `array_tolist`, `array_append`, `array_extend`, `array_insert`, `array_pop`, `array_remove`, `array_reverse`, `array_buffer_info`, `array_byteswap`, `array_count`, `array_index`) with input validation
 - `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
 - `chunk_utils.py` — IFF chunk utilities wrapping the standard library `chunk` module (`build_chunk`, `chunk_name`, `is_available`, `iter_chunks`, `open_chunk`, `peek_chunk`, `read_chunk`, `read_chunks`, `skip_chunk`, `write_chunk`) with input validation
+- `cgi_utils.py` — CGI utilities wrapping the standard library `cgi` module (`FieldStorage`, `MiniFieldStorage`, `escape`, `parse`, `parse_header`, `parse_multipart`, `parse_qs`, `parse_qsl`, `is_available`) with input validation
 - `pipes_utils.py` — Pipeline utilities wrapping the standard library `pipes` module (`quote`, `quote_command`, `create_template`, `is_available`, `make_pipeline`, `step_kinds`) with input validation
 - `tests/test_chunk_utils.py` — unit tests for `chunk_utils.py`
+- `tests/test_cgi_utils.py` — unit tests for `cgi_utils.py`
 - `tests/test_pipes_utils.py` — unit tests for `pipes_utils.py`
 - `cmath_utils.py` — complex mathematics utilities wrapping the standard library `cmath` module (`phase`, `polar`, `rect`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `isfinite`, `isinf`, `isnan`, `isclose`)
 - `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)

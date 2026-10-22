@@ -217,6 +217,7 @@ bisect_utils.py            # Bisect utility functions for binary search on sorte
 trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
+cgi_utils.py                 # CGI utilities wrapping the standard library cgi module (FieldStorage, MiniFieldStorage, escape, parse, parse_header, parse_multipart, parse_qs, parse_qsl, is_available) with input validation
 pipes_utils.py                # Pipeline utilities wrapping stdlib pipes (quote, quote_command, create_template, is_available, make_pipeline, step_kinds) with input validation
 cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
 struct_utils.py            # Binary struct packing and unpacking utilities
@@ -308,6 +309,7 @@ tests/                     # Python unit tests
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_chunk_utils.py         # Tests for chunk_utils.py
+  test_cgi_utils.py           # Tests for cgi_utils.py
   test_pipes_utils.py          # Tests for pipes_utils.py
   test_cmath_utils.py        # Tests for cmath_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
@@ -1651,3 +1653,7 @@ The project includes telnet client utilities in `telnetlib_utils.py` wrapping th
 ## Sre Constants Utilities Module
 
 The project includes regular expression constants utilities in `sre_constants_utils.py` wrapping the standard library `sre_constants` module: `get_opcodes` returns the opcodes if available, `opcodenames` returns a mapping of opcode numbers to names, `lookup_opcode` resolves an opcode number to its name, `op_code` resolves an opcode name to its number, `assert_valid_flags` validates regex flags, `get_all` returns all public constants, `error_codes` returns error codes if available, and `is_available` reports whether the interpreter ships the module. Common constants such as `LITERAL`, `BRANCH`, `ANY`, `MAXCODE`, and the `SRE_FLAG_*` flags are re-exported when available. The exception class `error` is re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module degrades gracefully and helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_constants_utils.py`.
+
+## Cgi Utilities Module
+
+The project includes CGI utilities in `cgi_utils.py` wrapping the standard library `cgi` module: `FieldStorage` and `MiniFieldStorage` parse form data, `parse_header` parses MIME headers, `parse` parses a query string or form data, `parse_qs` and `parse_qsl` parse query strings, `parse_multipart` parses multipart form data, `escape` replaces special HTML characters, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds validation and conveniences while degrading gracefully when the module is missing. The `cgi` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_cgi_utils.py`.

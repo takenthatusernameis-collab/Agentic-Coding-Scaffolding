@@ -317,8 +317,10 @@
 
 #   - calendar_utils.py — # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 #   - chunk_utils.py — # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
+#   - cgi_utils.py — CGI utilities wrapping stdlib cgi (FieldStorage, MiniFieldStorage, escape, parse, parse_header, parse_multipart, parse_qs, parse_qsl, is_available) with input validation
 #   - pipes_utils.py — # Pipeline utilities wrapping stdlib pipes (quote, quote_command, create_template, is_available, make_pipeline, step_kinds) with input validation
 #   - tests/test_chunk_utils.py — # Tests for chunk_utils.py
+#   - tests/test_cgi_utils.py — # Tests for cgi_utils.py
 #   - tests/test_pipes_utils.py — # Tests for pipes_utils.py
 #   - cmath_utils.py — # Complex mathematics utilities wrapping the standard library cmath module
 #   - threading_utils.py — # Threading utilities wrapping the standard library threading module
@@ -4435,6 +4437,7 @@ py_modules = [
     "bisect_utils",
     "contextlib_utils",
     "calendar_utils",
+    "cgi_utils",
     "chunk_utils",
     "pipes_utils",
     "call_once_utils",
@@ -29022,8 +29025,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `array_utils.py` — array utilities wrapping the standard library `array` module (`array_create`, `array_fromlist`, `array_tolist`, `array_append`, `array_extend`, `array_insert`, `array_pop`, `array_remove`, `array_reverse`, `array_buffer_info`, `array_byteswap`, `array_count`, `array_index`) with input validation
 - `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
 - `chunk_utils.py` — IFF chunk utilities wrapping the standard library `chunk` module (`build_chunk`, `chunk_name`, `is_available`, `iter_chunks`, `open_chunk`, `peek_chunk`, `read_chunk`, `read_chunks`, `skip_chunk`, `write_chunk`) with input validation
+- `cgi_utils.py` — CGI utilities wrapping the standard library `cgi` module (`FieldStorage`, `MiniFieldStorage`, `escape`, `parse`, `parse_header`, `parse_multipart`, `parse_qs`, `parse_qsl`, `is_available`) with input validation
 - `pipes_utils.py` — Pipeline utilities wrapping the standard library `pipes` module (`quote`, `quote_command`, `create_template`, `is_available`, `make_pipeline`, `step_kinds`) with input validation
 - `tests/test_chunk_utils.py` — unit tests for `chunk_utils.py`
+- `tests/test_cgi_utils.py` — unit tests for `cgi_utils.py`
 - `tests/test_pipes_utils.py` — unit tests for `pipes_utils.py`
 - `cmath_utils.py` — complex mathematics utilities wrapping the standard library `cmath` module (`phase`, `polar`, `rect`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `isfinite`, `isinf`, `isnan`, `isclose`)
 - `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
@@ -30809,6 +30814,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `cgi_utils.py` wrapping the standard library `cgi` module (`FieldStorage`, `MiniFieldStorage`, `escape`, `parse`, `parse_header`, `parse_multipart`, `parse_qs`, `parse_qsl`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_cgi_utils.py`.
+- Synchronized `cgi_utils.py` and `tests/test_cgi_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
 - Add `chunk_utils.py` wrapping the standard library `chunk` module (`build_chunk`, `chunk_name`, `is_available`, `iter_chunks`, `open_chunk`, `peek_chunk`, `read_chunk`, `read_chunks`, `skip_chunk`, `write_chunk`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_chunk_utils.py`.
 - Add `sre_constants_utils.py` wrapping the standard library `sre_constants` module (`get_opcodes`, `opcodenames`, `lookup_opcode`, `op_code`, `assert_valid_flags`, `get_all`, `error_codes`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_sre_constants_utils.py`.
 - Synchronized `chunk_utils.py` and `tests/test_chunk_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
@@ -31968,6 +31975,7 @@ bisect_utils.py            # Bisect utility functions for binary search on sorte
 trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
+cgi_utils.py                 # CGI utilities wrapping the standard library cgi module (FieldStorage, MiniFieldStorage, escape, parse, parse_header, parse_multipart, parse_qs, parse_qsl, is_available) with input validation
 pipes_utils.py                # Pipeline utilities wrapping stdlib pipes (quote, quote_command, create_template, is_available, make_pipeline, step_kinds) with input validation
 cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
 struct_utils.py            # Binary struct packing and unpacking utilities
@@ -32059,6 +32067,7 @@ tests/                     # Python unit tests
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_chunk_utils.py         # Tests for chunk_utils.py
+  test_cgi_utils.py           # Tests for cgi_utils.py
   test_pipes_utils.py          # Tests for pipes_utils.py
   test_cmath_utils.py        # Tests for cmath_utils.py
   test_cli_utils.py           # Tests for cli_utils.py
@@ -33402,6 +33411,10 @@ The project includes telnet client utilities in `telnetlib_utils.py` wrapping th
 ## Sre Constants Utilities Module
 
 The project includes regular expression constants utilities in `sre_constants_utils.py` wrapping the standard library `sre_constants` module: `get_opcodes` returns the opcodes if available, `opcodenames` returns a mapping of opcode numbers to names, `lookup_opcode` resolves an opcode number to its name, `op_code` resolves an opcode name to its number, `assert_valid_flags` validates regex flags, `get_all` returns all public constants, `error_codes` returns error codes if available, and `is_available` reports whether the interpreter ships the module. Common constants such as `LITERAL`, `BRANCH`, `ANY`, `MAXCODE`, and the `SRE_FLAG_*` flags are re-exported when available. The exception class `error` is re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module degrades gracefully and helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_constants_utils.py`.
+
+## Cgi Utilities Module
+
+The project includes CGI utilities in `cgi_utils.py` wrapping the standard library `cgi` module: `FieldStorage` and `MiniFieldStorage` parse form data, `parse_header` parses MIME headers, `parse` parses a query string or form data, `parse_qs` and `parse_qsl` parse query strings, `parse_multipart` parses multipart form data, `escape` replaces special HTML characters, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds validation and conveniences while degrading gracefully when the module is missing. The `cgi` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_cgi_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -100584,6 +100597,346 @@ def test_exports() -> None:
             else:
                 raise
 TEST_SRE_CONSTANTS_UTILS
+
+# --- cgi_utils.py ---
+cat > "$OUTPUT_DIR/cgi_utils.py" <<'CGI_UTILS'
+"""CGI utilities wrapping the standard library :mod:`cgi` module.
+
+This wrapper provides utilities for parsing CGI forms and headers.
+It validates arguments before passing them to the standard library and adds
+conveniences where helpful.
+
+.. note::
+
+   The :mod:`cgi` module was deprecated in Python 3.11 and removed in
+   Python 3.13 as part of :pep:`594`. The import below degrades gracefully:
+   when the interpreter no longer ships the module, the helpers raise a
+   :class:`RuntimeError` that names the missing module.
+"""
+
+from __future__ import annotations
+
+import warnings
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+__all__ = [
+    "FieldStorage",
+    "MiniFieldStorage",
+    "escape",
+    "is_available",
+    "parse",
+    "parse_header",
+    "parse_multipart",
+    "parse_qs",
+    "parse_qsl",
+]
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import cgi as _cgi
+except ImportError:  # pragma: no cover - Python 3.13 removed the module
+    _cgi = None  # type: ignore[assignment]
+
+
+def _cgi_module() -> Any:
+    """Return the standard library ``cgi`` module."""
+    if _cgi is None:  # pragma: no cover - Python 3.13 removed the module
+        raise RuntimeError(
+            "the standard library 'cgi' module was removed in Python 3.13; "
+            "use html.parser, urllib.parse, and email.parser instead"
+        )
+    return _cgi
+
+
+def is_available() -> bool:
+    """Return whether the standard library :mod:`cgi` module is available."""
+    return _cgi is not None
+
+
+# Re-export classes if available
+if _cgi is not None:
+    FieldStorage = _cgi.FieldStorage
+    MiniFieldStorage = _cgi.MiniFieldStorage
+else:  # pragma: no cover
+    class FieldStorage:  # type: ignore[no-redef]
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            _cgi_module()
+
+    class MiniFieldStorage:  # type: ignore[no-redef]
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            _cgi_module()
+
+
+def parse(fp: Any = None, environ: Optional[Dict[str, str]] = None,
+          keep_blank_values: int = 0, strict_parsing: int = 0,
+          separator: str = "&") -> Dict[str, List[Any]]:
+    """Parse a query string or form data."""
+    _require_mapping_or_none(environ, "environ")
+    if not isinstance(keep_blank_values, int) or isinstance(keep_blank_values, bool):
+        raise TypeError("keep_blank_values must be an int")
+    if not isinstance(strict_parsing, int) or isinstance(strict_parsing, bool):
+        raise TypeError("strict_parsing must be an int")
+    if not isinstance(separator, str):
+        raise TypeError("separator must be a str")
+    module = _cgi_module()
+    return module.parse(fp, environ=environ, keep_blank_values=keep_blank_values,
+                        strict_parsing=strict_parsing, separator=separator)
+
+
+def parse_qs(qs: Any, keep_blank_values: int = 0, strict_parsing: int = 0,
+            encoding: str = "utf-8", errors: str = "replace",
+            max_num_fields: Optional[int] = None, separator: str = "&") -> Dict[str, List[str]]:
+    """Parse a query string and return a dictionary."""
+    qs = _require_text(qs, "qs")
+    if not isinstance(keep_blank_values, int) or isinstance(keep_blank_values, bool):
+        raise TypeError("keep_blank_values must be an int")
+    if not isinstance(strict_parsing, int) or isinstance(strict_parsing, bool):
+        raise TypeError("strict_parsing must be an int")
+    if not isinstance(encoding, str):
+        raise TypeError("encoding must be a str")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be a str")
+    if max_num_fields is not None:
+        if not isinstance(max_num_fields, int) or isinstance(max_num_fields, bool):
+            raise TypeError("max_num_fields must be an int or None")
+        if max_num_fields < 1:
+            raise ValueError("max_num_fields must be at least 1")
+    if not isinstance(separator, str):
+        raise TypeError("separator must be a str")
+    module = _cgi_module()
+    try:
+        return module.parse_qs(qs, keep_blank_values=keep_blank_values,
+                               strict_parsing=strict_parsing, encoding=encoding,
+                               errors=errors, max_num_fields=max_num_fields,
+                               separator=separator)
+    except TypeError:
+        # Python 3.7 compatibility
+        return module.parse_qs(qs, keep_blank_values=keep_blank_values,
+                               strict_parsing=strict_parsing)
+
+
+def parse_qsl(qs: Any, keep_blank_values: int = 0, strict_parsing: int = 0,
+              encoding: str = "utf-8", errors: str = "replace",
+              max_num_fields: Optional[int] = None, separator: str = "&") -> List[Tuple[str, str]]:
+    """Parse a query string and return a list of tuples."""
+    qs = _require_text(qs, "qs")
+    if not isinstance(keep_blank_values, int) or isinstance(keep_blank_values, bool):
+        raise TypeError("keep_blank_values must be an int")
+    if not isinstance(strict_parsing, int) or isinstance(strict_parsing, bool):
+        raise TypeError("strict_parsing must be an int")
+    if not isinstance(encoding, str):
+        raise TypeError("encoding must be a str")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be a str")
+    if max_num_fields is not None:
+        if not isinstance(max_num_fields, int) or isinstance(max_num_fields, bool):
+            raise TypeError("max_num_fields must be an int or None")
+        if max_num_fields < 1:
+            raise ValueError("max_num_fields must be at least 1")
+    if not isinstance(separator, str):
+        raise TypeError("separator must be a str")
+    module = _cgi_module()
+    try:
+        return module.parse_qsl(qs, keep_blank_values=keep_blank_values,
+                                strict_parsing=strict_parsing, encoding=encoding,
+                                errors=errors, max_num_fields=max_num_fields,
+                                separator=separator)
+    except TypeError:
+        return module.parse_qsl(qs, keep_blank_values=keep_blank_values,
+                                strict_parsing=strict_parsing)
+
+
+def parse_header(line: Any) -> Tuple[str, Dict[str, str]]:
+    """Parse a MIME header line."""
+    line = _require_text(line, "line")
+    module = _cgi_module()
+    return module.parse_header(line)
+
+
+def parse_multipart(fp: Any, pdict: Dict[str, Any], encoding: str = "utf-8",
+                    errors: str = "replace", separator: str = "&") -> Dict[str, List[Any]]:
+    """Parse multipart/form-data."""
+    if not isinstance(pdict, dict):
+        raise TypeError("pdict must be a dict")
+    if not isinstance(encoding, str):
+        raise TypeError("encoding must be a str")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be a str")
+    if not isinstance(separator, str):
+        raise TypeError("separator must be a str")
+    module = _cgi_module()
+    try:
+        return module.parse_multipart(fp, pdict, encoding=encoding, errors=errors,
+                                      separator=separator)
+    except TypeError:
+        return module.parse_multipart(fp, pdict)
+
+
+def escape(s: Any, quote: bool = False) -> str:
+    """Replace special characters in HTML."""
+    if not isinstance(s, str):
+        raise TypeError(f"s must be a str, got {type(s).__name__}")
+    if not isinstance(quote, bool):
+        raise TypeError("quote must be a bool")
+    module = _cgi_module()
+    return module.escape(s, quote=quote)
+
+
+def _require_text(value: Any, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_mapping_or_none(value: Any, name: str) -> Optional[Dict[str, str]]:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise TypeError(f"{name} must be a dict or None, got {type(value).__name__}")
+    return value
+CGI_UTILS
+
+# --- tests/test_cgi_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_cgi_utils.py" <<'TEST_CGI_UTILS'
+"""Tests for cgi_utils."""
+
+from __future__ import annotations
+
+import io
+import sys
+from unittest import mock
+
+import pytest
+
+import cgi_utils
+
+
+def test_is_available():
+    # In current environment, cgi may or may not be available
+    result = cgi_utils.is_available()
+    assert isinstance(result, bool)
+
+
+def test_escape_basic():
+    if not cgi_utils.is_available():
+        with pytest.raises(RuntimeError):
+            cgi_utils.escape("<b>hello</b>")
+        return
+    assert cgi_utils.escape("<b>hi</b>") == "&lt;b&gt;hi&lt;/b&gt;"
+    assert cgi_utils.escape("a&b") == "a&amp;b"
+    assert cgi_utils.escape('"hi"', quote=True) == '&quot;hi&quot;'
+
+
+def test_escape_validation():
+    with pytest.raises(TypeError):
+        cgi_utils.escape(123)  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.escape("<b>", quote=1)  # type: ignore
+
+
+def test_parse_header():
+    if not cgi_utils.is_available():
+        with pytest.raises(RuntimeError):
+            cgi_utils.parse_header("text/plain")
+        return
+    key, pdict = cgi_utils.parse_header("text/plain; charset=utf-8")
+    assert key == "text/plain"
+    assert "charset" in pdict
+
+
+def test_parse_header_validation():
+    with pytest.raises(TypeError):
+        cgi_utils.parse_header(123)  # type: ignore
+
+
+def test_parse_qs():
+    if not cgi_utils.is_available():
+        with pytest.raises(RuntimeError):
+            cgi_utils.parse_qs("a=1&b=2")
+        return
+    result = cgi_utils.parse_qs("a=1&b=2")
+    assert result["a"] == ["1"]
+    assert result["b"] == ["2"]
+
+
+def test_parse_qs_validation():
+    with pytest.raises(TypeError):
+        cgi_utils.parse_qs(123)  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.parse_qs("a=1", keep_blank_values="x")  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.parse_qs("a=1", strict_parsing="x")  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.parse_qs("a=1", encoding=123)  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.parse_qs("a=1", errors=123)  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.parse_qs("a=1", max_num_fields="x")  # type: ignore
+    with pytest.raises(ValueError):
+        cgi_utils.parse_qs("a=1", max_num_fields=0)
+    with pytest.raises(TypeError):
+        cgi_utils.parse_qs("a=1", separator=123)  # type: ignore
+
+
+def test_parse_qsl():
+    if not cgi_utils.is_available():
+        with pytest.raises(RuntimeError):
+            cgi_utils.parse_qsl("a=1")
+        return
+    result = cgi_utils.parse_qsl("a=1&b=2")
+    assert ("a", "1") in result
+
+
+def test_parse_qsl_validation():
+    with pytest.raises(TypeError):
+        cgi_utils.parse_qsl(123)  # type: ignore
+
+
+def test_parse():
+    if not cgi_utils.is_available():
+        with pytest.raises(RuntimeError):
+            cgi_utils.parse()
+        return
+    result = cgi_utils.parse(environ={"QUERY_STRING": "a=1"})
+    assert "a" in result
+
+
+def test_parse_validation():
+    with pytest.raises(TypeError):
+        cgi_utils.parse(environ="bad")  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.parse(keep_blank_values="x")  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.parse(strict_parsing="x")  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.parse(separator=123)  # type: ignore
+
+
+def test_parse_multipart_validation():
+    with pytest.raises(TypeError):
+        cgi_utils.parse_multipart(io.BytesIO(b""), "bad")  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.parse_multipart(io.BytesIO(b""), {}, encoding=123)  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.parse_multipart(io.BytesIO(b""), {}, errors=123)  # type: ignore
+    with pytest.raises(TypeError):
+        cgi_utils.parse_multipart(io.BytesIO(b""), {}, separator=123)  # type: ignore
+
+
+def test_degradation_when_missing():
+    with mock.patch.object(cgi_utils, "_cgi", None):
+        with pytest.raises(RuntimeError, match="cgi.*removed"):
+            cgi_utils.escape("<b>")
+        with pytest.raises(RuntimeError, match="cgi.*removed"):
+            cgi_utils.parse_header("x")
+        with pytest.raises(RuntimeError, match="cgi.*removed"):
+            cgi_utils.parse_qs("a=1")
+        with pytest.raises(RuntimeError, match="cgi.*removed"):
+            cgi_utils.parse_qsl("a=1")
+        with pytest.raises(RuntimeError, match="cgi.*removed"):
+            cgi_utils.parse()
+TEST_CGI_UTILS
 
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
