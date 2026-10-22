@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
-import sys
-from typing import Any
-
 import pytest
 
 import pipes_utils
@@ -108,7 +104,7 @@ def test_degradation_without_module() -> None:
 
     original = pu._pipes
     try:
-        pu._pipes = None
+        pu._pipes = None  # type: ignore[assignment]
         with pytest.raises(RuntimeError, match="pipes"):
             pu.quote("x")
         with pytest.raises(RuntimeError, match="pipes"):

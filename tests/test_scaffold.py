@@ -79,6 +79,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "pyproject.toml",
             "hello.py",
             "abc_utils.py",
+            "aifc_utils.py",
             "ast_utils.py",
             "pickle_utils.py",
             "marshal_utils.py",
@@ -109,6 +110,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             ".kilo/skill/scaffolding-helper.md",
             ".github/workflows/main.yml",
             "tests/test_abc_utils.py",
+            "tests/test_aifc_utils.py",
             "tests/test_ast_utils.py",
             "tests/test_pickle_utils.py",
             "tests/test_hello.py",
@@ -699,6 +701,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
         content = (self.project_dir / ".kilo/command/scaffold-project.md").read_text()
         for module in [
             "abc_utils.py",
+            "aifc_utils.py",
             "ast_utils.py",
             "pickle_utils.py",
             "marshal_utils.py",

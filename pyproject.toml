@@ -208,6 +208,7 @@ py_modules = [
     "typing_utils",
     "unicodedata_utils",
     "abc_utils",
+    "aifc_utils",
     "ast_utils",
     "audioop_utils",
     "atexit_utils",

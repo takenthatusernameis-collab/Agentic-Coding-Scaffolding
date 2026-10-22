@@ -152,6 +152,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
+- Add `aifc_utils.py` wrapping the standard library `aifc` module (`open`, `is_available`, aliases, re-exports `Aifc_read`, `Aifc_write`, `Error`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_aifc_utils.py`.
+- Synchronized `aifc_utils.py` and `tests/test_aifc_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, and this CHANGELOG.
+
 - Add `pipes_utils.py` wrapping the standard library `pipes` module (`quote`, `quote_command`, `create_template`, `make_pipeline`, `step_kinds`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_pipes_utils.py`.
 - Synchronized `pipes_utils.py` and `tests/test_pipes_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, and this CHANGELOG.
 
