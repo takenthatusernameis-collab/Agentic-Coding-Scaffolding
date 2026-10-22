@@ -1,3 +1,4 @@
+<!-- TODO: document cgitb_utils and nntplib_utils modules (see test_scaffold_sync failures) -->
 # Agentic Coding Scaffolding
 
 A self-evolving scaffolding project for autonomous agentic coding loops powered by Kilo.
