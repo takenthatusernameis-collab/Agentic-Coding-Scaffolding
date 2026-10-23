@@ -1,8 +1,16 @@
 """Utility helper functions."""
 
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Set, TypeVar, Union
+
+from typing import Protocol
+
+
+class Comparable(Protocol):
+    def __lt__(self, other: Any) -> bool: ...
+
 
 T = TypeVar("T")
+CT = TypeVar("CT", bound=Comparable)
 U = TypeVar("U")
 K = TypeVar("K")
 V = TypeVar("V")
@@ -347,14 +355,14 @@ def average(lst: List[Union[int, float]]) -> float:
     return sum(lst) / len(lst)
 
 
-def max_list(lst: List[T]) -> T:
+def max_list(lst: List[CT]) -> CT:
     """Return the maximum element in a list."""
     if not lst:
         raise ValueError("List must not be empty")
     return max(lst)
 
 
-def min_list(lst: List[T]) -> T:
+def min_list(lst: List[CT]) -> CT:
     """Return the minimum element in a list."""
     if not lst:
         raise ValueError("List must not be empty")
