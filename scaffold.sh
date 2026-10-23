@@ -10129,7 +10129,7 @@ cat > "$OUTPUT_DIR/tests/test_utils.py" <<'TESTUTILS'
 
 import unittest
 
-from utils import chunk, first, flatten, is_empty, last, remove_none, unique
+from utils import chunk, first, flatten, is_empty, last, remove_none, second, unique
 
 
 class TestFlatten(unittest.TestCase):
@@ -10224,6 +10224,19 @@ class TestFirst(unittest.TestCase):
     def test_first_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             first([])
+
+
+class TestSecond(unittest.TestCase):
+    def test_second_basic(self) -> None:
+        self.assertEqual(second([1, 2, 3]), 2)
+
+    def test_second_single_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            second([5])
+
+    def test_second_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            second([])
 TESTUTILS
 
 # --- tests/test_stats.py ---
