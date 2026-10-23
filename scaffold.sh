@@ -4443,6 +4443,7 @@ py_modules = [
     "hashlib_utils",
     "platform_utils",
     "signal_utils",
+    "sunau_utils",
     "sndhdr_utils",
     "hash_utils",
     "hmac_utils",
