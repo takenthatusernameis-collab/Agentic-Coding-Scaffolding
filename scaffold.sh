@@ -103162,11 +103162,12 @@ TEST_COOLDOWN_UTILS
 cat > "$OUTPUT_DIR/maybe_utils.py" <<'MAYBE_UTILS'
 """Maybe/Option type utilities for functional programming patterns."""
 
-from typing import Any, Callable, Generic, Optional, TypeVar, Union
+from typing import Any, Callable, Generic, Optional, TypeVar
 
 T = TypeVar("T")
 U = TypeVar("U")
 E = TypeVar("E")
+V = TypeVar("V")
 
 
 class Maybe(Generic[T]):
@@ -103183,20 +103184,20 @@ class Maybe(Generic[T]):
             self._is_some = is_some and value is not None
             self._value = value if self._is_some else None
 
-    @staticmethod
-    def some(value: T) -> "Maybe[T]":
+    @classmethod
+    def some(cls, value: V) -> "Maybe[V]":
         """Create a Some variant with a value."""
         if value is None:
             raise TypeError("Some cannot contain None")
-        return Maybe(value, is_some=True)
+        return cls(value, is_some=True)  # type: ignore[arg-type,return-value]
 
     @staticmethod
-    def nothing() -> "Maybe[T]":
+    def nothing() -> "Maybe[Any]":
         """Create a Nothing variant."""
         return Maybe(None, is_some=False)
 
     @staticmethod
-    def from_optional(value: Optional[T]) -> "Maybe[T]":
+    def from_optional(value: Optional[V]) -> "Maybe[V]":
         """Create Maybe from a Python optional value."""
         if value is None:
             return Maybe.nothing()
