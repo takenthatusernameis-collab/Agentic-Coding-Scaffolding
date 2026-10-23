@@ -1,8 +1,6 @@
 """Utility helper functions."""
 
-from typing import Any, Callable, Dict, List, Optional, Set, TypeVar, Union
-
-from typing import Protocol
+from typing import Any, Callable, Dict, List, Optional, Protocol, Set, TypeVar, Union
 
 
 class Comparable(Protocol):
