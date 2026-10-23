@@ -33601,6 +33601,10 @@ The project includes Python module execution utilities in `runpy_utils.py` wrapp
 
 The project includes dynamic type utilities in `types_utils.py` wrapping the standard library `types` module: `new_class` and `new_function` create classes and functions at runtime, `is_function`, `is_method`, `is_generator`, `is_coroutine`, and `is_lambda` report the runtime type of an object, and `simple_namespace` creates a `SimpleNamespace`. The module is tested in `tests/test_types_utils.py`.
 
+## Maybe Utilities Module
+
+The project includes Maybe/Option type utilities in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. The module is tested in `tests/test_maybe_utils.py`.
+
 ## Zoneinfo Utilities Module
 
 The project includes IANA timezone utilities in `zoneinfo_utils.py` wrapping the standard library `zoneinfo` module: `zoneinfo_get` returns a `ZoneInfo` for an IANA key and `zoneinfo_available_timezones` returns the set of available keys. The module is tested in `tests/test_zoneinfo_utils.py`.
@@ -103144,6 +103148,213 @@ class TestCooldownThreadSafety(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_COOLDOWN_UTILS
+
+# --- maybe_utils.py ---
+cat > "$OUTPUT_DIR/maybe_utils.py" <<'MAYBE_UTILS'
+"""Maybe/Option type utilities for functional programming patterns."""
+
+from typing import Any, Callable, Generic, Optional, TypeVar, Union
+
+T = TypeVar("T")
+U = TypeVar("U")
+E = TypeVar("E")
+
+
+class Maybe(Generic[T]):
+    """Represents an optional value that may or may not exist."""
+
+    __slots__ = ("_value", "_is_some")
+
+    def __init__(self, value: Optional[T] = None, is_some: bool = True) -> None:
+        """Initialize a Maybe instance."""
+        if value is None and is_some:
+            self._is_some = False
+            self._value = None
+        else:
+            self._is_some = is_some and value is not None
+            self._value = value if self._is_some else None
+
+    @staticmethod
+    def some(value: T) -> "Maybe[T]":
+        """Create a Some variant with a value."""
+        if value is None:
+            raise TypeError("Some cannot contain None")
+        return Maybe(value, is_some=True)
+
+    @staticmethod
+    def nothing() -> "Maybe[T]":
+        """Create a Nothing variant."""
+        return Maybe(None, is_some=False)
+
+    @staticmethod
+    def from_optional(value: Optional[T]) -> "Maybe[T]":
+        """Create Maybe from a Python optional value."""
+        if value is None:
+            return Maybe.nothing()
+        return Maybe.some(value)
+
+    def is_some(self) -> bool:
+        """Check if this is a Some variant."""
+        return self._is_some
+
+    def is_nothing(self) -> bool:
+        """Check if this is a Nothing variant."""
+        return not self._is_some
+
+    def unwrap(self) -> T:
+        """Get the value, raising an error if Nothing."""
+        if not self._is_some:
+            raise ValueError("Called unwrap on Nothing")
+        assert self._value is not None
+        return self._value
+
+    def unwrap_or(self, default: T) -> T:
+        """Get the value or return a default if Nothing."""
+        if self._is_some and self._value is not None:
+            return self._value
+        return default
+
+    def unwrap_or_else(self, fn: Callable[[], T]) -> T:
+        """Get the value or compute a default if Nothing."""
+        if self._is_some and self._value is not None:
+            return self._value
+        return fn()
+
+    def map(self, fn: Callable[[T], U]) -> "Maybe[U]":
+        """Apply a function if Some, otherwise return Nothing."""
+        if not self._is_some or self._value is None:
+            return Maybe.nothing()
+        try:
+            result = fn(self._value)
+            if result is None:
+                return Maybe.nothing()
+            return Maybe.some(result)
+        except Exception:
+            return Maybe.nothing()
+
+    def flat_map(self, fn: Callable[[T], "Maybe[U]"]) -> "Maybe[U]":
+        """Chain a function returning Maybe."""
+        if not self._is_some or self._value is None:
+            return Maybe.nothing()
+        try:
+            return fn(self._value)
+        except Exception:
+            return Maybe.nothing()
+
+    def filter(self, predicate: Callable[[T], bool]) -> "Maybe[T]":
+        """Filter the value if it doesn't match the predicate."""
+        if not self._is_some or self._value is None:
+            return Maybe.nothing()
+        try:
+            if predicate(self._value):
+                return Maybe.some(self._value)
+            return Maybe.nothing()
+        except Exception:
+            return Maybe.nothing()
+
+    def and_then(self, fn: Callable[[T], "Maybe[U]"]) -> "Maybe[U]":
+        """Alias for flat_map."""
+        return self.flat_map(fn)
+
+    def or_else(self, other: "Maybe[T]") -> "Maybe[T]":
+        """Return self if Some, otherwise other."""
+        if self._is_some:
+            return self
+        return other
+
+    def __repr__(self) -> str:
+        """String representation."""
+        if self._is_some and self._value is not None:
+            return f"Some({self._value!r})"
+        return "Nothing"
+
+    def __bool__(self) -> bool:
+        """Boolean conversion."""
+        return self._is_some
+
+    def __eq__(self, other: object) -> bool:
+        """Equality comparison."""
+        if not isinstance(other, Maybe):
+            return NotImplemented
+        if self._is_some != other._is_some:
+            return False
+        if not self._is_some:
+            return True
+        return self._value == other._value
+
+
+__all__ = [
+    "Maybe",
+]
+MAYBE_UTILS
+
+# --- tests/test_maybe_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_maybe_utils.py" <<'TEST_MAYBE_UTILS'
+"""Tests for maybe_utils module."""
+
+import unittest
+
+from maybe_utils import Maybe
+
+
+class TestMaybe(unittest.TestCase):
+    def test_some_creation(self) -> None:
+        m = Maybe.some(42)
+        self.assertTrue(m.is_some())
+        self.assertFalse(m.is_nothing())
+        self.assertEqual(m.unwrap(), 42)
+
+    def test_nothing_creation(self) -> None:
+        m = Maybe.nothing()
+        self.assertFalse(m.is_some())
+        self.assertTrue(m.is_nothing())
+
+    def test_from_optional(self) -> None:
+        self.assertTrue(Maybe.from_optional(5).is_some())
+        self.assertTrue(Maybe.from_optional(None).is_nothing())
+
+    def test_unwrap_raises_on_nothing(self) -> None:
+        with self.assertRaises(ValueError):
+            Maybe.nothing().unwrap()
+
+    def test_unwrap_or(self) -> None:
+        self.assertEqual(Maybe.some(10).unwrap_or(0), 10)
+        self.assertEqual(Maybe.nothing().unwrap_or(0), 0)
+
+    def test_unwrap_or_else(self) -> None:
+        self.assertEqual(Maybe.some(10).unwrap_or_else(lambda: 0), 10)
+        self.assertEqual(Maybe.nothing().unwrap_or_else(lambda: 5), 5)
+
+    def test_map(self) -> None:
+        m = Maybe.some(5).map(lambda x: x * 2)
+        self.assertEqual(m.unwrap(), 10)
+        self.assertTrue(Maybe.nothing().map(lambda x: x * 2).is_nothing())
+
+    def test_flat_map(self) -> None:
+        m = Maybe.some(5).flat_map(lambda x: Maybe.some(x + 1))
+        self.assertEqual(m.unwrap(), 6)
+
+    def test_filter(self) -> None:
+        self.assertTrue(Maybe.some(10).filter(lambda x: x > 5).is_some())
+        self.assertTrue(Maybe.some(3).filter(lambda x: x > 5).is_nothing())
+
+    def test_or_else(self) -> None:
+        self.assertEqual(Maybe.some(1).or_else(Maybe.some(2)).unwrap(), 1)
+        self.assertEqual(Maybe.nothing().or_else(Maybe.some(2)).unwrap(), 2)
+
+    def test_bool(self) -> None:
+        self.assertTrue(bool(Maybe.some(1)))
+        self.assertFalse(bool(Maybe.nothing()))
+
+    def test_eq(self) -> None:
+        self.assertEqual(Maybe.some(1), Maybe.some(1))
+        self.assertNotEqual(Maybe.some(1), Maybe.some(2))
+        self.assertEqual(Maybe.nothing(), Maybe.nothing())
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_MAYBE_UTILS
 
 
 

@@ -1305,6 +1305,10 @@ The project includes Python module execution utilities in `runpy_utils.py` wrapp
 
 The project includes dynamic type utilities in `types_utils.py` wrapping the standard library `types` module: `new_class` and `new_function` create classes and functions at runtime, `is_function`, `is_method`, `is_generator`, `is_coroutine`, and `is_lambda` report the runtime type of an object, and `simple_namespace` creates a `SimpleNamespace`. The module is tested in `tests/test_types_utils.py`.
 
+## Maybe Utilities Module
+
+The project includes Maybe/Option type utilities in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. The module is tested in `tests/test_maybe_utils.py`.
+
 ## Zoneinfo Utilities Module
 
 The project includes IANA timezone utilities in `zoneinfo_utils.py` wrapping the standard library `zoneinfo` module: `zoneinfo_get` returns a `ZoneInfo` for an IANA key and `zoneinfo_available_timezones` returns the set of available keys. The module is tested in `tests/test_zoneinfo_utils.py`.
