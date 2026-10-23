@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Verified the bootstrap foundation: the stdlib wrapper surface is complete (255 modules wrap every importable top-level standard library module), `make test` passes (5367 tests, 5 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in `scaffold.sh` are in sync.
+
 - Repaired the `cooldown_utils` handover that the previous checkpoint session left behind: the module and its test were present, but the `scaffold.sh` header comment never listed `cooldown_utils.py` or `tests/test_cooldown_utils.py`, so `tests/test_scaffold_sync.py` reported a synchronization gap. The header now lists both, and `make refresh-scaffold` confirms that every embedded copy is in sync.
 - Corrected a deadlock in `cooldown_utils.py`. `Cooldown.call()` held the instance lock while calling `self.remaining()`, which re-acquired the same non-reentrant `Lock`, so a second call inside the interval deadlocked. The lock is now a `threading.RLock`, so the self-reentrant read of the remaining time no longer blocks.
 - Corrected `tests/test_cooldown_utils.py::TestCooldownDecorator::test_decorator_wraps_function`. The test called the wrapped function twice and asserted that only one invocation ran, but the documented contract of the wrapper is that a call before the interval elapses raises `TimeoutError`. The test now expects the `TimeoutError` on the second call, matching `test_decorator_raises_before_interval` and the module docstring.
