@@ -29230,6 +29230,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
 - `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators)
 - `tests/test_config_schema.py` — unit tests for `config_schema.py`
+- `cooldown_utils.py` — cooldown and throttling utilities for rate-limiting function calls (`cooldown`, `Cooldown`, `is_available`)
+- `tests/test_cooldown_utils.py` — unit tests for `cooldown_utils.py`
 - `ctypes_utils.py` — ctypes utility functions wrapping the standard library `ctypes` module (fundamental C types, `Structure`, `Union`, `POINTER`, `Array`, `CFUNCTYPE`, `sizeof`, `alignment`, `addressof`, `pointer`, `byref`, `cast`, `memmove`, `memset`, `string_at`, `create_string_buffer`, `create_unicode_buffer`, `get_errno`, `set_errno`, `get_last_error`, `set_last_error`, `find_library`)
 - `tests/test_ctypes_utils.py` — unit tests for `ctypes_utils.py`
 - `copy_utils.py` — copy utilities (`shallow_copy`, `deep_copy`, `copy_dict`, `deep_copy_dict`, `merge_copy`, `is_same_object`) wrapping stdlib copy module
@@ -30931,6 +30933,9 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `cooldown_utils.py` wrapping a cooldown and throttling primitive for rate-limiting function calls (`Cooldown`, `cooldown`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_cooldown_utils.py`.
+- Synchronized `cooldown_utils.py` and `tests/test_cooldown_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
+- The wrapper adds the conveniences the standard library leaves to the caller: a cooldown reports whether a call is allowed right now and how long it has to wait, the callable is invoked through one method that raises `TimeoutError` when the interval has not elapsed, and the decorator form wraps a callable so every invocation respects the cooldown. The class is thread-safe, so a single instance can be shared across threads.
 - Bootstrap audit: the hermetic, CI-testable standard library wrapper surface is complete. Every
   importable, top-level, non-private standard library module on the interpreter now has a wrapper
   (`<module>_utils.py`), a test (`tests/test_<module>_utils.py`), a README module section, and an
@@ -32155,6 +32160,7 @@ typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_h
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
+cooldown_utils.py          # Cooldown and throttling utilities for rate-limiting function calls
 ctypes_utils.py            # Ctypes utility functions wrapping the standard library ctypes module
 copy_utils.py              # Copy utilities (shallow/deep copy, dict copy, merge) wrapping stdlib copy module
 exceptions_utils.py        # Custom exception classes and error handling utilities
@@ -32746,6 +32752,10 @@ The project includes configuration file parsing utilities in `configparser_utils
 The project includes a configuration schema module in `config_schema.py` with declarative, typed configuration schemas. `SchemaField` describes a single typed field (`str`, `int`, `float`, `bool`) with optional defaults, required flags, and validators, and `ConfigSchema` composes fields to validate, coerce, and normalize configuration dictionaries. Built-in validators include `int_validator`, `float_validator`, `str_validator`, `bool_validator`, `email_validator`, `hostname_validator`, `url_validator`, `range_validator`, `choices_validator`, and `regex_validator`. The module is tested in `tests/test_config_schema.py`.
 
 Completed task: Added a new `config_schema.py` module with typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators such as `range_validator`, `choices_validator`, `email_validator`) and its tests. Synchronized the scaffold template: added `config_schema.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions. Verified all tests pass, ruff and mypy are clean.
+
+## Cooldown Utilities Module
+
+The project includes a cooldown and throttling utilities module in `cooldown_utils.py` for rate-limiting function calls. The `Cooldown` class enforces a minimum interval between calls to a callable: `ready()` reports whether a call is allowed right now, `remaining()` returns the seconds left before the next call is allowed, `call()` invokes the callable when the interval has elapsed and raises `TimeoutError` otherwise, and `__call__` wraps a callable so every invocation respects the cooldown. The `cooldown` decorator limits a function to one call per interval, and `is_available` reports that the module has no external dependencies. The class is thread-safe, so a single instance can be shared across threads. The module is tested in `tests/test_cooldown_utils.py`.
 
 ## Ctypes Utilities Module
 
@@ -102448,6 +102458,306 @@ def test_exports() -> None:
     for name in ("ShadowEntry", "getspall", "getspnam", "is_available"):
         assert hasattr(spwd_utils, name)
 TEST_SPWD_UTILS
+
+# --- cooldown_utils.py ---
+cat > "$OUTPUT_DIR/cooldown_utils.py" <<'COOLDOWN_UTILS'
+"""Cooldown and throttling utilities for rate-limiting function calls."""
+
+from __future__ import annotations
+
+import threading
+import time
+from collections.abc import Callable
+from typing import ParamSpec, TypeVar
+
+P = ParamSpec("P")
+T = TypeVar("T")
+
+__all__ = ["cooldown", "Cooldown", "is_available"]
+
+
+def is_available() -> bool:
+    """Return True because this module has no external dependencies."""
+    return True
+
+
+class Cooldown:
+    """Enforce a minimum interval between calls to a callable.
+
+    The cooldown tracks the last time a call was allowed and rejects any
+    call that arrives before the configured interval has elapsed. The class
+    is thread-safe so a single instance can be shared across threads.
+    """
+
+    def __init__(self, interval: float) -> None:
+        """Create a cooldown with the given minimum interval in seconds.
+
+        Args:
+            interval: Minimum seconds between allowed calls. Must be positive.
+
+        Raises:
+            TypeError: If interval is not a real number.
+            ValueError: If interval is not positive.
+        """
+        if not isinstance(interval, (int, float)) or isinstance(interval, bool):
+            raise TypeError("interval must be a real number")
+        if interval <= 0:
+            raise ValueError("interval must be positive")
+        self._interval = float(interval)
+        self._last_call: float | None = None
+        self._lock = threading.Lock()
+
+    def ready(self) -> bool:
+        """Return True if a call is allowed right now."""
+        now = time.monotonic()
+        with self._lock:
+            if self._last_call is None:
+                return True
+            return now - self._last_call >= self._interval
+
+    def remaining(self) -> float:
+        """Return the seconds left before the next call is allowed."""
+        now = time.monotonic()
+        with self._lock:
+            if self._last_call is None:
+                return 0.0
+            return max(0.0, self._interval - (now - self._last_call))
+
+    def call(self, func: Callable[P, T], /, *args: P.args, **kwargs: P.kwargs) -> T:
+        """Call *func* if the cooldown interval has elapsed.
+
+        Args:
+            func: The callable to invoke.
+            *args: Positional arguments for func.
+            **kwargs: Keyword arguments for func.
+
+        Raises:
+            TimeoutError: If the cooldown interval has not yet elapsed.
+            TypeError: If func is not callable.
+        """
+        if not callable(func):
+            raise TypeError("func must be callable")
+        with self._lock:
+            now = time.monotonic()
+            if self._last_call is not None and now - self._last_call < self._interval:
+                raise TimeoutError(
+                    f"cooldown not ready: {self.remaining():.3f}s remaining"
+                )
+            self._last_call = now
+        return func(*args, **kwargs)
+
+    def __call__(self, func: Callable[P, T]) -> Callable[P, T]:
+        """Return a wrapped callable that enforces the cooldown on each call."""
+
+        def wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
+            return self.call(func, *args, **kwargs)
+
+        return wrapped
+
+
+def cooldown(interval: float) -> Callable[[Callable[P, T]], Callable[P, T]]:
+    """Decorator that limits a function to one call per interval.
+
+    Args:
+        interval: Minimum seconds between allowed calls. Must be positive.
+
+    Returns:
+        A decorator that wraps the callable with a cooldown.
+
+    Raises:
+        TypeError: If interval is not a real number.
+        ValueError: If interval is not positive.
+    """
+    return Cooldown(interval)
+COOLDOWN_UTILS
+
+# --- tests/test_cooldown_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_cooldown_utils.py" <<'TEST_COOLDOWN_UTILS'
+"""Tests for cooldown_utils module."""
+
+import threading
+import time
+import unittest
+
+from cooldown_utils import Cooldown, cooldown, is_available
+
+
+class TestIsAvailable(unittest.TestCase):
+    def test_is_available(self) -> None:
+        self.assertTrue(is_available())
+
+
+class TestCooldownInit(unittest.TestCase):
+    def test_positive_interval(self) -> None:
+        cooldown = Cooldown(1.0)
+        self.assertIsInstance(cooldown, Cooldown)
+
+    def test_integer_interval(self) -> None:
+        cooldown = Cooldown(1)
+        self.assertEqual(cooldown._interval, 1.0)
+
+    def test_zero_interval_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            Cooldown(0)
+
+    def test_negative_interval_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            Cooldown(-1.0)
+
+    def test_bool_interval_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            Cooldown(True)
+
+    def test_string_interval_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            Cooldown("1.0")  # type: ignore[arg-type]
+
+
+class TestCooldownReady(unittest.TestCase):
+    def test_ready_initially(self) -> None:
+        cooldown = Cooldown(1.0)
+        self.assertTrue(cooldown.ready())
+
+    def test_not_ready_immediately(self) -> None:
+        cooldown = Cooldown(1.0)
+        cooldown.call(lambda: None)
+        self.assertFalse(cooldown.ready())
+
+    def test_ready_after_interval(self) -> None:
+        cooldown = Cooldown(0.1)
+        cooldown.call(lambda: None)
+        time.sleep(0.15)
+        self.assertTrue(cooldown.ready())
+
+
+class TestCooldownRemaining(unittest.TestCase):
+    def test_remaining_zero_initially(self) -> None:
+        cooldown = Cooldown(1.0)
+        self.assertEqual(cooldown.remaining(), 0.0)
+
+    def test_remaining_after_call(self) -> None:
+        cooldown = Cooldown(1.0)
+        cooldown.call(lambda: None)
+        self.assertGreater(cooldown.remaining(), 0.0)
+        self.assertLessEqual(cooldown.remaining(), 1.0)
+
+    def test_remaining_zero_after_interval(self) -> None:
+        cooldown = Cooldown(0.1)
+        cooldown.call(lambda: None)
+        time.sleep(0.15)
+        self.assertEqual(cooldown.remaining(), 0.0)
+
+
+class TestCooldownCall(unittest.TestCase):
+    def test_call_executes_func(self) -> None:
+        cooldown = Cooldown(1.0)
+        calls = []
+
+        def func() -> None:
+            calls.append(1)
+
+        cooldown.call(func)
+        self.assertEqual(calls, [1])
+
+    def test_call_returns_result(self) -> None:
+        cooldown = Cooldown(1.0)
+        result = cooldown.call(lambda: 42)
+        self.assertEqual(result, 42)
+
+    def test_call_passes_arguments(self) -> None:
+        cooldown = Cooldown(1.0)
+        result = cooldown.call(lambda a, b: a + b, 2, 3)
+        self.assertEqual(result, 5)
+
+    def test_call_rejects_before_interval(self) -> None:
+        cooldown = Cooldown(1.0)
+        cooldown.call(lambda: None)
+        with self.assertRaises(TimeoutError):
+            cooldown.call(lambda: None)
+
+    def test_call_allows_after_interval(self) -> None:
+        cooldown = Cooldown(0.1)
+        cooldown.call(lambda: None)
+        time.sleep(0.15)
+        cooldown.call(lambda: None)
+
+    def test_call_non_callable_raises(self) -> None:
+        cooldown = Cooldown(1.0)
+        with self.assertRaises(TypeError):
+            cooldown.call("not callable")  # type: ignore[arg-type]
+
+
+class TestCooldownDecorator(unittest.TestCase):
+    def test_decorator_wraps_function(self) -> None:
+        calls = []
+
+        @cooldown(0.1)
+        def func() -> None:
+            calls.append(1)
+
+        func()
+        func()
+        self.assertEqual(len(calls), 1)
+
+    def test_decorator_allows_after_interval(self) -> None:
+        calls = []
+
+        @cooldown(0.1)
+        def func() -> None:
+            calls.append(1)
+
+        func()
+        time.sleep(0.15)
+        func()
+        self.assertEqual(len(calls), 2)
+
+    def test_decorator_raises_before_interval(self) -> None:
+        calls = []
+
+        @cooldown(1.0)
+        def func() -> None:
+            calls.append(1)
+
+        func()
+        with self.assertRaises(TimeoutError):
+            func()
+        self.assertEqual(len(calls), 1)
+
+    def test_decorator_preserves_arguments(self) -> None:
+        @cooldown(1.0)
+        def add(a: int, b: int) -> int:
+            return a + b
+
+        self.assertEqual(add(2, 3), 5)
+
+
+class TestCooldownThreadSafety(unittest.TestCase):
+    def test_concurrent_calls_respect_interval(self) -> None:
+        cooldown = Cooldown(0.2)
+        results: list[float] = []
+        lock = threading.Lock()
+
+        def call() -> None:
+            try:
+                cooldown.call(lambda: None)
+                with lock:
+                    results.append(time.monotonic())
+            except TimeoutError:
+                pass
+
+        threads = [threading.Thread(target=call) for _ in range(10)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        # At most one call should succeed in quick succession.
+        self.assertLessEqual(len(results), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_COOLDOWN_UTILS
 
 
 

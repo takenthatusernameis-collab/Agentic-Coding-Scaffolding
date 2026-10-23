@@ -842,6 +842,10 @@ The project includes a configuration schema module in `config_schema.py` with de
 
 Completed task: Added a new `config_schema.py` module with typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators such as `range_validator`, `choices_validator`, `email_validator`) and its tests. Synchronized the scaffold template: added `config_schema.py` to `scaffold.sh` header comment, `pyproject.toml` `py_modules`, README tree and module section, CHANGELOG Unreleased entry, `.kilo/command/scaffold-project.md` entries, `scaffold.sh` heredocs for the module and its tests, and `tests/test_scaffold.py` assertions. Verified all tests pass, ruff and mypy are clean.
 
+## Cooldown Utilities Module
+
+The project includes a cooldown and throttling utilities module in `cooldown_utils.py` for rate-limiting function calls. The `Cooldown` class enforces a minimum interval between calls to a callable: `ready()` reports whether a call is allowed right now, `remaining()` returns the seconds left before the next call is allowed, `call()` invokes the callable when the interval has elapsed and raises `TimeoutError` otherwise, and `__call__` wraps a callable so every invocation respects the cooldown. The `cooldown` decorator limits a function to one call per interval, and `is_available` reports that the module has no external dependencies. The class is thread-safe, so a single instance can be shared across threads. The module is tested in `tests/test_cooldown_utils.py`.
+
 ## Ctypes Utilities Module
 
 The project includes a ctypes utilities module in `ctypes_utils.py` wrapping the standard library `ctypes` module. It re-exports the fundamental C-compatible data types (`c_int`, `c_char_p`, `c_void_p`, `c_size_t`, `c_double`, and more), the composite types (`Structure`, `Union`, `POINTER`, `Array`), the factory (`CFUNCTYPE`), and helper functions (`sizeof`, `alignment`, `addressof`, `pointer`, `byref`, `cast`, `memmove`, `memset`, `string_at`, `create_string_buffer`, `create_unicode_buffer`, `get_errno`, `set_errno`, `get_last_error`, `set_last_error`, `find_library`). The module is tested in `tests/test_ctypes_utils.py`.

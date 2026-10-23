@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Add `cooldown_utils.py` wrapping a cooldown and throttling primitive for rate-limiting function calls (`Cooldown`, `cooldown`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_cooldown_utils.py`.
+- Synchronized `cooldown_utils.py` and `tests/test_cooldown_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
+- The wrapper adds the conveniences the standard library leaves to the caller: a cooldown reports whether a call is allowed right now and how long it has to wait, the callable is invoked through one method that raises `TimeoutError` when the interval has not elapsed, and the decorator form wraps a callable so every invocation respects the cooldown. The class is thread-safe, so a single instance can be shared across threads.
 - Bootstrap audit: the hermetic, CI-testable standard library wrapper surface is complete. Every
   importable, top-level, non-private standard library module on the interpreter now has a wrapper
   (`<module>_utils.py`), a test (`tests/test_<module>_utils.py`), a README module section, and an
