@@ -9879,6 +9879,13 @@ def is_empty(value: Any) -> bool:
 def remove_none(lst: List[Any]) -> List[Any]:
     """Return a copy of lst with None values removed."""
     return [item for item in lst if item is not None]
+
+
+def last(lst: List[T]) -> T:
+    """Return the last element of a non-empty list."""
+    if not lst:
+        raise ValueError("List must not be empty")
+    return lst[-1]
 UTILS
 
 # --- stats.py ---
@@ -10108,7 +10115,7 @@ cat > "$OUTPUT_DIR/tests/test_utils.py" <<'TESTUTILS'
 
 import unittest
 
-from utils import chunk, flatten, is_empty, remove_none, unique
+from utils import chunk, flatten, is_empty, last, remove_none, unique
 
 
 class TestFlatten(unittest.TestCase):
@@ -10179,6 +10186,18 @@ class TestRemoveNone(unittest.TestCase):
 
     def test_remove_none_empty(self) -> None:
         self.assertEqual(remove_none([]), [])
+
+
+class TestLast(unittest.TestCase):
+    def test_last_basic(self) -> None:
+        self.assertEqual(last([1, 2, 3]), 3)
+
+    def test_last_single(self) -> None:
+        self.assertEqual(last([5]), 5)
+
+    def test_last_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            last([])
 TESTUTILS
 
 # --- tests/test_stats.py ---
