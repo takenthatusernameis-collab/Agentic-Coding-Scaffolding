@@ -50,3 +50,10 @@ def last(lst: List[T]) -> T:
     if not lst:
         raise ValueError("List must not be empty")
     return lst[-1]
+
+
+def first(lst: List[T]) -> T:
+    """Return the first element of a non-empty list."""
+    if not lst:
+        raise ValueError("List must not be empty")
+    return lst[0]
