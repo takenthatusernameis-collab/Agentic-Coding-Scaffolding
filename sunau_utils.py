@@ -33,7 +33,10 @@ __all__ = [
     "open",
     "open_au",
     "open_read",
+    "open_sunau",
     "open_write",
+    "read_sunau",
+    "write_sunau",
 ]
 
 PathLike = Union[str, "os.PathLike[str]"]
@@ -83,16 +86,11 @@ Au_write = _sunau.Au_write if _sunau is not None else None  # type: ignore[attr-
 Error = _sunau.Error if _sunau is not None else None  # type: ignore[attr-defined]
 
 
-def open_au(f: Any, mode: Any = None) -> Any:
-    """Alias for :func:`open`."""
-    return open(f, mode)
+open_au = open
+open_read = open
+open_write = open
 
 
-def open_read(f: Any) -> Any:
-    """Open a Sun AU file for reading."""
-    return open(f, "r")
-
-
-def open_write(f: Any) -> Any:
-    """Open a Sun AU file for writing."""
-    return open(f, "w")
+open_sunau = open
+read_sunau = open
+write_sunau = open

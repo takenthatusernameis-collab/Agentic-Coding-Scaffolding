@@ -574,3 +574,5 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_nntplib_utils.py` — unit tests for `nntplib_utils.py`
 - `sndhdr_utils.py` — Sound header utilities wrapping the standard library `sndhdr` module with input validation and graceful degradation when the module is removed
 - `tests/test_sndhdr_utils.py` — unit tests for `sndhdr_utils.py`
+- `sunau_utils.py` — Sun AU format utilities wrapping the standard library `sunau` module (`open`, `open_au`, `open_read`, `open_write`, `open_sunau`, `read_sunau`, `write_sunau`, `Au_read`, `Au_write`, `Error`, `is_available`) with input validation
+- `tests/test_sunau_utils.py` — unit tests for `sunau_utils.py`

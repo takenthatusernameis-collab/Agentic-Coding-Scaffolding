@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import os
 import warnings
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 __all__ = [
     "SndHeaders",

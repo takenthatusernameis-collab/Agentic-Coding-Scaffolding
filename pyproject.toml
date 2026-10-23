@@ -143,6 +143,7 @@ py_modules = [
     "regex_utils",
     "terminal_utils",
     "subprocess_utils",
+    "sunau_utils",
     "textwrap_utils",
     "template_utils",
     "time_utils",

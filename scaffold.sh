@@ -384,6 +384,8 @@
 
 #   - subprocess_utils.py — # Subprocess utilities (run_command, check_output, check_call)
 
+#   - sunau_utils.py — # Sun AU format utilities wrapping stdlib sunau (open, open_au, open_read, open_write, open_sunau, read_sunau, write_sunau, Au_read, Au_write, Error, is_available) with input validation
+
 #   - test_abc_utils.py — # Tests for abc_utils.py
 #   - test_aifc_utils.py — # Tests for aifc_utils.py
 #   - test_ast_utils.py — # Tests for ast_utils.py
@@ -625,6 +627,8 @@
 #   - test_struct_utils.py — # Tests for struct_utils.py
 
 #   - test_subprocess_utils.py — # Tests for subprocess_utils.py
+
+#   - test_sunau_utils.py — # Tests for sunau_utils.py
 
 #   - test_sys_utils.py — # Tests for sys_utils.py
 
@@ -29521,6 +29525,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_nntplib_utils.py` — unit tests for `nntplib_utils.py`
 - `sndhdr_utils.py` — Sound header utilities wrapping the standard library `sndhdr` module with input validation and graceful degradation when the module is removed
 - `tests/test_sndhdr_utils.py` — unit tests for `sndhdr_utils.py`
+- `sunau_utils.py` — Sun AU format utilities wrapping the standard library `sunau` module (`open`, `open_au`, `open_read`, `open_write`, `open_sunau`, `read_sunau`, `write_sunau`, `Au_read`, `Au_write`, `Error`, `is_available`) with input validation
+- `tests/test_sunau_utils.py` — unit tests for `sunau_utils.py`
 SCAFFOLD
 
 
@@ -30841,6 +30847,9 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `sunau_utils.py` wrapping the standard library `sunau` module (`open`, `open_au`, `open_read`, `open_write`, `open_sunau`, `read_sunau`, `write_sunau`, `Au_read`, `Au_write`, `Error`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_sunau_utils.py`.
+- Synchronized `sunau_utils.py` and `tests/test_sunau_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
+- Repaired the `sunau_utils` handover: the module was missing the `open_sunau`, `read_sunau`, and `write_sunau` aliases its tests expect, and it was absent from the README tree, `pyproject.toml`, `.kilo/command/scaffold-project.md`, and this CHANGELOG.
 - Repaired the `cgi_utils` handover that the previous session left behind: `parse_qs` and `parse_qsl` called the standard library `cgi` functions directly, but those helpers were only added to the `cgi` module in Python 3.13, so the wrapper failed on every older interpreter. The helpers now prefer `cgi.parse_qs` and `cgi.parse_qsl` when present and fall back to the equivalent functions of `urllib.parse`, which share the signature, so the wrapper works on every interpreter that still ships `cgi`.
 - Add `cgi_utils.py` wrapping the standard library `cgi` module (`FieldStorage`, `MiniFieldStorage`, `escape`, `parse`, `parse_header`, `parse_multipart`, `parse_qs`, `parse_qsl`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_cgi_utils.py`.
 - Synchronized `cgi_utils.py` and `tests/test_cgi_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
@@ -31926,6 +31935,7 @@ compileall_utils.py         # Compileall utilities wrapping stdlib compileall (c
 modulefinder_utils.py        # Modulefinder utilities wrapping stdlib modulefinder (load_script, find_dependencies, find_modules, missing_modules, missing_importers, module_path, is_package, report)
 optparse_utils.py          # Optparse utilities wrapping stdlib optparse (make_parser, add_option, add_flag, add_count_option, add_option_group, parse_args, get_option, has_option, remove_option, get_default_values, set_defaults, get_usage, format_usage, format_help, format_option_help, get_prog_name, dest_for, string_type, int_type, float_type, choice_type, values_to_dict)
 smtplib_utils.py           # Smtplib utilities wrapping stdlib smtplib (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text)
+sunau_utils.py             # Sun AU format utilities wrapping stdlib sunau (open, open_au, open_read, open_write, open_sunau, read_sunau, write_sunau, Au_read, Au_write, Error, is_available) with input validation
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
@@ -32200,6 +32210,7 @@ test_pickle_utils.py        # Tests for pickle_utils.py
   test_pyexpat_utils.py        # Tests for pyexpat_utils.py
   test_xdrlib_utils.py         # Tests for xdrlib_utils.py
   test_smtplib_utils.py        # Tests for smtplib_utils.py
+  test_sunau_utils.py          # Tests for sunau_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
   test_queue_utils.py         # Tests for queue_utils.py
@@ -33474,6 +33485,10 @@ The project includes NNTP utilities in `nntplib_utils.py` wrapping the standard 
 ## Sndhdr Utilities Module
 
 The project includes sound header detection utilities in `sndhdr_utils.py` wrapping the standard library `sndhdr` module: `what` returns the format of a sound file, `whathdr` returns the format and parameters, `tests` lists the test functions, `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `sndhdr` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sndhdr_utils.py`.
+
+## Sun AU Utilities Module
+
+The project includes Sun AU format utilities in `sunau_utils.py` wrapping the standard library `sunau` module: `open` opens a Sun AU file and returns an `Au_read` or `Au_write` object, `open_au` is an alias for `open`, `open_read` opens a file for reading, and `open_write` opens a file for writing. The convenience aliases `open_sunau`, `read_sunau`, and `write_sunau` are also provided. The classes `Au_read` and `Au_write` together with the error `Error` are re-exported from the standard library, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `sunau` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sunau_utils.py`.
 
 ## Sre Compile Utilities Module
 
@@ -100297,67 +100312,8 @@ import warnings
 from typing import Any, Dict, List
 
 __all__ = [
-    "ANY",
-    "ANY_ALL",
-    "ASSERT",
-    "ASSERT_NOT",
-    "AT",
-    "AT_BEGINNING",
-    "AT_BEGINNING_LINE",
-    "AT_BEGINNING_STRING",
-    "AT_BOUNDARY",
-    "ATCODES",
-    "AT_END",
-    "AT_END_LINE",
-    "AT_END_STRING",
-    "AT_LOC_BOUNDARY",
-    "AT_LOC_NON_BOUNDARY",
-    "AT_MULTILINE",
-    "AT_NON_BOUNDARY",
-    "AT_UNI_BOUNDARY",
-    "AT_UNI_NON_BOUNDARY",
-    "AT_UNICODE",
-    "BRANCH",
-    "CATEGORY",
-    "CATEGORY_DIGIT",
-    "CATEGORY_LINEBREAK",
-    "CATEGORY_LOC_NOT_WORD",
-    "CATEGORY_LOC_WORD",
-    "CATEGORY_NOT_DIGIT",
-    "CATEGORY_NOT_LINEBREAK",
-    "CATEGORY_NOT_SPACE",
-    "CATEGORY_NOT_WORD",
-    "CATEGORY_SPACE",
-    "CATEGORY_UNI_DIGIT",
-    "CATEGORY_UNI_LINEBREAK",
-    "CATEGORY_UNI_NOT_WORD",
-    "CATEGORY_UNI_WORD",
-    "CATEGORY_WORD",
-    "CHARSET",
-    "error",
-    "FAILURE",
-    "GROUPREF",
-    "GROUPREF_EXISTS",
-    "GROUPREF_IGNORE",
-    "GROUPREF_LOC_IGNORE",
-    "GROUPREF_UNI_IGNORE",
-    "IN",
-    "INFO",
-    "JUMP",
-    "LITERAL",
-    "MAGIC",
-    "MAXREPEAT",
-    "MIN_REPEAT",
-    "MIN_REPEAT_ONE",
-    "MAX_REPEAT",
-    "MAX_UNTIL",
-    "NEGATE",
-    "NOT_LITERAL",
-    "OPCODES",
-    "OP_IGNORE",
-    "OP_LOCALE_IGNORE",
-    "OP_UNICODE_IGNORE",
     "assert_valid_flags",
+    "error",
     "error_codes",
     "get_all",
     "get_opcodes",
@@ -101147,7 +101103,6 @@ cat > "$OUTPUT_DIR/nntplib_utils.py" <<'NNTPLIB_UTILS'
 from __future__ import annotations
 
 import nntplib
-from typing import Any
 
 __all__: list[str] = [
     "NNTP",
@@ -101213,7 +101168,7 @@ def create_nntp(
         password=password,
         readermode=readermode,
         usenetrc=usenetrc,
-        timeout=timeout,
+        timeout=timeout,  # type: ignore[arg-type]
     )
 
 
@@ -101250,7 +101205,7 @@ def create_nntp_ssl(
         ssl_context=ssl_context,
         readermode=readermode,
         usenetrc=usenetrc,
-        timeout=timeout,
+        timeout=timeout,  # type: ignore[arg-type]
     )
 NNTPLIB_UTILS
 
@@ -101263,7 +101218,6 @@ import unittest
 from nntplib_utils import (
     NNTP_PORT,
     NNTP_SSL_PORT,
-    NNTPError,
     create_nntp,
     create_nntp_ssl,
 )
@@ -101313,7 +101267,7 @@ from __future__ import annotations
 
 import os
 import warnings
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 __all__ = [
     "SndHeaders",
@@ -101371,8 +101325,6 @@ cat > "$OUTPUT_DIR/tests/test_sndhdr_utils.py" <<'TEST_SNDHDR_UTILS'
 
 from __future__ import annotations
 
-import os
-import tempfile
 import unittest
 
 from sndhdr_utils import is_available, what, whathdr
@@ -101527,49 +101479,14 @@ import warnings
 from typing import Any, List, Optional, Tuple, cast
 
 __all__ = [
-    "ANY",
-    "ASSERT",
-    "ASSERT_NOT",
-    "AT",
-    "BRANCH",
-    "CHARSET",
-    "GROUPREF",
-    "GROUPREF_EXISTS",
-    "GROUPREF_IGNORE",
-    "IN",
-    "LITERAL",
-    "MAXREPEAT",
-    "MIN_REPEAT",
-    "MIN_REPEAT_ONE",
-    "MAX_REPEAT",
-    "MAX_UNTIL",
-    "NEGATE",
-    "NOT_LITERAL",
-    "OPCODES",
-    "POSSESSIVE_REPEAT",
-    "POSSESSIVE_REPEAT_ONE",
-    "RANGE",
-    "REPEAT",
-    "REPEAT_ONE",
-    "SRE_FLAG_ASCII",
-    "SRE_FLAG_DEBUG",
-    "SRE_FLAG_DOTALL",
-    "SRE_FLAG_IGNORECASE",
-    "SRE_FLAG_LOCALE",
-    "SRE_FLAG_MULTILINE",
-    "SRE_FLAG_TEMPLATE",
-    "SRE_FLAG_UNICODE",
-    "SRE_FLAG_VERBOSE",
-    "SUBPATTERN",
-    "SUCCESS",
-    "SubPattern",
-    "State",
     "error",
     "is_available",
     "parse_pattern",
     "parse_template",
     "pattern_dump",
     "pattern_width",
+    "SubPattern",
+    "State",
 ]
 
 try:
@@ -102011,7 +101928,10 @@ __all__ = [
     "open",
     "open_au",
     "open_read",
+    "open_sunau",
     "open_write",
+    "read_sunau",
+    "write_sunau",
 ]
 
 PathLike = Union[str, "os.PathLike[str]"]
@@ -102061,19 +101981,14 @@ Au_write = _sunau.Au_write if _sunau is not None else None  # type: ignore[attr-
 Error = _sunau.Error if _sunau is not None else None  # type: ignore[attr-defined]
 
 
-def open_au(f: Any, mode: Any = None) -> Any:
-    """Alias for :func:`open`."""
-    return open(f, mode)
+open_au = open
+open_read = open
+open_write = open
 
 
-def open_read(f: Any) -> Any:
-    """Open a Sun AU file for reading."""
-    return open(f, "r")
-
-
-def open_write(f: Any) -> Any:
-    """Open a Sun AU file for writing."""
-    return open(f, "w")
+open_sunau = open
+read_sunau = open
+write_sunau = open
 SUNAU_UTILS
 
 # --- tests/test_sunau_utils.py ---
@@ -102179,4 +102094,3 @@ echo "  cd $OUTPUT_DIR"
 echo "  git init"
 echo "  git add -A"
 echo "  git commit -m 'Initial commit'"
-

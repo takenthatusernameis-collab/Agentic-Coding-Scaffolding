@@ -5,7 +5,6 @@ import unittest
 from nntplib_utils import (
     NNTP_PORT,
     NNTP_SSL_PORT,
-    NNTPError,
     create_nntp,
     create_nntp_ssl,
 )

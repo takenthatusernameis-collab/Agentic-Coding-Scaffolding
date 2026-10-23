@@ -130,6 +130,7 @@ compileall_utils.py         # Compileall utilities wrapping stdlib compileall (c
 modulefinder_utils.py        # Modulefinder utilities wrapping stdlib modulefinder (load_script, find_dependencies, find_modules, missing_modules, missing_importers, module_path, is_package, report)
 optparse_utils.py          # Optparse utilities wrapping stdlib optparse (make_parser, add_option, add_flag, add_count_option, add_option_group, parse_args, get_option, has_option, remove_option, get_default_values, set_defaults, get_usage, format_usage, format_help, format_option_help, get_prog_name, dest_for, string_type, int_type, float_type, choice_type, values_to_dict)
 smtplib_utils.py           # Smtplib utilities wrapping stdlib smtplib (quoteaddr, quote_string, quote_data, parse_address, address_only, format_address, getfqdn, parse_response, parse_ehlo_features, build_message, create_smtp, create_smtp_ssl, create_lmtp, send_message, send_text)
+sunau_utils.py             # Sun AU format utilities wrapping stdlib sunau (open, open_au, open_read, open_write, open_sunau, read_sunau, write_sunau, Au_read, Au_write, Error, is_available) with input validation
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
@@ -404,6 +405,7 @@ test_pickle_utils.py        # Tests for pickle_utils.py
   test_pyexpat_utils.py        # Tests for pyexpat_utils.py
   test_xdrlib_utils.py         # Tests for xdrlib_utils.py
   test_smtplib_utils.py        # Tests for smtplib_utils.py
+  test_sunau_utils.py          # Tests for sunau_utils.py
   test_priority_queue_utils.py # Tests for priority_queue_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
   test_queue_utils.py         # Tests for queue_utils.py
@@ -1678,6 +1680,10 @@ The project includes NNTP utilities in `nntplib_utils.py` wrapping the standard 
 ## Sndhdr Utilities Module
 
 The project includes sound header detection utilities in `sndhdr_utils.py` wrapping the standard library `sndhdr` module: `what` returns the format of a sound file, `whathdr` returns the format and parameters, `tests` lists the test functions, `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `sndhdr` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sndhdr_utils.py`.
+
+## Sun AU Utilities Module
+
+The project includes Sun AU format utilities in `sunau_utils.py` wrapping the standard library `sunau` module: `open` opens a Sun AU file and returns an `Au_read` or `Au_write` object, `open_au` is an alias for `open`, `open_read` opens a file for reading, and `open_write` opens a file for writing. The convenience aliases `open_sunau`, `read_sunau`, and `write_sunau` are also provided. The classes `Au_read` and `Au_write` together with the error `Error` are re-exported from the standard library, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `sunau` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sunau_utils.py`.
 
 ## Sre Compile Utilities Module
 

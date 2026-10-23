@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import nntplib
-from typing import Any
 
 __all__: list[str] = [
     "NNTP",
@@ -69,7 +68,7 @@ def create_nntp(
         password=password,
         readermode=readermode,
         usenetrc=usenetrc,
-        timeout=timeout,
+        timeout=timeout,  # type: ignore[arg-type]
     )
 
 
@@ -106,5 +105,5 @@ def create_nntp_ssl(
         ssl_context=ssl_context,
         readermode=readermode,
         usenetrc=usenetrc,
-        timeout=timeout,
+        timeout=timeout,  # type: ignore[arg-type]
     )
