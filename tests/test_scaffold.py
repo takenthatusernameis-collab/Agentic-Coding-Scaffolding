@@ -510,6 +510,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_id_utils.py",
             "memoize_utils.py",
             "tests/test_memoize_utils.py",
+            "maybe_utils.py",
             "tests/test_maybe_utils.py",
             "pathlib_utils.py",
               "poplib_utils.py",
