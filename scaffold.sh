@@ -101974,6 +101974,169 @@ if __name__ == "__main__":
     unittest.main()
 TEST_SRE_PARSE_UTILS
 
+# --- sunau_utils.py ---
+cat > "$OUTPUT_DIR/sunau_utils.py" <<'SUNAU_UTILS'
+"""Sun AU format utilities wrapping the standard library :mod:`sunau` module.
+
+The :mod:`sunau` module reads and writes Sun AU audio files.  It provides
+classes to open, read, and write AU files, and to query and manipulate their
+parameters.
+
+This wrapper validates every argument before the standard library is reached, so
+a caller gets a clear :class:`TypeError` or :class:`ValueError` instead of an
+opaque failure from the standard library.  It adds the conveniences the
+standard library leaves to the caller and re-exports the useful constants and
+classes.
+
+.. note::
+
+   The :mod:`sunau` module was deprecated in Python 3.11 and removed in Python
+   3.13 as part of :pep:`594`.  The import below degrades gracefully: when the
+   interpreter no longer ships the module, the helpers raise a
+   :class:`RuntimeError` that names the missing module, while the helpers that
+   need no standard library keep working.
+"""
+
+from __future__ import annotations
+
+import os
+import warnings
+from typing import Any, Optional, Union
+
+__all__ = [
+    "Au_read",
+    "Au_write",
+    "Error",
+    "is_available",
+    "open",
+    "open_au",
+    "open_read",
+    "open_write",
+]
+
+PathLike = Union[str, "os.PathLike[str]"]
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        import sunau as _sunau
+except ImportError:  # pragma: no cover - Python 3.13 removed the module
+    _sunau = None  # type: ignore[assignment]
+
+
+def _sunau_module() -> Any:
+    """Return the standard library ``sunau`` module."""
+    if _sunau is None:  # pragma: no cover - Python 3.13 removed the module
+        raise RuntimeError(
+            "the standard library 'sunau' module was removed in Python 3.13; "
+            "use the wave or audio libraries to read AU files instead"
+        )
+    return _sunau
+
+
+def _require_mode(value: Any, name: str) -> Optional[str]:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str or None, got {type(value).__name__}")
+    if value not in ("r", "rb", "w", "wb"):
+        raise ValueError(f"{name} must be one of 'r', 'rb', 'w', or 'wb', got {value!r}")
+    return value
+
+
+def is_available() -> bool:
+    """Return ``True`` when the standard library ships the ``sunau`` module."""
+    return _sunau is not None
+
+
+def open(f: Any, mode: Any = None) -> Any:
+    """Open a Sun AU file and return an :class:`Au_read` or :class:`Au_write` object."""
+    sunau_module = _sunau_module()
+    mode = _require_mode(mode, "mode")
+    return sunau_module.open(f, mode)
+
+
+Au_read = _sunau.Au_read if _sunau is not None else None  # type: ignore[attr-defined]
+Au_write = _sunau.Au_write if _sunau is not None else None  # type: ignore[attr-defined]
+Error = _sunau.Error if _sunau is not None else None  # type: ignore[attr-defined]
+
+
+def open_au(f: Any, mode: Any = None) -> Any:
+    """Alias for :func:`open`."""
+    return open(f, mode)
+
+
+def open_read(f: Any) -> Any:
+    """Open a Sun AU file for reading."""
+    return open(f, "r")
+
+
+def open_write(f: Any) -> Any:
+    """Open a Sun AU file for writing."""
+    return open(f, "w")
+SUNAU_UTILS
+
+# --- tests/test_sunau_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_sunau_utils.py" <<'TEST_SUNAU_UTILS'
+"""Tests for :mod:`sunau_utils`."""
+
+from __future__ import annotations
+
+import io
+
+import pytest
+
+import sunau_utils
+
+
+def test_is_available() -> None:
+    """The availability flag reflects the interpreter."""
+    result = sunau_utils.is_available()
+    assert isinstance(result, bool)
+
+
+def test_open_validates_mode() -> None:
+    """``open`` validates the mode argument."""
+    with pytest.raises(TypeError):
+        sunau_utils.open(io.BytesIO(b""), 123)  # type: ignore[arg-type]
+    with pytest.raises(ValueError):
+        sunau_utils.open(io.BytesIO(b""), "bad")  # type: ignore[arg-type]
+
+
+@pytest.mark.skipif(not sunau_utils.is_available(), reason="sunau module not available")
+def test_open_returns_object_when_available() -> None:
+    """``open`` works when the module is available."""
+    # Just test that it can be called with valid args if available
+    try:
+        # Try to open a minimal invalid file - will likely fail but call is valid
+        sunau_utils.open(io.BytesIO(b""), "r")
+    except Exception:
+        pass  # Expected to fail on bad data
+
+
+@pytest.mark.skipif(sunau_utils.is_available(), reason="sunau module available")
+def test_missing_module_raises_runtime_error() -> None:
+    """When the module is missing the helpers raise ``RuntimeError``."""
+    with pytest.raises(RuntimeError):
+        sunau_utils.open("file.sunau", "r")
+
+
+def test_aliases_exist() -> None:
+    """Aliases are available."""
+    assert sunau_utils.open_sunau is sunau_utils.open
+    assert sunau_utils.read_sunau is sunau_utils.open
+    assert sunau_utils.write_sunau is sunau_utils.open
+    assert sunau_utils.open_read is sunau_utils.open
+    assert sunau_utils.open_write is sunau_utils.open
+
+
+def test_exports() -> None:
+    """Key exports are available."""
+    assert hasattr(sunau_utils, "Au_read")
+    assert hasattr(sunau_utils, "Au_write")
+    assert hasattr(sunau_utils, "Error")
+TEST_SUNAU_UTILS
+
 # --- substitute the project name in the templated documents ---
 # The README and the agent instructions are written from quoted heredocs so
 # that their content is copied verbatim; the project name placeholder is

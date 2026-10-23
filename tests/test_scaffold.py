@@ -630,6 +630,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_sre_constants_utils.py",
             "sre_parse_utils.py",
             "tests/test_sre_parse_utils.py",
+            "sunau_utils.py",
+            "tests/test_sunau_utils.py",
             "cgi_utils.py",
             "chunk_utils.py",
             "cgi_utils.py",
@@ -649,6 +651,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_sre_compile_utils.py",
             "sre_parse_utils.py",
             "tests/test_sre_parse_utils.py",
+            "sunau_utils.py",
+            "tests/test_sunau_utils.py",
         ]
         for rel in expected:
             path = self.project_dir / rel
@@ -1253,6 +1257,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_sre_constants_utils.py",
             "sre_parse_utils.py",
             "tests/test_sre_parse_utils.py",
+            "sunau_utils.py",
+            "tests/test_sunau_utils.py",
             "cgi_utils.py",
             "chunk_utils.py",
             "cgi_utils.py",
@@ -1270,6 +1276,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_sre_compile_utils.py",
             "sre_parse_utils.py",
             "tests/test_sre_parse_utils.py",
+            "sunau_utils.py",
+            "tests/test_sunau_utils.py",
         ]:
             self.assertIn(test, content, f"scaffold-project.md missing {test}")
 
@@ -1685,6 +1693,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_sre_constants_utils.py",
             "sre_parse_utils.py",
             "tests/test_sre_parse_utils.py",
+            "sunau_utils.py",
+            "tests/test_sunau_utils.py",
             "cgi_utils.py",
             "chunk_utils.py",
             "tests/test_cgi_utils.py",
@@ -1701,6 +1711,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_sre_compile_utils.py",
             "sre_parse_utils.py",
             "tests/test_sre_parse_utils.py",
+            "sunau_utils.py",
+            "tests/test_sunau_utils.py",
         ]:
             self.assertIn(module, content, f"CHANGELOG.md missing {module}")
 
