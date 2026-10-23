@@ -346,6 +346,39 @@ def sum_list(lst: List[Union[int, float]]) -> Union[int, float]:
     return sum(lst)
 
 
+def product(lst: List[Union[int, float]]) -> Union[int, float]:
+    """Return the product of all elements in a list."""
+    if not lst:
+        raise ValueError("List must not be empty")
+    result: Union[int, float] = 1
+    for item in lst:
+        result *= item
+    return result
+
+
+def take_while(lst: List[T], predicate: Callable[[T], bool]) -> List[T]:
+    """Take elements from the beginning while predicate is true."""
+    result: List[T] = []
+    for item in lst:
+        if predicate(item):
+            result.append(item)
+        else:
+            break
+    return result
+
+
+def drop_while(lst: List[T], predicate: Callable[[T], bool]) -> List[T]:
+    """Drop elements from the beginning while predicate is true."""
+    result: List[T] = []
+    dropping = True
+    for item in lst:
+        if dropping and predicate(item):
+            continue
+        dropping = False
+        result.append(item)
+    return result
+
+
 def average(lst: List[Union[int, float]]) -> float:
     """Calculate the average of a list."""
     if not lst:
