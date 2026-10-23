@@ -4577,6 +4577,7 @@ py_modules = [
     "faulthandler_utils",
     "resource_utils",
     "pwd_utils",
+    "spwd_utils",
     "grp_utils",
     "termios_utils",
     "fcntl_utils",
@@ -29519,6 +29520,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_sre_constants_utils.py` — unit tests for `sre_constants_utils.py`
 - `sre_parse_utils.py` — Regular expression parse utilities wrapping the standard library `sre_parse` module (`parse_pattern`, `parse_template`, `pattern_width`, `pattern_dump`, `is_available`) with input validation
 - `tests/test_sre_parse_utils.py` — unit tests for `sre_parse_utils.py`
+- `spwd_utils.py` — Shadow password database utilities wrapping the standard library `spwd` module (`getspnam`, `getspall`, `is_available`) with input validation
+- `tests/test_spwd_utils.py` — unit tests for `spwd_utils.py`
 - `sre_compile_utils.py` — Regular expression compile utilities wrapping the standard library `sre_compile` module (`compile_pattern`, `is_available`) with input validation
 - `tests/test_sre_compile_utils.py` — unit tests for `sre_compile_utils.py`
 
@@ -30850,6 +30853,9 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Add `spwd_utils.py` wrapping the standard library `spwd` module (`getspnam`, `getspall`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_spwd_utils.py`.
+- Synchronized `spwd_utils.py` and `tests/test_spwd_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
+- Repaired the `spwd_utils` handover that the previous checkpoint session left behind: the module and its test were removed while the references in `README.md`, `pyproject.toml`, and the `scaffold.sh` header comment survived, so `tests/test_scaffold_sync.py` reported four synchronization gaps. The module, its test, the heredocs, the assertions, and the documentation are restored.
 - Add `sunau_utils.py` wrapping the standard library `sunau` module (`open`, `open_au`, `open_read`, `open_write`, `open_sunau`, `read_sunau`, `write_sunau`, `Au_read`, `Au_write`, `Error`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_sunau_utils.py`.
 - Synchronized `sunau_utils.py` and `tests/test_sunau_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
 - Repaired the `sunau_utils` handover: the module was missing the `open_sunau`, `read_sunau`, and `write_sunau` aliases its tests expect, and it was absent from the README tree, `pyproject.toml`, `.kilo/command/scaffold-project.md`, and this CHANGELOG.
@@ -31883,6 +31889,7 @@ crypt_utils.py              # Password hashing utilities wrapping the standard l
 telnetlib_utils.py           # Telnet client utilities wrapping the standard library telnetlib module
 sre_constants_utils.py      # Regex constants utilities wrapping the standard library sre_constants module
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
+spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
 list_utils.py              # Advanced list manipulation utilities
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
@@ -32281,6 +32288,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_telnetlib_utils.py     # Tests for telnetlib_utils.py
   test_sre_constants_utils.py # Tests for sre_constants_utils.py
   test_sre_parse_utils.py     # Tests for sre_parse_utils.py
+  test_spwd_utils.py           # Tests for spwd_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
