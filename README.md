@@ -249,6 +249,7 @@ typing_utils.py            # Typing utilities wrapping stdlib typing (get_type_h
 functools_utils.py         # Functional programming utilities (compose, pipe, curry, apply)
 operator_utils.py          # Operator utilities (identity, negate, add, subtract, multiply, divide, power, modulo, clamp, between)
 config_schema.py           # Typed configuration schema utilities (SchemaField, ConfigSchema, validators)
+cooldown_utils.py          # Cooldown and throttling utilities for rate-limiting function calls
 ctypes_utils.py            # Ctypes utility functions wrapping the standard library ctypes module
 copy_utils.py              # Copy utilities (shallow/deep copy, dict copy, merge) wrapping stdlib copy module
 exceptions_utils.py        # Custom exception classes and error handling utilities

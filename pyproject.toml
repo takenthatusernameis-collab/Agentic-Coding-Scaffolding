@@ -259,6 +259,7 @@ py_modules = [
     "pyexpat_utils",
     "xdrlib_utils",
     "compileall_utils",
+    "cooldown_utils",
     "modulefinder_utils",
     "optparse_utils",
     "smtplib_utils",
