@@ -30930,6 +30930,19 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Bootstrap audit: the hermetic, CI-testable standard library wrapper surface is complete. Every
+  importable, top-level, non-private standard library module on the interpreter now has a wrapper
+  (`<module>_utils.py`), a test (`tests/test_<module>_utils.py`), a README module section, and an
+  entry in `pyproject.toml` `py_modules`. The only standard library modules without a wrapper are
+  `cProfile` (already wrapped as `cprofile_utils`), `ossaudiodev` (deprecated, removed in Python
+  3.13), and the internal `sitecustomize`, `test`, `xxlimited`, `xxlimited_35`, and `xxsubtype`
+  modules, none of which is a candidate for a hermetic wrapper the test suite can run. No `TODO` or
+  `FIXME` markers remain in the source tree.
+- Bootstrap audit: verified repository health — `make test` passes (4950 tests, 2 skipped),
+  `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check`
+  reports that all embedded copies in `scaffold.sh` are in sync. No drift found; no code changes
+  required.
+
 - Closed the documentation drift in the `utils.py` module section of `README.md`: the section listed only `flatten`, `chunk`, `unique`, and `is_empty`, while the module also exposes `remove_none`, `last`, `first`, and `second`, so the section now lists every public helper. Synchronized the corrected section into the embedded `README.md` template of `scaffold.sh` with `make refresh-scaffold`, so a scaffolded project inherits the complete list.
 - Add `spwd_utils.py` wrapping the standard library `spwd` module (`getspnam`, `getspall`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_spwd_utils.py`.
 - Synchronized `spwd_utils.py` and `tests/test_spwd_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.

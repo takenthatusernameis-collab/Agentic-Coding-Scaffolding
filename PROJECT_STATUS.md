@@ -1,9 +1,27 @@
-## Latest Session (2026-10-23) — bootstrap audit: all green
+## Latest Session (2026-10-23) — bootstrap audit: all green (third consecutive)
 
 The board held no task (bootstrap). Verified repository health: `make test` passes
-(5339 tests, 5 skipped), `make lint` and `make typecheck` green, and
+(4950 tests, 2 skipped), `make lint` and `make typecheck` green, and
 `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-No drift found; no code changes required.
+
+Completed in the latest session:
+
+- Audited the wrapper surface exhaustively: 254 `<module>_utils.py` modules exist, every one
+  registered in `pyproject.toml` `py_modules`, every one covered by a `tests/test_<module>_utils.py`
+  test file (255 test files total), and every one documented by a README module section.
+- Audited the standard library coverage against the interpreter's own `pkgutil.iter_modules()`.
+  Every importable, top-level, non-private standard library module now has a wrapper, except
+  `cProfile` (already wrapped as `cprofile_utils`), `ossaudiodev` (deprecated, removed in
+  Python 3.13), and the internal `sitecustomize`, `test`, `xxlimited`, `xxlimited_35`, and
+  `xxsubtype` modules, none of which is a candidate for a hermetic wrapper.
+- Confirmed no `TODO`/`FIXME` markers remain anywhere in the source tree.
+
+Next Planned:
+
+- The hermetic, CI-testable stdlib wrapper surface is complete. The modules that still lack a wrapper
+  are either removed in Python 3.13, platform specific, or need a graphical toolkit the CI does not
+  ship, so none is a good candidate for a hermetic wrapper the test suite can run.
+- Keep every new wrapper hermetic and keep `make test`, `make lint`, and `make typecheck` green.
 
 ## Latest Session (2026-10-23) — bootstrap audit: all green (previous)
 
