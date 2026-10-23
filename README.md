@@ -915,7 +915,7 @@ The project includes UUID utility functions in `uuid_utils.py` for generating an
 
 ## Utils Module
 
-The project includes general utility helper functions in `utils.py`: `flatten`, `chunk`, `unique`, and `is_empty`. The module is tested in `tests/test_utils.py`.
+The project includes general utility helper functions in `utils.py`: `flatten`, `chunk`, `unique`, `is_empty`, `remove_none`, `last`, `first`, and `second`. The module is tested in `tests/test_utils.py`.
 
 ## CLI Utilities Module
 

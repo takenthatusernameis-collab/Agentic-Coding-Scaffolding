@@ -1,4 +1,34 @@
-## Latest Session (2026-10-22) — cgi_utils repaired and four synchronization gaps closed
+## Latest Session (2026-10-23) — utils.py documentation drift closed
+
+The board held no task, because the previous session left a checkpoint commit but no handover, so
+this session audited the repository for drift and closed the one it found.
+
+Completed in the latest session:
+
+- Audited every README module section against the public API of the corresponding module. The audit
+  compared the names exported by each module with the names mentioned in its README section; most
+  sections follow the established convention of describing the purpose and naming representative
+  helpers rather than enumerating every export, so they are consistent by design.
+- Closed the documentation drift in the `utils.py` module section of `README.md`. The section listed
+  only `flatten`, `chunk`, `unique`, and `is_empty`, while the module also exposes `remove_none`,
+  `last`, `first`, and `second`, so the section now lists every public helper.
+- Synchronized the corrected section into the embedded `README.md` template of `scaffold.sh` with
+  `make refresh-scaffold`, and `python tools/refresh_scaffold.py --check` reports that all embedded
+  copies are in sync.
+- Recorded the fix in the Unreleased section of `CHANGELOG.md`, which `make refresh-scaffold` carried
+  into the embedded CHANGELOG template.
+- Verified the work before it is committed: `make test` runs 4946 tests and passes, `make lint` and
+  `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports that all
+  embedded copies are in sync.
+
+Next Planned:
+
+- The hermetic, CI-testable stdlib wrapper surface is complete. The modules that still lack a wrapper
+  are either removed in Python 3.13, platform specific, or need a graphical toolkit the CI does not
+  ship, so none is a good candidate for a hermetic wrapper the test suite can run.
+- Keep every new wrapper hermetic and keep `make test`, `make lint`, and `make typecheck` green.
+
+## Previous Session (2026-10-22) — cgi_utils repaired and four synchronization gaps closed
 
 The board held no task, because the previous session was interrupted before it could post its
 handover, so this session repaired the `cgi_utils` module that the previous session left behind and

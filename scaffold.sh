@@ -30911,6 +30911,7 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Closed the documentation drift in the `utils.py` module section of `README.md`: the section listed only `flatten`, `chunk`, `unique`, and `is_empty`, while the module also exposes `remove_none`, `last`, `first`, and `second`, so the section now lists every public helper. Synchronized the corrected section into the embedded `README.md` template of `scaffold.sh` with `make refresh-scaffold`, so a scaffolded project inherits the complete list.
 - Add `spwd_utils.py` wrapping the standard library `spwd` module (`getspnam`, `getspall`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_spwd_utils.py`.
 - Synchronized `spwd_utils.py` and `tests/test_spwd_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
 - Repaired the `spwd_utils` handover that the previous checkpoint session left behind: the module and its test were removed while the references in `README.md`, `pyproject.toml`, and the `scaffold.sh` header comment survived, so `tests/test_scaffold_sync.py` reported four synchronization gaps. The module, its test, the heredocs, the assertions, and the documentation are restored.
@@ -32787,7 +32788,7 @@ The project includes UUID utility functions in `uuid_utils.py` for generating an
 
 ## Utils Module
 
-The project includes general utility helper functions in `utils.py`: `flatten`, `chunk`, `unique`, and `is_empty`. The module is tested in `tests/test_utils.py`.
+The project includes general utility helper functions in `utils.py`: `flatten`, `chunk`, `unique`, `is_empty`, `remove_none`, `last`, `first`, and `second`. The module is tested in `tests/test_utils.py`.
 
 ## CLI Utilities Module
 
