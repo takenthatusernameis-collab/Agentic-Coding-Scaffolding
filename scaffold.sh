@@ -9900,6 +9900,11 @@ def second(lst: List[T]) -> T:
     if len(lst) < 2:
         raise ValueError("List must contain at least two elements")
     return lst[1]
+
+
+def compact(lst: List[T]) -> List[T]:
+    """Return a copy of *lst* with all falsy values removed."""
+    return [item for item in lst if item]
 UTILS
 
 # --- stats.py ---
@@ -10129,7 +10134,7 @@ cat > "$OUTPUT_DIR/tests/test_utils.py" <<'TESTUTILS'
 
 import unittest
 
-from utils import chunk, first, flatten, is_empty, last, remove_none, second, unique
+from utils import chunk, compact, first, flatten, is_empty, last, remove_none, second, unique
 
 
 class TestFlatten(unittest.TestCase):
@@ -10237,6 +10242,20 @@ class TestSecond(unittest.TestCase):
     def test_second_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             second([])
+
+
+class TestCompact(unittest.TestCase):
+    def test_compact_removes_falsy(self) -> None:
+        self.assertEqual(compact([0, 1, "", 2, None, 3, [], 4]), [1, 2, 3, 4])
+
+    def test_compact_all_truthy(self) -> None:
+        self.assertEqual(compact([1, 2, 3]), [1, 2, 3])
+
+    def test_compact_all_falsy(self) -> None:
+        self.assertEqual(compact([0, "", None, [], {}]), [])
+
+    def test_compact_empty(self) -> None:
+        self.assertEqual(compact([]), [])
 TESTUTILS
 
 # --- tests/test_stats.py ---

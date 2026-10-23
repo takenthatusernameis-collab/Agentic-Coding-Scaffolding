@@ -64,3 +64,8 @@ def second(lst: List[T]) -> T:
     if len(lst) < 2:
         raise ValueError("List must contain at least two elements")
     return lst[1]
+
+
+def compact(lst: List[T]) -> List[T]:
+    """Return a copy of *lst* with all falsy values removed."""
+    return [item for item in lst if item]
