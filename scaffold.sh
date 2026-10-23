@@ -9886,6 +9886,13 @@ def last(lst: List[T]) -> T:
     if not lst:
         raise ValueError("List must not be empty")
     return lst[-1]
+
+
+def first(lst: List[T]) -> T:
+    """Return the first element of a non-empty list."""
+    if not lst:
+        raise ValueError("List must not be empty")
+    return lst[0]
 UTILS
 
 # --- stats.py ---
@@ -10115,7 +10122,7 @@ cat > "$OUTPUT_DIR/tests/test_utils.py" <<'TESTUTILS'
 
 import unittest
 
-from utils import chunk, flatten, is_empty, last, remove_none, unique
+from utils import chunk, first, flatten, is_empty, last, remove_none, unique
 
 
 class TestFlatten(unittest.TestCase):
@@ -10198,6 +10205,18 @@ class TestLast(unittest.TestCase):
     def test_last_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             last([])
+
+
+class TestFirst(unittest.TestCase):
+    def test_first_basic(self) -> None:
+        self.assertEqual(first([1, 2, 3]), 1)
+
+    def test_first_single(self) -> None:
+        self.assertEqual(first([5]), 5)
+
+    def test_first_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            first([])
 TESTUTILS
 
 # --- tests/test_stats.py ---
