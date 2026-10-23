@@ -83,6 +83,7 @@ env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
 memoize_utils.py          # Memoization utilities (memoize decorator) with cache_clear
+maybe_utils.py             # Maybe/Option type utilities for functional programming patterns (Maybe, some, nothing, from_optional, map, flat_map, etc.)
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
@@ -315,6 +316,7 @@ tests/                     # Python unit tests
   test_circuit_breaker_utils.py   # Tests for circuit_breaker_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
   test_memoize_utils.py      # Tests for memoize_utils.py
+  test_maybe_utils.py         # Tests for maybe_utils.py
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_chunk_utils.py         # Tests for chunk_utils.py
@@ -732,7 +734,7 @@ The project includes a caching utilities module in `cache_utils.py` with helpers
 
 ## Memoization Utilities Module
 
-The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. The module is tested in `tests/test_memoize_utils.py`.
+The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. Maybe/Option type utilities are also provided in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. The modules are tested in `tests/test_memoize_utils.py` and `tests/test_maybe_utils.py`.
 
 ## Timing Utilities Module
 

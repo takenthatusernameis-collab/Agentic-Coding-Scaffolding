@@ -53,6 +53,7 @@ py_modules = [
     "math_utils",
     "mmap_utils",
     "memoize_utils",
+    "maybe_utils",
     "number_utils",
     "operator_utils",
     "os_utils",

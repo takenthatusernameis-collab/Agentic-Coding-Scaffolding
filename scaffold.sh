@@ -69,6 +69,7 @@
 #   - getpass_utils.py — # Secure password input utilities wrapping stdlib getpass (getpass, getuser)
 #   - id_utils.py — # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 #   - memoize_utils.py — # Memoization utilities (memoize) caching function results by call arguments
+#   - maybe_utils.py — Maybe/Option type utilities for functional programming patterns with Maybe, some, nothing, from_optional and methods like is_some, is_nothing, unwrap, unwrap_or, unwrap_or_else, map, flat_map, and_then, filter, or_else
 #   - pathlib_utils.py — # Path manipulation utilities wrapping stdlib pathlib (ensure_dir, join, exists, is_file, is_dir, read_text, write_text, glob, rglob, suffix, stem, parent)
 #   - runpy_utils.py — # Python module execution utilities wrapping stdlib runpy (run_module, run_path)
 #   - secrets_utils.py — # Cryptographically secure secrets and token utilities wrapping stdlib secrets (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
@@ -553,6 +554,7 @@
 #   - test_getpass_utils.py — # Tests for getpass_utils.py
 #   - test_id_utils.py — # Tests for id_utils.py
 #   - test_memoize_utils.py — # Tests for memoize_utils.py
+#   - test_maybe_utils.py — # Tests for maybe_utils.py
 #   - test_pathlib_utils.py — # Tests for pathlib_utils.py
 #   - test_runpy_utils.py — # Tests for runpy_utils.py
 #   - test_secrets_utils.py — # Tests for secrets_utils.py
@@ -4566,6 +4568,8 @@ py_modules = [
      "mailbox_utils",
     "wave_utils",
     "mmap_utils",
+    "memoize_utils",
+    "maybe_utils",
     "profile_utils",
     "pstats_utils",
     "timeit_utils",
@@ -29554,6 +29558,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `logging_utils.py` — logging configuration and helper utilities
 - `cache_utils.py` — caching utilities for memoizing function results
 - `memoize_utils.py` — memoization utilities (`memoize` decorator) that caches function return values keyed by call arguments with a `cache_clear` method
+- `maybe_utils.py` — Maybe/Option type utilities for functional programming patterns (`Maybe` with `some`, `nothing`, `from_optional` and methods `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, `or_else`)
 - `context_utils.py` — context manager utilities (`chdir`, `temp_environ`, `redirect_stdout`, `redirect_stderr`, `suppress`) for temporarily altering the runtime environment
 - `itertools_utils.py` — iteration helpers (`chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`) wrapping the standard library `itertools` module with input validation
 - `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
@@ -29666,6 +29671,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
 - `tests/test_memoize_utils.py` — unit tests for `memoize_utils.py`
+- `tests/test_maybe_utils.py` — unit tests for `maybe_utils.py`
 - `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
@@ -31572,7 +31578,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `id_utils.py` to the generated project — identifier generation and validation utilities (`generate_id`, `new_id`, `is_valid_id`) with input validation, plus `tests/test_id_utils.py`.
 - Synchronized `id_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `memoize_utils.py` to the generated project — memoization utilities (`memoize` decorator) that cache function return values keyed by call arguments with a `cache_clear` method, plus `tests/test_memoize_utils.py`.
-- Synchronized `memoize_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
+- Added `maybe_utils.py` to the generated project — Maybe/Option type utilities (`Maybe`, `some`, `nothing`, `from_optional`) with safe operations (`map`, `flat_map`, `and_then`, `filter`, `or_else`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `is_some`, `is_nothing`) for composable error handling, plus `tests/test_maybe_utils.py`.
+- Synchronized `memoize_utils.py` and `maybe_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `pathlib_utils.py` to the generated project — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation, plus `tests/test_pathlib_utils.py`.
 - Synchronized `pathlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `runpy_utils.py` to the generated project — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation, plus `tests/test_runpy_utils.py`.
@@ -32379,6 +32386,7 @@ env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
 memoize_utils.py          # Memoization utilities (memoize decorator) with cache_clear
+maybe_utils.py             # Maybe/Option type utilities for functional programming patterns (Maybe, some, nothing, from_optional, map, flat_map, etc.)
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
@@ -32611,6 +32619,7 @@ tests/                     # Python unit tests
   test_circuit_breaker_utils.py   # Tests for circuit_breaker_utils.py
   test_cache_utils.py         # Tests for cache_utils.py
   test_memoize_utils.py      # Tests for memoize_utils.py
+  test_maybe_utils.py         # Tests for maybe_utils.py
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_chunk_utils.py         # Tests for chunk_utils.py
@@ -33028,7 +33037,7 @@ The project includes a caching utilities module in `cache_utils.py` with helpers
 
 ## Memoization Utilities Module
 
-The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. The module is tested in `tests/test_memoize_utils.py`.
+The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. Maybe/Option type utilities are also provided in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. The modules are tested in `tests/test_memoize_utils.py` and `tests/test_maybe_utils.py`.
 
 ## Timing Utilities Module
 
