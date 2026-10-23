@@ -565,6 +565,8 @@ scaffold-project my-cool-tool ./out --no-test
 - `tests/test_sre_constants_utils.py` — unit tests for `sre_constants_utils.py`
 - `sre_parse_utils.py` — Regular expression parse utilities wrapping the standard library `sre_parse` module (`parse_pattern`, `parse_template`, `pattern_width`, `pattern_dump`, `is_available`) with input validation
 - `tests/test_sre_parse_utils.py` — unit tests for `sre_parse_utils.py`
+- `spwd_utils.py` — Shadow password database utilities wrapping the standard library `spwd` module (`getspnam`, `getspall`, `is_available`) with input validation
+- `tests/test_spwd_utils.py` — unit tests for `spwd_utils.py`
 - `sre_compile_utils.py` — Regular expression compile utilities wrapping the standard library `sre_compile` module (`compile_pattern`, `is_available`) with input validation
 - `tests/test_sre_compile_utils.py` — unit tests for `sre_compile_utils.py`
 

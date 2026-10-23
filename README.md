@@ -75,6 +75,7 @@ crypt_utils.py              # Password hashing utilities wrapping the standard l
 telnetlib_utils.py           # Telnet client utilities wrapping the standard library telnetlib module
 sre_constants_utils.py      # Regex constants utilities wrapping the standard library sre_constants module
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
+spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
 list_utils.py              # Advanced list manipulation utilities
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
@@ -473,6 +474,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_telnetlib_utils.py     # Tests for telnetlib_utils.py
   test_sre_constants_utils.py # Tests for sre_constants_utils.py
   test_sre_parse_utils.py     # Tests for sre_parse_utils.py
+  test_spwd_utils.py           # Tests for spwd_utils.py
  test_weakref_utils.py       # Tests for weakref_utils.py
     test_warnings_utils.py      # Tests for warnings_utils.py
     test_webbrowser_utils.py    # Tests for webbrowser_utils.py
