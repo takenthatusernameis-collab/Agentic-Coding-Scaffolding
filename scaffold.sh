@@ -31844,6 +31844,7 @@ tools/                       # Maintainer tools
   refresh_scaffold.py        # Refresh the file copies embedded in scaffold.sh
 hello.py                     # Sample application entry point
 abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
+aifc_utils.py                # AIFF and AIFF-C format utilities wrapping stdlib aifc (open, is_available, aliases, re-exports Aifc_read, Aifc_write, Error) with input validation
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
 audioop_utils.py             # Audio utilities wrapping the standard library audioop module
 gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
@@ -31880,6 +31881,7 @@ crypt_utils.py              # Password hashing utilities wrapping the standard l
 telnetlib_utils.py           # Telnet client utilities wrapping the standard library telnetlib module
 sre_constants_utils.py      # Regex constants utilities wrapping the standard library sre_constants module
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
+sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
 list_utils.py              # Advanced list manipulation utilities
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
@@ -31926,6 +31928,7 @@ os_utils.py                # Operating system utilities (platform info, CPU coun
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
 wave_utils.py              # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames, create_writer)
+sndhdr_utils.py            # Sound format detection utilities wrapping stdlib sndhdr (what, whathdr, tests, is_available) with input validation
 uu_utils.py                # Uuencode utilities wrapping stdlib uu (uu_encode, uu_decode, encode_uu, decode_uu, parse_uu_header, is_uuencoded)
 zipapp_utils.py            # Zipapp utilities wrapping stdlib zipapp (create_archive/create_zipapp, get_interpreter/get_zipapp_interpreter, is_zipapp_archive)
 py_compile_utils.py        # Py_compile utilities wrapping stdlib py_compile (compile_file/py_compile_file, get_invalidation_mode, parse_invalidation_mode, is_pyc_file, main)
@@ -32027,6 +32030,7 @@ trace_utils.py            # Execution tracing utilities wrapping stdlib trace (n
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
 cgi_utils.py                 # CGI utilities wrapping the standard library cgi module (FieldStorage, MiniFieldStorage, escape, parse, parse_header, parse_multipart, parse_qs, parse_qsl, is_available) with input validation
+cgitb_utils.py              # Cgitb utilities wrapping the standard library cgitb module (enable, disable, reset, lookup, scanvars, handler, text, html, small, strong, grey, pink, blue, is_available) with input validation
 pipes_utils.py                # Pipeline utilities wrapping stdlib pipes (quote, quote_command, create_template, is_available, make_pipeline, step_kinds) with input validation
 cmath_utils.py               # Complex mathematics utilities wrapping the standard library cmath module
 struct_utils.py            # Binary struct packing and unpacking utilities
