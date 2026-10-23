@@ -43,3 +43,10 @@ def is_empty(value: Any) -> bool:
 def remove_none(lst: List[Any]) -> List[Any]:
     """Return a copy of lst with None values removed."""
     return [item for item in lst if item is not None]
+
+
+def last(lst: List[T]) -> T:
+    """Return the last element of a non-empty list."""
+    if not lst:
+        raise ValueError("List must not be empty")
+    return lst[-1]
