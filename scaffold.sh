@@ -9893,6 +9893,13 @@ def first(lst: List[T]) -> T:
     if not lst:
         raise ValueError("List must not be empty")
     return lst[0]
+
+
+def second(lst: List[T]) -> T:
+    """Return the second element of a list with at least two elements."""
+    if len(lst) < 2:
+        raise ValueError("List must contain at least two elements")
+    return lst[1]
 UTILS
 
 # --- stats.py ---
