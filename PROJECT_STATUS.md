@@ -1,3 +1,36 @@
+## Latest Session (2026-10-23) — cooldown_utils deadlock and scaffold header gap repaired
+
+The board held no task (bootstrap), so this session audited the repository for drift against the
+synchronization invariant that `tests/test_scaffold_sync.py` guards and closed the two gaps it found.
+
+Completed in the latest session:
+
+- Found that `cooldown_utils.py` and `tests/test_cooldown_utils.py` existed but were missing from the
+  `scaffold.sh` header comment, so `tests/test_scaffold_sync.py::TestScaffoldSync::test_scaffold_header_lists_every_module`
+  reported a synchronization gap. The header now lists both `cooldown_utils.py` and
+  `tests/test_cooldown_utils.py`, placed alphabetically between `codeop_utils.py` and `copyreg_utils.py`.
+- Corrected a deadlock in `cooldown_utils.py`. `Cooldown.call()` held the instance lock while calling
+  `self.remaining()`, which re-acquired the same non-reentrant `Lock`, so a second call inside the
+  interval deadlocked. The lock is now a `threading.RLock`, so the self-reentrant read of the remaining
+  time no longer blocks.
+- Corrected `tests/test_cooldown_utils.py::TestCooldownDecorator::test_decorator_wraps_function`. The test
+  called the wrapped function twice and asserted that only one invocation ran, but the documented
+  contract of the wrapper is that a call before the interval elapses raises `TimeoutError`. The test now
+  expects the `TimeoutError` on the second call, matching `test_decorator_raises_before_interval` and the
+  module docstring.
+- Synchronized the `cooldown_utils.py`, `tests/test_cooldown_utils.py`, and `CHANGELOG.md` changes across
+  the embedded copies in `scaffold.sh` with `make refresh-scaffold`, and
+  `python tools/refresh_scaffold.py --check` reports that all embedded copies are in sync.
+- Verified the work: `tests/test_scaffold_sync.py`, `tests/test_refresh_scaffold.py`,
+  `tests/test_scaffold.py`, and `tests/test_cooldown_utils.py` all pass (139 tests).
+
+Next Planned:
+
+- The hermetic, CI-testable stdlib wrapper surface is complete. The modules that still lack a wrapper
+  are either removed in Python 3.13, platform specific, or need a graphical toolkit the CI does not
+  ship, so none is a good candidate for a hermetic wrapper the test suite can run.
+- Keep every new wrapper hermetic and keep `make test`, `make lint`, and `make typecheck` green.
+
 ## Latest Session (2026-10-23) — bootstrap audit: all green (third consecutive)
 
 The board held no task (bootstrap). Verified repository health: `make test` passes

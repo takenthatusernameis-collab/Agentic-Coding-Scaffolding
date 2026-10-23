@@ -121,7 +121,8 @@ class TestCooldownDecorator(unittest.TestCase):
             calls.append(1)
 
         func()
-        func()
+        with self.assertRaises(TimeoutError):
+            func()
         self.assertEqual(len(calls), 1)
 
     def test_decorator_allows_after_interval(self) -> None:

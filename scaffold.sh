@@ -62,6 +62,7 @@
 #   - mimetypes_utils.py — # MIME type detection utilities wrapping stdlib mimetypes (guess_type, guess_extension, guess_all_extensions, add_type, init_database)
 #   - code_utils.py — # Interactive console utilities wrapping stdlib code (interact, compile_command, console_class, interpreter_class)
 #   - codeop_utils.py — # Utilities for compiling possibly-incomplete Python source (wrapping stdlib codeop)
+#   - cooldown_utils.py — # Cooldown and throttling utilities for rate-limiting function calls (cooldown, Cooldown, is_available)
 #   - copyreg_utils.py — # Pickle support registration utilities wrapping stdlib copyreg (add_extension, remove_extension, clear_extension_cache, constructor, dispatch_table, pickle)
 #   - fileinput_utils.py — # File input iteration utilities wrapping stdlib fileinput (read_lines, count_lines, filenames)
 #   - fnmatch_utils.py — # Filename pattern matching utilities wrapping stdlib fnmatch (match, match_case, filter_names, translate)
@@ -545,6 +546,7 @@
 #   - test_mimetypes_utils.py — # Tests for mimetypes_utils.py
 #   - test_code_utils.py — # Tests for code_utils.py
 #   - test_codeop_utils.py — # Tests for codeop_utils.py
+#   - test_cooldown_utils.py — # Tests for cooldown_utils.py
 #   - test_copyreg_utils.py — # Tests for copyreg_utils.py
 #   - test_fileinput_utils.py — # Tests for fileinput_utils.py
 #   - test_fnmatch_utils.py — # Tests for fnmatch_utils.py
@@ -30932,6 +30934,10 @@ TEST_INTERVAL_UTILS
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
+
+- Repaired the `cooldown_utils` handover that the previous checkpoint session left behind: the module and its test were present, but the `scaffold.sh` header comment never listed `cooldown_utils.py` or `tests/test_cooldown_utils.py`, so `tests/test_scaffold_sync.py` reported a synchronization gap. The header now lists both, and `make refresh-scaffold` confirms that every embedded copy is in sync.
+- Corrected a deadlock in `cooldown_utils.py`. `Cooldown.call()` held the instance lock while calling `self.remaining()`, which re-acquired the same non-reentrant `Lock`, so a second call inside the interval deadlocked. The lock is now a `threading.RLock`, so the self-reentrant read of the remaining time no longer blocks.
+- Corrected `tests/test_cooldown_utils.py::TestCooldownDecorator::test_decorator_wraps_function`. The test called the wrapped function twice and asserted that only one invocation ran, but the documented contract of the wrapper is that a call before the interval elapses raises `TimeoutError`. The test now expects the `TimeoutError` on the second call, matching `test_decorator_raises_before_interval` and the module docstring.
 
 - Add `cooldown_utils.py` wrapping a cooldown and throttling primitive for rate-limiting function calls (`Cooldown`, `cooldown`, `is_available`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_cooldown_utils.py`.
 - Synchronized `cooldown_utils.py` and `tests/test_cooldown_utils.py` across `scaffold.sh` header comment and heredocs, the embedded `pyproject.toml`, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md`, the `tests/test_scaffold.py` assertions, and this CHANGELOG.
@@ -102505,7 +102511,7 @@ class Cooldown:
             raise ValueError("interval must be positive")
         self._interval = float(interval)
         self._last_call: float | None = None
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
 
     def ready(self) -> bool:
         """Return True if a call is allowed right now."""
@@ -102696,7 +102702,8 @@ class TestCooldownDecorator(unittest.TestCase):
             calls.append(1)
 
         func()
-        func()
+        with self.assertRaises(TimeoutError):
+            func()
         self.assertEqual(len(calls), 1)
 
     def test_decorator_allows_after_interval(self) -> None:

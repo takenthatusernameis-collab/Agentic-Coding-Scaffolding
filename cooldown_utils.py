@@ -42,7 +42,7 @@ class Cooldown:
             raise ValueError("interval must be positive")
         self._interval = float(interval)
         self._last_call: float | None = None
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
 
     def ready(self) -> bool:
         """Return True if a call is allowed right now."""
