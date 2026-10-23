@@ -33,18 +33,10 @@ Completed in the latest session:
 
 Next Planned:
 
-- Add the next stdlib wrapper module. The public standard library modules that still lack a wrapper
-  are `aifc`, `crypt`, `idlelib`, `lib2to3`, `msilib`, `msvcrt`, `nis`, `ossaudiodev`, `pipes`,
-  `spwd`, `sre_parse`, `sunau`, `tkinter`, `turtle`, `turtledemo`, `winreg`, and `winsound`. Most of
-  them were removed in Python 3.13 as part of :pep:`594`, and the ones that remain are either
-  platform specific (`msvcrt`, `winreg`, `winsound`, `msilib`, `ossaudiodev`, `spwd`, `nis`) or need
-  a graphical toolkit that the interpreter of the CI does not ship (`tkinter`, `idlelib`, `turtle`,
-  `turtledemo`). The `crypt` module is the natural next candidate: it is a small module of three
-  helpers, but it was removed in Python 3.13, so its helpers would only work on the older
-  interpreters and the import has to degrade gracefully the way `imghdr_utils.py` and `uu_utils.py`
-  do it. The `sre_parse` module is the alternative: it holds the named groups of the regular
-  expression engine of the standard library and nothing else, so the wrapper is small and every
-  helper of it is pure.
+- The hermetic, CI-testable stdlib wrapper surface is complete: `aifc`, `crypt`, `pipes`,
+  `sre_compile`, `sre_parse`, and `sunau` are all wrapped and tested. The modules that still lack a
+  wrapper are either removed in Python 3.13, platform specific, or need a graphical toolkit the CI
+  does not ship, so none is a good candidate for a hermetic wrapper the test suite can run.
 - Keep every new wrapper hermetic and keep `make test` green.
 
 ## Previous Session (2026-10-22) — chunk_utils finished and synchronized across every surface
