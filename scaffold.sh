@@ -31851,7 +31851,6 @@ fi
 # --- README.md ---
 cat > "$OUTPUT_DIR/README.md" <<'README_MD'
 # ${PROJECT_NAME}
-# ${PROJECT_NAME}
 
 A self-evolving scaffolding project for autonomous agentic coding loops powered by Kilo.
 
