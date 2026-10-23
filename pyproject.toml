@@ -298,5 +298,6 @@ py_modules = [
     "sre_compile_utils",
     "sre_constants_utils",
     "sre_parse_utils",
+    "spwd_utils",
     "sndhdr_utils",
 ]
