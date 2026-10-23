@@ -31977,6 +31977,7 @@ validation_utils.py         # Input validation utilities
 crypto_utils.py             # Cryptographic utilities
 crypt_utils.py              # Password hashing utilities wrapping the standard library crypt module
 telnetlib_utils.py           # Telnet client utilities wrapping the standard library telnetlib module
+nntplib_utils.py             # NNTP client utilities wrapping the standard library nntplib module (NNTP, NNTP_SSL, create_nntp, create_nntp_ssl, GroupInfo, ArticleInfo) with input validation
 sre_constants_utils.py      # Regex constants utilities wrapping the standard library sre_constants module
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
@@ -33589,7 +33590,7 @@ The project includes cgitb utilities in `cgitb_utils.py` wrapping the standard l
 
 ## Nntplib Utilities Module
 
-The project includes NNTP utilities in `nntplib_utils.py` wrapping the standard library `nntplib` module: `NNTP` and `NNTP_SSL` provide NNTP client connections, `connect` creates a connection, `is_available` reports whether the interpreter ships the module. The constants and errors are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `nntplib` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_nntplib_utils.py`.
+The project includes NNTP utilities in `nntplib_utils.py` wrapping the standard library `nntplib` module: `NNTP` and `NNTP_SSL` provide NNTP client connections, `create_nntp` and `create_nntp_ssl` create connections with input validation, `GroupInfo` and `ArticleInfo` are re-exported records, and the constants and errors are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `nntplib` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_nntplib_utils.py`.
 
 ## Sndhdr Utilities Module
 
