@@ -28,6 +28,7 @@ __all__: List[str] = [
     "normalize_whitespace",
     "is_upper",
     "is_lower",
+    "is_alpha",
     "swap_case",
     "count_occurrences",
     "starts_with",
@@ -251,6 +252,31 @@ def is_lower(s: str) -> bool:
     if not any(c.isalpha() for c in s):
         return False
     return s == s.lower()
+
+
+def is_alpha(s: str) -> bool:
+    """Return True if all characters in the string are alphabetic and at least one character.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_alpha("hello")
+        True
+        >>> is_alpha("hello world")
+        False
+        >>> is_alpha("123")
+        False
+        >>> is_alpha("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch.isalpha() for ch in s)
 
 
 def swap_case(s: str) -> str:

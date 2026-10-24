@@ -9633,6 +9633,8 @@ __all__: List[str] = [
     "parallelogram_perimeter",
     "ellipse_area",
     "polygon_area",
+    "sector_area",
+    "arc_length",
     "regular_polygon_area",
     "regular_polygon_perimeter",
 ]
@@ -10008,6 +10010,52 @@ def rectangle_diagonal(length: float, width: float) -> float:
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
     return float((length ** 2 + width ** 2) ** 0.5)
+
+
+def sector_area(radius: float, angle_degrees: float) -> float:
+    """Return the area of a circular sector.
+
+    Args:
+        radius: The radius of the circle.
+        angle_degrees: The central angle of the sector in degrees.
+
+    Raises:
+        ValueError: If radius is negative or angle_degrees is outside [0, 360].
+
+    Examples:
+        >>> sector_area(1, 90)
+        0.7853981633974483
+    """
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if not isinstance(angle_degrees, (int, float)) or isinstance(angle_degrees, bool):
+        raise TypeError("angle_degrees must be a number")
+    if angle_degrees < 0 or angle_degrees > 360:
+        raise ValueError("angle_degrees must be between 0 and 360")
+    return (angle_degrees / 360.0) * math.pi * radius ** 2
+
+
+def arc_length(radius: float, angle_degrees: float) -> float:
+    """Return the length of a circular arc.
+
+    Args:
+        radius: The radius of the circle.
+        angle_degrees: The central angle of the arc in degrees.
+
+    Raises:
+        ValueError: If radius is negative or angle_degrees is outside [0, 360].
+
+    Examples:
+        >>> arc_length(1, 90)
+        1.5707963267948966
+    """
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if not isinstance(angle_degrees, (int, float)) or isinstance(angle_degrees, bool):
+        raise TypeError("angle_degrees must be a number")
+    if angle_degrees < 0 or angle_degrees > 360:
+        raise ValueError("angle_degrees must be between 0 and 360")
+    return (angle_degrees / 360.0) * 2 * math.pi * radius
 SHAPES
 
 # --- tests/test_shapes.py ---
@@ -10016,6 +10064,7 @@ import math
 import unittest
 
 from shapes import (
+    arc_length,
     circle_area,
     circle_diameter,
     circle_perimeter,
@@ -10029,6 +10078,7 @@ from shapes import (
     regular_polygon_area,
     rhombus_area,
     rhombus_perimeter,
+    sector_area,
     square_area,
     square_perimeter,
     trapezoid_area,
@@ -10272,6 +10322,68 @@ class TestRectangleDiagonal(unittest.TestCase):
             rectangle_diagonal(-1, 4)
 
 
+class TestSectorArea(unittest.TestCase):
+    def test_quarter_circle(self):
+        self.assertAlmostEqual(sector_area(1, 90), math.pi / 4)
+
+    def test_full_circle(self):
+        self.assertAlmostEqual(sector_area(2, 360), math.pi * 4)
+
+    def test_zero_angle(self):
+        self.assertAlmostEqual(sector_area(5, 0), 0)
+
+    def test_negative_radius(self):
+        with self.assertRaises(ValueError):
+            sector_area(-1, 90)
+
+    def test_negative_angle(self):
+        with self.assertRaises(ValueError):
+            sector_area(1, -10)
+
+    def test_angle_above_360(self):
+        with self.assertRaises(ValueError):
+            sector_area(1, 400)
+
+    def test_rejects_non_number_angle(self):
+        with self.assertRaises(TypeError):
+            sector_area(1, "90")  # type: ignore[arg-type]
+
+    def test_rejects_bool_angle(self):
+        with self.assertRaises(TypeError):
+            sector_area(1, True)
+
+
+class TestArcLength(unittest.TestCase):
+    def test_quarter_circle(self):
+        self.assertAlmostEqual(arc_length(1, 90), math.pi / 2)
+
+    def test_full_circle(self):
+        self.assertAlmostEqual(arc_length(2, 360), 2 * math.pi * 2)
+
+    def test_zero_angle(self):
+        self.assertAlmostEqual(arc_length(5, 0), 0)
+
+    def test_negative_radius(self):
+        with self.assertRaises(ValueError):
+            arc_length(-1, 90)
+
+    def test_negative_angle(self):
+        with self.assertRaises(ValueError):
+            arc_length(1, -10)
+
+    def test_angle_above_360(self):
+        with self.assertRaises(ValueError):
+            arc_length(1, 400)
+
+    def test_rejects_non_number_angle(self):
+        with self.assertRaises(TypeError):
+            arc_length(1, "90")  # type: ignore[arg-type]
+
+    def test_rejects_bool_angle(self):
+        with self.assertRaises(TypeError):
+            arc_length(1, True)
+
+
 if __name__ == "__main__":
     unittest.main()
 TESTSHAPES
@@ -10308,6 +10420,7 @@ __all__: List[str] = [
     "normalize_whitespace",
     "is_upper",
     "is_lower",
+    "is_alpha",
     "swap_case",
     "count_occurrences",
     "starts_with",
@@ -10531,6 +10644,31 @@ def is_lower(s: str) -> bool:
     if not any(c.isalpha() for c in s):
         return False
     return s == s.lower()
+
+
+def is_alpha(s: str) -> bool:
+    """Return True if all characters in the string are alphabetic and at least one character.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_alpha("hello")
+        True
+        >>> is_alpha("hello world")
+        False
+        >>> is_alpha("123")
+        False
+        >>> is_alpha("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch.isalpha() for ch in s)
 
 
 def swap_case(s: str) -> str:
@@ -11215,6 +11353,7 @@ __all__: List[str] = [
     "range",
     "min_value",
     "max_value",
+    "midrange",
     "sum_values",
     "percentile",
     "iqr",
@@ -11408,6 +11547,32 @@ def max_value(numbers: List[T | float]) -> float:
     return float(max(numbers))
 
 
+def midrange(numbers: List[T | float]) -> float:
+    """Return the midrange of a list of numbers.
+
+    The midrange is the arithmetic mean of the minimum and maximum values,
+    a simple measure of central tendency.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The midrange of the numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> midrange([1, 2, 3, 4, 5])
+        3.0
+        >>> midrange([1, 9])
+        5.0
+    """
+    _require_numbers(numbers, "numbers")
+    return (min(numbers) + max(numbers)) / 2.0
+
+
 def sum_values(numbers: List[T | float]) -> float:
     """Return the sum of all values in a list of numbers.
 
@@ -11546,6 +11711,7 @@ from strings import (
     count_occurrences,
     count_vowels,
     ends_with,
+    is_alpha,
     is_anagram,
     is_blank,
     is_lower,
@@ -11976,6 +12142,28 @@ class TestIsLower(unittest.TestCase):
             is_lower(123)  # type: ignore[arg-type]
 
 
+class TestIsAlpha(unittest.TestCase):
+    def test_alpha(self):
+        self.assertTrue(is_alpha("hello"))
+        self.assertTrue(is_alpha("HelloWorld"))
+
+    def test_not_alpha_with_space(self):
+        self.assertFalse(is_alpha("hello world"))
+
+    def test_not_alpha_with_digit(self):
+        self.assertFalse(is_alpha("hello123"))
+
+    def test_not_alpha_empty(self):
+        self.assertFalse(is_alpha(""))
+
+    def test_not_alpha_single_symbol(self):
+        self.assertFalse(is_alpha("!"))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_alpha(123)  # type: ignore[arg-type]
+
+
 class TestSwapCase(unittest.TestCase):
     def test_swap(self):
         self.assertEqual(swap_case("Hello World"), "hELLO wORLD")
@@ -12318,13 +12506,80 @@ cat > "$OUTPUT_DIR/tests/test_stats.py" <<'TESTSTATS'
 import unittest
 
 from stats import (
+    max_value,
     mean,
     median,
     median_absolute_deviation,
+    midrange,
+    min_value,
     mode,
     stddev,
     variance,
 )
+
+
+class TestMinValue(unittest.TestCase):
+    def test_min_basic(self) -> None:
+        self.assertEqual(min_value([3, 1, 2]), 1)
+
+    def test_min_negative(self) -> None:
+        self.assertEqual(min_value([-1, 0, 1]), -1)
+
+    def test_min_single(self) -> None:
+        self.assertEqual(min_value([5]), 5)
+
+    def test_min_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            min_value([])
+
+
+class TestMaxValue(unittest.TestCase):
+    def test_max_basic(self) -> None:
+        self.assertEqual(max_value([1, 3, 2]), 3)
+
+    def test_max_negative(self) -> None:
+        self.assertEqual(max_value([-1, 0, 1]), 1)
+
+    def test_max_single(self) -> None:
+        self.assertEqual(max_value([5]), 5)
+
+    def test_max_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            max_value([])
+
+
+class TestMidrange(unittest.TestCase):
+    def test_midrange_basic(self) -> None:
+        self.assertEqual(midrange([1, 2, 3, 4, 5]), 3.0)
+
+    def test_midrange_even(self) -> None:
+        self.assertEqual(midrange([1, 9]), 5.0)
+
+    def test_midrange_single(self) -> None:
+        self.assertEqual(midrange([5]), 5.0)
+
+    def test_midrange_negative(self) -> None:
+        self.assertEqual(midrange([-2, 4]), 1.0)
+
+    def test_midrange_unsorted(self) -> None:
+        self.assertEqual(midrange([9, 1, 5]), 5.0)
+
+    def test_midrange_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            midrange([])
+
+    def test_midrange_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            midrange((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_midrange_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            midrange(numbers)  # type: ignore[type-var]
+
+    def test_midrange_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            midrange([True, 1, 2])  # type: ignore[type-var]
 
 
 class TestMean(unittest.TestCase):
@@ -33295,8 +33550,10 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
-- Added `median_absolute_deviation` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-list or non-numeric arguments and `ValueError` for empty lists; added tests in `tests/test_stats.py`; synchronized the module and its tests into `scaffold.sh`.
-
+- Added `is_alpha` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-string arguments; added tests in `tests/test_strings.py`; synchronized the module, its tests, README, and this CHANGELOG into `scaffold.sh`.
+- Closed documentation drift in the `strings` module prose section of `README.md`: the section referenced `is_numeric` and `is_alphanumeric`, which belong to `validation_utils.py` and are not part of the `strings` public API; the section now lists only the helpers `strings.py` actually exports. Synchronized the corrected README into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `midrange` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-list or non-numeric arguments and `ValueError` for empty lists; added tests in `tests/test_stats.py`; synchronized the module, its tests, README, and this CHANGELOG into `scaffold.sh`.
+- Added `sector_area` and `arc_length` to `shapes.py` with typed signatures, `__all__` exports, Google-style docstrings, and input validation raising `TypeError` for a non-numeric angle and `ValueError` for a negative radius or an angle outside [0, 360]; added tests in `tests/test_shapes.py`; synchronized the module, its tests, README, and this CHANGELOG into `scaffold.sh`.
 - Hardened `polygon_area` in `shapes.py` to validate that every vertex is a 2-tuple of numbers, raising `TypeError` for a malformed vertex or a non-numeric component; added tests in `tests/test_shapes.py`; synchronized the module, its tests, and this CHANGELOG into `scaffold.sh`.
 - Closed documentation drift in the `greeting_utils` module section: the README tree, the prose section, and `.kilo/command/scaffold-project.md` listed nonexistent `greet` and `random_greeting` helpers; the section now lists only the public API (`format_greeting`, `format_names`) that `greeting_utils.py` actually exports. Synchronized the corrected README and command documentation into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Hardened the `prime_utils` module with typed `__all__`, Google-style docstrings, and input validation (`TypeError` for non-int arguments, `ValueError` for out-of-range values) on `primes_up_to`, `nth_prime`, `prime_factors`, and `is_coprime`; added validation tests in `tests/test_prime_utils.py`; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
@@ -34238,15 +34495,15 @@ The project includes a simple calculator module in `calculator.py` with function
 
 ## Shapes Module
 
-The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, and triangles. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
+The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, triangles, and polygons. Circular sectors and arcs are supported via `sector_area` and `arc_length`. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_numeric`, `is_alphanumeric`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, and more. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, and more. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `variance`, `stddev`, and `median_absolute_deviation`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, and `median_absolute_deviation`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 ## License
 

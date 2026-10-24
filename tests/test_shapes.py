@@ -2,6 +2,7 @@ import math
 import unittest
 
 from shapes import (
+    arc_length,
     circle_area,
     circle_diameter,
     circle_perimeter,
@@ -15,6 +16,7 @@ from shapes import (
     regular_polygon_area,
     rhombus_area,
     rhombus_perimeter,
+    sector_area,
     square_area,
     square_perimeter,
     trapezoid_area,
@@ -256,6 +258,68 @@ class TestRectangleDiagonal(unittest.TestCase):
     def test_negative(self):
         with self.assertRaises(ValueError):
             rectangle_diagonal(-1, 4)
+
+
+class TestSectorArea(unittest.TestCase):
+    def test_quarter_circle(self):
+        self.assertAlmostEqual(sector_area(1, 90), math.pi / 4)
+
+    def test_full_circle(self):
+        self.assertAlmostEqual(sector_area(2, 360), math.pi * 4)
+
+    def test_zero_angle(self):
+        self.assertAlmostEqual(sector_area(5, 0), 0)
+
+    def test_negative_radius(self):
+        with self.assertRaises(ValueError):
+            sector_area(-1, 90)
+
+    def test_negative_angle(self):
+        with self.assertRaises(ValueError):
+            sector_area(1, -10)
+
+    def test_angle_above_360(self):
+        with self.assertRaises(ValueError):
+            sector_area(1, 400)
+
+    def test_rejects_non_number_angle(self):
+        with self.assertRaises(TypeError):
+            sector_area(1, "90")  # type: ignore[arg-type]
+
+    def test_rejects_bool_angle(self):
+        with self.assertRaises(TypeError):
+            sector_area(1, True)
+
+
+class TestArcLength(unittest.TestCase):
+    def test_quarter_circle(self):
+        self.assertAlmostEqual(arc_length(1, 90), math.pi / 2)
+
+    def test_full_circle(self):
+        self.assertAlmostEqual(arc_length(2, 360), 2 * math.pi * 2)
+
+    def test_zero_angle(self):
+        self.assertAlmostEqual(arc_length(5, 0), 0)
+
+    def test_negative_radius(self):
+        with self.assertRaises(ValueError):
+            arc_length(-1, 90)
+
+    def test_negative_angle(self):
+        with self.assertRaises(ValueError):
+            arc_length(1, -10)
+
+    def test_angle_above_360(self):
+        with self.assertRaises(ValueError):
+            arc_length(1, 400)
+
+    def test_rejects_non_number_angle(self):
+        with self.assertRaises(TypeError):
+            arc_length(1, "90")  # type: ignore[arg-type]
+
+    def test_rejects_bool_angle(self):
+        with self.assertRaises(TypeError):
+            arc_length(1, True)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,24 @@
+## Latest Session (2026-10-24) — added is_alpha, midrange, sector_area, arc_length; closed strings prose drift
+
+The board held no task (bootstrap). Verified repository health: `make test` passes (5295 tests, 2 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in the latest session:
+
+- Added `is_alpha(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; added tests in `tests/test_strings.py`.
+- Closed documentation drift in the `strings` module prose section of `README.md`: the section referenced `is_numeric` and `is_alphanumeric`, which belong to `validation_utils.py` and are not part of the `strings` public API; the section now lists only the helpers `strings.py` actually exports.
+- Added `midrange(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; added tests in `tests/test_stats.py`.
+- Added `sector_area(radius, angle_degrees)` and `arc_length(radius, angle_degrees)` to `shapes.py` with typed signatures, `__all__` exports, Google-style docstrings, and validation raising `TypeError` for a non-numeric angle and `ValueError` for a negative radius or an angle outside [0, 360]; added tests in `tests/test_shapes.py`.
+- Updated the `strings`, `shapes`, and `stats` prose sections in `README.md` to list the new helpers.
+- Recorded all changes in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `strings.py`, `shapes.py`, `stats.py`, their tests, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5295 tests and passes, `make lint` and `make typecheck` are green, and scaffold sync is clean.
+
+Next Planned:
+
+- Keep hardening the small utility modules: review `strings.py`, `shapes.py`, `stats.py`, `prime_utils.py`, `version_utils.py` (and nearby) for missing edge cases or ergonomic helpers that fit existing API style. Add minimal, hermetic helpers with tests in `tests/test_*.py`. Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh`, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-24) — added is_prime to prime_utils and sort_versions to version_utils
 
 The board held no task (bootstrap). Verified repository health: `make test` passes (5231 tests, 2 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

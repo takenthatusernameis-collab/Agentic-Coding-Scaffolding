@@ -22,6 +22,8 @@ __all__: List[str] = [
     "parallelogram_perimeter",
     "ellipse_area",
     "polygon_area",
+    "sector_area",
+    "arc_length",
     "regular_polygon_area",
     "regular_polygon_perimeter",
 ]
@@ -397,3 +399,49 @@ def rectangle_diagonal(length: float, width: float) -> float:
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
     return float((length ** 2 + width ** 2) ** 0.5)
+
+
+def sector_area(radius: float, angle_degrees: float) -> float:
+    """Return the area of a circular sector.
+
+    Args:
+        radius: The radius of the circle.
+        angle_degrees: The central angle of the sector in degrees.
+
+    Raises:
+        ValueError: If radius is negative or angle_degrees is outside [0, 360].
+
+    Examples:
+        >>> sector_area(1, 90)
+        0.7853981633974483
+    """
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if not isinstance(angle_degrees, (int, float)) or isinstance(angle_degrees, bool):
+        raise TypeError("angle_degrees must be a number")
+    if angle_degrees < 0 or angle_degrees > 360:
+        raise ValueError("angle_degrees must be between 0 and 360")
+    return (angle_degrees / 360.0) * math.pi * radius ** 2
+
+
+def arc_length(radius: float, angle_degrees: float) -> float:
+    """Return the length of a circular arc.
+
+    Args:
+        radius: The radius of the circle.
+        angle_degrees: The central angle of the arc in degrees.
+
+    Raises:
+        ValueError: If radius is negative or angle_degrees is outside [0, 360].
+
+    Examples:
+        >>> arc_length(1, 90)
+        1.5707963267948966
+    """
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if not isinstance(angle_degrees, (int, float)) or isinstance(angle_degrees, bool):
+        raise TypeError("angle_degrees must be a number")
+    if angle_degrees < 0 or angle_degrees > 360:
+        raise ValueError("angle_degrees must be between 0 and 360")
+    return (angle_degrees / 360.0) * 2 * math.pi * radius

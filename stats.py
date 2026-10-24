@@ -14,6 +14,7 @@ __all__: List[str] = [
     "range",
     "min_value",
     "max_value",
+    "midrange",
     "sum_values",
     "percentile",
     "iqr",
@@ -205,6 +206,32 @@ def max_value(numbers: List[T | float]) -> float:
     """
     _require_numbers(numbers, "numbers")
     return float(max(numbers))
+
+
+def midrange(numbers: List[T | float]) -> float:
+    """Return the midrange of a list of numbers.
+
+    The midrange is the arithmetic mean of the minimum and maximum values,
+    a simple measure of central tendency.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The midrange of the numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> midrange([1, 2, 3, 4, 5])
+        3.0
+        >>> midrange([1, 9])
+        5.0
+    """
+    _require_numbers(numbers, "numbers")
+    return (min(numbers) + max(numbers)) / 2.0
 
 
 def sum_values(numbers: List[T | float]) -> float:

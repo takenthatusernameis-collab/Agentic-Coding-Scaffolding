@@ -3,13 +3,80 @@
 import unittest
 
 from stats import (
+    max_value,
     mean,
     median,
     median_absolute_deviation,
+    midrange,
+    min_value,
     mode,
     stddev,
     variance,
 )
+
+
+class TestMinValue(unittest.TestCase):
+    def test_min_basic(self) -> None:
+        self.assertEqual(min_value([3, 1, 2]), 1)
+
+    def test_min_negative(self) -> None:
+        self.assertEqual(min_value([-1, 0, 1]), -1)
+
+    def test_min_single(self) -> None:
+        self.assertEqual(min_value([5]), 5)
+
+    def test_min_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            min_value([])
+
+
+class TestMaxValue(unittest.TestCase):
+    def test_max_basic(self) -> None:
+        self.assertEqual(max_value([1, 3, 2]), 3)
+
+    def test_max_negative(self) -> None:
+        self.assertEqual(max_value([-1, 0, 1]), 1)
+
+    def test_max_single(self) -> None:
+        self.assertEqual(max_value([5]), 5)
+
+    def test_max_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            max_value([])
+
+
+class TestMidrange(unittest.TestCase):
+    def test_midrange_basic(self) -> None:
+        self.assertEqual(midrange([1, 2, 3, 4, 5]), 3.0)
+
+    def test_midrange_even(self) -> None:
+        self.assertEqual(midrange([1, 9]), 5.0)
+
+    def test_midrange_single(self) -> None:
+        self.assertEqual(midrange([5]), 5.0)
+
+    def test_midrange_negative(self) -> None:
+        self.assertEqual(midrange([-2, 4]), 1.0)
+
+    def test_midrange_unsorted(self) -> None:
+        self.assertEqual(midrange([9, 1, 5]), 5.0)
+
+    def test_midrange_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            midrange([])
+
+    def test_midrange_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            midrange((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_midrange_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            midrange(numbers)  # type: ignore[type-var]
+
+    def test_midrange_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            midrange([True, 1, 2])  # type: ignore[type-var]
 
 
 class TestMean(unittest.TestCase):

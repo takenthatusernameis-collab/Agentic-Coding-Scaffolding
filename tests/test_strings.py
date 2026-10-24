@@ -13,6 +13,7 @@ from strings import (
     count_occurrences,
     count_vowels,
     ends_with,
+    is_alpha,
     is_anagram,
     is_blank,
     is_lower,
@@ -441,6 +442,28 @@ class TestIsLower(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_lower(123)  # type: ignore[arg-type]
+
+
+class TestIsAlpha(unittest.TestCase):
+    def test_alpha(self):
+        self.assertTrue(is_alpha("hello"))
+        self.assertTrue(is_alpha("HelloWorld"))
+
+    def test_not_alpha_with_space(self):
+        self.assertFalse(is_alpha("hello world"))
+
+    def test_not_alpha_with_digit(self):
+        self.assertFalse(is_alpha("hello123"))
+
+    def test_not_alpha_empty(self):
+        self.assertFalse(is_alpha(""))
+
+    def test_not_alpha_single_symbol(self):
+        self.assertFalse(is_alpha("!"))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_alpha(123)  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):
