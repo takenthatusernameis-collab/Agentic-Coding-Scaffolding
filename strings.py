@@ -9,6 +9,7 @@ from typing import List
 
 __all__: List[str] = [
     "reverse_string",
+    "reverse_words",
     "is_palindrome",
     "count_vowels",
     "count_consonants",
@@ -58,6 +59,12 @@ def reverse_string(s: str) -> str:
     """Return the reverse of the given string."""
     _require_string(s, "s")
     return s[::-1]
+
+
+def reverse_words(s: str) -> str:
+    """Return the string with the order of its words reversed."""
+    _require_string(s, "s")
+    return " ".join(s.split()[::-1])
 
 
 def is_palindrome(s: str) -> bool:

@@ -23,6 +23,7 @@ from strings import (
     pad_right,
     remove_whitespace,
     reverse_string,
+    reverse_words,
     rstrip_chars,
     slugify,
     snake_to_camel,
@@ -570,3 +571,18 @@ class TestStripChars(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestReverseWords(unittest.TestCase):
+    def test_reverse_words_basic(self):
+        self.assertEqual(reverse_words("hello world"), "world hello")
+
+    def test_reverse_words_empty(self):
+        self.assertEqual(reverse_words(""), "")
+
+    def test_reverse_words_single(self):
+        self.assertEqual(reverse_words("hello"), "hello")
+
+    def test_reverse_words_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            reverse_words(123)  # type: ignore[arg-type]
