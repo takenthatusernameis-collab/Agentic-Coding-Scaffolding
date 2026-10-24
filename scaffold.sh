@@ -235,7 +235,7 @@
 
 #   - graphlib_utils.py — # Graph and dependency resolution utilities (topological sort, cycle detection)
 
-#   - greeting_utils.py — # Greeting utilities (greet, format_names, random_greeting)
+#   - greeting_utils.py — # Greeting utilities (format_greeting, format_names)
 #   - gettext_utils.py — # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
 
 #   - version_utils.py — # Version utility functions (parse, compare, normalize)
@@ -31345,7 +31345,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_socketserver_utils.py` — unit tests for `socketserver_utils.py`
 - `tests/test_sqlite3_utils.py` — unit tests for `sqlite3_utils.py`
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
-- `greeting_utils.py` — Greeting utilities (`greet`, `format_names`, `random_greeting`) for formatted greeting strings
+- `greeting_utils.py` — Greeting utilities (`format_greeting`, `format_names`) for formatted greeting strings
 - `gettext_utils.py` — internationalization utilities wrapping the standard library `gettext` module (`gettext`, `dgettext`, `ngettext`, `dngettext`, `textdomain`, `bindtextdomain`, `install`) with input validation
 - `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`
 - `tests/test_gettext_utils.py` — unit tests for `gettext_utils.py`
@@ -33077,6 +33077,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Closed documentation drift in the `greeting_utils` module section: the README tree, the prose section, and `.kilo/command/scaffold-project.md` listed nonexistent `greet` and `random_greeting` helpers; the section now lists only the public API (`format_greeting`, `format_names`) that `greeting_utils.py` actually exports. Synchronized the corrected README and command documentation into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Hardened the `prime_utils` module with typed `__all__`, Google-style docstrings, and input validation (`TypeError` for non-int arguments, `ValueError` for out-of-range values) on `primes_up_to`, `nth_prime`, `prime_factors`, and `is_coprime`; added validation tests in `tests/test_prime_utils.py`; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
 - Fixed the `if __name__ == "__main__"` block placement in `tests/test_strings.py` and `tests/test_shapes.py` so their tests run when the files are executed directly, and added `tests/test_prime_utils.py` and `tests/test_version_utils.py` covering the previously untested modules; synchronized all four test files into the embedded copies of `scaffold.sh`.
 - Verified full test suite (5211 tests), ruff, mypy, and scaffold sync; all green. Posted next handover task.
@@ -33503,7 +33504,7 @@ sunau_utils.py             # Sun AU format utilities wrapping stdlib sunau (open
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
-greeting_utils.py          # Greeting utilities (greet, format_names, random_greeting)
+greeting_utils.py          # Greeting utilities (format_greeting, format_names)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
 version_utils.py           # Version utility functions (parse, compare, normalize)

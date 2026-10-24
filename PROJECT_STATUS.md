@@ -1,3 +1,19 @@
+## Latest Session (2026-10-24) — closed greeting_utils documentation drift
+
+The board held no task (bootstrap). Verified repository health: `make test` passes (5613 tests, 5 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in the latest session:
+
+- Found documentation drift: the `greeting_utils` module section referenced nonexistent helpers. The README tree entry, the README prose section, and `.kilo/command/scaffold-project.md` all listed `greet` and `random_greeting`, but `greeting_utils.py` exports only `format_greeting` and `format_names` (confirmed by reading the module and its test, which imports exactly those two names).
+- Corrected the `greeting_utils` module section in `README.md` (tree entry and prose section) and in `.kilo/command/scaffold-project.md` to list only the public API (`format_greeting`, `format_names`) that the module actually exports.
+- Synchronized the corrected README and command documentation into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Recorded the fix in the Unreleased section of `CHANGELOG.md`, which `make refresh-scaffold` carried into the embedded CHANGELOG template.
+- Verified the work: `make test` runs 5613 tests and passes, `make lint` and `make typecheck` are green, and scaffold sync is clean.
+
+Next Planned:
+
+- The hermetic, CI-testable stdlib wrapper surface is complete. Keep every new wrapper hermetic and keep `make test`, `make lint`, and `make typecheck` green.
+
 ## Latest Session (2026-10-24) — extended interval_utils with ergonomic helpers
 
 The board held no task (bootstrap). Verified repository health: `make test` passes (5189 tests, 2 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

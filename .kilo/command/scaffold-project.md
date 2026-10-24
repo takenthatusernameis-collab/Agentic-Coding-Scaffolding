@@ -437,7 +437,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_socketserver_utils.py` — unit tests for `socketserver_utils.py`
 - `tests/test_sqlite3_utils.py` — unit tests for `sqlite3_utils.py`
 - `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
-- `greeting_utils.py` — Greeting utilities (`greet`, `format_names`, `random_greeting`) for formatted greeting strings
+- `greeting_utils.py` — Greeting utilities (`format_greeting`, `format_names`) for formatted greeting strings
 - `gettext_utils.py` — internationalization utilities wrapping the standard library `gettext` module (`gettext`, `dgettext`, `ngettext`, `dngettext`, `textdomain`, `bindtextdomain`, `install`) with input validation
 - `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`
 - `tests/test_gettext_utils.py` — unit tests for `gettext_utils.py`

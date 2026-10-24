@@ -141,7 +141,7 @@ sunau_utils.py             # Sun AU format utilities wrapping stdlib sunau (open
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
-greeting_utils.py          # Greeting utilities (greet, format_names, random_greeting)
+greeting_utils.py          # Greeting utilities (format_greeting, format_names)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
 version_utils.py           # Version utility functions (parse, compare, normalize)
