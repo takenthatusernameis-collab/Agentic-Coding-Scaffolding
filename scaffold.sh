@@ -33112,6 +33112,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Fixed the `if __name__ == "__main__"` block placement in `tests/test_strings.py` and `tests/test_shapes.py` so their tests run when the files are executed directly, and added `tests/test_prime_utils.py` and `tests/test_version_utils.py` covering the previously untested modules; synchronized all four test files into the embedded copies of `scaffold.sh`.
 - Verified full test suite (5211 tests), ruff, mypy, and scaffold sync; all green. Posted next handover task.
 - Hardened the `strings` module with `reverse_words` and synchronized `strings.py`, its tests, and scaffold documentation (README and embedded `scaffold.sh`) so generated projects and docs reflect the expanded string utilities API.
+- Added `is_prime` to `prime_utils.py` with input validation (`TypeError` for non-int arguments) and tests in `tests/test_prime_utils.py`; fixed the `is_coprime` docstring typo; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
+- Added `sort_versions` to `version_utils.py` with input validation (`TypeError` for non-list or non-string elements, `ValueError` for invalid version strings) and tests in `tests/test_version_utils.py`; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
 
 - Added `abc_utils.py` and `tests/test_abc_utils.py`.
 - Added `aifc_utils.py` and `tests/test_aifc_utils.py`.
@@ -33537,7 +33539,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 greeting_utils.py          # Greeting utilities (format_greeting, format_names)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
-version_utils.py           # Version utility functions (parse, compare, normalize)
+version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
@@ -33596,7 +33598,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, is_coprime)
+prime_utils.py             # Prime number utilities (is_prime, prime_factors, nth_prime, primes_up_to, is_coprime)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
@@ -34427,7 +34429,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, and normalizing dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_greater` returns whether one version is greater than another, and `normalize_version` pads or truncates a version to a fixed component count. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, and sorting dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `normalize_version` pads or truncates a version to a fixed component count, and `sort_versions` sorts a list of version strings in ascending order. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -34435,7 +34437,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, and `is_coprime` checks whether two integers are coprime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, and `is_coprime` checks whether two integers are coprime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 ## Decimal Utilities Module
 
@@ -56229,6 +56231,7 @@ import math
 from typing import List
 
 __all__: List[str] = [
+    "is_prime",
     "primes_up_to",
     "nth_prime",
     "prime_factors",
@@ -56241,6 +56244,33 @@ def _require_int(value: object, name: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError(f"{name} must be an int, got {type(value).__name__}")
     return value
+
+
+def is_prime(n: int) -> bool:
+    """Return True if *n* is a prime number.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n < 2:
+        return False
+    if n == 2:
+        return True
+    if n % 2 == 0:
+        return False
+    i = 3
+    while i * i <= n:
+        if n % i == 0:
+            return False
+        i += 2
+    return True
 
 
 def primes_up_to(n: int) -> List[int]:
@@ -56329,7 +56359,7 @@ def is_coprime(a: int, b: int) -> bool:
         b: The second integer.
 
     Returns:
-        True if the greatest common divisor of *a* and *b` is 1.
+        True if the greatest common divisor of *a* and *b* is 1.
 
     Raises:
         TypeError: If *a* or *b* is not an int.
@@ -56345,7 +56375,7 @@ cat > "$OUTPUT_DIR/tests/test_prime_utils.py" <<'TEST_PRIME_UTILS'
 
 import unittest
 
-from prime_utils import is_coprime, nth_prime, prime_factors, primes_up_to
+from prime_utils import is_coprime, is_prime, nth_prime, prime_factors, primes_up_to
 
 
 class TestPrimesUpTo(unittest.TestCase):
@@ -56372,6 +56402,42 @@ class TestPrimesUpTo(unittest.TestCase):
             primes_up_to(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             primes_up_to(True)  # type: ignore[arg-type]
+
+
+class TestIsPrime(unittest.TestCase):
+    def test_prime(self):
+        self.assertTrue(is_prime(2))
+        self.assertTrue(is_prime(3))
+        self.assertTrue(is_prime(5))
+        self.assertTrue(is_prime(7))
+        self.assertTrue(is_prime(11))
+        self.assertTrue(is_prime(13))
+        self.assertTrue(is_prime(97))
+        self.assertTrue(is_prime(101))
+
+    def test_not_prime(self):
+        self.assertFalse(is_prime(0))
+        self.assertFalse(is_prime(1))
+        self.assertFalse(is_prime(4))
+        self.assertFalse(is_prime(6))
+        self.assertFalse(is_prime(9))
+        self.assertFalse(is_prime(15))
+        self.assertFalse(is_prime(100))
+
+    def test_negative(self):
+        self.assertFalse(is_prime(-1))
+        self.assertFalse(is_prime(-7))
+        self.assertFalse(is_prime(-2))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_prime(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime("2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(True)  # type: ignore[arg-type]
 
 
 class TestNthPrime(unittest.TestCase):
@@ -74137,6 +74203,7 @@ __all__: List[str] = [
     "bump_patch",
     "version_to_tuple",
     "tuple_to_version",
+    "sort_versions",
 ]
 
 
@@ -74265,6 +74332,27 @@ def is_version_greater_equal(v1: str, v2: str) -> bool:
 def is_version_less_equal(v1: str, v2: str) -> bool:
     """Return True if v1 <= v2."""
     return compare_versions(v1, v2) <= 0
+
+
+def sort_versions(versions: List[str]) -> List[str]:
+    """Sort a list of version strings in ascending order.
+
+    Args:
+        versions: A list of dotted version strings.
+
+    Returns:
+        A new list of version strings sorted in ascending order.
+
+    Raises:
+        TypeError: If *versions* is not a list or contains non-string elements.
+        ValueError: If any version string is invalid.
+    """
+    if not isinstance(versions, list):
+        raise TypeError("versions must be a list")
+    for i, v in enumerate(versions):
+        if not isinstance(v, str):
+            raise TypeError(f"versions[{i}] must be a string, got {type(v).__name__}")
+    return sorted(versions, key=parse_version)
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
@@ -74288,6 +74376,7 @@ from version_utils import (
     is_version_less_equal,
     normalize_version,
     parse_version,
+    sort_versions,
     tuple_to_version,
     version_to_tuple,
 )
@@ -74403,6 +74492,41 @@ class TestVersionAliases(unittest.TestCase):
     def test_is_version_less_equal(self):
         self.assertTrue(is_version_less_equal("1.0.0", "2.0.0"))
         self.assertTrue(is_version_less_equal("1.0.0", "1.0.0"))
+
+
+class TestSortVersions(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(
+            sort_versions(["2.0.0", "1.0.0", "1.2.3"]),
+            ["1.0.0", "1.2.3", "2.0.0"],
+        )
+
+    def test_single_component(self):
+        self.assertEqual(sort_versions(["5", "1", "3"]), ["1", "3", "5"])
+
+    def test_different_lengths(self):
+        self.assertEqual(
+            sort_versions(["1.2", "1.2.0", "1.2.1"]),
+            ["1.2", "1.2.0", "1.2.1"],
+        )
+
+    def test_empty_list(self):
+        self.assertEqual(sort_versions([]), [])
+
+    def test_single_element(self):
+        self.assertEqual(sort_versions(["1.0.0"]), ["1.0.0"])
+
+    def test_rejects_non_list(self):
+        with self.assertRaises(TypeError):
+            sort_versions("1.0.0")  # type: ignore[arg-type]
+
+    def test_rejects_non_string_element(self):
+        with self.assertRaises(TypeError):
+            sort_versions([1, "2.0"])  # type: ignore[list-item]
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            sort_versions(["1.0", "a.b"])
 
 
 if __name__ == "__main__":

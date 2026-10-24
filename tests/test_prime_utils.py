@@ -2,7 +2,7 @@
 
 import unittest
 
-from prime_utils import is_coprime, nth_prime, prime_factors, primes_up_to
+from prime_utils import is_coprime, is_prime, nth_prime, prime_factors, primes_up_to
 
 
 class TestPrimesUpTo(unittest.TestCase):
@@ -29,6 +29,42 @@ class TestPrimesUpTo(unittest.TestCase):
             primes_up_to(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             primes_up_to(True)  # type: ignore[arg-type]
+
+
+class TestIsPrime(unittest.TestCase):
+    def test_prime(self):
+        self.assertTrue(is_prime(2))
+        self.assertTrue(is_prime(3))
+        self.assertTrue(is_prime(5))
+        self.assertTrue(is_prime(7))
+        self.assertTrue(is_prime(11))
+        self.assertTrue(is_prime(13))
+        self.assertTrue(is_prime(97))
+        self.assertTrue(is_prime(101))
+
+    def test_not_prime(self):
+        self.assertFalse(is_prime(0))
+        self.assertFalse(is_prime(1))
+        self.assertFalse(is_prime(4))
+        self.assertFalse(is_prime(6))
+        self.assertFalse(is_prime(9))
+        self.assertFalse(is_prime(15))
+        self.assertFalse(is_prime(100))
+
+    def test_negative(self):
+        self.assertFalse(is_prime(-1))
+        self.assertFalse(is_prime(-7))
+        self.assertFalse(is_prime(-2))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_prime(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime("2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(True)  # type: ignore[arg-type]
 
 
 class TestNthPrime(unittest.TestCase):

@@ -19,6 +19,7 @@ __all__: List[str] = [
     "bump_patch",
     "version_to_tuple",
     "tuple_to_version",
+    "sort_versions",
 ]
 
 
@@ -147,3 +148,24 @@ def is_version_greater_equal(v1: str, v2: str) -> bool:
 def is_version_less_equal(v1: str, v2: str) -> bool:
     """Return True if v1 <= v2."""
     return compare_versions(v1, v2) <= 0
+
+
+def sort_versions(versions: List[str]) -> List[str]:
+    """Sort a list of version strings in ascending order.
+
+    Args:
+        versions: A list of dotted version strings.
+
+    Returns:
+        A new list of version strings sorted in ascending order.
+
+    Raises:
+        TypeError: If *versions* is not a list or contains non-string elements.
+        ValueError: If any version string is invalid.
+    """
+    if not isinstance(versions, list):
+        raise TypeError("versions must be a list")
+    for i, v in enumerate(versions):
+        if not isinstance(v, str):
+            raise TypeError(f"versions[{i}] must be a string, got {type(v).__name__}")
+    return sorted(versions, key=parse_version)

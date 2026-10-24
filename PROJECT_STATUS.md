@@ -1,3 +1,22 @@
+## Latest Session (2026-10-24) — added is_prime to prime_utils and sort_versions to version_utils
+
+The board held no task (bootstrap). Verified repository health: `make test` passes (5231 tests, 2 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in the latest session:
+
+- Added `is_prime(n)` to `prime_utils.py` with typed signature, `__all__` export, Google-style docstring, and `TypeError`/`ValueError` validation; added 8 tests in `tests/test_prime_utils.py`; fixed the `is_coprime` docstring typo.
+- Added `sort_versions(versions)` to `version_utils.py` with typed signature, `__all__` export, Google-style docstring, and `TypeError`/`ValueError` validation; added 8 tests in `tests/test_version_utils.py`.
+- Updated the `prime_utils` and `version_utils` module tree entries and prose sections in `README.md` to list the new helpers.
+- Recorded both changes in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `version_utils.py`, `tests/test_version_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5231 tests and passes, `make lint` and `make typecheck` are green, and scaffold sync is clean.
+
+Next Planned:
+
+- Continue hardening the small utility modules: review `strings.py`, `shapes.py`, `stats.py` (and nearby) for missing edge cases or ergonomic helpers that fit existing API style. Add minimal, hermetic helpers with tests in `tests/test_*.py`. Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh`, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-24) — hardened polygon_area vertex validation in shapes.py
 
 The board held no task (bootstrap). Verified repository health: `make test` passes (5219 tests, 2 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

@@ -17,6 +17,7 @@ from version_utils import (
     is_version_less_equal,
     normalize_version,
     parse_version,
+    sort_versions,
     tuple_to_version,
     version_to_tuple,
 )
@@ -132,6 +133,41 @@ class TestVersionAliases(unittest.TestCase):
     def test_is_version_less_equal(self):
         self.assertTrue(is_version_less_equal("1.0.0", "2.0.0"))
         self.assertTrue(is_version_less_equal("1.0.0", "1.0.0"))
+
+
+class TestSortVersions(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(
+            sort_versions(["2.0.0", "1.0.0", "1.2.3"]),
+            ["1.0.0", "1.2.3", "2.0.0"],
+        )
+
+    def test_single_component(self):
+        self.assertEqual(sort_versions(["5", "1", "3"]), ["1", "3", "5"])
+
+    def test_different_lengths(self):
+        self.assertEqual(
+            sort_versions(["1.2", "1.2.0", "1.2.1"]),
+            ["1.2", "1.2.0", "1.2.1"],
+        )
+
+    def test_empty_list(self):
+        self.assertEqual(sort_versions([]), [])
+
+    def test_single_element(self):
+        self.assertEqual(sort_versions(["1.0.0"]), ["1.0.0"])
+
+    def test_rejects_non_list(self):
+        with self.assertRaises(TypeError):
+            sort_versions("1.0.0")  # type: ignore[arg-type]
+
+    def test_rejects_non_string_element(self):
+        with self.assertRaises(TypeError):
+            sort_versions([1, "2.0"])  # type: ignore[list-item]
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            sort_versions(["1.0", "a.b"])
 
 
 if __name__ == "__main__":

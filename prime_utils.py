@@ -6,6 +6,7 @@ import math
 from typing import List
 
 __all__: List[str] = [
+    "is_prime",
     "primes_up_to",
     "nth_prime",
     "prime_factors",
@@ -18,6 +19,33 @@ def _require_int(value: object, name: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError(f"{name} must be an int, got {type(value).__name__}")
     return value
+
+
+def is_prime(n: int) -> bool:
+    """Return True if *n* is a prime number.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n < 2:
+        return False
+    if n == 2:
+        return True
+    if n % 2 == 0:
+        return False
+    i = 3
+    while i * i <= n:
+        if n % i == 0:
+            return False
+        i += 2
+    return True
 
 
 def primes_up_to(n: int) -> List[int]:
@@ -106,7 +134,7 @@ def is_coprime(a: int, b: int) -> bool:
         b: The second integer.
 
     Returns:
-        True if the greatest common divisor of *a* and *b` is 1.
+        True if the greatest common divisor of *a* and *b* is 1.
 
     Raises:
         TypeError: If *a* or *b* is not an int.
