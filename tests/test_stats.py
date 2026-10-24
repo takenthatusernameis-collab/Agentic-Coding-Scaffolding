@@ -206,6 +206,61 @@ class TestMedianAbsoluteDeviation(unittest.TestCase):
             median_absolute_deviation([True, 1, 2])  # type: ignore[type-var]
 
 
+class TestInterquartileRange(unittest.TestCase):
+    def test_basic(self) -> None:
+        from stats import interquartile_range
+
+        self.assertAlmostEqual(interquartile_range([1, 2, 3, 4, 5]), 2.0)
+
+    def test_alias_matches_iqr(self) -> None:
+        from stats import interquartile_range, iqr
+
+        data = [1, 2, 3, 4, 5, 6]
+        self.assertAlmostEqual(interquartile_range(data), iqr(data))
+
+
+class TestWeightedMean(unittest.TestCase):
+    def test_basic(self) -> None:
+        from stats import weighted_mean
+
+        self.assertAlmostEqual(weighted_mean([1, 2, 3], [1, 1, 1]), 2.0)
+        self.assertAlmostEqual(weighted_mean([10, 20], [1, 3]), 17.5)
+
+    def test_empty_raises(self) -> None:
+        from stats import weighted_mean
+
+        with self.assertRaises(ValueError):
+            weighted_mean([], [])
+
+    def test_length_mismatch_raises(self) -> None:
+        from stats import weighted_mean
+
+        with self.assertRaises(ValueError):
+            weighted_mean([1, 2], [1])
+
+    def test_non_positive_weight_raises(self) -> None:
+        from stats import weighted_mean
+
+        with self.assertRaises(ValueError):
+            weighted_mean([1, 2], [0, 1])
+        with self.assertRaises(ValueError):
+            weighted_mean([1, 2], [-1, 1])
+
+    def test_rejects_non_numeric(self) -> None:
+        from stats import weighted_mean
+
+        with self.assertRaises(TypeError):
+            weighted_mean([1, "a"], [1, 1])  # type: ignore[type-var]
+        with self.assertRaises(TypeError):
+            weighted_mean([1, 2], [1, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        from stats import weighted_mean
+
+        with self.assertRaises(TypeError):
+            weighted_mean([True, 1], [1, 1])  # type: ignore[type-var]
+
+
 class TestSumOfSquares(unittest.TestCase):
     def test_basic(self) -> None:
         self.assertEqual(sum_of_squares([1, 2, 3]), 14.0)

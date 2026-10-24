@@ -24,8 +24,7 @@ __all__: List[str] = [
     "polygon_area",
     "sector_area",
     "arc_length",
-    "regular_polygon_area",
-    "regular_polygon_perimeter",
+    "ellipse_circumference",
 ]
 
 
@@ -433,11 +432,14 @@ def arc_length(radius: float, angle_degrees: float) -> float:
 
     Raises:
         ValueError: If radius is negative or angle_degrees is outside [0, 360].
+        TypeError: If angle_degrees is not a number.
 
     Examples:
         >>> arc_length(1, 90)
         1.5707963267948966
     """
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     if not isinstance(angle_degrees, (int, float)) or isinstance(angle_degrees, bool):
@@ -445,3 +447,27 @@ def arc_length(radius: float, angle_degrees: float) -> float:
     if angle_degrees < 0 or angle_degrees > 360:
         raise ValueError("angle_degrees must be between 0 and 360")
     return (angle_degrees / 360.0) * 2 * math.pi * radius
+
+
+def ellipse_circumference(a: float, b: float) -> float:
+    """Return the approximate circumference (perimeter) of an ellipse.
+
+    Uses Ramanujan's approximation.
+
+    Args:
+        a: Semi-major or semi-minor axis length.
+        b: The other semi-axis length.
+
+    Raises:
+        ValueError: If a or b is negative.
+        TypeError: If a or b is not a number.
+    """
+    if not isinstance(a, (int, float)) or isinstance(a, bool):
+        raise TypeError("a must be a number")
+    if not isinstance(b, (int, float)) or isinstance(b, bool):
+        raise TypeError("b must be a number")
+    if a < 0 or b < 0:
+        raise ValueError("a and b must be non-negative")
+    a_f = float(a)
+    b_f = float(b)
+    return float(math.pi * (3 * (a_f + b_f) - math.sqrt((3 * a_f + b_f) * (a_f + 3 * b_f))))

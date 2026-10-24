@@ -16,13 +16,15 @@ __all__: List[str] = [
     "max_value",
     "midrange",
     "sum_values",
+    "sum_of_squares",
     "percentile",
     "iqr",
+    "interquartile_range",
     "coefficient_of_variation",
     "geometric_mean",
     "harmonic_mean",
     "median_absolute_deviation",
-    "sum_of_squares",
+    "weighted_mean",
 ]
 
 
@@ -314,6 +316,14 @@ def iqr(numbers: List[T | float]) -> float:
     return float(q3 - q1)
 
 
+def interquartile_range(numbers: List[T | float]) -> float:
+    """Return the interquartile range (Q3 - Q1).
+
+    This is an alias for :func:`iqr`.
+    """
+    return iqr(numbers)
+
+
 def coefficient_of_variation(numbers: List[T | float], population: bool = True) -> float:
     """Return the coefficient of variation (stddev / mean)."""
     _require_numbers(numbers, "numbers")
@@ -375,3 +385,35 @@ def median_absolute_deviation(numbers: List[T | float]) -> float:
     med = median(numbers)
     deviations = [abs(x - med) for x in numbers]
     return median(deviations)
+
+
+def weighted_mean(values: List[T | float], weights: List[T | float]) -> float:
+    """Return the weighted arithmetic mean.
+
+    Args:
+        values: A list of numeric values.
+        weights: A list of weights for each value (same length as values).
+
+    Returns:
+        The weighted arithmetic mean.
+
+    Raises:
+        ValueError: If values or weights is empty, lengths differ, or any weight is non-positive.
+        TypeError: If inputs are not lists or contain non-numeric values.
+    """
+    _require_numbers(values, "values")
+    _require_numbers(weights, "weights")
+    if len(values) != len(weights):
+        raise ValueError("values and weights must have the same length")
+    total_weight = 0.0
+    weighted_sum = 0.0
+    for v, w in zip(values, weights):
+        w_f = float(w)
+        if w_f <= 0:
+            raise ValueError("weights must be positive")
+        v_f = float(v)
+        total_weight += w_f
+        weighted_sum += v_f * w_f
+    if total_weight == 0:
+        raise ValueError("weights must sum to a positive value")
+    return float(weighted_sum / total_weight)

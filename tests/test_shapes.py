@@ -321,6 +321,36 @@ class TestArcLength(unittest.TestCase):
         with self.assertRaises(TypeError):
             arc_length(1, True)
 
+    def test_rejects_bool_radius(self):
+        with self.assertRaises(TypeError):
+            arc_length(True, 90)  # type: ignore[arg-type]
 
-if __name__ == "__main__":
-    unittest.main()
+
+class TestEllipseCircumference(unittest.TestCase):
+    def test_basic(self):
+        from shapes import ellipse_circumference
+
+        result = ellipse_circumference(3, 4)
+        self.assertAlmostEqual(result, math.pi * (3 * 7 - math.sqrt((9 + 4) * (3 + 12))))
+
+    def test_rejects_negative(self):
+        from shapes import ellipse_circumference
+
+        with self.assertRaises(ValueError):
+            ellipse_circumference(-1, 1)
+        with self.assertRaises(ValueError):
+            ellipse_circumference(1, -1)
+
+    def test_rejects_non_numeric(self):
+        from shapes import ellipse_circumference
+
+        with self.assertRaises(TypeError):
+            ellipse_circumference("a", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ellipse_circumference(1, None)  # type: ignore[arg-type]
+
+    def test_rejects_bool(self):
+        from shapes import ellipse_circumference
+
+        with self.assertRaises(TypeError):
+            ellipse_circumference(True, 1)  # type: ignore[arg-type]
