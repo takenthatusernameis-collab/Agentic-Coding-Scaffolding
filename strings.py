@@ -24,6 +24,7 @@ __all__: List[str] = [
     "word_count",
     "char_count",
     "is_blank",
+    "normalize_whitespace",
 ]
 
 
@@ -189,6 +190,15 @@ def char_count(s: str) -> int:
     """Count characters in string."""
     _require_string(s, "s")
     return len(s)
+
+
+
+def normalize_whitespace(s: str) -> str:
+    """Collapse runs of whitespace to a single space and trim."""
+    _require_string(s, "s")
+    import re
+
+    return re.sub(r"\s+", " ", s).strip()
 
 
 def is_blank(s: str) -> bool:

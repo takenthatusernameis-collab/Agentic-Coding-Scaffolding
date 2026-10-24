@@ -12,6 +12,7 @@ from strings import (
     is_blank,
     is_palindrome,
     levenshtein_distance,
+    normalize_whitespace,
     remove_whitespace,
     reverse_string,
     slugify,
@@ -377,6 +378,20 @@ class TestIsBlank(unittest.TestCase):
     def test_is_blank_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_blank(None)  # type: ignore[arg-type]
+
+
+
+
+class TestNormalizeWhitespace(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(normalize_whitespace("a  b\t\nc"), "a b c")
+
+    def test_empty(self):
+        self.assertEqual(normalize_whitespace(""), "")
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            normalize_whitespace(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
