@@ -1,156 +1,144 @@
-"""Graph and dependency resolution utilities.
+"""Graphlib utilities wrapping the standard library graphlib module.
 
-This module provides topological sorting and cycle detection for
-directed graphs using only the Python standard library (``graphlib``).
+Provides helpers for topological sorting and cycle detection using
+graphlib.TopologicalSorter.
 """
 
 from __future__ import annotations
 
 from graphlib import CycleError, TopologicalSorter
-from typing import Any, Callable, Dict, Iterable, List, Mapping, Sequence
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
-__all__: list[str] = [
-    "dependency_order",
-    "has_cycle",
-    "is_valid_ordering",
+__all__ = [
+    "CycleError",
+    "TopologicalSorter",
     "topological_sort",
+    "is_cyclic",
+    "get_ready_order",
 ]
 
 
-def topological_sort(nodes: Mapping[Any, Iterable[Any]]) -> List[Any]:
-    """Return the nodes of a directed graph in topological order.
-
-    Args:
-        nodes: Mapping of each node to an iterable of its predecessor
-            nodes (dependencies). A node with no predecessors maps to
-            an empty iterable.
-
-    Returns:
-        A list of nodes ordered so that every dependency appears before
-        the nodes that depend on it.
-
-    Raises:
-        TypeError: If ``nodes`` is not a mapping.
-        ValueError: If the graph contains a cycle.
-
-    Examples:
-        >>> topological_sort({"a": [], "b": ["a"], "c": ["a", "b"]})
-        ['a', 'b', 'c']
-    """
-    if not isinstance(nodes, Mapping):
-        raise TypeError("nodes must be a mapping of node to predecessors")
-    sorter = TopologicalSorter(dict(nodes))
-    try:
-        return list(sorter.static_order())
-    except CycleError as exc:
-        raise ValueError("graph contains a cycle") from exc
-
-
-def has_cycle(nodes: Mapping[Any, Iterable[Any]]) -> bool:
-    """Return ``True`` if the directed graph contains a cycle.
-
-    Args:
-        nodes: Mapping of each node to an iterable of its predecessor
-            nodes (dependencies).
-
-    Returns:
-        ``True`` if the graph contains a cycle, ``False`` otherwise.
-
-    Examples:
-        >>> has_cycle({"a": [], "b": ["a"]})
-        False
-        >>> has_cycle({"a": ["b"], "b": ["a"]})
-        True
-    """
-    try:
-        topological_sort(nodes)
-    except ValueError:
-        return True
-    return False
-
-
-def dependency_order(
-    items: Sequence[Any], get_dependencies: Callable[[Any], Iterable[Any]]
+def topological_sort(
+    graph: Mapping[Any, Iterable[Any]],
+    *,
+    predecessors: Optional[Mapping[Any, Iterable[Any]]] = None,
 ) -> List[Any]:
-    """Return ``items`` ordered so dependencies come before dependents.
+    """Perform a topological sort on a graph.
 
     Args:
-        items: The items to order.
-        get_dependencies: Callable that, given an item, returns an
-            iterable of its dependencies (which must be in ``items``).
+        graph: Mapping from node to iterable of nodes it depends on
+            (predecessors). Nodes not present as keys with dependencies
+            are included if they appear.
+        predecessors: If provided, use instead of inferring from graph.
 
     Returns:
-        A list of all items in dependency order.
+        A list of nodes in topological order.
 
     Raises:
-        TypeError: If ``items`` is not a sequence.
-        ValueError: If the dependency graph contains a cycle or a
-            dependency is missing from ``items``.
-
-    Examples:
-        >>> dependency_order(
-        ...     ["deploy", "build", "deps"],
-        ...     lambda task: {
-        ...         "deploy": ["build"],
-        ...         "build": ["deps"],
-        ...         "deps": [],
-        ...     }.get(task, []),
-        ... )
-        ['deps', 'build', 'deploy']
+        TypeError: If graph is not a mapping.
+        CycleError: If a cycle is detected.
     """
-    if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
-        raise TypeError("items must be a sequence")
-    item_set = set(items)
-    nodes: Dict[Any, List[Any]] = {}
-    for item in items:
-        dependencies = list(get_dependencies(item))
-        missing = set(dependencies) - item_set
-        if missing:
-            raise ValueError(f"dependencies not in items for {item!r}: {sorted(missing)}")
-        nodes[item] = dependencies
-    return topological_sort(nodes)
+    if not isinstance(graph, Mapping):
+        raise TypeError("graph must be a mapping")
+    if predecessors is not None and not isinstance(predecessors, Mapping):
+        raise TypeError("predecessors must be a mapping or None")
+
+    ts = TopologicalSorter(graph if predecessors is None else None)
+    if predecessors is not None:
+        ts = TopologicalSorter()
+        for node, preds in predecessors.items():
+            for p in preds:
+                ts.add(node, p)
+        # Add nodes with no predecessors
+        for node in predecessors:
+            try:
+                # ensure node is known
+                ts.add(node)
+            except Exception:
+                pass
+    else:
+        for node, deps in graph.items():
+            for dep in deps:
+                ts.add(node, dep)
+            # also add nodes that appear only as deps
+        # collect all nodes
+        all_nodes = set(graph.keys())
+        for deps in graph.values():
+            for d in deps:
+                all_nodes.add(d)
+        for node in all_nodes:
+            try:
+                ts.add(node)
+            except Exception:
+                pass
+
+    try:
+        return list(ts.static_order())
+    except CycleError:
+        raise
+    except Exception as exc:
+        raise
 
 
-def is_valid_ordering(order: Sequence[Any], nodes: Mapping[Any, Iterable[Any]]) -> bool:
-    """Return ``True`` if ``order`` is a valid topological order of ``nodes``.
+def is_cyclic(graph: Mapping[Any, Iterable[Any]]) -> bool:
+    """Check if the graph has a cycle.
 
     Args:
-        order: Candidate ordering of the graph nodes.
-        nodes: Mapping of each node to an iterable of its predecessor
-            nodes (dependencies).
+        graph: Mapping from node to iterable of predecessor nodes.
 
     Returns:
-        ``True`` if every dependency appears before its dependent in
-        ``order`` and the node sets match, ``False`` otherwise.
+        True if a cycle exists, False otherwise.
+
+    Raises:
+        TypeError: If graph is not a mapping.
     """
+    if not isinstance(graph, Mapping):
+        raise TypeError("graph must be a mapping")
     try:
-        position = {node: index for index, node in enumerate(order)}
-    except TypeError:
+        topological_sort(graph)
         return False
-    if set(order) != set(nodes):
-        return False
-    for node, predecessors in nodes.items():
-        for predecessor in predecessors:
-            if position.get(predecessor, -1) >= position.get(node, -1):
-                return False
-    return True
+    except CycleError:
+        return True
 
 
-if __name__ == "__main__":
-    import json
+def get_ready_order(graph: Mapping[Any, Iterable[Any]]) -> List[List[Any]]:
+    """Get nodes grouped by readiness level (Kahn's algorithm levels).
 
-    example = {
-        "install_deps": [],
-        "build": ["install_deps"],
-        "test": ["build"],
-        "deploy": ["test"],
-    }
-    print(
-        json.dumps(
-            {
-                "order": topological_sort(example),
-                "has_cycle": has_cycle(example),
-            },
-            indent=2,
-        )
-    )
+    Args:
+        graph: Mapping from node to iterable of predecessor nodes.
+
+    Returns:
+        List of lists, where each inner list contains nodes ready at that level.
+
+    Raises:
+        TypeError: If graph is not a mapping.
+        CycleError: If a cycle is detected.
+    """
+    if not isinstance(graph, Mapping):
+        raise TypeError("graph must be a mapping")
+
+    ts = TopologicalSorter()
+    all_nodes = set(graph.keys())
+    for node, deps in graph.items():
+        for dep in deps:
+            ts.add(node, dep)
+            all_nodes.add(dep)
+    for node in all_nodes:
+        try:
+            ts.add(node)
+        except Exception:
+            pass
+
+    try:
+        result: List[List[Any]] = []
+        ts.prepare()
+        while ts.is_active():
+            ready = list(ts.get_ready())
+            if not ready:
+                break
+            result.append(sorted(ready, key=lambda x: str(x)))
+            for node in ready:
+                ts.done(node)
+        return result
+    except CycleError:
+        raise

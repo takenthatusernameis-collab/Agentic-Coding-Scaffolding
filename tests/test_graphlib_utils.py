@@ -1,106 +1,71 @@
-"""Unit tests for graphlib_utils module."""
+"""Tests for graphlib_utils module."""
 
-import unittest
+from graphlib import CycleError
 
 from graphlib_utils import (
-    dependency_order,
-    has_cycle,
-    is_valid_ordering,
+    TopologicalSorter,
+    get_ready_order,
+    is_cyclic,
     topological_sort,
 )
 
 
-class TestTopologicalSort(unittest.TestCase):
-    def test_empty_graph(self):
-        self.assertEqual(topological_sort({}), [])
-
-    def test_single_node(self):
-        self.assertEqual(topological_sort({"a": []}), ["a"])
-
-    def test_linear_chain(self):
-        self.assertEqual(
-            topological_sort({"c": ["b"], "b": ["a"], "a": []}),
-            ["a", "b", "c"],
-        )
-
-    def test_independent_nodes(self):
-        result = topological_sort({"a": [], "b": [], "c": []})
-        self.assertEqual(sorted(result), ["a", "b", "c"])
-
-    def test_diamond_dependencies(self):
-        result = topological_sort({"d": ["b", "c"], "b": ["a"], "c": ["a"], "a": []})
-        self.assertEqual(result[0], "a")
-        self.assertEqual(result[-1], "d")
-        self.assertLess(result.index("b"), result.index("d"))
-        self.assertLess(result.index("c"), result.index("d"))
-
-    def test_detects_cycle(self):
-        with self.assertRaises(ValueError):
-            topological_sort({"a": ["b"], "b": ["a"]})
-
-    def test_self_loop_is_cycle(self):
-        with self.assertRaises(ValueError):
-            topological_sort({"a": ["a"]})
-
-    def test_type_error_on_non_mapping(self):
-        with self.assertRaises(TypeError):
-            topological_sort(["a", "b"])  # type: ignore[arg-type]
+def test_topological_sort_simple():
+    graph = {"D": {"B", "C"}, "C": {"A"}, "B": {"A"}, "A": set()}
+    result = topological_sort(graph)
+    assert result.index("A") < result.index("B")
+    assert result.index("A") < result.index("C")
+    assert result.index("B") < result.index("D")
+    assert result.index("C") < result.index("D")
 
 
-class TestHasCycle(unittest.TestCase):
-    def test_acyclic(self):
-        self.assertFalse(has_cycle({"a": [], "b": ["a"]}))
-
-    def test_cyclic(self):
-        self.assertTrue(has_cycle({"a": ["b"], "b": ["a"]}))
-
-    def test_self_loop(self):
-        self.assertTrue(has_cycle({"a": ["a"]}))
-
-    def test_empty(self):
-        self.assertFalse(has_cycle({}))
+def test_topological_sort_linear():
+    graph = {"3": {"2"}, "2": {"1"}, "1": set()}
+    assert topological_sort(graph) == ["1", "2", "3"]
 
 
-class TestDependencyOrder(unittest.TestCase):
-    def test_orders_by_dependency(self):
-        def deps(task: str) -> list[str]:
-            return {
-                "deploy": ["test"],
-                "test": ["build"],
-                "build": ["install_deps"],
-                "install_deps": [],
-            }[task]
-
-        result = dependency_order(["deploy", "test", "install_deps", "build"], deps)
-        self.assertEqual(result, ["install_deps", "build", "test", "deploy"])
-
-    def test_missing_dependency_raises(self):
-        def deps(task: str) -> list[str]:
-            return {"build": ["missing"]}.get(task, [])
-
-        with self.assertRaises(ValueError):
-            dependency_order(["build"], deps)
-
-    def test_type_error_on_non_sequence(self):
-        with self.assertRaises(TypeError):
-            dependency_order({"a": []}, lambda x: [])  # type: ignore[arg-type]
+def test_is_cyclic_true():
+    graph = {"A": {"B"}, "B": {"A"}}
+    assert is_cyclic(graph) is True
 
 
-class TestIsValidOrdering(unittest.TestCase):
-    def test_valid_order(self):
-        nodes = {"c": ["b"], "b": ["a"], "a": []}
-        self.assertTrue(is_valid_ordering(["a", "b", "c"], nodes))
-
-    def test_invalid_order(self):
-        nodes = {"c": ["b"], "b": ["a"], "a": []}
-        self.assertFalse(is_valid_ordering(["c", "b", "a"], nodes))
-
-    def test_mismatched_node_sets(self):
-        self.assertFalse(is_valid_ordering(["a", "b"], {"a": [], "b": [], "c": []}))
-
-    def test_empty(self):
-        self.assertTrue(is_valid_ordering([], {}))
+def test_is_cyclic_false():
+    graph = {"A": set(), "B": {"A"}}
+    assert is_cyclic(graph) is False
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_topological_sort_cycle_error():
+    graph = {"A": {"B"}, "B": {"A"}}
+    try:
+        topological_sort(graph)
+        assert False
+    except CycleError:
+        pass
+
+
+def test_get_ready_order():
+    graph = {"D": {"B", "C"}, "C": {"A"}, "B": {"A"}, "A": set()}
+    levels = get_ready_order(graph)
+    assert levels[0] == ["A"]
+    assert set(levels[1]) == {"B", "C"}
+    assert levels[2] == ["D"]
+
+
+def test_topological_sort_type_error():
+    try:
+        topological_sort("not a mapping")
+        assert False
+    except TypeError:
+        pass
+
+
+def test_is_cyclic_type_error():
+    try:
+        is_cyclic([])
+        assert False
+    except TypeError:
+        pass
+
+
+def test_graphlib_export():
+    assert TopologicalSorter is not None

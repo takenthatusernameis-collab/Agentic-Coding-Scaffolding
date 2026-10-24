@@ -258,7 +258,7 @@ ctypes_utils.py            # Ctypes utility functions wrapping the standard libr
 copy_utils.py              # Copy utilities (shallow/deep copy, dict copy, merge) wrapping stdlib copy module
 exceptions_utils.py        # Custom exception classes and error handling utilities
 email_utils.py             # Email utilities wrapping the standard library email.utils module
-enum_utils.py              # Enum utilities for working with Python enum.Enum classes
+enum_utils.py              # Enum utilities wrapping the standard library enum module (Enum, IntEnum, StrEnum, Flag, IntFlag, auto, unique, member lookups, names/values, as_dict/as_list)
 io_utils.py                # Line-oriented and atomic input/output utilities
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 weakref_utils.py            # Weak reference utilities for managing weak references to objects

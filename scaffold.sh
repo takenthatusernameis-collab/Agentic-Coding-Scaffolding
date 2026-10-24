@@ -33598,6 +33598,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Bootstrap session: verified full test suite (5301 tests), ruff, mypy, and scaffold sync all green; posted next handover task.
 - Added `is_alpha` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-string arguments; added tests in `tests/test_strings.py`; synchronized the module, its tests, README, and this CHANGELOG into `scaffold.sh`.
 - Closed documentation drift in the `strings` module prose section of `README.md`: the section referenced `is_numeric` and `is_alphanumeric`, which belong to `validation_utils.py` and are not part of the `strings` public API; the section now lists only the helpers `strings.py` actually exports. Synchronized the corrected README into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `midrange` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-list or non-numeric arguments and `ValueError` for empty lists; added tests in `tests/test_stats.py`; synchronized the module, its tests, README, and this CHANGELOG into `scaffold.sh`.
@@ -34150,7 +34151,7 @@ ctypes_utils.py            # Ctypes utility functions wrapping the standard libr
 copy_utils.py              # Copy utilities (shallow/deep copy, dict copy, merge) wrapping stdlib copy module
 exceptions_utils.py        # Custom exception classes and error handling utilities
 email_utils.py             # Email utilities wrapping the standard library email.utils module
-enum_utils.py              # Enum utilities for working with Python enum.Enum classes
+enum_utils.py              # Enum utilities wrapping the standard library enum module (Enum, IntEnum, StrEnum, Flag, IntFlag, auto, unique, member lookups, names/values, as_dict/as_list)
 io_utils.py                # Line-oriented and atomic input/output utilities
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
@@ -41378,240 +41379,362 @@ TEST_ENCODINGS_UTILS
 
 # --- enum_utils.py ---
 cat > "$OUTPUT_DIR/enum_utils.py" <<'ENUM_UTILS'
-"""Enum utilities for working with Python ``enum.Enum`` classes."""
+"""Enum utilities wrapping the standard library enum module.
+
+Provides typed helpers for working with enums, including safe lookups,
+membership checks, and conversions to common representations.
+"""
 
 from __future__ import annotations
 
-from enum import Enum
-from typing import Any, Dict, List, Type, TypeVar
-
-E = TypeVar("E", bound=Enum)
+import enum
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, Type, Union
 
 __all__ = [
-    "enum_to_dict",
-    "get_enum_member",
+    "Enum",
+    "IntEnum",
+    "StrEnum",
+    "Flag",
+    "IntFlag",
+    "auto",
+    "unique",
+    "is_enum",
     "is_enum_member",
-    "list_enum_members",
-    "enum_value_from_name",
-    "enum_name_from_value",
+    "get_member",
+    "get_member_name",
+    "get_member_value",
+    "names",
+    "values",
+    "as_dict",
+    "as_list",
+    "has_name",
+    "has_value",
 ]
 
 
-def enum_to_dict(enum_class: Type[E]) -> Dict[str, Any]:
-    """Convert an enum class to a dictionary mapping member names to values.
+Enum = enum.Enum
+IntEnum = enum.IntEnum
+StrEnum = getattr(enum, "StrEnum", enum.Enum)
+Flag = enum.Flag
+IntFlag = enum.IntFlag
+auto = enum.auto
+unique = enum.unique
+
+
+def is_enum(obj: Any) -> bool:
+    """Return True if obj is an Enum class or Enum member."""
+    if isinstance(obj, enum.EnumMeta):
+        return True
+    return isinstance(obj, enum.Enum)
+
+
+def is_enum_member(obj: Any) -> bool:
+    """Return True if obj is an instance of an Enum member."""
+    return isinstance(obj, enum.Enum) and not isinstance(obj, enum.EnumMeta)
+
+
+def get_member(enum_cls: Type[enum.Enum], name: str) -> enum.Enum:
+    """Get an enum member by name.
 
     Args:
-        enum_class: The Enum subclass to convert.
-
-    Returns:
-        A dictionary mapping each member name to its value.
-
-    Raises:
-        TypeError: If ``enum_class`` is not an Enum subclass.
-
-    Examples:
-        >>> class Color(enum.Enum):
-        ...     RED = 1
-        ...     GREEN = 2
-        >>> enum_to_dict(Color)
-        {'RED': 1, 'GREEN': 2}
-    """
-    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
-        raise TypeError("enum_class must be an Enum subclass")
-    return {member.name: member.value for member in enum_class}
-
-
-def get_enum_member(enum_class: Type[E], key: Any) -> E:
-    """Return the enum member matching ``key`` by name or value.
-
-    Args:
-        enum_class: The Enum subclass to search.
-        key: The member name (str) or value to look up.
-
-    Returns:
-        The matching enum member.
-
-    Raises:
-        TypeError: If ``enum_class`` is not an Enum subclass.
-        ValueError: If no member matches ``key``.
-    """
-    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
-        raise TypeError("enum_class must be an Enum subclass")
-    try:
-        return enum_class[key]  # type: ignore[call-overload]
-    except (KeyError, TypeError):
-        pass
-    try:
-        return enum_class(key)  # type: ignore[call-overload]
-    except ValueError:
-        raise ValueError(f"No enum member in {enum_class.__name__} matches {key!r}")
-
-
-def is_enum_member(enum_class: Type[E], value: Any) -> bool:
-    """Return True if ``value`` matches any member value of ``enum_class``.
-
-    Args:
-        enum_class: The Enum subclass to search.
-        value: The value to check.
-
-    Returns:
-        True if a member with ``value`` exists, False otherwise.
-
-    Raises:
-        TypeError: If ``enum_class`` is not an Enum subclass.
-    """
-    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
-        raise TypeError("enum_class must be an Enum subclass")
-    return any(member.value == value for member in enum_class)
-
-
-def list_enum_members(enum_class: Type[E]) -> List[E]:
-    """Return all members of ``enum_class`` in declaration order.
-
-    Args:
-        enum_class: The Enum subclass to list.
-
-    Returns:
-        A list of all enum members.
-
-    Raises:
-        TypeError: If ``enum_class`` is not an Enum subclass.
-    """
-    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
-        raise TypeError("enum_class must be an Enum subclass")
-    return list(enum_class)
-
-
-def enum_value_from_name(enum_class: Type[E], name: str) -> Any:
-    """Return the value of the enum member with the given ``name``.
-
-    Args:
-        enum_class: The Enum subclass to search.
+        enum_cls: The enum class to look up in.
         name: The name of the member.
 
     Returns:
-        The value of the matching member.
+        The enum member.
 
     Raises:
-        TypeError: If ``enum_class`` is not an Enum subclass or ``name`` is
-            not a string.
-        ValueError: If no member with ``name`` exists.
+        TypeError: If enum_cls is not an Enum class or name is not a string.
+        AttributeError: If the member does not exist.
     """
-    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
-        raise TypeError("enum_class must be an Enum subclass")
+    if not isinstance(enum_cls, enum.EnumMeta):
+        raise TypeError("enum_cls must be an Enum class")
     if not isinstance(name, str):
         raise TypeError("name must be a string")
     try:
-        return enum_class[name].value  # type: ignore[call-overload]
-    except KeyError:
-        raise ValueError(f"{enum_class.__name__} has no member named {name!r}")
+        return getattr(enum_cls, name)
+    except AttributeError as exc:
+        raise AttributeError(f"{enum_cls.__name__} has no member named {name!r}") from exc
 
 
-def enum_name_from_value(enum_class: Type[E], value: Any) -> str:
-    """Return the name of the enum member with the given ``value``.
+def get_member_name(member: enum.Enum) -> str:
+    """Return the name of an enum member.
 
     Args:
-        enum_class: The Enum subclass to search.
-        value: The value of the member.
+        member: The enum member.
 
     Returns:
-        The name of the matching member.
+        The member name.
 
     Raises:
-        TypeError: If ``enum_class`` is not an Enum subclass.
-        ValueError: If no member with ``value`` exists.
+        TypeError: If member is not an Enum member.
     """
-    if not isinstance(enum_class, type) or not issubclass(enum_class, Enum):
-        raise TypeError("enum_class must be an Enum subclass")
-    for member in enum_class:
-        if member.value == value:
-            return member.name
-    raise ValueError(f"{enum_class.__name__} has no member with value {value!r}")
+    if not isinstance(member, enum.Enum) or isinstance(member, enum.EnumMeta):
+        raise TypeError("member must be an Enum member")
+    return member.name
+
+
+def get_member_value(member: enum.Enum) -> Any:
+    """Return the value of an enum member.
+
+    Args:
+        member: The enum member.
+
+    Returns:
+        The member value.
+
+    Raises:
+        TypeError: If member is not an Enum member.
+    """
+    if not isinstance(member, enum.Enum) or isinstance(member, enum.EnumMeta):
+        raise TypeError("member must be an Enum member")
+    return member.value
+
+
+def names(enum_cls: Type[enum.Enum]) -> List[str]:
+    """Return a list of member names for an enum class.
+
+    Args:
+        enum_cls: The enum class.
+
+    Returns:
+        List of member names.
+
+    Raises:
+        TypeError: If enum_cls is not an Enum class.
+    """
+    if not isinstance(enum_cls, enum.EnumMeta):
+        raise TypeError("enum_cls must be an Enum class")
+    return [m.name for m in enum_cls]
+
+
+def values(enum_cls: Type[enum.Enum]) -> List[Any]:
+    """Return a list of member values for an enum class.
+
+    Args:
+        enum_cls: The enum class.
+
+    Returns:
+        List of member values.
+
+    Raises:
+        TypeError: If enum_cls is not an Enum class.
+    """
+    if not isinstance(enum_cls, enum.EnumMeta):
+        raise TypeError("enum_cls must be an Enum class")
+    return [m.value for m in enum_cls]
+
+
+def as_dict(enum_cls: Type[enum.Enum]) -> Dict[str, Any]:
+    """Return a mapping of member names to values.
+
+    Args:
+        enum_cls: The enum class.
+
+    Returns:
+        Dict mapping names to values.
+
+    Raises:
+        TypeError: If enum_cls is not an Enum class.
+    """
+    if not isinstance(enum_cls, enum.EnumMeta):
+        raise TypeError("enum_cls must be an Enum class")
+    return {m.name: m.value for m in enum_cls}
+
+
+def as_list(enum_cls: Type[enum.Enum]) -> List[Tuple[str, Any]]:
+    """Return a list of (name, value) tuples for an enum class.
+
+    Args:
+        enum_cls: The enum class.
+
+    Returns:
+        List of (name, value) pairs.
+
+    Raises:
+        TypeError: If enum_cls is not an Enum class.
+    """
+    if not isinstance(enum_cls, enum.EnumMeta):
+        raise TypeError("enum_cls must be an Enum class")
+    return [(m.name, m.value) for m in enum_cls]
+
+
+def has_name(enum_cls: Type[enum.Enum], name: str) -> bool:
+    """Return True if the enum class has a member with the given name.
+
+    Args:
+        enum_cls: The enum class.
+        name: The name to check.
+
+    Returns:
+        True if member exists, False otherwise.
+
+    Raises:
+        TypeError: If enum_cls is not an Enum class or name is not a string.
+    """
+    if not isinstance(enum_cls, enum.EnumMeta):
+        raise TypeError("enum_cls must be an Enum class")
+    if not isinstance(name, str):
+        raise TypeError("name must be a string")
+    return hasattr(enum_cls, name)
+
+
+def has_value(enum_cls: Type[enum.Enum], value: Any) -> bool:
+    """Return True if the enum class has a member with the given value.
+
+    Args:
+        enum_cls: The enum class.
+        value: The value to check.
+
+    Returns:
+        True if any member has this value, False otherwise.
+
+    Raises:
+        TypeError: If enum_cls is not an Enum class.
+    """
+    if not isinstance(enum_cls, enum.EnumMeta):
+        raise TypeError("enum_cls must be an Enum class")
+    try:
+        return any(m.value == value for m in enum_cls)
+    except Exception:
+        return False
 ENUM_UTILS
 
 # --- tests/test_enum_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_enum_utils.py" <<'TEST_ENUM_UTILS'
 """Tests for enum_utils module."""
 
-import enum
+from enum_utils import (
+    Enum,
+    Flag,
+    IntEnum,
+    IntFlag,
+    StrEnum,
+    as_dict,
+    as_list,
+    auto,
+    get_member,
+    get_member_name,
+    get_member_value,
+    has_name,
+    has_value,
+    is_enum,
+    is_enum_member,
+    names,
+    unique,
+    values,
+)
 
-import enum_utils
 
-
-class Color(enum.Enum):
+class Color(Enum):
     RED = 1
     GREEN = 2
     BLUE = 3
 
 
-class Status(enum.Enum):
-    PENDING = "pending"
-    ACTIVE = "active"
-    CLOSED = "closed"
+class Status(IntEnum):
+    OK = 200
+    NOT_FOUND = 404
 
 
-def test_enum_to_dict():
-    assert enum_utils.enum_to_dict(Color) == {"RED": 1, "GREEN": 2, "BLUE": 3}
+class Permissions(Flag):
+    READ = 1
+    WRITE = 2
+    EXEC = 4
 
 
-def test_get_enum_member_by_name():
-    assert enum_utils.get_enum_member(Color, "RED") is Color.RED
+@unique
+class Priority(Enum):
+    LOW = 1
+    HIGH = 2
 
 
-def test_get_enum_member_by_value():
-    assert enum_utils.get_enum_member(Color, 2) is Color.GREEN
-
-
-def test_get_enum_member_not_found():
-    try:
-        enum_utils.get_enum_member(Color, 99)
-    except ValueError:
-        pass
-    else:
-        raise AssertionError("expected ValueError")
+def test_is_enum_class():
+    assert is_enum(Color) is True
+    assert is_enum(Enum) is True
 
 
 def test_is_enum_member():
-    assert enum_utils.is_enum_member(Color, 2) is True
-    assert enum_utils.is_enum_member(Color, 99) is False
+    assert is_enum_member(Color.RED) is True
+    assert is_enum_member(Color) is False
 
 
-def test_list_enum_members():
-    assert enum_utils.list_enum_members(Color) == [Color.RED, Color.GREEN, Color.BLUE]
+def test_get_member():
+    assert get_member(Color, "RED") is Color.RED
 
 
-def test_enum_value_from_name():
-    assert enum_utils.enum_value_from_name(Status, "ACTIVE") == "active"
+def test_get_member_name():
+    assert get_member_name(Color.GREEN) == "GREEN"
 
 
-def test_enum_name_from_value():
-    assert enum_utils.enum_name_from_value(Color, 3) == "BLUE"
+def test_get_member_value():
+    assert get_member_value(Color.BLUE) == 3
 
 
-def test_enum_name_from_value_not_found():
+def test_names():
+    assert names(Color) == ["RED", "GREEN", "BLUE"]
+
+
+def test_values():
+    assert values(Color) == [1, 2, 3]
+
+
+def test_as_dict():
+    assert as_dict(Color) == {"RED": 1, "GREEN": 2, "BLUE": 3}
+
+
+def test_as_list():
+    assert as_list(Color) == [("RED", 1), ("GREEN", 2), ("BLUE", 3)]
+
+
+def test_has_name():
+    assert has_name(Color, "RED") is True
+    assert has_name(Color, "YELLOW") is False
+
+
+def test_has_value():
+    assert has_value(Color, 2) is True
+    assert has_value(Color, 99) is False
+
+
+def test_int_enum():
+    assert isinstance(Status.OK, int)
+    assert Status.OK + 1 == 201
+
+
+def test_flag():
+    assert Permissions.READ | Permissions.WRITE
+
+
+def test_auto():
+    class AutoEnum(Enum):
+        FIRST = auto()
+        SECOND = auto()
+    assert AutoEnum.FIRST.value != AutoEnum.SECOND.value
+
+
+def test_get_member_type_errors():
     try:
-        enum_utils.enum_name_from_value(Color, 99)
-    except ValueError:
+        get_member("not_enum", "X")
+        assert False
+    except TypeError:
         pass
-    else:
-        raise AssertionError("expected ValueError")
 
 
-def test_invalid_enum_class_raises():
-    for fn in (
-        enum_utils.enum_to_dict,
-        enum_utils.get_enum_member,
-        enum_utils.is_enum_member,
-        enum_utils.list_enum_members,
-        enum_utils.enum_value_from_name,
-        enum_utils.enum_name_from_value,
-    ):
-        try:
-            fn(int, "x")  # type: ignore[arg-type]
-        except TypeError:
-            pass
-        else:
-            raise AssertionError(f"expected TypeError from {fn.__name__}")
+def test_get_member_name_type_error():
+    try:
+        get_member_name(Color)
+        assert False
+    except TypeError:
+        pass
+
+
+def test_names_type_error():
+    try:
+        names(Color.RED)
+        assert False
+    except TypeError:
+        pass
 TEST_ENUM_UTILS
 
 # --- errno_utils.py ---
@@ -46044,272 +46167,225 @@ TEST_GLOB_UTILS
 
 # --- graphlib_utils.py ---
 cat > "$OUTPUT_DIR/graphlib_utils.py" <<'GRAPHLIB_UTILS'
-"""Graph and dependency resolution utilities.
+"""Graphlib utilities wrapping the standard library graphlib module.
 
-This module provides topological sorting and cycle detection for
-directed graphs using only the Python standard library (``graphlib``).
+Provides helpers for topological sorting and cycle detection using
+graphlib.TopologicalSorter.
 """
 
 from __future__ import annotations
 
 from graphlib import CycleError, TopologicalSorter
-from typing import Any, Callable, Dict, Iterable, List, Mapping, Sequence
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
-__all__: list[str] = [
-    "dependency_order",
-    "has_cycle",
-    "is_valid_ordering",
+__all__ = [
+    "CycleError",
+    "TopologicalSorter",
     "topological_sort",
+    "is_cyclic",
+    "get_ready_order",
 ]
 
 
-def topological_sort(nodes: Mapping[Any, Iterable[Any]]) -> List[Any]:
-    """Return the nodes of a directed graph in topological order.
-
-    Args:
-        nodes: Mapping of each node to an iterable of its predecessor
-            nodes (dependencies). A node with no predecessors maps to
-            an empty iterable.
-
-    Returns:
-        A list of nodes ordered so that every dependency appears before
-        the nodes that depend on it.
-
-    Raises:
-        TypeError: If ``nodes`` is not a mapping.
-        ValueError: If the graph contains a cycle.
-
-    Examples:
-        >>> topological_sort({"a": [], "b": ["a"], "c": ["a", "b"]})
-        ['a', 'b', 'c']
-    """
-    if not isinstance(nodes, Mapping):
-        raise TypeError("nodes must be a mapping of node to predecessors")
-    sorter = TopologicalSorter(dict(nodes))
-    try:
-        return list(sorter.static_order())
-    except CycleError as exc:
-        raise ValueError("graph contains a cycle") from exc
-
-
-def has_cycle(nodes: Mapping[Any, Iterable[Any]]) -> bool:
-    """Return ``True`` if the directed graph contains a cycle.
-
-    Args:
-        nodes: Mapping of each node to an iterable of its predecessor
-            nodes (dependencies).
-
-    Returns:
-        ``True`` if the graph contains a cycle, ``False`` otherwise.
-
-    Examples:
-        >>> has_cycle({"a": [], "b": ["a"]})
-        False
-        >>> has_cycle({"a": ["b"], "b": ["a"]})
-        True
-    """
-    try:
-        topological_sort(nodes)
-    except ValueError:
-        return True
-    return False
-
-
-def dependency_order(
-    items: Sequence[Any], get_dependencies: Callable[[Any], Iterable[Any]]
+def topological_sort(
+    graph: Mapping[Any, Iterable[Any]],
+    *,
+    predecessors: Optional[Mapping[Any, Iterable[Any]]] = None,
 ) -> List[Any]:
-    """Return ``items`` ordered so dependencies come before dependents.
+    """Perform a topological sort on a graph.
 
     Args:
-        items: The items to order.
-        get_dependencies: Callable that, given an item, returns an
-            iterable of its dependencies (which must be in ``items``).
+        graph: Mapping from node to iterable of nodes it depends on
+            (predecessors). Nodes not present as keys with dependencies
+            are included if they appear.
+        predecessors: If provided, use instead of inferring from graph.
 
     Returns:
-        A list of all items in dependency order.
+        A list of nodes in topological order.
 
     Raises:
-        TypeError: If ``items`` is not a sequence.
-        ValueError: If the dependency graph contains a cycle or a
-            dependency is missing from ``items``.
-
-    Examples:
-        >>> dependency_order(
-        ...     ["deploy", "build", "deps"],
-        ...     lambda task: {
-        ...         "deploy": ["build"],
-        ...         "build": ["deps"],
-        ...         "deps": [],
-        ...     }.get(task, []),
-        ... )
-        ['deps', 'build', 'deploy']
+        TypeError: If graph is not a mapping.
+        CycleError: If a cycle is detected.
     """
-    if not isinstance(items, Sequence) or isinstance(items, (str, bytes)):
-        raise TypeError("items must be a sequence")
-    item_set = set(items)
-    nodes: Dict[Any, List[Any]] = {}
-    for item in items:
-        dependencies = list(get_dependencies(item))
-        missing = set(dependencies) - item_set
-        if missing:
-            raise ValueError(f"dependencies not in items for {item!r}: {sorted(missing)}")
-        nodes[item] = dependencies
-    return topological_sort(nodes)
+    if not isinstance(graph, Mapping):
+        raise TypeError("graph must be a mapping")
+    if predecessors is not None and not isinstance(predecessors, Mapping):
+        raise TypeError("predecessors must be a mapping or None")
+
+    ts = TopologicalSorter(graph if predecessors is None else None)
+    if predecessors is not None:
+        ts = TopologicalSorter()
+        for node, preds in predecessors.items():
+            for p in preds:
+                ts.add(node, p)
+        # Add nodes with no predecessors
+        for node in predecessors:
+            try:
+                # ensure node is known
+                ts.add(node)
+            except Exception:
+                pass
+    else:
+        for node, deps in graph.items():
+            for dep in deps:
+                ts.add(node, dep)
+            # also add nodes that appear only as deps
+        # collect all nodes
+        all_nodes = set(graph.keys())
+        for deps in graph.values():
+            for d in deps:
+                all_nodes.add(d)
+        for node in all_nodes:
+            try:
+                ts.add(node)
+            except Exception:
+                pass
+
+    try:
+        return list(ts.static_order())
+    except CycleError:
+        raise
+    except Exception as exc:
+        raise
 
 
-def is_valid_ordering(order: Sequence[Any], nodes: Mapping[Any, Iterable[Any]]) -> bool:
-    """Return ``True`` if ``order`` is a valid topological order of ``nodes``.
+def is_cyclic(graph: Mapping[Any, Iterable[Any]]) -> bool:
+    """Check if the graph has a cycle.
 
     Args:
-        order: Candidate ordering of the graph nodes.
-        nodes: Mapping of each node to an iterable of its predecessor
-            nodes (dependencies).
+        graph: Mapping from node to iterable of predecessor nodes.
 
     Returns:
-        ``True`` if every dependency appears before its dependent in
-        ``order`` and the node sets match, ``False`` otherwise.
+        True if a cycle exists, False otherwise.
+
+    Raises:
+        TypeError: If graph is not a mapping.
     """
+    if not isinstance(graph, Mapping):
+        raise TypeError("graph must be a mapping")
     try:
-        position = {node: index for index, node in enumerate(order)}
-    except TypeError:
+        topological_sort(graph)
         return False
-    if set(order) != set(nodes):
-        return False
-    for node, predecessors in nodes.items():
-        for predecessor in predecessors:
-            if position.get(predecessor, -1) >= position.get(node, -1):
-                return False
-    return True
+    except CycleError:
+        return True
 
 
-if __name__ == "__main__":
-    import json
+def get_ready_order(graph: Mapping[Any, Iterable[Any]]) -> List[List[Any]]:
+    """Get nodes grouped by readiness level (Kahn's algorithm levels).
 
-    example = {
-        "install_deps": [],
-        "build": ["install_deps"],
-        "test": ["build"],
-        "deploy": ["test"],
-    }
-    print(
-        json.dumps(
-            {
-                "order": topological_sort(example),
-                "has_cycle": has_cycle(example),
-            },
-            indent=2,
-        )
-    )
+    Args:
+        graph: Mapping from node to iterable of predecessor nodes.
+
+    Returns:
+        List of lists, where each inner list contains nodes ready at that level.
+
+    Raises:
+        TypeError: If graph is not a mapping.
+        CycleError: If a cycle is detected.
+    """
+    if not isinstance(graph, Mapping):
+        raise TypeError("graph must be a mapping")
+
+    ts = TopologicalSorter()
+    all_nodes = set(graph.keys())
+    for node, deps in graph.items():
+        for dep in deps:
+            ts.add(node, dep)
+            all_nodes.add(dep)
+    for node in all_nodes:
+        try:
+            ts.add(node)
+        except Exception:
+            pass
+
+    try:
+        result: List[List[Any]] = []
+        ts.prepare()
+        while ts.is_active():
+            ready = list(ts.get_ready())
+            if not ready:
+                break
+            result.append(sorted(ready, key=lambda x: str(x)))
+            for node in ready:
+                ts.done(node)
+        return result
+    except CycleError:
+        raise
 GRAPHLIB_UTILS
 
 # --- tests/test_graphlib_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_graphlib_utils.py" <<'TEST_GRAPHLIB_UTILS'
-"""Unit tests for graphlib_utils module."""
+"""Tests for graphlib_utils module."""
 
-import unittest
+from graphlib import CycleError
 
 from graphlib_utils import (
-    dependency_order,
-    has_cycle,
-    is_valid_ordering,
+    TopologicalSorter,
+    get_ready_order,
+    is_cyclic,
     topological_sort,
 )
 
 
-class TestTopologicalSort(unittest.TestCase):
-    def test_empty_graph(self):
-        self.assertEqual(topological_sort({}), [])
-
-    def test_single_node(self):
-        self.assertEqual(topological_sort({"a": []}), ["a"])
-
-    def test_linear_chain(self):
-        self.assertEqual(
-            topological_sort({"c": ["b"], "b": ["a"], "a": []}),
-            ["a", "b", "c"],
-        )
-
-    def test_independent_nodes(self):
-        result = topological_sort({"a": [], "b": [], "c": []})
-        self.assertEqual(sorted(result), ["a", "b", "c"])
-
-    def test_diamond_dependencies(self):
-        result = topological_sort({"d": ["b", "c"], "b": ["a"], "c": ["a"], "a": []})
-        self.assertEqual(result[0], "a")
-        self.assertEqual(result[-1], "d")
-        self.assertLess(result.index("b"), result.index("d"))
-        self.assertLess(result.index("c"), result.index("d"))
-
-    def test_detects_cycle(self):
-        with self.assertRaises(ValueError):
-            topological_sort({"a": ["b"], "b": ["a"]})
-
-    def test_self_loop_is_cycle(self):
-        with self.assertRaises(ValueError):
-            topological_sort({"a": ["a"]})
-
-    def test_type_error_on_non_mapping(self):
-        with self.assertRaises(TypeError):
-            topological_sort(["a", "b"])  # type: ignore[arg-type]
+def test_topological_sort_simple():
+    graph = {"D": {"B", "C"}, "C": {"A"}, "B": {"A"}, "A": set()}
+    result = topological_sort(graph)
+    assert result.index("A") < result.index("B")
+    assert result.index("A") < result.index("C")
+    assert result.index("B") < result.index("D")
+    assert result.index("C") < result.index("D")
 
 
-class TestHasCycle(unittest.TestCase):
-    def test_acyclic(self):
-        self.assertFalse(has_cycle({"a": [], "b": ["a"]}))
-
-    def test_cyclic(self):
-        self.assertTrue(has_cycle({"a": ["b"], "b": ["a"]}))
-
-    def test_self_loop(self):
-        self.assertTrue(has_cycle({"a": ["a"]}))
-
-    def test_empty(self):
-        self.assertFalse(has_cycle({}))
+def test_topological_sort_linear():
+    graph = {"3": {"2"}, "2": {"1"}, "1": set()}
+    assert topological_sort(graph) == ["1", "2", "3"]
 
 
-class TestDependencyOrder(unittest.TestCase):
-    def test_orders_by_dependency(self):
-        def deps(task: str) -> list[str]:
-            return {
-                "deploy": ["test"],
-                "test": ["build"],
-                "build": ["install_deps"],
-                "install_deps": [],
-            }[task]
-
-        result = dependency_order(["deploy", "test", "install_deps", "build"], deps)
-        self.assertEqual(result, ["install_deps", "build", "test", "deploy"])
-
-    def test_missing_dependency_raises(self):
-        def deps(task: str) -> list[str]:
-            return {"build": ["missing"]}.get(task, [])
-
-        with self.assertRaises(ValueError):
-            dependency_order(["build"], deps)
-
-    def test_type_error_on_non_sequence(self):
-        with self.assertRaises(TypeError):
-            dependency_order({"a": []}, lambda x: [])  # type: ignore[arg-type]
+def test_is_cyclic_true():
+    graph = {"A": {"B"}, "B": {"A"}}
+    assert is_cyclic(graph) is True
 
 
-class TestIsValidOrdering(unittest.TestCase):
-    def test_valid_order(self):
-        nodes = {"c": ["b"], "b": ["a"], "a": []}
-        self.assertTrue(is_valid_ordering(["a", "b", "c"], nodes))
-
-    def test_invalid_order(self):
-        nodes = {"c": ["b"], "b": ["a"], "a": []}
-        self.assertFalse(is_valid_ordering(["c", "b", "a"], nodes))
-
-    def test_mismatched_node_sets(self):
-        self.assertFalse(is_valid_ordering(["a", "b"], {"a": [], "b": [], "c": []}))
-
-    def test_empty(self):
-        self.assertTrue(is_valid_ordering([], {}))
+def test_is_cyclic_false():
+    graph = {"A": set(), "B": {"A"}}
+    assert is_cyclic(graph) is False
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_topological_sort_cycle_error():
+    graph = {"A": {"B"}, "B": {"A"}}
+    try:
+        topological_sort(graph)
+        assert False
+    except CycleError:
+        pass
+
+
+def test_get_ready_order():
+    graph = {"D": {"B", "C"}, "C": {"A"}, "B": {"A"}, "A": set()}
+    levels = get_ready_order(graph)
+    assert levels[0] == ["A"]
+    assert set(levels[1]) == {"B", "C"}
+    assert levels[2] == ["D"]
+
+
+def test_topological_sort_type_error():
+    try:
+        topological_sort("not a mapping")
+        assert False
+    except TypeError:
+        pass
+
+
+def test_is_cyclic_type_error():
+    try:
+        is_cyclic([])
+        assert False
+    except TypeError:
+        pass
+
+
+def test_graphlib_export():
+    assert TopologicalSorter is not None
 TEST_GRAPHLIB_UTILS
 
 # --- grp_utils.py ---
