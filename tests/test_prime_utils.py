@@ -20,6 +20,16 @@ class TestPrimesUpTo(unittest.TestCase):
     def test_inclusive(self):
         self.assertEqual(primes_up_to(13), [2, 3, 5, 7, 11, 13])
 
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            primes_up_to(10.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_up_to("10")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_up_to(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_up_to(True)  # type: ignore[arg-type]
+
 
 class TestNthPrime(unittest.TestCase):
     def test_first(self):
@@ -35,6 +45,16 @@ class TestNthPrime(unittest.TestCase):
     def test_negative_raises(self):
         with self.assertRaises(ValueError):
             nth_prime(-3)
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            nth_prime(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            nth_prime("1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            nth_prime(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            nth_prime(True)  # type: ignore[arg-type]
 
 
 class TestPrimeFactors(unittest.TestCase):
@@ -58,6 +78,16 @@ class TestPrimeFactors(unittest.TestCase):
         with self.assertRaises(ValueError):
             prime_factors(-7)
 
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            prime_factors(10.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            prime_factors("10")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            prime_factors(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            prime_factors(True)  # type: ignore[arg-type]
+
 
 class TestIsCoprime(unittest.TestCase):
     def test_coprime(self):
@@ -72,6 +102,16 @@ class TestIsCoprime(unittest.TestCase):
 
     def test_negative(self):
         self.assertTrue(is_coprime(-8, 9))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_coprime(8.5, 9)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(8, "9")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(None, 9)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(8, True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

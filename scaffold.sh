@@ -33077,6 +33077,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Hardened the `prime_utils` module with typed `__all__`, Google-style docstrings, and input validation (`TypeError` for non-int arguments, `ValueError` for out-of-range values) on `primes_up_to`, `nth_prime`, `prime_factors`, and `is_coprime`; added validation tests in `tests/test_prime_utils.py`; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
 - Fixed the `if __name__ == "__main__"` block placement in `tests/test_strings.py` and `tests/test_shapes.py` so their tests run when the files are executed directly, and added `tests/test_prime_utils.py` and `tests/test_version_utils.py` covering the previously untested modules; synchronized all four test files into the embedded copies of `scaffold.sh`.
 - Verified full test suite (5211 tests), ruff, mypy, and scaffold sync; all green. Posted next handover task.
 - Hardened the `strings` module with `reverse_words` and synchronized `strings.py`, its tests, and scaffold documentation (README and embedded `scaffold.sh`) so generated projects and docs reflect the expanded string utilities API.
@@ -33564,7 +33565,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
+prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, is_coprime)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
@@ -34403,7 +34404,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `next_prime` finds the next prime after a given number, and `previous_prime` finds the previous prime before a given number. The module builds on `math_utils.is_prime` and validates its inputs. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, and `is_coprime` checks whether two integers are coprime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 ## Decimal Utilities Module
 
@@ -56191,11 +56192,39 @@ TEST_PPRINT_UTILS
 cat > "$OUTPUT_DIR/prime_utils.py" <<'PRIME_UTILS'
 """Prime number utility functions."""
 
-__all__ = ["primes_up_to", "nth_prime", "prime_factors", "is_coprime"]
+from __future__ import annotations
+
+import math
+from typing import List
+
+__all__: List[str] = [
+    "primes_up_to",
+    "nth_prime",
+    "prime_factors",
+    "is_coprime",
+]
 
 
-def primes_up_to(n: int) -> list[int]:
-    """Return all prime numbers up to and including *n* using the Sieve of Eratosthenes."""
+def _require_int(value: object, name: str) -> int:
+    """Validate that *value* is an int, raising ``TypeError`` otherwise."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def primes_up_to(n: int) -> List[int]:
+    """Return all prime numbers up to and including *n* using the Sieve of Eratosthenes.
+
+    Args:
+        n: The upper bound (inclusive) of the prime search.
+
+    Returns:
+        A list of all prime numbers less than or equal to *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
     if n < 2:
         return []
     sieve = [True] * (n + 1)
@@ -56210,7 +56239,19 @@ def primes_up_to(n: int) -> list[int]:
 
 
 def nth_prime(n: int) -> int:
-    """Return the *n*-th prime number (1-indexed)."""
+    """Return the *n*-th prime number (1-indexed).
+
+    Args:
+        n: The 1-based index of the prime to return.
+
+    Returns:
+        The *n*-th prime number.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+    """
+    _require_int(n, "n")
     if n < 1:
         raise ValueError("n must be >= 1")
     upper = max(10, n * 20)
@@ -56221,11 +56262,23 @@ def nth_prime(n: int) -> int:
         upper *= 2
 
 
-def prime_factors(n: int) -> list[int]:
-    """Return the prime factorization of *n* as a list of prime factors."""
+def prime_factors(n: int) -> List[int]:
+    """Return the prime factorization of *n* as a list of prime factors.
+
+    Args:
+        n: The integer to factorize.
+
+    Returns:
+        A list of prime factors of *n*, in ascending order.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 2.
+    """
+    _require_int(n, "n")
     if n < 2:
         raise ValueError("n must be >= 2")
-    factors: list[int] = []
+    factors: List[int] = []
     d = 2
     while d * d <= n:
         while n % d == 0:
@@ -56238,9 +56291,20 @@ def prime_factors(n: int) -> list[int]:
 
 
 def is_coprime(a: int, b: int) -> bool:
-    """Return True if *a* and *b* are coprime."""
-    import math
+    """Return True if *a* and *b* are coprime.
 
+    Args:
+        a: The first integer.
+        b: The second integer.
+
+    Returns:
+        True if the greatest common divisor of *a* and *b` is 1.
+
+    Raises:
+        TypeError: If *a* or *b* is not an int.
+    """
+    _require_int(a, "a")
+    _require_int(b, "b")
     return math.gcd(a, b) == 1
 PRIME_UTILS
 
@@ -56268,6 +56332,16 @@ class TestPrimesUpTo(unittest.TestCase):
     def test_inclusive(self):
         self.assertEqual(primes_up_to(13), [2, 3, 5, 7, 11, 13])
 
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            primes_up_to(10.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_up_to("10")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_up_to(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_up_to(True)  # type: ignore[arg-type]
+
 
 class TestNthPrime(unittest.TestCase):
     def test_first(self):
@@ -56283,6 +56357,16 @@ class TestNthPrime(unittest.TestCase):
     def test_negative_raises(self):
         with self.assertRaises(ValueError):
             nth_prime(-3)
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            nth_prime(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            nth_prime("1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            nth_prime(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            nth_prime(True)  # type: ignore[arg-type]
 
 
 class TestPrimeFactors(unittest.TestCase):
@@ -56306,6 +56390,16 @@ class TestPrimeFactors(unittest.TestCase):
         with self.assertRaises(ValueError):
             prime_factors(-7)
 
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            prime_factors(10.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            prime_factors("10")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            prime_factors(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            prime_factors(True)  # type: ignore[arg-type]
+
 
 class TestIsCoprime(unittest.TestCase):
     def test_coprime(self):
@@ -56320,6 +56414,16 @@ class TestIsCoprime(unittest.TestCase):
 
     def test_negative(self):
         self.assertTrue(is_coprime(-8, 9))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_coprime(8.5, 9)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(8, "9")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(None, 9)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(8, True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

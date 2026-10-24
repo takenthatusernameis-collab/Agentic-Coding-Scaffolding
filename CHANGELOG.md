@@ -5,6 +5,7 @@
 
 ## Unreleased
 
+- Hardened the `prime_utils` module with typed `__all__`, Google-style docstrings, and input validation (`TypeError` for non-int arguments, `ValueError` for out-of-range values) on `primes_up_to`, `nth_prime`, `prime_factors`, and `is_coprime`; added validation tests in `tests/test_prime_utils.py`; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
 - Fixed the `if __name__ == "__main__"` block placement in `tests/test_strings.py` and `tests/test_shapes.py` so their tests run when the files are executed directly, and added `tests/test_prime_utils.py` and `tests/test_version_utils.py` covering the previously untested modules; synchronized all four test files into the embedded copies of `scaffold.sh`.
 - Verified full test suite (5211 tests), ruff, mypy, and scaffold sync; all green. Posted next handover task.
 - Hardened the `strings` module with `reverse_words` and synchronized `strings.py`, its tests, and scaffold documentation (README and embedded `scaffold.sh`) so generated projects and docs reflect the expanded string utilities API.
