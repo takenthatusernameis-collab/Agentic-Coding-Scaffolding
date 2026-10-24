@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Added the `filter` method to `either_utils.Either`, which was advertised in the README module tree, the scaffold command documentation, and the embedded README template but was not implemented. A Right value that satisfies the predicate is kept, a Right value that does not is turned into a Left carrying the same value, a Left is returned unchanged, and an exception raised by the predicate is captured into a Left so the operation stays safe. This mirrors the `filter` method of `maybe_utils.Maybe`.
+
 - Verified the bootstrap foundation: the stdlib wrapper surface is complete (255 modules wrap every importable top-level standard library module), `make test` passes (5367 tests, 5 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in `scaffold.sh` are in sync.
 
 - Repaired the `cooldown_utils` handover that the previous checkpoint session left behind: the module and its test were present, but the `scaffold.sh` header comment never listed `cooldown_utils.py` or `tests/test_cooldown_utils.py`, so `tests/test_scaffold_sync.py` reported a synchronization gap. The header now lists both, and `make refresh-scaffold` confirms that every embedded copy is in sync.

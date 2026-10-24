@@ -124,6 +124,21 @@ class Either(Generic[L, R]):
         """Alias for flat_map."""
         return self.flat_map(fn)
 
+    def filter(self, predicate: Callable[[R], bool]) -> "Either[L, R]":
+        """Keep the Right value if it matches the predicate, otherwise turn it into a Left.
+
+        A Left is returned unchanged, and an exception raised by the predicate is
+        captured into a Left so the operation stays safe.
+        """
+        if not self._is_right:
+            return Either(self._value, is_right=False)
+        try:
+            if predicate(self._value):
+                return self
+            return Either(self._value, is_right=False)
+        except Exception as e:
+            return Either(cast(L, e), is_right=False)
+
     def or_else(self, other: "Either[L, R]") -> "Either[L, R]":
         """Return self if Right, otherwise other."""
         if self._is_right:

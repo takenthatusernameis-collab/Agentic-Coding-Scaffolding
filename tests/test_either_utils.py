@@ -64,6 +64,19 @@ class TestEither(unittest.TestCase):
         self.assertEqual(Either.right(1).or_else(Either.right(2)).unwrap(), 1)
         self.assertEqual(Either.left("a").or_else(Either.right(2)).unwrap(), 2)
 
+    def test_filter(self) -> None:
+        self.assertTrue(Either.right(10).filter(lambda x: x > 5).is_right())
+        self.assertTrue(Either.right(3).filter(lambda x: x > 5).is_left())
+        self.assertTrue(Either.left("err").filter(lambda x: x > 5).is_left())
+
+    def test_filter_captures_predicate_exception(self) -> None:
+        def boom(_value: int) -> bool:
+            raise RuntimeError("boom")
+
+        result = Either.right(5).filter(boom)
+        self.assertTrue(result.is_left())
+        self.assertIsInstance(result.unwrap_left(), RuntimeError)
+
     def test_fold(self) -> None:
         self.assertEqual(Either.right(5).fold(lambda e: -1, lambda x: x * 2), 10)
         self.assertEqual(Either.left("err").fold(lambda e: len(e), lambda x: x), 3)
