@@ -3,12 +3,14 @@ import unittest
 
 from shapes import (
     circle_area,
+    circle_diameter,
     circle_perimeter,
     ellipse_area,
     parallelogram_area,
     parallelogram_perimeter,
     polygon_area,
     rectangle_area,
+    rectangle_diagonal,
     rectangle_perimeter,
     regular_polygon_area,
     rhombus_area,
@@ -221,3 +223,24 @@ class TestRegularPolygonArea(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCircleDiameter(unittest.TestCase):
+    def test_diameter(self):
+        self.assertEqual(circle_diameter(0), 0)
+        self.assertEqual(circle_diameter(1), 2)
+        self.assertEqual(circle_diameter(2.5), 5.0)
+
+    def test_negative(self):
+        with self.assertRaises(ValueError):
+            circle_diameter(-1)
+
+
+class TestRectangleDiagonal(unittest.TestCase):
+    def test_diagonal(self):
+        self.assertEqual(rectangle_diagonal(3, 4), 5.0)
+        self.assertEqual(rectangle_diagonal(0, 0), 0.0)
+
+    def test_negative(self):
+        with self.assertRaises(ValueError):
+            rectangle_diagonal(-1, 4)

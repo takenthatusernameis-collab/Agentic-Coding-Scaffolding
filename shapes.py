@@ -5,8 +5,10 @@ from typing import List
 
 __all__: List[str] = [
     "circle_area",
+    "circle_diameter",
     "circle_perimeter",
     "rectangle_area",
+    "rectangle_diagonal",
     "rectangle_perimeter",
     "triangle_area",
     "triangle_perimeter",
@@ -368,3 +370,17 @@ def regular_polygon_perimeter(n: int, side_length: float) -> float:
     if side_length < 0:
         raise ValueError("Side length cannot be negative")
     return float(n * side_length)
+
+
+def circle_diameter(radius: float) -> float:
+    """Return the diameter of a circle with the given radius."""
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    return 2 * radius
+
+
+def rectangle_diagonal(length: float, width: float) -> float:
+    """Return the diagonal of a rectangle."""
+    if length < 0 or width < 0:
+        raise ValueError("Length and width cannot be negative.")
+    return float((length ** 2 + width ** 2) ** 0.5)
