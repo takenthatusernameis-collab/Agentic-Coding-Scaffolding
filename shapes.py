@@ -20,6 +20,7 @@ __all__: List[str] = [
     "parallelogram_perimeter",
     "ellipse_area",
     "polygon_area",
+    "regular_polygon_area",
 ]
 
 
@@ -336,3 +337,23 @@ def polygon_area(vertices: List[tuple[float, float]]) -> float:
         s1 += x1 * y2
         s2 += y1 * x2
     return abs(s1 - s2) / 2.0
+
+
+def regular_polygon_area(n: int, side_length: float) -> float:
+    """Return the area of a regular polygon with n sides.
+
+    Args:
+        n: Number of sides (must be >= 3).
+        side_length: Length of each side.
+
+    Raises:
+        TypeError: If n is not an int.
+        ValueError: If n < 3 or side_length is negative.
+    """
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 3:
+        raise ValueError("n must be at least 3")
+    if side_length < 0:
+        raise ValueError("Side length cannot be negative.")
+    return (n * side_length ** 2) / (4 * math.tan(math.pi / n))

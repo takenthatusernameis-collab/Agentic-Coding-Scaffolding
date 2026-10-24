@@ -3,14 +3,22 @@
 import unittest
 
 from strings import (
+    camel_to_snake,
     capitalize_words,
+    char_count,
     count_consonants,
     count_vowels,
     is_anagram,
+    is_blank,
     is_palindrome,
     levenshtein_distance,
+    remove_whitespace,
     reverse_string,
+    slugify,
+    snake_to_camel,
+    title_case,
     truncate,
+    word_count,
 )
 
 
@@ -228,6 +236,147 @@ class TestLevenshteinDistance(unittest.TestCase):
     def test_rejects_non_string_second(self):
         with self.assertRaises(TypeError):
             levenshtein_distance("abc", 123)  # type: ignore[arg-type]
+
+
+class TestTitleCase(unittest.TestCase):
+    def test_title_case_basic(self):
+        self.assertEqual(title_case("hello world"), "Hello World")
+
+    def test_title_case_multiple(self):
+        self.assertEqual(title_case("the quick brown fox"), "The Quick Brown Fox")
+
+    def test_title_case_empty(self):
+        self.assertEqual(title_case(""), "")
+
+    def test_title_case_single_word(self):
+        self.assertEqual(title_case("hello"), "Hello")
+
+    def test_title_case_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            title_case(123)  # type: ignore[arg-type]
+
+
+class TestCamelToSnake(unittest.TestCase):
+    def test_camel_to_snake_basic(self):
+        self.assertEqual(camel_to_snake("helloWorld"), "hello_world")
+
+    def test_camel_to_snake_multiple_caps(self):
+        self.assertEqual(camel_to_snake("getHTTPResponse"), "get_http_response")
+
+    def test_camel_to_snake_already_snake(self):
+        self.assertEqual(camel_to_snake("hello_world"), "hello_world")
+
+    def test_camel_to_snake_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            camel_to_snake(None)  # type: ignore[arg-type]
+
+
+class TestSnakeToCamel(unittest.TestCase):
+    def test_snake_to_camel_basic(self):
+        self.assertEqual(snake_to_camel("hello_world"), "helloWorld")
+
+    def test_snake_to_camel_capitalize_first(self):
+        self.assertEqual(snake_to_camel("hello_world", capitalize_first=True), "HelloWorld")
+
+    def test_snake_to_camel_single_word(self):
+        self.assertEqual(snake_to_camel("hello"), "hello")
+
+    def test_snake_to_camel_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            snake_to_camel(123)  # type: ignore[arg-type]
+
+    def test_snake_to_camel_rejects_non_bool(self):
+        with self.assertRaises(TypeError):
+            snake_to_camel("hello_world", capitalize_first="true")  # type: ignore[arg-type]
+
+
+class TestSlugify(unittest.TestCase):
+    def test_slugify_basic(self):
+        self.assertEqual(slugify("Hello World"), "hello-world")
+
+    def test_slugify_with_special_chars(self):
+        self.assertEqual(slugify("Hello, World!"), "hello-world")
+
+    def test_slugify_multiple_spaces(self):
+        self.assertEqual(slugify("hello   world"), "hello-world")
+
+    def test_slugify_leading_trailing(self):
+        self.assertEqual(slugify("  hello world  "), "hello-world")
+
+    def test_slugify_empty(self):
+        self.assertEqual(slugify(""), "")
+
+    def test_slugify_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            slugify(123)  # type: ignore[arg-type]
+
+
+class TestRemoveWhitespace(unittest.TestCase):
+    def test_remove_whitespace_basic(self):
+        self.assertEqual(remove_whitespace("hello world"), "helloworld")
+
+    def test_remove_whitespace_tabs_newlines(self):
+        self.assertEqual(remove_whitespace("hello\n\tworld"), "helloworld")
+
+    def test_remove_whitespace_empty(self):
+        self.assertEqual(remove_whitespace(""), "")
+
+    def test_remove_whitespace_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            remove_whitespace(None)  # type: ignore[arg-type]
+
+
+class TestWordCount(unittest.TestCase):
+    def test_word_count_basic(self):
+        self.assertEqual(word_count("hello world"), 2)
+
+    def test_word_count_multiple_spaces(self):
+        self.assertEqual(word_count("hello   world"), 2)
+
+    def test_word_count_empty(self):
+        self.assertEqual(word_count(""), 0)
+
+    def test_word_count_whitespace_only(self):
+        self.assertEqual(word_count("   "), 0)
+
+    def test_word_count_single_word(self):
+        self.assertEqual(word_count("hello"), 1)
+
+    def test_word_count_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            word_count(123)  # type: ignore[arg-type]
+
+
+class TestCharCount(unittest.TestCase):
+    def test_char_count_basic(self):
+        self.assertEqual(char_count("hello"), 5)
+
+    def test_char_count_with_spaces(self):
+        self.assertEqual(char_count("hello world"), 11)
+
+    def test_char_count_empty(self):
+        self.assertEqual(char_count(""), 0)
+
+    def test_char_count_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            char_count([])  # type: ignore[arg-type]
+
+
+class TestIsBlank(unittest.TestCase):
+    def test_is_blank_empty(self):
+        self.assertTrue(is_blank(""))
+
+    def test_is_blank_whitespace(self):
+        self.assertTrue(is_blank("   "))
+        self.assertTrue(is_blank("\t\n"))
+
+    def test_is_blank_not_blank(self):
+        self.assertFalse(is_blank("hello"))
+        self.assertFalse(is_blank(" hello "))
+
+    def test_is_blank_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_blank(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

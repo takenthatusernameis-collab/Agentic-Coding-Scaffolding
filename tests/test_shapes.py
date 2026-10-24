@@ -10,6 +10,7 @@ from shapes import (
     polygon_area,
     rectangle_area,
     rectangle_perimeter,
+    regular_polygon_area,
     rhombus_area,
     rhombus_perimeter,
     square_area,
@@ -198,6 +199,24 @@ class TestPolygonArea(unittest.TestCase):
     def test_non_list(self):
         with self.assertRaises(TypeError):
             polygon_area((0, 0), (1, 1), (2, 0))  # type: ignore[arg-type]
+
+
+class TestRegularPolygonArea(unittest.TestCase):
+    def test_square(self):
+        self.assertAlmostEqual(regular_polygon_area(4, 2), 4.0)
+
+    def test_triangle(self):
+        self.assertAlmostEqual(regular_polygon_area(3, 2), math.sqrt(3))
+
+    def test_negative_side(self):
+        with self.assertRaises(ValueError):
+            regular_polygon_area(5, -1)
+
+    def test_too_few_sides(self):
+        with self.assertRaises(ValueError):
+            regular_polygon_area(2, 1)
+        with self.assertRaises(TypeError):
+            regular_polygon_area(3.5, 1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

@@ -23,6 +23,7 @@ __all__: List[str] = [
     "remove_whitespace",
     "word_count",
     "char_count",
+    "is_blank",
 ]
 
 
@@ -188,3 +189,9 @@ def char_count(s: str) -> int:
     """Count characters in string."""
     _require_string(s, "s")
     return len(s)
+
+
+def is_blank(s: str) -> bool:
+    """Return True if string is empty or contains only whitespace."""
+    _require_string(s, "s")
+    return s.strip() == ""
