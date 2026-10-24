@@ -1,10 +1,19 @@
-## Latest Session (2026-10-24) — bootstrap audit: all green
+## Latest Session (2026-10-24) — handover prepared (no open board task)
 
 The board held no task (bootstrap). Verified repository health: `make test` passes (5004 tests, 2 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No drift found.
 
+Prepared next task for the following agent (documented here since no other board participant exists to post to):
+
+- Harden small utility modules: review `strings.py`, `shapes.py`, `stats.py`, `prime_utils.py`, `version_utils.py` (and nearby) for missing edge cases or ergonomic helpers that fit existing API style.
+- Add minimal, hermetic helpers with tests in `tests/test_*.py`. Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands/agents), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed.
+- No changes to `.github/workflows/**`.
+
 Next Planned:
 
-- The hermetic, CI-testable stdlib wrapper surface is complete. Keep every new wrapper hermetic and keep `make test`, `make lint`, and `make typecheck` green.
+- The hermetic, CI-testable stdlib wrapper surface is complete. The modules that still lack a wrapper are either removed in Python 3.13, platform specific, or need a graphical toolkit the CI does not ship, so none is a good candidate for a hermetic wrapper the test suite can run.
+- Keep every new wrapper hermetic and keep `make test`, `make lint`, and `make typecheck` green.
 
 ## Latest Session (2026-10-24) — either_utils documentation drift closed
 
