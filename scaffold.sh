@@ -103375,7 +103375,7 @@ TEST_MAYBE_UTILS
 cat > "$OUTPUT_DIR/either_utils.py" <<'EITHER_UTILS'
 """Either/Result type utilities for functional programming patterns."""
 
-from typing import Any, Callable, Generic, Optional, TypeVar, Union
+from typing import Any, Callable, Generic, Optional, TypeVar, cast
 
 L = TypeVar("L")
 R = TypeVar("R")
@@ -103443,24 +103443,24 @@ class Either(Generic[L, R]):
         """Get the right value, raising an error if Left."""
         if not self._is_right:
             raise ValueError(f"Called unwrap on Left: {self._value!r}")
-        return self._value
+        return cast(R, self._value)
 
     def unwrap_left(self) -> L:
         """Get the left value, raising an error if Right."""
         if self._is_right:
             raise ValueError(f"Called unwrap_left on Right: {self._value!r}")
-        return self._value
+        return cast(L, self._value)
 
     def unwrap_or(self, default: R) -> R:
         """Get the right value or return a default if Left."""
         if self._is_right:
-            return self._value
+            return cast(R, self._value)
         return default
 
     def unwrap_or_else(self, fn: Callable[[L], R]) -> R:
         """Get the right value or compute from left if Left."""
         if self._is_right:
-            return self._value
+            return cast(R, self._value)
         return fn(self._value)
 
     def map(self, fn: Callable[[R], U]) -> "Either[L, U]":
@@ -103471,7 +103471,7 @@ class Either(Generic[L, R]):
             result = fn(self._value)
             return Either.right(result)
         except Exception as e:
-            return Either.left(e)
+            return Either.left(cast(L, e))
 
     def map_left(self, fn: Callable[[L], T]) -> "Either[T, R]":
         """Apply a function if Left, otherwise return Right unchanged."""
@@ -103481,7 +103481,7 @@ class Either(Generic[L, R]):
             result = fn(self._value)
             return Either.left(result)
         except Exception as e:
-            return Either.left(e)
+            return Either.left(cast(T, e))
 
     def flat_map(self, fn: Callable[[R], "Either[L, U]"]) -> "Either[L, U]":
         """Apply a function returning Either if Right, otherwise return Left."""
@@ -103493,7 +103493,7 @@ class Either(Generic[L, R]):
                 return result
             return Either.right(result)
         except Exception as e:
-            return Either.left(e)
+            return Either.left(cast(L, e))
 
     def and_then(self, fn: Callable[[R], "Either[L, U]"]) -> "Either[L, U]":
         """Alias for flat_map."""
@@ -103531,7 +103531,7 @@ class Either(Generic[L, R]):
             return NotImplemented
         if self._is_right != other._is_right:
             return False
-        return self._value == other._value
+        return cast(bool, self._value == other._value)
 
 
 __all__ = [
