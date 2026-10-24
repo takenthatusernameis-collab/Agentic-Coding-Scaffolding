@@ -7,7 +7,7 @@ graphlib.TopologicalSorter.
 from __future__ import annotations
 
 from graphlib import CycleError, TopologicalSorter
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
+from typing import Any, Iterable, List, Mapping, Optional
 
 __all__ = [
     "CycleError",
@@ -76,7 +76,7 @@ def topological_sort(
         return list(ts.static_order())
     except CycleError:
         raise
-    except Exception as exc:
+    except Exception:
         raise
 
 
@@ -117,7 +117,7 @@ def get_ready_order(graph: Mapping[Any, Iterable[Any]]) -> List[List[Any]]:
     if not isinstance(graph, Mapping):
         raise TypeError("graph must be a mapping")
 
-    ts = TopologicalSorter()
+    ts: TopologicalSorter = TopologicalSorter()
     all_nodes = set(graph.keys())
     for node, deps in graph.items():
         for dep in deps:

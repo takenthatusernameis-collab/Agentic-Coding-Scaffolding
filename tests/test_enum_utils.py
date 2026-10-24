@@ -4,8 +4,6 @@ from enum_utils import (
     Enum,
     Flag,
     IntEnum,
-    IntFlag,
-    StrEnum,
     as_dict,
     as_list,
     auto,

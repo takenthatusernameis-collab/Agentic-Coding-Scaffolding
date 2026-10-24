@@ -7,7 +7,7 @@ membership checks, and conversions to common representations.
 from __future__ import annotations
 
 import enum
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Tuple, Type
 
 __all__ = [
     "Enum",
@@ -71,7 +71,7 @@ def get_member(enum_cls: Type[enum.Enum], name: str) -> enum.Enum:
     if not isinstance(name, str):
         raise TypeError("name must be a string")
     try:
-        return getattr(enum_cls, name)
+        return getattr(enum_cls, name)  # type: ignore[no-any-return]
     except AttributeError as exc:
         raise AttributeError(f"{enum_cls.__name__} has no member named {name!r}") from exc
 

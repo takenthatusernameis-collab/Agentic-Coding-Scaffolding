@@ -41585,7 +41585,7 @@ membership checks, and conversions to common representations.
 from __future__ import annotations
 
 import enum
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Tuple, Type
 
 __all__ = [
     "Enum",
@@ -41649,7 +41649,7 @@ def get_member(enum_cls: Type[enum.Enum], name: str) -> enum.Enum:
     if not isinstance(name, str):
         raise TypeError("name must be a string")
     try:
-        return getattr(enum_cls, name)
+        return getattr(enum_cls, name)  # type: ignore[no-any-return]
     except AttributeError as exc:
         raise AttributeError(f"{enum_cls.__name__} has no member named {name!r}") from exc
 
@@ -41805,8 +41805,6 @@ from enum_utils import (
     Enum,
     Flag,
     IntEnum,
-    IntFlag,
-    StrEnum,
     as_dict,
     as_list,
     auto,
@@ -46373,7 +46371,7 @@ graphlib.TopologicalSorter.
 from __future__ import annotations
 
 from graphlib import CycleError, TopologicalSorter
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
+from typing import Any, Iterable, List, Mapping, Optional
 
 __all__ = [
     "CycleError",
@@ -46442,7 +46440,7 @@ def topological_sort(
         return list(ts.static_order())
     except CycleError:
         raise
-    except Exception as exc:
+    except Exception:
         raise
 
 
@@ -46483,7 +46481,7 @@ def get_ready_order(graph: Mapping[Any, Iterable[Any]]) -> List[List[Any]]:
     if not isinstance(graph, Mapping):
         raise TypeError("graph must be a mapping")
 
-    ts = TopologicalSorter()
+    ts: TopologicalSorter = TopologicalSorter()
     all_nodes = set(graph.keys())
     for node, deps in graph.items():
         for dep in deps:
