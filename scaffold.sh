@@ -9701,6 +9701,169 @@ def triangle_perimeter(side_a: float, side_b: float, side_c: float) -> float:
     if not (side_a + side_b > side_c and side_a + side_c > side_b and side_b + side_c > side_a):
         raise ValueError("Sides do not form a valid triangle.")
     return side_a + side_b + side_c
+
+
+def square_area(side: float) -> float:
+    """Return the area of a square with the given side length.
+
+    Args:
+        side: The side length of the square.
+
+    Raises:
+        ValueError: If side is negative.
+
+    Examples:
+        >>> square_area(4)
+        16
+        >>> square_area(0)
+        0
+    """
+    if side < 0:
+        raise ValueError("Side cannot be negative.")
+    return side * side
+
+
+def square_perimeter(side: float) -> float:
+    """Return the perimeter of a square with the given side length.
+
+    Args:
+        side: The side length of the square.
+
+    Raises:
+        ValueError: If side is negative.
+
+    Examples:
+        >>> square_perimeter(4)
+        16
+        >>> square_perimeter(0)
+        0
+    """
+    if side < 0:
+        raise ValueError("Side cannot be negative.")
+    return 4 * side
+
+
+def rhombus_area(diagonal1: float, diagonal2: float) -> float:
+    """Return the area of a rhombus given its two diagonals.
+
+    Args:
+        diagonal1: Length of the first diagonal.
+        diagonal2: Length of the second diagonal.
+
+    Raises:
+        ValueError: If either diagonal is negative.
+
+    Examples:
+        >>> rhombus_area(6, 8)
+        24.0
+    """
+    if diagonal1 < 0 or diagonal2 < 0:
+        raise ValueError("Diagonals cannot be negative.")
+    return 0.5 * diagonal1 * diagonal2
+
+
+def rhombus_perimeter(side: float) -> float:
+    """Return the perimeter of a rhombus given its side length.
+
+    Args:
+        side: The side length of the rhombus.
+
+    Raises:
+        ValueError: If side is negative.
+
+    Examples:
+        >>> rhombus_perimeter(5)
+        20
+    """
+    if side < 0:
+        raise ValueError("Side cannot be negative.")
+    return 4 * side
+
+
+def trapezoid_area(base1: float, base2: float, height: float) -> float:
+    """Return the area of a trapezoid given its two bases and height.
+
+    Args:
+        base1: Length of the first base.
+        base2: Length of the second base.
+        height: The height of the trapezoid.
+
+    Raises:
+        ValueError: If any dimension is negative.
+
+    Examples:
+        >>> trapezoid_area(4, 6, 5)
+        25.0
+    """
+    if base1 < 0 or base2 < 0 or height < 0:
+        raise ValueError("Dimensions cannot be negative.")
+    return 0.5 * (base1 + base2) * height
+
+
+def triangle_heron_area(side_a: float, side_b: float, side_c: float) -> float:
+    """Return the area of a triangle given its three sides using Heron's formula.
+
+    Args:
+        side_a: Length of the first side.
+        side_b: Length of the second side.
+        side_c: Length of the third side.
+
+    Raises:
+        ValueError: If any side is negative or the sides violate the triangle inequality.
+
+    Examples:
+        >>> triangle_heron_area(3, 4, 5)
+        6.0
+    """
+    if side_a < 0 or side_b < 0 or side_c < 0:
+        raise ValueError("Sides cannot be negative.")
+    if not (side_a + side_b > side_c and side_a + side_c > side_b and side_b + side_c > side_a):
+        raise ValueError("Sides do not form a valid triangle.")
+    semi_perimeter = (side_a + side_b + side_c) / 2.0
+    return math.sqrt(
+        semi_perimeter
+        * (semi_perimeter - side_a)
+        * (semi_perimeter - side_b)
+        * (semi_perimeter - side_c)
+    )
+
+
+def parallelogram_area(base: float, height: float) -> float:
+    """Return the area of a parallelogram given its base and height.
+
+    Args:
+        base: The base length of the parallelogram.
+        height: The perpendicular height.
+
+    Raises:
+        ValueError: If base or height is negative.
+
+    Examples:
+        >>> parallelogram_area(4, 5)
+        20
+    """
+    if base < 0 or height < 0:
+        raise ValueError("Base and height cannot be negative.")
+    return base * height
+
+
+def parallelogram_perimeter(side_a: float, side_b: float) -> float:
+    """Return the perimeter of a parallelogram given its two side lengths.
+
+    Args:
+        side_a: Length of the first side.
+        side_b: Length of the adjacent side.
+
+    Raises:
+        ValueError: If either side is negative.
+
+    Examples:
+        >>> parallelogram_perimeter(4, 6)
+        20
+    """
+    if side_a < 0 or side_b < 0:
+        raise ValueError("Sides cannot be negative.")
+    return 2 * (side_a + side_b)
 SHAPES
 
 # --- tests/test_shapes.py ---
@@ -9840,6 +10003,141 @@ def count_vowels(s: str) -> int:
     """
     vowels = {"a", "e", "i", "o", "u"}
     return sum(1 for ch in s.lower() if ch in vowels)
+
+
+def count_consonants(s: str) -> int:
+    """Return the number of consonants in the given string.
+
+    Comparison is case-insensitive and ignores non-alphabetic characters.
+
+    Args:
+        s: The string to count consonants in.
+
+    Examples:
+        >>> count_consonants("hello")
+        3
+        >>> count_consonants("rhythm")
+        5
+        >>> count_consonants("hello world")
+        7
+    """
+    vowels = {"a", "e", "i", "o", "u"}
+    return sum(1 for ch in s.lower() if ch.isalpha() and ch not in vowels)
+
+
+def is_anagram(a: str, b: str) -> bool:
+    """Return True if *a* and *b* are anagrams of each other.
+
+    Comparison is case-insensitive and ignores all whitespace.
+
+    Args:
+        a: The first string.
+        b: The second string.
+
+    Examples:
+        >>> is_anagram("listen", "silent")
+        True
+        >>> is_anagram("hello", "world")
+        False
+        >>> is_anagram("The Eyes", "They See")
+        True
+    """
+
+    def normalize(text: str) -> str:
+        return "".join(sorted(ch.lower() for ch in text if not ch.isspace()))
+
+    return normalize(a) == normalize(b)
+
+
+
+def capitalize_words(s: str) -> str:
+    """Return *s* with the first letter of every word capitalized.
+
+    Args:
+        s: The string to capitalize.
+
+    Examples:
+        >>> capitalize_words("hello world")
+        'Hello World'
+        >>> capitalize_words("python programming")
+        'Python Programming'
+    """
+    return " ".join(word[:1].upper() + word[1:] for word in s.split(" "))
+
+
+def truncate(s: str, length: int, suffix: str = "...") -> str:
+    """Truncate *s* to at most *length* characters, appending *suffix*.
+
+    If truncation is necessary, the returned string is exactly *length*
+    characters long including the suffix. The suffix is only appended when
+    the original string exceeds the limit.
+
+    Args:
+        s: The string to truncate.
+        length: The maximum length of the returned string.
+        suffix: The suffix to append when truncation occurs.
+
+    Returns:
+        The possibly truncated string.
+
+    Raises:
+        ValueError: If *length* is negative or smaller than the suffix length.
+
+    Examples:
+        >>> truncate("hello world", 8)
+        'hello...'
+        >>> truncate("hi", 8)
+        'hi'
+        >>> truncate("hello world", 8, suffix="..")
+        'hello w..'
+    """
+    if length < 0:
+        raise ValueError("length must be non-negative")
+    if len(suffix) > length:
+        raise ValueError("suffix must not be longer than length")
+    if len(s) <= length:
+        return s
+    return s[: length - len(suffix)] + suffix
+
+
+def levenshtein_distance(a: str, b: str) -> int:
+    """Return the edit distance between *a* and *b*.
+
+    The edit distance is the minimum number of single-character edits
+    (insertions, deletions, or substitutions) required to transform *a*
+    into *b*.
+
+    Args:
+        a: The first string.
+        b: The second string.
+
+    Returns:
+        The Levenshtein distance between the two strings.
+
+    Examples:
+        >>> levenshtein_distance("kitten", "sitting")
+        3
+        >>> levenshtein_distance("", "abc")
+        3
+        >>> levenshtein_distance("abc", "abc")
+        0
+    """
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+    previous = list(range(len(b) + 1))
+    for i, ca in enumerate(a, start=1):
+        current = [i] + [0] * len(b)
+        for j, cb in enumerate(b, start=1):
+            cost = 0 if ca == cb else 1
+            current[j] = min(
+                current[j - 1] + 1,
+                previous[j] + 1,
+                previous[j - 1] + cost,
+            )
+        previous = current
+    return previous[-1]
 STRINGS
 
 # --- utils.py ---
