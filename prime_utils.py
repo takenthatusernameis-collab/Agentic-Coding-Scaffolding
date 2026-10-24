@@ -12,6 +12,10 @@ __all__ = [
     "previous_prime",
     "is_prime_power",
     "prime_sieve_of_eratosthenes",
+    "is_coprime",
+    "gcd",
+    "lcm",
+    "phi",
 ]
 
 
@@ -19,94 +23,37 @@ def prime_factors(n: int) -> list[int]:
     """Return the prime factors of n in non-decreasing order.
 
     Args:
-        n: The integer to factorize (n >= 2).
+        n: A positive integer greater than 1.
 
     Returns:
-        A list of prime factors whose product is n.
+        A list of prime factors of n.
 
     Raises:
         TypeError: If n is not an int.
-        ValueError: If n < 2.
-
-    Examples:
-        >>> prime_factors(12)
-        [2, 2, 3]
-        >>> prime_factors(17)
-        [17]
+        ValueError: If n is less than 2.
     """
     if not isinstance(n, int) or isinstance(n, bool):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 2:
-        raise ValueError("Prime factorization is only defined for integers >= 2")
-    factors: list[int] = []
-    while n % 2 == 0:
-        factors.append(2)
-        n //= 2
-    divisor = 3
-    while divisor * divisor <= n:
-        while n % divisor == 0:
-            factors.append(divisor)
-            n //= divisor
-        divisor += 2
-    if n > 1:
-        factors.append(n)
+        raise ValueError("n must be >= 2")
+    factors = []
+    d = 2
+    temp = n
+    while d * d <= temp:
+        while temp % d == 0:
+            factors.append(d)
+            temp //= d
+        if d == 2:
+            d += 1
+        else:
+            d += 2
+    if temp > 1:
+        factors.append(temp)
     return factors
 
 
-def nth_prime(n: int) -> int:
-    """Return the nth prime number (1-indexed).
-
-    Args:
-        n: The position of the prime to return (n >= 1).
-
-    Returns:
-        The nth prime number.
-
-    Raises:
-        TypeError: If n is not an int.
-        ValueError: If n < 1.
-
-    Examples:
-        >>> nth_prime(1)
-        2
-        >>> nth_prime(6)
-        13
-    """
-    if not isinstance(n, int) or isinstance(n, bool):
-        raise TypeError(f"n must be an int, got {type(n).__name__}")
-    if n < 1:
-        raise ValueError("nth_prime is only defined for n >= 1")
-    count = 0
-    candidate = 2
-    while True:
-        if is_prime(candidate):
-            count += 1
-            if count == n:
-                return candidate
-        candidate = 3 if candidate == 2 else candidate + 2
-
-
-def primes_up_to(limit: int) -> list[int]:
-    """Return all prime numbers less than or equal to limit.
-
-    Args:
-        limit: The upper bound (inclusive).
-
-    Returns:
-        A list of primes <= limit.
-
-    Raises:
-        TypeError: If limit is not an int.
-    """
-    if not isinstance(limit, int) or isinstance(limit, bool):
-        raise TypeError(f"limit must be an int, got {type(limit).__name__}")
-    if limit < 2:
-        return []
-    return [p for p in range(2, limit + 1) if is_prime(p)]
-
-
 def prime_sieve_of_eratosthenes(limit: int) -> list[int]:
-    """Return all prime numbers up to and including limit using the sieve of Eratosthenes."""
+    """Return a list of prime numbers up to the specified limit."""
     if not isinstance(limit, int) or isinstance(limit, bool):
         raise TypeError(f"limit must be an int, got {type(limit).__name__}")
     if limit < 2:
@@ -126,59 +73,48 @@ def prime_sieve_of_eratosthenes(limit: int) -> list[int]:
     return primes
 
 
+def nth_prime(n: int) -> int:
+    """Return the nth prime number (1-indexed)."""
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    count = 0
+    num = 1
+    while count < n:
+        num += 1
+        if is_prime(num):
+            count += 1
+    return num
+
+
 def next_prime(n: int) -> int:
-    """Return the smallest prime strictly greater than n.
-
-    Args:
-        n: The integer to start from.
-
-    Returns:
-        The next prime after n.
-
-    Raises:
-        TypeError: If n is not an int.
-    """
+    """Return the smallest prime greater than n."""
     if not isinstance(n, int) or isinstance(n, bool):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     candidate = n + 1
-    if candidate <= 2:
-        return 2
-    if candidate % 2 == 0:
-        candidate += 1
     while not is_prime(candidate):
-        candidate += 2
+        candidate += 1
     return candidate
 
 
 def previous_prime(n: int) -> int:
-    """Return the largest prime strictly less than n.
-
-    Args:
-        n: The integer to start from (n > 2).
-
-    Returns:
-        The previous prime before n.
-
-    Raises:
-        TypeError: If n is not an int.
-        ValueError: If n <= 2.
-
-    Examples:
-        >>> previous_prime(11)
-        7
-        >>> previous_prime(3)
-        2
-    """
+    """Return the largest prime less than n."""
     if not isinstance(n, int) or isinstance(n, bool):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n <= 2:
-        raise ValueError("previous_prime is only defined for n > 2")
+        raise ValueError("no prime less than n")
     candidate = n - 1
-    while candidate >= 2:
-        if is_prime(candidate):
-            return candidate
+    while candidate >= 2 and not is_prime(candidate):
         candidate -= 1
-    raise ValueError("No prime found below n")
+    if candidate < 2:
+        raise ValueError("no prime less than n")
+    return candidate
+
+
+def primes_up_to(limit: int) -> list[int]:
+    """Return all prime numbers up to limit."""
+    return prime_sieve_of_eratosthenes(limit)
 
 
 def is_prime_power(n: int) -> bool:
@@ -187,16 +123,12 @@ def is_prime_power(n: int) -> bool:
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 4:
         return False
-    # Try all possible exponents k >= 2 such that p^k <= n
-    # Find max k
     max_k = int(math.log(n, 2))
     for k in range(max_k, 1, -1):
-        # try integer root
         p_float = n ** (1.0 / k)
         p = round(p_float)
         if p < 2:
             continue
-        # check a few values around p due to floating point
         for p_cand in {p - 1, p, p + 1}:
             if p_cand < 2:
                 continue
@@ -205,7 +137,6 @@ def is_prime_power(n: int) -> bool:
                 return True
             if val > n:
                 break
-    # Check prime bases
     for p in prime_sieve_of_eratosthenes(int(math.sqrt(n))):
         if p == 2 and n % 2 == 1:
             continue
@@ -219,3 +150,58 @@ def is_prime_power(n: int) -> bool:
         if power > n:
             break
     return False
+
+
+def is_coprime(a: int, b: int) -> bool:
+    """Return True if a and b are coprime (gcd is 1)."""
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    return gcd(abs(a), abs(b)) == 1
+
+
+def gcd(a: int, b: int) -> int:
+    """Return the greatest common divisor of a and b."""
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    a, b = abs(a), abs(b)
+    while b:
+        a, b = b, a % b
+    return a
+
+
+def lcm(a: int, b: int) -> int:
+    """Return the least common multiple of a and b."""
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    if a == 0 or b == 0:
+        return 0
+    return abs((a // gcd(a, b)) * b)
+
+
+def phi(n: int) -> int:
+    """Compute Euler's totient function phi for positive integer n."""
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        raise ValueError("n must be positive")
+    result = n
+    num = n
+    p = 2
+    while p * p <= num:
+        if num % p == 0:
+            while num % p == 0:
+                num //= p
+            result -= result // p
+        if p == 2:
+            p += 1
+        else:
+            p += 2
+    if num > 1:
+        result -= result // num
+    return result

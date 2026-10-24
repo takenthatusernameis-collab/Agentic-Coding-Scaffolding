@@ -25,6 +25,18 @@ __all__: List[str] = [
     "char_count",
     "is_blank",
     "normalize_whitespace",
+    "is_upper",
+    "is_lower",
+    "swap_case",
+    "count_occurrences",
+    "starts_with",
+    "ends_with",
+    "pad_left",
+    "pad_right",
+    "center",
+    "lstrip_chars",
+    "rstrip_chars",
+    "strip_chars",
 ]
 
 
@@ -78,56 +90,54 @@ def count_consonants(s: str) -> int:
     return sum(1 for ch in s.lower() if ch.isalpha() and ch not in vowels)
 
 
-def is_anagram(a: str, b: str) -> bool:
-    """Return True if *a* and *b* are anagrams of each other.
+def is_anagram(s1: str, s2: str) -> bool:
+    """Return True if s1 and s2 are anagrams of each other.
 
-    Comparison is case-insensitive and ignores all whitespace.
+    Comparison is case-insensitive and ignores whitespace.
     """
-    _require_string(a, "a")
-    _require_string(b, "b")
-    return sorted(a.lower().replace(" ", "")) == sorted(b.lower().replace(" ", ""))
+    _require_string(s1, "s1")
+    _require_string(s2, "s2")
+    cleaned1 = "".join(ch.lower() for ch in s1 if not ch.isspace())
+    cleaned2 = "".join(ch.lower() for ch in s2 if not ch.isspace())
+    return sorted(cleaned1) == sorted(cleaned2)
 
 
 def capitalize_words(s: str) -> str:
-    """Capitalize the first letter of each word in the string."""
+    """Capitalize the first letter of each word."""
     _require_string(s, "s")
-    return " ".join(word[:1].upper() + word[1:] for word in s.split(" "))
+    return " ".join(word.capitalize() for word in s.split())
 
 
 def truncate(s: str, length: int, suffix: str = "...") -> str:
-    """Truncate *s* to at most *length* characters, appending *suffix*."""
+    """Truncate string to max length, adding suffix if truncated."""
     _require_string(s, "s")
-    _require_string(suffix, "suffix")
     _require_int(length, "length")
     if length < 0:
-        raise ValueError("length must be non-negative")
-    if length == 0:
-        return ""
-    if len(suffix) > length:
-        raise ValueError("suffix must not be longer than length")
+        raise ValueError("length cannot be negative")
+    _require_string(suffix, "suffix")
     if len(s) <= length:
         return s
-    return s[: length - len(suffix)] + suffix
+    return s[: max(0, length - len(suffix))] + suffix
 
 
-def levenshtein_distance(a: str, b: str) -> int:
-    """Return the edit distance between *a* and *b*."""
-    _require_string(a, "a")
-    _require_string(b, "b")
-    if not a:
-        return len(b)
-    if not b:
-        return len(a)
-    previous = list(range(len(b) + 1))
-    for i, ca in enumerate(a, start=1):
-        current = [i] + [0] * len(b)
-        for j, cb in enumerate(b, start=1):
-            cost = 0 if ca == cb else 1
-            current[j] = min(
-                current[j - 1] + 1,
-                previous[j] + 1,
-                previous[j - 1] + cost,
-            )
+def levenshtein_distance(s1: str, s2: str) -> int:
+    """Return the Levenshtein distance between s1 and s2."""
+    _require_string(s1, "s1")
+    _require_string(s2, "s2")
+    if s1 == s2:
+        return 0
+    if len(s1) == 0:
+        return len(s2)
+    if len(s2) == 0:
+        return len(s1)
+    previous = list(range(len(s2) + 1))
+    for i, c1 in enumerate(s1):
+        current = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous[j + 1] + 1
+            deletions = current[j] + 1
+            substitutions = previous[j] + (c1 != c2)
+            current.append(min(insertions, deletions, substitutions))
         previous = current
     return previous[-1]
 
@@ -192,7 +202,6 @@ def char_count(s: str) -> int:
     return len(s)
 
 
-
 def normalize_whitespace(s: str) -> str:
     """Collapse runs of whitespace to a single space and trim."""
     _require_string(s, "s")
@@ -205,3 +214,99 @@ def is_blank(s: str) -> bool:
     """Return True if string is empty or contains only whitespace."""
     _require_string(s, "s")
     return s.strip() == ""
+
+
+def is_upper(s: str) -> bool:
+    """Return True if all alphabetic characters are uppercase and there is at least one alphabetic character."""
+    _require_string(s, "s")
+    if not any(c.isalpha() for c in s):
+        return False
+    return s == s.upper()
+
+
+def is_lower(s: str) -> bool:
+    """Return True if all alphabetic characters are lowercase and there is at least one alphabetic character."""
+    _require_string(s, "s")
+    if not any(c.isalpha() for c in s):
+        return False
+    return s == s.lower()
+
+
+def swap_case(s: str) -> str:
+    """Return a copy of the string with uppercase converted to lowercase and vice versa."""
+    _require_string(s, "s")
+    return s.swapcase()
+
+
+def count_occurrences(s: str, substring: str) -> int:
+    """Return the number of non-overlapping occurrences of substring in s."""
+    _require_string(s, "s")
+    _require_string(substring, "substring")
+    if substring == "":
+        raise ValueError("substring cannot be empty")
+    return s.count(substring)
+
+
+def starts_with(s: str, prefix: str) -> bool:
+    """Return True if string starts with prefix."""
+    _require_string(s, "s")
+    _require_string(prefix, "prefix")
+    return s.startswith(prefix)
+
+
+def ends_with(s: str, suffix: str) -> bool:
+    """Return True if string ends with suffix."""
+    _require_string(s, "s")
+    _require_string(suffix, "suffix")
+    return s.endswith(suffix)
+
+
+def pad_left(s: str, width: int, fillchar: str = " ") -> str:
+    """Pad string on the left to reach width."""
+    _require_string(s, "s")
+    _require_int(width, "width")
+    _require_string(fillchar, "fillchar")
+    if len(fillchar) != 1:
+        raise ValueError("fillchar must be a single character")
+    return s.rjust(width, fillchar)
+
+
+def pad_right(s: str, width: int, fillchar: str = " ") -> str:
+    """Pad string on the right to reach width."""
+    _require_string(s, "s")
+    _require_int(width, "width")
+    _require_string(fillchar, "fillchar")
+    if len(fillchar) != 1:
+        raise ValueError("fillchar must be a single character")
+    return s.ljust(width, fillchar)
+
+
+def center(s: str, width: int, fillchar: str = " ") -> str:
+    """Center string within width."""
+    _require_string(s, "s")
+    _require_int(width, "width")
+    _require_string(fillchar, "fillchar")
+    if len(fillchar) != 1:
+        raise ValueError("fillchar must be a single character")
+    return s.center(width, fillchar)
+
+
+def lstrip_chars(s: str, chars: str) -> str:
+    """Remove leading characters in chars."""
+    _require_string(s, "s")
+    _require_string(chars, "chars")
+    return s.lstrip(chars)
+
+
+def rstrip_chars(s: str, chars: str) -> str:
+    """Remove trailing characters in chars."""
+    _require_string(s, "s")
+    _require_string(chars, "chars")
+    return s.rstrip(chars)
+
+
+def strip_chars(s: str, chars: str) -> str:
+    """Remove leading and trailing characters in chars."""
+    _require_string(s, "s")
+    _require_string(chars, "chars")
+    return s.strip(chars)

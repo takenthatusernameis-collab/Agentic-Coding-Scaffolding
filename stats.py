@@ -16,6 +16,10 @@ __all__: List[str] = [
     "max_value",
     "sum_values",
     "percentile",
+    "iqr",
+    "coefficient_of_variation",
+    "geometric_mean",
+    "harmonic_mean",
 ]
 
 
@@ -235,3 +239,71 @@ def percentile(numbers: List[T | float], p: float) -> float:
     if f == c:
         return sorted_nums[int(k)]
     return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)
+    if not numbers:
+        raise ValueError("Cannot calculate harmonic mean of empty list")
+    total = 0.0
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only numbers")
+        if float(x) <= 0:
+            raise ValueError("All numbers must be positive")
+        total += 1.0 / float(x)
+    return float(len(numbers) / total)
+
+
+def iqr(numbers: List[T | float]) -> float:
+    """Return the interquartile range (Q3 - Q1)."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate iqr of empty list")
+    q1 = percentile(numbers, 25)
+    q3 = percentile(numbers, 75)
+    return float(q3 - q1)
+
+
+def coefficient_of_variation(numbers: List[T | float], population: bool = True) -> float:
+    """Return the coefficient of variation (stddev / mean)."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
+    if not numbers:
+        raise ValueError("Cannot calculate coefficient of variation of empty list")
+    m = mean(numbers)
+    if m == 0:
+        raise ValueError("Cannot calculate coefficient of variation when mean is 0")
+    s = stddev(numbers, population=population)
+    return float(abs(s) / abs(m))
+
+
+def geometric_mean(numbers: List[T | float]) -> float:
+    """Return the geometric mean."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate geometric mean of empty list")
+    product = 1.0
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only numbers")
+        if float(x) <= 0:
+            raise ValueError("All numbers must be positive")
+        product *= float(x)
+    return product ** (1.0 / len(numbers))
+
+
+def harmonic_mean(numbers: List[T | float]) -> float:
+    """Return the harmonic mean."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate harmonic mean of empty list")
+    total = 0.0
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only numbers")
+        if float(x) <= 0:
+            raise ValueError("All numbers must be positive")
+        total += 1.0 / float(x)
+    return float(len(numbers) / total)

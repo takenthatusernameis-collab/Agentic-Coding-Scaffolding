@@ -8,6 +8,11 @@ __all__: List[str] = [
     "is_greater",
     "is_less",
     "is_equal",
+    "is_version_greater",
+    "is_version_less",
+    "is_version_equal",
+    "is_version_greater_equal",
+    "is_version_less_equal",
     "normalize_version",
     "bump_major",
     "bump_minor",
@@ -117,3 +122,13 @@ def bump_patch(version: str) -> str:
     idx = 2 if len(parts) > 2 else len(parts) - 1
     parts[idx] = parts[idx] + 1
     return ".".join(str(p) for p in parts)
+
+
+def is_version_greater_equal(v1: str, v2: str) -> bool:
+    """Return True if v1 >= v2."""
+    return compare_versions(v1, v2) >= 0
+
+
+def is_version_less_equal(v1: str, v2: str) -> bool:
+    """Return True if v1 <= v2."""
+    return compare_versions(v1, v2) <= 0

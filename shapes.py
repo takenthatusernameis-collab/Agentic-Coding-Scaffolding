@@ -21,6 +21,7 @@ __all__: List[str] = [
     "ellipse_area",
     "polygon_area",
     "regular_polygon_area",
+    "regular_polygon_perimeter",
 ]
 
 
@@ -357,3 +358,13 @@ def regular_polygon_area(n: int, side_length: float) -> float:
     if side_length < 0:
         raise ValueError("Side length cannot be negative.")
     return (n * side_length ** 2) / (4 * math.tan(math.pi / n))
+
+def regular_polygon_perimeter(n: int, side_length: float) -> float:
+    """Return the perimeter of a regular polygon."""
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 3:
+        raise ValueError("A polygon must have at least 3 sides")
+    if side_length < 0:
+        raise ValueError("Side length cannot be negative")
+    return float(n * side_length)
