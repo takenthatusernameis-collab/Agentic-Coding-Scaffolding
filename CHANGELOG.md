@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Hardened the `strings` module with `reverse_words` and synchronized `strings.py`, its tests, and scaffold documentation (README and embedded `scaffold.sh`) so generated projects and docs reflect the expanded string utilities API.
+
 - Closed the documentation drift in the `either_utils` module section of `README.md`: the section and the embedded `scaffold.sh` copies listed `is_right` and `is_left` but omitted the `is_ok` and `is_err` aliases, while `either_utils.Either` exposes all four. The section now lists every public predicate, and `make refresh-scaffold` carried the correction into the embedded `README.md` template.
 
 - Added the `filter` method to `either_utils.Either`, which was advertised in the README module tree, the scaffold command documentation, and the embedded README template but was not implemented. A Right value that satisfies the predicate is kept, a Right value that does not is turned into a Left carrying the same value, a Left is returned unchanged, and an exception raised by the predicate is captured into a Left so the operation stays safe. This mirrors the `filter` method of `maybe_utils.Maybe`.

@@ -32692,6 +32692,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Hardened the `strings` module with `reverse_words` and synchronized `strings.py`, its tests, and scaffold documentation (README and embedded `scaffold.sh`) so generated projects and docs reflect the expanded string utilities API.
+
 - Closed the documentation drift in the `either_utils` module section of `README.md`: the section and the embedded `scaffold.sh` copies listed `is_right` and `is_left` but omitted the `is_ok` and `is_err` aliases, while `either_utils.Either` exposes all four. The section now lists every public predicate, and `make refresh-scaffold` carried the correction into the embedded `README.md` template.
 
 - Added the `filter` method to `either_utils.Either`, which was advertised in the README module tree, the scaffold command documentation, and the embedded README template but was not implemented. A Right value that satisfies the predicate is kept, a Right value that does not is turned into a Left carrying the same value, a Left is returned unchanged, and an exception raised by the predicate is captured into a Left so the operation stays safe. This mirrors the `filter` method of `maybe_utils.Maybe`.
@@ -34336,7 +34338,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `is_palindrome`, and `count_vowels`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_numeric`, `is_alphanumeric`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, and more. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
