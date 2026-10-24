@@ -161,6 +161,8 @@
 
 #   - asyncio_utils.py — # Utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for, current_task, all_tasks, iscoroutinefunction, iscoroutine, Event, Lock, Queue, Semaphore)
 
+#   - backoff_utils.py — # Backoff and retry delay utilities (constant, exponential)
+
 #   - bit_utils.py — # Bitwise utility functions for working with binary representations
 
 #   - concurrent_utils.py — # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
@@ -105369,6 +105371,95 @@ def test_is_slug():
     assert not is_slug("Hello World")
     assert not is_slug("")
 TEST_SLUGIFY_UTILS
+
+# --- backoff_utils.py ---
+cat > "$OUTPUT_DIR/backoff_utils.py" <<'BACKOFF_UTILS'
+def constant_backoff(delay: float) -> float:
+    """Return a fixed backoff delay for every attempt.
+
+    Args:
+        delay: The fixed delay in seconds.
+
+    Returns:
+        The delay to wait before the next attempt.
+    """
+    return delay
+
+
+def exponential_backoff(initial: float, factor: float, max_delay: float) -> float:
+    """Return an exponentially growing backoff delay.
+
+    Args:
+        initial: The starting delay in seconds.
+        factor: The multiplier applied each attempt.
+        max_delay: The maximum delay in seconds.
+
+    Returns:
+        The delay to wait before the next attempt, capped at max_delay.
+    """
+    return min(initial * factor, max_delay)
+
+
+def backoff_delay(*, strategy: str = "constant", **kwargs: float) -> float:
+    """Return a backoff delay for the named strategy.
+
+    Args:
+        strategy: Either "constant" or "exponential".
+        kwargs: Strategy-specific parameters.
+
+    Returns:
+        The delay to wait before the next attempt.
+
+    Raises:
+        ValueError: When *strategy* is unknown.
+    """
+    if strategy == "constant":
+        return constant_backoff(kwargs["delay"])
+    if strategy == "exponential":
+        return exponential_backoff(kwargs["initial"], kwargs["factor"], kwargs["max_delay"])
+    raise ValueError(f"unknown backoff strategy: {strategy!r}")
+BACKOFF_UTILS
+
+# --- tests/test_backoff_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_backoff_utils.py" <<'TEST_BACKOFF_UTILS'
+import unittest
+
+from backoff_utils import backoff_delay, constant_backoff, exponential_backoff
+
+
+class TestBackoffUtils(unittest.TestCase):
+    def test_constant_backoff(self):
+        self.assertEqual(constant_backoff(1.0), 1.0)
+        self.assertEqual(constant_backoff(0.5), 0.5)
+
+    def test_exponential_backoff_uncapped(self):
+        self.assertEqual(exponential_backoff(1.0, 2.0, 100.0), 2.0)
+        self.assertEqual(exponential_backoff(1.0, 3.0, 100.0), 3.0)
+
+    def test_exponential_backoff_capped(self):
+        self.assertEqual(exponential_backoff(10.0, 2.0, 15.0), 15.0)
+        self.assertEqual(exponential_backoff(10.0, 100.0, 15.0), 15.0)
+
+    def test_backoff_delay_constant(self):
+        self.assertEqual(backoff_delay(strategy="constant", delay=2.5), 2.5)
+
+    def test_backoff_delay_exponential(self):
+        self.assertEqual(
+            backoff_delay(strategy="exponential", initial=1.0, factor=2.0, max_delay=50.0),
+            2.0,
+        )
+
+    def test_backoff_delay_default_strategy(self):
+        self.assertEqual(backoff_delay(delay=3.0), 3.0)
+
+    def test_backoff_delay_unknown_strategy(self):
+        with self.assertRaises(ValueError):
+            backoff_delay(strategy="nonexistent", delay=1.0)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_BACKOFF_UTILS
 
 
 

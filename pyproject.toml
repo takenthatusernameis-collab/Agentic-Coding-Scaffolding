@@ -43,6 +43,7 @@ exclude = [
 py_modules = [
     "hello",
     "calculator",
+    "backoff_utils",
     "collections_utils",
     "config_utils",
     "configparser_utils",
