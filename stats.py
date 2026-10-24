@@ -22,6 +22,7 @@ __all__: List[str] = [
     "geometric_mean",
     "harmonic_mean",
     "median_absolute_deviation",
+    "sum_of_squares",
 ]
 
 
@@ -243,6 +244,27 @@ def sum_values(numbers: List[T | float]) -> float:
     """
     _require_numbers(numbers, "numbers")
     return float(sum(numbers))
+
+
+def sum_of_squares(numbers: List[T | float]) -> float:
+    """Return the sum of the squares of the values in a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The sum of the squared values.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> sum_of_squares([1, 2, 3])
+        14.0
+    """
+    _require_numbers(numbers, "numbers")
+    return float(sum(x * x for x in numbers))
 
 
 def percentile(numbers: List[T | float], p: float) -> float:

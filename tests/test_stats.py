@@ -11,6 +11,7 @@ from stats import (
     min_value,
     mode,
     stddev,
+    sum_of_squares,
     variance,
 )
 
@@ -203,6 +204,31 @@ class TestMedianAbsoluteDeviation(unittest.TestCase):
     def test_mad_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             median_absolute_deviation([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestSumOfSquares(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(sum_of_squares([1, 2, 3]), 14.0)
+
+    def test_single(self) -> None:
+        self.assertEqual(sum_of_squares([5]), 25.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            sum_of_squares([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            sum_of_squares((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            sum_of_squares(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            sum_of_squares([True, 1, 2])  # type: ignore[type-var]
 
 
 if __name__ == "__main__":
