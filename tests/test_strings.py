@@ -5,18 +5,30 @@ import unittest
 from strings import (
     camel_to_snake,
     capitalize_words,
+    center,
     char_count,
     count_consonants,
+    count_occurrences,
     count_vowels,
+    ends_with,
     is_anagram,
     is_blank,
+    is_lower,
     is_palindrome,
+    is_upper,
     levenshtein_distance,
+    lstrip_chars,
     normalize_whitespace,
+    pad_left,
+    pad_right,
     remove_whitespace,
     reverse_string,
+    rstrip_chars,
     slugify,
     snake_to_camel,
+    starts_with,
+    strip_chars,
+    swap_case,
     title_case,
     truncate,
     word_count,
@@ -392,6 +404,168 @@ class TestNormalizeWhitespace(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             normalize_whitespace(123)  # type: ignore[arg-type]
+
+
+class TestIsUpper(unittest.TestCase):
+    def test_upper(self):
+        self.assertTrue(is_upper("HELLO"))
+        self.assertTrue(is_upper("HELLO123"))
+
+    def test_mixed(self):
+        self.assertFalse(is_upper("Hello"))
+        self.assertFalse(is_upper("hello"))
+
+    def test_no_alpha(self):
+        self.assertFalse(is_upper("123!"))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_upper(123)  # type: ignore[arg-type]
+
+
+class TestIsLower(unittest.TestCase):
+    def test_lower(self):
+        self.assertTrue(is_lower("hello"))
+        self.assertTrue(is_lower("hello123"))
+
+    def test_mixed(self):
+        self.assertFalse(is_lower("Hello"))
+        self.assertFalse(is_lower("HELLO"))
+
+    def test_no_alpha(self):
+        self.assertFalse(is_lower("123!"))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_lower(123)  # type: ignore[arg-type]
+
+
+class TestSwapCase(unittest.TestCase):
+    def test_swap(self):
+        self.assertEqual(swap_case("Hello World"), "hELLO wORLD")
+
+    def test_empty(self):
+        self.assertEqual(swap_case(""), "")
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            swap_case(123)  # type: ignore[arg-type]
+
+
+class TestCountOccurrences(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_occurrences("hello hello", "hello"), 2)
+        self.assertEqual(count_occurrences("aaa", "aa"), 1)
+
+    def test_empty_substring(self):
+        with self.assertRaises(ValueError):
+            count_occurrences("hello", "")
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_occurrences(123, "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_occurrences("a", 123)  # type: ignore[arg-type]
+
+
+class TestStartsWith(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(starts_with("hello", "he"))
+        self.assertFalse(starts_with("hello", "hi"))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            starts_with(123, "he")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            starts_with("hello", 123)  # type: ignore[arg-type]
+
+
+class TestEndsWith(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(ends_with("hello", "lo"))
+        self.assertFalse(ends_with("hello", "hi"))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            ends_with(123, "lo")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ends_with("hello", 123)  # type: ignore[arg-type]
+
+
+class TestPadLeft(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(pad_left("hi", 5), "   hi")
+        self.assertEqual(pad_left("hi", 5, "0"), "000hi")
+
+    def test_no_pad(self):
+        self.assertEqual(pad_left("hello", 3), "hello")
+
+    def test_fillchar_must_be_single(self):
+        with self.assertRaises(ValueError):
+            pad_left("hi", 5, "00")
+
+    def test_rejects_invalid(self):
+        with self.assertRaises(TypeError):
+            pad_left(123, 5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            pad_left("hi", "5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            pad_left("hi", 5, 0)  # type: ignore[arg-type]
+
+
+class TestPadRight(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(pad_right("hi", 5), "hi   ")
+        self.assertEqual(pad_right("hi", 5, "0"), "hi000")
+
+    def test_fillchar_must_be_single(self):
+        with self.assertRaises(ValueError):
+            pad_right("hi", 5, "00")
+
+    def test_rejects_invalid(self):
+        with self.assertRaises(TypeError):
+            pad_right(123, 5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            pad_right("hi", "5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            pad_right("hi", 5, 0)  # type: ignore[arg-type]
+
+
+class TestCenter(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(center("hi", 6), "  hi  ")
+        self.assertEqual(center("hi", 6, "*"), "**hi**")
+
+    def test_fillchar_must_be_single(self):
+        with self.assertRaises(ValueError):
+            center("hi", 6, "**")
+
+    def test_rejects_invalid(self):
+        with self.assertRaises(TypeError):
+            center(123, 6)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            center("hi", "6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            center("hi", 6, 0)  # type: ignore[arg-type]
+
+
+class TestStripChars(unittest.TestCase):
+    def test_lstrip(self):
+        self.assertEqual(lstrip_chars("xxxhello", "x"), "hello")
+
+    def test_rstrip(self):
+        self.assertEqual(rstrip_chars("helloxxx", "x"), "hello")
+
+    def test_strip(self):
+        self.assertEqual(strip_chars("xxxhelloxxx", "x"), "hello")
+
+    def test_rejects_invalid(self):
+        with self.assertRaises(TypeError):
+            lstrip_chars(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rstrip_chars("hi", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strip_chars(123, "x")  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
