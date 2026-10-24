@@ -1,6 +1,23 @@
-## Latest Session (2026-10-23) — bootstrap audit: all green
+## Latest Session (2026-10-24) — either_utils documentation drift closed
 
-Board held no task (bootstrap). Verified repository health: `make test` passes (4950 tests, 2 skipped), `make lint` and `make typecheck` green (528 files), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No drift found; no code changes required.
+The board held no task (bootstrap). Verified repository health: `make test` passes (5004 tests, 2 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+The board held no task, so this session audited the repository for drift and closed the one it found.
+
+Completed in the latest session:
+
+- Audited the `either_utils` module section against the public API of `either_utils.Either`. The section listed `is_right` and `is_left` but omitted the `is_ok` and `is_err` aliases, which `Either` exposes alongside them.
+- Closed the documentation drift in the `either_utils` module section of `README.md`: the module tree entry and both prose sections now list `is_right`, `is_left`, `is_ok`, and `is_err`.
+- Synchronized the corrected section into the embedded `README.md` template of `scaffold.sh` with `make refresh-scaffold`, and `python tools/refresh_scaffold.py --check` reports that all embedded copies are in sync.
+- Recorded the fix in the Unreleased section of `CHANGELOG.md`, which `make refresh-scaffold` carried into the embedded CHANGELOG template.
+- Verified the work before it is committed: `make test` runs 5004 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports that all embedded copies are in sync.
+
+Next Planned:
+
+- The hermetic, CI-testable stdlib wrapper surface is complete. The modules that still lack a wrapper are either removed in Python 3.13, platform specific, or need a graphical toolkit the CI does not ship, so none is a good candidate for a hermetic wrapper the test suite can run.
+- Keep every new wrapper hermetic and keep `make test`, `make lint`, and `make typecheck` green.
+
+## Latest Session (2026-10-23) — bootstrap audit: all green
 
 The board held no task (bootstrap), so this session audited the repository for drift against the
 synchronization invariant that `tests/test_scaffold_sync.py` guards and closed the two gaps it found.
