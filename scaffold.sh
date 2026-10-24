@@ -10222,6 +10222,7 @@ from typing import List
 
 __all__: List[str] = [
     "reverse_string",
+    "reverse_words",
     "is_palindrome",
     "count_vowels",
     "count_consonants",
@@ -10271,6 +10272,12 @@ def reverse_string(s: str) -> str:
     """Return the reverse of the given string."""
     _require_string(s, "s")
     return s[::-1]
+
+
+def reverse_words(s: str) -> str:
+    """Return the string with the order of its words reversed."""
+    _require_string(s, "s")
+    return " ".join(s.split()[::-1])
 
 
 def is_palindrome(s: str) -> bool:
@@ -11310,6 +11317,7 @@ from strings import (
     pad_right,
     remove_whitespace,
     reverse_string,
+    reverse_words,
     rstrip_chars,
     slugify,
     snake_to_camel,
@@ -11857,6 +11865,21 @@ class TestStripChars(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestReverseWords(unittest.TestCase):
+    def test_reverse_words_basic(self):
+        self.assertEqual(reverse_words("hello world"), "world hello")
+
+    def test_reverse_words_empty(self):
+        self.assertEqual(reverse_words(""), "")
+
+    def test_reverse_words_single(self):
+        self.assertEqual(reverse_words("hello"), "hello")
+
+    def test_reverse_words_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            reverse_words(123)  # type: ignore[arg-type]
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
