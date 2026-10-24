@@ -1,8 +1,30 @@
 """Statistical utility functions for data analysis."""
 
+import math
 from typing import List, TypeVar
 
 T = TypeVar("T", int, float)
+
+__all__: List[str] = [
+    "mean",
+    "median",
+    "mode",
+    "variance",
+    "stddev",
+    "range",
+    "min_value",
+    "max_value",
+    "sum_values",
+    "percentile",
+]
+
+
+def _require_list_of_numbers(numbers: List[T | float], name: str = "numbers") -> None:
+    if not isinstance(numbers, list):
+        raise TypeError(f"{name} must be a list")
+    if not numbers:
+        raise ValueError(f"Cannot calculate {name.replace('numbers', 'values')} of empty list")
+    # allow ints/floats; be permissive like existing code
 
 
 def mean(numbers: List[T | float]) -> float:
@@ -16,6 +38,7 @@ def mean(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty.
+        TypeError: If numbers is not a list.
 
     Examples:
         >>> mean([1, 2, 3, 4, 5])
@@ -23,6 +46,8 @@ def mean(numbers: List[T | float]) -> float:
         >>> mean([2, 4])
         3.0
     """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
     if not numbers:
         raise ValueError("Cannot calculate mean of empty list")
     return sum(numbers) / len(numbers)
@@ -39,6 +64,7 @@ def median(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty.
+        TypeError: If numbers is not a list.
 
     Examples:
         >>> median([1, 2, 3, 4, 5])
@@ -46,6 +72,8 @@ def median(numbers: List[T | float]) -> float:
         >>> median([1, 2, 3, 4])
         2.5
     """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
     if not numbers:
         raise ValueError("Cannot calculate median of empty list")
     sorted_nums = sorted(numbers)
@@ -71,6 +99,7 @@ def mode(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty.
+        TypeError: If numbers is not a list.
 
     Examples:
         >>> mode([1, 2, 2, 3, 4])
@@ -78,14 +107,14 @@ def mode(numbers: List[T | float]) -> float:
         >>> mode([1, 1, 2, 2, 3])
         1
     """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
     if not numbers:
         raise ValueError("Cannot calculate mode of empty list")
     frequency: dict = {}
     for num in numbers:
         frequency[num] = frequency.get(num, 0) + 1
     max_count = max(frequency.values())
-    # Return the smallest value (in sorted order) among those with max frequency
-    # for deterministic behavior
     for num in sorted(frequency.keys()):
         if frequency[num] == max_count:
             return float(num)
@@ -107,11 +136,12 @@ def variance(numbers: List[T | float], population: bool = True) -> float:
     Raises:
         ValueError: If the list is empty, or if calculating sample variance
                     with fewer than 2 elements.
-
-    Examples:
-        >>> variance([1, 2, 3, 4, 5])
-        2.0
+        TypeError: If numbers is not a list or population is not a bool.
     """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
     if not numbers:
         raise ValueError("Cannot calculate variance of empty list")
     if not population and len(numbers) < 2:
@@ -138,12 +168,70 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
     Raises:
         ValueError: If the list is empty, or if calculating sample std dev
                     with fewer than 2 elements.
-
-    Examples:
-        >>> stddev([1, 2, 3, 4, 5])
-        1.4142135623730951
+        TypeError: If numbers is not a list or population is not a bool.
     """
-    import math
-
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
     var = variance(numbers, population=population)
     return math.sqrt(var)
+
+
+def range(numbers: List[T | float]) -> float:
+    """Return the range (max - min) of a list of numbers."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate range of empty list")
+    return float(max(numbers) - min(numbers))
+
+
+def min_value(numbers: List[T | float]) -> float:
+    """Return the minimum value in a list of numbers."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate min of empty list")
+    return float(min(numbers))
+
+
+def max_value(numbers: List[T | float]) -> float:
+    """Return the maximum value in a list of numbers."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate max of empty list")
+    return float(max(numbers))
+
+
+def sum_values(numbers: List[T | float]) -> float:
+    """Return the sum of all values in a list of numbers."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate sum of empty list")
+    return float(sum(numbers))
+
+
+def percentile(numbers: List[T | float], p: float) -> float:
+    """Return the p-th percentile of a list of numbers (linear interpolation)."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not isinstance(p, (int, float)) or isinstance(p, bool):
+        raise TypeError("p must be a number")
+    if not numbers:
+        raise ValueError("Cannot calculate percentile of empty list")
+    if p < 0 or p > 100:
+        raise ValueError("p must be between 0 and 100")
+    sorted_nums = sorted(float(x) for x in numbers)
+    if p == 0:
+        return sorted_nums[0]
+    if p == 100:
+        return sorted_nums[-1]
+    k = (len(sorted_nums) - 1) * (p / 100.0)
+    f = math.floor(k)
+    c = math.ceil(k)
+    if f == c:
+        return sorted_nums[int(k)]
+    return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)

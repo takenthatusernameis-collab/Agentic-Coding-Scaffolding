@@ -1,6 +1,32 @@
 """Geometry utilities for calculating areas and perimeters of common shapes."""
 
 import math
+from typing import List
+
+__all__: List[str] = [
+    "circle_area",
+    "circle_perimeter",
+    "rectangle_area",
+    "rectangle_perimeter",
+    "triangle_area",
+    "triangle_perimeter",
+    "square_area",
+    "square_perimeter",
+    "rhombus_area",
+    "rhombus_perimeter",
+    "trapezoid_area",
+    "triangle_heron_area",
+    "parallelogram_area",
+    "parallelogram_perimeter",
+    "ellipse_area",
+    "polygon_area",
+]
+
+
+def _require_non_negative(value: float, name: str) -> None:
+    """Validate that a value is non-negative."""
+    if value < 0:
+        raise ValueError(f"{name} cannot be negative.")
 
 
 def circle_area(radius: float) -> float:
@@ -11,10 +37,14 @@ def circle_area(radius: float) -> float:
 
     Raises:
         ValueError: If radius is negative.
+
+    Examples:
+        >>> circle_area(1)
+        3.141592653589793
     """
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return math.pi * radius**2
+    return math.pi * radius ** 2
 
 
 def circle_perimeter(radius: float) -> float:
@@ -255,3 +285,54 @@ def parallelogram_perimeter(side_a: float, side_b: float) -> float:
     if side_a < 0 or side_b < 0:
         raise ValueError("Sides cannot be negative.")
     return 2 * (side_a + side_b)
+
+
+def ellipse_area(a: float, b: float) -> float:
+    """Return the area of an ellipse with semi-axes a and b.
+
+    Args:
+        a: Length of the semi-major or semi-minor axis.
+        b: Length of the other semi-axis.
+
+    Raises:
+        ValueError: If either semi-axis is negative.
+
+    Examples:
+        >>> ellipse_area(2, 1)
+        6.283185307179586
+    """
+    if a < 0 or b < 0:
+        raise ValueError("Semi-axes cannot be negative.")
+    return math.pi * a * b
+
+
+def polygon_area(vertices: List[tuple[float, float]]) -> float:
+    """Return the area of a polygon given vertices using the shoelace formula.
+
+    Args:
+        vertices: List of (x, y) tuples in order (either clockwise or counterclockwise).
+
+    Returns:
+        The area of the polygon.
+
+    Raises:
+        TypeError: If vertices is not a list or contains invalid elements.
+        ValueError: If fewer than 3 vertices are provided.
+
+    Examples:
+        >>> polygon_area([(0, 0), (2, 0), (0, 2)])
+        2.0
+    """
+    if not isinstance(vertices, list):
+        raise TypeError("vertices must be a list")
+    if len(vertices) < 3:
+        raise ValueError("polygon must have at least 3 vertices")
+    n = len(vertices)
+    s1 = 0.0
+    s2 = 0.0
+    for i in range(n):
+        x1, y1 = vertices[i]
+        x2, y2 = vertices[(i + 1) % n]
+        s1 += x1 * y2
+        s2 += y1 * x2
+    return abs(s1 - s2) / 2.0

@@ -9610,6 +9610,32 @@ cat > "$OUTPUT_DIR/shapes.py" <<'SHAPES'
 """Geometry utilities for calculating areas and perimeters of common shapes."""
 
 import math
+from typing import List
+
+__all__: List[str] = [
+    "circle_area",
+    "circle_perimeter",
+    "rectangle_area",
+    "rectangle_perimeter",
+    "triangle_area",
+    "triangle_perimeter",
+    "square_area",
+    "square_perimeter",
+    "rhombus_area",
+    "rhombus_perimeter",
+    "trapezoid_area",
+    "triangle_heron_area",
+    "parallelogram_area",
+    "parallelogram_perimeter",
+    "ellipse_area",
+    "polygon_area",
+]
+
+
+def _require_non_negative(value: float, name: str) -> None:
+    """Validate that a value is non-negative."""
+    if value < 0:
+        raise ValueError(f"{name} cannot be negative.")
 
 
 def circle_area(radius: float) -> float:
@@ -9620,10 +9646,14 @@ def circle_area(radius: float) -> float:
 
     Raises:
         ValueError: If radius is negative.
+
+    Examples:
+        >>> circle_area(1)
+        3.141592653589793
     """
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return math.pi * radius**2
+    return math.pi * radius ** 2
 
 
 def circle_perimeter(radius: float) -> float:
@@ -9864,6 +9894,57 @@ def parallelogram_perimeter(side_a: float, side_b: float) -> float:
     if side_a < 0 or side_b < 0:
         raise ValueError("Sides cannot be negative.")
     return 2 * (side_a + side_b)
+
+
+def ellipse_area(a: float, b: float) -> float:
+    """Return the area of an ellipse with semi-axes a and b.
+
+    Args:
+        a: Length of the semi-major or semi-minor axis.
+        b: Length of the other semi-axis.
+
+    Raises:
+        ValueError: If either semi-axis is negative.
+
+    Examples:
+        >>> ellipse_area(2, 1)
+        6.283185307179586
+    """
+    if a < 0 or b < 0:
+        raise ValueError("Semi-axes cannot be negative.")
+    return math.pi * a * b
+
+
+def polygon_area(vertices: List[tuple[float, float]]) -> float:
+    """Return the area of a polygon given vertices using the shoelace formula.
+
+    Args:
+        vertices: List of (x, y) tuples in order (either clockwise or counterclockwise).
+
+    Returns:
+        The area of the polygon.
+
+    Raises:
+        TypeError: If vertices is not a list or contains invalid elements.
+        ValueError: If fewer than 3 vertices are provided.
+
+    Examples:
+        >>> polygon_area([(0, 0), (2, 0), (0, 2)])
+        2.0
+    """
+    if not isinstance(vertices, list):
+        raise TypeError("vertices must be a list")
+    if len(vertices) < 3:
+        raise ValueError("polygon must have at least 3 vertices")
+    n = len(vertices)
+    s1 = 0.0
+    s2 = 0.0
+    for i in range(n):
+        x1, y1 = vertices[i]
+        x2, y2 = vertices[(i + 1) % n]
+        s1 += x1 * y2
+        s2 += y1 * x2
+    return abs(s1 - s2) / 2.0
 SHAPES
 
 # --- tests/test_shapes.py ---
@@ -9967,60 +10048,32 @@ __all__: List[str] = [
     "capitalize_words",
     "truncate",
     "levenshtein_distance",
+    "title_case",
+    "camel_to_snake",
+    "snake_to_camel",
+    "slugify",
+    "remove_whitespace",
+    "word_count",
+    "char_count",
 ]
 
 
 def _require_string(value: object, name: str) -> str:
-    """Validate that *value* is a string, raising ``TypeError`` otherwise.
-
-    Args:
-        value: The value to validate.
-        name: The argument name used in error messages.
-
-    Returns:
-        The validated string.
-
-    Raises:
-        TypeError: If ``value`` is not a string.
-    """
+    """Validate that *value* is a string, raising ``TypeError`` otherwise."""
     if not isinstance(value, str):
         raise TypeError(f"{name} must be a string, got {type(value).__name__}")
     return value
 
 
 def _require_int(value: object, name: str) -> int:
-    """Validate that *value* is an int, raising ``TypeError`` otherwise.
-
-    Args:
-        value: The value to validate.
-        name: The argument name used in error messages.
-
-    Returns:
-        The validated integer.
-
-    Raises:
-        TypeError: If ``value`` is not an int.
-    """
+    """Validate that *value* is an int, raising ``TypeError`` otherwise."""
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError(f"{name} must be an int, got {type(value).__name__}")
     return value
 
 
 def reverse_string(s: str) -> str:
-    """Return the reverse of the given string.
-
-    Args:
-        s: The string to reverse.
-
-    Raises:
-        TypeError: If *s* is not a string.
-
-    Examples:
-        >>> reverse_string("hello")
-        'olleh'
-        >>> reverse_string("")
-        ''
-    """
+    """Return the reverse of the given string."""
     _require_string(s, "s")
     return s[::-1]
 
@@ -10029,20 +10082,6 @@ def is_palindrome(s: str) -> bool:
     """Return True if the string reads the same forwards and backwards.
 
     Comparison is case-insensitive and ignores non-alphanumeric characters.
-
-    Args:
-        s: The string to check.
-
-    Raises:
-        TypeError: If *s* is not a string.
-
-    Examples:
-        >>> is_palindrome("racecar")
-        True
-        >>> is_palindrome("hello")
-        False
-        >>> is_palindrome("A man, a plan, a canal: Panama")
-        True
     """
     _require_string(s, "s")
     cleaned = "".join(ch.lower() for ch in s if ch.isalnum())
@@ -10053,18 +10092,6 @@ def count_vowels(s: str) -> int:
     """Return the number of vowels (a, e, i, o, u) in the given string.
 
     Comparison is case-insensitive.
-
-    Args:
-        s: The string to count vowels in.
-
-    Raises:
-        TypeError: If *s* is not a string.
-
-    Examples:
-        >>> count_vowels("hello")
-        2
-        >>> count_vowels("rhythm")
-        0
     """
     _require_string(s, "s")
     vowels = {"a", "e", "i", "o", "u"}
@@ -10075,20 +10102,6 @@ def count_consonants(s: str) -> int:
     """Return the number of consonants in the given string.
 
     Comparison is case-insensitive and ignores non-alphabetic characters.
-
-    Args:
-        s: The string to count consonants in.
-
-    Raises:
-        TypeError: If *s* is not a string.
-
-    Examples:
-        >>> count_consonants("hello")
-        3
-        >>> count_consonants("rhythm")
-        5
-        >>> count_consonants("hello world")
-        7
     """
     _require_string(s, "s")
     vowels = {"a", "e", "i", "o", "u"}
@@ -10099,77 +10112,20 @@ def is_anagram(a: str, b: str) -> bool:
     """Return True if *a* and *b* are anagrams of each other.
 
     Comparison is case-insensitive and ignores all whitespace.
-
-    Args:
-        a: The first string.
-        b: The second string.
-
-    Raises:
-        TypeError: If *a* or *b* is not a string.
-
-    Examples:
-        >>> is_anagram("listen", "silent")
-        True
-        >>> is_anagram("hello", "world")
-        False
-        >>> is_anagram("The Eyes", "They See")
-        True
     """
     _require_string(a, "a")
     _require_string(b, "b")
-
-    def normalize(text: str) -> str:
-        return "".join(sorted(ch.lower() for ch in text if not ch.isspace()))
-
-    return normalize(a) == normalize(b)
+    return sorted(a.lower().replace(" ", "")) == sorted(b.lower().replace(" ", ""))
 
 
 def capitalize_words(s: str) -> str:
-    """Return *s* with the first letter of every word capitalized.
-
-    Args:
-        s: The string to capitalize.
-
-    Raises:
-        TypeError: If *s* is not a string.
-
-    Examples:
-        >>> capitalize_words("hello world")
-        'Hello World'
-        >>> capitalize_words("python programming")
-        'Python Programming'
-    """
+    """Capitalize the first letter of each word in the string."""
     _require_string(s, "s")
     return " ".join(word[:1].upper() + word[1:] for word in s.split(" "))
 
 
 def truncate(s: str, length: int, suffix: str = "...") -> str:
-    """Truncate *s* to at most *length* characters, appending *suffix*.
-
-    If truncation is necessary, the returned string is exactly *length*
-    characters long including the suffix. The suffix is only appended when
-    the original string exceeds the limit.
-
-    Args:
-        s: The string to truncate.
-        length: The maximum length of the returned string.
-        suffix: The suffix to append when truncation occurs.
-
-    Returns:
-        The possibly truncated string.
-
-    Raises:
-        TypeError: If *s* or *suffix* is not a string, or *length* is not an int.
-        ValueError: If *length* is negative or smaller than the suffix length.
-
-    Examples:
-        >>> truncate("hello world", 8)
-        'hello...'
-        >>> truncate("hi", 8)
-        'hi'
-        >>> truncate("hello world", 8, suffix="..")
-        'hello w..'
-    """
+    """Truncate *s* to at most *length* characters, appending *suffix*."""
     _require_string(s, "s")
     _require_string(suffix, "suffix")
     _require_int(length, "length")
@@ -10185,30 +10141,7 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
 
 
 def levenshtein_distance(a: str, b: str) -> int:
-    """Return the edit distance between *a* and *b*.
-
-    The edit distance is the minimum number of single-character edits
-    (insertions, deletions, or substitutions) required to transform *a*
-    into *b*.
-
-    Args:
-        a: The first string.
-        b: The second string.
-
-    Raises:
-        TypeError: If *a* or *b* is not a string.
-
-    Returns:
-        The Levenshtein distance between the two strings.
-
-    Examples:
-        >>> levenshtein_distance("kitten", "sitting")
-        3
-        >>> levenshtein_distance("", "abc")
-        3
-        >>> levenshtein_distance("abc", "abc")
-        0
-    """
+    """Return the edit distance between *a* and *b*."""
     _require_string(a, "a")
     _require_string(b, "b")
     if not a:
@@ -10227,6 +10160,66 @@ def levenshtein_distance(a: str, b: str) -> int:
             )
         previous = current
     return previous[-1]
+
+
+def title_case(s: str) -> str:
+    """Convert string to title case."""
+    _require_string(s, "s")
+    return " ".join(word.capitalize() for word in s.split())
+
+
+def camel_to_snake(s: str) -> str:
+    """Convert camelCase to snake_case."""
+    _require_string(s, "s")
+    import re
+
+    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", s)
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+
+
+def snake_to_camel(s: str, capitalize_first: bool = False) -> str:
+    """Convert snake_case to camelCase."""
+    _require_string(s, "s")
+    if not isinstance(capitalize_first, bool):
+        raise TypeError(f"capitalize_first must be a bool, got {type(capitalize_first).__name__}")
+    components = s.split("_")
+    if not components:
+        return s
+    if capitalize_first:
+        return "".join(x.title() for x in components)
+    return components[0] + "".join(x.title() for x in components[1:])
+
+
+def slugify(s: str) -> str:
+    """Convert string to URL-friendly slug."""
+    _require_string(s, "s")
+    import re
+
+    s = s.lower().strip()
+    s = re.sub(r"[^\w\s-]", "", s)
+    s = re.sub(r"[\s_-]+", "-", s)
+    s = re.sub(r"^-+|-+$", "", s)
+    return s
+
+
+def remove_whitespace(s: str) -> str:
+    """Remove all whitespace from string."""
+    _require_string(s, "s")
+    return "".join(s.split())
+
+
+def word_count(s: str) -> int:
+    """Count words in string."""
+    _require_string(s, "s")
+    if not s.strip():
+        return 0
+    return len(s.split())
+
+
+def char_count(s: str) -> int:
+    """Count characters in string."""
+    _require_string(s, "s")
+    return len(s)
 STRINGS
 
 # --- utils.py ---
@@ -10685,9 +10678,31 @@ UTILS
 cat > "$OUTPUT_DIR/stats.py" <<'STATS'
 """Statistical utility functions for data analysis."""
 
+import math
 from typing import List, TypeVar
 
 T = TypeVar("T", int, float)
+
+__all__: List[str] = [
+    "mean",
+    "median",
+    "mode",
+    "variance",
+    "stddev",
+    "range",
+    "min_value",
+    "max_value",
+    "sum_values",
+    "percentile",
+]
+
+
+def _require_list_of_numbers(numbers: List[T | float], name: str = "numbers") -> None:
+    if not isinstance(numbers, list):
+        raise TypeError(f"{name} must be a list")
+    if not numbers:
+        raise ValueError(f"Cannot calculate {name.replace('numbers', 'values')} of empty list")
+    # allow ints/floats; be permissive like existing code
 
 
 def mean(numbers: List[T | float]) -> float:
@@ -10701,6 +10716,7 @@ def mean(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty.
+        TypeError: If numbers is not a list.
 
     Examples:
         >>> mean([1, 2, 3, 4, 5])
@@ -10708,6 +10724,8 @@ def mean(numbers: List[T | float]) -> float:
         >>> mean([2, 4])
         3.0
     """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
     if not numbers:
         raise ValueError("Cannot calculate mean of empty list")
     return sum(numbers) / len(numbers)
@@ -10724,6 +10742,7 @@ def median(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty.
+        TypeError: If numbers is not a list.
 
     Examples:
         >>> median([1, 2, 3, 4, 5])
@@ -10731,6 +10750,8 @@ def median(numbers: List[T | float]) -> float:
         >>> median([1, 2, 3, 4])
         2.5
     """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
     if not numbers:
         raise ValueError("Cannot calculate median of empty list")
     sorted_nums = sorted(numbers)
@@ -10756,6 +10777,7 @@ def mode(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty.
+        TypeError: If numbers is not a list.
 
     Examples:
         >>> mode([1, 2, 2, 3, 4])
@@ -10763,14 +10785,14 @@ def mode(numbers: List[T | float]) -> float:
         >>> mode([1, 1, 2, 2, 3])
         1
     """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
     if not numbers:
         raise ValueError("Cannot calculate mode of empty list")
     frequency: dict = {}
     for num in numbers:
         frequency[num] = frequency.get(num, 0) + 1
     max_count = max(frequency.values())
-    # Return the smallest value (in sorted order) among those with max frequency
-    # for deterministic behavior
     for num in sorted(frequency.keys()):
         if frequency[num] == max_count:
             return float(num)
@@ -10792,11 +10814,12 @@ def variance(numbers: List[T | float], population: bool = True) -> float:
     Raises:
         ValueError: If the list is empty, or if calculating sample variance
                     with fewer than 2 elements.
-
-    Examples:
-        >>> variance([1, 2, 3, 4, 5])
-        2.0
+        TypeError: If numbers is not a list or population is not a bool.
     """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
     if not numbers:
         raise ValueError("Cannot calculate variance of empty list")
     if not population and len(numbers) < 2:
@@ -10823,15 +10846,73 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
     Raises:
         ValueError: If the list is empty, or if calculating sample std dev
                     with fewer than 2 elements.
-
-    Examples:
-        >>> stddev([1, 2, 3, 4, 5])
-        1.4142135623730951
+        TypeError: If numbers is not a list or population is not a bool.
     """
-    import math
-
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
     var = variance(numbers, population=population)
     return math.sqrt(var)
+
+
+def range(numbers: List[T | float]) -> float:
+    """Return the range (max - min) of a list of numbers."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate range of empty list")
+    return float(max(numbers) - min(numbers))
+
+
+def min_value(numbers: List[T | float]) -> float:
+    """Return the minimum value in a list of numbers."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate min of empty list")
+    return float(min(numbers))
+
+
+def max_value(numbers: List[T | float]) -> float:
+    """Return the maximum value in a list of numbers."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate max of empty list")
+    return float(max(numbers))
+
+
+def sum_values(numbers: List[T | float]) -> float:
+    """Return the sum of all values in a list of numbers."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate sum of empty list")
+    return float(sum(numbers))
+
+
+def percentile(numbers: List[T | float], p: float) -> float:
+    """Return the p-th percentile of a list of numbers (linear interpolation)."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not isinstance(p, (int, float)) or isinstance(p, bool):
+        raise TypeError("p must be a number")
+    if not numbers:
+        raise ValueError("Cannot calculate percentile of empty list")
+    if p < 0 or p > 100:
+        raise ValueError("p must be between 0 and 100")
+    sorted_nums = sorted(float(x) for x in numbers)
+    if p == 0:
+        return sorted_nums[0]
+    if p == 100:
+        return sorted_nums[-1]
+    k = (len(sorted_nums) - 1) * (p / 100.0)
+    f = math.floor(k)
+    c = math.ceil(k)
+    if f == c:
+        return sorted_nums[int(k)]
+    return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)
 STATS
 
 # --- tests/test_strings.py ---
@@ -55693,7 +55774,19 @@ TEST_PPRINT_UTILS
 cat > "$OUTPUT_DIR/prime_utils.py" <<'PRIME_UTILS'
 """Prime number utilities."""
 
+import math
+
 from math_utils import is_prime
+
+__all__ = [
+    "prime_factors",
+    "nth_prime",
+    "primes_up_to",
+    "next_prime",
+    "previous_prime",
+    "is_prime_power",
+    "prime_sieve_of_eratosthenes",
+]
 
 
 def prime_factors(n: int) -> list[int]:
@@ -55706,6 +55799,7 @@ def prime_factors(n: int) -> list[int]:
         A list of prime factors whose product is n.
 
     Raises:
+        TypeError: If n is not an int.
         ValueError: If n < 2.
 
     Examples:
@@ -55714,6 +55808,8 @@ def prime_factors(n: int) -> list[int]:
         >>> prime_factors(17)
         [17]
     """
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 2:
         raise ValueError("Prime factorization is only defined for integers >= 2")
     factors: list[int] = []
@@ -55741,6 +55837,7 @@ def nth_prime(n: int) -> int:
         The nth prime number.
 
     Raises:
+        TypeError: If n is not an int.
         ValueError: If n < 1.
 
     Examples:
@@ -55749,6 +55846,8 @@ def nth_prime(n: int) -> int:
         >>> nth_prime(6)
         13
     """
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 1:
         raise ValueError("nth_prime is only defined for n >= 1")
     count = 0
@@ -55770,13 +55869,35 @@ def primes_up_to(limit: int) -> list[int]:
     Returns:
         A list of primes <= limit.
 
-    Examples:
-        >>> primes_up_to(10)
-        [2, 3, 5, 7]
+    Raises:
+        TypeError: If limit is not an int.
     """
+    if not isinstance(limit, int) or isinstance(limit, bool):
+        raise TypeError(f"limit must be an int, got {type(limit).__name__}")
     if limit < 2:
         return []
     return [p for p in range(2, limit + 1) if is_prime(p)]
+
+
+def prime_sieve_of_eratosthenes(limit: int) -> list[int]:
+    """Return all prime numbers up to and including limit using the sieve of Eratosthenes."""
+    if not isinstance(limit, int) or isinstance(limit, bool):
+        raise TypeError(f"limit must be an int, got {type(limit).__name__}")
+    if limit < 2:
+        return []
+    is_prime_arr = [True for _ in range(limit + 1)]
+    p = 2
+    primes = []
+    while p * p <= limit:
+        if is_prime_arr[p]:
+            for i in range(p * p, limit + 1, p):
+                is_prime_arr[i] = False
+        p += 1
+
+    for p_val in range(2, limit + 1):
+        if is_prime_arr[p_val]:
+            primes.append(p_val)
+    return primes
 
 
 def next_prime(n: int) -> int:
@@ -55788,12 +55909,11 @@ def next_prime(n: int) -> int:
     Returns:
         The next prime after n.
 
-    Examples:
-        >>> next_prime(7)
-        11
-        >>> next_prime(1)
-        2
+    Raises:
+        TypeError: If n is not an int.
     """
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
     candidate = n + 1
     if candidate <= 2:
         return 2
@@ -55814,6 +55934,7 @@ def previous_prime(n: int) -> int:
         The previous prime before n.
 
     Raises:
+        TypeError: If n is not an int.
         ValueError: If n <= 2.
 
     Examples:
@@ -55822,6 +55943,8 @@ def previous_prime(n: int) -> int:
         >>> previous_prime(3)
         2
     """
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n <= 2:
         raise ValueError("previous_prime is only defined for n > 2")
     candidate = n - 1
@@ -55830,6 +55953,46 @@ def previous_prime(n: int) -> int:
             return candidate
         candidate -= 1
     raise ValueError("No prime found below n")
+
+
+def is_prime_power(n: int) -> bool:
+    """Return True if n is a prime power p^k for some prime p and integer k >= 2."""
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 4:
+        return False
+    # Try all possible exponents k >= 2 such that p^k <= n
+    # Find max k
+    max_k = int(math.log(n, 2))
+    for k in range(max_k, 1, -1):
+        # try integer root
+        p_float = n ** (1.0 / k)
+        p = round(p_float)
+        if p < 2:
+            continue
+        # check a few values around p due to floating point
+        for p_cand in {p - 1, p, p + 1}:
+            if p_cand < 2:
+                continue
+            val = p_cand ** k
+            if val == n and is_prime(p_cand):
+                return True
+            if val > n:
+                break
+    # Check prime bases
+    for p in prime_sieve_of_eratosthenes(int(math.sqrt(n))):
+        if p == 2 and n % 2 == 1:
+            continue
+        power = p
+        k = 1
+        while power < n:
+            power *= p
+            k += 1
+            if k >= 2 and power == n:
+                return True
+        if power > n:
+            break
+    return False
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -73584,12 +73747,28 @@ TEST_UU_UTILS
 cat > "$OUTPUT_DIR/version_utils.py" <<'VERSION_UTILS'
 """Version utility functions."""
 
-from typing import Tuple
+from typing import List, Tuple
+
+__all__: List[str] = [
+    "parse_version",
+    "compare_versions",
+    "is_greater",
+    "is_less",
+    "is_equal",
+    "normalize_version",
+    "bump_major",
+    "bump_minor",
+    "bump_patch",
+    "version_to_tuple",
+    "tuple_to_version",
+]
 
 
 def parse_version(version: str) -> Tuple[int, ...]:
     """Parse a dotted version string into a tuple of integers."""
-    if not isinstance(version, str) or not version:
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not version:
         raise TypeError("version must be a non-empty string")
     parts = version.split(".")
     result = []
@@ -73598,6 +73777,11 @@ def parse_version(version: str) -> Tuple[int, ...]:
             raise ValueError(f"invalid version component: {part!r}")
         result.append(int(part))
     return tuple(result)
+
+
+def version_to_tuple(version: str) -> Tuple[int, ...]:
+    """Parse a dotted version string into a tuple of integers."""
+    return parse_version(version)
 
 
 def compare_versions(a: str, b: str) -> int:
@@ -73616,12 +73800,70 @@ def is_greater(a: str, b: str) -> bool:
     return compare_versions(a, b) > 0
 
 
+def is_less(a: str, b: str) -> bool:
+    """Return True if version a is less than version b."""
+    return compare_versions(a, b) < 0
+
+
+def is_equal(a: str, b: str) -> bool:
+    """Return True if versions are equal."""
+    return compare_versions(a, b) == 0
+
+
 def normalize_version(version: str, length: int = 3) -> str:
     """Pad a version string with zero components to the given length."""
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not isinstance(length, int) or isinstance(length, bool):
+        raise TypeError("length must be an int")
+    if length < 0:
+        raise ValueError("length must be non-negative")
     parts = list(parse_version(version))
     while len(parts) < length:
         parts.append(0)
     return ".".join(str(p) for p in parts[:length])
+
+
+def tuple_to_version(version_tuple: Tuple[int, ...]) -> str:
+    """Convert a version tuple to a dotted string."""
+    if not isinstance(version_tuple, tuple):
+        raise TypeError("version_tuple must be a tuple")
+    for part in version_tuple:
+        if not isinstance(part, int) or isinstance(part, bool):
+            raise TypeError("version components must be ints")
+    return ".".join(str(p) for p in version_tuple)
+
+
+def bump_major(version: str) -> str:
+    """Bump the major version component."""
+    parts = list(parse_version(version))
+    parts[0] = parts[0] + 1 if parts else 1
+    for i in range(1, len(parts)):
+        parts[i] = 0
+    return ".".join(str(p) for p in parts)
+
+
+def bump_minor(version: str) -> str:
+    """Bump the minor version component."""
+    parts = list(parse_version(version))
+    if len(parts) == 0:
+        return "0.1"
+    parts[1] = (parts[1] if len(parts) > 1 else 0) + 1
+    for i in range(2, len(parts)):
+        parts[i] = 0
+    if len(parts) == 1:
+        parts.append(1)
+    return ".".join(str(p) for p in parts)
+
+
+def bump_patch(version: str) -> str:
+    """Bump the patch version component."""
+    parts = list(parse_version(version))
+    if len(parts) == 0:
+        return "0.0.1"
+    idx = 2 if len(parts) > 2 else len(parts) - 1
+    parts[idx] = parts[idx] + 1
+    return ".".join(str(p) for p in parts)
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---

@@ -16,60 +16,32 @@ __all__: List[str] = [
     "capitalize_words",
     "truncate",
     "levenshtein_distance",
+    "title_case",
+    "camel_to_snake",
+    "snake_to_camel",
+    "slugify",
+    "remove_whitespace",
+    "word_count",
+    "char_count",
 ]
 
 
 def _require_string(value: object, name: str) -> str:
-    """Validate that *value* is a string, raising ``TypeError`` otherwise.
-
-    Args:
-        value: The value to validate.
-        name: The argument name used in error messages.
-
-    Returns:
-        The validated string.
-
-    Raises:
-        TypeError: If ``value`` is not a string.
-    """
+    """Validate that *value* is a string, raising ``TypeError`` otherwise."""
     if not isinstance(value, str):
         raise TypeError(f"{name} must be a string, got {type(value).__name__}")
     return value
 
 
 def _require_int(value: object, name: str) -> int:
-    """Validate that *value* is an int, raising ``TypeError`` otherwise.
-
-    Args:
-        value: The value to validate.
-        name: The argument name used in error messages.
-
-    Returns:
-        The validated integer.
-
-    Raises:
-        TypeError: If ``value`` is not an int.
-    """
+    """Validate that *value* is an int, raising ``TypeError`` otherwise."""
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError(f"{name} must be an int, got {type(value).__name__}")
     return value
 
 
 def reverse_string(s: str) -> str:
-    """Return the reverse of the given string.
-
-    Args:
-        s: The string to reverse.
-
-    Raises:
-        TypeError: If *s* is not a string.
-
-    Examples:
-        >>> reverse_string("hello")
-        'olleh'
-        >>> reverse_string("")
-        ''
-    """
+    """Return the reverse of the given string."""
     _require_string(s, "s")
     return s[::-1]
 
@@ -78,20 +50,6 @@ def is_palindrome(s: str) -> bool:
     """Return True if the string reads the same forwards and backwards.
 
     Comparison is case-insensitive and ignores non-alphanumeric characters.
-
-    Args:
-        s: The string to check.
-
-    Raises:
-        TypeError: If *s* is not a string.
-
-    Examples:
-        >>> is_palindrome("racecar")
-        True
-        >>> is_palindrome("hello")
-        False
-        >>> is_palindrome("A man, a plan, a canal: Panama")
-        True
     """
     _require_string(s, "s")
     cleaned = "".join(ch.lower() for ch in s if ch.isalnum())
@@ -102,18 +60,6 @@ def count_vowels(s: str) -> int:
     """Return the number of vowels (a, e, i, o, u) in the given string.
 
     Comparison is case-insensitive.
-
-    Args:
-        s: The string to count vowels in.
-
-    Raises:
-        TypeError: If *s* is not a string.
-
-    Examples:
-        >>> count_vowels("hello")
-        2
-        >>> count_vowels("rhythm")
-        0
     """
     _require_string(s, "s")
     vowels = {"a", "e", "i", "o", "u"}
@@ -124,20 +70,6 @@ def count_consonants(s: str) -> int:
     """Return the number of consonants in the given string.
 
     Comparison is case-insensitive and ignores non-alphabetic characters.
-
-    Args:
-        s: The string to count consonants in.
-
-    Raises:
-        TypeError: If *s* is not a string.
-
-    Examples:
-        >>> count_consonants("hello")
-        3
-        >>> count_consonants("rhythm")
-        5
-        >>> count_consonants("hello world")
-        7
     """
     _require_string(s, "s")
     vowels = {"a", "e", "i", "o", "u"}
@@ -148,77 +80,20 @@ def is_anagram(a: str, b: str) -> bool:
     """Return True if *a* and *b* are anagrams of each other.
 
     Comparison is case-insensitive and ignores all whitespace.
-
-    Args:
-        a: The first string.
-        b: The second string.
-
-    Raises:
-        TypeError: If *a* or *b* is not a string.
-
-    Examples:
-        >>> is_anagram("listen", "silent")
-        True
-        >>> is_anagram("hello", "world")
-        False
-        >>> is_anagram("The Eyes", "They See")
-        True
     """
     _require_string(a, "a")
     _require_string(b, "b")
-
-    def normalize(text: str) -> str:
-        return "".join(sorted(ch.lower() for ch in text if not ch.isspace()))
-
-    return normalize(a) == normalize(b)
+    return sorted(a.lower().replace(" ", "")) == sorted(b.lower().replace(" ", ""))
 
 
 def capitalize_words(s: str) -> str:
-    """Return *s* with the first letter of every word capitalized.
-
-    Args:
-        s: The string to capitalize.
-
-    Raises:
-        TypeError: If *s* is not a string.
-
-    Examples:
-        >>> capitalize_words("hello world")
-        'Hello World'
-        >>> capitalize_words("python programming")
-        'Python Programming'
-    """
+    """Capitalize the first letter of each word in the string."""
     _require_string(s, "s")
     return " ".join(word[:1].upper() + word[1:] for word in s.split(" "))
 
 
 def truncate(s: str, length: int, suffix: str = "...") -> str:
-    """Truncate *s* to at most *length* characters, appending *suffix*.
-
-    If truncation is necessary, the returned string is exactly *length*
-    characters long including the suffix. The suffix is only appended when
-    the original string exceeds the limit.
-
-    Args:
-        s: The string to truncate.
-        length: The maximum length of the returned string.
-        suffix: The suffix to append when truncation occurs.
-
-    Returns:
-        The possibly truncated string.
-
-    Raises:
-        TypeError: If *s* or *suffix* is not a string, or *length* is not an int.
-        ValueError: If *length* is negative or smaller than the suffix length.
-
-    Examples:
-        >>> truncate("hello world", 8)
-        'hello...'
-        >>> truncate("hi", 8)
-        'hi'
-        >>> truncate("hello world", 8, suffix="..")
-        'hello w..'
-    """
+    """Truncate *s* to at most *length* characters, appending *suffix*."""
     _require_string(s, "s")
     _require_string(suffix, "suffix")
     _require_int(length, "length")
@@ -234,30 +109,7 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
 
 
 def levenshtein_distance(a: str, b: str) -> int:
-    """Return the edit distance between *a* and *b*.
-
-    The edit distance is the minimum number of single-character edits
-    (insertions, deletions, or substitutions) required to transform *a*
-    into *b*.
-
-    Args:
-        a: The first string.
-        b: The second string.
-
-    Raises:
-        TypeError: If *a* or *b* is not a string.
-
-    Returns:
-        The Levenshtein distance between the two strings.
-
-    Examples:
-        >>> levenshtein_distance("kitten", "sitting")
-        3
-        >>> levenshtein_distance("", "abc")
-        3
-        >>> levenshtein_distance("abc", "abc")
-        0
-    """
+    """Return the edit distance between *a* and *b*."""
     _require_string(a, "a")
     _require_string(b, "b")
     if not a:
@@ -276,3 +128,63 @@ def levenshtein_distance(a: str, b: str) -> int:
             )
         previous = current
     return previous[-1]
+
+
+def title_case(s: str) -> str:
+    """Convert string to title case."""
+    _require_string(s, "s")
+    return " ".join(word.capitalize() for word in s.split())
+
+
+def camel_to_snake(s: str) -> str:
+    """Convert camelCase to snake_case."""
+    _require_string(s, "s")
+    import re
+
+    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", s)
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+
+
+def snake_to_camel(s: str, capitalize_first: bool = False) -> str:
+    """Convert snake_case to camelCase."""
+    _require_string(s, "s")
+    if not isinstance(capitalize_first, bool):
+        raise TypeError(f"capitalize_first must be a bool, got {type(capitalize_first).__name__}")
+    components = s.split("_")
+    if not components:
+        return s
+    if capitalize_first:
+        return "".join(x.title() for x in components)
+    return components[0] + "".join(x.title() for x in components[1:])
+
+
+def slugify(s: str) -> str:
+    """Convert string to URL-friendly slug."""
+    _require_string(s, "s")
+    import re
+
+    s = s.lower().strip()
+    s = re.sub(r"[^\w\s-]", "", s)
+    s = re.sub(r"[\s_-]+", "-", s)
+    s = re.sub(r"^-+|-+$", "", s)
+    return s
+
+
+def remove_whitespace(s: str) -> str:
+    """Remove all whitespace from string."""
+    _require_string(s, "s")
+    return "".join(s.split())
+
+
+def word_count(s: str) -> int:
+    """Count words in string."""
+    _require_string(s, "s")
+    if not s.strip():
+        return 0
+    return len(s.split())
+
+
+def char_count(s: str) -> int:
+    """Count characters in string."""
+    _require_string(s, "s")
+    return len(s)
