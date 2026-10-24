@@ -23,12 +23,14 @@ __all__: List[str] = [
 ]
 
 
-def _require_list_of_numbers(numbers: List[T | float], name: str = "numbers") -> None:
+def _require_numbers(numbers: List[T | float], name: str = "numbers") -> None:
     if not isinstance(numbers, list):
         raise TypeError(f"{name} must be a list")
     if not numbers:
         raise ValueError(f"Cannot calculate {name.replace('numbers', 'values')} of empty list")
-    # allow ints/floats; be permissive like existing code
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError(f"{name} must contain only numbers")
 
 
 def mean(numbers: List[T | float]) -> float:
@@ -42,7 +44,7 @@ def mean(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty.
-        TypeError: If numbers is not a list.
+        TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
         >>> mean([1, 2, 3, 4, 5])
@@ -50,10 +52,7 @@ def mean(numbers: List[T | float]) -> float:
         >>> mean([2, 4])
         3.0
     """
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    if not numbers:
-        raise ValueError("Cannot calculate mean of empty list")
+    _require_numbers(numbers, "numbers")
     return sum(numbers) / len(numbers)
 
 
@@ -68,7 +67,7 @@ def median(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty.
-        TypeError: If numbers is not a list.
+        TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
         >>> median([1, 2, 3, 4, 5])
@@ -76,10 +75,7 @@ def median(numbers: List[T | float]) -> float:
         >>> median([1, 2, 3, 4])
         2.5
     """
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    if not numbers:
-        raise ValueError("Cannot calculate median of empty list")
+    _require_numbers(numbers, "numbers")
     sorted_nums = sorted(numbers)
     n = len(sorted_nums)
     if n % 2 == 1:
@@ -103,7 +99,7 @@ def mode(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty.
-        TypeError: If numbers is not a list.
+        TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
         >>> mode([1, 2, 2, 3, 4])
@@ -111,10 +107,7 @@ def mode(numbers: List[T | float]) -> float:
         >>> mode([1, 1, 2, 2, 3])
         1
     """
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    if not numbers:
-        raise ValueError("Cannot calculate mode of empty list")
+    _require_numbers(numbers, "numbers")
     frequency: dict = {}
     for num in numbers:
         frequency[num] = frequency.get(num, 0) + 1
@@ -140,14 +133,12 @@ def variance(numbers: List[T | float], population: bool = True) -> float:
     Raises:
         ValueError: If the list is empty, or if calculating sample variance
                     with fewer than 2 elements.
-        TypeError: If numbers is not a list or population is not a bool.
+        TypeError: If numbers is not a list, contains non-numeric values,
+                   or population is not a bool.
     """
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
+    _require_numbers(numbers, "numbers")
     if not isinstance(population, bool):
         raise TypeError("population must be a bool")
-    if not numbers:
-        raise ValueError("Cannot calculate variance of empty list")
     if not population and len(numbers) < 2:
         raise ValueError("Cannot calculate sample variance with fewer than 2 elements")
     avg = mean(numbers)
@@ -172,10 +163,10 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
     Raises:
         ValueError: If the list is empty, or if calculating sample std dev
                     with fewer than 2 elements.
-        TypeError: If numbers is not a list or population is not a bool.
+        TypeError: If numbers is not a list, contains non-numeric values,
+                   or population is not a bool.
     """
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
+    _require_numbers(numbers, "numbers")
     if not isinstance(population, bool):
         raise TypeError("population must be a bool")
     var = variance(numbers, population=population)
@@ -183,49 +174,73 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
 
 
 def range(numbers: List[T | float]) -> float:
-    """Return the range (max - min) of a list of numbers."""
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    if not numbers:
-        raise ValueError("Cannot calculate range of empty list")
+    """Return the range (max - min) of a list of numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+    """
+    _require_numbers(numbers, "numbers")
     return float(max(numbers) - min(numbers))
 
 
 def min_value(numbers: List[T | float]) -> float:
-    """Return the minimum value in a list of numbers."""
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    if not numbers:
-        raise ValueError("Cannot calculate min of empty list")
+    """Return the minimum value in a list of numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+    """
+    _require_numbers(numbers, "numbers")
     return float(min(numbers))
 
 
 def max_value(numbers: List[T | float]) -> float:
-    """Return the maximum value in a list of numbers."""
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    if not numbers:
-        raise ValueError("Cannot calculate max of empty list")
+    """Return the maximum value in a list of numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+    """
+    _require_numbers(numbers, "numbers")
     return float(max(numbers))
 
 
 def sum_values(numbers: List[T | float]) -> float:
-    """Return the sum of all values in a list of numbers."""
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    if not numbers:
-        raise ValueError("Cannot calculate sum of empty list")
+    """Return the sum of all values in a list of numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+    """
+    _require_numbers(numbers, "numbers")
     return float(sum(numbers))
 
 
 def percentile(numbers: List[T | float], p: float) -> float:
-    """Return the p-th percentile of a list of numbers (linear interpolation)."""
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
+    """Return the p-th percentile of a list of numbers (linear interpolation).
+
+    Args:
+        numbers: A list of numeric values.
+        p: The percentile to compute, between 0 and 100 inclusive.
+
+    Returns:
+        The p-th percentile value.
+
+    Raises:
+        ValueError: If the list is empty, or if p is outside [0, 100].
+        TypeError: If numbers is not a list, contains non-numeric values,
+                   or p is not a number.
+
+    Examples:
+        >>> percentile([1, 2, 3, 4, 5], 50)
+        3.0
+        >>> percentile([1, 2, 3, 4], 50)
+        2.5
+    """
+    _require_numbers(numbers, "numbers")
     if not isinstance(p, (int, float)) or isinstance(p, bool):
         raise TypeError("p must be a number")
-    if not numbers:
-        raise ValueError("Cannot calculate percentile of empty list")
     if p < 0 or p > 100:
         raise ValueError("p must be between 0 and 100")
     sorted_nums = sorted(float(x) for x in numbers)
@@ -239,24 +254,11 @@ def percentile(numbers: List[T | float], p: float) -> float:
     if f == c:
         return sorted_nums[int(k)]
     return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)
-    if not numbers:
-        raise ValueError("Cannot calculate harmonic mean of empty list")
-    total = 0.0
-    for x in numbers:
-        if isinstance(x, bool) or not isinstance(x, (int, float)):
-            raise TypeError("numbers must contain only numbers")
-        if float(x) <= 0:
-            raise ValueError("All numbers must be positive")
-        total += 1.0 / float(x)
-    return float(len(numbers) / total)
 
 
 def iqr(numbers: List[T | float]) -> float:
     """Return the interquartile range (Q3 - Q1)."""
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    if not numbers:
-        raise ValueError("Cannot calculate iqr of empty list")
+    _require_numbers(numbers, "numbers")
     q1 = percentile(numbers, 25)
     q3 = percentile(numbers, 75)
     return float(q3 - q1)
@@ -264,12 +266,9 @@ def iqr(numbers: List[T | float]) -> float:
 
 def coefficient_of_variation(numbers: List[T | float], population: bool = True) -> float:
     """Return the coefficient of variation (stddev / mean)."""
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
+    _require_numbers(numbers, "numbers")
     if not isinstance(population, bool):
         raise TypeError("population must be a bool")
-    if not numbers:
-        raise ValueError("Cannot calculate coefficient of variation of empty list")
     m = mean(numbers)
     if m == 0:
         raise ValueError("Cannot calculate coefficient of variation when mean is 0")
@@ -279,14 +278,9 @@ def coefficient_of_variation(numbers: List[T | float], population: bool = True) 
 
 def geometric_mean(numbers: List[T | float]) -> float:
     """Return the geometric mean."""
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    if not numbers:
-        raise ValueError("Cannot calculate geometric mean of empty list")
+    _require_numbers(numbers, "numbers")
     product = 1.0
     for x in numbers:
-        if isinstance(x, bool) or not isinstance(x, (int, float)):
-            raise TypeError("numbers must contain only numbers")
         if float(x) <= 0:
             raise ValueError("All numbers must be positive")
         product *= float(x)
@@ -295,14 +289,9 @@ def geometric_mean(numbers: List[T | float]) -> float:
 
 def harmonic_mean(numbers: List[T | float]) -> float:
     """Return the harmonic mean."""
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    if not numbers:
-        raise ValueError("Cannot calculate harmonic mean of empty list")
+    _require_numbers(numbers, "numbers")
     total = 0.0
     for x in numbers:
-        if isinstance(x, bool) or not isinstance(x, (int, float)):
-            raise TypeError("numbers must contain only numbers")
         if float(x) <= 0:
             raise ValueError("All numbers must be positive")
         total += 1.0 / float(x)
