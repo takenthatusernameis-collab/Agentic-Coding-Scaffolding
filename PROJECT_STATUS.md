@@ -1,3 +1,21 @@
+## Latest Session (2026-10-24) — hardened polygon_area vertex validation in shapes.py
+
+The board held no task (bootstrap). Verified repository health: `make test` passes (5219 tests, 2 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in the latest session:
+
+- Hardened `polygon_area` in `shapes.py` to validate that every vertex is a 2-tuple of numbers, raising `TypeError` for a malformed vertex or a non-numeric component. Added a `_require_number` helper and updated the docstring to document the new `TypeError` paths.
+- Added 4 tests in `tests/test_shapes.py` (`TestPolygonArea`): vertex not a pair, vertex wrong length, vertex non-numeric, vertex boolean.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `shapes.py`, `tests/test_shapes.py`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5219 tests and passes, `make lint` and `make typecheck` are green, and scaffold sync is clean.
+
+Next Planned:
+
+- Continue hardening the small utility modules: review `strings.py`, `shapes.py`, `stats.py`, `prime_utils.py`, `version_utils.py` (and nearby) for missing edge cases or ergonomic helpers that fit existing API style. Add minimal, hermetic helpers with tests in `tests/test_*.py`. Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh`, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-24) — closed greeting_utils documentation drift
 
 The board held no task (bootstrap). Verified repository health: `make test` passes (5613 tests, 5 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

@@ -9644,6 +9644,13 @@ def _require_non_negative(value: float, name: str) -> None:
         raise ValueError(f"{name} cannot be negative.")
 
 
+def _require_number(value: object, name: str) -> float:
+    """Validate that *value* is a real number (int or float, not bool)."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"{name} must be a number, got {type(value).__name__}")
+    return float(value)
+
+
 def circle_area(radius: float) -> float:
     """Return the area of a circle with the given radius.
 
@@ -9931,7 +9938,8 @@ def polygon_area(vertices: List[tuple[float, float]]) -> float:
         The area of the polygon.
 
     Raises:
-        TypeError: If vertices is not a list or contains invalid elements.
+        TypeError: If vertices is not a list, a vertex is not a 2-tuple of
+            numbers, or a vertex component is not a number.
         ValueError: If fewer than 3 vertices are provided.
 
     Examples:
@@ -9942,6 +9950,11 @@ def polygon_area(vertices: List[tuple[float, float]]) -> float:
         raise TypeError("vertices must be a list")
     if len(vertices) < 3:
         raise ValueError("polygon must have at least 3 vertices")
+    for vertex in vertices:
+        if not isinstance(vertex, (tuple, list)) or len(vertex) != 2:
+            raise TypeError("each vertex must be a 2-tuple of numbers")
+        _require_number(vertex[0], "vertex x")
+        _require_number(vertex[1], "vertex y")
     n = len(vertices)
     s1 = 0.0
     s2 = 0.0
@@ -10202,6 +10215,22 @@ class TestPolygonArea(unittest.TestCase):
     def test_non_list(self):
         with self.assertRaises(TypeError):
             polygon_area((0, 0), (1, 1), (2, 0))  # type: ignore[arg-type]
+
+    def test_vertex_not_a_pair(self):
+        with self.assertRaises(TypeError):
+            polygon_area([(0, 0), (1,), (2, 0)])
+
+    def test_vertex_wrong_length(self):
+        with self.assertRaises(TypeError):
+            polygon_area([(0, 0), [1, 2, 3], (2, 0)])
+
+    def test_vertex_non_numeric(self):
+        with self.assertRaises(TypeError):
+            polygon_area([(0, 0), ("a", 1), (2, 0)])
+
+    def test_vertex_boolean(self):
+        with self.assertRaises(TypeError):
+            polygon_area([(0, 0), (True, 1), (2, 0)])
 
 
 class TestRegularPolygonArea(unittest.TestCase):
@@ -33077,6 +33106,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Hardened `polygon_area` in `shapes.py` to validate that every vertex is a 2-tuple of numbers, raising `TypeError` for a malformed vertex or a non-numeric component; added tests in `tests/test_shapes.py`; synchronized the module, its tests, and this CHANGELOG into `scaffold.sh`.
 - Closed documentation drift in the `greeting_utils` module section: the README tree, the prose section, and `.kilo/command/scaffold-project.md` listed nonexistent `greet` and `random_greeting` helpers; the section now lists only the public API (`format_greeting`, `format_names`) that `greeting_utils.py` actually exports. Synchronized the corrected README and command documentation into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Hardened the `prime_utils` module with typed `__all__`, Google-style docstrings, and input validation (`TypeError` for non-int arguments, `ValueError` for out-of-range values) on `primes_up_to`, `nth_prime`, `prime_factors`, and `is_coprime`; added validation tests in `tests/test_prime_utils.py`; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
 - Fixed the `if __name__ == "__main__"` block placement in `tests/test_strings.py` and `tests/test_shapes.py` so their tests run when the files are executed directly, and added `tests/test_prime_utils.py` and `tests/test_version_utils.py` covering the previously untested modules; synchronized all four test files into the embedded copies of `scaffold.sh`.

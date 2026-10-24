@@ -33,6 +33,13 @@ def _require_non_negative(value: float, name: str) -> None:
         raise ValueError(f"{name} cannot be negative.")
 
 
+def _require_number(value: object, name: str) -> float:
+    """Validate that *value* is a real number (int or float, not bool)."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"{name} must be a number, got {type(value).__name__}")
+    return float(value)
+
+
 def circle_area(radius: float) -> float:
     """Return the area of a circle with the given radius.
 
@@ -320,7 +327,8 @@ def polygon_area(vertices: List[tuple[float, float]]) -> float:
         The area of the polygon.
 
     Raises:
-        TypeError: If vertices is not a list or contains invalid elements.
+        TypeError: If vertices is not a list, a vertex is not a 2-tuple of
+            numbers, or a vertex component is not a number.
         ValueError: If fewer than 3 vertices are provided.
 
     Examples:
@@ -331,6 +339,11 @@ def polygon_area(vertices: List[tuple[float, float]]) -> float:
         raise TypeError("vertices must be a list")
     if len(vertices) < 3:
         raise ValueError("polygon must have at least 3 vertices")
+    for vertex in vertices:
+        if not isinstance(vertex, (tuple, list)) or len(vertex) != 2:
+            raise TypeError("each vertex must be a 2-tuple of numbers")
+        _require_number(vertex[0], "vertex x")
+        _require_number(vertex[1], "vertex y")
     n = len(vertices)
     s1 = 0.0
     s2 = 0.0

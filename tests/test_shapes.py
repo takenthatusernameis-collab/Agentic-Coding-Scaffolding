@@ -202,6 +202,22 @@ class TestPolygonArea(unittest.TestCase):
         with self.assertRaises(TypeError):
             polygon_area((0, 0), (1, 1), (2, 0))  # type: ignore[arg-type]
 
+    def test_vertex_not_a_pair(self):
+        with self.assertRaises(TypeError):
+            polygon_area([(0, 0), (1,), (2, 0)])
+
+    def test_vertex_wrong_length(self):
+        with self.assertRaises(TypeError):
+            polygon_area([(0, 0), [1, 2, 3], (2, 0)])
+
+    def test_vertex_non_numeric(self):
+        with self.assertRaises(TypeError):
+            polygon_area([(0, 0), ("a", 1), (2, 0)])
+
+    def test_vertex_boolean(self):
+        with self.assertRaises(TypeError):
+            polygon_area([(0, 0), (True, 1), (2, 0)])
+
 
 class TestRegularPolygonArea(unittest.TestCase):
     def test_square(self):
