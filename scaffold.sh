@@ -10431,7 +10431,7 @@ def is_blank(s: str) -> bool:
 
 
 def is_upper(s: str) -> bool:
-    """Return True if all alphabetic characters are uppercase and there is at least one alphabetic character."""
+    """Return True if all alphabetic chars are uppercase and at least one alphabetic char."""
     _require_string(s, "s")
     if not any(c.isalpha() for c in s):
         return False
@@ -10439,7 +10439,7 @@ def is_upper(s: str) -> bool:
 
 
 def is_lower(s: str) -> bool:
-    """Return True if all alphabetic characters are lowercase and there is at least one alphabetic character."""
+    """Return True if all alphabetic chars are lowercase and at least one alphabetic char."""
     _require_string(s, "s")
     if not any(c.isalpha() for c in s):
         return False
@@ -11272,7 +11272,7 @@ def geometric_mean(numbers: List[T | float]) -> float:
         if float(x) <= 0:
             raise ValueError("All numbers must be positive")
         product *= float(x)
-    return product ** (1.0 / len(numbers))
+    return float(product ** (1.0 / len(numbers)))
 
 
 def harmonic_mean(numbers: List[T | float]) -> float:
@@ -74455,9 +74455,6 @@ __all__: List[str] = [
     "is_greater",
     "is_less",
     "is_equal",
-    "is_version_greater",
-    "is_version_less",
-    "is_version_equal",
     "is_version_greater_equal",
     "is_version_less_equal",
     "normalize_version",

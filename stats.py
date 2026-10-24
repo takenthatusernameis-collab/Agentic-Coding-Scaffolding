@@ -290,7 +290,7 @@ def geometric_mean(numbers: List[T | float]) -> float:
         if float(x) <= 0:
             raise ValueError("All numbers must be positive")
         product *= float(x)
-    return product ** (1.0 / len(numbers))
+    return float(product ** (1.0 / len(numbers)))
 
 
 def harmonic_mean(numbers: List[T | float]) -> float:
