@@ -70,6 +70,7 @@
 #   - id_utils.py — # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 #   - memoize_utils.py — # Memoization utilities (memoize) caching function results by call arguments
 #   - maybe_utils.py — Maybe/Option type utilities for functional programming patterns with Maybe, some, nothing, from_optional and methods like is_some, is_nothing, unwrap, unwrap_or, unwrap_or_else, map, flat_map, and_then, filter, or_else
+#   - either_utils.py — Either/Result type utilities for functional programming patterns with Either, right, left, ok, err, from_optional and methods like is_right, is_left, unwrap, unwrap_left, unwrap_or, unwrap_or_else, map, map_left, flat_map, and_then, filter, or_else, fold, swap
 #   - pathlib_utils.py — # Path manipulation utilities wrapping stdlib pathlib (ensure_dir, join, exists, is_file, is_dir, read_text, write_text, glob, rglob, suffix, stem, parent)
 #   - runpy_utils.py — # Python module execution utilities wrapping stdlib runpy (run_module, run_path)
 #   - secrets_utils.py — # Cryptographically secure secrets and token utilities wrapping stdlib secrets (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
@@ -555,6 +556,7 @@
 #   - test_id_utils.py — # Tests for id_utils.py
 #   - test_memoize_utils.py — # Tests for memoize_utils.py
 #   - test_maybe_utils.py — # Tests for maybe_utils.py
+#   - test_either_utils.py — # Tests for either_utils.py
 #   - test_pathlib_utils.py — # Tests for pathlib_utils.py
 #   - test_runpy_utils.py — # Tests for runpy_utils.py
 #   - test_secrets_utils.py — # Tests for secrets_utils.py
@@ -4388,6 +4390,7 @@ py_modules = [
     "secrets_utils",
     "validation_utils",
     "crypto_utils",
+    "either_utils",
     "list_utils",
     "locale_utils",
     "linecache_utils",
