@@ -162,6 +162,7 @@
 #   - asyncio_utils.py — # Utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for, current_task, all_tasks, iscoroutinefunction, iscoroutine, Event, Lock, Queue, Semaphore)
 
 #   - backoff_utils.py — # Backoff and retry delay utilities (constant, exponential)
+#   - test_backoff_utils.py — # Tests for backoff_utils.py
 
 #   - bit_utils.py — # Bitwise utility functions for working with binary representations
 
@@ -4358,51 +4359,53 @@ exclude = [
 [tool.setuptools]
 py_modules = [
     "hello",
-    "abc_utils",
-    "aifc_utils",
-    "ast_utils",
-    "pickle_utils",
     "calculator",
+    "backoff_utils",
     "collections_utils",
     "config_utils",
+    "configparser_utils",
     "shapes",
     "strings",
     "utils",
     "stats",
     "math_utils",
+    "mmap_utils",
+    "memoize_utils",
+    "maybe_utils",
+    "either_utils",
     "number_utils",
     "operator_utils",
     "os_utils",
     "graphlib_utils",
-    "gzip_utils",
-    "plistlib_utils",
-    "glob_utils",
     "greeting_utils",
+    "gzip_utils",
+    "hmac_utils",
+    "hashlib_utils",
+    "pydoc_utils",
+    "platform_utils",
+    "signal_utils",
     "id_utils",
     "inspect_utils",
     "bit_utils",
     "data_utils",
     "datetime_utils",
     "dbm_utils",
+    "deprecation_utils",
     "file_utils",
+    "filecmp_utils",
+    "fileinput_utils",
+    "fnmatch_utils",
     "url_utils",
     "urllib_utils",
     "random_utils",
+    "tempfile_utils",
     "re_utils",
     "rlcompleter_utils",
-    "tempfile_utils",
     "secrets_utils",
     "validation_utils",
     "crypto_utils",
-    "either_utils",
     "list_utils",
     "locale_utils",
-    "linecache_utils",
-    "pprint_utils",
-    "reprlib_utils",
-    "codecs_utils",
-    "traceback_utils",
-    "typing_utils",
     "env_utils",
     "logging_utils",
     "markdown_utils",
@@ -4411,15 +4414,22 @@ py_modules = [
     "itertools_utils",
     "cli_utils",
     "color_utils",
-    "colorsys_utils",
+    "circuit_breaker_utils",
     "timing_utils",
+    "timeit_utils",
+    "unittest_utils",
     "async_utils",
+    "asyncio_utils",
+    "argparse_utils",
     "concurrent_utils",
     "concurrent_futures_utils",
+    "threading_utils",
     "priority_queue_utils",
     "rate_limiter_utils",
+    "ring_buffer_utils",
     "dict_utils",
     "json_utils",
+    "tomllib_utils",
     "csv_utils",
     "set_utils",
     "stat_utils",
@@ -4427,18 +4437,24 @@ py_modules = [
     "string_utils",
     "type_utils",
     "retry_utils",
-    "ring_buffer_utils",
     "tree_utils",
     "path_utils",
+    "pathlib_utils",
+    "posixpath_utils",
     "pattern_utils",
+    "plistlib_utils",
+    "glob_utils",
+    "getopt_utils",
     "functools_utils",
     "config_schema",
     "ctypes_utils",
     "copy_utils",
-    "dataclasses_utils",
     "exceptions_utils",
     "email_utils",
     "enum_utils",
+    "copyreg_utils",
+    "errno_utils",
+    "getpass_utils",
     "io_utils",
     "ini_utils",
     "compression_utils",
@@ -4448,151 +4464,133 @@ py_modules = [
     "regex_utils",
     "terminal_utils",
     "subprocess_utils",
+    "sunau_utils",
     "textwrap_utils",
     "template_utils",
     "time_utils",
     "timezone_utils",
+    "token_utils",
     "uuid_utils",
-    "hashlib_utils",
-    "platform_utils",
-    "signal_utils",
-    "sunau_utils",
-    "sndhdr_utils",
     "hash_utils",
-    "hmac_utils",
     "http_utils",
     "html_utils",
     "array_utils",
     "base64_utils",
+    "binascii_utils",
     "bisect_utils",
+    "trace_utils",
+    "profile_utils",
+    "pstats_utils",
+    "bz2_utils",
     "contextlib_utils",
-    "calendar_utils",
+    "contextvars_utils",
+    "netrc_utils",
+    "nntplib_utils",    "calendar_utils",
     "cgi_utils",
     "cgitb_utils",
     "chunk_utils",
     "pipes_utils",
+    "cmath_utils",
+    "colorsys_utils",
+    "dataclasses_utils",
     "call_once_utils",
     "bytes_utils",
     "struct_utils",
     "duration_utils",
     "temp_utils",
-    "tracemalloc_utils",
-    "tty_utils",
-    "doctest_utils",
-    "symtable_utils",
-    "trace_utils",
     "xml_utils",
     "weakref_utils",
-    "argparse_utils",
     "warnings_utils",
     "selectors_utils",
+    "socketserver_utils",
     "seq_utils",
+    "quopri_utils",
     "queue_utils",
     "sort_utils",
     "sys_utils",
+    "tarfile_utils",
     "networking_utils",
     "version_utils",
     "decimal_utils",
+    "difflib_utils",
     "fractions_utils",
     "heapq_utils",
     "interval_utils",
     "semver_utils",
     "select_utils",
     "shutil_utils",
-    "socketserver_utils",
     "shlex_utils",
     "slugify_utils",
+    "runpy_utils",
     "keyword_utils",
-    "importlib_utils",
+    "linecache_utils",
+    "pprint_utils",
+    "reprlib_utils",
+    "code_utils",
+    "codeop_utils",
+    "codecs_utils",
+    "traceback_utils",
+    "typing_utils",
+    "unicodedata_utils",
+    "abc_utils",
+    "aifc_utils",
+    "ast_utils",
+    "audioop_utils",
     "atexit_utils",
+    "pickle_utils",
+    "sqlite3_utils",
+    "marshal_utils",
     "zipfile_utils",
-    "bz2_utils",
+    "zipimport_utils",
+    "mailbox_utils",
     "lzma_utils",
+    "mailcap_utils",
     "gc_utils",
     "gettext_utils",
+    "importlib_utils",
+    "dis_utils",
     "ssl_utils",
     "pkgutil_utils",
-    "unicodedata_utils",
-    "tomllib_utils",
-    "token_utils",
+    "multiprocessing_utils",
     "sched_utils",
-    "quopri_utils",
     "numbers_utils",
-    "netrc_utils",
-    "nntplib_utils",
-    "getopt_utils",
-    "filecmp_utils",
-    "errno_utils",
-    "dis_utils",
-    "contextvars_utils",
-    "configparser_utils",
-    "binascii_utils",
     "shelve_utils",
+    "types_utils",
     "zlib_utils",
+    "uu_utils",
+    "pickletools_utils",
+    "zoneinfo_utils",
+    "opcode_utils",
     "cmd_utils",
     "this_utils",
     "tokenize_utils",
     "socket_utils",
     "sysconfig_utils",
     "mimetypes_utils",
-    "code_utils",
-    "codeop_utils",
-    "copyreg_utils",
-    "fileinput_utils",
-    "fnmatch_utils",
-    "getpass_utils",
-    "id_utils",
-    "memoize_utils",
-    "pathlib_utils",
-    "runpy_utils",
-    "secrets_utils",
-    "ssl_utils",
-    "tarfile_utils",
-    "types_utils",
-    "zoneinfo_utils",
-    "multiprocessing_utils",
-    "marshal_utils",
-    "sqlite3_utils",
-    "sre_compile_utils",
-    "cmath_utils",
-    "difflib_utils",
-    "threading_utils",
-    "circuit_breaker_utils",
-    "deprecation_utils",
-    "asyncio_utils",
-"imaplib_utils",
-     "zipapp_utils",
-     "py_compile_utils",
-     "compileall_utils",
-     "cooldown_utils",
-     "modulefinder_utils",
-    "optparse_utils",
+    "wave_utils",
+    "webbrowser_utils",
+    "tracemalloc_utils",
+    "tty_utils",
+    "doctest_utils",
+    "symtable_utils",
+    "imaplib_utils",
+    "zipapp_utils",
+    "py_compile_utils",
     "pyclbr_utils",
     "pyexpat_utils",
     "xdrlib_utils",
+    "compileall_utils",
+    "cooldown_utils",
+    "modulefinder_utils",
+    "optparse_utils",
+    "smtplib_utils",
     "ftplib_utils",
-        "poplib_utils",
-        "smtplib_utils",
-     "mailbox_utils",
-    "wave_utils",
-    "mmap_utils",
-    "memoize_utils",
-    "maybe_utils",
-    "profile_utils",
-    "pstats_utils",
-    "timeit_utils",
-    "unittest_utils",
-    "uu_utils",
-    "mailcap_utils",
-    "pickletools_utils",
-    "opcode_utils",
-    "webbrowser_utils",
+    "poplib_utils",
     "xmlrpc_utils",
     "syslog_utils",
     "faulthandler_utils",
     "resource_utils",
     "pwd_utils",
-    "spwd_utils",
     "grp_utils",
     "termios_utils",
     "fcntl_utils",
@@ -4600,23 +4598,19 @@ py_modules = [
     "stringprep_utils",
     "tabnanny_utils",
     "encodings_utils",
-    "zipimport_utils",
+    "ipaddress_utils",
     "genericpath_utils",
-    "posixpath_utils",
     "ntpath_utils",
     "nturl2path_utils",
     "curses_utils",
     "bdb_utils",
     "pdb_utils",
     "site_utils",
-    "ipaddress_utils",
-    "pydoc_utils",
-    "pydoc_data_utils",
     "wsgiref_utils",
     "antigravity_utils",
+    "pydoc_data_utils",
     "cprofile_utils",
     "venv_utils",
-    "audioop_utils",
     "ensurepip_utils",
     "readline_utils",
     "builtins_utils",
@@ -4624,8 +4618,11 @@ py_modules = [
     "posix_utils",
     "crypt_utils",
     "telnetlib_utils",
+    "sre_compile_utils",
     "sre_constants_utils",
     "sre_parse_utils",
+    "spwd_utils",
+    "sndhdr_utils",
 ]
 PYPROJECT
 
@@ -32786,6 +32783,265 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
 - Hardened the `strings` module with `reverse_words` and synchronized `strings.py`, its tests, and scaffold documentation (README and embedded `scaffold.sh`) so generated projects and docs reflect the expanded string utilities API.
+
+- Added `abc_utils.py` and `tests/test_abc_utils.py`.
+- Added `aifc_utils.py` and `tests/test_aifc_utils.py`.
+- Added `antigravity_utils.py` and `tests/test_antigravity_utils.py`.
+- Added `argparse_utils.py` and `tests/test_argparse_utils.py`.
+- Added `array_utils.py` and `tests/test_array_utils.py`.
+- Added `ast_utils.py` and `tests/test_ast_utils.py`.
+- Added `async_utils.py` and `tests/test_async_utils.py`.
+- Added `asyncio_utils.py` and `tests/test_asyncio_utils.py`.
+- Added `atexit_utils.py` and `tests/test_atexit_utils.py`.
+- Added `audioop_utils.py` and `tests/test_audioop_utils.py`.
+- Added `base64_utils.py` and `tests/test_base64_utils.py`.
+- Added `bdb_utils.py` and `tests/test_bdb_utils.py`.
+- Added `binascii_utils.py` and `tests/test_binascii_utils.py`.
+- Added `bisect_utils.py` and `tests/test_bisect_utils.py`.
+- Added `bit_utils.py` and `tests/test_bit_utils.py`.
+- Added `builtins_utils.py` and `tests/test_builtins_utils.py`.
+- Added `bytes_utils.py` and `tests/test_bytes_utils.py`.
+- Added `bz2_utils.py` and `tests/test_bz2_utils.py`.
+- Added `cache_utils.py` and `tests/test_cache_utils.py`.
+- Added `calendar_utils.py` and `tests/test_calendar_utils.py`.
+- Added `call_once_utils.py` and `tests/test_call_once_utils.py`.
+- Added `cgi_utils.py` and `tests/test_cgi_utils.py`.
+- Added `cgitb_utils.py` and `tests/test_cgitb_utils.py`.
+- Added `chunk_utils.py` and `tests/test_chunk_utils.py`.
+- Added `circuit_breaker_utils.py` and `tests/test_circuit_breaker_utils.py`.
+- Added `cli_utils.py` and `tests/test_cli_utils.py`.
+- Added `cmath_utils.py` and `tests/test_cmath_utils.py`.
+- Added `cmd_utils.py` and `tests/test_cmd_utils.py`.
+- Added `code_utils.py` and `tests/test_code_utils.py`.
+- Added `codecs_utils.py` and `tests/test_codecs_utils.py`.
+- Added `codeop_utils.py` and `tests/test_codeop_utils.py`.
+- Added `collections_utils.py` and `tests/test_collections_utils.py`.
+- Added `color_utils.py` and `tests/test_color_utils.py`.
+- Added `colorsys_utils.py` and `tests/test_colorsys_utils.py`.
+- Added `compileall_utils.py` and `tests/test_compileall_utils.py`.
+- Added `compression_utils.py` and `tests/test_compression_utils.py`.
+- Added `concurrent_futures_utils.py` and `tests/test_concurrent_futures_utils.py`.
+- Added `concurrent_utils.py` and `tests/test_concurrent_utils.py`.
+- Added `config_utils.py` and `tests/test_config_utils.py`.
+- Added `configparser_utils.py` and `tests/test_configparser_utils.py`.
+- Added `context_utils.py` and `tests/test_context_utils.py`.
+- Added `contextlib_utils.py` and `tests/test_contextlib_utils.py`.
+- Added `contextvars_utils.py` and `tests/test_contextvars_utils.py`.
+- Added `cooldown_utils.py` and `tests/test_cooldown_utils.py`.
+- Added `copy_utils.py` and `tests/test_copy_utils.py`.
+- Added `copyreg_utils.py` and `tests/test_copyreg_utils.py`.
+- Added `cprofile_utils.py` and `tests/test_cprofile_utils.py`.
+- Added `crypt_utils.py` and `tests/test_crypt_utils.py`.
+- Added `crypto_utils.py` and `tests/test_crypto_utils.py`.
+- Added `csv_utils.py` and `tests/test_csv_utils.py`.
+- Added `ctypes_utils.py` and `tests/test_ctypes_utils.py`.
+- Added `curses_utils.py` and `tests/test_curses_utils.py`.
+- Added `data_utils.py` and `tests/test_data_utils.py`.
+- Added `dataclasses_utils.py` and `tests/test_dataclasses_utils.py`.
+- Added `datetime_utils.py` and `tests/test_datetime_utils.py`.
+- Added `dbm_utils.py` and `tests/test_dbm_utils.py`.
+- Added `decimal_utils.py` and `tests/test_decimal_utils.py`.
+- Added `deprecation_utils.py` and `tests/test_deprecation_utils.py`.
+- Added `dict_utils.py` and `tests/test_dict_utils.py`.
+- Added `difflib_utils.py` and `tests/test_difflib_utils.py`.
+- Added `dis_utils.py` and `tests/test_dis_utils.py`.
+- Added `doctest_utils.py` and `tests/test_doctest_utils.py`.
+- Added `duration_utils.py` and `tests/test_duration_utils.py`.
+- Added `either_utils.py` and `tests/test_either_utils.py`.
+- Added `email_utils.py` and `tests/test_email_utils.py`.
+- Added `encodings_utils.py` and `tests/test_encodings_utils.py`.
+- Added `ensurepip_utils.py` and `tests/test_ensurepip_utils.py`.
+- Added `enum_utils.py` and `tests/test_enum_utils.py`.
+- Added `env_utils.py` and `tests/test_env_utils.py`.
+- Added `errno_utils.py` and `tests/test_errno_utils.py`.
+- Added `exceptions_utils.py` and `tests/test_exceptions_utils.py`.
+- Added `faulthandler_utils.py` and `tests/test_faulthandler_utils.py`.
+- Added `fcntl_utils.py` and `tests/test_fcntl_utils.py`.
+- Added `file_utils.py` and `tests/test_file_utils.py`.
+- Added `filecmp_utils.py` and `tests/test_filecmp_utils.py`.
+- Added `fileinput_utils.py` and `tests/test_fileinput_utils.py`.
+- Added `fnmatch_utils.py` and `tests/test_fnmatch_utils.py`.
+- Added `fractions_utils.py` and `tests/test_fractions_utils.py`.
+- Added `ftplib_utils.py` and `tests/test_ftplib_utils.py`.
+- Added `functools_utils.py` and `tests/test_functools_utils.py`.
+- Added `gc_utils.py` and `tests/test_gc_utils.py`.
+- Added `genericpath_utils.py` and `tests/test_genericpath_utils.py`.
+- Added `getopt_utils.py` and `tests/test_getopt_utils.py`.
+- Added `getpass_utils.py` and `tests/test_getpass_utils.py`.
+- Added `gettext_utils.py` and `tests/test_gettext_utils.py`.
+- Added `glob_utils.py` and `tests/test_glob_utils.py`.
+- Added `graphlib_utils.py` and `tests/test_graphlib_utils.py`.
+- Added `greeting_utils.py` and `tests/test_greeting_utils.py`.
+- Added `grp_utils.py` and `tests/test_grp_utils.py`.
+- Added `gzip_utils.py` and `tests/test_gzip_utils.py`.
+- Added `hash_utils.py` and `tests/test_hash_utils.py`.
+- Added `hashlib_utils.py` and `tests/test_hashlib_utils.py`.
+- Added `heapq_utils.py` and `tests/test_heapq_utils.py`.
+- Added `hmac_utils.py` and `tests/test_hmac_utils.py`.
+- Added `html_utils.py` and `tests/test_html_utils.py`.
+- Added `http_utils.py` and `tests/test_http_utils.py`.
+- Added `id_utils.py` and `tests/test_id_utils.py`.
+- Added `imaplib_utils.py` and `tests/test_imaplib_utils.py`.
+- Added `imghdr_utils.py` and `tests/test_imghdr_utils.py`.
+- Added `importlib_utils.py` and `tests/test_importlib_utils.py`.
+- Added `ini_utils.py` and `tests/test_ini_utils.py`.
+- Added `inspect_utils.py` and `tests/test_inspect_utils.py`.
+- Added `interval_utils.py` and `tests/test_interval_utils.py`.
+- Added `io_utils.py` and `tests/test_io_utils.py`.
+- Added `ip_utils.py` and `tests/test_ip_utils.py`.
+- Added `ipaddress_utils.py` and `tests/test_ipaddress_utils.py`.
+- Added `itertools_utils.py` and `tests/test_itertools_utils.py`.
+- Added `json_utils.py` and `tests/test_json_utils.py`.
+- Added `keyword_utils.py` and `tests/test_keyword_utils.py`.
+- Added `linecache_utils.py` and `tests/test_linecache_utils.py`.
+- Added `list_utils.py` and `tests/test_list_utils.py`.
+- Added `locale_utils.py` and `tests/test_locale_utils.py`.
+- Added `logging_utils.py` and `tests/test_logging_utils.py`.
+- Added `lzma_utils.py` and `tests/test_lzma_utils.py`.
+- Added `mailbox_utils.py` and `tests/test_mailbox_utils.py`.
+- Added `mailcap_utils.py` and `tests/test_mailcap_utils.py`.
+- Added `markdown_utils.py` and `tests/test_markdown_utils.py`.
+- Added `marshal_utils.py` and `tests/test_marshal_utils.py`.
+- Added `math_utils.py` and `tests/test_math_utils.py`.
+- Added `maybe_utils.py` and `tests/test_maybe_utils.py`.
+- Added `memoize_utils.py` and `tests/test_memoize_utils.py`.
+- Added `mimetypes_utils.py` and `tests/test_mimetypes_utils.py`.
+- Added `mmap_utils.py` and `tests/test_mmap_utils.py`.
+- Added `modulefinder_utils.py` and `tests/test_modulefinder_utils.py`.
+- Added `multiprocessing_utils.py` and `tests/test_multiprocessing_utils.py`.
+- Added `netrc_utils.py` and `tests/test_netrc_utils.py`.
+- Added `networking_utils.py` and `tests/test_networking_utils.py`.
+- Added `nntplib_utils.py` and `tests/test_nntplib_utils.py`.
+- Added `ntpath_utils.py` and `tests/test_ntpath_utils.py`.
+- Added `nturl2path_utils.py` and `tests/test_nturl2path_utils.py`.
+- Added `number_utils.py` and `tests/test_number_utils.py`.
+- Added `numbers_utils.py` and `tests/test_numbers_utils.py`.
+- Added `opcode_utils.py` and `tests/test_opcode_utils.py`.
+- Added `operator_utils.py` and `tests/test_operator_utils.py`.
+- Added `optparse_utils.py` and `tests/test_optparse_utils.py`.
+- Added `os_utils.py` and `tests/test_os_utils.py`.
+- Added `path_utils.py` and `tests/test_path_utils.py`.
+- Added `pathlib_utils.py` and `tests/test_pathlib_utils.py`.
+- Added `pattern_utils.py` and `tests/test_pattern_utils.py`.
+- Added `pdb_utils.py` and `tests/test_pdb_utils.py`.
+- Added `pickle_utils.py` and `tests/test_pickle_utils.py`.
+- Added `pickletools_utils.py` and `tests/test_pickletools_utils.py`.
+- Added `pipes_utils.py` and `tests/test_pipes_utils.py`.
+- Added `pkgutil_utils.py` and `tests/test_pkgutil_utils.py`.
+- Added `platform_utils.py` and `tests/test_platform_utils.py`.
+- Added `plistlib_utils.py` and `tests/test_plistlib_utils.py`.
+- Added `poplib_utils.py` and `tests/test_poplib_utils.py`.
+- Added `posix_utils.py` and `tests/test_posix_utils.py`.
+- Added `posixpath_utils.py` and `tests/test_posixpath_utils.py`.
+- Added `pprint_utils.py` and `tests/test_pprint_utils.py`.
+- Added `prime_utils.py` and `tests/test_prime_utils.py`.
+- Added `priority_queue_utils.py` and `tests/test_priority_queue_utils.py`.
+- Added `profile_utils.py` and `tests/test_profile_utils.py`.
+- Added `prompt_utils.py` and `tests/test_prompt_utils.py`.
+- Added `pstats_utils.py` and `tests/test_pstats_utils.py`.
+- Added `pty_utils.py` and `tests/test_pty_utils.py`.
+- Added `pwd_utils.py` and `tests/test_pwd_utils.py`.
+- Added `py_compile_utils.py` and `tests/test_py_compile_utils.py`.
+- Added `pyclbr_utils.py` and `tests/test_pyclbr_utils.py`.
+- Added `pydoc_data_utils.py` and `tests/test_pydoc_data_utils.py`.
+- Added `pydoc_utils.py` and `tests/test_pydoc_utils.py`.
+- Added `pyexpat_utils.py` and `tests/test_pyexpat_utils.py`.
+- Added `queue_utils.py` and `tests/test_queue_utils.py`.
+- Added `quopri_utils.py` and `tests/test_quopri_utils.py`.
+- Added `random_utils.py` and `tests/test_random_utils.py`.
+- Added `rate_limiter_utils.py` and `tests/test_rate_limiter_utils.py`.
+- Added `re_utils.py` and `tests/test_re_utils.py`.
+- Added `readline_utils.py` and `tests/test_readline_utils.py`.
+- Added `regex_utils.py` and `tests/test_regex_utils.py`.
+- Added `reprlib_utils.py` and `tests/test_reprlib_utils.py`.
+- Added `resource_utils.py` and `tests/test_resource_utils.py`.
+- Added `retry_utils.py` and `tests/test_retry_utils.py`.
+- Added `ring_buffer_utils.py` and `tests/test_ring_buffer_utils.py`.
+- Added `rlcompleter_utils.py` and `tests/test_rlcompleter_utils.py`.
+- Added `runpy_utils.py` and `tests/test_runpy_utils.py`.
+- Added `sched_utils.py` and `tests/test_sched_utils.py`.
+- Added `secrets_utils.py` and `tests/test_secrets_utils.py`.
+- Added `select_utils.py` and `tests/test_select_utils.py`.
+- Added `selectors_utils.py` and `tests/test_selectors_utils.py`.
+- Added `semver_utils.py` and `tests/test_semver_utils.py`.
+- Added `seq_utils.py` and `tests/test_seq_utils.py`.
+- Added `set_utils.py` and `tests/test_set_utils.py`.
+- Added `shelve_utils.py` and `tests/test_shelve_utils.py`.
+- Added `shlex_utils.py` and `tests/test_shlex_utils.py`.
+- Added `shutil_utils.py` and `tests/test_shutil_utils.py`.
+- Added `signal_utils.py` and `tests/test_signal_utils.py`.
+- Added `site_utils.py` and `tests/test_site_utils.py`.
+- Added `slugify_utils.py` and `tests/test_slugify_utils.py`.
+- Added `smtplib_utils.py` and `tests/test_smtplib_utils.py`.
+- Added `sndhdr_utils.py` and `tests/test_sndhdr_utils.py`.
+- Added `socket_utils.py` and `tests/test_socket_utils.py`.
+- Added `socketserver_utils.py` and `tests/test_socketserver_utils.py`.
+- Added `sort_utils.py` and `tests/test_sort_utils.py`.
+- Added `spwd_utils.py` and `tests/test_spwd_utils.py`.
+- Added `sqlite3_utils.py` and `tests/test_sqlite3_utils.py`.
+- Added `sre_compile_utils.py` and `tests/test_sre_compile_utils.py`.
+- Added `sre_constants_utils.py` and `tests/test_sre_constants_utils.py`.
+- Added `sre_parse_utils.py` and `tests/test_sre_parse_utils.py`.
+- Added `ssl_utils.py` and `tests/test_ssl_utils.py`.
+- Added `stat_utils.py` and `tests/test_stat_utils.py`.
+- Added `statistics_utils.py` and `tests/test_statistics_utils.py`.
+- Added `string_utils.py` and `tests/test_string_utils.py`.
+- Added `stringprep_utils.py` and `tests/test_stringprep_utils.py`.
+- Added `struct_utils.py` and `tests/test_struct_utils.py`.
+- Added `subprocess_utils.py` and `tests/test_subprocess_utils.py`.
+- Added `sunau_utils.py` and `tests/test_sunau_utils.py`.
+- Added `symtable_utils.py` and `tests/test_symtable_utils.py`.
+- Added `sys_utils.py` and `tests/test_sys_utils.py`.
+- Added `sysconfig_utils.py` and `tests/test_sysconfig_utils.py`.
+- Added `syslog_utils.py` and `tests/test_syslog_utils.py`.
+- Added `tabnanny_utils.py` and `tests/test_tabnanny_utils.py`.
+- Added `tarfile_utils.py` and `tests/test_tarfile_utils.py`.
+- Added `telnetlib_utils.py` and `tests/test_telnetlib_utils.py`.
+- Added `temp_utils.py` and `tests/test_temp_utils.py`.
+- Added `tempfile_utils.py` and `tests/test_tempfile_utils.py`.
+- Added `template_utils.py` and `tests/test_template_utils.py`.
+- Added `terminal_utils.py` and `tests/test_terminal_utils.py`.
+- Added `termios_utils.py` and `tests/test_termios_utils.py`.
+- Added `textwrap_utils.py` and `tests/test_textwrap_utils.py`.
+- Added `this_utils.py` and `tests/test_this_utils.py`.
+- Added `threading_utils.py` and `tests/test_threading_utils.py`.
+- Added `time_utils.py` and `tests/test_time_utils.py`.
+- Added `timeit_utils.py` and `tests/test_timeit_utils.py`.
+- Added `timezone_utils.py` and `tests/test_timezone_utils.py`.
+- Added `timing_utils.py` and `tests/test_timing_utils.py`.
+- Added `token_utils.py` and `tests/test_token_utils.py`.
+- Added `tokenize_utils.py` and `tests/test_tokenize_utils.py`.
+- Added `tomllib_utils.py` and `tests/test_tomllib_utils.py`.
+- Added `trace_utils.py` and `tests/test_trace_utils.py`.
+- Added `traceback_utils.py` and `tests/test_traceback_utils.py`.
+- Added `tracemalloc_utils.py` and `tests/test_tracemalloc_utils.py`.
+- Added `tree_utils.py` and `tests/test_tree_utils.py`.
+- Added `tty_utils.py` and `tests/test_tty_utils.py`.
+- Added `type_utils.py` and `tests/test_type_utils.py`.
+- Added `types_utils.py` and `tests/test_types_utils.py`.
+- Added `typing_utils.py` and `tests/test_typing_utils.py`.
+- Added `unicodedata_utils.py` and `tests/test_unicodedata_utils.py`.
+- Added `unittest_utils.py` and `tests/test_unittest_utils.py`.
+- Added `url_utils.py` and `tests/test_url_utils.py`.
+- Added `urllib_utils.py` and `tests/test_urllib_utils.py`.
+- Added `uu_utils.py` and `tests/test_uu_utils.py`.
+- Added `uuid_utils.py` and `tests/test_uuid_utils.py`.
+- Added `validation_utils.py` and `tests/test_validation_utils.py`.
+- Added `venv_utils.py` and `tests/test_venv_utils.py`.
+- Added `version_utils.py` and `tests/test_version_utils.py`.
+- Added `warnings_utils.py` and `tests/test_warnings_utils.py`.
+- Added `wave_utils.py` and `tests/test_wave_utils.py`.
+- Added `weakref_utils.py` and `tests/test_weakref_utils.py`.
+- Added `webbrowser_utils.py` and `tests/test_webbrowser_utils.py`.
+- Added `wsgiref_utils.py` and `tests/test_wsgiref_utils.py`.
+- Added `xdrlib_utils.py` and `tests/test_xdrlib_utils.py`.
+- Added `xml_utils.py` and `tests/test_xml_utils.py`.
+- Added `xmlrpc_utils.py` and `tests/test_xmlrpc_utils.py`.
+- Added `zipapp_utils.py` and `tests/test_zipapp_utils.py`.
+- Added `zipfile_utils.py` and `tests/test_zipfile_utils.py`.
+- Added `zipimport_utils.py` and `tests/test_zipimport_utils.py`.
+- Added `zlib_utils.py` and `tests/test_zlib_utils.py`.
+- Added `zoneinfo_utils.py` and `tests/test_zoneinfo_utils.py`.
 CHANGELOG
 
 # Substitute project name in templated documents
