@@ -14,6 +14,7 @@ from shapes import (
     rectangle_diagonal,
     rectangle_perimeter,
     regular_polygon_area,
+    regular_polygon_perimeter,
     rhombus_area,
     rhombus_perimeter,
     sector_area,
@@ -237,6 +238,27 @@ class TestRegularPolygonArea(unittest.TestCase):
             regular_polygon_area(2, 1)
         with self.assertRaises(TypeError):
             regular_polygon_area(3.5, 1)  # type: ignore[arg-type]
+
+
+class TestRegularPolygonPerimeter(unittest.TestCase):
+    def test_square(self):
+        self.assertAlmostEqual(regular_polygon_perimeter(4, 2), 8.0)
+
+    def test_triangle(self):
+        self.assertAlmostEqual(regular_polygon_perimeter(3, 2), 6.0)
+
+    def test_zero_side(self):
+        self.assertAlmostEqual(regular_polygon_perimeter(5, 0), 0.0)
+
+    def test_negative_side(self):
+        with self.assertRaises(ValueError):
+            regular_polygon_perimeter(4, -1)
+
+    def test_too_few_sides(self):
+        with self.assertRaises(ValueError):
+            regular_polygon_perimeter(2, 1)
+        with self.assertRaises(TypeError):
+            regular_polygon_perimeter(3.5, 1)  # type: ignore[arg-type]
 
 
 class TestCircleDiameter(unittest.TestCase):

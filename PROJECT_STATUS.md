@@ -1,3 +1,22 @@
+## Latest Session (2026-10-24) — repaired the interrupted checkpoint commit
+
+The board held no task (bootstrap). Verified repository health: `make test` passes (5300 tests, 2 skipped), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. `make lint` and `make typecheck` were not green on this interpreter before this session: `ruff` reports 10 pre-existing errors and `mypy` reports 6 pre-existing errors, all of them outside the files this session touched.
+
+Completed in the latest session:
+
+- Found that the interrupted checkpoint commit (`96a664a`) left the embedded copies of `scaffold.sh` stale: `shapes.py`, `tests/test_shapes.py`, `stats.py`, and `tests/test_stats.py` were committed without running `make refresh-scaffold`, so `python tools/refresh_scaffold.py --check` reported four stale copies and `tests/test_refresh_scaffold.py::TestCommandLine::test_the_check_mode_reports_a_synchronised_generator` failed. Ran `make refresh-scaffold`; all embedded copies are in sync.
+- Repaired an API regression in `shapes.py` introduced by the interrupted checkpoint commit: `regular_polygon_area` and `regular_polygon_perimeter` were dropped from `__all__` even though the functions still exist in the module and `regular_polygon_area` was still imported and tested. Restored both names to `__all__`.
+- Gave `regular_polygon_perimeter` the typed signature, Google-style docstring, and `TypeError`/`ValueError` validation the rest of the module uses, matching `regular_polygon_area`.
+- Added `TestRegularPolygonPerimeter` to `tests/test_shapes.py` covering the square, the triangle, a zero side, a negative side, too few sides, and a non-integer side count.
+- Updated the `shapes` module prose section of `README.md` to list the regular polygon and ellipse helpers the module exports; synchronized `shapes.py`, `tests/test_shapes.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5300 tests and passes, `ruff` and `mypy` are clean on the files touched, a scaffolded project is still a faithful copy (its files are byte-identical to the repository copies and its 5200 tests pass), and scaffold sync is clean.
+
+Next Planned:
+
+- Keep hardening the small utility modules: review `strings.py`, `shapes.py`, `stats.py`, `prime_utils.py`, `version_utils.py` (and nearby) for missing edge cases or ergonomic helpers that fit existing API style. Add minimal, hermetic helpers with tests in `tests/test_*.py`. Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh`, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-24) — added is_alpha, midrange, sector_area, arc_length; closed strings prose drift
 
 The board held no task (bootstrap). Verified repository health: `make test` passes (5295 tests, 2 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

@@ -22,6 +22,8 @@ __all__: List[str] = [
     "parallelogram_perimeter",
     "ellipse_area",
     "polygon_area",
+    "regular_polygon_area",
+    "regular_polygon_perimeter",
     "sector_area",
     "arc_length",
     "ellipse_circumference",
@@ -376,7 +378,20 @@ def regular_polygon_area(n: int, side_length: float) -> float:
     return (n * side_length ** 2) / (4 * math.tan(math.pi / n))
 
 def regular_polygon_perimeter(n: int, side_length: float) -> float:
-    """Return the perimeter of a regular polygon."""
+    """Return the perimeter of a regular polygon with n sides.
+
+    Args:
+        n: Number of sides (must be >= 3).
+        side_length: Length of each side.
+
+    Raises:
+        TypeError: If n is not an int.
+        ValueError: If n < 3 or side_length is negative.
+
+    Examples:
+        >>> regular_polygon_perimeter(4, 2)
+        8.0
+    """
     if not isinstance(n, int) or isinstance(n, bool):
         raise TypeError("n must be an integer")
     if n < 3:

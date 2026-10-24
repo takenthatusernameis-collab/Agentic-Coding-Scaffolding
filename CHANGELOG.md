@@ -5,6 +5,13 @@
 
 ## Unreleased
 
+- Closed the synchronization drift left by the interrupted checkpoint commit: `shapes.py`, `tests/test_shapes.py`, `stats.py`, and `tests/test_stats.py` were committed without refreshing the embedded copies in `scaffold.sh`, so `python tools/refresh_scaffold.py --check` reported four stale copies and `tests/test_refresh_scaffold.py` failed. Ran `make refresh-scaffold`; all embedded copies are in sync.
+- Repaired an API regression in `shapes.py` introduced by the interrupted checkpoint commit: `regular_polygon_area` and `regular_polygon_perimeter` were dropped from `__all__` even though the functions still exist and `regular_polygon_area` was still imported and tested. Restored both names to `__all__`.
+- Gave `regular_polygon_perimeter` the typed signature, Google-style docstring, and `TypeError`/`ValueError` validation the rest of the module uses, matching `regular_polygon_area`.
+- Added `TestRegularPolygonPerimeter` to `tests/test_shapes.py` covering the square, the triangle, a zero side, a negative side, too few sides, and a non-integer side count.
+- Updated the `shapes` module prose section of `README.md` to list the regular polygon and ellipse helpers the module exports; synchronized `shapes.py`, `tests/test_shapes.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5300 tests and passes, `ruff` and `mypy` are clean on the files touched, and scaffold sync is clean.
+
 - Bootstrap session: verified full test suite (5301 tests), ruff, mypy, and scaffold sync all green; posted next handover task.
 - Added `is_alpha` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-string arguments; added tests in `tests/test_strings.py`; synchronized the module, its tests, README, and this CHANGELOG into `scaffold.sh`.
 - Closed documentation drift in the `strings` module prose section of `README.md`: the section referenced `is_numeric` and `is_alphanumeric`, which belong to `validation_utils.py` and are not part of the `strings` public API; the section now lists only the helpers `strings.py` actually exports. Synchronized the corrected README into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
