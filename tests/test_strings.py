@@ -7,6 +7,8 @@ from strings import (
     capitalize_words,
     center,
     char_count,
+    common_prefix,
+    common_suffix,
     count_consonants,
     count_occurrences,
     count_vowels,
@@ -582,6 +584,64 @@ class TestReverseWords(unittest.TestCase):
     def test_reverse_words_rejects_non_string(self):
         with self.assertRaises(TypeError):
             reverse_words(123)  # type: ignore[arg-type]
+
+
+class TestCommonPrefix(unittest.TestCase):
+    def test_common_prefix_basic(self):
+        self.assertEqual(common_prefix("interstellar", "internet"), "inter")
+
+    def test_common_prefix_identical(self):
+        self.assertEqual(common_prefix("hello", "hello"), "hello")
+
+    def test_common_prefix_no_match(self):
+        self.assertEqual(common_prefix("hello", "world"), "")
+
+    def test_common_prefix_one_empty(self):
+        self.assertEqual(common_prefix("", "abc"), "")
+        self.assertEqual(common_prefix("abc", ""), "")
+
+    def test_common_prefix_both_empty(self):
+        self.assertEqual(common_prefix("", ""), "")
+
+    def test_common_prefix_same_first_char(self):
+        self.assertEqual(common_prefix("abc", "abd"), "ab")
+
+    def test_common_prefix_rejects_non_string_first(self):
+        with self.assertRaises(TypeError):
+            common_prefix(123, "abc")  # type: ignore[arg-type]
+
+    def test_common_prefix_rejects_non_string_second(self):
+        with self.assertRaises(TypeError):
+            common_prefix("abc", 123)  # type: ignore[arg-type]
+
+
+class TestCommonSuffix(unittest.TestCase):
+    def test_common_suffix_basic(self):
+        self.assertEqual(common_suffix("running", "walking"), "ing")
+
+    def test_common_suffix_identical(self):
+        self.assertEqual(common_suffix("hello", "hello"), "hello")
+
+    def test_common_suffix_no_match(self):
+        self.assertEqual(common_suffix("hello", "world"), "")
+
+    def test_common_suffix_one_empty(self):
+        self.assertEqual(common_suffix("", "abc"), "")
+        self.assertEqual(common_suffix("abc", ""), "")
+
+    def test_common_suffix_both_empty(self):
+        self.assertEqual(common_suffix("", ""), "")
+
+    def test_common_suffix_same_last_chars(self):
+        self.assertEqual(common_suffix("jumping", "running"), "ing")
+
+    def test_common_suffix_rejects_non_string_first(self):
+        with self.assertRaises(TypeError):
+            common_suffix(123, "abc")  # type: ignore[arg-type]
+
+    def test_common_suffix_rejects_non_string_second(self):
+        with self.assertRaises(TypeError):
+            common_suffix("abc", 123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

@@ -46,6 +46,8 @@ __all__: List[str] = [
     "join_lines",
     "replace_many",
     "strip_html",
+    "common_prefix",
+    "common_suffix",
 ]
 
 
@@ -405,3 +407,59 @@ def strip_html(s: str) -> str:
     import re
 
     return re.sub(r"<[^>]+>", "", s)
+
+
+def common_prefix(s1: str, s2: str) -> str:
+    """Return the longest common prefix of two strings.
+
+    Args:
+        s1: The first string.
+        s2: The second string.
+
+    Returns:
+        The longest leading substring shared by both strings.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> common_prefix("interstellar", "internet")
+        'inter'
+        >>> common_prefix("hello", "world")
+        ''
+    """
+    _require_string(s1, "s1")
+    _require_string(s2, "s2")
+    limit = min(len(s1), len(s2))
+    index = 0
+    while index < limit and s1[index] == s2[index]:
+        index += 1
+    return s1[:index]
+
+
+def common_suffix(s1: str, s2: str) -> str:
+    """Return the longest common suffix of two strings.
+
+    Args:
+        s1: The first string.
+        s2: The second string.
+
+    Returns:
+        The longest trailing substring shared by both strings.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> common_suffix("running", "walking")
+        'ing'
+        >>> common_suffix("hello", "world")
+        ''
+    """
+    _require_string(s1, "s1")
+    _require_string(s2, "s2")
+    limit = min(len(s1), len(s2))
+    index = 0
+    while index < limit and s1[-1 - index] == s2[-1 - index]:
+        index += 1
+    return s1[len(s1) - index:]

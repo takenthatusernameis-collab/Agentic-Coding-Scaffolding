@@ -10326,6 +10326,8 @@ __all__: List[str] = [
     "join_lines",
     "replace_many",
     "strip_html",
+    "common_prefix",
+    "common_suffix",
 ]
 
 
@@ -10685,6 +10687,62 @@ def strip_html(s: str) -> str:
     import re
 
     return re.sub(r"<[^>]+>", "", s)
+
+
+def common_prefix(s1: str, s2: str) -> str:
+    """Return the longest common prefix of two strings.
+
+    Args:
+        s1: The first string.
+        s2: The second string.
+
+    Returns:
+        The longest leading substring shared by both strings.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> common_prefix("interstellar", "internet")
+        'inter'
+        >>> common_prefix("hello", "world")
+        ''
+    """
+    _require_string(s1, "s1")
+    _require_string(s2, "s2")
+    limit = min(len(s1), len(s2))
+    index = 0
+    while index < limit and s1[index] == s2[index]:
+        index += 1
+    return s1[:index]
+
+
+def common_suffix(s1: str, s2: str) -> str:
+    """Return the longest common suffix of two strings.
+
+    Args:
+        s1: The first string.
+        s2: The second string.
+
+    Returns:
+        The longest trailing substring shared by both strings.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> common_suffix("running", "walking")
+        'ing'
+        >>> common_suffix("hello", "world")
+        ''
+    """
+    _require_string(s1, "s1")
+    _require_string(s2, "s2")
+    limit = min(len(s1), len(s2))
+    index = 0
+    while index < limit and s1[-1 - index] == s2[-1 - index]:
+        index += 1
+    return s1[len(s1) - index:]
 STRINGS
 
 # --- utils.py ---
@@ -11452,6 +11510,8 @@ from strings import (
     capitalize_words,
     center,
     char_count,
+    common_prefix,
+    common_suffix,
     count_consonants,
     count_occurrences,
     count_vowels,
@@ -12027,6 +12087,64 @@ class TestReverseWords(unittest.TestCase):
     def test_reverse_words_rejects_non_string(self):
         with self.assertRaises(TypeError):
             reverse_words(123)  # type: ignore[arg-type]
+
+
+class TestCommonPrefix(unittest.TestCase):
+    def test_common_prefix_basic(self):
+        self.assertEqual(common_prefix("interstellar", "internet"), "inter")
+
+    def test_common_prefix_identical(self):
+        self.assertEqual(common_prefix("hello", "hello"), "hello")
+
+    def test_common_prefix_no_match(self):
+        self.assertEqual(common_prefix("hello", "world"), "")
+
+    def test_common_prefix_one_empty(self):
+        self.assertEqual(common_prefix("", "abc"), "")
+        self.assertEqual(common_prefix("abc", ""), "")
+
+    def test_common_prefix_both_empty(self):
+        self.assertEqual(common_prefix("", ""), "")
+
+    def test_common_prefix_same_first_char(self):
+        self.assertEqual(common_prefix("abc", "abd"), "ab")
+
+    def test_common_prefix_rejects_non_string_first(self):
+        with self.assertRaises(TypeError):
+            common_prefix(123, "abc")  # type: ignore[arg-type]
+
+    def test_common_prefix_rejects_non_string_second(self):
+        with self.assertRaises(TypeError):
+            common_prefix("abc", 123)  # type: ignore[arg-type]
+
+
+class TestCommonSuffix(unittest.TestCase):
+    def test_common_suffix_basic(self):
+        self.assertEqual(common_suffix("running", "walking"), "ing")
+
+    def test_common_suffix_identical(self):
+        self.assertEqual(common_suffix("hello", "hello"), "hello")
+
+    def test_common_suffix_no_match(self):
+        self.assertEqual(common_suffix("hello", "world"), "")
+
+    def test_common_suffix_one_empty(self):
+        self.assertEqual(common_suffix("", "abc"), "")
+        self.assertEqual(common_suffix("abc", ""), "")
+
+    def test_common_suffix_both_empty(self):
+        self.assertEqual(common_suffix("", ""), "")
+
+    def test_common_suffix_same_last_chars(self):
+        self.assertEqual(common_suffix("jumping", "running"), "ing")
+
+    def test_common_suffix_rejects_non_string_first(self):
+        with self.assertRaises(TypeError):
+            common_suffix(123, "abc")  # type: ignore[arg-type]
+
+    def test_common_suffix_rejects_non_string_second(self):
+        with self.assertRaises(TypeError):
+            common_suffix("abc", 123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -33114,6 +33232,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Hardened the `strings` module with `reverse_words` and synchronized `strings.py`, its tests, and scaffold documentation (README and embedded `scaffold.sh`) so generated projects and docs reflect the expanded string utilities API.
 - Added `is_prime` to `prime_utils.py` with input validation (`TypeError` for non-int arguments) and tests in `tests/test_prime_utils.py`; fixed the `is_coprime` docstring typo; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
 - Added `sort_versions` to `version_utils.py` with input validation (`TypeError` for non-list or non-string elements, `ValueError` for invalid version strings) and tests in `tests/test_version_utils.py`; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
+- Hardened the `strings` module with `common_prefix` and `common_suffix` helpers, each with typed signatures, Google-style docstrings, `__all__` exports, and input validation raising `TypeError` for non-string arguments; added tests in `tests/test_strings.py`; synchronized the module, its tests, and this CHANGELOG into `scaffold.sh`.
 
 - Added `abc_utils.py` and `tests/test_abc_utils.py`.
 - Added `aifc_utils.py` and `tests/test_aifc_utils.py`.
