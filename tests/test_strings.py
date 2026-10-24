@@ -91,7 +91,7 @@ class TestCountConsonants(unittest.TestCase):
         self.assertEqual(count_consonants("aeiou"), 0)
 
     def test_count_all_consonants(self):
-        self.assertEqual(count_consonants("rhythm"), 5)
+        self.assertEqual(count_consonants("rhythm"), 6)
 
     def test_count_ignores_non_alpha(self):
         self.assertEqual(count_consonants("hello world"), 7)
@@ -159,7 +159,7 @@ class TestTruncate(unittest.TestCase):
         self.assertEqual(truncate("hi", 8), "hi")
 
     def test_truncate_custom_suffix(self):
-        self.assertEqual(truncate("hello world", 8, suffix=".."), "hello w..")
+        self.assertEqual(truncate("hello world", 8, suffix=".."), "hello ..")
 
     def test_truncate_exact_length(self):
         self.assertEqual(truncate("hello", 5), "hello")

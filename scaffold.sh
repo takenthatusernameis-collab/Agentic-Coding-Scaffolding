@@ -9949,7 +9949,61 @@ TESTSHAPES
 
 # --- strings.py ---
 cat > "$OUTPUT_DIR/strings.py" <<'STRINGS'
-"""String utility functions for common text operations."""
+"""String utility functions for common text operations.
+
+Provides helpers for reversing, inspecting, and transforming text. All
+functions validate their inputs and raise :class:`TypeError` or
+:class:`ValueError` on invalid arguments.
+"""
+
+from typing import List
+
+__all__: List[str] = [
+    "reverse_string",
+    "is_palindrome",
+    "count_vowels",
+    "count_consonants",
+    "is_anagram",
+    "capitalize_words",
+    "truncate",
+    "levenshtein_distance",
+]
+
+
+def _require_string(value: object, name: str) -> str:
+    """Validate that *value* is a string, raising ``TypeError`` otherwise.
+
+    Args:
+        value: The value to validate.
+        name: The argument name used in error messages.
+
+    Returns:
+        The validated string.
+
+    Raises:
+        TypeError: If ``value`` is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _require_int(value: object, name: str) -> int:
+    """Validate that *value* is an int, raising ``TypeError`` otherwise.
+
+    Args:
+        value: The value to validate.
+        name: The argument name used in error messages.
+
+    Returns:
+        The validated integer.
+
+    Raises:
+        TypeError: If ``value`` is not an int.
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
 
 
 def reverse_string(s: str) -> str:
@@ -9958,12 +10012,16 @@ def reverse_string(s: str) -> str:
     Args:
         s: The string to reverse.
 
+    Raises:
+        TypeError: If *s* is not a string.
+
     Examples:
         >>> reverse_string("hello")
         'olleh'
         >>> reverse_string("")
         ''
     """
+    _require_string(s, "s")
     return s[::-1]
 
 
@@ -9975,6 +10033,9 @@ def is_palindrome(s: str) -> bool:
     Args:
         s: The string to check.
 
+    Raises:
+        TypeError: If *s* is not a string.
+
     Examples:
         >>> is_palindrome("racecar")
         True
@@ -9983,6 +10044,7 @@ def is_palindrome(s: str) -> bool:
         >>> is_palindrome("A man, a plan, a canal: Panama")
         True
     """
+    _require_string(s, "s")
     cleaned = "".join(ch.lower() for ch in s if ch.isalnum())
     return cleaned == cleaned[::-1]
 
@@ -9995,12 +10057,16 @@ def count_vowels(s: str) -> int:
     Args:
         s: The string to count vowels in.
 
+    Raises:
+        TypeError: If *s* is not a string.
+
     Examples:
         >>> count_vowels("hello")
         2
         >>> count_vowels("rhythm")
         0
     """
+    _require_string(s, "s")
     vowels = {"a", "e", "i", "o", "u"}
     return sum(1 for ch in s.lower() if ch in vowels)
 
@@ -10013,6 +10079,9 @@ def count_consonants(s: str) -> int:
     Args:
         s: The string to count consonants in.
 
+    Raises:
+        TypeError: If *s* is not a string.
+
     Examples:
         >>> count_consonants("hello")
         3
@@ -10021,6 +10090,7 @@ def count_consonants(s: str) -> int:
         >>> count_consonants("hello world")
         7
     """
+    _require_string(s, "s")
     vowels = {"a", "e", "i", "o", "u"}
     return sum(1 for ch in s.lower() if ch.isalpha() and ch not in vowels)
 
@@ -10034,6 +10104,9 @@ def is_anagram(a: str, b: str) -> bool:
         a: The first string.
         b: The second string.
 
+    Raises:
+        TypeError: If *a* or *b* is not a string.
+
     Examples:
         >>> is_anagram("listen", "silent")
         True
@@ -10042,12 +10115,13 @@ def is_anagram(a: str, b: str) -> bool:
         >>> is_anagram("The Eyes", "They See")
         True
     """
+    _require_string(a, "a")
+    _require_string(b, "b")
 
     def normalize(text: str) -> str:
         return "".join(sorted(ch.lower() for ch in text if not ch.isspace()))
 
     return normalize(a) == normalize(b)
-
 
 
 def capitalize_words(s: str) -> str:
@@ -10056,12 +10130,16 @@ def capitalize_words(s: str) -> str:
     Args:
         s: The string to capitalize.
 
+    Raises:
+        TypeError: If *s* is not a string.
+
     Examples:
         >>> capitalize_words("hello world")
         'Hello World'
         >>> capitalize_words("python programming")
         'Python Programming'
     """
+    _require_string(s, "s")
     return " ".join(word[:1].upper() + word[1:] for word in s.split(" "))
 
 
@@ -10081,6 +10159,7 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
         The possibly truncated string.
 
     Raises:
+        TypeError: If *s* or *suffix* is not a string, or *length* is not an int.
         ValueError: If *length* is negative or smaller than the suffix length.
 
     Examples:
@@ -10091,8 +10170,13 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
         >>> truncate("hello world", 8, suffix="..")
         'hello w..'
     """
+    _require_string(s, "s")
+    _require_string(suffix, "suffix")
+    _require_int(length, "length")
     if length < 0:
         raise ValueError("length must be non-negative")
+    if length == 0:
+        return ""
     if len(suffix) > length:
         raise ValueError("suffix must not be longer than length")
     if len(s) <= length:
@@ -10111,6 +10195,9 @@ def levenshtein_distance(a: str, b: str) -> int:
         a: The first string.
         b: The second string.
 
+    Raises:
+        TypeError: If *a* or *b* is not a string.
+
     Returns:
         The Levenshtein distance between the two strings.
 
@@ -10122,6 +10209,8 @@ def levenshtein_distance(a: str, b: str) -> int:
         >>> levenshtein_distance("abc", "abc")
         0
     """
+    _require_string(a, "a")
+    _require_string(b, "b")
     if not a:
         return len(b)
     if not b:
@@ -10747,9 +10836,20 @@ STATS
 
 # --- tests/test_strings.py ---
 cat > "$OUTPUT_DIR/tests/test_strings.py" <<'TESTSTRINGS'
+"""Tests for strings module."""
+
 import unittest
 
-from strings import count_vowels, is_palindrome, reverse_string
+from strings import (
+    capitalize_words,
+    count_consonants,
+    count_vowels,
+    is_anagram,
+    is_palindrome,
+    levenshtein_distance,
+    reverse_string,
+    truncate,
+)
 
 
 class TestReverseString(unittest.TestCase):
@@ -10767,6 +10867,10 @@ class TestReverseString(unittest.TestCase):
 
     def test_reverse_with_spaces(self):
         self.assertEqual(reverse_string("hello world"), "dlrow olleh")
+
+    def test_reverse_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            reverse_string(123)  # type: ignore[arg-type]
 
 
 class TestIsPalindrome(unittest.TestCase):
@@ -10791,6 +10895,10 @@ class TestIsPalindrome(unittest.TestCase):
     def test_single_char_is_palindrome(self):
         self.assertTrue(is_palindrome("a"))
 
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_palindrome(None)  # type: ignore[arg-type]
+
 
 class TestCountVowels(unittest.TestCase):
     def test_count_basic(self):
@@ -10807,6 +10915,157 @@ class TestCountVowels(unittest.TestCase):
 
     def test_count_all_vowels(self):
         self.assertEqual(count_vowels("aeiou"), 5)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_vowels(42)  # type: ignore[arg-type]
+
+
+class TestCountConsonants(unittest.TestCase):
+    def test_count_basic(self):
+        self.assertEqual(count_consonants("hello"), 3)
+
+    def test_count_no_consonants(self):
+        self.assertEqual(count_consonants("aeiou"), 0)
+
+    def test_count_all_consonants(self):
+        self.assertEqual(count_consonants("rhythm"), 6)
+
+    def test_count_ignores_non_alpha(self):
+        self.assertEqual(count_consonants("hello world"), 7)
+
+    def test_count_empty(self):
+        self.assertEqual(count_consonants(""), 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_consonants(None)  # type: ignore[arg-type]
+
+
+class TestIsAnagram(unittest.TestCase):
+    def test_anagram_basic(self):
+        self.assertTrue(is_anagram("listen", "silent"))
+
+    def test_not_anagram(self):
+        self.assertFalse(is_anagram("hello", "world"))
+
+    def test_anagram_with_spaces(self):
+        self.assertTrue(is_anagram("The Eyes", "They See"))
+
+    def test_anagram_case_insensitive(self):
+        self.assertTrue(is_anagram("LISTEN", "silent"))
+
+    def test_anagram_empty_strings(self):
+        self.assertTrue(is_anagram("", ""))
+
+    def test_rejects_non_string_first(self):
+        with self.assertRaises(TypeError):
+            is_anagram(123, "abc")  # type: ignore[arg-type]
+
+    def test_rejects_non_string_second(self):
+        with self.assertRaises(TypeError):
+            is_anagram("abc", 123)  # type: ignore[arg-type]
+
+
+class TestCapitalizeWords(unittest.TestCase):
+    def test_capitalize_basic(self):
+        self.assertEqual(capitalize_words("hello world"), "Hello World")
+
+    def test_capitalize_multiple(self):
+        self.assertEqual(capitalize_words("python programming"), "Python Programming")
+
+    def test_capitalize_empty(self):
+        self.assertEqual(capitalize_words(""), "")
+
+    def test_capitalize_single_word(self):
+        self.assertEqual(capitalize_words("python"), "Python")
+
+    def test_capitalize_preserves_extra_spaces(self):
+        # split(" ") preserves consecutive spaces as empty words
+        self.assertEqual(capitalize_words("a  b"), "A  B")
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            capitalize_words(123)  # type: ignore[arg-type]
+
+
+class TestTruncate(unittest.TestCase):
+    def test_truncate_basic(self):
+        self.assertEqual(truncate("hello world", 8), "hello...")
+
+    def test_truncate_no_truncation(self):
+        self.assertEqual(truncate("hi", 8), "hi")
+
+    def test_truncate_custom_suffix(self):
+        self.assertEqual(truncate("hello world", 8, suffix=".."), "hello ..")
+
+    def test_truncate_exact_length(self):
+        self.assertEqual(truncate("hello", 5), "hello")
+
+    def test_truncate_suffix_equals_length(self):
+        self.assertEqual(truncate("hello world", 3, suffix="..."), "...")
+        self.assertEqual(truncate("hello world", 3, suffix=".."), "h..")
+
+    def test_truncate_zero_length(self):
+        self.assertEqual(truncate("hello", 0), "")
+
+    def test_truncate_negative_length_raises(self):
+        with self.assertRaises(ValueError):
+            truncate("hello", -1)
+
+    def test_truncate_suffix_longer_than_length_raises(self):
+        with self.assertRaises(ValueError):
+            truncate("hello", 2, suffix="...")
+
+    def test_truncate_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            truncate(123, 5)  # type: ignore[arg-type]
+
+    def test_truncate_rejects_non_string_suffix(self):
+        with self.assertRaises(TypeError):
+            truncate("hello", 5, suffix=123)  # type: ignore[arg-type]
+
+    def test_truncate_rejects_non_int_length(self):
+        with self.assertRaises(TypeError):
+            truncate("hello", "five")  # type: ignore[arg-type]
+
+    def test_truncate_rejects_bool_length(self):
+        with self.assertRaises(TypeError):
+            truncate("hello", True)
+
+
+class TestLevenshteinDistance(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(levenshtein_distance("kitten", "sitting"), 3)
+
+    def test_empty_first(self):
+        self.assertEqual(levenshtein_distance("", "abc"), 3)
+
+    def test_empty_second(self):
+        self.assertEqual(levenshtein_distance("abc", ""), 3)
+
+    def test_both_empty(self):
+        self.assertEqual(levenshtein_distance("", ""), 0)
+
+    def test_identical(self):
+        self.assertEqual(levenshtein_distance("abc", "abc"), 0)
+
+    def test_single_substitution(self):
+        self.assertEqual(levenshtein_distance("cat", "car"), 1)
+
+    def test_single_insertion(self):
+        self.assertEqual(levenshtein_distance("cat", "cats"), 1)
+
+    def test_single_deletion(self):
+        self.assertEqual(levenshtein_distance("cats", "cat"), 1)
+
+    def test_rejects_non_string_first(self):
+        with self.assertRaises(TypeError):
+            levenshtein_distance(123, "abc")  # type: ignore[arg-type]
+
+    def test_rejects_non_string_second(self):
+        with self.assertRaises(TypeError):
+            levenshtein_distance("abc", 123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

@@ -224,6 +224,8 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
     _require_int(length, "length")
     if length < 0:
         raise ValueError("length must be non-negative")
+    if length == 0:
+        return ""
     if len(suffix) > length:
         raise ValueError("suffix must not be longer than length")
     if len(s) <= length:
