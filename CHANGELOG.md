@@ -270,3 +270,8 @@
 - Added `shapes.py` and `tests/test_shapes.py`.
 - Added `stats.py` and `tests/test_stats.py`.
 - Added `strings.py` and `tests/test_strings.py`.
+- Added `utils.py` and `tests/test_utils.py`.
+- Added `config_schema.py` and `tests/test_config_schema.py`.
+- Added `.pre-commit-config.yaml`.
+- Added `CHANGELOG.md`.
+- Added `.kilo/.gitignore`.
