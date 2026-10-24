@@ -35494,7 +35494,6 @@ The project includes sre_compile utilities in `sre_compile_utils.py` wrapping th
 
 Deprecated-module wrappers: `cgitb_utils.py`, `nntplib_utils.py`, `sndhdr_utils.py`, `sre_compile_utils.py`, `sre_parse_utils.py`.
 
-backoff_utils.py
 ## Slugify Utilities Module
 
 The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slug`. The module is tested in `tests/test_slugify_utils.py`.
