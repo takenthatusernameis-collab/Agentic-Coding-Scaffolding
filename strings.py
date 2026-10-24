@@ -105,7 +105,7 @@ def is_anagram(s1: str, s2: str) -> bool:
 def capitalize_words(s: str) -> str:
     """Capitalize the first letter of each word."""
     _require_string(s, "s")
-    return " ".join(word.capitalize() for word in s.split())
+    return " ".join(word.capitalize() for word in s.split(" "))
 
 
 def truncate(s: str, length: int, suffix: str = "...") -> str:
@@ -115,6 +115,10 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
     if length < 0:
         raise ValueError("length cannot be negative")
     _require_string(suffix, "suffix")
+    if length == 0:
+        return ""
+    if len(suffix) > length:
+        raise ValueError("suffix cannot be longer than length")
     if len(s) <= length:
         return s
     return s[: max(0, length - len(suffix))] + suffix

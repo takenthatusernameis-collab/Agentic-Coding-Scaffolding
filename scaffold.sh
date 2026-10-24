@@ -9630,6 +9630,7 @@ __all__: List[str] = [
     "ellipse_area",
     "polygon_area",
     "regular_polygon_area",
+    "regular_polygon_perimeter",
 ]
 
 
@@ -9966,6 +9967,16 @@ def regular_polygon_area(n: int, side_length: float) -> float:
     if side_length < 0:
         raise ValueError("Side length cannot be negative.")
     return (n * side_length ** 2) / (4 * math.tan(math.pi / n))
+
+def regular_polygon_perimeter(n: int, side_length: float) -> float:
+    """Return the perimeter of a regular polygon."""
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 3:
+        raise ValueError("A polygon must have at least 3 sides")
+    if side_length < 0:
+        raise ValueError("Side length cannot be negative")
+    return float(n * side_length)
 SHAPES
 
 # --- tests/test_shapes.py ---
@@ -10224,6 +10235,18 @@ __all__: List[str] = [
     "char_count",
     "is_blank",
     "normalize_whitespace",
+    "is_upper",
+    "is_lower",
+    "swap_case",
+    "count_occurrences",
+    "starts_with",
+    "ends_with",
+    "pad_left",
+    "pad_right",
+    "center",
+    "lstrip_chars",
+    "rstrip_chars",
+    "strip_chars",
 ]
 
 
@@ -10277,56 +10300,58 @@ def count_consonants(s: str) -> int:
     return sum(1 for ch in s.lower() if ch.isalpha() and ch not in vowels)
 
 
-def is_anagram(a: str, b: str) -> bool:
-    """Return True if *a* and *b* are anagrams of each other.
+def is_anagram(s1: str, s2: str) -> bool:
+    """Return True if s1 and s2 are anagrams of each other.
 
-    Comparison is case-insensitive and ignores all whitespace.
+    Comparison is case-insensitive and ignores whitespace.
     """
-    _require_string(a, "a")
-    _require_string(b, "b")
-    return sorted(a.lower().replace(" ", "")) == sorted(b.lower().replace(" ", ""))
+    _require_string(s1, "s1")
+    _require_string(s2, "s2")
+    cleaned1 = "".join(ch.lower() for ch in s1 if not ch.isspace())
+    cleaned2 = "".join(ch.lower() for ch in s2 if not ch.isspace())
+    return sorted(cleaned1) == sorted(cleaned2)
 
 
 def capitalize_words(s: str) -> str:
-    """Capitalize the first letter of each word in the string."""
+    """Capitalize the first letter of each word."""
     _require_string(s, "s")
-    return " ".join(word[:1].upper() + word[1:] for word in s.split(" "))
+    return " ".join(word.capitalize() for word in s.split(" "))
 
 
 def truncate(s: str, length: int, suffix: str = "...") -> str:
-    """Truncate *s* to at most *length* characters, appending *suffix*."""
+    """Truncate string to max length, adding suffix if truncated."""
     _require_string(s, "s")
-    _require_string(suffix, "suffix")
     _require_int(length, "length")
     if length < 0:
-        raise ValueError("length must be non-negative")
+        raise ValueError("length cannot be negative")
+    _require_string(suffix, "suffix")
     if length == 0:
         return ""
     if len(suffix) > length:
-        raise ValueError("suffix must not be longer than length")
+        raise ValueError("suffix cannot be longer than length")
     if len(s) <= length:
         return s
-    return s[: length - len(suffix)] + suffix
+    return s[: max(0, length - len(suffix))] + suffix
 
 
-def levenshtein_distance(a: str, b: str) -> int:
-    """Return the edit distance between *a* and *b*."""
-    _require_string(a, "a")
-    _require_string(b, "b")
-    if not a:
-        return len(b)
-    if not b:
-        return len(a)
-    previous = list(range(len(b) + 1))
-    for i, ca in enumerate(a, start=1):
-        current = [i] + [0] * len(b)
-        for j, cb in enumerate(b, start=1):
-            cost = 0 if ca == cb else 1
-            current[j] = min(
-                current[j - 1] + 1,
-                previous[j] + 1,
-                previous[j - 1] + cost,
-            )
+def levenshtein_distance(s1: str, s2: str) -> int:
+    """Return the Levenshtein distance between s1 and s2."""
+    _require_string(s1, "s1")
+    _require_string(s2, "s2")
+    if s1 == s2:
+        return 0
+    if len(s1) == 0:
+        return len(s2)
+    if len(s2) == 0:
+        return len(s1)
+    previous = list(range(len(s2) + 1))
+    for i, c1 in enumerate(s1):
+        current = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous[j + 1] + 1
+            deletions = current[j] + 1
+            substitutions = previous[j] + (c1 != c2)
+            current.append(min(insertions, deletions, substitutions))
         previous = current
     return previous[-1]
 
@@ -10391,7 +10416,6 @@ def char_count(s: str) -> int:
     return len(s)
 
 
-
 def normalize_whitespace(s: str) -> str:
     """Collapse runs of whitespace to a single space and trim."""
     _require_string(s, "s")
@@ -10404,6 +10428,102 @@ def is_blank(s: str) -> bool:
     """Return True if string is empty or contains only whitespace."""
     _require_string(s, "s")
     return s.strip() == ""
+
+
+def is_upper(s: str) -> bool:
+    """Return True if all alphabetic characters are uppercase and there is at least one alphabetic character."""
+    _require_string(s, "s")
+    if not any(c.isalpha() for c in s):
+        return False
+    return s == s.upper()
+
+
+def is_lower(s: str) -> bool:
+    """Return True if all alphabetic characters are lowercase and there is at least one alphabetic character."""
+    _require_string(s, "s")
+    if not any(c.isalpha() for c in s):
+        return False
+    return s == s.lower()
+
+
+def swap_case(s: str) -> str:
+    """Return a copy of the string with uppercase converted to lowercase and vice versa."""
+    _require_string(s, "s")
+    return s.swapcase()
+
+
+def count_occurrences(s: str, substring: str) -> int:
+    """Return the number of non-overlapping occurrences of substring in s."""
+    _require_string(s, "s")
+    _require_string(substring, "substring")
+    if substring == "":
+        raise ValueError("substring cannot be empty")
+    return s.count(substring)
+
+
+def starts_with(s: str, prefix: str) -> bool:
+    """Return True if string starts with prefix."""
+    _require_string(s, "s")
+    _require_string(prefix, "prefix")
+    return s.startswith(prefix)
+
+
+def ends_with(s: str, suffix: str) -> bool:
+    """Return True if string ends with suffix."""
+    _require_string(s, "s")
+    _require_string(suffix, "suffix")
+    return s.endswith(suffix)
+
+
+def pad_left(s: str, width: int, fillchar: str = " ") -> str:
+    """Pad string on the left to reach width."""
+    _require_string(s, "s")
+    _require_int(width, "width")
+    _require_string(fillchar, "fillchar")
+    if len(fillchar) != 1:
+        raise ValueError("fillchar must be a single character")
+    return s.rjust(width, fillchar)
+
+
+def pad_right(s: str, width: int, fillchar: str = " ") -> str:
+    """Pad string on the right to reach width."""
+    _require_string(s, "s")
+    _require_int(width, "width")
+    _require_string(fillchar, "fillchar")
+    if len(fillchar) != 1:
+        raise ValueError("fillchar must be a single character")
+    return s.ljust(width, fillchar)
+
+
+def center(s: str, width: int, fillchar: str = " ") -> str:
+    """Center string within width."""
+    _require_string(s, "s")
+    _require_int(width, "width")
+    _require_string(fillchar, "fillchar")
+    if len(fillchar) != 1:
+        raise ValueError("fillchar must be a single character")
+    return s.center(width, fillchar)
+
+
+def lstrip_chars(s: str, chars: str) -> str:
+    """Remove leading characters in chars."""
+    _require_string(s, "s")
+    _require_string(chars, "chars")
+    return s.lstrip(chars)
+
+
+def rstrip_chars(s: str, chars: str) -> str:
+    """Remove trailing characters in chars."""
+    _require_string(s, "s")
+    _require_string(chars, "chars")
+    return s.rstrip(chars)
+
+
+def strip_chars(s: str, chars: str) -> str:
+    """Remove leading and trailing characters in chars."""
+    _require_string(s, "s")
+    _require_string(chars, "chars")
+    return s.strip(chars)
 STRINGS
 
 # --- utils.py ---
@@ -10878,6 +10998,10 @@ __all__: List[str] = [
     "max_value",
     "sum_values",
     "percentile",
+    "iqr",
+    "coefficient_of_variation",
+    "geometric_mean",
+    "harmonic_mean",
 ]
 
 
@@ -11097,6 +11221,74 @@ def percentile(numbers: List[T | float], p: float) -> float:
     if f == c:
         return sorted_nums[int(k)]
     return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)
+    if not numbers:
+        raise ValueError("Cannot calculate harmonic mean of empty list")
+    total = 0.0
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only numbers")
+        if float(x) <= 0:
+            raise ValueError("All numbers must be positive")
+        total += 1.0 / float(x)
+    return float(len(numbers) / total)
+
+
+def iqr(numbers: List[T | float]) -> float:
+    """Return the interquartile range (Q3 - Q1)."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate iqr of empty list")
+    q1 = percentile(numbers, 25)
+    q3 = percentile(numbers, 75)
+    return float(q3 - q1)
+
+
+def coefficient_of_variation(numbers: List[T | float], population: bool = True) -> float:
+    """Return the coefficient of variation (stddev / mean)."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
+    if not numbers:
+        raise ValueError("Cannot calculate coefficient of variation of empty list")
+    m = mean(numbers)
+    if m == 0:
+        raise ValueError("Cannot calculate coefficient of variation when mean is 0")
+    s = stddev(numbers, population=population)
+    return float(abs(s) / abs(m))
+
+
+def geometric_mean(numbers: List[T | float]) -> float:
+    """Return the geometric mean."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate geometric mean of empty list")
+    product = 1.0
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only numbers")
+        if float(x) <= 0:
+            raise ValueError("All numbers must be positive")
+        product *= float(x)
+    return product ** (1.0 / len(numbers))
+
+
+def harmonic_mean(numbers: List[T | float]) -> float:
+    """Return the harmonic mean."""
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if not numbers:
+        raise ValueError("Cannot calculate harmonic mean of empty list")
+    total = 0.0
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only numbers")
+        if float(x) <= 0:
+            raise ValueError("All numbers must be positive")
+        total += 1.0 / float(x)
+    return float(len(numbers) / total)
 STATS
 
 # --- tests/test_strings.py ---
@@ -56134,6 +56326,10 @@ __all__ = [
     "previous_prime",
     "is_prime_power",
     "prime_sieve_of_eratosthenes",
+    "is_coprime",
+    "gcd",
+    "lcm",
+    "phi",
 ]
 
 
@@ -56141,94 +56337,37 @@ def prime_factors(n: int) -> list[int]:
     """Return the prime factors of n in non-decreasing order.
 
     Args:
-        n: The integer to factorize (n >= 2).
+        n: A positive integer greater than 1.
 
     Returns:
-        A list of prime factors whose product is n.
+        A list of prime factors of n.
 
     Raises:
         TypeError: If n is not an int.
-        ValueError: If n < 2.
-
-    Examples:
-        >>> prime_factors(12)
-        [2, 2, 3]
-        >>> prime_factors(17)
-        [17]
+        ValueError: If n is less than 2.
     """
     if not isinstance(n, int) or isinstance(n, bool):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 2:
-        raise ValueError("Prime factorization is only defined for integers >= 2")
-    factors: list[int] = []
-    while n % 2 == 0:
-        factors.append(2)
-        n //= 2
-    divisor = 3
-    while divisor * divisor <= n:
-        while n % divisor == 0:
-            factors.append(divisor)
-            n //= divisor
-        divisor += 2
-    if n > 1:
-        factors.append(n)
+        raise ValueError("n must be >= 2")
+    factors = []
+    d = 2
+    temp = n
+    while d * d <= temp:
+        while temp % d == 0:
+            factors.append(d)
+            temp //= d
+        if d == 2:
+            d += 1
+        else:
+            d += 2
+    if temp > 1:
+        factors.append(temp)
     return factors
 
 
-def nth_prime(n: int) -> int:
-    """Return the nth prime number (1-indexed).
-
-    Args:
-        n: The position of the prime to return (n >= 1).
-
-    Returns:
-        The nth prime number.
-
-    Raises:
-        TypeError: If n is not an int.
-        ValueError: If n < 1.
-
-    Examples:
-        >>> nth_prime(1)
-        2
-        >>> nth_prime(6)
-        13
-    """
-    if not isinstance(n, int) or isinstance(n, bool):
-        raise TypeError(f"n must be an int, got {type(n).__name__}")
-    if n < 1:
-        raise ValueError("nth_prime is only defined for n >= 1")
-    count = 0
-    candidate = 2
-    while True:
-        if is_prime(candidate):
-            count += 1
-            if count == n:
-                return candidate
-        candidate = 3 if candidate == 2 else candidate + 2
-
-
-def primes_up_to(limit: int) -> list[int]:
-    """Return all prime numbers less than or equal to limit.
-
-    Args:
-        limit: The upper bound (inclusive).
-
-    Returns:
-        A list of primes <= limit.
-
-    Raises:
-        TypeError: If limit is not an int.
-    """
-    if not isinstance(limit, int) or isinstance(limit, bool):
-        raise TypeError(f"limit must be an int, got {type(limit).__name__}")
-    if limit < 2:
-        return []
-    return [p for p in range(2, limit + 1) if is_prime(p)]
-
-
 def prime_sieve_of_eratosthenes(limit: int) -> list[int]:
-    """Return all prime numbers up to and including limit using the sieve of Eratosthenes."""
+    """Return a list of prime numbers up to the specified limit."""
     if not isinstance(limit, int) or isinstance(limit, bool):
         raise TypeError(f"limit must be an int, got {type(limit).__name__}")
     if limit < 2:
@@ -56248,59 +56387,48 @@ def prime_sieve_of_eratosthenes(limit: int) -> list[int]:
     return primes
 
 
+def nth_prime(n: int) -> int:
+    """Return the nth prime number (1-indexed)."""
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    count = 0
+    num = 1
+    while count < n:
+        num += 1
+        if is_prime(num):
+            count += 1
+    return num
+
+
 def next_prime(n: int) -> int:
-    """Return the smallest prime strictly greater than n.
-
-    Args:
-        n: The integer to start from.
-
-    Returns:
-        The next prime after n.
-
-    Raises:
-        TypeError: If n is not an int.
-    """
+    """Return the smallest prime greater than n."""
     if not isinstance(n, int) or isinstance(n, bool):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     candidate = n + 1
-    if candidate <= 2:
-        return 2
-    if candidate % 2 == 0:
-        candidate += 1
     while not is_prime(candidate):
-        candidate += 2
+        candidate += 1
     return candidate
 
 
 def previous_prime(n: int) -> int:
-    """Return the largest prime strictly less than n.
-
-    Args:
-        n: The integer to start from (n > 2).
-
-    Returns:
-        The previous prime before n.
-
-    Raises:
-        TypeError: If n is not an int.
-        ValueError: If n <= 2.
-
-    Examples:
-        >>> previous_prime(11)
-        7
-        >>> previous_prime(3)
-        2
-    """
+    """Return the largest prime less than n."""
     if not isinstance(n, int) or isinstance(n, bool):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n <= 2:
-        raise ValueError("previous_prime is only defined for n > 2")
+        raise ValueError("no prime less than n")
     candidate = n - 1
-    while candidate >= 2:
-        if is_prime(candidate):
-            return candidate
+    while candidate >= 2 and not is_prime(candidate):
         candidate -= 1
-    raise ValueError("No prime found below n")
+    if candidate < 2:
+        raise ValueError("no prime less than n")
+    return candidate
+
+
+def primes_up_to(limit: int) -> list[int]:
+    """Return all prime numbers up to limit."""
+    return prime_sieve_of_eratosthenes(limit)
 
 
 def is_prime_power(n: int) -> bool:
@@ -56309,16 +56437,12 @@ def is_prime_power(n: int) -> bool:
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 4:
         return False
-    # Try all possible exponents k >= 2 such that p^k <= n
-    # Find max k
     max_k = int(math.log(n, 2))
     for k in range(max_k, 1, -1):
-        # try integer root
         p_float = n ** (1.0 / k)
         p = round(p_float)
         if p < 2:
             continue
-        # check a few values around p due to floating point
         for p_cand in {p - 1, p, p + 1}:
             if p_cand < 2:
                 continue
@@ -56327,7 +56451,6 @@ def is_prime_power(n: int) -> bool:
                 return True
             if val > n:
                 break
-    # Check prime bases
     for p in prime_sieve_of_eratosthenes(int(math.sqrt(n))):
         if p == 2 and n % 2 == 1:
             continue
@@ -56341,6 +56464,61 @@ def is_prime_power(n: int) -> bool:
         if power > n:
             break
     return False
+
+
+def is_coprime(a: int, b: int) -> bool:
+    """Return True if a and b are coprime (gcd is 1)."""
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    return gcd(abs(a), abs(b)) == 1
+
+
+def gcd(a: int, b: int) -> int:
+    """Return the greatest common divisor of a and b."""
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    a, b = abs(a), abs(b)
+    while b:
+        a, b = b, a % b
+    return a
+
+
+def lcm(a: int, b: int) -> int:
+    """Return the least common multiple of a and b."""
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    if a == 0 or b == 0:
+        return 0
+    return abs((a // gcd(a, b)) * b)
+
+
+def phi(n: int) -> int:
+    """Compute Euler's totient function phi for positive integer n."""
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        raise ValueError("n must be positive")
+    result = n
+    num = n
+    p = 2
+    while p * p <= num:
+        if num % p == 0:
+            while num % p == 0:
+                num //= p
+            result -= result // p
+        if p == 2:
+            p += 1
+        else:
+            p += 2
+    if num > 1:
+        result -= result // num
+    return result
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -74103,6 +74281,11 @@ __all__: List[str] = [
     "is_greater",
     "is_less",
     "is_equal",
+    "is_version_greater",
+    "is_version_less",
+    "is_version_equal",
+    "is_version_greater_equal",
+    "is_version_less_equal",
     "normalize_version",
     "bump_major",
     "bump_minor",
@@ -74212,6 +74395,16 @@ def bump_patch(version: str) -> str:
     idx = 2 if len(parts) > 2 else len(parts) - 1
     parts[idx] = parts[idx] + 1
     return ".".join(str(p) for p in parts)
+
+
+def is_version_greater_equal(v1: str, v2: str) -> bool:
+    """Return True if v1 >= v2."""
+    return compare_versions(v1, v2) >= 0
+
+
+def is_version_less_equal(v1: str, v2: str) -> bool:
+    """Return True if v1 <= v2."""
+    return compare_versions(v1, v2) <= 0
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
