@@ -2,7 +2,14 @@
 
 import unittest
 
-from stats import mean, median, mode, stddev, variance
+from stats import (
+    mean,
+    median,
+    median_absolute_deviation,
+    mode,
+    stddev,
+    variance,
+)
 
 
 class TestMean(unittest.TestCase):
@@ -95,6 +102,40 @@ class TestStddev(unittest.TestCase):
     def test_stddev_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             stddev([])
+
+
+class TestMedianAbsoluteDeviation(unittest.TestCase):
+    def test_mad_basic(self) -> None:
+        self.assertEqual(median_absolute_deviation([1, 2, 3]), 1.0)
+
+    def test_mad_all_equal(self) -> None:
+        self.assertEqual(median_absolute_deviation([2, 2, 2, 2]), 0.0)
+
+    def test_mad_single_element(self) -> None:
+        self.assertEqual(median_absolute_deviation([5]), 0.0)
+
+    def test_mad_negative_values(self) -> None:
+        self.assertEqual(median_absolute_deviation([-3, -1, 0, 1, 3]), 1.0)
+
+    def test_mad_mixed_int_float(self) -> None:
+        self.assertEqual(median_absolute_deviation([1, 2.5, 4]), 1.5)
+
+    def test_mad_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            median_absolute_deviation([])
+
+    def test_mad_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            median_absolute_deviation((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_mad_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            median_absolute_deviation(numbers)  # type: ignore[type-var]
+
+    def test_mad_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            median_absolute_deviation([True, 1, 2])  # type: ignore[type-var]
 
 
 if __name__ == "__main__":

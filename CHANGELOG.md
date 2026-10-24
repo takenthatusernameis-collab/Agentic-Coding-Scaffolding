@@ -5,6 +5,8 @@
 
 ## Unreleased
 
+- Added `median_absolute_deviation` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-list or non-numeric arguments and `ValueError` for empty lists; added tests in `tests/test_stats.py`; synchronized the module and its tests into `scaffold.sh`.
+
 - Hardened `polygon_area` in `shapes.py` to validate that every vertex is a 2-tuple of numbers, raising `TypeError` for a malformed vertex or a non-numeric component; added tests in `tests/test_shapes.py`; synchronized the module, its tests, and this CHANGELOG into `scaffold.sh`.
 - Closed documentation drift in the `greeting_utils` module section: the README tree, the prose section, and `.kilo/command/scaffold-project.md` listed nonexistent `greet` and `random_greeting` helpers; the section now lists only the public API (`format_greeting`, `format_names`) that `greeting_utils.py` actually exports. Synchronized the corrected README and command documentation into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Hardened the `prime_utils` module with typed `__all__`, Google-style docstrings, and input validation (`TypeError` for non-int arguments, `ValueError` for out-of-range values) on `primes_up_to`, `nth_prime`, `prime_factors`, and `is_coprime`; added validation tests in `tests/test_prime_utils.py`; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.

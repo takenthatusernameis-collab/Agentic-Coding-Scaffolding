@@ -20,6 +20,7 @@ __all__: List[str] = [
     "coefficient_of_variation",
     "geometric_mean",
     "harmonic_mean",
+    "median_absolute_deviation",
 ]
 
 
@@ -296,3 +297,32 @@ def harmonic_mean(numbers: List[T | float]) -> float:
             raise ValueError("All numbers must be positive")
         total += 1.0 / float(x)
     return float(len(numbers) / total)
+
+
+def median_absolute_deviation(numbers: List[T | float]) -> float:
+    """Return the median absolute deviation of a list of numbers.
+
+    The median absolute deviation (MAD) is the median of the absolute
+    deviations of each number from the median of the list. It is a robust
+    measure of statistical dispersion.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The median absolute deviation of the numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> median_absolute_deviation([1, 2, 3])
+        1.0
+        >>> median_absolute_deviation([2, 2, 2, 2])
+        0.0
+    """
+    _require_numbers(numbers, "numbers")
+    med = median(numbers)
+    deviations = [abs(x - med) for x in numbers]
+    return median(deviations)

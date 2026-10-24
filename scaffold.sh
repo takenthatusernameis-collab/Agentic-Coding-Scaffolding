@@ -11221,6 +11221,7 @@ __all__: List[str] = [
     "coefficient_of_variation",
     "geometric_mean",
     "harmonic_mean",
+    "median_absolute_deviation",
 ]
 
 
@@ -11497,6 +11498,35 @@ def harmonic_mean(numbers: List[T | float]) -> float:
             raise ValueError("All numbers must be positive")
         total += 1.0 / float(x)
     return float(len(numbers) / total)
+
+
+def median_absolute_deviation(numbers: List[T | float]) -> float:
+    """Return the median absolute deviation of a list of numbers.
+
+    The median absolute deviation (MAD) is the median of the absolute
+    deviations of each number from the median of the list. It is a robust
+    measure of statistical dispersion.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The median absolute deviation of the numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> median_absolute_deviation([1, 2, 3])
+        1.0
+        >>> median_absolute_deviation([2, 2, 2, 2])
+        0.0
+    """
+    _require_numbers(numbers, "numbers")
+    med = median(numbers)
+    deviations = [abs(x - med) for x in numbers]
+    return median(deviations)
 STATS
 
 # --- tests/test_strings.py ---
@@ -12287,7 +12317,14 @@ cat > "$OUTPUT_DIR/tests/test_stats.py" <<'TESTSTATS'
 
 import unittest
 
-from stats import mean, median, mode, stddev, variance
+from stats import (
+    mean,
+    median,
+    median_absolute_deviation,
+    mode,
+    stddev,
+    variance,
+)
 
 
 class TestMean(unittest.TestCase):
@@ -12380,6 +12417,40 @@ class TestStddev(unittest.TestCase):
     def test_stddev_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             stddev([])
+
+
+class TestMedianAbsoluteDeviation(unittest.TestCase):
+    def test_mad_basic(self) -> None:
+        self.assertEqual(median_absolute_deviation([1, 2, 3]), 1.0)
+
+    def test_mad_all_equal(self) -> None:
+        self.assertEqual(median_absolute_deviation([2, 2, 2, 2]), 0.0)
+
+    def test_mad_single_element(self) -> None:
+        self.assertEqual(median_absolute_deviation([5]), 0.0)
+
+    def test_mad_negative_values(self) -> None:
+        self.assertEqual(median_absolute_deviation([-3, -1, 0, 1, 3]), 1.0)
+
+    def test_mad_mixed_int_float(self) -> None:
+        self.assertEqual(median_absolute_deviation([1, 2.5, 4]), 1.5)
+
+    def test_mad_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            median_absolute_deviation([])
+
+    def test_mad_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            median_absolute_deviation((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_mad_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            median_absolute_deviation(numbers)  # type: ignore[type-var]
+
+    def test_mad_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            median_absolute_deviation([True, 1, 2])  # type: ignore[type-var]
 
 
 if __name__ == "__main__":
@@ -33224,6 +33295,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `median_absolute_deviation` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-list or non-numeric arguments and `ValueError` for empty lists; added tests in `tests/test_stats.py`; synchronized the module and its tests into `scaffold.sh`.
+
 - Hardened `polygon_area` in `shapes.py` to validate that every vertex is a 2-tuple of numbers, raising `TypeError` for a malformed vertex or a non-numeric component; added tests in `tests/test_shapes.py`; synchronized the module, its tests, and this CHANGELOG into `scaffold.sh`.
 - Closed documentation drift in the `greeting_utils` module section: the README tree, the prose section, and `.kilo/command/scaffold-project.md` listed nonexistent `greet` and `random_greeting` helpers; the section now lists only the public API (`format_greeting`, `format_names`) that `greeting_utils.py` actually exports. Synchronized the corrected README and command documentation into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Hardened the `prime_utils` module with typed `__all__`, Google-style docstrings, and input validation (`TypeError` for non-int arguments, `ValueError` for out-of-range values) on `primes_up_to`, `nth_prime`, `prime_factors`, and `is_coprime`; added validation tests in `tests/test_prime_utils.py`; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
@@ -34173,7 +34246,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `variance`, and `stddev`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `variance`, `stddev`, and `median_absolute_deviation`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 ## License
 
