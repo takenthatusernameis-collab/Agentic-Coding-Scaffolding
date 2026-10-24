@@ -31323,6 +31323,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Added the `filter` method to `either_utils.Either`, which was advertised in the README module tree, the scaffold command documentation, and the embedded README template but was not implemented. A Right value that satisfies the predicate is kept, a Right value that does not is turned into a Left carrying the same value, a Left is returned unchanged, and an exception raised by the predicate is captured into a Left so the operation stays safe. This mirrors the `filter` method of `maybe_utils.Maybe`.
+
 - Verified the bootstrap foundation: the stdlib wrapper surface is complete (255 modules wrap every importable top-level standard library module), `make test` passes (5367 tests, 5 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in `scaffold.sh` are in sync.
 
 - Repaired the `cooldown_utils` handover that the previous checkpoint session left behind: the module and its test were present, but the `scaffold.sh` header comment never listed `cooldown_utils.py` or `tests/test_cooldown_utils.py`, so `tests/test_scaffold_sync.py` reported a synchronization gap. The header now lists both, and `make refresh-scaffold` confirms that every embedded copy is in sync.
@@ -33620,7 +33622,7 @@ The project includes dynamic type utilities in `types_utils.py` wrapping the sta
 
 ## Maybe Utilities Module
 
-The project includes Maybe/Option type utilities in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. Either/Result type utilities are also provided in `either_utils.py` for functional programming patterns: `Either` represents one of two values with `right`, `left`, `ok`, `err`, and `from_optional` constructors. It provides `is_right`, `is_left`, `unwrap`, `unwrap_left`, `unwrap_or`, `unwrap_or_else`, `map`, `map_left`, `flat_map`, `and_then`, `or_else`, `fold`, and `swap`. All operations are safe and return `Either` types for composable error handling. The modules are tested in `tests/test_maybe_utils.py` and `tests/test_either_utils.py`.
+The project includes Maybe/Option type utilities in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. Either/Result type utilities are also provided in `either_utils.py` for functional programming patterns: `Either` represents one of two values with `right`, `left`, `ok`, `err`, and `from_optional` constructors. It provides `is_right`, `is_left`, `unwrap`, `unwrap_left`, `unwrap_or`, `unwrap_or_else`, `map`, `map_left`, `flat_map`, `and_then`, `filter`, `or_else`, `fold`, and `swap`. All operations are safe and return `Either` types for composable error handling. The modules are tested in `tests/test_maybe_utils.py` and `tests/test_either_utils.py`.
 
 ## Zoneinfo Utilities Module
 
@@ -103502,6 +103504,21 @@ class Either(Generic[L, R]):
         """Alias for flat_map."""
         return self.flat_map(fn)
 
+    def filter(self, predicate: Callable[[R], bool]) -> "Either[L, R]":
+        """Keep the Right value if it matches the predicate, otherwise turn it into a Left.
+
+        A Left is returned unchanged, and an exception raised by the predicate is
+        captured into a Left so the operation stays safe.
+        """
+        if not self._is_right:
+            return Either(self._value, is_right=False)
+        try:
+            if predicate(self._value):
+                return self
+            return Either(self._value, is_right=False)
+        except Exception as e:
+            return Either(cast(L, e), is_right=False)
+
     def or_else(self, other: "Either[L, R]") -> "Either[L, R]":
         """Return self if Right, otherwise other."""
         if self._is_right:
@@ -103609,6 +103626,19 @@ class TestEither(unittest.TestCase):
     def test_or_else(self) -> None:
         self.assertEqual(Either.right(1).or_else(Either.right(2)).unwrap(), 1)
         self.assertEqual(Either.left("a").or_else(Either.right(2)).unwrap(), 2)
+
+    def test_filter(self) -> None:
+        self.assertTrue(Either.right(10).filter(lambda x: x > 5).is_right())
+        self.assertTrue(Either.right(3).filter(lambda x: x > 5).is_left())
+        self.assertTrue(Either.left("err").filter(lambda x: x > 5).is_left())
+
+    def test_filter_captures_predicate_exception(self) -> None:
+        def boom(_value: int) -> bool:
+            raise RuntimeError("boom")
+
+        result = Either.right(5).filter(boom)
+        self.assertTrue(result.is_left())
+        self.assertIsInstance(result.unwrap_left(), RuntimeError)
 
     def test_fold(self) -> None:
         self.assertEqual(Either.right(5).fold(lambda e: -1, lambda x: x * 2), 10)
