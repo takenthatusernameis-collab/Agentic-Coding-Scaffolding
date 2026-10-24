@@ -12,6 +12,23 @@ from typing import Optional, Tuple
 
 Interval = Tuple[float, float]
 
+__all__ = [
+    "Interval",
+    "normalize_interval",
+    "is_valid_interval",
+    "interval_contains",
+    "interval_overlaps",
+    "interval_intersection",
+    "interval_union",
+    "merge_intervals",
+    "interval_length",
+    "interval_midpoint",
+    "interval_distance",
+    "interval_is_subset",
+    "interval_shift",
+    "interval_symmetric_difference",
+]
+
 
 def _is_number(value: object) -> bool:
     """Return True if *value* is a real int or float (excluding booleans)."""
@@ -185,3 +202,123 @@ def interval_length(interval: Interval) -> float:
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
     return float(interval[1] - interval[0])
+
+
+def interval_midpoint(interval: Interval) -> float:
+    """Return the midpoint ``(low + high) / 2`` of *interval*.
+
+    Args:
+        interval: A ``(low, high)`` interval.
+
+    Returns:
+        The midpoint of the interval as a float.
+
+    Raises:
+        ValueError: If *interval* is not valid.
+    """
+    if not is_valid_interval(interval):
+        raise ValueError(f"invalid interval: {interval!r}")
+    return (interval[0] + interval[1]) / 2.0
+
+
+def interval_distance(a: Interval, b: Interval) -> float:
+    """Return the gap between two intervals.
+
+    For overlapping or touching intervals the distance is ``0.0``. For
+    disjoint intervals it is the distance between the closest endpoints.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        The non-negative distance between the intervals.
+
+    Raises:
+        ValueError: If either interval is not valid.
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    if interval_overlaps(a, b):
+        return 0.0
+    if a[1] < b[0]:
+        return float(b[0] - a[1])
+    return float(a[0] - b[1])
+
+
+def interval_is_subset(a: Interval, b: Interval) -> bool:
+    """Return True if *a* is entirely contained within *b*.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        True if ``b[0] <= a[0]`` and ``a[1] <= b[1]``.
+
+    Raises:
+        ValueError: If either interval is not valid.
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    return b[0] <= a[0] and a[1] <= b[1]
+
+
+def interval_shift(interval: Interval, delta: float) -> Interval:
+    """Return *interval* translated by *delta*.
+
+    Args:
+        interval: A ``(low, high)`` interval.
+        delta: The amount to add to both endpoints.
+
+    Returns:
+        A new ``(low + delta, high + delta)`` interval.
+
+    Raises:
+        TypeError: If *delta* is not a real number.
+        ValueError: If *interval* is not valid.
+    """
+    if not is_valid_interval(interval):
+        raise ValueError(f"invalid interval: {interval!r}")
+    if not _is_number(delta):
+        raise TypeError(f"delta must be a real number, got {type(delta).__name__}")
+    return (interval[0] + delta, interval[1] + delta)
+
+
+def interval_symmetric_difference(a: Interval, b: Interval) -> list[Interval]:
+    """Return the portions of *a* and *b* that are not shared.
+
+    The result is a sorted list of up to two disjoint intervals covering the
+    points that belong to exactly one of the two input intervals. Overlapping
+    or touching intervals may produce an empty list when they are identical.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        A list of disjoint intervals (possibly empty) representing the
+        symmetric difference.
+
+    Raises:
+        ValueError: If either interval is not valid.
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    difference: list[Interval] = []
+    intersection = interval_intersection(a, b)
+    if intersection is None:
+        # Disjoint intervals: the symmetric difference is both of them.
+        difference.extend((a, b))
+    else:
+        low, high = intersection
+        if a[0] < low:
+            difference.append((a[0], low))
+        if a[1] > high:
+            difference.append((high, a[1]))
+        if b[0] < low:
+            difference.append((b[0], low))
+        if b[1] > high:
+            difference.append((high, b[1]))
+    # Drop degenerate intervals (a shared endpoint produces zero-length slivers).
+    return [interval for interval in difference if interval[0] < interval[1]]

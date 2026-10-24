@@ -1,3 +1,21 @@
+## Latest Session (2026-10-24) — extended interval_utils with ergonomic helpers
+
+The board held no task (bootstrap). Verified repository health: `make test` passes (5189 tests, 2 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in the latest session:
+
+- Found that `interval_utils.py` exposed the core set operations but lacked the ergonomic helpers that fit its existing API style: midpoint, distance between intervals, subset testing, translation, and symmetric difference.
+- Added `interval_midpoint`, `interval_distance`, `interval_is_subset`, `interval_shift`, and `interval_symmetric_difference` to `interval_utils.py`, each with typed signatures, Google-style docstrings, and validation raising `TypeError`/`ValueError` consistent with the module. Added an `__all__` list (the module previously had none) and an `Interval` type alias to the exports.
+- Added 35 tests across `TestIntervalMidpoint`, `TestIntervalDistance`, `TestIntervalIsSubset`, `TestIntervalShift`, and `TestIntervalSymmetricDifference` in `tests/test_interval_utils.py`, covering degenerate intervals, touching endpoints, partial overlap, containment, and invalid-argument error paths.
+- Updated the `interval_utils` module section in `README.md` (both the tree entry and the prose section) to list the new functions, and recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `interval_utils.py`, `tests/test_interval_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5189 tests and passes, `make lint` and `make typecheck` are green, and scaffold sync is clean.
+
+Next Planned:
+
+- The hermetic, CI-testable stdlib wrapper surface is complete. The modules that still lack a wrapper are either removed in Python 3.13, platform specific, or need a graphical toolkit the CI does not ship, so none is a good candidate for a hermetic wrapper the test suite can run.
+- Keep every new wrapper hermetic and keep `make test`, `make lint`, and `make typecheck` green.
+
 ## Latest Session (2026-10-24) — handover prepared (no open board task)
 
 The board held no task (bootstrap). Verified repository health: `make test` passes (5004 tests, 2 skipped), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No drift found.

@@ -2,9 +2,14 @@ import unittest
 
 from interval_utils import (
     interval_contains,
+    interval_distance,
     interval_intersection,
+    interval_is_subset,
     interval_length,
+    interval_midpoint,
     interval_overlaps,
+    interval_shift,
+    interval_symmetric_difference,
     interval_union,
     is_valid_interval,
     merge_intervals,
@@ -207,6 +212,120 @@ class TestIntervalLength(unittest.TestCase):
     def test_invalid_interval_raises(self):
         with self.assertRaises(ValueError):
             interval_length((5, 1))
+
+
+class TestIntervalMidpoint(unittest.TestCase):
+    def test_whole_number(self):
+        self.assertEqual(interval_midpoint((1, 5)), 3.0)
+
+    def test_fractional(self):
+        self.assertEqual(interval_midpoint((1, 4)), 2.5)
+
+    def test_degenerate_interval(self):
+        self.assertEqual(interval_midpoint((3, 3)), 3.0)
+
+    def test_negative_interval(self):
+        self.assertEqual(interval_midpoint((-5, -1)), -3.0)
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_midpoint((5, 1))
+
+
+class TestIntervalDistance(unittest.TestCase):
+    def test_overlapping_is_zero(self):
+        self.assertEqual(interval_distance((1, 5), (4, 8)), 0.0)
+
+    def test_touching_is_zero(self):
+        self.assertEqual(interval_distance((1, 5), (5, 8)), 0.0)
+
+    def test_disjoint_a_before_b(self):
+        self.assertEqual(interval_distance((1, 3), (5, 8)), 2.0)
+
+    def test_disjoint_b_before_a(self):
+        self.assertEqual(interval_distance((5, 8), (1, 3)), 2.0)
+
+    def test_float_distance(self):
+        self.assertEqual(interval_distance((1.0, 2.0), (3.5, 5.0)), 1.5)
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_distance((5, 1), (2, 4))
+
+
+class TestIntervalIsSubset(unittest.TestCase):
+    def test_a_inside_b(self):
+        self.assertTrue(interval_is_subset((2, 4), (1, 5)))
+
+    def test_a_touches_b_endpoints(self):
+        self.assertTrue(interval_is_subset((1, 5), (1, 5)))
+
+    def test_a_extends_past_b(self):
+        self.assertFalse(interval_is_subset((0, 6), (1, 5)))
+
+    def test_a_outside_b(self):
+        self.assertFalse(interval_is_subset((6, 8), (1, 5)))
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_is_subset((5, 1), (1, 5))
+
+
+class TestIntervalShift(unittest.TestCase):
+    def test_shift_positive(self):
+        self.assertEqual(interval_shift((1, 5), 2), (3, 7))
+
+    def test_shift_negative(self):
+        self.assertEqual(interval_shift((1, 5), -3), (-2, 2))
+
+    def test_shift_float(self):
+        self.assertEqual(interval_shift((1.5, 3.5), 0.5), (2.0, 4.0))
+
+    def test_shift_zero(self):
+        self.assertEqual(interval_shift((1, 5), 0), (1, 5))
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_shift((5, 1), 2)
+
+    def test_non_number_delta_raises(self):
+        with self.assertRaises(TypeError):
+            interval_shift((1, 5), "2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            interval_shift((1, 5), True)  # type: ignore[arg-type]
+
+
+class TestIntervalSymmetricDifference(unittest.TestCase):
+    def test_disjoint_returns_both(self):
+        self.assertEqual(
+            interval_symmetric_difference((1, 3), (5, 8)),
+            [(1, 3), (5, 8)],
+        )
+
+    def test_identical_returns_empty(self):
+        self.assertEqual(interval_symmetric_difference((1, 5), (1, 5)), [])
+
+    def test_partial_overlap(self):
+        self.assertEqual(
+            interval_symmetric_difference((1, 5), (4, 8)),
+            [(1, 4), (5, 8)],
+        )
+
+    def test_one_inside_other(self):
+        self.assertEqual(
+            interval_symmetric_difference((2, 4), (1, 5)),
+            [(1, 2), (4, 5)],
+        )
+
+    def test_touching_intervals(self):
+        self.assertEqual(
+            interval_symmetric_difference((1, 5), (5, 8)),
+            [(1, 5), (5, 8)],
+        )
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_symmetric_difference((5, 1), (2, 4))
 
 
 if __name__ == "__main__":

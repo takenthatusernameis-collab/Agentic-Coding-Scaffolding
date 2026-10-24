@@ -32379,6 +32379,23 @@ from typing import Optional, Tuple
 
 Interval = Tuple[float, float]
 
+__all__ = [
+    "Interval",
+    "normalize_interval",
+    "is_valid_interval",
+    "interval_contains",
+    "interval_overlaps",
+    "interval_intersection",
+    "interval_union",
+    "merge_intervals",
+    "interval_length",
+    "interval_midpoint",
+    "interval_distance",
+    "interval_is_subset",
+    "interval_shift",
+    "interval_symmetric_difference",
+]
+
 
 def _is_number(value: object) -> bool:
     """Return True if *value* is a real int or float (excluding booleans)."""
@@ -32552,6 +32569,126 @@ def interval_length(interval: Interval) -> float:
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
     return float(interval[1] - interval[0])
+
+
+def interval_midpoint(interval: Interval) -> float:
+    """Return the midpoint ``(low + high) / 2`` of *interval*.
+
+    Args:
+        interval: A ``(low, high)`` interval.
+
+    Returns:
+        The midpoint of the interval as a float.
+
+    Raises:
+        ValueError: If *interval* is not valid.
+    """
+    if not is_valid_interval(interval):
+        raise ValueError(f"invalid interval: {interval!r}")
+    return (interval[0] + interval[1]) / 2.0
+
+
+def interval_distance(a: Interval, b: Interval) -> float:
+    """Return the gap between two intervals.
+
+    For overlapping or touching intervals the distance is ``0.0``. For
+    disjoint intervals it is the distance between the closest endpoints.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        The non-negative distance between the intervals.
+
+    Raises:
+        ValueError: If either interval is not valid.
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    if interval_overlaps(a, b):
+        return 0.0
+    if a[1] < b[0]:
+        return float(b[0] - a[1])
+    return float(a[0] - b[1])
+
+
+def interval_is_subset(a: Interval, b: Interval) -> bool:
+    """Return True if *a* is entirely contained within *b*.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        True if ``b[0] <= a[0]`` and ``a[1] <= b[1]``.
+
+    Raises:
+        ValueError: If either interval is not valid.
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    return b[0] <= a[0] and a[1] <= b[1]
+
+
+def interval_shift(interval: Interval, delta: float) -> Interval:
+    """Return *interval* translated by *delta*.
+
+    Args:
+        interval: A ``(low, high)`` interval.
+        delta: The amount to add to both endpoints.
+
+    Returns:
+        A new ``(low + delta, high + delta)`` interval.
+
+    Raises:
+        TypeError: If *delta* is not a real number.
+        ValueError: If *interval* is not valid.
+    """
+    if not is_valid_interval(interval):
+        raise ValueError(f"invalid interval: {interval!r}")
+    if not _is_number(delta):
+        raise TypeError(f"delta must be a real number, got {type(delta).__name__}")
+    return (interval[0] + delta, interval[1] + delta)
+
+
+def interval_symmetric_difference(a: Interval, b: Interval) -> list[Interval]:
+    """Return the portions of *a* and *b* that are not shared.
+
+    The result is a sorted list of up to two disjoint intervals covering the
+    points that belong to exactly one of the two input intervals. Overlapping
+    or touching intervals may produce an empty list when they are identical.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        A list of disjoint intervals (possibly empty) representing the
+        symmetric difference.
+
+    Raises:
+        ValueError: If either interval is not valid.
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    difference: list[Interval] = []
+    intersection = interval_intersection(a, b)
+    if intersection is None:
+        # Disjoint intervals: the symmetric difference is both of them.
+        difference.extend((a, b))
+    else:
+        low, high = intersection
+        if a[0] < low:
+            difference.append((a[0], low))
+        if a[1] > high:
+            difference.append((high, a[1]))
+        if b[0] < low:
+            difference.append((b[0], low))
+        if b[1] > high:
+            difference.append((high, b[1]))
+    # Drop degenerate intervals (a shared endpoint produces zero-length slivers).
+    return [interval for interval in difference if interval[0] < interval[1]]
 INTERVALUTILS
 
 # --- tests/test_interval_utils.py ---
@@ -32560,9 +32697,14 @@ import unittest
 
 from interval_utils import (
     interval_contains,
+    interval_distance,
     interval_intersection,
+    interval_is_subset,
     interval_length,
+    interval_midpoint,
     interval_overlaps,
+    interval_shift,
+    interval_symmetric_difference,
     interval_union,
     is_valid_interval,
     merge_intervals,
@@ -32767,6 +32909,120 @@ class TestIntervalLength(unittest.TestCase):
             interval_length((5, 1))
 
 
+class TestIntervalMidpoint(unittest.TestCase):
+    def test_whole_number(self):
+        self.assertEqual(interval_midpoint((1, 5)), 3.0)
+
+    def test_fractional(self):
+        self.assertEqual(interval_midpoint((1, 4)), 2.5)
+
+    def test_degenerate_interval(self):
+        self.assertEqual(interval_midpoint((3, 3)), 3.0)
+
+    def test_negative_interval(self):
+        self.assertEqual(interval_midpoint((-5, -1)), -3.0)
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_midpoint((5, 1))
+
+
+class TestIntervalDistance(unittest.TestCase):
+    def test_overlapping_is_zero(self):
+        self.assertEqual(interval_distance((1, 5), (4, 8)), 0.0)
+
+    def test_touching_is_zero(self):
+        self.assertEqual(interval_distance((1, 5), (5, 8)), 0.0)
+
+    def test_disjoint_a_before_b(self):
+        self.assertEqual(interval_distance((1, 3), (5, 8)), 2.0)
+
+    def test_disjoint_b_before_a(self):
+        self.assertEqual(interval_distance((5, 8), (1, 3)), 2.0)
+
+    def test_float_distance(self):
+        self.assertEqual(interval_distance((1.0, 2.0), (3.5, 5.0)), 1.5)
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_distance((5, 1), (2, 4))
+
+
+class TestIntervalIsSubset(unittest.TestCase):
+    def test_a_inside_b(self):
+        self.assertTrue(interval_is_subset((2, 4), (1, 5)))
+
+    def test_a_touches_b_endpoints(self):
+        self.assertTrue(interval_is_subset((1, 5), (1, 5)))
+
+    def test_a_extends_past_b(self):
+        self.assertFalse(interval_is_subset((0, 6), (1, 5)))
+
+    def test_a_outside_b(self):
+        self.assertFalse(interval_is_subset((6, 8), (1, 5)))
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_is_subset((5, 1), (1, 5))
+
+
+class TestIntervalShift(unittest.TestCase):
+    def test_shift_positive(self):
+        self.assertEqual(interval_shift((1, 5), 2), (3, 7))
+
+    def test_shift_negative(self):
+        self.assertEqual(interval_shift((1, 5), -3), (-2, 2))
+
+    def test_shift_float(self):
+        self.assertEqual(interval_shift((1.5, 3.5), 0.5), (2.0, 4.0))
+
+    def test_shift_zero(self):
+        self.assertEqual(interval_shift((1, 5), 0), (1, 5))
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_shift((5, 1), 2)
+
+    def test_non_number_delta_raises(self):
+        with self.assertRaises(TypeError):
+            interval_shift((1, 5), "2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            interval_shift((1, 5), True)  # type: ignore[arg-type]
+
+
+class TestIntervalSymmetricDifference(unittest.TestCase):
+    def test_disjoint_returns_both(self):
+        self.assertEqual(
+            interval_symmetric_difference((1, 3), (5, 8)),
+            [(1, 3), (5, 8)],
+        )
+
+    def test_identical_returns_empty(self):
+        self.assertEqual(interval_symmetric_difference((1, 5), (1, 5)), [])
+
+    def test_partial_overlap(self):
+        self.assertEqual(
+            interval_symmetric_difference((1, 5), (4, 8)),
+            [(1, 4), (5, 8)],
+        )
+
+    def test_one_inside_other(self):
+        self.assertEqual(
+            interval_symmetric_difference((2, 4), (1, 5)),
+            [(1, 2), (4, 5)],
+        )
+
+    def test_touching_intervals(self):
+        self.assertEqual(
+            interval_symmetric_difference((1, 5), (5, 8)),
+            [(1, 5), (5, 8)],
+        )
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_symmetric_difference((5, 1), (2, 4))
+
+
 if __name__ == "__main__":
     unittest.main()
 TEST_INTERVAL_UTILS
@@ -32782,6 +33038,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Verified full test suite (5161 tests), ruff, mypy, and scaffold sync; all green. Posted next handover task.
 - Hardened the `strings` module with `reverse_words` and synchronized `strings.py`, its tests, and scaffold documentation (README and embedded `scaffold.sh`) so generated projects and docs reflect the expanded string utilities API.
 
 - Added `abc_utils.py` and `tests/test_abc_utils.py`.
@@ -32887,6 +33144,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Added `ini_utils.py` and `tests/test_ini_utils.py`.
 - Added `inspect_utils.py` and `tests/test_inspect_utils.py`.
 - Added `interval_utils.py` and `tests/test_interval_utils.py`.
+- Extended `interval_utils.py` with `interval_midpoint`, `interval_distance`, `interval_is_subset`, `interval_shift`, and `interval_symmetric_difference`, added `__all__`, and expanded the tests and README section to cover them.
 - Added `io_utils.py` and `tests/test_io_utils.py`.
 - Added `ip_utils.py` and `tests/test_ip_utils.py`.
 - Added `ipaddress_utils.py` and `tests/test_ipaddress_utils.py`.
@@ -33264,7 +33522,7 @@ lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lz
 gc_utils.py                # GC utilities wrapping stdlib gc (enable, disable, isenabled, collect, get_count, get_stats, get_objects, get_referents, get_referrers, set_threshold, get_threshold, set_debug, get_debug)
 gettext_utils.py           # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
-interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
+interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
@@ -34419,7 +34677,7 @@ The project includes import utilities in `importlib_utils.py` wrapping the stand
 
 ## Interval Utilities Module
 
-The project includes interval utilities in `interval_utils.py`: `normalize_interval` orders the bounds of an interval, `is_valid_interval` reports whether the bounds are ordered, `interval_contains` tests for containment, `interval_overlaps` tests for overlap, `interval_intersection` and `interval_union` combine two intervals, `merge_intervals` collapses overlapping intervals, and `interval_length` measures the span. The module is tested in `tests/test_interval_utils.py`.
+The project includes interval utilities in `interval_utils.py`: `normalize_interval` orders the bounds of an interval, `is_valid_interval` reports whether the bounds are ordered, `interval_contains` tests for containment, `interval_overlaps` tests for overlap, `interval_intersection` and `interval_union` combine two intervals, `merge_intervals` collapses overlapping intervals, `interval_length` measures the span, `interval_midpoint` returns the center of an interval, `interval_distance` reports the gap between two intervals, `interval_is_subset` tests whether one interval lies within another, `interval_shift` translates an interval by a constant, and `interval_symmetric_difference` returns the portions of two intervals that are not shared. The module is tested in `tests/test_interval_utils.py`.
 
 ## Line Cache Utilities Module
 

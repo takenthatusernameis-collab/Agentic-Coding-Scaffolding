@@ -111,6 +111,7 @@
 - Added `ini_utils.py` and `tests/test_ini_utils.py`.
 - Added `inspect_utils.py` and `tests/test_inspect_utils.py`.
 - Added `interval_utils.py` and `tests/test_interval_utils.py`.
+- Extended `interval_utils.py` with `interval_midpoint`, `interval_distance`, `interval_is_subset`, `interval_shift`, and `interval_symmetric_difference`, added `__all__`, and expanded the tests and README section to cover them.
 - Added `io_utils.py` and `tests/test_io_utils.py`.
 - Added `ip_utils.py` and `tests/test_ip_utils.py`.
 - Added `ipaddress_utils.py` and `tests/test_ipaddress_utils.py`.

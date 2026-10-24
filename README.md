@@ -201,7 +201,7 @@ lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lz
 gc_utils.py                # GC utilities wrapping stdlib gc (enable, disable, isenabled, collect, get_count, get_stats, get_objects, get_referents, get_referrers, set_threshold, get_threshold, set_debug, get_debug)
 gettext_utils.py           # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
-interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge)
+interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (prime_factors, nth_prime, primes_up_to, next_prime, previous_prime)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
@@ -1356,7 +1356,7 @@ The project includes import utilities in `importlib_utils.py` wrapping the stand
 
 ## Interval Utilities Module
 
-The project includes interval utilities in `interval_utils.py`: `normalize_interval` orders the bounds of an interval, `is_valid_interval` reports whether the bounds are ordered, `interval_contains` tests for containment, `interval_overlaps` tests for overlap, `interval_intersection` and `interval_union` combine two intervals, `merge_intervals` collapses overlapping intervals, and `interval_length` measures the span. The module is tested in `tests/test_interval_utils.py`.
+The project includes interval utilities in `interval_utils.py`: `normalize_interval` orders the bounds of an interval, `is_valid_interval` reports whether the bounds are ordered, `interval_contains` tests for containment, `interval_overlaps` tests for overlap, `interval_intersection` and `interval_union` combine two intervals, `merge_intervals` collapses overlapping intervals, `interval_length` measures the span, `interval_midpoint` returns the center of an interval, `interval_distance` reports the gap between two intervals, `interval_is_subset` tests whether one interval lies within another, `interval_shift` translates an interval by a constant, and `interval_symmetric_difference` returns the portions of two intervals that are not shared. The module is tested in `tests/test_interval_utils.py`.
 
 ## Line Cache Utilities Module
 
