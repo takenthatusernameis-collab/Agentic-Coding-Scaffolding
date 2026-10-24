@@ -1,3 +1,7 @@
+## backoff_utils
+
+Added backoff_utils module.
+
 ## Unreleased
 
 - Hardened the `strings` module with `reverse_words` and synchronized `strings.py`, its tests, and scaffold documentation (README and embedded `scaffold.sh`) so generated projects and docs reflect the expanded string utilities API.
