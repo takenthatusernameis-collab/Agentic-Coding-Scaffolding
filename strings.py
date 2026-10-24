@@ -38,6 +38,14 @@ __all__: List[str] = [
     "lstrip_chars",
     "rstrip_chars",
     "strip_chars",
+    "removeprefix",
+    "removesuffix",
+    "partition",
+    "rpartition",
+    "split_lines",
+    "join_lines",
+    "replace_many",
+    "strip_html",
 ]
 
 
@@ -321,3 +329,79 @@ def strip_chars(s: str, chars: str) -> str:
     _require_string(s, "s")
     _require_string(chars, "chars")
     return s.strip(chars)
+
+
+def removeprefix(s: str, prefix: str) -> str:
+    """Remove prefix if present."""
+    _require_string(s, "s")
+    _require_string(prefix, "prefix")
+    if s.startswith(prefix):
+        return s[len(prefix) :]
+    return s
+
+
+def removesuffix(s: str, suffix: str) -> str:
+    """Remove suffix if present."""
+    _require_string(s, "s")
+    _require_string(suffix, "suffix")
+    if s.endswith(suffix):
+        return s[: -len(suffix)]
+    return s
+
+
+def partition(s: str, sep: str) -> tuple:
+    """Split string at first occurrence of sep into (before, sep, after)."""
+    _require_string(s, "s")
+    _require_string(sep, "sep")
+    if sep == "":
+        raise ValueError("sep cannot be empty")
+    return s.partition(sep)
+
+
+def rpartition(s: str, sep: str) -> tuple:
+    """Split string at last occurrence of sep into (before, sep, after)."""
+    _require_string(s, "s")
+    _require_string(sep, "sep")
+    if sep == "":
+        raise ValueError("sep cannot be empty")
+    return s.rpartition(sep)
+
+
+def split_lines(s: str, keepends: bool = False) -> List[str]:
+    """Split string into lines."""
+    _require_string(s, "s")
+    if not isinstance(keepends, bool):
+        raise TypeError(f"keepends must be a bool, got {type(keepends).__name__}")
+    return s.splitlines(keepends=keepends)
+
+
+def join_lines(lines: List[str], sep: str = "\n") -> str:
+    """Join lines with separator."""
+    if not isinstance(lines, list):
+        raise TypeError(f"lines must be a list, got {type(lines).__name__}")
+    for i, line in enumerate(lines):
+        if not isinstance(line, str):
+            raise TypeError(f"lines[{i}] must be a string, got {type(line).__name__}")
+    _require_string(sep, "sep")
+    return sep.join(lines)
+
+
+def replace_many(s: str, replacements: dict) -> str:
+    """Replace multiple substrings using a mapping."""
+    _require_string(s, "s")
+    if not isinstance(replacements, dict):
+        raise TypeError(f"replacements must be a dict, got {type(replacements).__name__}")
+    result = s
+    for old, new in replacements.items():
+        if not isinstance(old, str) or not isinstance(new, str):
+            raise TypeError("replacements keys and values must be strings")
+        result = result.replace(old, new)
+    return result
+
+
+def strip_html(s: str) -> str:
+    """Remove HTML tags from string (simple heuristic)."""
+    _require_string(s, "s")
+    import re
+
+    return re.sub(r"<[^>]+>", "", s)
