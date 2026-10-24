@@ -29559,6 +29559,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `cache_utils.py` — caching utilities for memoizing function results
 - `memoize_utils.py` — memoization utilities (`memoize` decorator) that caches function return values keyed by call arguments with a `cache_clear` method
 - `maybe_utils.py` — Maybe/Option type utilities for functional programming patterns (`Maybe` with `some`, `nothing`, `from_optional` and methods `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, `or_else`)
+- `either_utils.py` — Either/Result type utilities for functional programming patterns (`Either` with `right`, `left`, `ok`, `err`, `from_optional` and methods `is_right`, `is_left`, `unwrap`, `unwrap_left`, `unwrap_or`, `unwrap_or_else`, `map`, `map_left`, `flat_map`, `and_then`, `filter`, `or_else`, `fold`, `swap`)
 - `context_utils.py` — context manager utilities (`chdir`, `temp_environ`, `redirect_stdout`, `redirect_stderr`, `suppress`) for temporarily altering the runtime environment
 - `itertools_utils.py` — iteration helpers (`chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`) wrapping the standard library `itertools` module with input validation
 - `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
@@ -29672,6 +29673,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
 - `tests/test_memoize_utils.py` — unit tests for `memoize_utils.py`
 - `tests/test_maybe_utils.py` — unit tests for `maybe_utils.py`
+- `tests/test_either_utils.py` — unit tests for `either_utils.py`
 - `tests/test_context_utils.py` — unit tests for `context_utils.py`
 - `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
 - `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
@@ -31579,6 +31581,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `id_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `memoize_utils.py` to the generated project — memoization utilities (`memoize` decorator) that cache function return values keyed by call arguments with a `cache_clear` method, plus `tests/test_memoize_utils.py`.
 - Added `maybe_utils.py` to the generated project — Maybe/Option type utilities (`Maybe`, `some`, `nothing`, `from_optional`) with safe operations (`map`, `flat_map`, `and_then`, `filter`, `or_else`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `is_some`, `is_nothing`) for composable error handling, plus `tests/test_maybe_utils.py`.
+- Added `either_utils.py` to the generated project — Either/Result type utilities (`Either`, `right`, `left`, `ok`, `err`, `from_optional`) with safe operations (`map`, `map_left`, `flat_map`, `and_then`, `filter`, `or_else`, `fold`, `swap`, `unwrap`, `unwrap_left`, `unwrap_or`, `unwrap_or_else`, `is_right`, `is_left`) for composable error handling, plus `tests/test_either_utils.py`.
 - Synchronized `memoize_utils.py` and `maybe_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 - Added `pathlib_utils.py` to the generated project — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation, plus `tests/test_pathlib_utils.py`.
 - Synchronized `pathlib_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
@@ -32387,6 +32390,7 @@ logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
 memoize_utils.py          # Memoization utilities (memoize decorator) with cache_clear
 maybe_utils.py             # Maybe/Option type utilities for functional programming patterns (Maybe, some, nothing, from_optional, map, flat_map, etc.)
+either_utils.py            # Either/Result type utilities for functional programming patterns (Either, right, left, ok, err, from_optional, map, map_left, flat_map, and_then, filter, or_else, fold, swap, unwrap, unwrap_or, unwrap_or_else)
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
@@ -32620,6 +32624,7 @@ tests/                     # Python unit tests
   test_cache_utils.py         # Tests for cache_utils.py
   test_memoize_utils.py      # Tests for memoize_utils.py
   test_maybe_utils.py         # Tests for maybe_utils.py
+  test_either_utils.py        # Tests for either_utils.py
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_chunk_utils.py         # Tests for chunk_utils.py
@@ -33037,7 +33042,7 @@ The project includes a caching utilities module in `cache_utils.py` with helpers
 
 ## Memoization Utilities Module
 
-The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. Maybe/Option type utilities are also provided in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. The modules are tested in `tests/test_memoize_utils.py` and `tests/test_maybe_utils.py`.
+The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. Maybe/Option type utilities are also provided in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. Either/Result type utilities are also provided in `either_utils.py` for functional programming patterns: `Either` represents one of two values with `right`, `left`, `ok`, `err`, and `from_optional` constructors. It provides `is_right`, `is_left`, `unwrap`, `unwrap_left`, `unwrap_or`, `unwrap_or_else`, `map`, `map_left`, `flat_map`, `and_then`, `or_else`, `fold`, and `swap`. All operations are safe and return `Either` types for composable error handling. The modules are tested in `tests/test_memoize_utils.py`, `tests/test_maybe_utils.py`, and `tests/test_either_utils.py`.
 
 ## Timing Utilities Module
 
@@ -33612,7 +33617,7 @@ The project includes dynamic type utilities in `types_utils.py` wrapping the sta
 
 ## Maybe Utilities Module
 
-The project includes Maybe/Option type utilities in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. The module is tested in `tests/test_maybe_utils.py`.
+The project includes Maybe/Option type utilities in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. Either/Result type utilities are also provided in `either_utils.py` for functional programming patterns: `Either` represents one of two values with `right`, `left`, `ok`, `err`, and `from_optional` constructors. It provides `is_right`, `is_left`, `unwrap`, `unwrap_left`, `unwrap_or`, `unwrap_or_else`, `map`, `map_left`, `flat_map`, `and_then`, `or_else`, `fold`, and `swap`. All operations are safe and return `Either` types for composable error handling. The modules are tested in `tests/test_maybe_utils.py` and `tests/test_either_utils.py`.
 
 ## Zoneinfo Utilities Module
 
@@ -103365,6 +103370,267 @@ class TestMaybe(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_MAYBE_UTILS
+
+# --- either_utils.py ---
+cat > "$OUTPUT_DIR/either_utils.py" <<'EITHER_UTILS'
+"""Either/Result type utilities for functional programming patterns."""
+
+from typing import Any, Callable, Generic, Optional, TypeVar, Union
+
+L = TypeVar("L")
+R = TypeVar("R")
+T = TypeVar("T")
+U = TypeVar("U")
+E = TypeVar("E")
+
+
+class Either(Generic[L, R]):
+    """Represents a value of one of two possible types (Left or Right)."""
+
+    __slots__ = ("_value", "_is_right")
+
+    def __init__(self, value: Any, is_right: bool = True) -> None:
+        """Initialize an Either instance."""
+        self._is_right = bool(is_right)
+        self._value = value
+
+    @classmethod
+    def right(cls, value: R) -> "Either[Any, R]":
+        """Create a Right variant (success/value case)."""
+        return cls(value, is_right=True)
+
+    @classmethod
+    def left(cls, value: L) -> "Either[L, Any]":
+        """Create a Left variant (error/failure case)."""
+        return cls(value, is_right=False)
+
+    @staticmethod
+    def ok(value: R) -> "Either[Any, R]":
+        """Alias for right."""
+        return Either.right(value)
+
+    @staticmethod
+    def err(value: L) -> "Either[L, Any]":
+        """Alias for left."""
+        return Either.left(value)
+
+    @staticmethod
+    def from_optional(
+        value: Optional[R], left_value: L
+    ) -> "Either[L, R]":
+        """Create Either from optional value."""
+        if value is None:
+            return Either.left(left_value)
+        return Either.right(value)
+
+    def is_right(self) -> bool:
+        """Check if this is a Right variant."""
+        return self._is_right
+
+    def is_left(self) -> bool:
+        """Check if this is a Left variant."""
+        return not self._is_right
+
+    def is_ok(self) -> bool:
+        """Alias for is_right."""
+        return self.is_right()
+
+    def is_err(self) -> bool:
+        """Alias for is_left."""
+        return self.is_left()
+
+    def unwrap(self) -> R:
+        """Get the right value, raising an error if Left."""
+        if not self._is_right:
+            raise ValueError(f"Called unwrap on Left: {self._value!r}")
+        return self._value
+
+    def unwrap_left(self) -> L:
+        """Get the left value, raising an error if Right."""
+        if self._is_right:
+            raise ValueError(f"Called unwrap_left on Right: {self._value!r}")
+        return self._value
+
+    def unwrap_or(self, default: R) -> R:
+        """Get the right value or return a default if Left."""
+        if self._is_right:
+            return self._value
+        return default
+
+    def unwrap_or_else(self, fn: Callable[[L], R]) -> R:
+        """Get the right value or compute from left if Left."""
+        if self._is_right:
+            return self._value
+        return fn(self._value)
+
+    def map(self, fn: Callable[[R], U]) -> "Either[L, U]":
+        """Apply a function if Right, otherwise return Left unchanged."""
+        if not self._is_right:
+            return Either(self._value, is_right=False)
+        try:
+            result = fn(self._value)
+            return Either.right(result)
+        except Exception as e:
+            return Either.left(e)
+
+    def map_left(self, fn: Callable[[L], T]) -> "Either[T, R]":
+        """Apply a function if Left, otherwise return Right unchanged."""
+        if self._is_right:
+            return Either(self._value, is_right=True)
+        try:
+            result = fn(self._value)
+            return Either.left(result)
+        except Exception as e:
+            return Either.left(e)
+
+    def flat_map(self, fn: Callable[[R], "Either[L, U]"]) -> "Either[L, U]":
+        """Apply a function returning Either if Right, otherwise return Left."""
+        if not self._is_right:
+            return Either(self._value, is_right=False)
+        try:
+            result = fn(self._value)
+            if isinstance(result, Either):
+                return result
+            return Either.right(result)
+        except Exception as e:
+            return Either.left(e)
+
+    def and_then(self, fn: Callable[[R], "Either[L, U]"]) -> "Either[L, U]":
+        """Alias for flat_map."""
+        return self.flat_map(fn)
+
+    def or_else(self, other: "Either[L, R]") -> "Either[L, R]":
+        """Return self if Right, otherwise other."""
+        if self._is_right:
+            return self
+        return other
+
+    def fold(self, left_fn: Callable[[L], T], right_fn: Callable[[R], T]) -> T:
+        """Apply one of two functions depending on variant."""
+        if self._is_right:
+            return right_fn(self._value)
+        return left_fn(self._value)
+
+    def swap(self) -> "Either[R, L]":
+        """Swap Left and Right."""
+        return Either(self._value, is_right=not self._is_right)
+
+    def __repr__(self) -> str:
+        """String representation."""
+        if self._is_right:
+            return f"Right({self._value!r})"
+        return f"Left({self._value!r})"
+
+    def __bool__(self) -> bool:
+        """Boolean conversion - Right is truthy."""
+        return self._is_right
+
+    def __eq__(self, other: object) -> bool:
+        """Equality comparison."""
+        if not isinstance(other, Either):
+            return NotImplemented
+        if self._is_right != other._is_right:
+            return False
+        return self._value == other._value
+
+
+__all__ = [
+    "Either",
+]
+EITHER_UTILS
+
+# --- tests/test_either_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_either_utils.py" <<'TEST_EITHER_UTILS'
+"""Tests for either_utils module."""
+
+import unittest
+
+from either_utils import Either
+
+
+class TestEither(unittest.TestCase):
+    def test_right_creation(self) -> None:
+        e = Either.right(42)
+        self.assertTrue(e.is_right())
+        self.assertFalse(e.is_left())
+        self.assertTrue(e.is_ok())
+        self.assertFalse(e.is_err())
+        self.assertEqual(e.unwrap(), 42)
+
+    def test_left_creation(self) -> None:
+        e = Either.left("error")
+        self.assertFalse(e.is_right())
+        self.assertTrue(e.is_left())
+        self.assertFalse(e.is_ok())
+        self.assertTrue(e.is_err())
+
+    def test_ok_err_aliases(self) -> None:
+        self.assertTrue(Either.ok(5).is_ok())
+        self.assertTrue(Either.err("bad").is_err())
+
+    def test_from_optional(self) -> None:
+        self.assertTrue(Either.from_optional(5, "missing").is_right())
+        self.assertTrue(Either.from_optional(None, "missing").is_left())
+
+    def test_unwrap_raises_on_left(self) -> None:
+        with self.assertRaises(ValueError):
+            Either.left("error").unwrap()
+
+    def test_unwrap_left_raises_on_right(self) -> None:
+        with self.assertRaises(ValueError):
+            Either.right(42).unwrap_left()
+
+    def test_unwrap_or(self) -> None:
+        self.assertEqual(Either.right(10).unwrap_or(0), 10)
+        self.assertEqual(Either.left("err").unwrap_or(0), 0)
+
+    def test_unwrap_or_else(self) -> None:
+        self.assertEqual(Either.right(10).unwrap_or_else(lambda e: 0), 10)
+        self.assertEqual(Either.left("err").unwrap_or_else(lambda e: len(e)), 3)
+
+    def test_map(self) -> None:
+        e = Either.right(5).map(lambda x: x * 2)
+        self.assertEqual(e.unwrap(), 10)
+        self.assertTrue(Either.left("err").map(lambda x: x * 2).is_left())
+
+    def test_map_left(self) -> None:
+        e = Either.left("err").map_left(lambda e: e.upper())
+        self.assertEqual(e.unwrap_left(), "ERR")
+        self.assertTrue(Either.right(5).map_left(lambda e: e).is_right())
+
+    def test_flat_map(self) -> None:
+        e = Either.right(5).flat_map(lambda x: Either.right(x + 1))
+        self.assertEqual(e.unwrap(), 6)
+        self.assertTrue(Either.left("err").flat_map(lambda x: Either.right(x)).is_left())
+
+    def test_or_else(self) -> None:
+        self.assertEqual(Either.right(1).or_else(Either.right(2)).unwrap(), 1)
+        self.assertEqual(Either.left("a").or_else(Either.right(2)).unwrap(), 2)
+
+    def test_fold(self) -> None:
+        self.assertEqual(Either.right(5).fold(lambda e: -1, lambda x: x * 2), 10)
+        self.assertEqual(Either.left("err").fold(lambda e: len(e), lambda x: x), 3)
+
+    def test_swap(self) -> None:
+        e = Either.left("err").swap()
+        self.assertTrue(e.is_right())
+        e2 = Either.right(5).swap()
+        self.assertTrue(e2.is_left())
+
+    def test_bool(self) -> None:
+        self.assertTrue(bool(Either.right(1)))
+        self.assertFalse(bool(Either.left("err")))
+
+    def test_eq(self) -> None:
+        self.assertEqual(Either.right(1), Either.right(1))
+        self.assertNotEqual(Either.right(1), Either.right(2))
+        self.assertEqual(Either.left("a"), Either.left("a"))
+        self.assertNotEqual(Either.right(1), Either.left(1))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_EITHER_UTILS
 
 
 

@@ -54,6 +54,7 @@ py_modules = [
     "mmap_utils",
     "memoize_utils",
     "maybe_utils",
+    "either_utils",
     "number_utils",
     "operator_utils",
     "os_utils",

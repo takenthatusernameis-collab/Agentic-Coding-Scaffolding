@@ -84,6 +84,7 @@ logging_utils.py          # Logging configuration and helper utilities
 cache_utils.py            # Caching utilities for memoizing function results
 memoize_utils.py          # Memoization utilities (memoize decorator) with cache_clear
 maybe_utils.py             # Maybe/Option type utilities for functional programming patterns (Maybe, some, nothing, from_optional, map, flat_map, etc.)
+either_utils.py            # Either/Result type utilities for functional programming patterns (Either, right, left, ok, err, from_optional, map, map_left, flat_map, and_then, filter, or_else, fold, swap, unwrap, unwrap_or, unwrap_or_else)
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
 itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
@@ -317,6 +318,7 @@ tests/                     # Python unit tests
   test_cache_utils.py         # Tests for cache_utils.py
   test_memoize_utils.py      # Tests for memoize_utils.py
   test_maybe_utils.py         # Tests for maybe_utils.py
+  test_either_utils.py        # Tests for either_utils.py
   test_calculator.py          # Tests for calculator.py
   test_calendar_utils.py      # Tests for calendar_utils.py
   test_chunk_utils.py         # Tests for chunk_utils.py
@@ -734,7 +736,7 @@ The project includes a caching utilities module in `cache_utils.py` with helpers
 
 ## Memoization Utilities Module
 
-The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. Maybe/Option type utilities are also provided in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. The modules are tested in `tests/test_memoize_utils.py` and `tests/test_maybe_utils.py`.
+The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. Maybe/Option type utilities are also provided in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. Either/Result type utilities are also provided in `either_utils.py` for functional programming patterns: `Either` represents one of two values with `right`, `left`, `ok`, `err`, and `from_optional` constructors. It provides `is_right`, `is_left`, `unwrap`, `unwrap_left`, `unwrap_or`, `unwrap_or_else`, `map`, `map_left`, `flat_map`, `and_then`, `or_else`, `fold`, and `swap`. All operations are safe and return `Either` types for composable error handling. The modules are tested in `tests/test_memoize_utils.py`, `tests/test_maybe_utils.py`, and `tests/test_either_utils.py`.
 
 ## Timing Utilities Module
 
@@ -1309,7 +1311,7 @@ The project includes dynamic type utilities in `types_utils.py` wrapping the sta
 
 ## Maybe Utilities Module
 
-The project includes Maybe/Option type utilities in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. The module is tested in `tests/test_maybe_utils.py`.
+The project includes Maybe/Option type utilities in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, and `or_else`. All operations are safe and return `Maybe` types for composable error handling. Either/Result type utilities are also provided in `either_utils.py` for functional programming patterns: `Either` represents one of two values with `right`, `left`, `ok`, `err`, and `from_optional` constructors. It provides `is_right`, `is_left`, `unwrap`, `unwrap_left`, `unwrap_or`, `unwrap_or_else`, `map`, `map_left`, `flat_map`, `and_then`, `or_else`, `fold`, and `swap`. All operations are safe and return `Either` types for composable error handling. The modules are tested in `tests/test_maybe_utils.py` and `tests/test_either_utils.py`.
 
 ## Zoneinfo Utilities Module
 
