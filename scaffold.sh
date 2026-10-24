@@ -10222,10 +10222,6 @@ class TestRegularPolygonArea(unittest.TestCase):
             regular_polygon_area(3.5, 1)  # type: ignore[arg-type]
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestCircleDiameter(unittest.TestCase):
     def test_diameter(self):
         self.assertEqual(circle_diameter(0), 0)
@@ -10245,6 +10241,10 @@ class TestRectangleDiagonal(unittest.TestCase):
     def test_negative(self):
         with self.assertRaises(ValueError):
             rectangle_diagonal(-1, 4)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TESTSHAPES
 
 # --- strings.py ---
@@ -11985,10 +11985,6 @@ class TestStripChars(unittest.TestCase):
             strip_chars(123, "x")  # type: ignore[arg-type]
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestReverseWords(unittest.TestCase):
     def test_reverse_words_basic(self):
         self.assertEqual(reverse_words("hello world"), "world hello")
@@ -12002,6 +11998,10 @@ class TestReverseWords(unittest.TestCase):
     def test_reverse_words_rejects_non_string(self):
         with self.assertRaises(TypeError):
             reverse_words(123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -33077,7 +33077,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
-- Verified full test suite (5161 tests), ruff, mypy, and scaffold sync; all green. Posted next handover task.
+- Fixed the `if __name__ == "__main__"` block placement in `tests/test_strings.py` and `tests/test_shapes.py` so their tests run when the files are executed directly, and added `tests/test_prime_utils.py` and `tests/test_version_utils.py` covering the previously untested modules; synchronized all four test files into the embedded copies of `scaffold.sh`.
+- Verified full test suite (5211 tests), ruff, mypy, and scaffold sync; all green. Posted next handover task.
 - Hardened the `strings` module with `reverse_words` and synchronized `strings.py`, its tests, and scaffold documentation (README and embedded `scaffold.sh`) so generated projects and docs reflect the expanded string utilities API.
 
 - Added `abc_utils.py` and `tests/test_abc_utils.py`.
@@ -56245,6 +56246,8 @@ PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_prime_utils.py" <<'TEST_PRIME_UTILS'
+"""Tests for prime_utils module."""
+
 import unittest
 
 from prime_utils import is_coprime, nth_prime, prime_factors, primes_up_to
@@ -56253,37 +56256,70 @@ from prime_utils import is_coprime, nth_prime, prime_factors, primes_up_to
 class TestPrimesUpTo(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(primes_up_to(10), [2, 3, 5, 7])
+
+    def test_below_two(self):
+        self.assertEqual(primes_up_to(0), [])
         self.assertEqual(primes_up_to(1), [])
+        self.assertEqual(primes_up_to(-5), [])
+
+    def test_two(self):
         self.assertEqual(primes_up_to(2), [2])
+
+    def test_inclusive(self):
+        self.assertEqual(primes_up_to(13), [2, 3, 5, 7, 11, 13])
 
 
 class TestNthPrime(unittest.TestCase):
-    def test_basic(self):
+    def test_first(self):
         self.assertEqual(nth_prime(1), 2)
-        self.assertEqual(nth_prime(5), 11)
+
+    def test_tenth(self):
         self.assertEqual(nth_prime(10), 29)
 
-    def test_invalid(self):
+    def test_zero_raises(self):
         with self.assertRaises(ValueError):
             nth_prime(0)
+
+    def test_negative_raises(self):
+        with self.assertRaises(ValueError):
+            nth_prime(-3)
 
 
 class TestPrimeFactors(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(prime_factors(12), [2, 2, 3])
-        self.assertEqual(prime_factors(13), [13])
+
+    def test_prime(self):
+        self.assertEqual(prime_factors(17), [17])
+
+    def test_power_of_two(self):
+        self.assertEqual(prime_factors(16), [2, 2, 2, 2])
+
+    def test_large(self):
         self.assertEqual(prime_factors(100), [2, 2, 5, 5])
 
-    def test_invalid(self):
+    def test_below_two_raises(self):
         with self.assertRaises(ValueError):
             prime_factors(1)
 
+    def test_negative_raises(self):
+        with self.assertRaises(ValueError):
+            prime_factors(-7)
+
 
 class TestIsCoprime(unittest.TestCase):
-    def test_basic(self):
-        self.assertTrue(is_coprime(8, 15))
-        self.assertFalse(is_coprime(12, 18))
-        self.assertTrue(is_coprime(7, 7) is False)
+    def test_coprime(self):
+        self.assertTrue(is_coprime(8, 9))
+
+    def test_not_coprime(self):
+        self.assertFalse(is_coprime(8, 12))
+
+    def test_same_value(self):
+        self.assertTrue(is_coprime(1, 1))
+        self.assertFalse(is_coprime(5, 5))
+
+    def test_negative(self):
+        self.assertTrue(is_coprime(-8, 9))
 
 
 if __name__ == "__main__":
@@ -74102,46 +74138,140 @@ cat > "$OUTPUT_DIR/tests/test_version_utils.py" <<'TEST_VERSION_UTILS'
 
 import unittest
 
-from version_utils import compare_versions, is_greater, normalize_version, parse_version
+from version_utils import (
+    bump_major,
+    bump_minor,
+    bump_patch,
+    compare_versions,
+    is_equal,
+    is_greater,
+    is_less,
+    is_version_equal,
+    is_version_greater,
+    is_version_greater_equal,
+    is_version_less,
+    is_version_less_equal,
+    normalize_version,
+    parse_version,
+    tuple_to_version,
+    version_to_tuple,
+)
 
 
 class TestParseVersion(unittest.TestCase):
-    def test_simple(self) -> None:
+    def test_basic(self):
         self.assertEqual(parse_version("1.2.3"), (1, 2, 3))
 
-    def test_two_components(self) -> None:
-        self.assertEqual(parse_version("1.0"), (1, 0))
+    def test_single_component(self):
+        self.assertEqual(parse_version("5"), (5,))
 
-    def test_invalid(self) -> None:
-        with self.assertRaises(ValueError):
-            parse_version("1.2.x")
+    def test_empty_raises(self):
         with self.assertRaises(TypeError):
-            parse_version("")  # type: ignore[arg-type]
+            parse_version("")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            parse_version(123)  # type: ignore[arg-type]
+
+    def test_invalid_component_raises(self):
+        with self.assertRaises(ValueError):
+            parse_version("1.2.a")
+
+
+class TestVersionToTuple(unittest.TestCase):
+    def test_alias(self):
+        self.assertEqual(version_to_tuple("2.0.1"), parse_version("2.0.1"))
 
 
 class TestCompareVersions(unittest.TestCase):
-    def test_equal(self) -> None:
+    def test_less(self):
+        self.assertEqual(compare_versions("1.0.0", "2.0.0"), -1)
+
+    def test_equal(self):
         self.assertEqual(compare_versions("1.2.3", "1.2.3"), 0)
 
-    def test_less(self) -> None:
-        self.assertEqual(compare_versions("1.2.3", "1.2.4"), -1)
+    def test_greater(self):
+        self.assertEqual(compare_versions("2.0.0", "1.0.0"), 1)
 
-    def test_greater(self) -> None:
-        self.assertEqual(compare_versions("2.0.0", "1.9.9"), 1)
+    def test_different_lengths(self):
+        self.assertEqual(compare_versions("1.2", "1.2.0"), -1)
 
 
-class TestIsGreater(unittest.TestCase):
-    def test_greater(self) -> None:
+class TestBooleanComparisons(unittest.TestCase):
+    def test_is_greater(self):
         self.assertTrue(is_greater("2.0.0", "1.0.0"))
         self.assertFalse(is_greater("1.0.0", "2.0.0"))
 
+    def test_is_less(self):
+        self.assertTrue(is_less("1.0.0", "2.0.0"))
+        self.assertFalse(is_less("2.0.0", "1.0.0"))
+
+    def test_is_equal(self):
+        self.assertTrue(is_equal("1.2.3", "1.2.3"))
+        self.assertFalse(is_equal("1.2.3", "1.2.4"))
+
 
 class TestNormalizeVersion(unittest.TestCase):
-    def test_pad(self) -> None:
-        self.assertEqual(normalize_version("1.2", 3), "1.2.0")
+    def test_pads(self):
+        self.assertEqual(normalize_version("1", 3), "1.0.0")
 
-    def test_truncate(self) -> None:
-        self.assertEqual(normalize_version("1.2.3.4", 3), "1.2.3")
+    def test_truncates(self):
+        self.assertEqual(normalize_version("1.2.3.4", 2), "1.2")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            normalize_version(1, 3)  # type: ignore[arg-type]
+
+    def test_negative_length_raises(self):
+        with self.assertRaises(ValueError):
+            normalize_version("1", -1)
+
+
+class TestTupleToVersion(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(tuple_to_version((1, 2, 3)), "1.2.3")
+
+    def test_non_tuple_raises(self):
+        with self.assertRaises(TypeError):
+            tuple_to_version([1, 2])  # type: ignore[arg-type]
+
+    def test_non_int_component_raises(self):
+        with self.assertRaises(TypeError):
+            tuple_to_version((1, "2"))
+
+
+class TestBump(unittest.TestCase):
+    def test_bump_major(self):
+        self.assertEqual(bump_major("1.2.3"), "2.0.0")
+
+    def test_bump_minor(self):
+        self.assertEqual(bump_minor("1.2.3"), "1.3.0")
+
+    def test_bump_patch(self):
+        self.assertEqual(bump_patch("1.2.3"), "1.2.4")
+
+
+class TestVersionAliases(unittest.TestCase):
+    def test_is_version_greater(self):
+        self.assertTrue(is_version_greater("2.0.0", "1.0.0"))
+
+    def test_is_version_less(self):
+        self.assertTrue(is_version_less("1.0.0", "2.0.0"))
+
+    def test_is_version_equal(self):
+        self.assertTrue(is_version_equal("1.2.3", "1.2.3"))
+
+    def test_is_version_greater_equal(self):
+        self.assertTrue(is_version_greater_equal("2.0.0", "1.0.0"))
+        self.assertTrue(is_version_greater_equal("1.0.0", "1.0.0"))
+
+    def test_is_version_less_equal(self):
+        self.assertTrue(is_version_less_equal("1.0.0", "2.0.0"))
+        self.assertTrue(is_version_less_equal("1.0.0", "1.0.0"))
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_VERSION_UTILS
 
 # --- warnings_utils.py ---

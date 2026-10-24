@@ -569,10 +569,6 @@ class TestStripChars(unittest.TestCase):
             strip_chars(123, "x")  # type: ignore[arg-type]
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestReverseWords(unittest.TestCase):
     def test_reverse_words_basic(self):
         self.assertEqual(reverse_words("hello world"), "world hello")
@@ -586,3 +582,7 @@ class TestReverseWords(unittest.TestCase):
     def test_reverse_words_rejects_non_string(self):
         with self.assertRaises(TypeError):
             reverse_words(123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()

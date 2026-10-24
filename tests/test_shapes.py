@@ -221,10 +221,6 @@ class TestRegularPolygonArea(unittest.TestCase):
             regular_polygon_area(3.5, 1)  # type: ignore[arg-type]
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestCircleDiameter(unittest.TestCase):
     def test_diameter(self):
         self.assertEqual(circle_diameter(0), 0)
@@ -244,3 +240,7 @@ class TestRectangleDiagonal(unittest.TestCase):
     def test_negative(self):
         with self.assertRaises(ValueError):
             rectangle_diagonal(-1, 4)
+
+
+if __name__ == "__main__":
+    unittest.main()
