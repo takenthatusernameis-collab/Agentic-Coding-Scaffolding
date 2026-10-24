@@ -242,6 +242,7 @@
 #   - shutil_utils.py — # High-level file operations (copy, move, remove, archive, disk usage)
 
 #   - shlex_utils.py — # Utilities for simple lexical analysis (wrapping the standard library shlex module)
+#   - slugify_utils.py — # Utilities for converting strings into URL-friendly slugs
 
 #   - socketserver_utils.py — # Socketserver utilities wrapping the standard library socketserver module
 
@@ -611,6 +612,7 @@
 #   - test_shutil_utils.py — # Tests for shutil_utils.py
 
 #   - test_shlex_utils.py — # Tests for shlex_utils.py
+#   - test_slugify_utils.py — # Tests for slugify_utils.py
 
 #   - test_socketserver_utils.py — # Tests for socketserver_utils.py
 
@@ -4497,6 +4499,7 @@ py_modules = [
     "shutil_utils",
     "socketserver_utils",
     "shlex_utils",
+    "slugify_utils",
     "keyword_utils",
     "importlib_utils",
     "atexit_utils",
@@ -31198,6 +31201,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `shutil_utils.py` — High-level file and directory operation utilities (`copy_file`, `copy_tree`, `move`, `remove_tree`, `disk_usage`, `make_archive`, `unpack_archive`) wrapping the standard library `shutil` module
 - `tests/test_shutil_utils.py` — unit tests for `shutil_utils.py`
 - `shlex_utils.py` — simple lexical analysis utilities wrapping the standard library `shlex` module (`split`, `quote`, `join`) with input validation
+- `slugify_utils.py` — slug utilities converting strings into URL-friendly slugs (`slugify`, `is_slug`) with input validation
 - `tests/test_shlex_utils.py` — unit tests for `shlex_utils.py`
 - `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.
 - `sqlite3_utils.py` — SQLite database utilities (`connect`, `execute`, `executemany`, `fetch_all`, `fetch_one`, `fetch_many`, `create_table`, `insert_row`, `query`, `table_exists`) wrapping the standard library `sqlite3` module with input validation.
@@ -33102,6 +33106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `keyword_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `shlex_utils.py` — simple lexical analysis utilities wrapping the standard library `shlex` module (`split`, `quote`, `join`) with input validation, plus `tests/test_shlex_utils.py`.
+- Added `slugify_utils.py` — slug utilities converting strings into URL-friendly slugs (`slugify`, `is_slug`) with input validation, plus `tests/test_slugify_utils.py`.
 - Synchronized `shlex_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `glob_utils.py` — utilities for pathname pattern expansion wrapping the standard library `glob` module (`glob_pattern`, `iglob`, `escape`, `has_magic`) with input validation, plus `tests/test_glob_utils.py`.
@@ -33836,6 +33841,7 @@ deprecation_utils.py      # Deprecation utilities (deprecated decorator) with op
 linecache_utils.py        # Line cache utilities (getline, getlines, updatecache, clearcache) wrapping stdlib linecache
 plistlib_utils.py         # Property list utilities wrapping stdlib plistlib (plist_load, plist_loads, plist_dump, plist_dumps)
 shlex_utils.py            # Simple lexical analysis utilities wrapping stdlib shlex (split, quote, join)
+slugify_utils.py          # Slug utilities converting strings into URL-friendly slugs (slugify, is_slug)
 cmd_utils.py              # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
 this_utils.py             # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 tokenize_utils.py         # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
@@ -35378,6 +35384,10 @@ The project includes Sun AU format utilities in `sunau_utils.py` wrapping the st
 The project includes sre_compile utilities in `sre_compile_utils.py` wrapping the standard library `sre_compile` module: `compile` compiles a pattern, `isstring` checks if an object is a string, `compile_pattern` compiles a regex pattern, `dis` disassembles a pattern, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `sre_compile` module is an internal implementation detail, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_compile_utils.py`.
 
 Deprecated-module wrappers: `cgitb_utils.py`, `nntplib_utils.py`, `sndhdr_utils.py`, `sre_compile_utils.py`, `sre_parse_utils.py`.
+
+## Slugify Utilities Module
+
+The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slug`. The module is tested in `tests/test_slugify_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -105195,6 +105205,71 @@ class TestEither(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_EITHER_UTILS
+
+# --- slugify_utils.py ---
+cat > "$OUTPUT_DIR/slugify_utils.py" <<'SLUGIFY_UTILS'
+"""Utilities for converting strings into URL-friendly slugs."""
+
+import re
+import unicodedata
+
+
+def slugify(text: str, separator: str = "-") -> str:
+    """Convert *text* into a lowercase slug using *separator*."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not isinstance(separator, str) or not separator:
+        raise ValueError("separator must be a non-empty str")
+    normalized = unicodedata.normalize("NFKD", text)
+    ascii_text = normalized.encode("ascii", "ignore").decode("ascii")
+    lowered = ascii_text.lower()
+    cleaned = re.sub(r"[^a-z0-9]+", separator, lowered)
+    return cleaned.strip(separator)
+
+
+def is_slug(text: str, separator: str = "-") -> bool:
+    """Return True if *text* is already a valid slug."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not text:
+        return False
+    pattern = rf"^[a-z0-9]+({re.escape(separator)}[a-z0-9]+)*$"
+    return bool(re.fullmatch(pattern, text))
+SLUGIFY_UTILS
+
+# --- tests/test_slugify_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_slugify_utils.py" <<'TEST_SLUGIFY_UTILS'
+"""Tests for slugify_utils."""
+
+from slugify_utils import is_slug, slugify
+
+
+def test_slugify_basic():
+    assert slugify("Hello World") == "hello-world"
+
+
+def test_slugify_accents():
+    assert slugify("Cafe Resume") == "cafe-resume"
+
+
+def test_slugify_custom_separator():
+    assert slugify("Hello World", "_") == "hello_world"
+
+
+def test_slugify_invalid_text():
+    try:
+        slugify(123)  # type: ignore[arg-type]
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")
+
+
+def test_is_slug():
+    assert is_slug("hello-world")
+    assert not is_slug("Hello World")
+    assert not is_slug("")
+TEST_SLUGIFY_UTILS
 
 
 

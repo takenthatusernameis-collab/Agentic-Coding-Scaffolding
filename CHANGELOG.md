@@ -427,6 +427,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronized `keyword_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `shlex_utils.py` — simple lexical analysis utilities wrapping the standard library `shlex` module (`split`, `quote`, `join`) with input validation, plus `tests/test_shlex_utils.py`.
+- Added `slugify_utils.py` — slug utilities converting strings into URL-friendly slugs (`slugify`, `is_slug`) with input validation, plus `tests/test_slugify_utils.py`.
 - Synchronized `shlex_utils.py` across `scaffold.sh` header comment and heredocs, `pyproject.toml` `py_modules`, README tree and module section, `.kilo/command/scaffold-project.md` entries, `tests/test_scaffold.py` assertions, and this CHANGELOG Unreleased entry.
 
 - Added `glob_utils.py` — utilities for pathname pattern expansion wrapping the standard library `glob` module (`glob_pattern`, `iglob`, `escape`, `has_magic`) with input validation, plus `tests/test_glob_utils.py`.

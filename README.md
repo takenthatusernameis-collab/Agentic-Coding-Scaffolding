@@ -171,6 +171,7 @@ deprecation_utils.py      # Deprecation utilities (deprecated decorator) with op
 linecache_utils.py        # Line cache utilities (getline, getlines, updatecache, clearcache) wrapping stdlib linecache
 plistlib_utils.py         # Property list utilities wrapping stdlib plistlib (plist_load, plist_loads, plist_dump, plist_dumps)
 shlex_utils.py            # Simple lexical analysis utilities wrapping stdlib shlex (split, quote, join)
+slugify_utils.py          # Slug utilities converting strings into URL-friendly slugs (slugify, is_slug)
 cmd_utils.py              # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
 this_utils.py             # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 tokenize_utils.py         # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
@@ -1713,3 +1714,7 @@ The project includes Sun AU format utilities in `sunau_utils.py` wrapping the st
 The project includes sre_compile utilities in `sre_compile_utils.py` wrapping the standard library `sre_compile` module: `compile` compiles a pattern, `isstring` checks if an object is a string, `compile_pattern` compiles a regex pattern, `dis` disassembles a pattern, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `sre_compile` module is an internal implementation detail, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_compile_utils.py`.
 
 Deprecated-module wrappers: `cgitb_utils.py`, `nntplib_utils.py`, `sndhdr_utils.py`, `sre_compile_utils.py`, `sre_parse_utils.py`.
+
+## Slugify Utilities Module
+
+The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slug`. The module is tested in `tests/test_slugify_utils.py`.
