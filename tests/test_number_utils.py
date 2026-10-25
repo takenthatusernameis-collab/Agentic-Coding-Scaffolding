@@ -10,6 +10,7 @@ from number_utils import (
     is_infinite,
     is_integer,
     is_nan,
+    is_perfect_cube,
     is_negative,
     is_non_negative,
     is_non_positive,
@@ -286,3 +287,21 @@ class TestSafeDivide(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             safe_divide("a", 2)  # type: ignore[arg-type]
+
+
+class TestIsPerfectCube(unittest.TestCase):
+    def test_perfect_cubes(self) -> None:
+        for n in (-27, -8, -1, 0, 1, 8, 27, 64, 125):
+            self.assertTrue(is_perfect_cube(n))
+
+    def test_non_cubes(self) -> None:
+        for n in (2, 3, 4, 5, 9, 10, 26, 28):
+            self.assertFalse(is_perfect_cube(n))
+
+    def test_non_integer(self) -> None:
+        self.assertFalse(is_perfect_cube(2.0))
+        self.assertFalse(is_perfect_cube(8.5))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_perfect_cube("x")  # type: ignore[arg-type]

@@ -25,6 +25,7 @@ __all__: List[str] = [
     "is_finite",
     "is_infinite",
     "is_nan",
+    "is_perfect_cube",
     "safe_divide",
 ]
 
@@ -349,6 +350,30 @@ def is_nan(value: Number) -> bool:
     if isinstance(value, float):
         return math.isnan(value)
     return False
+
+
+def is_perfect_cube(value: Number) -> bool:
+    """Return True if *value* is a perfect cube of an integer.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is a perfect cube.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if not is_integer(value):
+        return False
+    n = int(value)
+    root = int(round(abs(n) ** (1.0 / 3.0)))
+    while (root + 1) ** 3 <= abs(n):
+        root += 1
+    while root ** 3 > abs(n):
+        root -= 1
+    return root ** 3 == abs(n)
 
 
 def safe_divide(numerator: Number, denominator: Number) -> float:
