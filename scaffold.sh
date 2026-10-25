@@ -34337,6 +34337,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Bootstrap session: verified repository health — `make test` runs 5410 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. The board held no task, so this session proceeded as a bootstrap.
+- Added `bump_version(version, part="patch")` to `version_utils.py` as a dispatcher over the existing `bump_major`/`bump_minor`/`bump_patch` helpers: it validates that *version* is a string and *part* is a string, is case-insensitive on the recognized component names (`"major"`, `"minor"`, `"patch"`), and raises `ValueError` for unrecognized parts. Added tests in `tests/test_version_utils.py` covering the default, each explicit component, case-insensitivity, single-component inputs, and the `TypeError`/`ValueError` paths. Synchronized `version_utils.py`, `tests/test_version_utils.py`, README, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Fixed four pre-existing `ruff` errors in `strings.py` and `case_utils.py`: the `drop` alias in `strings.py` and the `dot_case` and `slash_case` aliases in `case_utils.py` were assigned `lambda` expressions (E731) and `drop` exceeded the line length limit (E501). All three are now real `def` functions with typed signatures, Google-style docstrings, and `TypeError`/`ValueError` validation matching the surrounding helpers. `drop` validates that *s* is a string and *n* is a non-negative integer, returning `s[n:]`; `dot_case` and `slash_case` validate that *text* is a string. Added tests in `tests/test_strings.py` for the `drop` edge cases (zero, full length, non-string, non-int, negative) and in `tests/test_case_utils.py` the aliases remain covered. Synchronized `strings.py`, `case_utils.py`, their tests, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Refreshed the embedded copies of `strings.py`, `tests/test_strings.py`, `case_utils.py`, and `tests/test_case_utils.py` inside `scaffold.sh` that had drifted from the repository sources, so `tests/test_scaffold_sync.py` passes again.
 - Verified the work: `make test` runs 5403 tests and passes, `mypy` is clean on all 544 source files, and `ruff` reports only two pre-existing I001 import-sorting warnings in `tests/test_strings.py` and `tests/test_shapes.py` that predate this session's changes.
@@ -35705,7 +35707,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, and sorting dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, and `max_version`/`min_version` return the greatest/least version from a list. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -75786,6 +75788,7 @@ __all__: List[str] = [
     "sort_versions",
     "max_version",
     "min_version",
+    "bump_version",
 ]
 
 
@@ -75937,6 +75940,40 @@ def bump_patch(version: str) -> str:
     return ".".join(str(p) for p in parts)
 
 
+def bump_version(version: str, part: str = "patch") -> str:
+    """Bump a specific component of a version string.
+
+    Args:
+        version: A dotted version string.
+        part: Which component to bump: ``"major"``, ``"minor"``, or
+            ``"patch"``. Defaults to ``"patch"``.
+
+    Returns:
+        The version string with the chosen component incremented and all
+        lower-significance components reset to zero.
+
+    Raises:
+        TypeError: If *version* is not a string or *part* is not a string.
+        ValueError: If *version* is invalid or *part* is not one of the
+            recognized component names.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not isinstance(part, str):
+        raise TypeError("part must be a string")
+    normalized = part.lower()
+    if normalized == "major":
+        return bump_major(version)
+    if normalized == "minor":
+        return bump_minor(version)
+    if normalized == "patch":
+        return bump_patch(version)
+    raise ValueError(
+        "part must be one of 'major', 'minor', or 'patch', "
+        f"got {part!r}"
+    )
+
+
 def is_version_greater(v1: str, v2: str) -> bool:
     """Return True if v1 > v2."""
     return compare_versions(v1, v2) > 0
@@ -76039,6 +76076,7 @@ from version_utils import (
     bump_major,
     bump_minor,
     bump_patch,
+    bump_version,
     compare_versions,
     is_equal,
     is_greater,
@@ -76205,8 +76243,47 @@ class TestSortVersions(unittest.TestCase):
             sort_versions(["1.0", "a.b"])
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestBumpVersion(unittest.TestCase):
+    def test_default_is_patch(self):
+        self.assertEqual(bump_version("1.2.3"), "1.2.4")
+
+    def test_major(self):
+        self.assertEqual(bump_version("1.2.3", "major"), "2.0.0")
+
+    def test_minor(self):
+        self.assertEqual(bump_version("1.2.3", "minor"), "1.3.0")
+
+    def test_patch(self):
+        self.assertEqual(bump_version("1.2.3", "patch"), "1.2.4")
+
+    def test_case_insensitive(self):
+        self.assertEqual(bump_version("1.2.3", "MAJOR"), "2.0.0")
+        self.assertEqual(bump_version("1.2.3", "Minor"), "1.3.0")
+
+    def test_single_component_major(self):
+        self.assertEqual(bump_version("5", "major"), "6")
+
+    def test_single_component_minor(self):
+        self.assertEqual(bump_version("5", "minor"), "5.1")
+
+    def test_single_component_patch(self):
+        self.assertEqual(bump_version("5", "patch"), "5.0.1")
+
+    def test_non_string_version_raises(self):
+        with self.assertRaises(TypeError):
+            bump_version(1, "patch")  # type: ignore[arg-type]
+
+    def test_non_string_part_raises(self):
+        with self.assertRaises(TypeError):
+            bump_version("1.2.3", 2)  # type: ignore[arg-type]
+
+    def test_invalid_part_raises(self):
+        with self.assertRaises(ValueError):
+            bump_version("1.2.3", "build")
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            bump_version("1.2.a", "patch")
 
 
 class TestMaxMinVersion(unittest.TestCase):
@@ -76243,6 +76320,10 @@ class TestMaxMinVersion(unittest.TestCase):
             max_version(["1.0.0", "bad"])
         with self.assertRaises(ValueError):
             min_version(["1.0.0", "bad"])
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_VERSION_UTILS
 
 # --- warnings_utils.py ---

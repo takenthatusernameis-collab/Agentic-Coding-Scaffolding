@@ -1,3 +1,22 @@
+## Latest Session (2026-10-25) — added bump_version dispatcher to version_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5410 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `bump_version(version, part="patch")` to `version_utils.py` as a dispatcher over the existing `bump_major`/`bump_minor`/`bump_patch` helpers. It validates that *version* is a string and *part* is a string, is case-insensitive on the recognized component names (`"major"`, `"minor"`, `"patch"`), and raises `ValueError` for unrecognized parts. It is exported in `__all__`.
+- Added `TestBumpVersion` to `tests/test_version_utils.py` with 12 tests covering the default `"patch"` behavior, each explicit component, case-insensitivity, single-component inputs (`"5"`), and the `TypeError`/`ValueError` paths for non-string *version*, non-string *part*, an unrecognized *part*, and an invalid *version*. Moved the `if __name__ == "__main__"` block to the end of the file so all tests run when executed directly.
+- Updated the `version_utils` prose section of `README.md` to describe the bump helpers (`bump_major`, `bump_minor`, `bump_patch`) and the new `bump_version` dispatcher.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5422 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and scaffold sync is clean.
+
+Next Planned:
+
+- Keep hardening the small utility modules: review `strings.py`, `shapes.py`, `stats.py`, `prime_utils.py`, `version_utils.py`, `prompt_utils.py` (and nearby) for missing edge cases or ergonomic helpers that fit existing API style. Add minimal, hermetic helpers with tests in `tests/test_*.py`. Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh`, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-25) — fixed ruff E731/E501 in strings.py and case_utils; refreshed stale scaffold copies
 
 The board held no task (bootstrap). Verified repository health: `make test` runs 5403 tests and passes, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `mypy` is clean on all 544 source files. `make lint` was not green before this session: `ruff` reports 4 errors (3 E731 lambda assignments and 1 E501 line-too-long), all in `strings.py` and `case_utils.py`.

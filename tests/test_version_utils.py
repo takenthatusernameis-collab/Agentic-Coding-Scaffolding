@@ -6,6 +6,7 @@ from version_utils import (
     bump_major,
     bump_minor,
     bump_patch,
+    bump_version,
     compare_versions,
     is_equal,
     is_greater,
@@ -172,8 +173,47 @@ class TestSortVersions(unittest.TestCase):
             sort_versions(["1.0", "a.b"])
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestBumpVersion(unittest.TestCase):
+    def test_default_is_patch(self):
+        self.assertEqual(bump_version("1.2.3"), "1.2.4")
+
+    def test_major(self):
+        self.assertEqual(bump_version("1.2.3", "major"), "2.0.0")
+
+    def test_minor(self):
+        self.assertEqual(bump_version("1.2.3", "minor"), "1.3.0")
+
+    def test_patch(self):
+        self.assertEqual(bump_version("1.2.3", "patch"), "1.2.4")
+
+    def test_case_insensitive(self):
+        self.assertEqual(bump_version("1.2.3", "MAJOR"), "2.0.0")
+        self.assertEqual(bump_version("1.2.3", "Minor"), "1.3.0")
+
+    def test_single_component_major(self):
+        self.assertEqual(bump_version("5", "major"), "6")
+
+    def test_single_component_minor(self):
+        self.assertEqual(bump_version("5", "minor"), "5.1")
+
+    def test_single_component_patch(self):
+        self.assertEqual(bump_version("5", "patch"), "5.0.1")
+
+    def test_non_string_version_raises(self):
+        with self.assertRaises(TypeError):
+            bump_version(1, "patch")  # type: ignore[arg-type]
+
+    def test_non_string_part_raises(self):
+        with self.assertRaises(TypeError):
+            bump_version("1.2.3", 2)  # type: ignore[arg-type]
+
+    def test_invalid_part_raises(self):
+        with self.assertRaises(ValueError):
+            bump_version("1.2.3", "build")
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            bump_version("1.2.a", "patch")
 
 
 class TestMaxMinVersion(unittest.TestCase):
@@ -210,3 +250,7 @@ class TestMaxMinVersion(unittest.TestCase):
             max_version(["1.0.0", "bad"])
         with self.assertRaises(ValueError):
             min_version(["1.0.0", "bad"])
+
+
+if __name__ == "__main__":
+    unittest.main()

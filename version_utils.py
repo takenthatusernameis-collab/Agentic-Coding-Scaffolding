@@ -22,6 +22,7 @@ __all__: List[str] = [
     "sort_versions",
     "max_version",
     "min_version",
+    "bump_version",
 ]
 
 
@@ -171,6 +172,40 @@ def bump_patch(version: str) -> str:
         idx = 2
     parts[idx] = parts[idx] + 1
     return ".".join(str(p) for p in parts)
+
+
+def bump_version(version: str, part: str = "patch") -> str:
+    """Bump a specific component of a version string.
+
+    Args:
+        version: A dotted version string.
+        part: Which component to bump: ``"major"``, ``"minor"``, or
+            ``"patch"``. Defaults to ``"patch"``.
+
+    Returns:
+        The version string with the chosen component incremented and all
+        lower-significance components reset to zero.
+
+    Raises:
+        TypeError: If *version* is not a string or *part* is not a string.
+        ValueError: If *version* is invalid or *part* is not one of the
+            recognized component names.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not isinstance(part, str):
+        raise TypeError("part must be a string")
+    normalized = part.lower()
+    if normalized == "major":
+        return bump_major(version)
+    if normalized == "minor":
+        return bump_minor(version)
+    if normalized == "patch":
+        return bump_patch(version)
+    raise ValueError(
+        "part must be one of 'major', 'minor', or 'patch', "
+        f"got {part!r}"
+    )
 
 
 def is_version_greater(v1: str, v2: str) -> bool:

@@ -1054,7 +1054,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, and sorting dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, and `max_version`/`min_version` return the greatest/least version from a list. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
