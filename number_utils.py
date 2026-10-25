@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import List, Union
 
 Number = Union[int, float]
@@ -21,6 +22,9 @@ __all__: List[str] = [
     "is_zero",
     "is_non_negative",
     "is_non_positive",
+    "is_finite",
+    "is_infinite",
+    "is_nan",
 ]
 
 
@@ -290,3 +294,57 @@ def is_non_positive(value: Number) -> bool:
     """
     _require_number(value, "value")
     return value <= 0
+
+
+def is_finite(value: Number) -> bool:
+    """Return True if *value* is finite (not infinite and not NaN).
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is finite.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if isinstance(value, float):
+        return math.isfinite(value)
+    return True
+
+
+def is_infinite(value: Number) -> bool:
+    """Return True if *value* is infinite (positive or negative infinity).
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is infinite.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if isinstance(value, float):
+        return math.isinf(value)
+    return False
+
+
+def is_nan(value: Number) -> bool:
+    """Return True if *value* is NaN (Not a Number).
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is NaN.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if isinstance(value, float):
+        return math.isnan(value)
+    return False

@@ -34337,6 +34337,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `is_finite(value)`, `is_infinite(value)`, and `is_nan(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments (values are finite/inf/nan classified correctly for floats, with ints treated as finite). Added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `is_non_negative(value)` and `is_non_positive(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments; added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` and `.kilo/command/scaffold-project.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `is_negative(value)`, `is_positive(value)`, and `is_zero(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments; added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` and `.kilo/command/scaffold-project.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `is_perfect_square(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments; returns False for negative integers and uses `math.isqrt` to test whether a non-negative integer is a perfect square. Added tests in `tests/test_prime_utils.py` covering zero, small and large squares, non-squares, negatives, and the `TypeError` path. Updated the `prime_utils` prose sections of `README.md` and `.kilo/command/scaffold-project.md` to list the new helper. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -34777,7 +34778,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive)
+number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_finite, is_infinite, is_nan)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -35694,7 +35695,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, and `is_non_positive` test integer-valued, parity, and sign properties. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, and special floating-point properties. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -53852,6 +53853,7 @@ cat > "$OUTPUT_DIR/number_utils.py" <<'NUMBER_UTILS'
 
 from __future__ import annotations
 
+import math
 from typing import List, Union
 
 Number = Union[int, float]
@@ -53871,6 +53873,9 @@ __all__: List[str] = [
     "is_zero",
     "is_non_negative",
     "is_non_positive",
+    "is_finite",
+    "is_infinite",
+    "is_nan",
 ]
 
 
@@ -54140,6 +54145,60 @@ def is_non_positive(value: Number) -> bool:
     """
     _require_number(value, "value")
     return value <= 0
+
+
+def is_finite(value: Number) -> bool:
+    """Return True if *value* is finite (not infinite and not NaN).
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is finite.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if isinstance(value, float):
+        return math.isfinite(value)
+    return True
+
+
+def is_infinite(value: Number) -> bool:
+    """Return True if *value* is infinite (positive or negative infinity).
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is infinite.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if isinstance(value, float):
+        return math.isinf(value)
+    return False
+
+
+def is_nan(value: Number) -> bool:
+    """Return True if *value* is NaN (Not a Number).
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is NaN.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if isinstance(value, float):
+        return math.isnan(value)
+    return False
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -54151,10 +54210,15 @@ import unittest
 from number_utils import (
     clamp,
     format_number,
+    is_even,
+    is_finite,
+    is_infinite,
     is_integer,
+    is_nan,
     is_negative,
     is_non_negative,
     is_non_positive,
+    is_odd,
     is_positive,
     is_zero,
     lerp,
@@ -54326,6 +54390,94 @@ class TestIsNonPositive(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_non_positive("x")  # type: ignore[arg-type]
+
+
+class TestIsEven(unittest.TestCase):
+    def test_even_ints(self) -> None:
+        self.assertTrue(is_even(0))
+        self.assertTrue(is_even(2))
+        self.assertTrue(is_even(-4))
+
+    def test_even_float(self) -> None:
+        self.assertTrue(is_even(2.0))
+
+    def test_odd(self) -> None:
+        self.assertFalse(is_even(3))
+        self.assertFalse(is_even(-3))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_even("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_even(True)  # type: ignore[arg-type]
+
+
+class TestIsOdd(unittest.TestCase):
+    def test_odd_ints(self) -> None:
+        self.assertTrue(is_odd(1))
+        self.assertTrue(is_odd(3))
+        self.assertTrue(is_odd(-5))
+
+    def test_odd_float(self) -> None:
+        self.assertTrue(is_odd(3.0))
+
+    def test_even(self) -> None:
+        self.assertFalse(is_odd(2))
+        self.assertFalse(is_odd(-4))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_odd("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(False)  # type: ignore[arg-type]
+
+
+class TestIsFinite(unittest.TestCase):
+    def test_finite_values(self) -> None:
+        self.assertTrue(is_finite(0))
+        self.assertTrue(is_finite(42))
+        self.assertTrue(is_finite(3.14))
+
+    def test_infinity(self) -> None:
+        self.assertFalse(is_finite(float("inf")))
+        self.assertFalse(is_finite(float("-inf")))
+
+    def test_nan(self) -> None:
+        self.assertFalse(is_finite(float("nan")))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_finite("x")  # type: ignore[arg-type]
+
+
+class TestIsInfinite(unittest.TestCase):
+    def test_infinity(self) -> None:
+        self.assertTrue(is_infinite(float("inf")))
+        self.assertTrue(is_infinite(float("-inf")))
+
+    def test_finite(self) -> None:
+        self.assertFalse(is_infinite(0))
+        self.assertFalse(is_infinite(3.14))
+
+    def test_nan(self) -> None:
+        self.assertFalse(is_infinite(float("nan")))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_infinite(None)  # type: ignore[arg-type]
+
+
+class TestIsNan(unittest.TestCase):
+    def test_nan(self) -> None:
+        self.assertTrue(is_nan(float("nan")))
+
+    def test_finite(self) -> None:
+        self.assertFalse(is_nan(0))
+        self.assertFalse(is_nan(float("inf")))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_nan("nan")  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---

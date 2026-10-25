@@ -5,10 +5,15 @@ import unittest
 from number_utils import (
     clamp,
     format_number,
+    is_even,
+    is_finite,
+    is_infinite,
     is_integer,
+    is_nan,
     is_negative,
     is_non_negative,
     is_non_positive,
+    is_odd,
     is_positive,
     is_zero,
     lerp,
@@ -180,3 +185,91 @@ class TestIsNonPositive(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_non_positive("x")  # type: ignore[arg-type]
+
+
+class TestIsEven(unittest.TestCase):
+    def test_even_ints(self) -> None:
+        self.assertTrue(is_even(0))
+        self.assertTrue(is_even(2))
+        self.assertTrue(is_even(-4))
+
+    def test_even_float(self) -> None:
+        self.assertTrue(is_even(2.0))
+
+    def test_odd(self) -> None:
+        self.assertFalse(is_even(3))
+        self.assertFalse(is_even(-3))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_even("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_even(True)  # type: ignore[arg-type]
+
+
+class TestIsOdd(unittest.TestCase):
+    def test_odd_ints(self) -> None:
+        self.assertTrue(is_odd(1))
+        self.assertTrue(is_odd(3))
+        self.assertTrue(is_odd(-5))
+
+    def test_odd_float(self) -> None:
+        self.assertTrue(is_odd(3.0))
+
+    def test_even(self) -> None:
+        self.assertFalse(is_odd(2))
+        self.assertFalse(is_odd(-4))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_odd("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(False)  # type: ignore[arg-type]
+
+
+class TestIsFinite(unittest.TestCase):
+    def test_finite_values(self) -> None:
+        self.assertTrue(is_finite(0))
+        self.assertTrue(is_finite(42))
+        self.assertTrue(is_finite(3.14))
+
+    def test_infinity(self) -> None:
+        self.assertFalse(is_finite(float("inf")))
+        self.assertFalse(is_finite(float("-inf")))
+
+    def test_nan(self) -> None:
+        self.assertFalse(is_finite(float("nan")))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_finite("x")  # type: ignore[arg-type]
+
+
+class TestIsInfinite(unittest.TestCase):
+    def test_infinity(self) -> None:
+        self.assertTrue(is_infinite(float("inf")))
+        self.assertTrue(is_infinite(float("-inf")))
+
+    def test_finite(self) -> None:
+        self.assertFalse(is_infinite(0))
+        self.assertFalse(is_infinite(3.14))
+
+    def test_nan(self) -> None:
+        self.assertFalse(is_infinite(float("nan")))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_infinite(None)  # type: ignore[arg-type]
+
+
+class TestIsNan(unittest.TestCase):
+    def test_nan(self) -> None:
+        self.assertTrue(is_nan(float("nan")))
+
+    def test_finite(self) -> None:
+        self.assertFalse(is_nan(0))
+        self.assertFalse(is_nan(float("inf")))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_nan("nan")  # type: ignore[arg-type]
