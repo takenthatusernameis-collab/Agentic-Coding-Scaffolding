@@ -258,3 +258,35 @@ def is_zero(value: Number) -> bool:
     """
     _require_number(value, "value")
     return value == 0
+
+
+def is_non_negative(value: Number) -> bool:
+    """Return True if *value* is greater than or equal to zero.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is non-negative.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    return value >= 0
+
+
+def is_non_positive(value: Number) -> bool:
+    """Return True if *value* is less than or equal to zero.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is non-positive.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    return value <= 0

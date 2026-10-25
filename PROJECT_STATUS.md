@@ -1,4 +1,22 @@
-## Latest Session (2026-10-25) — added is_negative, is_positive, is_zero to number_utils
+## Latest Session (2026-10-25) — added is_non_negative and is_non_positive to number_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5439 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and `python tools/refresh_scaffold.py --check` reported one stale copy (number_utils.py) left by an interrupted checkpoint commit that added `is_non_negative`/`is_non_positive` to `__all__` without defining them.
+
+Completed in this session:
+
+- Defined `is_non_negative(value)` and `is_non_positive(value)` in `number_utils.py` with typed signatures, `__all__` exports (already present), Google-style docstrings, and `TypeError` validation for non-number arguments, completing the incomplete `__all__` entries left by the last checkpoint commit.
+- Added `TestIsNonNegative` and `TestIsNonPositive` to `tests/test_number_utils.py` covering zero, positive, negative, float, and the `TypeError` path (6 new tests; 36 tests now pass for the module).
+- Updated the `number_utils` module tree entry and prose section of `README.md` and the `number_utils` line of `.kilo/command/scaffold-project.md` to list the new helpers.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `number_utils.py`, `tests/test_number_utils.py`, README, the command doc, and CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5445 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and scaffold sync is clean.
+
+Next Planned:
+
+- Keep hardening the small utility modules: review `strings.py`, `shapes.py`, `stats.py`, `prime_utils.py`, `version_utils.py`, `prompt_utils.py` (and nearby) for missing edge cases or ergonomic helpers that fit the existing API style. Add minimal, hermetic helpers with tests in `tests/test_*.py`. Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh`, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5428 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 

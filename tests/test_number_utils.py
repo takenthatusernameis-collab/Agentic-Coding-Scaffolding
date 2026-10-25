@@ -7,6 +7,8 @@ from number_utils import (
     format_number,
     is_integer,
     is_negative,
+    is_non_negative,
+    is_non_positive,
     is_positive,
     is_zero,
     lerp,
@@ -146,3 +148,35 @@ class TestIsZero(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_zero("x")  # type: ignore[arg-type]
+
+
+class TestIsNonNegative(unittest.TestCase):
+    def test_non_negative(self) -> None:
+        self.assertTrue(is_non_negative(0))
+        self.assertTrue(is_non_negative(0.0))
+        self.assertTrue(is_non_negative(5))
+        self.assertTrue(is_non_negative(0.5))
+
+    def test_negative(self) -> None:
+        self.assertFalse(is_non_negative(-5))
+        self.assertFalse(is_non_negative(-0.5))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_non_negative("x")  # type: ignore[arg-type]
+
+
+class TestIsNonPositive(unittest.TestCase):
+    def test_non_positive(self) -> None:
+        self.assertTrue(is_non_positive(0))
+        self.assertTrue(is_non_positive(0.0))
+        self.assertTrue(is_non_positive(-5))
+        self.assertTrue(is_non_positive(-0.5))
+
+    def test_positive(self) -> None:
+        self.assertFalse(is_non_positive(5))
+        self.assertFalse(is_non_positive(0.5))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_non_positive("x")  # type: ignore[arg-type]

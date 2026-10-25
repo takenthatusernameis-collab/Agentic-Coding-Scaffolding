@@ -32578,7 +32578,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
 - `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `interleave`, `adjacent_pairs`, `is_sorted`)
 - `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
-- `number_utils.py` — number utility functions (`clamp`, `round_to`, `is_integer`, `format_number`, `percentage`, `lerp`, `sign`, `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`)
+- `number_utils.py` — number utility functions (`clamp`, `round_to`, `is_integer`, `format_number`, `percentage`, `lerp`, `sign`, `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`)
 - `tests/test_number_utils.py` — unit tests for `number_utils.py`
 - `os_utils.py` — operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 - `gzip_utils.py` — gzip compression/decompression utilities
@@ -34337,6 +34337,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `is_non_negative(value)` and `is_non_positive(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments; added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` and `.kilo/command/scaffold-project.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `is_negative(value)`, `is_positive(value)`, and `is_zero(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments; added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` and `.kilo/command/scaffold-project.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `is_perfect_square(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments; returns False for negative integers and uses `math.isqrt` to test whether a non-negative integer is a perfect square. Added tests in `tests/test_prime_utils.py` covering zero, small and large squares, non-squares, negatives, and the `TypeError` path. Updated the `prime_utils` prose sections of `README.md` and `.kilo/command/scaffold-project.md` to list the new helper. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Bootstrap session: verified repository health — `make test` runs 5410 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. The board held no task, so this session proceeded as a bootstrap.
@@ -34776,7 +34777,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero)
+number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -35693,7 +35694,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, and `is_zero` test integer-valued, parity, and sign properties. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, and `is_non_positive` test integer-valued, parity, and sign properties. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -53868,6 +53869,8 @@ __all__: List[str] = [
     "is_negative",
     "is_positive",
     "is_zero",
+    "is_non_negative",
+    "is_non_positive",
 ]
 
 
@@ -54105,6 +54108,38 @@ def is_zero(value: Number) -> bool:
     """
     _require_number(value, "value")
     return value == 0
+
+
+def is_non_negative(value: Number) -> bool:
+    """Return True if *value* is greater than or equal to zero.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is non-negative.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    return value >= 0
+
+
+def is_non_positive(value: Number) -> bool:
+    """Return True if *value* is less than or equal to zero.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is non-positive.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    return value <= 0
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -54118,6 +54153,8 @@ from number_utils import (
     format_number,
     is_integer,
     is_negative,
+    is_non_negative,
+    is_non_positive,
     is_positive,
     is_zero,
     lerp,
@@ -54257,6 +54294,38 @@ class TestIsZero(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_zero("x")  # type: ignore[arg-type]
+
+
+class TestIsNonNegative(unittest.TestCase):
+    def test_non_negative(self) -> None:
+        self.assertTrue(is_non_negative(0))
+        self.assertTrue(is_non_negative(0.0))
+        self.assertTrue(is_non_negative(5))
+        self.assertTrue(is_non_negative(0.5))
+
+    def test_negative(self) -> None:
+        self.assertFalse(is_non_negative(-5))
+        self.assertFalse(is_non_negative(-0.5))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_non_negative("x")  # type: ignore[arg-type]
+
+
+class TestIsNonPositive(unittest.TestCase):
+    def test_non_positive(self) -> None:
+        self.assertTrue(is_non_positive(0))
+        self.assertTrue(is_non_positive(0.0))
+        self.assertTrue(is_non_positive(-5))
+        self.assertTrue(is_non_positive(-0.5))
+
+    def test_positive(self) -> None:
+        self.assertFalse(is_non_positive(5))
+        self.assertFalse(is_non_positive(0.5))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_non_positive("x")  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
