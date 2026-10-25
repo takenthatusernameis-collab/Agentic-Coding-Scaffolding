@@ -2,7 +2,7 @@
 
 import unittest
 
-from number_utils import clamp, format_number, is_integer, percentage, round_to
+from number_utils import clamp, format_number, is_integer, lerp, percentage, round_to
 
 
 class TestClamp(unittest.TestCase):
@@ -50,3 +50,16 @@ class TestPercentage(unittest.TestCase):
 
     def test_zero_total(self) -> None:
         self.assertEqual(percentage(5, 0), "0.0%")
+
+
+class TestLerp(unittest.TestCase):
+    def test_endpoints(self) -> None:
+        self.assertEqual(lerp(0, 10, 0), 0)
+        self.assertEqual(lerp(0, 10, 1), 10)
+
+    def test_midpoint(self) -> None:
+        self.assertEqual(lerp(0, 10, 0.5), 5.0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            lerp("a", 10, 0.5)  # type: ignore[arg-type]

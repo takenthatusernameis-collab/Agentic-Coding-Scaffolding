@@ -53682,6 +53682,7 @@ __all__: List[str] = [
     "is_integer",
     "format_number",
     "percentage",
+    "lerp",
 ]
 
 
@@ -53799,6 +53800,26 @@ def percentage(part: Number, total: Number, precision: int = 1) -> str:
     if total == 0:
         return "0.0%"
     return f"{(part / total) * 100:.{precision}f}%"
+
+
+def lerp(start: Number, stop: Number, t: Number) -> float:
+    """Linearly interpolate between start and stop by factor t.
+
+    Args:
+        start: The start value.
+        stop: The stop value.
+        t: The interpolation factor (typically 0.0 to 1.0).
+
+    Returns:
+        The interpolated value.
+
+    Raises:
+        TypeError: If any argument is not a number.
+    """
+    _require_number(start, "start")
+    _require_number(stop, "stop")
+    _require_number(t, "t")
+    return start + (stop - start) * t
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -53807,7 +53828,7 @@ cat > "$OUTPUT_DIR/tests/test_number_utils.py" <<'TEST_NUMBER_UTILS'
 
 import unittest
 
-from number_utils import clamp, format_number, is_integer, percentage, round_to
+from number_utils import clamp, format_number, is_integer, lerp, percentage, round_to
 
 
 class TestClamp(unittest.TestCase):
@@ -53855,6 +53876,19 @@ class TestPercentage(unittest.TestCase):
 
     def test_zero_total(self) -> None:
         self.assertEqual(percentage(5, 0), "0.0%")
+
+
+class TestLerp(unittest.TestCase):
+    def test_endpoints(self) -> None:
+        self.assertEqual(lerp(0, 10, 0), 0)
+        self.assertEqual(lerp(0, 10, 1), 10)
+
+    def test_midpoint(self) -> None:
+        self.assertEqual(lerp(0, 10, 0.5), 5.0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            lerp("a", 10, 0.5)  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
