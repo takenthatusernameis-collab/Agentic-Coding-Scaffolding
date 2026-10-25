@@ -33,6 +33,10 @@ __all__: List[str] = [
     "sphere_volume",
     "cube_surface_area",
     "cube_volume",
+    "cuboid_surface_area",
+    "cuboid_volume",
+    "rectangular_prism_surface_area",
+    "rectangular_prism_volume",
     "cylinder_surface_area",
     "cylinder_volume",
     "cone_surface_area",
@@ -565,6 +569,44 @@ def cube_volume(side: float) -> float:
     if side < 0:
         raise ValueError("Side cannot be negative.")
     return float(side ** 3)
+
+
+def cuboid_surface_area(length: float, width: float, height: float) -> float:
+    """Return the surface area of a cuboid (rectangular prism)."""
+    if not isinstance(length, (int, float)) or isinstance(length, bool):
+        raise TypeError("length must be a number")
+    if not isinstance(width, (int, float)) or isinstance(width, bool):
+        raise TypeError("width must be a number")
+    if not isinstance(height, (int, float)) or isinstance(height, bool):
+        raise TypeError("height must be a number")
+    if length < 0:
+        raise ValueError("Length cannot be negative.")
+    if width < 0:
+        raise ValueError("Width cannot be negative.")
+    if height < 0:
+        raise ValueError("Height cannot be negative.")
+    return float(2 * (length * width + length * height + width * height))
+
+
+def cuboid_volume(length: float, width: float, height: float) -> float:
+    """Return the volume of a cuboid (rectangular prism)."""
+    if not isinstance(length, (int, float)) or isinstance(length, bool):
+        raise TypeError("length must be a number")
+    if not isinstance(width, (int, float)) or isinstance(width, bool):
+        raise TypeError("width must be a number")
+    if not isinstance(height, (int, float)) or isinstance(height, bool):
+        raise TypeError("height must be a number")
+    if length < 0:
+        raise ValueError("Length cannot be negative.")
+    if width < 0:
+        raise ValueError("Width cannot be negative.")
+    if height < 0:
+        raise ValueError("Height cannot be negative.")
+    return float(length * width * height)
+
+
+rectangular_prism_surface_area = cuboid_surface_area
+rectangular_prism_volume = cuboid_volume
 
 
 def cylinder_surface_area(radius: float, height: float) -> float:

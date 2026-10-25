@@ -482,6 +482,52 @@ class TestCube(unittest.TestCase):
             cube_surface_area(True)
 
 
+class TestCuboid(unittest.TestCase):
+    def test_surface_area(self):
+        from shapes import cuboid_surface_area
+
+        self.assertEqual(cuboid_surface_area(1, 2, 3), 22)
+
+    def test_volume(self):
+        from shapes import cuboid_volume
+
+        self.assertEqual(cuboid_volume(2, 3, 4), 24)
+
+    def test_rectangular_prism_aliases(self):
+        from shapes import rectangular_prism_surface_area, rectangular_prism_volume
+
+        self.assertEqual(rectangular_prism_surface_area(1, 2, 3), 22)
+        self.assertEqual(rectangular_prism_volume(2, 3, 4), 24)
+
+    def test_rejects_negative(self):
+        from shapes import cuboid_surface_area, cuboid_volume
+
+        with self.assertRaises(ValueError):
+            cuboid_surface_area(-1, 1, 1)
+        with self.assertRaises(ValueError):
+            cuboid_surface_area(1, -1, 1)
+        with self.assertRaises(ValueError):
+            cuboid_surface_area(1, 1, -1)
+        with self.assertRaises(ValueError):
+            cuboid_volume(-1, 2, 3)
+
+    def test_rejects_non_numeric(self):
+        from shapes import cuboid_surface_area
+
+        with self.assertRaises(TypeError):
+            cuboid_surface_area("1", 2, 3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cuboid_surface_area(1, None, 3)  # type: ignore[arg-type]
+
+    def test_rejects_bool(self):
+        from shapes import cuboid_surface_area, cuboid_volume
+
+        with self.assertRaises(TypeError):
+            cuboid_surface_area(True, 1, 1)
+        with self.assertRaises(TypeError):
+            cuboid_volume(1, False, 1)
+
+
 class TestCylinder(unittest.TestCase):
     def test_surface_area(self):
         from shapes import cylinder_surface_area

@@ -6,6 +6,7 @@ from prime_utils import (
     is_composite,
     is_coprime,
     is_perfect_square,
+    is_power_of_two,
     is_prime,
     next_prime,
     nth_prime,
@@ -277,6 +278,39 @@ class TestIsPerfectSquare(unittest.TestCase):
             is_perfect_square(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_perfect_square(True)  # type: ignore[arg-type]
+
+
+class TestIsPowerOfTwo(unittest.TestCase):
+    def test_powers_of_two(self):
+        self.assertTrue(is_power_of_two(1))
+        self.assertTrue(is_power_of_two(2))
+        self.assertTrue(is_power_of_two(4))
+        self.assertTrue(is_power_of_two(8))
+        self.assertTrue(is_power_of_two(16))
+        self.assertTrue(is_power_of_two(2 ** 30))
+
+    def test_not_powers_of_two(self):
+        self.assertFalse(is_power_of_two(0))
+        self.assertFalse(is_power_of_two(3))
+        self.assertFalse(is_power_of_two(5))
+        self.assertFalse(is_power_of_two(6))
+        self.assertFalse(is_power_of_two(18))
+        self.assertFalse(is_power_of_two(100))
+
+    def test_negative(self):
+        self.assertFalse(is_power_of_two(-1))
+        self.assertFalse(is_power_of_two(-2))
+        self.assertFalse(is_power_of_two(-4))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_power_of_two(2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two("2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

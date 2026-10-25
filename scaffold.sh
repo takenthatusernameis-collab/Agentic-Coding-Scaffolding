@@ -9666,6 +9666,10 @@ __all__: List[str] = [
     "sphere_volume",
     "cube_surface_area",
     "cube_volume",
+    "cuboid_surface_area",
+    "cuboid_volume",
+    "rectangular_prism_surface_area",
+    "rectangular_prism_volume",
     "cylinder_surface_area",
     "cylinder_volume",
     "cone_surface_area",
@@ -10198,6 +10202,44 @@ def cube_volume(side: float) -> float:
     if side < 0:
         raise ValueError("Side cannot be negative.")
     return float(side ** 3)
+
+
+def cuboid_surface_area(length: float, width: float, height: float) -> float:
+    """Return the surface area of a cuboid (rectangular prism)."""
+    if not isinstance(length, (int, float)) or isinstance(length, bool):
+        raise TypeError("length must be a number")
+    if not isinstance(width, (int, float)) or isinstance(width, bool):
+        raise TypeError("width must be a number")
+    if not isinstance(height, (int, float)) or isinstance(height, bool):
+        raise TypeError("height must be a number")
+    if length < 0:
+        raise ValueError("Length cannot be negative.")
+    if width < 0:
+        raise ValueError("Width cannot be negative.")
+    if height < 0:
+        raise ValueError("Height cannot be negative.")
+    return float(2 * (length * width + length * height + width * height))
+
+
+def cuboid_volume(length: float, width: float, height: float) -> float:
+    """Return the volume of a cuboid (rectangular prism)."""
+    if not isinstance(length, (int, float)) or isinstance(length, bool):
+        raise TypeError("length must be a number")
+    if not isinstance(width, (int, float)) or isinstance(width, bool):
+        raise TypeError("width must be a number")
+    if not isinstance(height, (int, float)) or isinstance(height, bool):
+        raise TypeError("height must be a number")
+    if length < 0:
+        raise ValueError("Length cannot be negative.")
+    if width < 0:
+        raise ValueError("Width cannot be negative.")
+    if height < 0:
+        raise ValueError("Height cannot be negative.")
+    return float(length * width * height)
+
+
+rectangular_prism_surface_area = cuboid_surface_area
+rectangular_prism_volume = cuboid_volume
 
 
 def cylinder_surface_area(radius: float, height: float) -> float:
@@ -10736,6 +10778,52 @@ class TestCube(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             cube_surface_area(True)
+
+
+class TestCuboid(unittest.TestCase):
+    def test_surface_area(self):
+        from shapes import cuboid_surface_area
+
+        self.assertEqual(cuboid_surface_area(1, 2, 3), 22)
+
+    def test_volume(self):
+        from shapes import cuboid_volume
+
+        self.assertEqual(cuboid_volume(2, 3, 4), 24)
+
+    def test_rectangular_prism_aliases(self):
+        from shapes import rectangular_prism_surface_area, rectangular_prism_volume
+
+        self.assertEqual(rectangular_prism_surface_area(1, 2, 3), 22)
+        self.assertEqual(rectangular_prism_volume(2, 3, 4), 24)
+
+    def test_rejects_negative(self):
+        from shapes import cuboid_surface_area, cuboid_volume
+
+        with self.assertRaises(ValueError):
+            cuboid_surface_area(-1, 1, 1)
+        with self.assertRaises(ValueError):
+            cuboid_surface_area(1, -1, 1)
+        with self.assertRaises(ValueError):
+            cuboid_surface_area(1, 1, -1)
+        with self.assertRaises(ValueError):
+            cuboid_volume(-1, 2, 3)
+
+    def test_rejects_non_numeric(self):
+        from shapes import cuboid_surface_area
+
+        with self.assertRaises(TypeError):
+            cuboid_surface_area("1", 2, 3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cuboid_surface_area(1, None, 3)  # type: ignore[arg-type]
+
+    def test_rejects_bool(self):
+        from shapes import cuboid_surface_area, cuboid_volume
+
+        with self.assertRaises(TypeError):
+            cuboid_surface_area(True, 1, 1)
+        with self.assertRaises(TypeError):
+            cuboid_volume(1, False, 1)
 
 
 class TestCylinder(unittest.TestCase):
@@ -35156,6 +35244,14 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `is_hex(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* is non-empty and every character is a hexadecimal digit (0-9, a-f, A-F), `False` otherwise (including for the empty string). It is a companion to `is_digit` and `is_integer`. Added `TestIsHex` to `tests/test_strings.py`. Cleaned up duplicate entries in the `strings` `__all__` list. Updated `README.md` and `.kilo/command/scaffold-project.md`. Synchronized `strings.py`, `tests/test_strings.py`, README, the command doc, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
+- Added `is_ascii(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* is non-empty and every character is ASCII, `False` otherwise (including for the empty string). Added `TestIsAscii` to `tests/test_strings.py`. Updated the `strings` module section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+- Added 3D shape helpers `sphere_surface_area`/`sphere_volume`, `cube_surface_area`/`cube_volume`, `cylinder_surface_area`/`cylinder_volume`, `cone_surface_area`/`cone_volume`. Synchronized into `scaffold.sh`.
+
+- Added `cuboid_surface_area`/`cuboid_volume` (and `rectangular_prism_surface_area`/`rectangular_prism_volume` aliases) to `shapes.py` with typed signatures, `__all__` exports, validation (raising `TypeError` for non-numbers including `bool`, `ValueError` for negatives), and tests in `tests/test_shapes.py`. Updated `README.md`. Synchronized `shapes.py`, `tests/test_shapes.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+- Added `is_power_of_two(n)` to `prime_utils.py` with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation for non-int arguments (rejecting `bool`); returns `True` for positive powers of two (1,2,4,...), `False` otherwise (including 0 and negatives). Added tests in `tests/test_prime_utils.py`. Updated `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `is_whitespace`, `is_space`, `is_printable`, and `is_identifier` to `strings.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-string arguments. `is_whitespace`/`is_space` return `False` for empty strings; `is_printable` returns `False` for whitespace/control characters; `is_identifier` uses `str.isidentifier()`. Added corresponding tests in `tests/test_strings.py`. Updated `README.md` and `.kilo/command/scaffold-project.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `.kilo/command/scaffold-project.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `skewness(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it returns the population skewness of a list of numbers, raising `ValueError` for fewer than 3 elements or a zero standard deviation. Added `TestSkewness` to `tests/test_stats.py` covering symmetric, positively skewed, and invalid-input cases. Updated the `stats` module section of `README.md` to list the new helper. Synchronized `stats.py`, `tests/test_stats.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -35688,7 +35784,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_perfect_square)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_perfect_square, is_power_of_two)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
@@ -36143,7 +36239,7 @@ The project includes a simple calculator module in `calculator.py` with function
 
 ## Shapes Module
 
-The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, triangles, and polygons. Circular sectors and arcs are supported via `sector_area` and `arc_length`, regular polygons via `regular_polygon_area` and `regular_polygon_perimeter`, and ellipses via `ellipse_area` and `ellipse_circumference`. `triangle_heron_area` computes area via Heron's formula, and `triangle_inradius` and `triangle_circumradius` return inradius and circumradius. 3D helpers include `sphere_surface_area`/`sphere_volume`, `cube_surface_area`/`cube_volume`, `cylinder_surface_area`/`cylinder_volume`, and `cone_surface_area`/`cone_volume`. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
+The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, triangles, and polygons. Circular sectors and arcs are supported via `sector_area` and `arc_length`, regular polygons via `regular_polygon_area` and `regular_polygon_perimeter`, and ellipses via `ellipse_area` and `ellipse_circumference`. `triangle_heron_area` computes area via Heron's formula, and `triangle_inradius` and `triangle_circumradius` return inradius and circumradius. 3D helpers include `sphere_surface_area`/`sphere_volume`, `cube_surface_area`/`cube_volume`, `cuboid_surface_area`/`cuboid_volume` (and `rectangular_prism_surface_area`/`rectangular_prism_volume` aliases), `cylinder_surface_area`/`cylinder_volume`, and `cone_surface_area`/`cone_volume`. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
 
 ## Strings Module
 
@@ -36550,7 +36646,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, and `is_perfect_square` tests whether a non-negative integer is a perfect square. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, and `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 ## Decimal Utilities Module
 
@@ -59209,6 +59305,7 @@ __all__: List[str] = [
     "next_prime",
     "prev_prime",
     "is_perfect_square",
+    "is_power_of_two",
 ]
 
 
@@ -59450,6 +59547,38 @@ def is_perfect_square(n: int) -> bool:
         return False
     root = math.isqrt(n)
     return root * root == n
+
+
+def is_power_of_two(n: int) -> bool:
+    """Return True if *n* is a power of two.
+
+    A power of two is a positive integer of the form 2^k for some
+    non-negative integer *k* (so 1, 2, 4, 8, ... are powers of two).
+    Zero and negative integers are never powers of two.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a power of two, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_power_of_two(1)
+        True
+        >>> is_power_of_two(16)
+        True
+        >>> is_power_of_two(18)
+        False
+        >>> is_power_of_two(0)
+        False
+    """
+    _require_int(n, "n")
+    if n <= 0:
+        return False
+    return (n & (n - 1)) == 0
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -59462,6 +59591,7 @@ from prime_utils import (
     is_composite,
     is_coprime,
     is_perfect_square,
+    is_power_of_two,
     is_prime,
     next_prime,
     nth_prime,
@@ -59733,6 +59863,39 @@ class TestIsPerfectSquare(unittest.TestCase):
             is_perfect_square(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_perfect_square(True)  # type: ignore[arg-type]
+
+
+class TestIsPowerOfTwo(unittest.TestCase):
+    def test_powers_of_two(self):
+        self.assertTrue(is_power_of_two(1))
+        self.assertTrue(is_power_of_two(2))
+        self.assertTrue(is_power_of_two(4))
+        self.assertTrue(is_power_of_two(8))
+        self.assertTrue(is_power_of_two(16))
+        self.assertTrue(is_power_of_two(2 ** 30))
+
+    def test_not_powers_of_two(self):
+        self.assertFalse(is_power_of_two(0))
+        self.assertFalse(is_power_of_two(3))
+        self.assertFalse(is_power_of_two(5))
+        self.assertFalse(is_power_of_two(6))
+        self.assertFalse(is_power_of_two(18))
+        self.assertFalse(is_power_of_two(100))
+
+    def test_negative(self):
+        self.assertFalse(is_power_of_two(-1))
+        self.assertFalse(is_power_of_two(-2))
+        self.assertFalse(is_power_of_two(-4))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_power_of_two(2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two("2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

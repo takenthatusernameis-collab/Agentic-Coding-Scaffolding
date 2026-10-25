@@ -15,6 +15,7 @@ __all__: List[str] = [
     "next_prime",
     "prev_prime",
     "is_perfect_square",
+    "is_power_of_two",
 ]
 
 
@@ -256,3 +257,35 @@ def is_perfect_square(n: int) -> bool:
         return False
     root = math.isqrt(n)
     return root * root == n
+
+
+def is_power_of_two(n: int) -> bool:
+    """Return True if *n* is a power of two.
+
+    A power of two is a positive integer of the form 2^k for some
+    non-negative integer *k* (so 1, 2, 4, 8, ... are powers of two).
+    Zero and negative integers are never powers of two.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a power of two, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_power_of_two(1)
+        True
+        >>> is_power_of_two(16)
+        True
+        >>> is_power_of_two(18)
+        False
+        >>> is_power_of_two(0)
+        False
+    """
+    _require_int(n, "n")
+    if n <= 0:
+        return False
+    return (n & (n - 1)) == 0
