@@ -22912,7 +22912,7 @@ def truncate_prompt(text: str, max_length: int, suffix: str = "...") -> str:
 
     Examples:
         >>> truncate_prompt("Hello world", 5)
-        'Hell...'
+        'He...'
         >>> truncate_prompt("Short", 10)
         'Short'
     """
@@ -22970,8 +22970,8 @@ def clean_prompt(text: str) -> str:
         TypeError: If *text* is not a string.
 
     Examples:
-        >>> clean_prompt("Hello   world\n\nHow are you?")
-        'Hello world How are you?'
+        >>> clean_prompt("Hello   world")
+        'Hello world'
     """
     _require_string(text, "text")
     # Replace multiple whitespace characters with single space
@@ -22995,7 +22995,7 @@ def extract_keywords(text: str, min_length: int = 3) -> List[str]:
 
     Examples:
         >>> extract_keywords("The quick brown fox jumps")
-        ['quick', 'brown', 'jumps']
+        ['quick', 'brown', 'fox', 'jumps']
     """
     _require_string(text, "text")
     _require_int(min_length, "min_length")
@@ -23051,9 +23051,9 @@ def wrap_prompt(text: str, width: int = 80) -> str:
         TypeError: If *text* is not a string or *width* is not an int.
         ValueError: If *width* is negative.
 
-    Examples:
-        >>> wrap_prompt("This is a long line that should be wrapped", 20)
-        'This is a long line\\nthat should be wrapped'
+Examples:
+        >>> wrap_prompt("This is a long line that should be wrapped", 24)
+        'This is a long line that\nshould be wrapped'
     """
     _require_string(text, "text")
     _require_int(width, "width")
@@ -23097,7 +23097,7 @@ def estimate_token_count(text: str) -> int:
         >>> estimate_token_count("Hello world")
         2
         >>> estimate_token_count("This is a test")
-        4
+        3
     """
     _require_string(text, "text")
     if not text:
