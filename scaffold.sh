@@ -25,7 +25,9 @@
 
 #   - abc_utils.py — # Abstract base class utilities wrapping stdlib abc (ABC, ABCMeta, abstractmethod, abstractclassmethod, abstractstaticmethod, abstractproperty, get_cache_token, update_abstractmethods)
 #   - aifc_utils.py — # AIFF and AIFF-C format utilities wrapping stdlib aifc (open, is_available, aliases, re-exports Aifc_read, Aifc_write, Error) with input validation
+#   - test_aifc_utils.py — # Tests for aifc_utils.py
 #   - ossaudiodev_utils.py — # OSS audio device utilities wrapping the standard library ossaudiodev module (open, openmixer, re-exports OSSAudioError, error, AFMT_S16_LE, SOUND_MIXER_PCM)
+#   - test_ossaudiodev_utils.py — # Tests for ossaudiodev_utils.py
 #   - ast_utils.py — # Abstract syntax tree utilities wrapping stdlib ast (parse, unparse, dump, literal_eval, get_docstring, walk, iter_fields, iter_child_nodes, find_all, fix_missing_locations, increment_lineno, copy_location, node_to_string)
 #   - pickle_utils.py — # Object serialization utilities wrapping stdlib pickle (dump, dumps, load, loads, pickler, unpickler, is_valid_protocol, validate_protocol)
 #   - pickletools_utils.py — # Pickletools utilities wrapping stdlib pickletools (dis, genops, optimize, get_opcode_info, list_opcodes, is_opcode, get_pickle_size, decode_long, encode_long)
