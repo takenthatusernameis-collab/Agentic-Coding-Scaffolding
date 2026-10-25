@@ -21,6 +21,7 @@ __all__: List[str] = [
     "is_prime_power",
     "is_emirp",
     "is_twin_prime",
+    "is_palindromic_prime",
 ]
 
 
@@ -457,3 +458,26 @@ def is_twin_prime(n: int) -> bool:
     if not is_prime(n):
         return False
     return is_prime(n - 2) or is_prime(n + 2)
+
+
+def is_palindromic_prime(n: int) -> bool:
+    """Return True if *n* is a palindromic prime.
+
+    A palindromic prime is a prime number that is also a palindromic
+    number in base 10, meaning its decimal representation reads the same
+    forwards and backwards (e.g., 2, 3, 5, 7, 11, 101, 131, ...).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a palindromic prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    s = str(abs(n))
+    return s == s[::-1]
