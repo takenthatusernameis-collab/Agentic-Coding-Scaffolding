@@ -27,6 +27,7 @@ __all__: List[str] = [
     "is_nan",
     "safe_divide",
     "is_perfect_cube",
+    "is_perfect_square",
 ]
 
 
@@ -374,6 +375,32 @@ def is_perfect_cube(value: Number) -> bool:
     while root ** 3 > abs(n):
         root -= 1
     return root ** 3 == abs(n)
+
+
+def is_perfect_square(value: Number) -> bool:
+    """Return True if *value* is a perfect square of an integer.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is a perfect square.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if not is_integer(value):
+        return False
+    n = int(value)
+    if n < 0:
+        return False
+    root = int(round(abs(n) ** 0.5))
+    while (root + 1) ** 2 <= abs(n):
+        root += 1
+    while root ** 2 > abs(n):
+        root -= 1
+    return root ** 2 == abs(n)
 
 
 def safe_divide(numerator: Number, denominator: Number) -> float:
