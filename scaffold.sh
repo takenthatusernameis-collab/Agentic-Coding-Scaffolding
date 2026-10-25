@@ -53891,6 +53891,7 @@ __all__: List[str] = [
     "is_nan",
     "safe_divide",
     "is_perfect_cube",
+    "is_perfect_square",
 ]
 
 
@@ -54240,6 +54241,32 @@ def is_perfect_cube(value: Number) -> bool:
     return root ** 3 == abs(n)
 
 
+def is_perfect_square(value: Number) -> bool:
+    """Return True if *value* is a perfect square of an integer.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is a perfect square.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if not is_integer(value):
+        return False
+    n = int(value)
+    if n < 0:
+        return False
+    root = int(round(abs(n) ** 0.5))
+    while (root + 1) ** 2 <= abs(n):
+        root += 1
+    while root ** 2 > abs(n):
+        root -= 1
+    return root ** 2 == abs(n)
+
+
 def safe_divide(numerator: Number, denominator: Number) -> float:
     """Divide numerator by denominator, returning 0.0 when denominator is zero.
 
@@ -54279,6 +54306,7 @@ from number_utils import (
     is_non_positive,
     is_odd,
     is_perfect_cube,
+    is_perfect_square,
     is_positive,
     is_zero,
     lerp,
@@ -54569,6 +54597,28 @@ class TestIsPerfectCube(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_perfect_cube("x")  # type: ignore[arg-type]
+
+
+class TestIsPerfectSquare(unittest.TestCase):
+    def test_perfect_squares(self) -> None:
+        for n in (0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100):
+            self.assertTrue(is_perfect_square(n))
+
+    def test_negative_numbers(self) -> None:
+        for n in (-1, -4, -9, -16):
+            self.assertFalse(is_perfect_square(n))
+
+    def test_non_squares(self) -> None:
+        for n in (2, 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15):
+            self.assertFalse(is_perfect_square(n))
+
+    def test_non_integer(self) -> None:
+        self.assertFalse(is_perfect_square(2.0))
+        self.assertFalse(is_perfect_square(4.5))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_perfect_square("x")  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
