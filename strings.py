@@ -619,7 +619,27 @@ def last_n(s: str, n: int) -> str:
 
 # aliases
 take = first_n
-drop = lambda s, n: s[_require_int(n, "n") :] if _require_int(n, "n") >= 0 and (_require_string(s, "s") or True) else s[n:]  # type: ignore
+
+
+def drop(s: str, n: int) -> str:
+    """Return all but the first *n* characters of *s* (alias for ``s[n:]``).
+
+    Args:
+        s: The string to slice.
+        n: The number of characters to drop from the start.
+
+    Returns:
+        The substring starting at index *n*.
+
+    Raises:
+        TypeError: If *s* is not a string or *n* is not an integer.
+        ValueError: If *n* is negative.
+    """
+    _require_string(s, "s")
+    _require_int(n, "n")
+    if n < 0:
+        raise ValueError("n cannot be negative")
+    return s[n:]
 
 
 def between(s: str, start: str, end: str) -> str:

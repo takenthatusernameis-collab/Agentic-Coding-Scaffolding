@@ -183,8 +183,48 @@ def camel_case(text: str) -> str:
 screaming_snake_case = constant_case
 spinal_case = kebab_case
 train_case = pascal_case
-dot_case = lambda text: ".".join(word.lower() for word in _split_words(text))
-slash_case = lambda text: "/".join(word.lower() for word in _split_words(text))
+
+
+def dot_case(text: str) -> str:
+    """Convert *text* to dot.case (lowercase words joined by dots).
+
+    Args:
+        text: The string to convert.
+
+    Returns:
+        The dot.case form of *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> dot_case("Hello World")
+        'hello.world'
+        >>> dot_case("xmlParser")
+        'xml.parser'
+    """
+    return ".".join(word.lower() for word in _split_words(text))
+
+
+def slash_case(text: str) -> str:
+    """Convert *text* to slash/case (lowercase words joined by slashes).
+
+    Args:
+        text: The string to convert.
+
+    Returns:
+        The slash/case form of *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> slash_case("Hello World")
+        'hello/world'
+        >>> slash_case("xmlParser")
+        'xml/parser'
+    """
+    return "/".join(word.lower() for word in _split_words(text))
 
 
 def title_case(text: str) -> str:

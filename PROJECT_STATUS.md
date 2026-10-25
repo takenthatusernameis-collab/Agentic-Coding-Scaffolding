@@ -1,4 +1,26 @@
-## Latest Session (2026-10-25) — added input validation to prompt_utils
+## Latest Session (2026-10-25) — fixed ruff E731/E501 in strings.py and case_utils; refreshed stale scaffold copies
+
+The board held no task (bootstrap). Verified repository health: `make test` runs 5403 tests and passes, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `mypy` is clean on all 544 source files. `make lint` was not green before this session: `ruff` reports 4 errors (3 E731 lambda assignments and 1 E501 line-too-long), all in `strings.py` and `case_utils.py`.
+
+Completed in the latest session:
+
+- Refreshed the embedded copies of `strings.py`, `tests/test_strings.py`, `case_utils.py`, and `tests/test_case_utils.py` inside `scaffold.sh` that had drifted from the repository sources, so `tests/test_scaffold_sync.py` passed again.
+- Fixed the four pre-existing `ruff` errors in `strings.py` and `case_utils.py`:
+  - `strings.py`: the `drop` alias was assigned a `lambda` expression that exceeded the 100-column line limit and called `_require_int`/`_require_string` inline. It is now a real `def drop(s: str, n: int) -> str` with a Google-style docstring, validating that *s* is a string and *n* is a non-negative integer, returning `s[n:]`.
+  - `case_utils.py`: the `dot_case` and `slash_case` aliases were assigned `lambda` expressions. They are now real `def` functions with typed signatures, Google-style docstrings, and `TypeError` validation for non-string arguments, matching the surrounding case helpers.
+- Added tests in `tests/test_strings.py` for the `drop` edge cases: zero length, full length, non-string *s*, non-integer *n*, and negative *n* (the last three assert `TypeError`/`ValueError`).
+- Updated the `strings` and `case_utils` prose sections of `README.md` to list the full public API each module exports, including the aliases (`take`, `drop`, `screaming_snake_case`, `spinal_case`, `train_case`, `dot_case`, `slash_case`).
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `strings.py`, `case_utils.py`, their tests, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5403 tests and passes, `mypy` is clean on all 544 source files, `ruff` reports only two pre-existing I001 import-sorting warnings in `tests/test_strings.py` and `tests/test_shapes.py` that predate this session's changes, a scaffolded project is still a faithful copy (its files are byte-identical to the repository copies and its 5825 tests pass), and scaffold sync is clean.
+
+Next Planned:
+
+- Keep hardening the small utility modules: review `strings.py`, `shapes.py`, `stats.py`, `prime_utils.py`, `version_utils.py`, `prompt_utils.py` (and nearby) for missing edge cases or ergonomic helpers that fit existing API style. Add minimal, hermetic helpers with tests in `tests/test_*.py`. Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh`, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
+## Latest Session (2026-10-24) — added input validation to prompt_utils
 
 The board held no task (bootstrap). Verified repository health: `make test` passes (5327 tests, 2 skipped), `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. `make lint` and `make typecheck` were not green on this interpreter before this session: `ruff` reports 4 pre-existing errors and `mypy` reports 4 pre-existing errors, all of them outside the files this session touched (`tests/test_ossaudiodev_utils.py`, `tests/test_prime_utils.py`, `tests/test_stats.py`).
 

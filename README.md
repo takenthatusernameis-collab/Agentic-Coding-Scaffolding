@@ -661,7 +661,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_digit`, `is_integer`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, and more. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_digit`, `is_integer`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
@@ -1005,7 +1005,7 @@ The project includes bisect utility functions in `bisect_utils.py` for binary se
 
 ## Case Conversion Utilities Module
 
-The project includes case conversion utilities in `case_utils.py`: `kebab_case` converts text to kebab-case, `pascal_case` converts text to PascalCase, and `constant_case` converts text to CONSTANT_CASE. Words are split on whitespace, separators, and case transitions such as camelCase and PascalCase boundaries. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_case_utils.py`.
+The project includes case conversion utilities in `case_utils.py`: `kebab_case` converts text to kebab-case, `pascal_case` converts text to PascalCase, `constant_case` converts text to CONSTANT_CASE, `snake_case` converts text to snake_case, `camel_case` converts text to camelCase, `screaming_snake_case` is an alias for `constant_case`, `spinal_case` is an alias for `kebab_case`, `train_case` is an alias for `pascal_case`, `dot_case` converts text to dot.case, `slash_case` converts text to slash/case, `title_case` converts text to Title Case, and `sentence_case` converts text to sentence case. Words are split on whitespace, separators, and case transitions such as camelCase and PascalCase boundaries. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_case_utils.py`.
 
 ## Binary Struct Utilities Module
 

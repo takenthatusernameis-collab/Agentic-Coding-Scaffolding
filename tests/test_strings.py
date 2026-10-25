@@ -756,6 +756,26 @@ class TestNewHelpers(unittest.TestCase):
         self.assertEqual(take("hello", 2), "he")
         self.assertEqual(last_n("hello", 2), "lo")
         self.assertEqual(drop("hello", 2), "llo")
+        self.assertEqual(drop("hello", 0), "hello")
+        self.assertEqual(drop("hello", 5), "")
+
+    def test_drop_non_str_raises_type_error(self):
+        from strings import drop
+
+        with self.assertRaises(TypeError):
+            drop(123, 2)  # type: ignore[arg-type]
+
+    def test_drop_non_int_n_raises_type_error(self):
+        from strings import drop
+
+        with self.assertRaises(TypeError):
+            drop("hello", "2")
+
+    def test_drop_negative_n_raises_value_error(self):
+        from strings import drop
+
+        with self.assertRaises(ValueError):
+            drop("hello", -1)
 
     def test_between(self):
         from strings import between
