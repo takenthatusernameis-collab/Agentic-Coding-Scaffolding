@@ -16,6 +16,7 @@ from number_utils import (
     is_odd,
     is_perfect_cube,
     is_perfect_square,
+    is_power_of_two,
     is_positive,
     is_zero,
     lerp,

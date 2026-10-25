@@ -28,6 +28,7 @@ __all__: List[str] = [
     "safe_divide",
     "is_perfect_cube",
     "is_perfect_square",
+    "is_power_of_two",
 ]
 
 
@@ -401,6 +402,27 @@ def is_perfect_square(value: Number) -> bool:
     while root ** 2 > abs(n):
         root -= 1
     return root ** 2 == abs(n)
+
+
+def is_power_of_two(value: Number) -> bool:
+    """Return True if *value* is a positive power of two.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is a positive power of two.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if not is_integer(value):
+        return False
+    n = int(value)
+    if n <= 0:
+        return False
+    return (n & (n - 1)) == 0
 
 
 def safe_divide(numerator: Number, denominator: Number) -> float:
