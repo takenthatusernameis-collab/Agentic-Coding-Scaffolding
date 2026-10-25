@@ -35240,11 +35240,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
-- Added `covariance(x, y, population=True)` and `correlation(x, y)` to `stats.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError`/`ValueError` validation. `covariance` returns the population (default) or sample covariance between two paired lists of numbers; `correlation` returns the Pearson correlation coefficient ranging from -1 to 1, raising `ValueError` for fewer than 2 elements or a zero standard deviation. Added `TestCovariance` and `TestCorrelation` to `tests/test_stats.py`. Updated the `stats` module section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-
-- Added `is_hex(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* is non-empty and every character is a hexadecimal digit (0-9, a-f, A-F), `False` otherwise (including for the empty string). It is a companion to `is_digit` and `is_integer`. Added `TestIsHex` to `tests/test_strings.py`. Cleaned up duplicate entries in the `strings` `__all__` list. Updated `README.md` and `.kilo/command/scaffold-project.md`. Synchronized `strings.py`, `tests/test_strings.py`, README, the command doc, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-
-- Added `is_ascii(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* is non-empty and every character is ASCII, `False` otherwise (including for the empty string). Added `TestIsAscii` to `tests/test_strings.py`. Updated the `strings` module section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `is_semiprime(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *n* is a semiprime (product of exactly two prime factors counting multiplicity, e.g. 4, 6, 9, 10, 15), `False` otherwise (primes, 1, 0, negatives, numbers with more than two prime factors). Added `TestIsSemiprime` to `tests/test_prime_utils.py`. Updated the `prime_utils` module section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added 3D shape helpers `sphere_surface_area`/`sphere_volume`, `cube_surface_area`/`cube_volume`, `cylinder_surface_area`/`cylinder_volume`, `cone_surface_area`/`cone_volume`. Synchronized into `scaffold.sh`.
 
@@ -59306,6 +59302,7 @@ __all__: List[str] = [
     "prev_prime",
     "is_perfect_square",
     "is_power_of_two",
+    "is_semiprime",
 ]
 
 
@@ -59579,6 +59576,34 @@ def is_power_of_two(n: int) -> bool:
     if n <= 0:
         return False
     return (n & (n - 1)) == 0
+
+
+def is_semiprime(n: int) -> bool:
+    """Return True if *n* is a semiprime.
+
+    A semiprime is a natural number that is the product of exactly two
+    prime numbers. The two primes may be equal (so 4, 9, p^2 are
+    semiprimes). Primes themselves are not semiprimes; 1, 0, and
+    negative numbers are not semiprimes. Numbers with more than two
+    prime factors counting multiplicity (like 8 = 2*2*2) are not
+    semiprimes by this definition.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a semiprime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 3:
+        return False
+    if n == 4:
+        return True
+    factors = prime_factors(n)
+    return len(factors) == 2
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -59593,6 +59618,7 @@ from prime_utils import (
     is_perfect_square,
     is_power_of_two,
     is_prime,
+    is_semiprime,
     next_prime,
     nth_prime,
     prev_prime,
@@ -59865,37 +59891,37 @@ class TestIsPerfectSquare(unittest.TestCase):
             is_perfect_square(True)  # type: ignore[arg-type]
 
 
-class TestIsPowerOfTwo(unittest.TestCase):
-    def test_powers_of_two(self):
-        self.assertTrue(is_power_of_two(1))
-        self.assertTrue(is_power_of_two(2))
-        self.assertTrue(is_power_of_two(4))
-        self.assertTrue(is_power_of_two(8))
-        self.assertTrue(is_power_of_two(16))
-        self.assertTrue(is_power_of_two(2 ** 30))
+class TestIsSemiprime(unittest.TestCase):
+    def test_semiprimes(self):
+        self.assertTrue(is_semiprime(4))
+        self.assertTrue(is_semiprime(6))
+        self.assertTrue(is_semiprime(9))
+        self.assertTrue(is_semiprime(10))
+        self.assertTrue(is_semiprime(15))
 
-    def test_not_powers_of_two(self):
-        self.assertFalse(is_power_of_two(0))
-        self.assertFalse(is_power_of_two(3))
-        self.assertFalse(is_power_of_two(5))
-        self.assertFalse(is_power_of_two(6))
-        self.assertFalse(is_power_of_two(18))
-        self.assertFalse(is_power_of_two(100))
+    def test_primes_not_semiprime(self):
+        self.assertFalse(is_semiprime(2))
+        self.assertFalse(is_semiprime(3))
+        self.assertFalse(is_semiprime(5))
+        self.assertFalse(is_semiprime(101))
 
-    def test_negative(self):
-        self.assertFalse(is_power_of_two(-1))
-        self.assertFalse(is_power_of_two(-2))
-        self.assertFalse(is_power_of_two(-4))
+    def test_other_not_semiprime(self):
+        self.assertFalse(is_semiprime(0))
+        self.assertFalse(is_semiprime(1))
+        self.assertFalse(is_semiprime(2))
+        self.assertFalse(is_semiprime(3))
+        self.assertFalse(is_semiprime(16))  # 2^4, four factors
+        self.assertFalse(is_semiprime(-6))
 
     def test_rejects_non_int(self):
         with self.assertRaises(TypeError):
-            is_power_of_two(2.0)  # type: ignore[arg-type]
+            is_semiprime(6.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_power_of_two("2")  # type: ignore[arg-type]
+            is_semiprime("6")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_power_of_two(None)  # type: ignore[arg-type]
+            is_semiprime(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_power_of_two(True)  # type: ignore[arg-type]
+            is_semiprime(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

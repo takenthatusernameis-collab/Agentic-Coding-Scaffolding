@@ -16,6 +16,7 @@ __all__: List[str] = [
     "prev_prime",
     "is_perfect_square",
     "is_power_of_two",
+    "is_semiprime",
 ]
 
 
@@ -289,3 +290,31 @@ def is_power_of_two(n: int) -> bool:
     if n <= 0:
         return False
     return (n & (n - 1)) == 0
+
+
+def is_semiprime(n: int) -> bool:
+    """Return True if *n* is a semiprime.
+
+    A semiprime is a natural number that is the product of exactly two
+    prime numbers. The two primes may be equal (so 4, 9, p^2 are
+    semiprimes). Primes themselves are not semiprimes; 1, 0, and
+    negative numbers are not semiprimes. Numbers with more than two
+    prime factors counting multiplicity (like 8 = 2*2*2) are not
+    semiprimes by this definition.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a semiprime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 3:
+        return False
+    if n == 4:
+        return True
+    factors = prime_factors(n)
+    return len(factors) == 2

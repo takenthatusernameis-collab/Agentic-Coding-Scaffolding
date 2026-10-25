@@ -6,8 +6,8 @@ from prime_utils import (
     is_composite,
     is_coprime,
     is_perfect_square,
-    is_power_of_two,
     is_prime,
+    is_semiprime,
     next_prime,
     nth_prime,
     prev_prime,
@@ -280,37 +280,37 @@ class TestIsPerfectSquare(unittest.TestCase):
             is_perfect_square(True)  # type: ignore[arg-type]
 
 
-class TestIsPowerOfTwo(unittest.TestCase):
-    def test_powers_of_two(self):
-        self.assertTrue(is_power_of_two(1))
-        self.assertTrue(is_power_of_two(2))
-        self.assertTrue(is_power_of_two(4))
-        self.assertTrue(is_power_of_two(8))
-        self.assertTrue(is_power_of_two(16))
-        self.assertTrue(is_power_of_two(2 ** 30))
+class TestIsSemiprime(unittest.TestCase):
+    def test_semiprimes(self):
+        self.assertTrue(is_semiprime(4))
+        self.assertTrue(is_semiprime(6))
+        self.assertTrue(is_semiprime(9))
+        self.assertTrue(is_semiprime(10))
+        self.assertTrue(is_semiprime(15))
 
-    def test_not_powers_of_two(self):
-        self.assertFalse(is_power_of_two(0))
-        self.assertFalse(is_power_of_two(3))
-        self.assertFalse(is_power_of_two(5))
-        self.assertFalse(is_power_of_two(6))
-        self.assertFalse(is_power_of_two(18))
-        self.assertFalse(is_power_of_two(100))
+    def test_primes_not_semiprime(self):
+        self.assertFalse(is_semiprime(2))
+        self.assertFalse(is_semiprime(3))
+        self.assertFalse(is_semiprime(5))
+        self.assertFalse(is_semiprime(101))
 
-    def test_negative(self):
-        self.assertFalse(is_power_of_two(-1))
-        self.assertFalse(is_power_of_two(-2))
-        self.assertFalse(is_power_of_two(-4))
+    def test_other_not_semiprime(self):
+        self.assertFalse(is_semiprime(0))
+        self.assertFalse(is_semiprime(1))
+        self.assertFalse(is_semiprime(2))
+        self.assertFalse(is_semiprime(3))
+        self.assertFalse(is_semiprime(16))  # 2^4, four factors
+        self.assertFalse(is_semiprime(-6))
 
     def test_rejects_non_int(self):
         with self.assertRaises(TypeError):
-            is_power_of_two(2.0)  # type: ignore[arg-type]
+            is_semiprime(6.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_power_of_two("2")  # type: ignore[arg-type]
+            is_semiprime("6")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_power_of_two(None)  # type: ignore[arg-type]
+            is_semiprime(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_power_of_two(True)  # type: ignore[arg-type]
+            is_semiprime(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
