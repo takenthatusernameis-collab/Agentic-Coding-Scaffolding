@@ -29,10 +29,18 @@ __all__: List[str] = [
     "is_upper",
     "is_lower",
     "is_ascii",
+    "is_whitespace",
+    "is_space",
     "is_alpha",
     "is_alphanumeric",
     "is_digit",
     "is_integer",
+    "is_printable",
+    "is_identifier",
+    "is_whitespace",
+    "is_space",
+    "is_whitespace",
+    "is_space",
     "swap_case",
     "count_occurrences",
     "starts_with",
@@ -345,6 +353,51 @@ def is_ascii(s: str) -> bool:
     return all(ord(ch) < 128 for ch in s)
 
 
+def is_whitespace(s: str) -> bool:
+    """Return True if the string contains only whitespace characters.
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if all characters are whitespace, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_whitespace("   ")
+        True
+        >>> is_whitespace("\\t\\n")
+        True
+        >>> is_whitespace("hello")
+        False
+        >>> is_whitespace("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return s.isspace()
+
+
+def is_space(s: str) -> bool:
+    """Return True if the string contains only whitespace characters.
+
+    Alias for :func:`is_whitespace`.
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if all characters are whitespace, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    return is_whitespace(s)
+
+
 def is_digit(s: str) -> bool:
     """Return True if all characters in the string are digits and at least one character.
 
@@ -402,6 +455,42 @@ def is_integer(s: str) -> bool:
             return False
         return s_stripped[1:].isdigit()
     return s_stripped.isdigit()
+
+
+def is_printable(s: str) -> bool:
+    """Return True if all characters in the string are printable.
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if all characters are printable and the string is not empty.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch.isprintable() for ch in s)
+
+
+def is_identifier(s: str) -> bool:
+    """Return True if the string is a valid Python identifier.
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if *s* is a non-empty valid Python identifier.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return s.isidentifier()
 
 
 def swap_case(s: str) -> str:

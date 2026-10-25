@@ -19,10 +19,14 @@ from strings import (
     is_ascii,
     is_blank,
     is_digit,
+    is_identifier,
     is_integer,
     is_lower,
     is_palindrome,
+    is_printable,
+    is_space,
     is_upper,
+    is_whitespace,
     levenshtein_distance,
     lstrip_chars,
     normalize_whitespace,
@@ -557,6 +561,64 @@ class TestIsAscii(unittest.TestCase):
     def test_rejects_non_string(self) -> None:
         with self.assertRaises(TypeError):
             is_ascii(123)  # type: ignore[arg-type]
+
+
+class TestIsWhitespace(unittest.TestCase):
+    def test_whitespace(self) -> None:
+        self.assertTrue(is_whitespace("   "))
+        self.assertTrue(is_whitespace("\t"))
+        self.assertTrue(is_whitespace("\n"))
+        self.assertTrue(is_whitespace(" \t\n"))
+        self.assertTrue(is_space("   "))
+
+    def test_not_whitespace(self) -> None:
+        self.assertFalse(is_whitespace("hello"))
+        self.assertFalse(is_whitespace("a b"))
+
+    def test_empty(self) -> None:
+        self.assertFalse(is_whitespace(""))
+        self.assertFalse(is_space(""))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_whitespace(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_space(None)  # type: ignore[arg-type]
+
+
+class TestIsPrintable(unittest.TestCase):
+    def test_printable(self) -> None:
+        self.assertTrue(is_printable("hello"))
+        self.assertTrue(is_printable("Hello World!"))
+
+    def test_not_printable(self) -> None:
+        self.assertFalse(is_printable("\t"))
+        self.assertFalse(is_printable("\n"))
+
+    def test_empty(self) -> None:
+        self.assertFalse(is_printable(""))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_printable(123)  # type: ignore[arg-type]
+
+
+class TestIsIdentifier(unittest.TestCase):
+    def test_identifier(self) -> None:
+        self.assertTrue(is_identifier("hello"))
+        self.assertTrue(is_identifier("_hello"))
+        self.assertTrue(is_identifier("hello123"))
+        self.assertTrue(is_identifier("_123"))
+
+    def test_not_identifier(self) -> None:
+        self.assertFalse(is_identifier("123hello"))
+        self.assertFalse(is_identifier("hello-world"))
+        self.assertFalse(is_identifier("hello world"))
+        self.assertFalse(is_identifier(""))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_identifier(123)  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):

@@ -10843,10 +10843,18 @@ __all__: List[str] = [
     "is_upper",
     "is_lower",
     "is_ascii",
+    "is_whitespace",
+    "is_space",
     "is_alpha",
     "is_alphanumeric",
     "is_digit",
     "is_integer",
+    "is_printable",
+    "is_identifier",
+    "is_whitespace",
+    "is_space",
+    "is_whitespace",
+    "is_space",
     "swap_case",
     "count_occurrences",
     "starts_with",
@@ -11159,6 +11167,51 @@ def is_ascii(s: str) -> bool:
     return all(ord(ch) < 128 for ch in s)
 
 
+def is_whitespace(s: str) -> bool:
+    """Return True if the string contains only whitespace characters.
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if all characters are whitespace, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_whitespace("   ")
+        True
+        >>> is_whitespace("\\t\\n")
+        True
+        >>> is_whitespace("hello")
+        False
+        >>> is_whitespace("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return s.isspace()
+
+
+def is_space(s: str) -> bool:
+    """Return True if the string contains only whitespace characters.
+
+    Alias for :func:`is_whitespace`.
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if all characters are whitespace, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    return is_whitespace(s)
+
+
 def is_digit(s: str) -> bool:
     """Return True if all characters in the string are digits and at least one character.
 
@@ -11216,6 +11269,42 @@ def is_integer(s: str) -> bool:
             return False
         return s_stripped[1:].isdigit()
     return s_stripped.isdigit()
+
+
+def is_printable(s: str) -> bool:
+    """Return True if all characters in the string are printable.
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if all characters are printable and the string is not empty.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch.isprintable() for ch in s)
+
+
+def is_identifier(s: str) -> bool:
+    """Return True if the string is a valid Python identifier.
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if *s* is a non-empty valid Python identifier.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return s.isidentifier()
 
 
 def swap_case(s: str) -> str:
@@ -12502,10 +12591,14 @@ from strings import (
     is_ascii,
     is_blank,
     is_digit,
+    is_identifier,
     is_integer,
     is_lower,
     is_palindrome,
+    is_printable,
+    is_space,
     is_upper,
+    is_whitespace,
     levenshtein_distance,
     lstrip_chars,
     normalize_whitespace,
@@ -13040,6 +13133,64 @@ class TestIsAscii(unittest.TestCase):
     def test_rejects_non_string(self) -> None:
         with self.assertRaises(TypeError):
             is_ascii(123)  # type: ignore[arg-type]
+
+
+class TestIsWhitespace(unittest.TestCase):
+    def test_whitespace(self) -> None:
+        self.assertTrue(is_whitespace("   "))
+        self.assertTrue(is_whitespace("\t"))
+        self.assertTrue(is_whitespace("\n"))
+        self.assertTrue(is_whitespace(" \t\n"))
+        self.assertTrue(is_space("   "))
+
+    def test_not_whitespace(self) -> None:
+        self.assertFalse(is_whitespace("hello"))
+        self.assertFalse(is_whitespace("a b"))
+
+    def test_empty(self) -> None:
+        self.assertFalse(is_whitespace(""))
+        self.assertFalse(is_space(""))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_whitespace(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_space(None)  # type: ignore[arg-type]
+
+
+class TestIsPrintable(unittest.TestCase):
+    def test_printable(self) -> None:
+        self.assertTrue(is_printable("hello"))
+        self.assertTrue(is_printable("Hello World!"))
+
+    def test_not_printable(self) -> None:
+        self.assertFalse(is_printable("\t"))
+        self.assertFalse(is_printable("\n"))
+
+    def test_empty(self) -> None:
+        self.assertFalse(is_printable(""))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_printable(123)  # type: ignore[arg-type]
+
+
+class TestIsIdentifier(unittest.TestCase):
+    def test_identifier(self) -> None:
+        self.assertTrue(is_identifier("hello"))
+        self.assertTrue(is_identifier("_hello"))
+        self.assertTrue(is_identifier("hello123"))
+        self.assertTrue(is_identifier("_123"))
+
+    def test_not_identifier(self) -> None:
+        self.assertFalse(is_identifier("123hello"))
+        self.assertFalse(is_identifier("hello-world"))
+        self.assertFalse(is_identifier("hello world"))
+        self.assertFalse(is_identifier(""))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_identifier(123)  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):
@@ -32695,7 +32846,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
 - `shapes.py` — geometry utilities for areas, perimeters, and surface/volume of common 2D and 3D shapes
-- `strings.py` — string utilities for text operations
+- `strings.py` — string utilities for text operations: reverse, case conversion, validation helpers (including `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_ascii`), and slicing/formatting utilities
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
@@ -34766,7 +34917,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
-- Added `is_ascii(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* is non-empty and every character is ASCII, `False` otherwise (including for the empty string). Added tests in `tests/test_strings.py`. Updated the `strings` module section of `README.md` to list the new helper. Synchronized `strings.py`, `tests/test_strings.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `is_whitespace`, `is_space`, `is_printable`, and `is_identifier` to `strings.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-string arguments. `is_whitespace`/`is_space` return `False` for empty strings; `is_printable` returns `False` for whitespace/control characters; `is_identifier` uses `str.isidentifier()`. Added corresponding tests in `tests/test_strings.py`. Updated `README.md` and `.kilo/command/scaffold-project.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `.kilo/command/scaffold-project.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `skewness(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it returns the population skewness of a list of numbers, raising `ValueError` for fewer than 3 elements or a zero standard deviation. Added `TestSkewness` to `tests/test_stats.py` covering symmetric, positively skewed, and invalid-input cases. Updated the `stats` module section of `README.md` to list the new helper. Synchronized `stats.py`, `tests/test_stats.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -35757,7 +35908,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_integer`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
