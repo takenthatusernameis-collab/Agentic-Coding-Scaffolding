@@ -470,13 +470,13 @@ class TestCube(unittest.TestCase):
             cube_volume(-1)
 
     def test_rejects_non_numeric(self):
-        from shapes import cube_surface_area, cube_volume
+        from shapes import cube_surface_area
 
         with self.assertRaises(TypeError):
             cube_surface_area([])  # type: ignore[arg-type]
 
     def test_rejects_bool(self):
-        from shapes import cube_surface_area, cube_volume
+        from shapes import cube_surface_area
 
         with self.assertRaises(TypeError):
             cube_surface_area(True)

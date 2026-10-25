@@ -10726,13 +10726,13 @@ class TestCube(unittest.TestCase):
             cube_volume(-1)
 
     def test_rejects_non_numeric(self):
-        from shapes import cube_surface_area, cube_volume
+        from shapes import cube_surface_area
 
         with self.assertRaises(TypeError):
             cube_surface_area([])  # type: ignore[arg-type]
 
     def test_rejects_bool(self):
-        from shapes import cube_surface_area, cube_volume
+        from shapes import cube_surface_area
 
         with self.assertRaises(TypeError):
             cube_surface_area(True)
@@ -54544,7 +54544,7 @@ def is_palindromic_number(value: Number) -> bool:
     """
     _require_number(value, "value")
     if isinstance(value, bool):
-        raise TypeError(f"value must be a number, got bool")
+        raise TypeError("value must be a number, got bool")
     if isinstance(value, float):
         return False
     if not isinstance(value, int):

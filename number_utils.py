@@ -440,7 +440,7 @@ def is_palindromic_number(value: Number) -> bool:
     """
     _require_number(value, "value")
     if isinstance(value, bool):
-        raise TypeError(f"value must be a number, got bool")
+        raise TypeError("value must be a number, got bool")
     if isinstance(value, float):
         return False
     if not isinstance(value, int):
