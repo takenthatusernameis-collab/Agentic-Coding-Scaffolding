@@ -22,6 +22,7 @@ __all__: List[str] = [
     "is_emirp",
     "is_twin_prime",
     "is_palindromic_prime",
+    "is_mersenne_prime",
 ]
 
 
@@ -481,3 +482,40 @@ def is_palindromic_prime(n: int) -> bool:
         return False
     s = str(abs(n))
     return s == s[::-1]
+
+
+def is_mersenne_prime(n: int) -> bool:
+    """Return True if *n* is a Mersenne prime.
+
+    A Mersenne prime is a prime number of the form M_p = 2^p - 1
+    for some prime number *p*. Known examples include 3 (2^2-1),
+    7 (2^3-1), 31 (2^5-1), 127 (2^7-1), etc.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a Mersenne prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    if n == 3:
+        return True  # 2^2 - 1, p=2 (prime)
+    if n < 7:
+        return False
+    # n = 2^p - 1 implies p = log2(n+1)
+    m = n + 1
+    if m <= 0 or (m & (m - 1)) != 0:
+        return False
+    # Find exponent p
+    p = m.bit_length() - 1
+    # Verify m == 2^p
+    if (1 << p) != m:
+        return False
+    if p < 2:
+        return False
+    return is_prime(p)
