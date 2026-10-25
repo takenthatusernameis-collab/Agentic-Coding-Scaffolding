@@ -5,6 +5,8 @@
 
 ## Unreleased
 
+- Added input validation to `prompt_utils.py`: every public helper now validates its arguments and raises `TypeError` or `ValueError` on invalid inputs, matching the convention documented in `README.md`. Added `_require_string` and `_require_int` helpers; `truncate_prompt` validates `text`, `max_length`, and `suffix`; `format_prompt_template` validates `template` and converts a missing-template-key `KeyError` into a `ValueError`; `clean_prompt` validates `text`; `extract_keywords` validates `text` and `min_length`; `wrap_prompt` validates `text` and `width`; `estimate_token_count` validates `text`. Added validation tests in `tests/test_prompt_utils.py`; synchronized the module, its tests, README, and this CHANGELOG into `scaffold.sh`.
+
 - Closed the synchronization drift left by the interrupted checkpoint commit: `shapes.py`, `tests/test_shapes.py`, `stats.py`, and `tests/test_stats.py` were committed without refreshing the embedded copies in `scaffold.sh`, so `python tools/refresh_scaffold.py --check` reported four stale copies and `tests/test_refresh_scaffold.py` failed. Ran `make refresh-scaffold`; all embedded copies are in sync.
 - Repaired an API regression in `shapes.py` introduced by the interrupted checkpoint commit: `regular_polygon_area` and `regular_polygon_perimeter` were dropped from `__all__` even though the functions still exist and `regular_polygon_area` was still imported and tested. Restored both names to `__all__`.
 - Gave `regular_polygon_perimeter` the typed signature, Google-style docstring, and `TypeError`/`ValueError` validation the rest of the module uses, matching `regular_polygon_area`.

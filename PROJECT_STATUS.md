@@ -1,3 +1,24 @@
+## Latest Session (2026-10-25) — added input validation to prompt_utils
+
+The board held no task (bootstrap). Verified repository health: `make test` passes (5327 tests, 2 skipped), `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. `make lint` and `make typecheck` were not green on this interpreter before this session: `ruff` reports 4 pre-existing errors and `mypy` reports 4 pre-existing errors, all of them outside the files this session touched (`tests/test_ossaudiodev_utils.py`, `tests/test_prime_utils.py`, `tests/test_stats.py`).
+
+Completed in the latest session:
+
+- Found that `prompt_utils.py` shipped typed signatures, `__all__`, and Google-style docstrings but no input validation, contradicting the convention its own README prose section states ("All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments").
+- Added `_require_string` and `_require_int` helpers to `prompt_utils.py` following the `strings.py` pattern (rejecting `bool` as an int).
+- Added input validation to every public helper: `truncate_prompt` validates `text`, `max_length`, and `suffix`; `format_prompt_template` validates `template` and converts a missing-template-key `KeyError` into a `ValueError`; `clean_prompt` validates `text`; `extract_keywords` validates `text` and `min_length`; `wrap_prompt` validates `text` and `width`; `estimate_token_count` validates `text`. Updated the module docstring and each function's `Raises:` section to document the new `TypeError`/`ValueError` paths.
+- Added 14 validation tests to `tests/test_prompt_utils.py` covering the new `TypeError` and `ValueError` paths (31 tests now pass for the module).
+- Updated the `prompt_utils` prose section of `README.md` to state that all functions validate their inputs and raise `TypeError` or `ValueError`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5327 tests and passes, `ruff` and `mypy` are clean on the files touched, a scaffolded project is still a faithful copy (its files are byte-identical to the repository copies and its tests pass), and scaffold sync is clean.
+
+Next Planned:
+
+- Keep hardening the small utility modules: review `strings.py`, `shapes.py`, `stats.py`, `prime_utils.py`, `version_utils.py`, `prompt_utils.py` (and nearby) for missing edge cases or ergonomic helpers that fit existing API style. Add minimal, hermetic helpers with tests in `tests/test_*.py`. Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh`, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-24) — repaired the interrupted checkpoint commit
 
 The board held no task (bootstrap). Verified repository health: `make test` passes (5300 tests, 2 skipped), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. `make lint` and `make typecheck` were not green on this interpreter before this session: `ruff` reports 10 pre-existing errors and `mypy` reports 6 pre-existing errors, all of them outside the files this session touched.

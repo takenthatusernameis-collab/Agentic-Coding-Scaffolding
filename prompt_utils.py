@@ -1,4 +1,10 @@
-"""Prompt utility functions for working with text prompts."""
+"""Prompt utility functions for working with text prompts.
+
+Provides helpers for truncating, formatting, cleaning, extracting keywords
+from, wrapping, and estimating tokens for text prompts. All functions
+validate their inputs and raise :class:`TypeError` or :class:`ValueError`
+on invalid arguments.
+"""
 
 from __future__ import annotations
 
@@ -15,6 +21,20 @@ __all__: List[str] = [
 ]
 
 
+def _require_string(value: object, name: str) -> str:
+    """Validate that *value* is a string, raising ``TypeError`` otherwise."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _require_int(value: object, name: str) -> int:
+    """Validate that *value* is an int, raising ``TypeError`` otherwise."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
 def truncate_prompt(text: str, max_length: int, suffix: str = "...") -> str:
     """Truncate a prompt to a maximum length.
 
@@ -26,12 +46,22 @@ def truncate_prompt(text: str, max_length: int, suffix: str = "...") -> str:
     Returns:
         The truncated text.
 
+    Raises:
+        TypeError: If *text*, *max_length*, or *suffix* are not the expected
+            types.
+        ValueError: If *max_length* is negative.
+
     Examples:
         >>> truncate_prompt("Hello world", 5)
         'Hell...'
         >>> truncate_prompt("Short", 10)
         'Short'
     """
+    _require_string(text, "text")
+    _require_int(max_length, "max_length")
+    if max_length < 0:
+        raise ValueError("max_length must be non-negative")
+    _require_string(suffix, "suffix")
     if len(text) <= max_length:
         return text
     if max_length <= len(suffix):
@@ -49,6 +79,10 @@ def format_prompt_template(template: str, **kwargs: Any) -> str:
     Returns:
         The formatted string.
 
+    Raises:
+        TypeError: If *template* is not a string.
+        ValueError: If the template references a missing keyword.
+
     Examples:
         >>> format_prompt_template(
         ...     "Hello {name}, welcome to {place}!",
@@ -57,7 +91,11 @@ def format_prompt_template(template: str, **kwargs: Any) -> str:
         ... )
         'Hello Alice, welcome to Wonderland!'
     """
-    return template.format(**kwargs)
+    _require_string(template, "template")
+    try:
+        return template.format(**kwargs)
+    except KeyError as exc:
+        raise ValueError(f"template references missing keyword: {exc}") from exc
 
 
 def clean_prompt(text: str) -> str:
@@ -69,10 +107,14 @@ def clean_prompt(text: str) -> str:
     Returns:
         Cleaned text with normalized whitespace.
 
+    Raises:
+        TypeError: If *text* is not a string.
+
     Examples:
         >>> clean_prompt("Hello   world\n\nHow are you?")
         'Hello world How are you?'
     """
+    _require_string(text, "text")
     # Replace multiple whitespace characters with single space
     cleaned = re.sub(r"\s+", " ", text)
     return cleaned.strip()
@@ -88,10 +130,18 @@ def extract_keywords(text: str, min_length: int = 3) -> List[str]:
     Returns:
         A list of keywords.
 
+    Raises:
+        TypeError: If *text* is not a string or *min_length* is not an int.
+        ValueError: If *min_length* is negative.
+
     Examples:
         >>> extract_keywords("The quick brown fox jumps")
         ['quick', 'brown', 'jumps']
     """
+    _require_string(text, "text")
+    _require_int(min_length, "min_length")
+    if min_length < 0:
+        raise ValueError("min_length must be non-negative")
     # Extract words (alphanumeric sequences)
     words = re.findall(r"\b\w+\b", text.lower())
     # Filter by minimum length and remove common stop words
@@ -138,11 +188,19 @@ def wrap_prompt(text: str, width: int = 80) -> str:
     Returns:
         Wrapped text.
 
+    Raises:
+        TypeError: If *text* is not a string or *width* is not an int.
+        ValueError: If *width* is negative.
+
     Examples:
         >>> wrap_prompt("This is a long line that should be wrapped", 20)
         'This is a long line\\nthat should be wrapped'
     """
-    if width <= 0:
+    _require_string(text, "text")
+    _require_int(width, "width")
+    if width < 0:
+        raise ValueError("width must be non-negative")
+    if width == 0:
         return text
     words = text.split()
     lines: List[str] = []
@@ -173,12 +231,16 @@ def estimate_token_count(text: str) -> int:
     Returns:
         Estimated token count.
 
+    Raises:
+        TypeError: If *text* is not a string.
+
     Examples:
         >>> estimate_token_count("Hello world")
         2
         >>> estimate_token_count("This is a test")
         4
     """
+    _require_string(text, "text")
     if not text:
         return 0
     # Rough approximation: 4 chars per token

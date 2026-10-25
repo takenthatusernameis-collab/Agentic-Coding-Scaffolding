@@ -14184,6 +14184,22 @@ class TestTruncatePrompt(unittest.TestCase):
         result = truncate_prompt("Hello", 2, suffix="...")
         self.assertEqual(result, "He")
 
+    def test_truncate_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            truncate_prompt(123, 10)  # type: ignore[arg-type]
+
+    def test_truncate_rejects_non_int_max_length(self):
+        with self.assertRaises(TypeError):
+            truncate_prompt("Hello", 1.5)  # type: ignore[arg-type]
+
+    def test_truncate_rejects_non_str_suffix(self):
+        with self.assertRaises(TypeError):
+            truncate_prompt("Hello", 10, suffix=5)  # type: ignore[arg-type]
+
+    def test_truncate_rejects_negative_max_length(self):
+        with self.assertRaises(ValueError):
+            truncate_prompt("Hello", -1)
+
 
 class TestFormatPromptTemplate(unittest.TestCase):
     def test_format_template(self):
@@ -14198,6 +14214,14 @@ class TestFormatPromptTemplate(unittest.TestCase):
         result = format_prompt_template("{a} {b} {c}", a=1, b=2, c=3)
         self.assertEqual(result, "1 2 3")
 
+    def test_format_template_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            format_prompt_template(123)  # type: ignore[arg-type]
+
+    def test_format_template_missing_key(self):
+        with self.assertRaises(ValueError):
+            format_prompt_template("Hello {name}!")
+
 
 class TestCleanPrompt(unittest.TestCase):
     def test_clean_whitespace(self):
@@ -14207,6 +14231,10 @@ class TestCleanPrompt(unittest.TestCase):
     def test_clean_leading_trailing(self):
         result = clean_prompt("   Hello   ")
         self.assertEqual(result, "Hello")
+
+    def test_clean_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            clean_prompt(None)  # type: ignore[arg-type]
 
 
 class TestExtractKeywords(unittest.TestCase):
@@ -14225,6 +14253,18 @@ class TestExtractKeywords(unittest.TestCase):
         # "test" appears twice, "testing" once - both >=4? "test" is 4 chars, "testing" is 7
         self.assertEqual(result.count("test"), 1)
 
+    def test_extract_keywords_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            extract_keywords(123)  # type: ignore[arg-type]
+
+    def test_extract_keywords_rejects_non_int_min_length(self):
+        with self.assertRaises(TypeError):
+            extract_keywords("hello", min_length=1.5)  # type: ignore[arg-type]
+
+    def test_extract_keywords_rejects_negative_min_length(self):
+        with self.assertRaises(ValueError):
+            extract_keywords("hello", min_length=-1)
+
 
 class TestWrapPrompt(unittest.TestCase):
     def test_wrap_short_text(self):
@@ -14238,6 +14278,18 @@ class TestWrapPrompt(unittest.TestCase):
     def test_wrap_zero_width(self):
         result = wrap_prompt("Hello", 0)
         self.assertEqual(result, "Hello")
+
+    def test_wrap_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            wrap_prompt(123, 80)  # type: ignore[arg-type]
+
+    def test_wrap_rejects_non_int_width(self):
+        with self.assertRaises(TypeError):
+            wrap_prompt("Hello", 1.5)  # type: ignore[arg-type]
+
+    def test_wrap_rejects_negative_width(self):
+        with self.assertRaises(ValueError):
+            wrap_prompt("Hello", -1)
 
 
 class TestEstimateTokenCount(unittest.TestCase):
@@ -14253,6 +14305,10 @@ class TestEstimateTokenCount(unittest.TestCase):
         text = "This is a longer piece of text for testing token estimation"
         result = estimate_token_count(text)
         self.assertGreater(result, 5)
+
+    def test_estimate_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            estimate_token_count(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -22392,7 +22448,13 @@ UUIDUTILS
 
 # --- prompt_utils.py ---
 cat > "$OUTPUT_DIR/prompt_utils.py" <<'PROMPTUTILS'
-"""Prompt utility functions for working with text prompts."""
+"""Prompt utility functions for working with text prompts.
+
+Provides helpers for truncating, formatting, cleaning, extracting keywords
+from, wrapping, and estimating tokens for text prompts. All functions
+validate their inputs and raise :class:`TypeError` or :class:`ValueError`
+on invalid arguments.
+"""
 
 from __future__ import annotations
 
@@ -22409,6 +22471,20 @@ __all__: List[str] = [
 ]
 
 
+def _require_string(value: object, name: str) -> str:
+    """Validate that *value* is a string, raising ``TypeError`` otherwise."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _require_int(value: object, name: str) -> int:
+    """Validate that *value* is an int, raising ``TypeError`` otherwise."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
 def truncate_prompt(text: str, max_length: int, suffix: str = "...") -> str:
     """Truncate a prompt to a maximum length.
 
@@ -22420,12 +22496,22 @@ def truncate_prompt(text: str, max_length: int, suffix: str = "...") -> str:
     Returns:
         The truncated text.
 
+    Raises:
+        TypeError: If *text*, *max_length*, or *suffix* are not the expected
+            types.
+        ValueError: If *max_length* is negative.
+
     Examples:
         >>> truncate_prompt("Hello world", 5)
         'Hell...'
         >>> truncate_prompt("Short", 10)
         'Short'
     """
+    _require_string(text, "text")
+    _require_int(max_length, "max_length")
+    if max_length < 0:
+        raise ValueError("max_length must be non-negative")
+    _require_string(suffix, "suffix")
     if len(text) <= max_length:
         return text
     if max_length <= len(suffix):
@@ -22443,6 +22529,10 @@ def format_prompt_template(template: str, **kwargs: Any) -> str:
     Returns:
         The formatted string.
 
+    Raises:
+        TypeError: If *template* is not a string.
+        ValueError: If the template references a missing keyword.
+
     Examples:
         >>> format_prompt_template(
         ...     "Hello {name}, welcome to {place}!",
@@ -22451,7 +22541,11 @@ def format_prompt_template(template: str, **kwargs: Any) -> str:
         ... )
         'Hello Alice, welcome to Wonderland!'
     """
-    return template.format(**kwargs)
+    _require_string(template, "template")
+    try:
+        return template.format(**kwargs)
+    except KeyError as exc:
+        raise ValueError(f"template references missing keyword: {exc}") from exc
 
 
 def clean_prompt(text: str) -> str:
@@ -22463,10 +22557,14 @@ def clean_prompt(text: str) -> str:
     Returns:
         Cleaned text with normalized whitespace.
 
+    Raises:
+        TypeError: If *text* is not a string.
+
     Examples:
         >>> clean_prompt("Hello   world\n\nHow are you?")
         'Hello world How are you?'
     """
+    _require_string(text, "text")
     # Replace multiple whitespace characters with single space
     cleaned = re.sub(r"\s+", " ", text)
     return cleaned.strip()
@@ -22482,10 +22580,18 @@ def extract_keywords(text: str, min_length: int = 3) -> List[str]:
     Returns:
         A list of keywords.
 
+    Raises:
+        TypeError: If *text* is not a string or *min_length* is not an int.
+        ValueError: If *min_length* is negative.
+
     Examples:
         >>> extract_keywords("The quick brown fox jumps")
         ['quick', 'brown', 'jumps']
     """
+    _require_string(text, "text")
+    _require_int(min_length, "min_length")
+    if min_length < 0:
+        raise ValueError("min_length must be non-negative")
     # Extract words (alphanumeric sequences)
     words = re.findall(r"\b\w+\b", text.lower())
     # Filter by minimum length and remove common stop words
@@ -22532,11 +22638,19 @@ def wrap_prompt(text: str, width: int = 80) -> str:
     Returns:
         Wrapped text.
 
+    Raises:
+        TypeError: If *text* is not a string or *width* is not an int.
+        ValueError: If *width* is negative.
+
     Examples:
         >>> wrap_prompt("This is a long line that should be wrapped", 20)
         'This is a long line\\nthat should be wrapped'
     """
-    if width <= 0:
+    _require_string(text, "text")
+    _require_int(width, "width")
+    if width < 0:
+        raise ValueError("width must be non-negative")
+    if width == 0:
         return text
     words = text.split()
     lines: List[str] = []
@@ -22567,12 +22681,16 @@ def estimate_token_count(text: str) -> int:
     Returns:
         Estimated token count.
 
+    Raises:
+        TypeError: If *text* is not a string.
+
     Examples:
         >>> estimate_token_count("Hello world")
         2
         >>> estimate_token_count("This is a test")
         4
     """
+    _require_string(text, "text")
     if not text:
         return 0
     # Rough approximation: 4 chars per token
@@ -33808,6 +33926,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added input validation to `prompt_utils.py`: every public helper now validates its arguments and raises `TypeError` or `ValueError` on invalid inputs, matching the convention documented in `README.md`. Added `_require_string` and `_require_int` helpers; `truncate_prompt` validates `text`, `max_length`, and `suffix`; `format_prompt_template` validates `template` and converts a missing-template-key `KeyError` into a `ValueError`; `clean_prompt` validates `text`; `extract_keywords` validates `text` and `min_length`; `wrap_prompt` validates `text` and `width`; `estimate_token_count` validates `text`. Added validation tests in `tests/test_prompt_utils.py`; synchronized the module, its tests, README, and this CHANGELOG into `scaffold.sh`.
+
 - Closed the synchronization drift left by the interrupted checkpoint commit: `shapes.py`, `tests/test_shapes.py`, `stats.py`, and `tests/test_stats.py` were committed without refreshing the embedded copies in `scaffold.sh`, so `python tools/refresh_scaffold.py --check` reported four stale copies and `tests/test_refresh_scaffold.py` failed. Ran `make refresh-scaffold`; all embedded copies are in sync.
 - Repaired an API regression in `shapes.py` introduced by the interrupted checkpoint commit: `regular_polygon_area` and `regular_polygon_perimeter` were dropped from `__all__` even though the functions still exist and `regular_polygon_area` was still imported and tested. Restored both names to `__all__`.
 - Gave `regular_polygon_perimeter` the typed signature, Google-style docstring, and `TypeError`/`ValueError` validation the rest of the module uses, matching `regular_polygon_area`.
@@ -35020,7 +35140,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `wrap_prompt`, and `estimate_token_count`. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `wrap_prompt`, and `estimate_token_count`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

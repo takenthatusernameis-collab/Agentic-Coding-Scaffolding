@@ -29,6 +29,22 @@ class TestTruncatePrompt(unittest.TestCase):
         result = truncate_prompt("Hello", 2, suffix="...")
         self.assertEqual(result, "He")
 
+    def test_truncate_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            truncate_prompt(123, 10)  # type: ignore[arg-type]
+
+    def test_truncate_rejects_non_int_max_length(self):
+        with self.assertRaises(TypeError):
+            truncate_prompt("Hello", 1.5)  # type: ignore[arg-type]
+
+    def test_truncate_rejects_non_str_suffix(self):
+        with self.assertRaises(TypeError):
+            truncate_prompt("Hello", 10, suffix=5)  # type: ignore[arg-type]
+
+    def test_truncate_rejects_negative_max_length(self):
+        with self.assertRaises(ValueError):
+            truncate_prompt("Hello", -1)
+
 
 class TestFormatPromptTemplate(unittest.TestCase):
     def test_format_template(self):
@@ -43,6 +59,14 @@ class TestFormatPromptTemplate(unittest.TestCase):
         result = format_prompt_template("{a} {b} {c}", a=1, b=2, c=3)
         self.assertEqual(result, "1 2 3")
 
+    def test_format_template_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            format_prompt_template(123)  # type: ignore[arg-type]
+
+    def test_format_template_missing_key(self):
+        with self.assertRaises(ValueError):
+            format_prompt_template("Hello {name}!")
+
 
 class TestCleanPrompt(unittest.TestCase):
     def test_clean_whitespace(self):
@@ -52,6 +76,10 @@ class TestCleanPrompt(unittest.TestCase):
     def test_clean_leading_trailing(self):
         result = clean_prompt("   Hello   ")
         self.assertEqual(result, "Hello")
+
+    def test_clean_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            clean_prompt(None)  # type: ignore[arg-type]
 
 
 class TestExtractKeywords(unittest.TestCase):
@@ -70,6 +98,18 @@ class TestExtractKeywords(unittest.TestCase):
         # "test" appears twice, "testing" once - both >=4? "test" is 4 chars, "testing" is 7
         self.assertEqual(result.count("test"), 1)
 
+    def test_extract_keywords_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            extract_keywords(123)  # type: ignore[arg-type]
+
+    def test_extract_keywords_rejects_non_int_min_length(self):
+        with self.assertRaises(TypeError):
+            extract_keywords("hello", min_length=1.5)  # type: ignore[arg-type]
+
+    def test_extract_keywords_rejects_negative_min_length(self):
+        with self.assertRaises(ValueError):
+            extract_keywords("hello", min_length=-1)
+
 
 class TestWrapPrompt(unittest.TestCase):
     def test_wrap_short_text(self):
@@ -83,6 +123,18 @@ class TestWrapPrompt(unittest.TestCase):
     def test_wrap_zero_width(self):
         result = wrap_prompt("Hello", 0)
         self.assertEqual(result, "Hello")
+
+    def test_wrap_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            wrap_prompt(123, 80)  # type: ignore[arg-type]
+
+    def test_wrap_rejects_non_int_width(self):
+        with self.assertRaises(TypeError):
+            wrap_prompt("Hello", 1.5)  # type: ignore[arg-type]
+
+    def test_wrap_rejects_negative_width(self):
+        with self.assertRaises(ValueError):
+            wrap_prompt("Hello", -1)
 
 
 class TestEstimateTokenCount(unittest.TestCase):
@@ -98,6 +150,10 @@ class TestEstimateTokenCount(unittest.TestCase):
         text = "This is a longer piece of text for testing token estimation"
         result = estimate_token_count(text)
         self.assertGreater(result, 5)
+
+    def test_estimate_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            estimate_token_count(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
