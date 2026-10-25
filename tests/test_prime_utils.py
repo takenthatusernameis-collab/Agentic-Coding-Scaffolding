@@ -4,6 +4,7 @@ import unittest
 
 from prime_utils import (
     is_coprime,
+    is_perfect_square,
     is_prime,
     next_prime,
     nth_prime,
@@ -198,6 +199,45 @@ class TestPrevPrime(unittest.TestCase):
             prev_prime(1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             prev_prime(True)  # type: ignore[arg-type]
+
+
+class TestIsPerfectSquare(unittest.TestCase):
+    def test_zero(self):
+        self.assertTrue(is_perfect_square(0))
+
+    def test_small_squares(self):
+        self.assertTrue(is_perfect_square(1))
+        self.assertTrue(is_perfect_square(4))
+        self.assertTrue(is_perfect_square(9))
+        self.assertTrue(is_perfect_square(16))
+        self.assertTrue(is_perfect_square(25))
+        self.assertTrue(is_perfect_square(100))
+
+    def test_large_square(self):
+        self.assertTrue(is_perfect_square(10000))
+        self.assertTrue(is_perfect_square(1000000))
+
+    def test_non_square(self):
+        self.assertFalse(is_perfect_square(2))
+        self.assertFalse(is_perfect_square(3))
+        self.assertFalse(is_perfect_square(5))
+        self.assertFalse(is_perfect_square(8))
+        self.assertFalse(is_perfect_square(15))
+
+    def test_negative(self):
+        self.assertFalse(is_perfect_square(-1))
+        self.assertFalse(is_perfect_square(-4))
+        self.assertFalse(is_perfect_square(-100))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_perfect_square(2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_perfect_square("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_perfect_square(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_perfect_square(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

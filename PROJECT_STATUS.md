@@ -1,3 +1,23 @@
+## Latest Session (2026-10-25) — added is_perfect_square to prime_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5422 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_perfect_square(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments (rejecting `bool` like the rest of the module). It returns `False` for negative integers and uses `math.isqrt` to test whether a non-negative integer is a perfect square (`root * root == n`). It is exported in `__all__`.
+- Added `TestIsPerfectSquare` to `tests/test_prime_utils.py` covering zero, small squares (1, 4, 9, 16, 25), a large square (10000, 1000000), non-squares (2, 3, 5, 8, 15), negatives (-1, -4, -100), and the `TypeError` path for float/string/None/bool inputs.
+- Updated the `prime_utils` prose section of `README.md` to list the full public API the module exports, including `next_prime`, `prev_prime`, and the new `is_perfect_square`.
+- Updated the `prime_utils` line in `.kilo/command/scaffold-project.md` to match.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `.kilo/command/scaffold-project.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5428 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, `tests/test_scaffold_sync.py` and `tests/test_refresh_scaffold.py` pass (43 tests, 3679 subtests), and `tests/test_scaffold.py` passes (57 tests, 3 subtests).
+
+Next Planned:
+
+- Harden `number_utils.py`: review `clamp`, `round_to`, `is_integer`, `format_number`, `percentage`, `lerp`, `sign`, `is_even`, `is_odd` for missing edge cases or ergonomic helpers that fit the existing API style. Add minimal, hermetic helpers with tests in `tests/test_number_utils.py`. Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh`, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-25) — added bump_version dispatcher to version_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5410 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

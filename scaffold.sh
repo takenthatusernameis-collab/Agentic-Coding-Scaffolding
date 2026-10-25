@@ -32622,7 +32622,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
 - `textwrap_utils.py` — text wrapping utilities (`wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, `fill_text`)
 - `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
-- `prime_utils.py` — prime number utilities (`prime_factors`, `nth_prime`, `primes_up_to`, `next_prime`, `previous_prime`)
+- `prime_utils.py` — prime number utilities (`is_prime`, `prime_factors`, `nth_prime`, `primes_up_to`, `is_coprime`, `next_prime`, `prev_prime`, `is_perfect_square`)
 - `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
 - `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`)
 - `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`
@@ -34337,6 +34337,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `is_perfect_square(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments; returns False for negative integers and uses `math.isqrt` to test whether a non-negative integer is a perfect square. Added tests in `tests/test_prime_utils.py` covering zero, small and large squares, non-squares, negatives, and the `TypeError` path. Updated the `prime_utils` prose sections of `README.md` and `.kilo/command/scaffold-project.md` to list the new helper. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Bootstrap session: verified repository health — `make test` runs 5410 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. The board held no task, so this session proceeded as a bootstrap.
 - Added `bump_version(version, part="patch")` to `version_utils.py` as a dispatcher over the existing `bump_major`/`bump_minor`/`bump_patch` helpers: it validates that *version* is a string and *part* is a string, is case-insensitive on the recognized component names (`"major"`, `"minor"`, `"patch"`), and raises `ValueError` for unrecognized parts. Added tests in `tests/test_version_utils.py` covering the default, each explicit component, case-insensitivity, single-component inputs, and the `TypeError`/`ValueError` paths. Synchronized `version_utils.py`, `tests/test_version_utils.py`, README, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Fixed four pre-existing `ruff` errors in `strings.py` and `case_utils.py`: the `drop` alias in `strings.py` and the `dot_case` and `slash_case` aliases in `case_utils.py` were assigned `lambda` expressions (E731) and `drop` exceeded the line length limit (E501). All three are now real `def` functions with typed signatures, Google-style docstrings, and `TypeError`/`ValueError` validation matching the surrounding helpers. `drop` validates that *s* is a string and *n* is a non-negative integer, returning `s[n:]`; `dot_case` and `slash_case` validate that *text* is a string. Added tests in `tests/test_strings.py` for the `drop` edge cases (zero, full length, non-string, non-int, negative) and in `tests/test_case_utils.py` the aliases remain covered. Synchronized `strings.py`, `case_utils.py`, their tests, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -34856,7 +34857,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, prime_factors, nth_prime, primes_up_to, is_coprime)
+prime_utils.py             # Prime number utilities (is_prime, prime_factors, nth_prime, primes_up_to, is_coprime, is_perfect_square)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
@@ -35715,7 +35716,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, and `is_coprime` checks whether two integers are coprime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, and `is_perfect_square` tests whether a non-negative integer is a perfect square. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 ## Decimal Utilities Module
 
@@ -57797,6 +57798,7 @@ __all__: List[str] = [
     "is_coprime",
     "next_prime",
     "prev_prime",
+    "is_perfect_square",
 ]
 
 
@@ -57976,6 +57978,43 @@ def is_coprime(a: int, b: int) -> bool:
     _require_int(a, "a")
     _require_int(b, "b")
     return math.gcd(a, b) == 1
+
+
+def is_perfect_square(n: int) -> bool:
+    """Return True if *n* is a perfect square.
+
+    A perfect square is a non-negative integer that is the square of an
+    integer (e.g. 0, 1, 4, 9, 16). Negative integers are never perfect
+    squares.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a perfect square, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_perfect_square(0)
+        True
+        >>> is_perfect_square(1)
+        True
+        >>> is_perfect_square(4)
+        True
+        >>> is_perfect_square(16)
+        True
+        >>> is_perfect_square(2)
+        False
+        >>> is_perfect_square(-4)
+        False
+    """
+    _require_int(n, "n")
+    if n < 0:
+        return False
+    root = math.isqrt(n)
+    return root * root == n
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -57986,6 +58025,7 @@ import unittest
 
 from prime_utils import (
     is_coprime,
+    is_perfect_square,
     is_prime,
     next_prime,
     nth_prime,
@@ -58180,6 +58220,45 @@ class TestPrevPrime(unittest.TestCase):
             prev_prime(1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             prev_prime(True)  # type: ignore[arg-type]
+
+
+class TestIsPerfectSquare(unittest.TestCase):
+    def test_zero(self):
+        self.assertTrue(is_perfect_square(0))
+
+    def test_small_squares(self):
+        self.assertTrue(is_perfect_square(1))
+        self.assertTrue(is_perfect_square(4))
+        self.assertTrue(is_perfect_square(9))
+        self.assertTrue(is_perfect_square(16))
+        self.assertTrue(is_perfect_square(25))
+        self.assertTrue(is_perfect_square(100))
+
+    def test_large_square(self):
+        self.assertTrue(is_perfect_square(10000))
+        self.assertTrue(is_perfect_square(1000000))
+
+    def test_non_square(self):
+        self.assertFalse(is_perfect_square(2))
+        self.assertFalse(is_perfect_square(3))
+        self.assertFalse(is_perfect_square(5))
+        self.assertFalse(is_perfect_square(8))
+        self.assertFalse(is_perfect_square(15))
+
+    def test_negative(self):
+        self.assertFalse(is_perfect_square(-1))
+        self.assertFalse(is_perfect_square(-4))
+        self.assertFalse(is_perfect_square(-100))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_perfect_square(2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_perfect_square("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_perfect_square(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_perfect_square(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

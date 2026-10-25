@@ -13,6 +13,7 @@ __all__: List[str] = [
     "is_coprime",
     "next_prime",
     "prev_prime",
+    "is_perfect_square",
 ]
 
 
@@ -192,3 +193,40 @@ def is_coprime(a: int, b: int) -> bool:
     _require_int(a, "a")
     _require_int(b, "b")
     return math.gcd(a, b) == 1
+
+
+def is_perfect_square(n: int) -> bool:
+    """Return True if *n* is a perfect square.
+
+    A perfect square is a non-negative integer that is the square of an
+    integer (e.g. 0, 1, 4, 9, 16). Negative integers are never perfect
+    squares.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a perfect square, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_perfect_square(0)
+        True
+        >>> is_perfect_square(1)
+        True
+        >>> is_perfect_square(4)
+        True
+        >>> is_perfect_square(16)
+        True
+        >>> is_perfect_square(2)
+        False
+        >>> is_perfect_square(-4)
+        False
+    """
+    _require_int(n, "n")
+    if n < 0:
+        return False
+    root = math.isqrt(n)
+    return root * root == n
