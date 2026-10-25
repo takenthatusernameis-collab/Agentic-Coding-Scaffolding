@@ -157,6 +157,8 @@ py_modules = [
     "hash_utils",
     "http_utils",
     "html_utils",
+    "html_entities_utils",
+    "html_parser_utils",
     "array_utils",
     "base64_utils",
     "binascii_utils",

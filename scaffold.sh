@@ -106187,7 +106187,7 @@ Provides helpers for working with HTML entity names and numeric codes.
 from __future__ import annotations
 
 import html.entities
-from typing import Dict, Optional, Union
+from typing import Optional
 
 __all__ = [
     "html5",
