@@ -7,6 +7,7 @@ from typing import List
 
 __all__: List[str] = [
     "is_prime",
+    "is_composite",
     "primes_up_to",
     "nth_prime",
     "prime_factors",
@@ -48,6 +49,31 @@ def is_prime(n: int) -> bool:
         if n % i == 0:
             return False
         i += 2
+    return True
+
+
+def is_composite(n: int) -> bool:
+    """Return True if *n* is a composite number.
+
+    A composite number is a positive integer that has at least one positive
+    divisor other than one or itself (i.e. has more than two positive
+    divisors). The number 1 is neither prime nor composite; 0 and all
+    negative integers are neither prime nor composite.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is composite, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 1:
+        return False
+    if is_prime(n):
+        return False
     return True
 
 

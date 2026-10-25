@@ -3,6 +3,7 @@
 import unittest
 
 from prime_utils import (
+    is_composite,
     is_coprime,
     is_perfect_square,
     is_prime,
@@ -199,6 +200,44 @@ class TestPrevPrime(unittest.TestCase):
             prev_prime(1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             prev_prime(True)  # type: ignore[arg-type]
+
+
+class TestIsComposite(unittest.TestCase):
+    """Tests for is_composite function."""
+
+    def test_composites(self):
+        self.assertTrue(is_composite(4))
+        self.assertTrue(is_composite(6))
+        self.assertTrue(is_composite(8))
+        self.assertTrue(is_composite(9))
+        self.assertTrue(is_composite(10))
+        self.assertTrue(is_composite(15))
+        self.assertTrue(is_composite(121))
+
+    def test_primes(self):
+        self.assertFalse(is_composite(2))
+        self.assertFalse(is_composite(3))
+        self.assertFalse(is_composite(5))
+        self.assertFalse(is_composite(101))
+
+    def test_neither(self):
+        self.assertFalse(is_composite(0))
+        self.assertFalse(is_composite(1))
+        self.assertFalse(is_composite(-1))
+        self.assertFalse(is_composite(-4))
+        self.assertFalse(is_composite(-9))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_composite(4.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite("9")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite(False)  # type: ignore[arg-type]
 
 
 class TestIsPerfectSquare(unittest.TestCase):
