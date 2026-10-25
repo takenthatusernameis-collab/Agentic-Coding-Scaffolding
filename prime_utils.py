@@ -11,6 +11,8 @@ __all__: List[str] = [
     "nth_prime",
     "prime_factors",
     "is_coprime",
+    "next_prime",
+    "prev_prime",
 ]
 
 
@@ -124,6 +126,54 @@ def prime_factors(n: int) -> List[int]:
     if n > 1:
         factors.append(n)
     return factors
+
+
+def next_prime(n: int) -> int:
+    """Return the smallest prime number greater than or equal to *n*.
+
+    Args:
+        n: The lower bound for the search.
+
+    Returns:
+        The smallest prime >= *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If no such prime exists (n < 2 returns 2).
+    """
+    _require_int(n, "n")
+    if n <= 2:
+        return 2
+    candidate = n if n % 2 != 0 else n + 1
+    while not is_prime(candidate):
+        candidate += 2
+    return candidate
+
+
+def prev_prime(n: int) -> int:
+    """Return the largest prime number less than or equal to *n*.
+
+    Args:
+        n: The upper bound for the search.
+
+    Returns:
+        The largest prime <= *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If no prime <= *n* exists.
+    """
+    _require_int(n, "n")
+    if n < 2:
+        raise ValueError("n must be >= 2")
+    candidate = n
+    if candidate % 2 == 0 and candidate != 2:
+        candidate -= 1
+    while candidate >= 2 and not is_prime(candidate):
+        candidate -= 2
+    if candidate < 2:
+        return 2
+    return candidate
 
 
 def is_coprime(a: int, b: int) -> bool:

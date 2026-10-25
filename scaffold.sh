@@ -57024,6 +57024,8 @@ __all__: List[str] = [
     "nth_prime",
     "prime_factors",
     "is_coprime",
+    "next_prime",
+    "prev_prime",
 ]
 
 
@@ -57139,6 +57141,54 @@ def prime_factors(n: int) -> List[int]:
     return factors
 
 
+def next_prime(n: int) -> int:
+    """Return the smallest prime number greater than or equal to *n*.
+
+    Args:
+        n: The lower bound for the search.
+
+    Returns:
+        The smallest prime >= *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If no such prime exists (n < 2 returns 2).
+    """
+    _require_int(n, "n")
+    if n <= 2:
+        return 2
+    candidate = n if n % 2 != 0 else n + 1
+    while not is_prime(candidate):
+        candidate += 2
+    return candidate
+
+
+def prev_prime(n: int) -> int:
+    """Return the largest prime number less than or equal to *n*.
+
+    Args:
+        n: The upper bound for the search.
+
+    Returns:
+        The largest prime <= *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If no prime <= *n* exists.
+    """
+    _require_int(n, "n")
+    if n < 2:
+        raise ValueError("n must be >= 2")
+    candidate = n
+    if candidate % 2 == 0 and candidate != 2:
+        candidate -= 1
+    while candidate >= 2 and not is_prime(candidate):
+        candidate -= 2
+    if candidate < 2:
+        return 2
+    return candidate
+
+
 def is_coprime(a: int, b: int) -> bool:
     """Return True if *a* and *b* are coprime.
 
@@ -57163,7 +57213,7 @@ cat > "$OUTPUT_DIR/tests/test_prime_utils.py" <<'TEST_PRIME_UTILS'
 
 import unittest
 
-from prime_utils import is_coprime, is_prime, nth_prime, prime_factors, primes_up_to
+from prime_utils import is_coprime, is_prime, next_prime, nth_prime, prev_prime, prime_factors, primes_up_to
 
 
 class TestPrimesUpTo(unittest.TestCase):
@@ -57309,6 +57359,48 @@ class TestIsCoprime(unittest.TestCase):
             is_coprime(None, 9)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_coprime(8, True)  # type: ignore[arg-type]
+
+
+class TestNextPrime(unittest.TestCase):
+    def test_exact_prime(self):
+        self.assertEqual(next_prime(7), 7)
+
+    def test_between(self):
+        self.assertEqual(next_prime(8), 11)
+        self.assertEqual(next_prime(10), 11)
+
+    def test_small(self):
+        self.assertEqual(next_prime(0), 2)
+        self.assertEqual(next_prime(1), 2)
+        self.assertEqual(next_prime(2), 2)
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            next_prime(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            next_prime(True)  # type: ignore[arg-type]
+
+
+class TestPrevPrime(unittest.TestCase):
+    def test_exact_prime(self):
+        self.assertEqual(prev_prime(7), 7)
+
+    def test_between(self):
+        self.assertEqual(prev_prime(10), 7)
+        self.assertEqual(prev_prime(8), 7)
+
+    def test_two(self):
+        self.assertEqual(prev_prime(2), 2)
+
+    def test_below_raises(self):
+        with self.assertRaises(ValueError):
+            prev_prime(1)
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            prev_prime(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            prev_prime(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

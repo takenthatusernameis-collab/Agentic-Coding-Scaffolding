@@ -2,7 +2,7 @@
 
 import unittest
 
-from prime_utils import is_coprime, is_prime, nth_prime, prime_factors, primes_up_to
+from prime_utils import is_coprime, is_prime, next_prime, nth_prime, prev_prime, prime_factors, primes_up_to
 
 
 class TestPrimesUpTo(unittest.TestCase):
@@ -148,6 +148,48 @@ class TestIsCoprime(unittest.TestCase):
             is_coprime(None, 9)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_coprime(8, True)  # type: ignore[arg-type]
+
+
+class TestNextPrime(unittest.TestCase):
+    def test_exact_prime(self):
+        self.assertEqual(next_prime(7), 7)
+
+    def test_between(self):
+        self.assertEqual(next_prime(8), 11)
+        self.assertEqual(next_prime(10), 11)
+
+    def test_small(self):
+        self.assertEqual(next_prime(0), 2)
+        self.assertEqual(next_prime(1), 2)
+        self.assertEqual(next_prime(2), 2)
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            next_prime(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            next_prime(True)  # type: ignore[arg-type]
+
+
+class TestPrevPrime(unittest.TestCase):
+    def test_exact_prime(self):
+        self.assertEqual(prev_prime(7), 7)
+
+    def test_between(self):
+        self.assertEqual(prev_prime(10), 7)
+        self.assertEqual(prev_prime(8), 7)
+
+    def test_two(self):
+        self.assertEqual(prev_prime(2), 2)
+
+    def test_below_raises(self):
+        with self.assertRaises(ValueError):
+            prev_prime(1)
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            prev_prime(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            prev_prime(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
