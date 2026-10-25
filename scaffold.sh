@@ -25,6 +25,7 @@
 
 #   - abc_utils.py — # Abstract base class utilities wrapping stdlib abc (ABC, ABCMeta, abstractmethod, abstractclassmethod, abstractstaticmethod, abstractproperty, get_cache_token, update_abstractmethods)
 #   - aifc_utils.py — # AIFF and AIFF-C format utilities wrapping stdlib aifc (open, is_available, aliases, re-exports Aifc_read, Aifc_write, Error) with input validation
+#   - ossaudiodev_utils.py — # OSS audio device utilities wrapping the standard library ossaudiodev module (open, openmixer, re-exports OSSAudioError, error, AFMT_S16_LE, SOUND_MIXER_PCM)
 #   - ast_utils.py — # Abstract syntax tree utilities wrapping stdlib ast (parse, unparse, dump, literal_eval, get_docstring, walk, iter_fields, iter_child_nodes, find_all, fix_missing_locations, increment_lineno, copy_location, node_to_string)
 #   - pickle_utils.py — # Object serialization utilities wrapping stdlib pickle (dump, dumps, load, loads, pickler, unpickler, is_valid_protocol, validate_protocol)
 #   - pickletools_utils.py — # Pickletools utilities wrapping stdlib pickletools (dis, genops, optimize, get_opcode_info, list_opcodes, is_opcode, get_pickle_size, decode_long, encode_long)
@@ -31641,6 +31642,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `hello.py` — sample application entry point
 - `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`) with input validation
 - `aifc_utils.py` — AIFF and AIFF-C format utilities wrapping the standard library `aifc` module (`open`, `is_available`, aliases, re-exports `Aifc_read`, `Aifc_write`, `Error`) with input validation
+- `ossaudiodev_utils.py` — OSS audio device utilities wrapping the standard library `ossaudiodev` module (`open`, `openmixer`, re-exports `OSSAudioError`, `error`, `AFMT_S16_LE`, `SOUND_MIXER_PCM`)
 - `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
 - `pickletools_utils.py` — pickletools utilities wrapping the standard library `pickletools` module (`dis`, `genops`, `optimize`, `get_opcode_info`, `list_opcodes`, `is_opcode`, `get_pickle_size`, `decode_long`, `encode_long`)
@@ -31882,6 +31884,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
 - `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
 - `tests/test_aifc_utils.py` — unit tests for `aifc_utils.py`
+- `tests/test_ossaudiodev_utils.py` — unit tests for `ossaudiodev_utils.py`
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
 - `tests/test_pickletools_utils.py` — unit tests for `pickletools_utils.py`
@@ -33812,6 +33815,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `abc_utils.py` and `tests/test_abc_utils.py`.
 - Added `aifc_utils.py` and `tests/test_aifc_utils.py`.
+- Added `ossaudiodev_utils.py` and `tests/test_ossaudiodev_utils.py`.
 - Added `antigravity_utils.py` and `tests/test_antigravity_utils.py`.
 - Added `argparse_utils.py` and `tests/test_argparse_utils.py`.
 - Added `array_utils.py` and `tests/test_array_utils.py`.
@@ -34685,6 +34689,10 @@ The project includes abstract base class utilities in `abc_utils.py` wrapping th
 The project includes backoff utilities in `backoff_utils.py`: `constant_backoff`, `exponential_backoff`, and `backoff_delay`. The module is tested in `tests/test_backoff_utils.py`.
 
 The project includes AIFF and AIFF-C format utilities in `aifc_utils.py` wrapping the standard library `aifc` module: `open` opens an AIFF file and returns an `Aifc_read` or `Aifc_write` object, `is_available` reports whether the interpreter ships the module, and aliases `open_aifc`, `read_aifc`, `write_aifc`, `open_read`, and `open_write` are provided. The classes `Aifc_read`, `Aifc_write`, and `Error` are re-exported. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `aifc` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_aifc_utils.py`.
+
+## OSS Audio Device Utilities Module
+
+The project includes OSS audio device utilities in `ossaudiodev_utils.py` wrapping the standard library `ossaudiodev` module: `open` and `openmixer` are re-exported callables, `OSSAudioError` and `error` are re-exported, and `AFMT_S16_LE` and `SOUND_MIXER_PCM` are re-exported constants. The module is tested in `tests/test_ossaudiodev_utils.py`.
 
 ## AST Utilities Module
 

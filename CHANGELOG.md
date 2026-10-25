@@ -29,6 +29,7 @@
 
 - Added `abc_utils.py` and `tests/test_abc_utils.py`.
 - Added `aifc_utils.py` and `tests/test_aifc_utils.py`.
+- Added `ossaudiodev_utils.py` and `tests/test_ossaudiodev_utils.py`.
 - Added `antigravity_utils.py` and `tests/test_antigravity_utils.py`.
 - Added `argparse_utils.py` and `tests/test_argparse_utils.py`.
 - Added `array_utils.py` and `tests/test_array_utils.py`.

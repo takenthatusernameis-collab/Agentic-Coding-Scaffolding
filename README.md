@@ -594,6 +594,10 @@ The project includes backoff utilities in `backoff_utils.py`: `constant_backoff`
 
 The project includes AIFF and AIFF-C format utilities in `aifc_utils.py` wrapping the standard library `aifc` module: `open` opens an AIFF file and returns an `Aifc_read` or `Aifc_write` object, `is_available` reports whether the interpreter ships the module, and aliases `open_aifc`, `read_aifc`, `write_aifc`, `open_read`, and `open_write` are provided. The classes `Aifc_read`, `Aifc_write`, and `Error` are re-exported. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `aifc` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_aifc_utils.py`.
 
+## OSS Audio Device Utilities Module
+
+The project includes OSS audio device utilities in `ossaudiodev_utils.py` wrapping the standard library `ossaudiodev` module: `open` and `openmixer` are re-exported callables, `OSSAudioError` and `error` are re-exported, and `AFMT_S16_LE` and `SOUND_MIXER_PCM` are re-exported constants. The module is tested in `tests/test_ossaudiodev_utils.py`.
+
 ## AST Utilities Module
 
 The project includes abstract syntax tree utilities in `ast_utils.py` wrapping the standard library `ast` module: `parse` parses source code into a syntax tree with input validation, `unparse` converts a syntax tree back to source, `dump` returns a string representation of a node, `literal_eval` safely evaluates a literal expression, `get_docstring` extracts a docstring from a function node, `walk` iterates over all descendant nodes, `iter_fields` and `iter_child_nodes` iterate over fields and direct children, `find_all` returns all nodes matching a type, `fix_missing_locations` assigns line numbers to nodes, `increment_lineno` shifts line numbers, `copy_location` copies source location between nodes, and `node_to_string` unparses a node to a string. The module is tested in `tests/test_ast_utils.py`.

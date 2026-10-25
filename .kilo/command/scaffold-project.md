@@ -22,6 +22,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `hello.py` — sample application entry point
 - `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`) with input validation
 - `aifc_utils.py` — AIFF and AIFF-C format utilities wrapping the standard library `aifc` module (`open`, `is_available`, aliases, re-exports `Aifc_read`, `Aifc_write`, `Error`) with input validation
+- `ossaudiodev_utils.py` — OSS audio device utilities wrapping the standard library `ossaudiodev` module (`open`, `openmixer`, re-exports `OSSAudioError`, `error`, `AFMT_S16_LE`, `SOUND_MIXER_PCM`)
 - `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
 - `pickletools_utils.py` — pickletools utilities wrapping the standard library `pickletools` module (`dis`, `genops`, `optimize`, `get_opcode_info`, `list_opcodes`, `is_opcode`, `get_pickle_size`, `decode_long`, `encode_long`)
@@ -263,6 +264,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
 - `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
 - `tests/test_aifc_utils.py` — unit tests for `aifc_utils.py`
+- `tests/test_ossaudiodev_utils.py` — unit tests for `ossaudiodev_utils.py`
 - `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
 - `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
 - `tests/test_pickletools_utils.py` — unit tests for `pickletools_utils.py`
