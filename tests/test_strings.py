@@ -741,3 +741,41 @@ class TestCommonSuffix(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestNewHelpers(unittest.TestCase):
+    def test_char_frequency(self):
+        from strings import char_frequency
+
+        self.assertEqual(char_frequency("aab"), {"a": 2, "b": 1})
+
+    def test_first_last_take_drop(self):
+        from strings import drop, first_n, last_n, take
+
+        self.assertEqual(first_n("hello", 3), "hel")
+        self.assertEqual(take("hello", 2), "he")
+        self.assertEqual(last_n("hello", 2), "lo")
+        self.assertEqual(drop("hello", 2), "llo")
+
+    def test_between(self):
+        from strings import between
+
+        self.assertEqual(between("<tag>hello</tag>", "<tag>", "</tag>"), "hello")
+
+    def test_contains_any_all(self):
+        from strings import contains_all, contains_any
+
+        self.assertTrue(contains_any("hello", ["x", "he"]))
+        self.assertFalse(contains_any("hello", ["x", "y"]))
+        self.assertTrue(contains_all("hello world", ["hello", "world"]))
+        self.assertFalse(contains_all("hello", ["hello", "world"]))
+
+    def test_count_words(self):
+        from strings import count_words
+
+        self.assertEqual(count_words("hello world"), 2)
+
+    def test_remove_punctuation(self):
+        from strings import remove_punctuation
+
+        self.assertEqual(remove_punctuation("hello, world!"), "hello world")

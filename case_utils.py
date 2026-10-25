@@ -11,6 +11,13 @@ __all__: List[str] = [
     "constant_case",
     "snake_case",
     "camel_case",
+    "screaming_snake_case",
+    "spinal_case",
+    "train_case",
+    "dot_case",
+    "slash_case",
+    "title_case",
+    "sentence_case",
 ]
 
 
@@ -153,10 +160,10 @@ def camel_case(text: str) -> str:
         text: The string to convert.
 
     Returns:
-        The camelCase form of *text_.
+        The camelCase form of *text*.
 
     Raises:
-        TypeError: If *text_ is not a string.
+        TypeError: If *text* is not a string.
 
     Examples:
         >>> camel_case("hello world")
@@ -170,3 +177,41 @@ def camel_case(text: str) -> str:
     if not words:
         return ""
     return words[0].lower() + "".join(word.capitalize() for word in words[1:])
+
+
+# Common aliases
+screaming_snake_case = constant_case
+spinal_case = kebab_case
+train_case = pascal_case
+dot_case = lambda text: ".".join(word.lower() for word in _split_words(text))
+slash_case = lambda text: "/".join(word.lower() for word in _split_words(text))
+
+
+def title_case(text: str) -> str:
+    """Convert *text* to Title Case (spaces between capitalized words).
+
+    Args:
+        text: The string to convert.
+
+    Returns:
+        The Title Case form of *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> title_case("hello world")
+        'Hello World'
+        >>> title_case("xml_parser")
+        'Xml Parser'
+    """
+    return " ".join(word.capitalize() for word in _split_words(text))
+
+
+def sentence_case(text: str) -> str:
+    """Convert *text* to Sentence case (first word capitalized, rest lowercase)."""
+    _require_string(text, "text")
+    words = _split_words(text)
+    if not words:
+        return ""
+    return " ".join([words[0].capitalize()] + [word.lower() for word in words[1:]])

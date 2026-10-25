@@ -2,7 +2,20 @@
 
 import unittest
 
-from case_utils import camel_case, constant_case, kebab_case, pascal_case, snake_case
+from case_utils import (
+    camel_case,
+    constant_case,
+    dot_case,
+    kebab_case,
+    pascal_case,
+    screaming_snake_case,
+    sentence_case,
+    slash_case,
+    snake_case,
+    spinal_case,
+    title_case,
+    train_case,
+)
 
 
 class TestKebabCase(unittest.TestCase):
@@ -122,3 +135,27 @@ class TestCamelCase(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCaseAliases(unittest.TestCase):
+    def test_screaming_snake_case(self):
+        self.assertEqual(screaming_snake_case("hello world"), "HELLO_WORLD")
+
+    def test_spinal_case(self):
+        self.assertEqual(spinal_case("hello world"), "hello-world")
+
+    def test_train_case(self):
+        self.assertEqual(train_case("hello world"), "HelloWorld")
+
+    def test_dot_case(self):
+        self.assertEqual(dot_case("hello world"), "hello.world")
+
+    def test_slash_case(self):
+        self.assertEqual(slash_case("hello world"), "hello/world")
+
+    def test_title_case(self):
+        self.assertEqual(title_case("hello world"), "Hello World")
+        self.assertEqual(title_case("xml_parser"), "Xml Parser")
+
+    def test_sentence_case(self):
+        self.assertEqual(sentence_case("hello WORLD"), "Hello world")

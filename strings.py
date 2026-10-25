@@ -52,6 +52,16 @@ __all__: List[str] = [
     "strip_html",
     "common_prefix",
     "common_suffix",
+    "char_frequency",
+    "first_n",
+    "last_n",
+    "take",
+    "drop",
+    "between",
+    "contains_any",
+    "contains_all",
+    "count_words",
+    "remove_punctuation",
 ]
 
 
@@ -578,3 +588,86 @@ def common_suffix(s1: str, s2: str) -> str:
     while index < limit and s1[-1 - index] == s2[-1 - index]:
         index += 1
     return s1[len(s1) - index:]
+
+
+def char_frequency(s: str) -> dict:
+    """Return a dictionary of character frequencies."""
+    _require_string(s, "s")
+    freq: dict = {}
+    for ch in s:
+        freq[ch] = freq.get(ch, 0) + 1
+    return freq
+
+
+def first_n(s: str, n: int) -> str:
+    """Return first n characters of string."""
+    _require_string(s, "s")
+    _require_int(n, "n")
+    if n < 0:
+        raise ValueError("n cannot be negative")
+    return s[:n]
+
+
+def last_n(s: str, n: int) -> str:
+    """Return last n characters of string."""
+    _require_string(s, "s")
+    _require_int(n, "n")
+    if n < 0:
+        raise ValueError("n cannot be negative")
+    return s[-n:]
+
+
+# aliases
+take = first_n
+drop = lambda s, n: s[_require_int(n, "n") :] if _require_int(n, "n") >= 0 and (_require_string(s, "s") or True) else s[n:]  # type: ignore
+
+
+def between(s: str, start: str, end: str) -> str:
+    """Return substring between start and end (first occurrence)."""
+    _require_string(s, "s")
+    _require_string(start, "start")
+    _require_string(end, "end")
+    if start not in s:
+        return ""
+    start_idx = s.index(start) + len(start)
+    if end not in s[start_idx:]:
+        return ""
+    end_idx = s.index(end, start_idx)
+    return s[start_idx:end_idx]
+
+
+def contains_any(s: str, substrings: List[str]) -> bool:
+    """Return True if s contains any of the substrings."""
+    _require_string(s, "s")
+    if not isinstance(substrings, list):
+        raise TypeError(f"substrings must be a list, got {type(substrings).__name__}")
+    for sub in substrings:
+        if not isinstance(sub, str):
+            raise TypeError("substrings must contain only strings")
+    return any(sub in s for sub in substrings)
+
+
+def contains_all(s: str, substrings: List[str]) -> bool:
+    """Return True if s contains all of the substrings."""
+    _require_string(s, "s")
+    if not isinstance(substrings, list):
+        raise TypeError(f"substrings must be a list, got {type(substrings).__name__}")
+    for sub in substrings:
+        if not isinstance(sub, str):
+            raise TypeError("substrings must contain only strings")
+    return all(sub in s for sub in substrings)
+
+
+def count_words(s: str) -> int:
+    """Return number of words in string."""
+    _require_string(s, "s")
+    words = s.split()
+    return len(words)
+
+
+def remove_punctuation(s: str) -> str:
+    """Remove all punctuation characters from string."""
+    _require_string(s, "s")
+    import string
+
+    return "".join(ch for ch in s if ch not in string.punctuation)
