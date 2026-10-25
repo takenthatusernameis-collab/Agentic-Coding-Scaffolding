@@ -8,15 +8,16 @@ from typing import List
 __all__: List[str] = [
     "is_prime",
     "is_composite",
-    "primes_up_to",
-    "nth_prime",
     "prime_factors",
+    "nth_prime",
+    "primes_up_to",
     "is_coprime",
     "next_prime",
     "prev_prime",
     "is_perfect_square",
     "is_power_of_two",
     "is_semiprime",
+    "is_squarefree",
 ]
 
 
@@ -318,3 +319,36 @@ def is_semiprime(n: int) -> bool:
         return True
     factors = prime_factors(n)
     return len(factors) == 2
+
+
+def is_squarefree(n: int) -> bool:
+    """Return True if *n* is squarefree.
+
+    A squarefree number is an integer which is divisible by no square
+    of a prime number other than 1. In other words, in the prime
+    factorization of the number, every prime factor appears at most
+    once. Primes, 1, and numbers like 6=2*3 are squarefree; 4=2^2, 8=2^3,
+    and 12=2^2*3 are not squarefree (because they are divisible by 4).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is squarefree, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n == 0:
+        return False
+    if n < 0:
+        n = -n
+    if n == 1:
+        return True
+    seen = set()
+    for p in prime_factors(n):
+        if p in seen:
+            return False
+        seen.add(p)
+    return True

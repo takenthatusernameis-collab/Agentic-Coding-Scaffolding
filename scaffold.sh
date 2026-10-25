@@ -35240,7 +35240,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
-- Added `is_semiprime(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *n* is a semiprime (product of exactly two prime factors counting multiplicity, e.g. 4, 6, 9, 10, 15), `False` otherwise (primes, 1, 0, negatives, numbers with more than two prime factors). Added `TestIsSemiprime` to `tests/test_prime_utils.py`. Updated the `prime_utils` module section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `is_squarefree(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *n* is squarefree (not divisible by the square of any prime; every prime factor appears at most once), `False` otherwise (0, numbers divisible by a prime square like 4, 8, 12, 16, and negatives return the squarefree-ness of their absolute value). Added `TestSquarefree` to `tests/test_prime_utils.py`. Updated the `prime_utils` module section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added 3D shape helpers `sphere_surface_area`/`sphere_volume`, `cube_surface_area`/`cube_volume`, `cylinder_surface_area`/`cylinder_volume`, `cone_surface_area`/`cone_volume`. Synchronized into `scaffold.sh`.
 
@@ -35780,7 +35780,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_perfect_square, is_power_of_two)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
@@ -36642,7 +36642,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, and `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), and `is_squarefree` tests whether an integer is squarefree (not divisible by the square of any prime). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 ## Decimal Utilities Module
 
@@ -59294,15 +59294,16 @@ from typing import List
 __all__: List[str] = [
     "is_prime",
     "is_composite",
-    "primes_up_to",
-    "nth_prime",
     "prime_factors",
+    "nth_prime",
+    "primes_up_to",
     "is_coprime",
     "next_prime",
     "prev_prime",
     "is_perfect_square",
     "is_power_of_two",
     "is_semiprime",
+    "is_squarefree",
 ]
 
 
@@ -59604,6 +59605,39 @@ def is_semiprime(n: int) -> bool:
         return True
     factors = prime_factors(n)
     return len(factors) == 2
+
+
+def is_squarefree(n: int) -> bool:
+    """Return True if *n* is squarefree.
+
+    A squarefree number is an integer which is divisible by no square
+    of a prime number other than 1. In other words, in the prime
+    factorization of the number, every prime factor appears at most
+    once. Primes, 1, and numbers like 6=2*3 are squarefree; 4=2^2, 8=2^3,
+    and 12=2^2*3 are not squarefree (because they are divisible by 4).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is squarefree, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n == 0:
+        return False
+    if n < 0:
+        n = -n
+    if n == 1:
+        return True
+    seen = set()
+    for p in prime_factors(n):
+        if p in seen:
+            return False
+        seen.add(p)
+    return True
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -59618,11 +59652,13 @@ from prime_utils import (
     is_perfect_square,
     is_prime,
     is_semiprime,
+    is_squarefree,
     next_prime,
     nth_prime,
     prev_prime,
     prime_factors,
     primes_up_to,
+    is_power_of_two,
 )
 
 
@@ -59920,7 +59956,40 @@ class TestIsSemiprime(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_semiprime(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_semiprime(True)  # type: ignore[arg-type]
+            is_semiprime(True)
+
+
+class TestSquarefree(unittest.TestCase):
+    def test_squarefree_numbers(self):
+        self.assertTrue(is_squarefree(1))
+        self.assertTrue(is_squarefree(2))
+        self.assertTrue(is_squarefree(3))
+        self.assertTrue(is_squarefree(6))
+        self.assertTrue(is_squarefree(10))
+        self.assertTrue(is_squarefree(30))
+
+    def test_not_squarefree(self):
+        self.assertFalse(is_squarefree(4))
+        self.assertFalse(is_squarefree(8))
+        self.assertFalse(is_squarefree(9))
+        self.assertFalse(is_squarefree(12))
+        self.assertFalse(is_squarefree(16))
+        self.assertFalse(is_squarefree(0))
+        self.assertFalse(is_squarefree(18))
+
+    def test_negative(self):
+        self.assertTrue(is_squarefree(-6))
+        self.assertFalse(is_squarefree(-8))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_squarefree(6.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_squarefree("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_squarefree(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_squarefree(True)  # type: ignore[arg-type]  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

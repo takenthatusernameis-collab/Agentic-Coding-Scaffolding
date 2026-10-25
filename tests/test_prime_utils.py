@@ -8,11 +8,13 @@ from prime_utils import (
     is_perfect_square,
     is_prime,
     is_semiprime,
+    is_squarefree,
     next_prime,
     nth_prime,
     prev_prime,
     prime_factors,
     primes_up_to,
+    is_power_of_two,
 )
 
 
@@ -310,7 +312,40 @@ class TestIsSemiprime(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_semiprime(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_semiprime(True)  # type: ignore[arg-type]
+            is_semiprime(True)
+
+
+class TestSquarefree(unittest.TestCase):
+    def test_squarefree_numbers(self):
+        self.assertTrue(is_squarefree(1))
+        self.assertTrue(is_squarefree(2))
+        self.assertTrue(is_squarefree(3))
+        self.assertTrue(is_squarefree(6))
+        self.assertTrue(is_squarefree(10))
+        self.assertTrue(is_squarefree(30))
+
+    def test_not_squarefree(self):
+        self.assertFalse(is_squarefree(4))
+        self.assertFalse(is_squarefree(8))
+        self.assertFalse(is_squarefree(9))
+        self.assertFalse(is_squarefree(12))
+        self.assertFalse(is_squarefree(16))
+        self.assertFalse(is_squarefree(0))
+        self.assertFalse(is_squarefree(18))
+
+    def test_negative(self):
+        self.assertTrue(is_squarefree(-6))
+        self.assertFalse(is_squarefree(-8))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_squarefree(6.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_squarefree("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_squarefree(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_squarefree(True)  # type: ignore[arg-type]  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
