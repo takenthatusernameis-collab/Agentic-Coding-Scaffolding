@@ -352,3 +352,49 @@ def is_squarefree(n: int) -> bool:
             return False
         seen.add(p)
     return True
+
+
+def is_prime_power(n: int) -> bool:
+    """Return True if *n* is a prime power.
+
+    A prime power is a positive integer that is a power of a single prime
+    number. This includes prime numbers themselves (p^1) and prime powers
+    like p^2, p^3, etc. By definition, 1 is not considered a prime power.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a prime power, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 1:
+        return False
+    if is_prime(n):
+        return True
+    if n < 0:
+        n = -n
+    if n <= 1:
+        return False
+    # Find integer k >= 2 such that there exists prime p with p^k == n
+    # Find maximum possible exponent
+    max_exp = n.bit_length()
+    for k in range(2, max_exp + 1):
+        # Try to find integer p = n^(1/k)
+        p_float = n ** (1.0 / k)
+        p = round(p_float)
+        if p < 2:
+            continue
+        # Check p, p+0,p±1 due to floating point precision
+        for candidate in [p - 1, p, p + 1]:
+            if candidate < 2:
+                continue
+            pow_val = candidate ** k
+            if pow_val == n and is_prime(candidate):
+                return True
+            if pow_val > n:
+                break
+    return False

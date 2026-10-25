@@ -9,6 +9,7 @@ from prime_utils import (
     is_prime,
     is_semiprime,
     is_squarefree,
+    is_prime_power,
     next_prime,
     nth_prime,
     prev_prime,
@@ -350,3 +351,43 @@ class TestSquarefree(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIsPrimePower(unittest.TestCase):
+    def test_primes_are_prime_powers(self):
+        self.assertTrue(is_prime_power(2))
+        self.assertTrue(is_prime_power(3))
+        self.assertTrue(is_prime_power(5))
+        self.assertTrue(is_prime_power(101))
+
+    def test_prime_powers(self):
+        self.assertTrue(is_prime_power(4))  # 2^2
+        self.assertTrue(is_prime_power(8))  # 2^3
+        self.assertTrue(is_prime_power(9))  # 3^2
+        self.assertTrue(is_prime_power(16))  # 2^4
+        self.assertTrue(is_prime_power(25))  # 5^2
+        self.assertTrue(is_prime_power(27))  # 3^3
+        self.assertTrue(is_prime_power( p**6 if False else 2**6))  # 64
+
+    def test_non_prime_powers(self):
+        self.assertFalse(is_prime_power(1))
+        self.assertFalse(is_prime_power(6))  # 2*3
+        self.assertFalse(is_prime_power(10))
+        self.assertFalse(is_prime_power(12))
+        self.assertFalse(is_prime_power(18))
+        self.assertFalse(is_prime_power(36))  # 6^2 but base not prime
+
+    def test_negative_numbers(self):
+        self.assertFalse(is_prime_power(-4))
+        self.assertFalse(is_prime_power(-2))
+
+    def test_zero(self):
+        self.assertFalse(is_prime_power(0))
+
+    def test_non_int_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            is_prime_power(2.0)
+        with self.assertRaises(TypeError):
+            is_prime_power("4")
+        with self.assertRaises(TypeError):
+            is_prime_power(None)
