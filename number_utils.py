@@ -29,6 +29,7 @@ __all__: List[str] = [
     "is_perfect_cube",
     "is_perfect_square",
     "is_power_of_two",
+    "is_palindromic_number",
 ]
 
 
@@ -423,6 +424,28 @@ def is_power_of_two(value: Number) -> bool:
     if n <= 0:
         return False
     return (n & (n - 1)) == 0
+
+
+def is_palindromic_number(value: Number) -> bool:
+    """Return True if the decimal representation of *value* is a palindrome.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* reads the same forwards and backwards.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if not is_integer(value):
+        return False
+    n = int(value)
+    if n < 0:
+        return False
+    s = str(n)
+    return s == s[::-1]
 
 
 def safe_divide(numerator: Number, denominator: Number) -> float:
