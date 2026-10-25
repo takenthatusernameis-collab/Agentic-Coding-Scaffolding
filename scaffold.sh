@@ -54329,8 +54329,8 @@ from number_utils import (
     is_odd,
     is_perfect_cube,
     is_perfect_square,
-    is_power_of_two,
     is_positive,
+    is_power_of_two,
     is_zero,
     lerp,
     percentage,
@@ -54642,6 +54642,24 @@ class TestIsPerfectSquare(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_perfect_square("x")  # type: ignore[arg-type]
+
+
+class TestIsPowerOfTwo(unittest.TestCase):
+    def test_powers(self) -> None:
+        for n in (1, 2, 4, 8, 16, 32, 64, 128, 256, 1024):
+            self.assertTrue(is_power_of_two(n))
+
+    def test_non_powers(self) -> None:
+        for n in (0, 3, 5, 6, 7, 9, 10, 11, 12, 15, 17, -1, -2, -4):
+            self.assertFalse(is_power_of_two(n))
+
+    def test_non_integer(self) -> None:
+        self.assertFalse(is_power_of_two(2.5))
+        self.assertFalse(is_power_of_two(4.5))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_power_of_two("x")  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
