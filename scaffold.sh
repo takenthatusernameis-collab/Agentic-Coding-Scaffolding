@@ -288,6 +288,10 @@
 
 #   - html_utils.py — # HTML escaping, unescaping, and tag-stripping utilities
 
+#   - html_entities_utils.py — # HTML entities utilities wrapping the standard library html.entities module (name2codepoint, codepoint2name, entitydefs, html5, name_to_codepoint, get_entity_by_name, codepoint_to_name, decode_entity, unescape_entity)
+
+#   - html_parser_utils.py — # HTML parser utilities wrapping the standard library html.parser module (HTMLParser, parse_html, strip_tags)
+
 #   - deprecation_utils.py — # Deprecation utilities (deprecated decorator) with version/replacement/message support and warnings emission
 
 #   - bytes_utils.py — # Bytes and binary utilities (to_hex, from_hex, xor, chunk)
@@ -481,6 +485,10 @@
 #   - test_hello.py — # Tests for hello.py
 
 #   - test_html_utils.py — # Tests for html_utils.py
+
+#   - test_html_entities_utils.py — # Tests for html_entities_utils.py
+
+#   - test_html_parser_utils.py — # Tests for html_parser_utils.py
 
 #   - test_http_utils.py — # Tests for http_utils.py
 
@@ -4477,6 +4485,9 @@ py_modules = [
     "hash_utils",
     "http_utils",
     "html_utils",
+    "html_entities_utils",
+    "html_parser_utils",
+    "ossaudiodev_utils",
     "array_utils",
     "base64_utils",
     "binascii_utils",
