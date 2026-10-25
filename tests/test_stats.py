@@ -3,6 +3,8 @@
 import unittest
 
 from stats import (
+    correlation,
+    covariance,
     kurtosis,
     max_value,
     mean,
@@ -346,8 +348,100 @@ class TestKurtosis(unittest.TestCase):
             kurtosis([1, 2, "x", 4])  # type: ignore[list-item, type-var]
 
     def test_bool(self) -> None:
+        from stats import kurtosis
+
         with self.assertRaises(TypeError):
             kurtosis([True, 1, 2, 3])  # type: ignore[type-var]
+
+
+class TestCovariance(unittest.TestCase):
+    def test_population_positive(self) -> None:
+        # x and y increase together -> positive covariance
+        self.assertAlmostEqual(covariance([1, 2, 3, 4], [2, 4, 6, 8]), 2.5)
+
+    def test_population_negative(self) -> None:
+        # x increases while y decreases -> negative covariance
+        self.assertAlmostEqual(covariance([1, 2, 3, 4], [8, 6, 4, 2]), -2.5)
+
+    def test_population_zero(self) -> None:
+        # y is constant -> covariance is 0
+        self.assertEqual(covariance([1, 2, 3], [5, 5, 5]), 0.0)
+
+    def test_sample_divides_by_n_minus_one(self) -> None:
+        self.assertAlmostEqual(covariance([1, 2, 3, 4], [2, 4, 6, 8], population=False), 10.0 / 3)
+
+    def test_single_element_sample_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            covariance([1], [2], population=False)
+
+    def test_length_mismatch_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            covariance([1, 2], [1, 2, 3])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            covariance([], [])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            covariance((1, 2), [1, 2])  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            covariance([1, 2], [1, "a"])  # type: ignore[misc]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            covariance([True, 1], [1, 2])  # type: ignore[type-var]
+
+    def test_rejects_non_bool_population(self) -> None:
+        with self.assertRaises(TypeError):
+            covariance([1, 2], [1, 2], population="yes")  # type: ignore[arg-type]
+
+
+class TestCorrelation(unittest.TestCase):
+    def test_perfect_positive(self) -> None:
+        self.assertAlmostEqual(correlation([1, 2, 3, 4], [2, 4, 6, 8]), 1.0)
+
+    def test_perfect_negative(self) -> None:
+        self.assertAlmostEqual(correlation([1, 2, 3, 4], [8, 6, 4, 2]), -1.0)
+
+    def test_no_linear_relationship(self) -> None:
+        # y constant -> zero std dev -> ValueError
+        with self.assertRaises(ValueError):
+            correlation([1, 2, 3], [5, 5, 5])
+
+    def test_zero_std_x_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            correlation([5, 5, 5], [1, 2, 3])
+
+    def test_moderate_positive(self) -> None:
+        # classic example from statistics textbooks
+        self.assertAlmostEqual(correlation([1, 2, 3, 4, 5], [2, 4, 5, 4, 5]), 0.8, places=1)
+
+    def test_length_mismatch_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            correlation([1, 2], [1, 2, 3])
+
+    def test_single_element_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            correlation([1], [2])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            correlation([], [])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            correlation((1, 2), [1, 2])  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            correlation([1, 2], [1, "a"])  # type: ignore[misc]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            correlation([True, 1], [1, 2])  # type: ignore[type-var]
 
 
 if __name__ == "__main__":

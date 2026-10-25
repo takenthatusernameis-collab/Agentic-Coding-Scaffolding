@@ -12132,6 +12132,8 @@ __all__: List[str] = [
     "median_absolute_deviation",
     "weighted_mean",
     "kurtosis",
+    "covariance",
+    "correlation",
 ]
 
 
@@ -12593,6 +12595,79 @@ def kurtosis(numbers: List[T | float]) -> float:
     if s == 0:
         raise ValueError("Cannot calculate kurtosis when standard deviation is 0")
     return float(sum(((x - m) / s) ** 4 for x in numbers) / n - 3.0)
+
+
+def _require_same_length(x: List[T | float], y: List[T | float], name: str = "values") -> None:
+    """Validate that *x* and *y* are numeric lists of equal length."""
+    _require_numbers(x, name)
+    _require_numbers(y, "weights")
+    if len(x) != len(y):
+        raise ValueError(f"{name} and weights must have the same length")
+
+
+def covariance(x: List[T | float], y: List[T | float], population: bool = True) -> float:
+    """Return the covariance between two lists of numbers.
+
+    Args:
+        x: The first list of numeric values.
+        y: The second list of numeric values (same length as *x*).
+        population: If True, divide by *n* (population covariance). If False,
+            divide by *n - 1* (sample covariance). Defaults to True.
+
+    Returns:
+        The covariance between *x* and *y*.
+
+    Raises:
+        ValueError: If the lists are empty, have different lengths, or if
+            sample covariance is requested with fewer than 2 elements.
+        TypeError: If inputs are not lists, contain non-numeric values, or
+            *population* is not a bool.
+    """
+    _require_same_length(x, y, "values")
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
+    if not population and len(x) < 2:
+        raise ValueError("Cannot calculate sample covariance with fewer than 2 elements")
+    mx = mean(x)
+    my = mean(y)
+    n = len(x)
+    cov = sum((xi - mx) * (yi - my) for xi, yi in zip(x, y))
+    if population:
+        return float(cov / n)
+    return float(cov / (n - 1))
+
+
+def correlation(x: List[T | float], y: List[T | float]) -> float:
+    """Return the Pearson correlation coefficient between two lists of numbers.
+
+    The correlation measures the strength and direction of a linear
+    relationship between *x* and *y*, ranging from -1 (perfect negative
+    correlation) to 1 (perfect positive correlation). A value of 0 means no
+    linear correlation.
+
+    Args:
+        x: The first list of numeric values.
+        y: The second list of numeric values (same length as *x*).
+
+    Returns:
+        The Pearson correlation coefficient.
+
+    Raises:
+        ValueError: If the lists are empty, have different lengths, have
+            fewer than 2 elements, or if either list has zero standard
+            deviation.
+        TypeError: If inputs are not lists or contain non-numeric values.
+    """
+    _require_same_length(x, y, "values")
+    n = len(x)
+    if n < 2:
+        raise ValueError("Cannot calculate correlation with fewer than 2 elements")
+    sx = stddev(x)
+    sy = stddev(y)
+    if sx == 0 or sy == 0:
+        raise ValueError("Cannot calculate correlation when standard deviation is 0")
+    cov = covariance(x, y, population=True)
+    return float(cov / (sx * sy))
 STATS
 
 # --- tests/test_strings.py ---
@@ -13659,6 +13734,8 @@ cat > "$OUTPUT_DIR/tests/test_stats.py" <<'TESTSTATS'
 import unittest
 
 from stats import (
+    correlation,
+    covariance,
     kurtosis,
     max_value,
     mean,
@@ -14002,8 +14079,100 @@ class TestKurtosis(unittest.TestCase):
             kurtosis([1, 2, "x", 4])  # type: ignore[list-item, type-var]
 
     def test_bool(self) -> None:
+        from stats import kurtosis
+
         with self.assertRaises(TypeError):
             kurtosis([True, 1, 2, 3])  # type: ignore[type-var]
+
+
+class TestCovariance(unittest.TestCase):
+    def test_population_positive(self) -> None:
+        # x and y increase together -> positive covariance
+        self.assertAlmostEqual(covariance([1, 2, 3, 4], [2, 4, 6, 8]), 2.5)
+
+    def test_population_negative(self) -> None:
+        # x increases while y decreases -> negative covariance
+        self.assertAlmostEqual(covariance([1, 2, 3, 4], [8, 6, 4, 2]), -2.5)
+
+    def test_population_zero(self) -> None:
+        # y is constant -> covariance is 0
+        self.assertEqual(covariance([1, 2, 3], [5, 5, 5]), 0.0)
+
+    def test_sample_divides_by_n_minus_one(self) -> None:
+        self.assertAlmostEqual(covariance([1, 2, 3, 4], [2, 4, 6, 8], population=False), 10.0 / 3)
+
+    def test_single_element_sample_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            covariance([1], [2], population=False)
+
+    def test_length_mismatch_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            covariance([1, 2], [1, 2, 3])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            covariance([], [])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            covariance((1, 2), [1, 2])  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            covariance([1, 2], [1, "a"])  # type: ignore[misc]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            covariance([True, 1], [1, 2])  # type: ignore[type-var]
+
+    def test_rejects_non_bool_population(self) -> None:
+        with self.assertRaises(TypeError):
+            covariance([1, 2], [1, 2], population="yes")  # type: ignore[arg-type]
+
+
+class TestCorrelation(unittest.TestCase):
+    def test_perfect_positive(self) -> None:
+        self.assertAlmostEqual(correlation([1, 2, 3, 4], [2, 4, 6, 8]), 1.0)
+
+    def test_perfect_negative(self) -> None:
+        self.assertAlmostEqual(correlation([1, 2, 3, 4], [8, 6, 4, 2]), -1.0)
+
+    def test_no_linear_relationship(self) -> None:
+        # y constant -> zero std dev -> ValueError
+        with self.assertRaises(ValueError):
+            correlation([1, 2, 3], [5, 5, 5])
+
+    def test_zero_std_x_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            correlation([5, 5, 5], [1, 2, 3])
+
+    def test_moderate_positive(self) -> None:
+        # classic example from statistics textbooks
+        self.assertAlmostEqual(correlation([1, 2, 3, 4, 5], [2, 4, 5, 4, 5]), 0.8, places=1)
+
+    def test_length_mismatch_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            correlation([1, 2], [1, 2, 3])
+
+    def test_single_element_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            correlation([1], [2])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            correlation([], [])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            correlation((1, 2), [1, 2])  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            correlation([1, 2], [1, "a"])  # type: ignore[misc]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            correlation([True, 1], [1, 2])  # type: ignore[type-var]
 
 
 if __name__ == "__main__":
@@ -34983,6 +35152,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `covariance(x, y, population=True)` and `correlation(x, y)` to `stats.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError`/`ValueError` validation. `covariance` returns the population (default) or sample covariance between two paired lists of numbers; `correlation` returns the Pearson correlation coefficient ranging from -1 to 1, raising `ValueError` for fewer than 2 elements or a zero standard deviation. Added `TestCovariance` and `TestCorrelation` to `tests/test_stats.py`. Updated the `stats` module section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `is_hex(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* is non-empty and every character is a hexadecimal digit (0-9, a-f, A-F), `False` otherwise (including for the empty string). It is a companion to `is_digit` and `is_integer`. Added `TestIsHex` to `tests/test_strings.py`. Cleaned up duplicate entries in the `strings` `__all__` list. Updated `README.md` and `.kilo/command/scaffold-project.md`. Synchronized `strings.py`, `tests/test_strings.py`, README, the command doc, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `is_whitespace`, `is_space`, `is_printable`, and `is_identifier` to `strings.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-string arguments. `is_whitespace`/`is_space` return `False` for empty strings; `is_printable` returns `False` for whitespace/control characters; `is_identifier` uses `str.isidentifier()`. Added corresponding tests in `tests/test_strings.py`. Updated `README.md` and `.kilo/command/scaffold-project.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `.kilo/command/scaffold-project.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -35517,7 +35688,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, prime_factors, nth_prime, primes_up_to, is_coprime, is_perfect_square)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_perfect_square)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
@@ -35980,7 +36151,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, `skewness`, `kurtosis`, and `median_absolute_deviation`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, `skewness`, `kurtosis`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 
@@ -36379,7 +36550,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, and `is_perfect_square` tests whether a non-negative integer is a perfect square. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, and `is_perfect_square` tests whether a non-negative integer is a perfect square. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 ## Decimal Utilities Module
 
@@ -59030,6 +59201,7 @@ from typing import List
 
 __all__: List[str] = [
     "is_prime",
+    "is_composite",
     "primes_up_to",
     "nth_prime",
     "prime_factors",
@@ -59071,6 +59243,31 @@ def is_prime(n: int) -> bool:
         if n % i == 0:
             return False
         i += 2
+    return True
+
+
+def is_composite(n: int) -> bool:
+    """Return True if *n* is a composite number.
+
+    A composite number is a positive integer that has at least one positive
+    divisor other than one or itself (i.e. has more than two positive
+    divisors). The number 1 is neither prime nor composite; 0 and all
+    negative integers are neither prime nor composite.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is composite, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 1:
+        return False
+    if is_prime(n):
+        return False
     return True
 
 
@@ -59262,6 +59459,7 @@ cat > "$OUTPUT_DIR/tests/test_prime_utils.py" <<'TEST_PRIME_UTILS'
 import unittest
 
 from prime_utils import (
+    is_composite,
     is_coprime,
     is_perfect_square,
     is_prime,
@@ -59458,6 +59656,44 @@ class TestPrevPrime(unittest.TestCase):
             prev_prime(1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             prev_prime(True)  # type: ignore[arg-type]
+
+
+class TestIsComposite(unittest.TestCase):
+    """Tests for is_composite function."""
+
+    def test_composites(self):
+        self.assertTrue(is_composite(4))
+        self.assertTrue(is_composite(6))
+        self.assertTrue(is_composite(8))
+        self.assertTrue(is_composite(9))
+        self.assertTrue(is_composite(10))
+        self.assertTrue(is_composite(15))
+        self.assertTrue(is_composite(121))
+
+    def test_primes(self):
+        self.assertFalse(is_composite(2))
+        self.assertFalse(is_composite(3))
+        self.assertFalse(is_composite(5))
+        self.assertFalse(is_composite(101))
+
+    def test_neither(self):
+        self.assertFalse(is_composite(0))
+        self.assertFalse(is_composite(1))
+        self.assertFalse(is_composite(-1))
+        self.assertFalse(is_composite(-4))
+        self.assertFalse(is_composite(-9))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_composite(4.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite("9")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite(False)  # type: ignore[arg-type]
 
 
 class TestIsPerfectSquare(unittest.TestCase):

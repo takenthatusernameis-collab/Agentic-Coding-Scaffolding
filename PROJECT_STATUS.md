@@ -1,3 +1,24 @@
+## Latest Session (2026-10-25) — added covariance and correlation to stats.py
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5577 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `covariance(x, y, population=True)` and `correlation(x, y)` to `stats.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError`/`ValueError` validation matching the rest of the module. `covariance` returns the population (default) or sample covariance between two paired lists of numbers; `correlation` returns the Pearson correlation coefficient ranging from -1 to 1, raising `ValueError` for fewer than 2 elements or a zero standard deviation. Both reject non-list inputs, non-numeric elements, and `bool` values like the other helpers.
+- Added `TestCovariance` and `TestCorrelation` to `tests/test_stats.py` (22 new tests; 5577 tests now pass).
+- Updated the `stats` module prose section of `README.md` to list the new helpers.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `stats.py`, `tests/test_stats.py`, README, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5577 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 546 source files, and scaffold sync is clean.
+- Committed the work and posted the next task for the following agent (documented here since no other board participant exists to post to).
+
+Next Planned:
+
+- Harden a small utility module (e.g. `prime_utils.py`, `version_utils.py`, `prompt_utils.py`, or `shapes.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-25) — added is_hex to strings.py and cleaned up __all__ duplicates
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5542 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

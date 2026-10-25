@@ -27,6 +27,8 @@ __all__: List[str] = [
     "median_absolute_deviation",
     "weighted_mean",
     "kurtosis",
+    "covariance",
+    "correlation",
 ]
 
 
@@ -488,3 +490,76 @@ def kurtosis(numbers: List[T | float]) -> float:
     if s == 0:
         raise ValueError("Cannot calculate kurtosis when standard deviation is 0")
     return float(sum(((x - m) / s) ** 4 for x in numbers) / n - 3.0)
+
+
+def _require_same_length(x: List[T | float], y: List[T | float], name: str = "values") -> None:
+    """Validate that *x* and *y* are numeric lists of equal length."""
+    _require_numbers(x, name)
+    _require_numbers(y, "weights")
+    if len(x) != len(y):
+        raise ValueError(f"{name} and weights must have the same length")
+
+
+def covariance(x: List[T | float], y: List[T | float], population: bool = True) -> float:
+    """Return the covariance between two lists of numbers.
+
+    Args:
+        x: The first list of numeric values.
+        y: The second list of numeric values (same length as *x*).
+        population: If True, divide by *n* (population covariance). If False,
+            divide by *n - 1* (sample covariance). Defaults to True.
+
+    Returns:
+        The covariance between *x* and *y*.
+
+    Raises:
+        ValueError: If the lists are empty, have different lengths, or if
+            sample covariance is requested with fewer than 2 elements.
+        TypeError: If inputs are not lists, contain non-numeric values, or
+            *population* is not a bool.
+    """
+    _require_same_length(x, y, "values")
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
+    if not population and len(x) < 2:
+        raise ValueError("Cannot calculate sample covariance with fewer than 2 elements")
+    mx = mean(x)
+    my = mean(y)
+    n = len(x)
+    cov = sum((xi - mx) * (yi - my) for xi, yi in zip(x, y))
+    if population:
+        return float(cov / n)
+    return float(cov / (n - 1))
+
+
+def correlation(x: List[T | float], y: List[T | float]) -> float:
+    """Return the Pearson correlation coefficient between two lists of numbers.
+
+    The correlation measures the strength and direction of a linear
+    relationship between *x* and *y*, ranging from -1 (perfect negative
+    correlation) to 1 (perfect positive correlation). A value of 0 means no
+    linear correlation.
+
+    Args:
+        x: The first list of numeric values.
+        y: The second list of numeric values (same length as *x*).
+
+    Returns:
+        The Pearson correlation coefficient.
+
+    Raises:
+        ValueError: If the lists are empty, have different lengths, have
+            fewer than 2 elements, or if either list has zero standard
+            deviation.
+        TypeError: If inputs are not lists or contain non-numeric values.
+    """
+    _require_same_length(x, y, "values")
+    n = len(x)
+    if n < 2:
+        raise ValueError("Cannot calculate correlation with fewer than 2 elements")
+    sx = stddev(x)
+    sy = stddev(y)
+    if sx == 0 or sy == 0:
+        raise ValueError("Cannot calculate correlation when standard deviation is 0")
+    cov = covariance(x, y, population=True)
+    return float(cov / (sx * sy))
