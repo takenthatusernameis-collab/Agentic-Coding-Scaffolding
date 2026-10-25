@@ -26,6 +26,7 @@ __all__: List[str] = [
     "harmonic_mean",
     "median_absolute_deviation",
     "weighted_mean",
+    "kurtosis",
 ]
 
 
@@ -454,3 +455,36 @@ def weighted_mean(values: List[T | float], weights: List[T | float]) -> float:
     if total_weight == 0:
         raise ValueError("weights must sum to a positive value")
     return float(weighted_sum / total_weight)
+
+
+def kurtosis(numbers: List[T | float]) -> float:
+    """Return the excess kurtosis of a list of numbers.
+
+    Kurtosis measures the "tailedness" of a distribution. This function
+    returns the excess kurtosis (kurtosis minus 3), so a normal
+    distribution has an excess kurtosis of 0.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The excess kurtosis of the numbers.
+
+    Raises:
+        ValueError: If the list has fewer than 4 elements, or if the
+            standard deviation is 0.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> kurtosis([1, 2, 3, 4, 5])
+        -1.3
+    """
+    _require_numbers(numbers, "numbers")
+    n = len(numbers)
+    if n < 4:
+        raise ValueError("Cannot calculate kurtosis with fewer than 4 elements")
+    m = mean(numbers)
+    s = stddev(numbers)
+    if s == 0:
+        raise ValueError("Cannot calculate kurtosis when standard deviation is 0")
+    return float(sum(((x - m) / s) ** 4 for x in numbers) / n - 3.0)

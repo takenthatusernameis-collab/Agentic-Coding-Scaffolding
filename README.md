@@ -667,7 +667,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, `skewness`, and `median_absolute_deviation`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, `skewness`, `kurtosis`, and `median_absolute_deviation`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

@@ -12015,6 +12015,7 @@ __all__: List[str] = [
     "harmonic_mean",
     "median_absolute_deviation",
     "weighted_mean",
+    "kurtosis",
 ]
 
 
@@ -12443,6 +12444,39 @@ def weighted_mean(values: List[T | float], weights: List[T | float]) -> float:
     if total_weight == 0:
         raise ValueError("weights must sum to a positive value")
     return float(weighted_sum / total_weight)
+
+
+def kurtosis(numbers: List[T | float]) -> float:
+    """Return the excess kurtosis of a list of numbers.
+
+    Kurtosis measures the "tailedness" of a distribution. This function
+    returns the excess kurtosis (kurtosis minus 3), so a normal
+    distribution has an excess kurtosis of 0.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The excess kurtosis of the numbers.
+
+    Raises:
+        ValueError: If the list has fewer than 4 elements, or if the
+            standard deviation is 0.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> kurtosis([1, 2, 3, 4, 5])
+        -1.3
+    """
+    _require_numbers(numbers, "numbers")
+    n = len(numbers)
+    if n < 4:
+        raise ValueError("Cannot calculate kurtosis with fewer than 4 elements")
+    m = mean(numbers)
+    s = stddev(numbers)
+    if s == 0:
+        raise ValueError("Cannot calculate kurtosis when standard deviation is 0")
+    return float(sum(((x - m) / s) ** 4 for x in numbers) / n - 3.0)
 STATS
 
 # --- tests/test_strings.py ---
@@ -13408,6 +13442,7 @@ cat > "$OUTPUT_DIR/tests/test_stats.py" <<'TESTSTATS'
 import unittest
 
 from stats import (
+    kurtosis,
     max_value,
     mean,
     median,
@@ -13727,6 +13762,31 @@ class TestSumOfSquares(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             sum_of_squares([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestKurtosis(unittest.TestCase):
+    def test_normal_like(self) -> None:
+        self.assertAlmostEqual(kurtosis([1, 2, 3, 4, 5, 6, 7, 8]), -1.2, places=1)
+
+    def test_too_few(self) -> None:
+        with self.assertRaises(ValueError):
+            kurtosis([1, 2, 3])
+
+    def test_zero_std(self) -> None:
+        with self.assertRaises(ValueError):
+            kurtosis([5, 5, 5, 5])
+
+    def test_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            kurtosis("abc")  # type: ignore[arg-type]
+
+    def test_non_number(self) -> None:
+        with self.assertRaises(TypeError):
+            kurtosis([1, 2, "x", 4])  # type: ignore[list-item, type-var]
+
+    def test_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            kurtosis([True, 1, 2, 3])  # type: ignore[type-var]
 
 
 if __name__ == "__main__":
@@ -34702,6 +34762,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Add `backoff_utils.py` wrapping backoff utilities with `constant_backoff` and `exponential_backoff` helpers, input validation, and typed signatures, plus unit tests in `tests/test_backoff_utils.py`.
 - Synchronized `backoff_utils.py` and `tests/test_backoff_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 
+- Added `kurtosis(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it returns the excess kurtosis of a list of numbers, raising `ValueError` for fewer than 4 elements or a zero standard deviation. Added tests in `tests/test_stats.py`. Updated the `stats` module section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased
 
 - Added `is_ascii(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* is non-empty and every character is ASCII, `False` otherwise (including for the empty string). Added tests in `tests/test_strings.py`. Updated the `strings` module section of `README.md` to list the new helper. Synchronized `strings.py`, `tests/test_strings.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -35699,7 +35761,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, `skewness`, and `median_absolute_deviation`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, `skewness`, `kurtosis`, and `median_absolute_deviation`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

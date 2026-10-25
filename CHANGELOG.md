@@ -8,6 +8,8 @@
 - Add `backoff_utils.py` wrapping backoff utilities with `constant_backoff` and `exponential_backoff` helpers, input validation, and typed signatures, plus unit tests in `tests/test_backoff_utils.py`.
 - Synchronized `backoff_utils.py` and `tests/test_backoff_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 
+- Added `kurtosis(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it returns the excess kurtosis of a list of numbers, raising `ValueError` for fewer than 4 elements or a zero standard deviation. Added tests in `tests/test_stats.py`. Updated the `stats` module section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased
 
 - Added `is_ascii(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* is non-empty and every character is ASCII, `False` otherwise (including for the empty string). Added tests in `tests/test_strings.py`. Updated the `strings` module section of `README.md` to list the new helper. Synchronized `strings.py`, `tests/test_strings.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

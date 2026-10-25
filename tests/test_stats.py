@@ -3,6 +3,7 @@
 import unittest
 
 from stats import (
+    kurtosis,
     max_value,
     mean,
     median,
@@ -322,6 +323,31 @@ class TestSumOfSquares(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             sum_of_squares([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestKurtosis(unittest.TestCase):
+    def test_normal_like(self) -> None:
+        self.assertAlmostEqual(kurtosis([1, 2, 3, 4, 5, 6, 7, 8]), -1.2, places=1)
+
+    def test_too_few(self) -> None:
+        with self.assertRaises(ValueError):
+            kurtosis([1, 2, 3])
+
+    def test_zero_std(self) -> None:
+        with self.assertRaises(ValueError):
+            kurtosis([5, 5, 5, 5])
+
+    def test_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            kurtosis("abc")  # type: ignore[arg-type]
+
+    def test_non_number(self) -> None:
+        with self.assertRaises(TypeError):
+            kurtosis([1, 2, "x", 4])  # type: ignore[list-item, type-var]
+
+    def test_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            kurtosis([True, 1, 2, 3])  # type: ignore[type-var]
 
 
 if __name__ == "__main__":
