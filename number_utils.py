@@ -25,8 +25,8 @@ __all__: List[str] = [
     "is_finite",
     "is_infinite",
     "is_nan",
-    "is_perfect_cube",
     "safe_divide",
+    "is_perfect_cube",
 ]
 
 

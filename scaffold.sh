@@ -53890,6 +53890,7 @@ __all__: List[str] = [
     "is_infinite",
     "is_nan",
     "safe_divide",
+    "is_perfect_cube",
 ]
 
 
@@ -54215,6 +54216,30 @@ def is_nan(value: Number) -> bool:
     return False
 
 
+def is_perfect_cube(value: Number) -> bool:
+    """Return True if *value* is a perfect cube of an integer.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is a perfect cube.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if not is_integer(value):
+        return False
+    n = int(value)
+    root = int(round(abs(n) ** (1.0 / 3.0)))
+    while (root + 1) ** 3 <= abs(n):
+        root += 1
+    while root ** 3 > abs(n):
+        root -= 1
+    return root ** 3 == abs(n)
+
+
 def safe_divide(numerator: Number, denominator: Number) -> float:
     """Divide numerator by denominator, returning 0.0 when denominator is zero.
 
@@ -54253,6 +54278,7 @@ from number_utils import (
     is_non_negative,
     is_non_positive,
     is_odd,
+    is_perfect_cube,
     is_positive,
     is_zero,
     lerp,
@@ -54525,6 +54551,24 @@ class TestSafeDivide(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             safe_divide("a", 2)  # type: ignore[arg-type]
+
+
+class TestIsPerfectCube(unittest.TestCase):
+    def test_perfect_cubes(self) -> None:
+        for n in (-27, -8, -1, 0, 1, 8, 27, 64, 125):
+            self.assertTrue(is_perfect_cube(n))
+
+    def test_non_cubes(self) -> None:
+        for n in (2, 3, 4, 5, 9, 10, 26, 28):
+            self.assertFalse(is_perfect_cube(n))
+
+    def test_non_integer(self) -> None:
+        self.assertFalse(is_perfect_cube(2.0))
+        self.assertFalse(is_perfect_cube(8.5))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_perfect_cube("x")  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
