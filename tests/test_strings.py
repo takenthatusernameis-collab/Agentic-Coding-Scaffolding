@@ -14,6 +14,9 @@ from strings import (
     count_vowels,
     ends_with,
     is_alpha,
+    is_alphanumeric,
+    is_digit,
+    is_integer,
     is_anagram,
     is_blank,
     is_lower,
@@ -464,6 +467,75 @@ class TestIsAlpha(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_alpha(123)  # type: ignore[arg-type]
+
+
+class TestIsAlphanumeric(unittest.TestCase):
+    def test_alphanumeric(self):
+        self.assertTrue(is_alphanumeric("hello123"))
+        self.assertTrue(is_alphanumeric("Hello"))
+        self.assertTrue(is_alphanumeric("123"))
+
+    def test_not_alphanumeric_with_space(self):
+        self.assertFalse(is_alphanumeric("hello world"))
+
+    def test_not_alphanumeric_with_symbol(self):
+        self.assertFalse(is_alphanumeric("hello!"))
+        self.assertFalse(is_alphanumeric("test_123"))
+
+    def test_not_alphanumeric_empty(self):
+        self.assertFalse(is_alphanumeric(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_alphanumeric(123)  # type: ignore[arg-type]
+
+
+class TestIsDigit(unittest.TestCase):
+    def test_digit(self):
+        self.assertTrue(is_digit("123"))
+        self.assertTrue(is_digit("0"))
+
+    def test_not_digit_with_sign(self):
+        self.assertFalse(is_digit("-1"))
+        self.assertFalse(is_digit("+1"))
+
+    def test_not_digit_with_decimal(self):
+        self.assertFalse(is_digit("12.3"))
+
+    def test_not_digit_with_letters(self):
+        self.assertFalse(is_digit("123a"))
+
+    def test_not_digit_empty(self):
+        self.assertFalse(is_digit(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_digit(123)  # type: ignore[arg-type]
+
+
+class TestIsInteger(unittest.TestCase):
+    def test_integer(self):
+        self.assertTrue(is_integer("123"))
+        self.assertTrue(is_integer("-123"))
+        self.assertTrue(is_integer("+123"))
+        self.assertTrue(is_integer("0"))
+
+    def test_not_integer_with_decimal(self):
+        self.assertFalse(is_integer("12.3"))
+
+    def test_not_integer_with_letters(self):
+        self.assertFalse(is_integer("123a"))
+
+    def test_not_integer_empty(self):
+        self.assertFalse(is_integer(""))
+
+    def test_not_integer_just_sign(self):
+        self.assertFalse(is_integer("-"))
+        self.assertFalse(is_integer("+"))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_integer(123)  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):

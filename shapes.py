@@ -27,6 +27,8 @@ __all__: List[str] = [
     "sector_area",
     "arc_length",
     "ellipse_circumference",
+    "triangle_inradius",
+    "triangle_circumradius",
 ]
 
 
@@ -261,6 +263,39 @@ def triangle_heron_area(side_a: float, side_b: float, side_c: float) -> float:
         * (semi_perimeter - side_b)
         * (semi_perimeter - side_c)
     )
+
+
+def triangle_inradius(side_a: float, side_b: float, side_c: float) -> float:
+    """Return the inradius (radius of inscribed circle) of a triangle.
+
+    Args:
+        side_a: Length of the first side.
+        side_b: Length of the second side.
+        side_c: Length of the third side.
+
+    Raises:
+        ValueError: If any side is negative or the sides violate the triangle inequality.
+    """
+    area = triangle_heron_area(side_a, side_b, side_c)
+    perimeter = side_a + side_b + side_c
+    return (2 * area) / perimeter
+
+
+def triangle_circumradius(side_a: float, side_b: float, side_c: float) -> float:
+    """Return the circumradius (radius of circumscribed circle) of a triangle.
+
+    Args:
+        side_a: Length of the first side.
+        side_b: Length of the second side.
+        side_c: Length of the third side.
+
+    Raises:
+        ValueError: If any side is negative or the sides violate the triangle inequality.
+    """
+    area = triangle_heron_area(side_a, side_b, side_c)
+    if area == 0:
+        raise ValueError("Sides do not form a valid triangle.")
+    return (side_a * side_b * side_c) / (4 * area)
 
 
 def parallelogram_area(base: float, height: float) -> float:

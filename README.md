@@ -657,11 +657,11 @@ The project includes a simple calculator module in `calculator.py` with function
 
 ## Shapes Module
 
-The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, triangles, and polygons. Circular sectors and arcs are supported via `sector_area` and `arc_length`, regular polygons via `regular_polygon_area` and `regular_polygon_perimeter`, and ellipses via `ellipse_area` and `ellipse_circumference`. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
+The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, triangles, and polygons. Circular sectors and arcs are supported via `sector_area` and `arc_length`, regular polygons via `regular_polygon_area` and `regular_polygon_perimeter`, and ellipses via `ellipse_area` and `ellipse_circumference`. `triangle_heron_area` computes area via Heron's formula, and `triangle_inradius` and `triangle_circumradius` return inradius and circumradius. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, and more. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_digit`, `is_integer`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, and more. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

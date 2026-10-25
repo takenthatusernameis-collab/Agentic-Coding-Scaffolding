@@ -23,6 +23,8 @@ from shapes import (
     trapezoid_area,
     triangle_area,
     triangle_heron_area,
+    triangle_inradius,
+    triangle_circumradius,
     triangle_perimeter,
 )
 
@@ -154,6 +156,38 @@ class TestTriangleHeron(unittest.TestCase):
     def test_negative_side(self):
         with self.assertRaises(ValueError):
             triangle_heron_area(-1, 4, 5)
+
+
+class TestTriangleInradius(unittest.TestCase):
+    def test_inradius(self):
+        self.assertAlmostEqual(triangle_inradius(3, 4, 5), 1.0)
+
+    def test_equilateral(self):
+        self.assertAlmostEqual(triangle_inradius(4, 4, 4), 2 * math.sqrt(3) / 3)
+
+    def test_invalid_triangle_raises(self):
+        with self.assertRaises(ValueError):
+            triangle_inradius(1, 1, 3)
+
+    def test_negative_side_raises(self):
+        with self.assertRaises(ValueError):
+            triangle_inradius(-1, 2, 2)
+
+
+class TestTriangleCircumradius(unittest.TestCase):
+    def test_circumradius(self):
+        self.assertAlmostEqual(triangle_circumradius(3, 4, 5), 2.5)
+
+    def test_equilateral(self):
+        self.assertAlmostEqual(triangle_circumradius(4, 4, 4), 4 / math.sqrt(3))
+
+    def test_invalid_triangle_raises(self):
+        with self.assertRaises(ValueError):
+            triangle_circumradius(1, 1, 3)
+
+    def test_negative_side_raises(self):
+        with self.assertRaises(ValueError):
+            triangle_circumradius(-1, 2, 2)
 
 
 class TestParallelogram(unittest.TestCase):

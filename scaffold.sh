@@ -9655,6 +9655,8 @@ __all__: List[str] = [
     "sector_area",
     "arc_length",
     "ellipse_circumference",
+    "triangle_inradius",
+    "triangle_circumradius",
 ]
 
 
@@ -9889,6 +9891,39 @@ def triangle_heron_area(side_a: float, side_b: float, side_c: float) -> float:
         * (semi_perimeter - side_b)
         * (semi_perimeter - side_c)
     )
+
+
+def triangle_inradius(side_a: float, side_b: float, side_c: float) -> float:
+    """Return the inradius (radius of inscribed circle) of a triangle.
+
+    Args:
+        side_a: Length of the first side.
+        side_b: Length of the second side.
+        side_c: Length of the third side.
+
+    Raises:
+        ValueError: If any side is negative or the sides violate the triangle inequality.
+    """
+    area = triangle_heron_area(side_a, side_b, side_c)
+    perimeter = side_a + side_b + side_c
+    return (2 * area) / perimeter
+
+
+def triangle_circumradius(side_a: float, side_b: float, side_c: float) -> float:
+    """Return the circumradius (radius of circumscribed circle) of a triangle.
+
+    Args:
+        side_a: Length of the first side.
+        side_b: Length of the second side.
+        side_c: Length of the third side.
+
+    Raises:
+        ValueError: If any side is negative or the sides violate the triangle inequality.
+    """
+    area = triangle_heron_area(side_a, side_b, side_c)
+    if area == 0:
+        raise ValueError("Sides do not form a valid triangle.")
+    return (side_a * side_b * side_c) / (4 * area)
 
 
 def parallelogram_area(base: float, height: float) -> float:
@@ -10143,6 +10178,8 @@ from shapes import (
     trapezoid_area,
     triangle_area,
     triangle_heron_area,
+    triangle_inradius,
+    triangle_circumradius,
     triangle_perimeter,
 )
 
@@ -10274,6 +10311,38 @@ class TestTriangleHeron(unittest.TestCase):
     def test_negative_side(self):
         with self.assertRaises(ValueError):
             triangle_heron_area(-1, 4, 5)
+
+
+class TestTriangleInradius(unittest.TestCase):
+    def test_inradius(self):
+        self.assertAlmostEqual(triangle_inradius(3, 4, 5), 1.0)
+
+    def test_equilateral(self):
+        self.assertAlmostEqual(triangle_inradius(4, 4, 4), 2 * math.sqrt(3) / 3)
+
+    def test_invalid_triangle_raises(self):
+        with self.assertRaises(ValueError):
+            triangle_inradius(1, 1, 3)
+
+    def test_negative_side_raises(self):
+        with self.assertRaises(ValueError):
+            triangle_inradius(-1, 2, 2)
+
+
+class TestTriangleCircumradius(unittest.TestCase):
+    def test_circumradius(self):
+        self.assertAlmostEqual(triangle_circumradius(3, 4, 5), 2.5)
+
+    def test_equilateral(self):
+        self.assertAlmostEqual(triangle_circumradius(4, 4, 4), 4 / math.sqrt(3))
+
+    def test_invalid_triangle_raises(self):
+        with self.assertRaises(ValueError):
+            triangle_circumradius(1, 1, 3)
+
+    def test_negative_side_raises(self):
+        with self.assertRaises(ValueError):
+            triangle_circumradius(-1, 2, 2)
 
 
 class TestParallelogram(unittest.TestCase):
@@ -10531,6 +10600,9 @@ __all__: List[str] = [
     "is_upper",
     "is_lower",
     "is_alpha",
+    "is_alphanumeric",
+    "is_digit",
+    "is_integer",
     "swap_case",
     "count_occurrences",
     "starts_with",
@@ -10779,6 +10851,92 @@ def is_alpha(s: str) -> bool:
     if not s:
         return False
     return all(ch.isalpha() for ch in s)
+
+
+def is_alphanumeric(s: str) -> bool:
+    """Return True if all characters in the string are alphanumeric and at least one character.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_alphanumeric("hello123")
+        True
+        >>> is_alphanumeric("hello world")
+        False
+        >>> is_alphanumeric("123")
+        True
+        >>> is_alphanumeric("")
+        False
+        >>> is_alphanumeric("hello!")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch.isalnum() for ch in s)
+
+
+def is_digit(s: str) -> bool:
+    """Return True if all characters in the string are digits and at least one character.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_digit("123")
+        True
+        >>> is_digit("12.3")
+        False
+        >>> is_digit("-1")
+        False
+        >>> is_digit("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch.isdigit() for ch in s)
+
+
+def is_integer(s: str) -> bool:
+    """Return True if the string represents an integer (optionally with sign).
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_integer("123")
+        True
+        >>> is_integer("-123")
+        True
+        >>> is_integer("+123")
+        True
+        >>> is_integer("12.3")
+        False
+        >>> is_integer("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    s_stripped = s.strip()
+    if not s_stripped:
+        return False
+    if s_stripped[0] in ('+', '-'):
+        if len(s_stripped) == 1:
+            return False
+        return s_stripped[1:].isdigit()
+    return s_stripped.isdigit()
 
 
 def swap_case(s: str) -> str:
@@ -11886,6 +12044,9 @@ from strings import (
     count_vowels,
     ends_with,
     is_alpha,
+    is_alphanumeric,
+    is_digit,
+    is_integer,
     is_anagram,
     is_blank,
     is_lower,
@@ -12336,6 +12497,75 @@ class TestIsAlpha(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_alpha(123)  # type: ignore[arg-type]
+
+
+class TestIsAlphanumeric(unittest.TestCase):
+    def test_alphanumeric(self):
+        self.assertTrue(is_alphanumeric("hello123"))
+        self.assertTrue(is_alphanumeric("Hello"))
+        self.assertTrue(is_alphanumeric("123"))
+
+    def test_not_alphanumeric_with_space(self):
+        self.assertFalse(is_alphanumeric("hello world"))
+
+    def test_not_alphanumeric_with_symbol(self):
+        self.assertFalse(is_alphanumeric("hello!"))
+        self.assertFalse(is_alphanumeric("test_123"))
+
+    def test_not_alphanumeric_empty(self):
+        self.assertFalse(is_alphanumeric(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_alphanumeric(123)  # type: ignore[arg-type]
+
+
+class TestIsDigit(unittest.TestCase):
+    def test_digit(self):
+        self.assertTrue(is_digit("123"))
+        self.assertTrue(is_digit("0"))
+
+    def test_not_digit_with_sign(self):
+        self.assertFalse(is_digit("-1"))
+        self.assertFalse(is_digit("+1"))
+
+    def test_not_digit_with_decimal(self):
+        self.assertFalse(is_digit("12.3"))
+
+    def test_not_digit_with_letters(self):
+        self.assertFalse(is_digit("123a"))
+
+    def test_not_digit_empty(self):
+        self.assertFalse(is_digit(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_digit(123)  # type: ignore[arg-type]
+
+
+class TestIsInteger(unittest.TestCase):
+    def test_integer(self):
+        self.assertTrue(is_integer("123"))
+        self.assertTrue(is_integer("-123"))
+        self.assertTrue(is_integer("+123"))
+        self.assertTrue(is_integer("0"))
+
+    def test_not_integer_with_decimal(self):
+        self.assertFalse(is_integer("12.3"))
+
+    def test_not_integer_with_letters(self):
+        self.assertFalse(is_integer("123a"))
+
+    def test_not_integer_empty(self):
+        self.assertFalse(is_integer(""))
+
+    def test_not_integer_just_sign(self):
+        self.assertFalse(is_integer("-"))
+        self.assertFalse(is_integer("+"))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_integer(123)  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):
@@ -33959,6 +34189,9 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Added `is_prime` to `prime_utils.py` with input validation (`TypeError` for non-int arguments) and tests in `tests/test_prime_utils.py`; fixed the `is_coprime` docstring typo; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
 - Added `sort_versions` to `version_utils.py` with input validation (`TypeError` for non-list or non-string elements, `ValueError` for invalid version strings) and tests in `tests/test_version_utils.py`; synchronized the module, its tests, README, and CHANGELOG into `scaffold.sh`.
 - Hardened the `strings` module with `common_prefix` and `common_suffix` helpers, each with typed signatures, Google-style docstrings, `__all__` exports, and input validation raising `TypeError` for non-string arguments; added tests in `tests/test_strings.py`; synchronized the module, its tests, and this CHANGELOG into `scaffold.sh`.
+- Added `is_alphanumeric` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-string arguments; added tests in `tests/test_strings.py`; updated the `strings` module section in `README.md`; synchronized the module, its tests, README, and this CHANGELOG into `scaffold.sh`.
+- Added `is_digit` and `is_integer` to `strings.py` with typed signatures, `__all__` exports, Google-style docstrings, and input validation raising `TypeError` for non-string arguments; added tests in `tests/test_strings.py`; updated the `strings` module section in `README.md`; synchronized the module, its tests, README, and this CHANGELOG into `scaffold.sh`.
+- Added `triangle_inradius` and `triangle_circumradius` to `shapes.py` with typed signatures, `__all__` exports, Google-style docstrings, and input validation consistent with triangle helpers; added tests in `tests/test_shapes.py`; updated the `shapes` module section in `README.md`; synchronized the module, its tests, README, and this CHANGELOG into `scaffold.sh`.
 
 - Added `abc_utils.py` and `tests/test_abc_utils.py`.
 - Added `aifc_utils.py` and `tests/test_aifc_utils.py`.
@@ -34900,11 +35133,11 @@ The project includes a simple calculator module in `calculator.py` with function
 
 ## Shapes Module
 
-The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, triangles, and polygons. Circular sectors and arcs are supported via `sector_area` and `arc_length`, regular polygons via `regular_polygon_area` and `regular_polygon_perimeter`, and ellipses via `ellipse_area` and `ellipse_circumference`. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
+The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, triangles, and polygons. Circular sectors and arcs are supported via `sector_area` and `arc_length`, regular polygons via `regular_polygon_area` and `regular_polygon_perimeter`, and ellipses via `ellipse_area` and `ellipse_circumference`. `triangle_heron_area` computes area via Heron's formula, and `triangle_inradius` and `triangle_circumradius` return inradius and circumradius. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, and more. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_digit`, `is_integer`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, and more. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

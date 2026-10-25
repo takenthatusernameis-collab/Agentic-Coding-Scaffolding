@@ -29,6 +29,9 @@ __all__: List[str] = [
     "is_upper",
     "is_lower",
     "is_alpha",
+    "is_alphanumeric",
+    "is_digit",
+    "is_integer",
     "swap_case",
     "count_occurrences",
     "starts_with",
@@ -277,6 +280,92 @@ def is_alpha(s: str) -> bool:
     if not s:
         return False
     return all(ch.isalpha() for ch in s)
+
+
+def is_alphanumeric(s: str) -> bool:
+    """Return True if all characters in the string are alphanumeric and at least one character.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_alphanumeric("hello123")
+        True
+        >>> is_alphanumeric("hello world")
+        False
+        >>> is_alphanumeric("123")
+        True
+        >>> is_alphanumeric("")
+        False
+        >>> is_alphanumeric("hello!")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch.isalnum() for ch in s)
+
+
+def is_digit(s: str) -> bool:
+    """Return True if all characters in the string are digits and at least one character.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_digit("123")
+        True
+        >>> is_digit("12.3")
+        False
+        >>> is_digit("-1")
+        False
+        >>> is_digit("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch.isdigit() for ch in s)
+
+
+def is_integer(s: str) -> bool:
+    """Return True if the string represents an integer (optionally with sign).
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_integer("123")
+        True
+        >>> is_integer("-123")
+        True
+        >>> is_integer("+123")
+        True
+        >>> is_integer("12.3")
+        False
+        >>> is_integer("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    s_stripped = s.strip()
+    if not s_stripped:
+        return False
+    if s_stripped[0] in ('+', '-'):
+        if len(s_stripped) == 1:
+            return False
+        return s_stripped[1:].isdigit()
+    return s_stripped.isdigit()
 
 
 def swap_case(s: str) -> str:
