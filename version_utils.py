@@ -94,33 +94,79 @@ def tuple_to_version(version_tuple: Tuple[int, ...]) -> str:
 
 
 def bump_major(version: str) -> str:
-    """Bump the major version component."""
+    """Bump the major version component.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The version string with the major component incremented.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
     parts = list(parse_version(version))
-    parts[0] = parts[0] + 1 if parts else 1
+    if not parts:
+        return "1"
+    parts[0] = parts[0] + 1
     for i in range(1, len(parts)):
         parts[i] = 0
     return ".".join(str(p) for p in parts)
 
 
 def bump_minor(version: str) -> str:
-    """Bump the minor version component."""
+    """Bump the minor version component.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The version string with the minor component incremented.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
     parts = list(parse_version(version))
-    if len(parts) == 0:
+    if not parts:
         return "0.1"
-    parts[1] = (parts[1] if len(parts) > 1 else 0) + 1
-    for i in range(2, len(parts)):
-        parts[i] = 0
     if len(parts) == 1:
         parts.append(1)
+    else:
+        parts[1] = parts[1] + 1
+        for i in range(2, len(parts)):
+            parts[i] = 0
     return ".".join(str(p) for p in parts)
 
 
 def bump_patch(version: str) -> str:
-    """Bump the patch version component."""
+    """Bump the patch version component.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The version string with the patch component incremented.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
     parts = list(parse_version(version))
-    if len(parts) == 0:
+    if not parts:
         return "0.0.1"
     idx = 2 if len(parts) > 2 else len(parts) - 1
+    if len(parts) < 3:
+        while len(parts) < 3:
+            parts.append(0)
+        idx = 2
     parts[idx] = parts[idx] + 1
     return ".".join(str(p) for p in parts)
 
