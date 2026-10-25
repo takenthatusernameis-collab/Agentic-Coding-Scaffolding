@@ -106303,6 +106303,57 @@ def test_decode_entity() -> None:
     assert unescape_entity("copy") is not None
 TEST_HTML_ENTITIES_UTILS
 
+# --- ossaudiodev_utils.py ---
+cat > "$OUTPUT_DIR/ossaudiodev_utils.py" <<'OSSAUDIODEV_UTILS'
+"""Utilities for OSS audio device access (wrapping :mod:`ossaudiodev`)."""
+
+import ossaudiodev as _ossaudiodev
+
+
+def open(*args, **kwargs):
+    return _ossaudiodev.open(*args, **kwargs)
+
+
+def openmixer(*args, **kwargs):
+    return _ossaudiodev.openmixer(*args, **kwargs)
+
+
+OSSAudioError = _ossaudiodev.OSSAudioError
+error = _ossaudiodev.error
+AFMT_S16_LE = _ossaudiodev.AFMT_S16_LE
+SOUND_MIXER_PCM = _ossaudiodev.SOUND_MIXER_PCM
+OSSAUDIODEV_UTILS
+
+# --- tests/test_ossaudiodev_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_ossaudiodev_utils.py" <<'TEST_OSSAUDIODEV_UTILS'
+import ossaudiodev
+import unittest
+
+from ossaudiodev_utils import AFMT_S16_LE, OSSAudioError, SOUND_MIXER_PCM, error, open as _open, openmixer
+
+
+class TestOssaudiodevUtils(unittest.TestCase):
+    def test_error_alias(self):
+        self.assertIs(OSSAudioError, ossaudiodev.OSSAudioError)
+        self.assertIs(error, ossaudiodev.error)
+
+    def test_open_callable(self):
+        self.assertTrue(callable(_open))
+
+    def test_openmixer_callable(self):
+        self.assertTrue(callable(openmixer))
+
+    def test_constants(self):
+        self.assertIsInstance(AFMT_S16_LE, int)
+        self.assertIsInstance(SOUND_MIXER_PCM, int)
+        self.assertEqual(AFMT_S16_LE, ossaudiodev.AFMT_S16_LE)
+        self.assertEqual(SOUND_MIXER_PCM, ossaudiodev.SOUND_MIXER_PCM)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_OSSAUDIODEV_UTILS
+
 
 
 # --- substitute the project name in the templated documents ---
