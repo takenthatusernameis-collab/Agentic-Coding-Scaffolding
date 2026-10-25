@@ -12890,7 +12890,7 @@ class TestInterquartileRange(unittest.TestCase):
         from stats import interquartile_range, iqr
 
         data = [1, 2, 3, 4, 5, 6]
-        self.assertAlmostEqual(interquartile_range(data), iqr(data))
+        self.assertAlmostEqual(interquartile_range(data), iqr(data))  # type: ignore[arg-type]
 
 
 class TestWeightedMean(unittest.TestCase):
@@ -12924,9 +12924,9 @@ class TestWeightedMean(unittest.TestCase):
         from stats import weighted_mean
 
         with self.assertRaises(TypeError):
-            weighted_mean([1, "a"], [1, 1])  # type: ignore[type-var]
+            weighted_mean([1, "a"], [1, 1])  # type: ignore[type-var,misc]
         with self.assertRaises(TypeError):
-            weighted_mean([1, 2], [1, "a"])  # type: ignore[type-var]
+            weighted_mean([1, 2], [1, "a"])  # type: ignore[type-var,misc]
 
     def test_rejects_bool(self) -> None:
         from stats import weighted_mean
@@ -57350,7 +57350,15 @@ cat > "$OUTPUT_DIR/tests/test_prime_utils.py" <<'TEST_PRIME_UTILS'
 
 import unittest
 
-from prime_utils import is_coprime, is_prime, next_prime, nth_prime, prev_prime, prime_factors, primes_up_to
+from prime_utils import (
+    is_coprime,
+    is_prime,
+    next_prime,
+    nth_prime,
+    prev_prime,
+    prime_factors,
+    primes_up_to,
+)
 
 
 class TestPrimesUpTo(unittest.TestCase):
@@ -106612,7 +106620,8 @@ cat > "$OUTPUT_DIR/tests/test_ossaudiodev_utils.py" <<'TEST_OSSAUDIODEV_UTILS'
 import ossaudiodev
 import unittest
 
-from ossaudiodev_utils import AFMT_S16_LE, OSSAudioError, SOUND_MIXER_PCM, error, open as _open, openmixer
+from ossaudiodev_utils import AFMT_S16_LE, SOUND_MIXER_PCM, OSSAudioError, error, openmixer
+from ossaudiodev_utils import open as _open
 
 
 class TestOssaudiodevUtils(unittest.TestCase):

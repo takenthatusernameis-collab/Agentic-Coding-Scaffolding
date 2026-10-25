@@ -2,7 +2,15 @@
 
 import unittest
 
-from prime_utils import is_coprime, is_prime, next_prime, nth_prime, prev_prime, prime_factors, primes_up_to
+from prime_utils import (
+    is_coprime,
+    is_prime,
+    next_prime,
+    nth_prime,
+    prev_prime,
+    prime_factors,
+    primes_up_to,
+)
 
 
 class TestPrimesUpTo(unittest.TestCase):

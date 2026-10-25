@@ -216,7 +216,7 @@ class TestInterquartileRange(unittest.TestCase):
         from stats import interquartile_range, iqr
 
         data = [1, 2, 3, 4, 5, 6]
-        self.assertAlmostEqual(interquartile_range(data), iqr(data))
+        self.assertAlmostEqual(interquartile_range(data), iqr(data))  # type: ignore[arg-type]
 
 
 class TestWeightedMean(unittest.TestCase):
@@ -250,9 +250,9 @@ class TestWeightedMean(unittest.TestCase):
         from stats import weighted_mean
 
         with self.assertRaises(TypeError):
-            weighted_mean([1, "a"], [1, 1])  # type: ignore[type-var]
+            weighted_mean([1, "a"], [1, 1])  # type: ignore[type-var,misc]
         with self.assertRaises(TypeError):
-            weighted_mean([1, 2], [1, "a"])  # type: ignore[type-var]
+            weighted_mean([1, 2], [1, "a"])  # type: ignore[type-var,misc]
 
     def test_rejects_bool(self) -> None:
         from stats import weighted_mean

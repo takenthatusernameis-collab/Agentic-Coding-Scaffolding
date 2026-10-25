@@ -1,7 +1,8 @@
 import ossaudiodev
 import unittest
 
-from ossaudiodev_utils import AFMT_S16_LE, OSSAudioError, SOUND_MIXER_PCM, error, open as _open, openmixer
+from ossaudiodev_utils import AFMT_S16_LE, SOUND_MIXER_PCM, OSSAudioError, error, openmixer
+from ossaudiodev_utils import open as _open
 
 
 class TestOssaudiodevUtils(unittest.TestCase):
