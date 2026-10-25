@@ -32025,8 +32025,12 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_inspect_utils.py` — unit tests for `inspect_utils.py`
 - `tests/test_http_utils.py` — unit tests for `http_utils.py`
 - `html_utils.py` — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
+- `html_entities_utils.py` — HTML entities utilities wrapping the standard library `html.entities` module (`name2codepoint`, `codepoint2name`, `entitydefs`, `html5`, `name_to_codepoint`, `get_entity_by_name`, `codepoint_to_name`, `decode_entity`, `unescape_entity`)
+- `html_parser_utils.py` — HTML parser utilities wrapping the standard library `html.parser` module (`HTMLParser`, `parse_html`, `strip_tags`)
 - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) that emit a `DeprecationWarning` on each invocation, with optional `version`, `replacement`, and custom `message`
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
+- `tests/test_html_entities_utils.py` — unit tests for `html_entities_utils.py`
+- `tests/test_html_parser_utils.py` — unit tests for `html_parser_utils.py`
 - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
 - `bytes_utils.py` — bytes and binary utilities (`to_hex`, `from_hex`, `xor`, `chunk`)
 - `tests/test_bytes_utils.py` — unit tests for `bytes_utils.py`
