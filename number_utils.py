@@ -13,6 +13,7 @@ __all__: List[str] = [
     "format_number",
     "percentage",
     "lerp",
+    "sign",
 ]
 
 
@@ -150,3 +151,23 @@ def lerp(start: Number, stop: Number, t: Number) -> float:
     _require_number(stop, "stop")
     _require_number(t, "t")
     return start + (stop - start) * t
+
+
+def sign(value: Number) -> int:
+    """Return the sign of a number: -1, 0, or 1.
+
+    Args:
+        value: The number whose sign is requested.
+
+    Returns:
+        -1 if *value* is negative, 1 if positive, 0 if zero.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if value < 0:
+        return -1
+    if value > 0:
+        return 1
+    return 0

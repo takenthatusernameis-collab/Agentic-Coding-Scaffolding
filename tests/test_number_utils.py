@@ -63,3 +63,25 @@ class TestLerp(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             lerp("a", 10, 0.5)  # type: ignore[arg-type]
+
+
+class TestSign:
+    def test_negative(self):
+        from number_utils import sign
+        assert sign(-5) == -1
+
+    def test_zero(self):
+        from number_utils import sign
+        assert sign(0) == 0
+
+    def test_positive(self):
+        from number_utils import sign
+        assert sign(3.5) == 1
+
+    def test_non_number_raises(self):
+        import pytest
+
+        from number_utils import sign
+
+        with pytest.raises(TypeError):
+            sign("x")
