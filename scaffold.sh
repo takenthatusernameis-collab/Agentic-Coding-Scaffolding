@@ -10845,14 +10845,13 @@ __all__: List[str] = [
     "is_ascii",
     "is_whitespace",
     "is_space",
-    "is_alpha",
+"is_alpha",
     "is_alphanumeric",
     "is_digit",
+    "is_hex",
     "is_integer",
     "is_printable",
     "is_identifier",
-    "is_whitespace",
-    "is_space",
     "is_whitespace",
     "is_space",
     "swap_case",
@@ -11235,6 +11234,34 @@ def is_digit(s: str) -> bool:
     if not s:
         return False
     return all(ch.isdigit() for ch in s)
+
+
+def is_hex(s: str) -> bool:
+    """Return True if all characters in the string are hexadecimal digits.
+
+    A hexadecimal digit is one of 0-9, a-f, or A-F. The string must be
+    non-empty.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_hex("1a2f")
+        True
+        >>> is_hex("1A2F")
+        True
+        >>> is_hex("1g3")
+        False
+        >>> is_hex("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch in "0123456789abcdefABCDEF" for ch in s)
 
 
 def is_integer(s: str) -> bool:
@@ -12591,6 +12618,7 @@ from strings import (
     is_ascii,
     is_blank,
     is_digit,
+    is_hex,
     is_identifier,
     is_integer,
     is_lower,
@@ -13088,6 +13116,44 @@ class TestIsDigit(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_digit(123)  # type: ignore[arg-type]
+
+
+class TestIsHex(unittest.TestCase):
+    def test_hex_lowercase(self):
+        self.assertTrue(is_hex("1a2f"))
+        self.assertTrue(is_hex("deadbeef"))
+
+    def test_hex_uppercase(self):
+        self.assertTrue(is_hex("1A2F"))
+        self.assertTrue(is_hex("DEADBEEF"))
+
+    def test_hex_mixed_case(self):
+        self.assertTrue(is_hex("DeAdBeEf"))
+        self.assertTrue(is_hex("0123456789AbCdEf"))
+
+    def test_hex_digits_only(self):
+        self.assertTrue(is_hex("0"))
+        self.assertTrue(is_hex("000"))
+        self.assertTrue(is_hex("ff"))
+
+    def test_not_hex_with_invalid_char(self):
+        self.assertFalse(is_hex("1g3"))
+        self.assertFalse(is_hex("xyz"))
+        self.assertFalse(is_hex("hello"))
+
+    def test_not_hex_with_sign(self):
+        self.assertFalse(is_hex("-1a"))
+        self.assertFalse(is_hex("+1a"))
+
+    def test_not_hex_with_decimal(self):
+        self.assertFalse(is_hex("1.2f"))
+
+    def test_not_hex_empty(self):
+        self.assertFalse(is_hex(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_hex(123)  # type: ignore[arg-type]
 
 
 class TestIsInteger(unittest.TestCase):
@@ -32846,7 +32912,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
 - `shapes.py` — geometry utilities for areas, perimeters, and surface/volume of common 2D and 3D shapes
-- `strings.py` — string utilities for text operations: reverse, case conversion, validation helpers (including `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_ascii`), and slicing/formatting utilities
+- `strings.py` — string utilities for text operations: reverse, case conversion, validation helpers (including `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_ascii`, `is_hex`), and slicing/formatting utilities
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
@@ -34917,6 +34983,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `is_hex(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* is non-empty and every character is a hexadecimal digit (0-9, a-f, A-F), `False` otherwise (including for the empty string). It is a companion to `is_digit` and `is_integer`. Added `TestIsHex` to `tests/test_strings.py`. Cleaned up duplicate entries in the `strings` `__all__` list. Updated `README.md` and `.kilo/command/scaffold-project.md`. Synchronized `strings.py`, `tests/test_strings.py`, README, the command doc, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `is_whitespace`, `is_space`, `is_printable`, and `is_identifier` to `strings.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-string arguments. `is_whitespace`/`is_space` return `False` for empty strings; `is_printable` returns `False` for whitespace/control characters; `is_identifier` uses `str.isidentifier()`. Added corresponding tests in `tests/test_strings.py`. Updated `README.md` and `.kilo/command/scaffold-project.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `.kilo/command/scaffold-project.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `skewness(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it returns the population skewness of a list of numbers, raising `ValueError` for fewer than 3 elements or a zero standard deviation. Added `TestSkewness` to `tests/test_stats.py` covering symmetric, positively skewed, and invalid-input cases. Updated the `stats` module section of `README.md` to list the new helper. Synchronized `stats.py`, `tests/test_stats.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -35908,7 +35976,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

@@ -19,6 +19,7 @@ from strings import (
     is_ascii,
     is_blank,
     is_digit,
+    is_hex,
     is_identifier,
     is_integer,
     is_lower,
@@ -516,6 +517,44 @@ class TestIsDigit(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_digit(123)  # type: ignore[arg-type]
+
+
+class TestIsHex(unittest.TestCase):
+    def test_hex_lowercase(self):
+        self.assertTrue(is_hex("1a2f"))
+        self.assertTrue(is_hex("deadbeef"))
+
+    def test_hex_uppercase(self):
+        self.assertTrue(is_hex("1A2F"))
+        self.assertTrue(is_hex("DEADBEEF"))
+
+    def test_hex_mixed_case(self):
+        self.assertTrue(is_hex("DeAdBeEf"))
+        self.assertTrue(is_hex("0123456789AbCdEf"))
+
+    def test_hex_digits_only(self):
+        self.assertTrue(is_hex("0"))
+        self.assertTrue(is_hex("000"))
+        self.assertTrue(is_hex("ff"))
+
+    def test_not_hex_with_invalid_char(self):
+        self.assertFalse(is_hex("1g3"))
+        self.assertFalse(is_hex("xyz"))
+        self.assertFalse(is_hex("hello"))
+
+    def test_not_hex_with_sign(self):
+        self.assertFalse(is_hex("-1a"))
+        self.assertFalse(is_hex("+1a"))
+
+    def test_not_hex_with_decimal(self):
+        self.assertFalse(is_hex("1.2f"))
+
+    def test_not_hex_empty(self):
+        self.assertFalse(is_hex(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_hex(123)  # type: ignore[arg-type]
 
 
 class TestIsInteger(unittest.TestCase):

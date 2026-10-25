@@ -31,14 +31,13 @@ __all__: List[str] = [
     "is_ascii",
     "is_whitespace",
     "is_space",
-    "is_alpha",
+"is_alpha",
     "is_alphanumeric",
     "is_digit",
+    "is_hex",
     "is_integer",
     "is_printable",
     "is_identifier",
-    "is_whitespace",
-    "is_space",
     "is_whitespace",
     "is_space",
     "swap_case",
@@ -421,6 +420,34 @@ def is_digit(s: str) -> bool:
     if not s:
         return False
     return all(ch.isdigit() for ch in s)
+
+
+def is_hex(s: str) -> bool:
+    """Return True if all characters in the string are hexadecimal digits.
+
+    A hexadecimal digit is one of 0-9, a-f, or A-F. The string must be
+    non-empty.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_hex("1a2f")
+        True
+        >>> is_hex("1A2F")
+        True
+        >>> is_hex("1g3")
+        False
+        >>> is_hex("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch in "0123456789abcdefABCDEF" for ch in s)
 
 
 def is_integer(s: str) -> bool:

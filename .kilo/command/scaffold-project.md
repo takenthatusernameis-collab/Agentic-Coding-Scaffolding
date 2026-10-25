@@ -115,7 +115,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
 - `shapes.py` — geometry utilities for areas, perimeters, and surface/volume of common 2D and 3D shapes
-- `strings.py` — string utilities for text operations: reverse, case conversion, validation helpers (including `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_ascii`), and slicing/formatting utilities
+- `strings.py` — string utilities for text operations: reverse, case conversion, validation helpers (including `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_ascii`, `is_hex`), and slicing/formatting utilities
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
