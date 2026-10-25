@@ -2,7 +2,17 @@
 
 import unittest
 
-from number_utils import clamp, format_number, is_integer, lerp, percentage, round_to
+from number_utils import (
+    clamp,
+    format_number,
+    is_integer,
+    is_negative,
+    is_positive,
+    is_zero,
+    lerp,
+    percentage,
+    round_to,
+)
 
 
 class TestClamp(unittest.TestCase):
@@ -85,3 +95,54 @@ class TestSign:
 
         with pytest.raises(TypeError):
             sign("x")
+
+
+class TestIsNegative(unittest.TestCase):
+    def test_negative(self) -> None:
+        self.assertTrue(is_negative(-5))
+        self.assertTrue(is_negative(-0.5))
+
+    def test_zero(self) -> None:
+        self.assertFalse(is_negative(0))
+        self.assertFalse(is_negative(0.0))
+
+    def test_positive(self) -> None:
+        self.assertFalse(is_negative(5))
+        self.assertFalse(is_negative(0.5))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_negative("x")  # type: ignore[arg-type]
+
+
+class TestIsPositive(unittest.TestCase):
+    def test_positive(self) -> None:
+        self.assertTrue(is_positive(5))
+        self.assertTrue(is_positive(0.5))
+
+    def test_zero(self) -> None:
+        self.assertFalse(is_positive(0))
+        self.assertFalse(is_positive(0.0))
+
+    def test_negative(self) -> None:
+        self.assertFalse(is_positive(-5))
+        self.assertFalse(is_positive(-0.5))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_positive("x")  # type: ignore[arg-type]
+
+
+class TestIsZero(unittest.TestCase):
+    def test_zero(self) -> None:
+        self.assertTrue(is_zero(0))
+        self.assertTrue(is_zero(0.0))
+
+    def test_non_zero(self) -> None:
+        self.assertFalse(is_zero(5))
+        self.assertFalse(is_zero(-5))
+        self.assertFalse(is_zero(0.5))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_zero("x")  # type: ignore[arg-type]

@@ -16,6 +16,9 @@ __all__: List[str] = [
     "sign",
     "is_even",
     "is_odd",
+    "is_negative",
+    "is_positive",
+    "is_zero",
 ]
 
 
@@ -205,3 +208,51 @@ def is_odd(value: Number) -> bool:
     """
     _require_number(value, "value")
     return int(value) == value and int(value) % 2 != 0
+
+
+def is_negative(value: Number) -> bool:
+    """Return True if *value* is less than zero.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is negative.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    return value < 0
+
+
+def is_positive(value: Number) -> bool:
+    """Return True if *value* is greater than zero.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is positive.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    return value > 0
+
+
+def is_zero(value: Number) -> bool:
+    """Return True if *value* equals zero.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is zero.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    return value == 0

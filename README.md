@@ -121,7 +121,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage)
+number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -1038,7 +1038,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, and `percentage` returns a part as a percentage of a total formatted as a string. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, and `is_zero` test integer-valued, parity, and sign properties. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
