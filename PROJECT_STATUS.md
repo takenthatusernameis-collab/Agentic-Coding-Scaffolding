@@ -1,3 +1,21 @@
+## Latest Session (2026-10-25) — added is_palindromic_number to number_utils and 3D shape helpers to shapes
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_palindromic_number(value)` to `number_utils.py` with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation for non-number arguments (rejecting `bool`). Returns `True` for non-negative integers whose decimal representation is a palindrome; returns `False` for floats/non-integers and negative integers. Added tests in `tests/test_number_utils.py`.
+- Added 3D shape helpers to `shapes.py`: `sphere_surface_area`/`sphere_volume`, `cube_surface_area`/`cube_volume`, `cylinder_surface_area`/`cylinder_volume`, `cone_surface_area`/`cone_volume` with typed APIs, `__all__` exports, validation (raising `TypeError` for non-numbers including `bool`, `ValueError` for negatives), and tests in `tests/test_shapes.py`.
+- Updated `README.md` and `.kilo/command/scaffold-project.md` to document the new helpers; recorded changes in `CHANGELOG.md`.
+- Synchronized all modified files and docs into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` passes (5512 tests, 2 skipped), `make lint` is clean, `make typecheck` reports no issues in 544 source files.
+
+Next Planned:
+
+- Harden `strings.py` and `case_utils.py`: review for missing edge cases or ergonomic helpers that fit the existing API style. Add minimal, hermetic helpers with tests in `tests/test_*.py`. Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh`, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-25) — added is_non_negative and is_non_positive to number_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5439 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and `python tools/refresh_scaffold.py --check` reported one stale copy (number_utils.py) left by an interrupted checkpoint commit that added `is_non_negative`/`is_non_positive` to `__all__` without defining them.
