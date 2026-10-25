@@ -19,6 +19,7 @@ from number_utils import (
     lerp,
     percentage,
     round_to,
+    safe_divide,
 )
 
 
@@ -273,3 +274,15 @@ class TestIsNan(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_nan("nan")  # type: ignore[arg-type]
+
+
+class TestSafeDivide(unittest.TestCase):
+    def test_normal(self) -> None:
+        self.assertEqual(safe_divide(10, 2), 5.0)
+
+    def test_zero_denominator(self) -> None:
+        self.assertEqual(safe_divide(10, 0), 0.0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            safe_divide("a", 2)  # type: ignore[arg-type]

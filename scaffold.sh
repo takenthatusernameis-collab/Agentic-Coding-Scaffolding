@@ -53876,6 +53876,7 @@ __all__: List[str] = [
     "is_finite",
     "is_infinite",
     "is_nan",
+    "safe_divide",
 ]
 
 
@@ -54199,6 +54200,26 @@ def is_nan(value: Number) -> bool:
     if isinstance(value, float):
         return math.isnan(value)
     return False
+
+
+def safe_divide(numerator: Number, denominator: Number) -> float:
+    """Divide numerator by denominator, returning 0.0 when denominator is zero.
+
+    Args:
+        numerator: The dividend.
+        denominator: The divisor.
+
+    Returns:
+        The quotient, or 0.0 if *denominator* is zero.
+
+    Raises:
+        TypeError: If either argument is not a number.
+    """
+    _require_number(numerator, "numerator")
+    _require_number(denominator, "denominator")
+    if denominator == 0:
+        return 0.0
+    return numerator / denominator
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -54224,6 +54245,7 @@ from number_utils import (
     lerp,
     percentage,
     round_to,
+    safe_divide,
 )
 
 
@@ -54478,6 +54500,18 @@ class TestIsNan(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_nan("nan")  # type: ignore[arg-type]
+
+
+class TestSafeDivide(unittest.TestCase):
+    def test_normal(self) -> None:
+        self.assertEqual(safe_divide(10, 2), 5.0)
+
+    def test_zero_denominator(self) -> None:
+        self.assertEqual(safe_divide(10, 0), 0.0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            safe_divide("a", 2)  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---

@@ -25,6 +25,7 @@ __all__: List[str] = [
     "is_finite",
     "is_infinite",
     "is_nan",
+    "safe_divide",
 ]
 
 
@@ -348,3 +349,23 @@ def is_nan(value: Number) -> bool:
     if isinstance(value, float):
         return math.isnan(value)
     return False
+
+
+def safe_divide(numerator: Number, denominator: Number) -> float:
+    """Divide numerator by denominator, returning 0.0 when denominator is zero.
+
+    Args:
+        numerator: The dividend.
+        denominator: The divisor.
+
+    Returns:
+        The quotient, or 0.0 if *denominator* is zero.
+
+    Raises:
+        TypeError: If either argument is not a number.
+    """
+    _require_number(numerator, "numerator")
+    _require_number(denominator, "denominator")
+    if denominator == 0:
+        return 0.0
+    return numerator / denominator
