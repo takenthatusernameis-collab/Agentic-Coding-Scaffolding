@@ -20,6 +20,7 @@ __all__: List[str] = [
     "is_squarefree",
     "is_prime_power",
     "is_emirp",
+    "is_twin_prime",
 ]
 
 
@@ -434,3 +435,25 @@ def is_emirp(n: int) -> bool:
     if r < 2:
         return False
     return is_prime(r)
+
+
+def is_twin_prime(n: int) -> bool:
+    """Return True if *n* is a twin prime.
+
+    A twin prime is a prime number that is either 2 less or 2 more than
+    another prime number. This function returns True if *n* is prime and
+    either n+2 or n-2 is also prime.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a twin prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    return is_prime(n - 2) or is_prime(n + 2)
