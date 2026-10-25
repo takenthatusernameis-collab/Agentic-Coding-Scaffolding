@@ -18,6 +18,8 @@ __all__: List[str] = [
     "is_power_of_two",
     "is_semiprime",
     "is_squarefree",
+    "is_prime_power",
+    "is_emirp",
 ]
 
 
@@ -398,3 +400,37 @@ def is_prime_power(n: int) -> bool:
             if pow_val > n:
                 break
     return False
+
+
+def is_emirp(n: int) -> bool:
+    """Return True if *n* is an emirp.
+
+    An emirp (a prime spelled backwards) is a prime number that results
+    in a different prime when its decimal digits are reversed. In other
+    words, *n* is prime, its reverse *r* is prime, and *n != r*.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is an emirp, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    if n < 10:
+        return False
+    s = str(abs(n))
+    r_s = s[::-1]
+    if r_s == s:
+        return False
+    try:
+        r = int(r_s)
+    except ValueError:
+        return False
+    if r < 2:
+        return False
+    return is_prime(r)
