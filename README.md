@@ -225,6 +225,7 @@ circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreake
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
+case_utils.py             # Case conversion utilities (kebab, pascal, constant case) with input validation
 trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
@@ -313,6 +314,7 @@ tests/                     # Python unit tests
   test_base64_utils.py        # Tests for base64_utils.py
   test_binascii_utils.py      # Tests for binascii_utils.py
   test_bisect_utils.py       # Tests for bisect_utils.py
+  test_case_utils.py         # Tests for case_utils.py
   test_trace_utils.py        # Tests for trace_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
   test_bytes_utils.py         # Tests for bytes_utils.py
@@ -1000,6 +1002,10 @@ The project includes binary-to-ASCII encoding and decoding utilities in `binasci
 ## Bisect Utilities Module
 
 The project includes bisect utility functions in `bisect_utils.py` for binary search on sorted sequences, wrapping the standard library `bisect` module: `bisect_left` and `bisect_right` return the insertion point to the left or right of existing entries, `insort_left` and `insort_right` insert elements while maintaining sort order, and `find_leftmost` / `find_rightmost` return the index of the first or last occurrence of a value (or `None` when absent). All functions accept an optional `lo`/`hi` range and validate their inputs. The module is tested in `tests/test_bisect_utils.py`.
+
+## Case Conversion Utilities Module
+
+The project includes case conversion utilities in `case_utils.py`: `kebab_case` converts text to kebab-case, `pascal_case` converts text to PascalCase, and `constant_case` converts text to CONSTANT_CASE. Words are split on whitespace, separators, and case transitions such as camelCase and PascalCase boundaries. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_case_utils.py`.
 
 ## Binary Struct Utilities Module
 

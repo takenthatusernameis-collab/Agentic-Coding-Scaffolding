@@ -300,6 +300,7 @@
 
 #   - array_utils.py — # Array utility functions wrapping the standard library array module
 #   - bisect_utils.py — # Bisect utility functions for binary search on sorted sequences
+#   - case_utils.py — # Case conversion utilities (kebab, pascal, constant case) with input validation
 #   - trace_utils.py — # Execution tracing utilities wrapping the standard library trace module (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 #   - profile_utils.py — # Profiling utilities wrapping the standard library profile module (Profile, run, runctx, new_profiler)
 #   - pstats_utils.py — # Profiling statistics utilities wrapping the standard library pstats module (Stats, SortKey, new_stats, load_stats, add_stats, print_stats, sort_stats, strip_dirs, reverse_order, dump_stats)
@@ -416,6 +417,7 @@
 #   - test_base64_utils.py — # Tests for base64_utils.py
 
 #   - test_bisect_utils.py — # Tests for bisect_utils.py
+#   - test_case_utils.py — # Tests for case_utils.py
 
 #   - test_bit_utils.py — # Tests for bit_utils.py
 
@@ -4492,6 +4494,7 @@ py_modules = [
     "base64_utils",
     "binascii_utils",
     "bisect_utils",
+    "case_utils",
     "trace_utils",
     "profile_utils",
     "pstats_utils",
@@ -32156,6 +32159,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
 - `bisect_utils.py` — bisect utility functions for binary search on sorted sequences (`bisect_left`, `bisect_right`, `insort_left`, `insort_right`, `find_leftmost`, `find_rightmost`)
 - `tests/test_bisect_utils.py` — unit tests for `bisect_utils.py`
+- `case_utils.py` — case conversion utilities (`kebab_case`, `pascal_case`, `constant_case`) that split text on whitespace, separators, and case transitions, with input validation
+- `tests/test_case_utils.py` — unit tests for `case_utils.py`
 - \`calendar_utils.py\` — calendar utilities (\`is_leap_year\`, \`days_in_month\`, \`first_day_of_month\`, \`month_name\`, \`day_name\`, \`month_calendar\`, \`weekdays_in_month\`, \`weekend_days_in_month\`, \`is_weekend\`, \`add_months\`)
 - \`tests/test_calendar_utils.py\` — unit tests for \`calendar_utils.py\`
 - \`cmath_utils.py\` — complex mathematics utilities wrapping the standard library \`cmath\` module (\`phase\`, \`polar\`, \`rect\`, \`exp\`, \`log\`, \`log10\`, \`sqrt\`, \`sin\`, \`cos\`, \`tan\`, \`asin\`, \`acos\`, \`atan\`, \`sinh\`, \`cosh\`, \`tanh\`, \`asinh\`, \`acosh\`, \`atanh\`, \`isfinite\`, \`isinf\`, \`isnan\`, \`isclose\`)
@@ -33919,6 +33924,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## case_utils
+
+- Add `case_utils.py` with `kebab_case`, `pascal_case`, and `constant_case` helpers that split text on whitespace, separators, and case transitions, each with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-string arguments, plus unit tests in `tests/test_case_utils.py`.
+- Synchronized `case_utils.py` and `tests/test_case_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, and this CHANGELOG.
+
 ## backoff_utils
 
 - Add `backoff_utils.py` wrapping backoff utilities with `constant_backoff` and `exponential_backoff` helpers, input validation, and typed signatures, plus unit tests in `tests/test_backoff_utils.py`.
@@ -34458,6 +34468,7 @@ circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreake
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
+case_utils.py             # Case conversion utilities (kebab, pascal, constant case) with input validation
 trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
@@ -34546,6 +34557,7 @@ tests/                     # Python unit tests
   test_base64_utils.py        # Tests for base64_utils.py
   test_binascii_utils.py      # Tests for binascii_utils.py
   test_bisect_utils.py       # Tests for bisect_utils.py
+  test_case_utils.py         # Tests for case_utils.py
   test_trace_utils.py        # Tests for trace_utils.py
   test_bit_utils.py           # Tests for bit_utils.py
   test_bytes_utils.py         # Tests for bytes_utils.py
@@ -35233,6 +35245,10 @@ The project includes binary-to-ASCII encoding and decoding utilities in `binasci
 ## Bisect Utilities Module
 
 The project includes bisect utility functions in `bisect_utils.py` for binary search on sorted sequences, wrapping the standard library `bisect` module: `bisect_left` and `bisect_right` return the insertion point to the left or right of existing entries, `insort_left` and `insort_right` insert elements while maintaining sort order, and `find_leftmost` / `find_rightmost` return the index of the first or last occurrence of a value (or `None` when absent). All functions accept an optional `lo`/`hi` range and validate their inputs. The module is tested in `tests/test_bisect_utils.py`.
+
+## Case Conversion Utilities Module
+
+The project includes case conversion utilities in `case_utils.py`: `kebab_case` converts text to kebab-case, `pascal_case` converts text to PascalCase, and `constant_case` converts text to CONSTANT_CASE. Words are split on whitespace, separators, and case transitions such as camelCase and PascalCase boundaries. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_case_utils.py`.
 
 ## Binary Struct Utilities Module
 
@@ -106645,6 +106661,209 @@ class TestOssaudiodevUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_OSSAUDIODEV_UTILS
+
+# --- case_utils.py ---
+cat > "$OUTPUT_DIR/case_utils.py" <<'CASE_UTILS'
+"""Case conversion utilities."""
+
+from __future__ import annotations
+
+import re
+from typing import List
+
+__all__: List[str] = [
+    "kebab_case",
+    "pascal_case",
+    "constant_case",
+]
+
+
+def _require_string(value: str, name: str) -> str:
+    """Validate that *value* is a string, raising ``TypeError`` otherwise.
+
+    Args:
+        value: The value to validate.
+        name: The argument name used in error messages.
+
+    Returns:
+        The validated string.
+
+    Raises:
+        TypeError: If *value* is not a string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string")
+    return value
+
+
+def _split_words(text: str) -> List[str]:
+    """Split *text* into a list of lowercased words.
+
+    Words are delimited by whitespace, separators (hyphens, underscores, dots,
+    slashes), and case transitions such as camelCase and PascalCase boundaries.
+
+    Args:
+        text: The string to split.
+
+    Returns:
+        A list of lowercased words.
+
+    Raises:
+        TypeError: If *text* is not a string.
+    """
+    _require_string(text, "text")
+    spaced = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text)
+    spaced = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", spaced)
+    spaced = re.sub(r"[^A-Za-z0-9]+", " ", spaced)
+    return [word.lower() for word in spaced.split() if word]
+
+
+def kebab_case(text: str) -> str:
+    """Convert *text* to kebab-case (lowercase words joined by hyphens).
+
+    Args:
+        text: The string to convert.
+
+    Returns:
+        The kebab-case form of *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> kebab_case("Hello World")
+        'hello-world'
+        >>> kebab_case("xmlParser")
+        'xml-parser'
+        >>> kebab_case("already-kebab")
+        'already-kebab'
+    """
+    return "-".join(_split_words(text))
+
+
+def pascal_case(text: str) -> str:
+    """Convert *text* to PascalCase (capitalized words joined without separators).
+
+    Args:
+        text: The string to convert.
+
+    Returns:
+        The PascalCase form of *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> pascal_case("hello world")
+        'HelloWorld'
+        >>> pascal_case("xml_parser")
+        'XmlParser'
+        >>> pascal_case("alreadyPascal")
+        'AlreadyPascal'
+    """
+    return "".join(word.capitalize() for word in _split_words(text))
+
+
+def constant_case(text: str) -> str:
+    """Convert *text* to CONSTANT_CASE (uppercase words joined by underscores).
+
+    Args:
+        text: The string to convert.
+
+    Returns:
+        The CONSTANT_CASE form of *text*.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> constant_case("hello world")
+        'HELLO_WORLD'
+        >>> constant_case("xmlParser")
+        'XML_PARSER'
+        >>> constant_case("MAX_SIZE")
+        'MAX_SIZE'
+    """
+    return "_".join(word.upper() for word in _split_words(text))
+CASE_UTILS
+
+# --- tests/test_case_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_case_utils.py" <<'TEST_CASE_UTILS'
+"""Tests for case_utils module."""
+
+import unittest
+
+from case_utils import constant_case, kebab_case, pascal_case
+
+
+class TestKebabCase(unittest.TestCase):
+    def test_simple(self):
+        self.assertEqual(kebab_case("Hello World"), "hello-world")
+
+    def test_camel_case(self):
+        self.assertEqual(kebab_case("xmlParser"), "xml-parser")
+
+    def test_pascal_case(self):
+        self.assertEqual(kebab_case("HelloWorld"), "hello-world")
+
+    def test_already_kebab(self):
+        self.assertEqual(kebab_case("already-kebab"), "already-kebab")
+
+    def test_mixed_separators(self):
+        self.assertEqual(kebab_case("foo_bar.baz"), "foo-bar-baz")
+
+    def test_empty(self):
+        self.assertEqual(kebab_case(""), "")
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            kebab_case(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            kebab_case(None)  # type: ignore[arg-type]
+
+
+class TestPascalCase(unittest.TestCase):
+    def test_simple(self):
+        self.assertEqual(pascal_case("hello world"), "HelloWorld")
+
+    def test_snake_case(self):
+        self.assertEqual(pascal_case("xml_parser"), "XmlParser")
+
+    def test_kebab_case(self):
+        self.assertEqual(pascal_case("hello-world"), "HelloWorld")
+
+    def test_already_pascal(self):
+        self.assertEqual(pascal_case("AlreadyPascal"), "AlreadyPascal")
+
+    def test_empty(self):
+        self.assertEqual(pascal_case(""), "")
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            pascal_case(123)  # type: ignore[arg-type]
+
+
+class TestConstantCase(unittest.TestCase):
+    def test_simple(self):
+        self.assertEqual(constant_case("hello world"), "HELLO_WORLD")
+
+    def test_camel_case(self):
+        self.assertEqual(constant_case("xmlParser"), "XML_PARSER")
+
+    def test_already_constant(self):
+        self.assertEqual(constant_case("MAX_SIZE"), "MAX_SIZE")
+
+    def test_empty(self):
+        self.assertEqual(constant_case(""), "")
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            constant_case(True)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_CASE_UTILS
 
 
 

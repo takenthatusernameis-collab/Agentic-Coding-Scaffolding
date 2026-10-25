@@ -405,6 +405,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
 - `bisect_utils.py` — bisect utility functions for binary search on sorted sequences (`bisect_left`, `bisect_right`, `insort_left`, `insort_right`, `find_leftmost`, `find_rightmost`)
 - `tests/test_bisect_utils.py` — unit tests for `bisect_utils.py`
+- `case_utils.py` — case conversion utilities (`kebab_case`, `pascal_case`, `constant_case`) that split text on whitespace, separators, and case transitions, with input validation
+- `tests/test_case_utils.py` — unit tests for `case_utils.py`
 - \`calendar_utils.py\` — calendar utilities (\`is_leap_year\`, \`days_in_month\`, \`first_day_of_month\`, \`month_name\`, \`day_name\`, \`month_calendar\`, \`weekdays_in_month\`, \`weekend_days_in_month\`, \`is_weekend\`, \`add_months\`)
 - \`tests/test_calendar_utils.py\` — unit tests for \`calendar_utils.py\`
 - \`cmath_utils.py\` — complex mathematics utilities wrapping the standard library \`cmath\` module (\`phase\`, \`polar\`, \`rect\`, \`exp\`, \`log\`, \`log10\`, \`sqrt\`, \`sin\`, \`cos\`, \`tan\`, \`asin\`, \`acos\`, \`atan\`, \`sinh\`, \`cosh\`, \`tanh\`, \`asinh\`, \`acosh\`, \`atanh\`, \`isfinite\`, \`isinf\`, \`isnan\`, \`isclose\`)

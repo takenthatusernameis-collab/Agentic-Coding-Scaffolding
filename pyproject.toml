@@ -164,6 +164,7 @@ py_modules = [
     "base64_utils",
     "binascii_utils",
     "bisect_utils",
+    "case_utils",
     "trace_utils",
     "profile_utils",
     "pstats_utils",

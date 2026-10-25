@@ -1,3 +1,8 @@
+## case_utils
+
+- Add `case_utils.py` with `kebab_case`, `pascal_case`, and `constant_case` helpers that split text on whitespace, separators, and case transitions, each with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-string arguments, plus unit tests in `tests/test_case_utils.py`.
+- Synchronized `case_utils.py` and `tests/test_case_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, and this CHANGELOG.
+
 ## backoff_utils
 
 - Add `backoff_utils.py` wrapping backoff utilities with `constant_backoff` and `exponential_backoff` helpers, input validation, and typed signatures, plus unit tests in `tests/test_backoff_utils.py`.
