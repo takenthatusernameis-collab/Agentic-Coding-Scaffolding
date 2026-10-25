@@ -59616,7 +59616,6 @@ from prime_utils import (
     is_composite,
     is_coprime,
     is_perfect_square,
-    is_power_of_two,
     is_prime,
     is_semiprime,
     next_prime,
