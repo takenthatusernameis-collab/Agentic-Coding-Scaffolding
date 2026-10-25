@@ -159,6 +159,7 @@ py_modules = [
     "html_utils",
     "html_entities_utils",
     "html_parser_utils",
+    "ossaudiodev_utils",
     "array_utils",
     "base64_utils",
     "binascii_utils",
