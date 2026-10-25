@@ -2,7 +2,7 @@
 
 import unittest
 
-from case_utils import constant_case, kebab_case, pascal_case
+from case_utils import camel_case, constant_case, kebab_case, pascal_case, snake_case
 
 
 class TestKebabCase(unittest.TestCase):
@@ -68,6 +68,56 @@ class TestConstantCase(unittest.TestCase):
     def test_non_string(self):
         with self.assertRaises(TypeError):
             constant_case(True)  # type: ignore[arg-type]
+
+
+class TestSnakeCase(unittest.TestCase):
+    def test_simple(self):
+        self.assertEqual(snake_case("Hello World"), "hello_world")
+
+    def test_camel_case(self):
+        self.assertEqual(snake_case("xmlParser"), "xml_parser")
+
+    def test_pascal_case(self):
+        self.assertEqual(snake_case("HelloWorld"), "hello_world")
+
+    def test_already_snake(self):
+        self.assertEqual(snake_case("already_snake"), "already_snake")
+
+    def test_mixed_separators(self):
+        self.assertEqual(snake_case("foo-bar.baz"), "foo_bar_baz")
+
+    def test_empty(self):
+        self.assertEqual(snake_case(""), "")
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            snake_case(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            snake_case(None)  # type: ignore[arg-type]
+
+
+class TestCamelCase(unittest.TestCase):
+    def test_simple(self):
+        self.assertEqual(camel_case("hello world"), "helloWorld")
+
+    def test_snake_case(self):
+        self.assertEqual(camel_case("xml_parser"), "xmlParser")
+
+    def test_kebab_case(self):
+        self.assertEqual(camel_case("hello-world"), "helloWorld")
+
+    def test_pascal_case(self):
+        self.assertEqual(camel_case("HelloWorld"), "helloWorld")
+
+    def test_already_camel(self):
+        self.assertEqual(camel_case("alreadyCamel"), "alreadyCamel")
+
+    def test_empty(self):
+        self.assertEqual(camel_case(""), "")
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            camel_case(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

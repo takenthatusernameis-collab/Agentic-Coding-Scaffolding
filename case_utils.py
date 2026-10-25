@@ -9,6 +9,8 @@ __all__: List[str] = [
     "kebab_case",
     "pascal_case",
     "constant_case",
+    "snake_case",
+    "camel_case",
 ]
 
 
@@ -119,3 +121,52 @@ def constant_case(text: str) -> str:
         'MAX_SIZE'
     """
     return "_".join(word.upper() for word in _split_words(text))
+
+
+def snake_case(text: str) -> str:
+    """Convert *text* to snake_case (lowercase words joined by underscores).
+
+    Args:
+        text: The string to convert.
+
+    Returns:
+        The snake_case form of *text*.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> snake_case("Hello World")
+        'hello_world'
+        >>> snake_case("xmlParser")
+        'xml_parser'
+        >>> snake_case("already_snake")
+        'already_snake'
+    """
+    return "_".join(word.lower() for word in _split_words(text))
+
+
+def camel_case(text: str) -> str:
+    """Convert *text* to camelCase (first word lowercase, rest capitalized).
+
+    Args:
+        text: The string to convert.
+
+    Returns:
+        The camelCase form of *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> camel_case("hello world")
+        'helloWorld'
+        >>> camel_case("xml_parser")
+        'xmlParser'
+        >>> camel_case("alreadyCamel")
+        'alreadyCamel'
+    """
+    words = _split_words(text)
+    if not words:
+        return ""
+    return words[0].lower() + "".join(word.capitalize() for word in words[1:])
