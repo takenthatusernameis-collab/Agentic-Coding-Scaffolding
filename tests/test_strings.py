@@ -16,6 +16,7 @@ from strings import (
     is_alpha,
     is_alphanumeric,
     is_anagram,
+    is_ascii,
     is_blank,
     is_digit,
     is_integer,
@@ -536,6 +537,26 @@ class TestIsInteger(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_integer(123)  # type: ignore[arg-type]
+
+
+class TestIsAscii(unittest.TestCase):
+    def test_ascii(self) -> None:
+        self.assertTrue(is_ascii("hello"))
+        self.assertTrue(is_ascii("HelloWorld"))
+        self.assertTrue(is_ascii("123"))
+        self.assertTrue(is_ascii("Hello, World!"))
+
+    def test_not_ascii(self) -> None:
+        self.assertFalse(is_ascii("héllo"))
+        self.assertFalse(is_ascii("日本語"))
+        self.assertFalse(is_ascii("naïve"))
+
+    def test_not_ascii_empty(self) -> None:
+        self.assertFalse(is_ascii(""))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_ascii(123)  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):

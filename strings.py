@@ -28,6 +28,7 @@ __all__: List[str] = [
     "normalize_whitespace",
     "is_upper",
     "is_lower",
+    "is_ascii",
     "is_alpha",
     "is_alphanumeric",
     "is_digit",
@@ -317,6 +318,31 @@ def is_alphanumeric(s: str) -> bool:
     if not s:
         return False
     return all(ch.isalnum() for ch in s)
+
+
+def is_ascii(s: str) -> bool:
+    """Return True if all characters in the string are ASCII and at least one character.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_ascii("hello")
+        True
+        >>> is_ascii("héllo")
+        False
+        >>> is_ascii("123")
+        True
+        >>> is_ascii("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ord(ch) < 128 for ch in s)
 
 
 def is_digit(s: str) -> bool:

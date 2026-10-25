@@ -10842,6 +10842,7 @@ __all__: List[str] = [
     "normalize_whitespace",
     "is_upper",
     "is_lower",
+    "is_ascii",
     "is_alpha",
     "is_alphanumeric",
     "is_digit",
@@ -11131,6 +11132,31 @@ def is_alphanumeric(s: str) -> bool:
     if not s:
         return False
     return all(ch.isalnum() for ch in s)
+
+
+def is_ascii(s: str) -> bool:
+    """Return True if all characters in the string are ASCII and at least one character.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_ascii("hello")
+        True
+        >>> is_ascii("héllo")
+        False
+        >>> is_ascii("123")
+        True
+        >>> is_ascii("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ord(ch) < 128 for ch in s)
 
 
 def is_digit(s: str) -> bool:
@@ -12402,6 +12428,7 @@ from strings import (
     is_alpha,
     is_alphanumeric,
     is_anagram,
+    is_ascii,
     is_blank,
     is_digit,
     is_integer,
@@ -12922,6 +12949,26 @@ class TestIsInteger(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_integer(123)  # type: ignore[arg-type]
+
+
+class TestIsAscii(unittest.TestCase):
+    def test_ascii(self) -> None:
+        self.assertTrue(is_ascii("hello"))
+        self.assertTrue(is_ascii("HelloWorld"))
+        self.assertTrue(is_ascii("123"))
+        self.assertTrue(is_ascii("Hello, World!"))
+
+    def test_not_ascii(self) -> None:
+        self.assertFalse(is_ascii("héllo"))
+        self.assertFalse(is_ascii("日本語"))
+        self.assertFalse(is_ascii("naïve"))
+
+    def test_not_ascii_empty(self) -> None:
+        self.assertFalse(is_ascii(""))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_ascii(123)  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):
@@ -34582,6 +34629,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `is_ascii(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* is non-empty and every character is ASCII, `False` otherwise (including for the empty string). Added tests in `tests/test_strings.py`. Updated the `strings` module section of `README.md` to list the new helper. Synchronized `strings.py`, `tests/test_strings.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `roman_utils.py` with `to_roman`, `from_roman`, and `is_valid_roman` helpers for converting between integers and Roman numerals in the range 1 to 3999, each with a typed signature, a Google-style docstring, and input validation raising `TypeError` or `ValueError` on invalid arguments, plus unit tests in `tests/test_roman_utils.py`. Synchronized `roman_utils.py` and `tests/test_roman_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 
 - Added `is_finite(value)`, `is_infinite(value)`, and `is_nan(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments (values are finite/inf/nan classified correctly for floats, with ints treated as finite). Added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -35569,7 +35618,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_digit`, `is_integer`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_integer`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
