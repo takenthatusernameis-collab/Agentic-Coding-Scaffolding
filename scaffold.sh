@@ -59309,6 +59309,7 @@ __all__: List[str] = [
     "is_twin_prime",
     "is_palindromic_prime",
     "is_mersenne_prime",
+    "is_sophie_germain_prime",
 ]
 
 
@@ -59805,6 +59806,27 @@ def is_mersenne_prime(n: int) -> bool:
     if p < 2:
         return False
     return is_prime(p)
+
+
+def is_sophie_germain_prime(n: int) -> bool:
+    """Return True if *n* is a Sophie Germain prime.
+
+    A Sophie Germain prime is a prime number *p* such that 2*p + 1 is also
+    prime (the latter is called a safe prime).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a Sophie Germain prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    return is_prime(2 * n + 1)
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -59818,15 +59840,15 @@ from prime_utils import (
     is_coprime,
     is_perfect_square,
     is_prime,
-    is_semiprime,
-    is_squarefree,
     is_prime_power,
+    is_semiprime,
+    is_sophie_germain_prime,
+    is_squarefree,
     next_prime,
     nth_prime,
     prev_prime,
     prime_factors,
     primes_up_to,
-    is_power_of_two,
 )
 
 
@@ -60157,7 +60179,7 @@ class TestSquarefree(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_squarefree(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_squarefree(True)  # type: ignore[arg-type]  # type: ignore[arg-type]
+            is_squarefree(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -60178,7 +60200,7 @@ class TestIsPrimePower(unittest.TestCase):
         self.assertTrue(is_prime_power(16))  # 2^4
         self.assertTrue(is_prime_power(25))  # 5^2
         self.assertTrue(is_prime_power(27))  # 3^3
-        self.assertTrue(is_prime_power( p**6 if False else 2**6))  # 64
+        self.assertTrue(is_prime_power(2 ** 6))  # 64
 
     def test_non_prime_powers(self):
         self.assertFalse(is_prime_power(1))
@@ -60202,6 +60224,24 @@ class TestIsPrimePower(unittest.TestCase):
             is_prime_power("4")
         with self.assertRaises(TypeError):
             is_prime_power(None)
+
+
+class TestIsSophieGermainPrime(unittest.TestCase):
+    def test_true_cases(self):
+        for p in [2, 3, 5, 11, 23, 29, 41, 53, 83, 89]:
+            self.assertTrue(is_sophie_germain_prime(p))
+
+    def test_false_cases(self):
+        for n in [7, 13, 17, 19, 0, 1, 4, 6]:
+            self.assertFalse(is_sophie_germain_prime(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_sophie_germain_prime(2.0)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_PRIME_UTILS
 
 # --- pstats_utils.py ---
