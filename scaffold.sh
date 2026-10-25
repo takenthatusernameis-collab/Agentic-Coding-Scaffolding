@@ -53861,6 +53861,8 @@ __all__: List[str] = [
     "percentage",
     "lerp",
     "sign",
+    "is_even",
+    "is_odd",
 ]
 
 
@@ -54018,6 +54020,38 @@ def sign(value: Number) -> int:
     if value > 0:
         return 1
     return 0
+
+
+def is_even(value: Number) -> bool:
+    """Return True if *value* is an even integer-valued number.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is even.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    return int(value) == value and int(value) % 2 == 0
+
+
+def is_odd(value: Number) -> bool:
+    """Return True if *value* is an odd integer-valued number.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is odd.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    return int(value) == value and int(value) % 2 != 0
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
