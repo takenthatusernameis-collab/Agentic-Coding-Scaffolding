@@ -10177,9 +10177,9 @@ from shapes import (
     square_perimeter,
     trapezoid_area,
     triangle_area,
+    triangle_circumradius,
     triangle_heron_area,
     triangle_inradius,
-    triangle_circumradius,
     triangle_perimeter,
 )
 
@@ -12158,10 +12158,10 @@ from strings import (
     ends_with,
     is_alpha,
     is_alphanumeric,
-    is_digit,
-    is_integer,
     is_anagram,
     is_blank,
+    is_digit,
+    is_integer,
     is_lower,
     is_palindrome,
     is_upper,
@@ -35705,7 +35705,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, and sorting dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `normalize_version` pads or truncates a version to a fixed component count, and `sort_versions` sorts a list of version strings in ascending order. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, and sorting dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, and `max_version`/`min_version` return the greatest/least version from a list. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -75784,6 +75784,8 @@ __all__: List[str] = [
     "version_to_tuple",
     "tuple_to_version",
     "sort_versions",
+    "max_version",
+    "min_version",
 ]
 
 
@@ -75979,6 +75981,52 @@ def sort_versions(versions: List[str]) -> List[str]:
         if not isinstance(v, str):
             raise TypeError(f"versions[{i}] must be a string, got {type(v).__name__}")
     return sorted(versions, key=parse_version)
+
+
+def max_version(versions: List[str]) -> str:
+    """Return the greatest version string from a list.
+
+    Args:
+        versions: A list of dotted version strings.
+
+    Returns:
+        The greatest version string in the list.
+
+    Raises:
+        TypeError: If *versions* is not a list or contains non-string elements.
+        ValueError: If the list is empty or any version string is invalid.
+    """
+    if not isinstance(versions, list):
+        raise TypeError("versions must be a list")
+    if not versions:
+        raise ValueError("versions must not be empty")
+    for i, v in enumerate(versions):
+        if not isinstance(v, str):
+            raise TypeError(f"versions[{i}] must be a string, got {type(v).__name__}")
+    return max(versions, key=parse_version)
+
+
+def min_version(versions: List[str]) -> str:
+    """Return the least version string from a list.
+
+    Args:
+        versions: A list of dotted version strings.
+
+    Returns:
+        The least version string in the list.
+
+    Raises:
+        TypeError: If *versions* is not a list or contains non-string elements.
+        ValueError: If the list is empty or any version string is invalid.
+    """
+    if not isinstance(versions, list):
+        raise TypeError("versions must be a list")
+    if not versions:
+        raise ValueError("versions must not be empty")
+    for i, v in enumerate(versions):
+        if not isinstance(v, str):
+            raise TypeError(f"versions[{i}] must be a string, got {type(v).__name__}")
+    return min(versions, key=parse_version)
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
@@ -76000,6 +76048,8 @@ from version_utils import (
     is_version_greater_equal,
     is_version_less,
     is_version_less_equal,
+    max_version,
+    min_version,
     normalize_version,
     parse_version,
     sort_versions,
@@ -76157,6 +76207,42 @@ class TestSortVersions(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestMaxMinVersion(unittest.TestCase):
+    def test_max(self):
+        self.assertEqual(max_version(["1.0.0", "2.5.0", "1.9.9"]), "2.5.0")
+
+    def test_min(self):
+        self.assertEqual(min_version(["1.0.0", "2.5.0", "1.9.9"]), "1.0.0")
+
+    def test_single(self):
+        self.assertEqual(max_version(["3.0.0"]), "3.0.0")
+        self.assertEqual(min_version(["3.0.0"]), "3.0.0")
+
+    def test_empty_raises(self):
+        with self.assertRaises(ValueError):
+            max_version([])
+        with self.assertRaises(ValueError):
+            min_version([])
+
+    def test_non_list_raises(self):
+        with self.assertRaises(TypeError):
+            max_version("1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            min_version("1.0.0")  # type: ignore[arg-type]
+
+    def test_non_string_element_raises(self):
+        with self.assertRaises(TypeError):
+            max_version(["1.0.0", 2])  # type: ignore[list-item]
+        with self.assertRaises(TypeError):
+            min_version(["1.0.0", 2])  # type: ignore[list-item]
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            max_version(["1.0.0", "bad"])
+        with self.assertRaises(ValueError):
+            min_version(["1.0.0", "bad"])
 TEST_VERSION_UTILS
 
 # --- warnings_utils.py ---

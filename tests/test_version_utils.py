@@ -15,6 +15,8 @@ from version_utils import (
     is_version_greater_equal,
     is_version_less,
     is_version_less_equal,
+    max_version,
+    min_version,
     normalize_version,
     parse_version,
     sort_versions,
@@ -172,3 +174,39 @@ class TestSortVersions(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestMaxMinVersion(unittest.TestCase):
+    def test_max(self):
+        self.assertEqual(max_version(["1.0.0", "2.5.0", "1.9.9"]), "2.5.0")
+
+    def test_min(self):
+        self.assertEqual(min_version(["1.0.0", "2.5.0", "1.9.9"]), "1.0.0")
+
+    def test_single(self):
+        self.assertEqual(max_version(["3.0.0"]), "3.0.0")
+        self.assertEqual(min_version(["3.0.0"]), "3.0.0")
+
+    def test_empty_raises(self):
+        with self.assertRaises(ValueError):
+            max_version([])
+        with self.assertRaises(ValueError):
+            min_version([])
+
+    def test_non_list_raises(self):
+        with self.assertRaises(TypeError):
+            max_version("1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            min_version("1.0.0")  # type: ignore[arg-type]
+
+    def test_non_string_element_raises(self):
+        with self.assertRaises(TypeError):
+            max_version(["1.0.0", 2])  # type: ignore[list-item]
+        with self.assertRaises(TypeError):
+            min_version(["1.0.0", 2])  # type: ignore[list-item]
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            max_version(["1.0.0", "bad"])
+        with self.assertRaises(ValueError):
+            min_version(["1.0.0", "bad"])

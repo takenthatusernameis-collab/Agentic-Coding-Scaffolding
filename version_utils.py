@@ -20,6 +20,8 @@ __all__: List[str] = [
     "version_to_tuple",
     "tuple_to_version",
     "sort_versions",
+    "max_version",
+    "min_version",
 ]
 
 
@@ -215,3 +217,49 @@ def sort_versions(versions: List[str]) -> List[str]:
         if not isinstance(v, str):
             raise TypeError(f"versions[{i}] must be a string, got {type(v).__name__}")
     return sorted(versions, key=parse_version)
+
+
+def max_version(versions: List[str]) -> str:
+    """Return the greatest version string from a list.
+
+    Args:
+        versions: A list of dotted version strings.
+
+    Returns:
+        The greatest version string in the list.
+
+    Raises:
+        TypeError: If *versions* is not a list or contains non-string elements.
+        ValueError: If the list is empty or any version string is invalid.
+    """
+    if not isinstance(versions, list):
+        raise TypeError("versions must be a list")
+    if not versions:
+        raise ValueError("versions must not be empty")
+    for i, v in enumerate(versions):
+        if not isinstance(v, str):
+            raise TypeError(f"versions[{i}] must be a string, got {type(v).__name__}")
+    return max(versions, key=parse_version)
+
+
+def min_version(versions: List[str]) -> str:
+    """Return the least version string from a list.
+
+    Args:
+        versions: A list of dotted version strings.
+
+    Returns:
+        The least version string in the list.
+
+    Raises:
+        TypeError: If *versions* is not a list or contains non-string elements.
+        ValueError: If the list is empty or any version string is invalid.
+    """
+    if not isinstance(versions, list):
+        raise TypeError("versions must be a list")
+    if not versions:
+        raise ValueError("versions must not be empty")
+    for i, v in enumerate(versions):
+        if not isinstance(v, str):
+            raise TypeError(f"versions[{i}] must be a string, got {type(v).__name__}")
+    return min(versions, key=parse_version)
