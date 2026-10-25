@@ -12000,6 +12000,7 @@ __all__: List[str] = [
     "mode",
     "variance",
     "stddev",
+    "skewness",
     "range",
     "min_value",
     "max_value",
@@ -12165,6 +12166,42 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
         raise TypeError("population must be a bool")
     var = variance(numbers, population=population)
     return math.sqrt(var)
+
+
+def skewness(numbers: List[T | float]) -> float:
+    """Return the population skewness of a list of numbers.
+
+    Skewness measures the asymmetry of a distribution about its mean. A
+    symmetric distribution has skewness 0; a distribution with a longer
+    right tail has positive skewness, and one with a longer left tail has
+    negative skewness.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The population skewness of the numbers.
+
+    Raises:
+        ValueError: If the list is empty, has fewer than 3 elements, or if
+            the standard deviation is 0.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> skewness([1, 2, 3])
+        0.0
+        >>> skewness([1, 1, 1, 1, 10])
+        1.5
+    """
+    _require_numbers(numbers, "numbers")
+    n = len(numbers)
+    if n < 3:
+        raise ValueError("Cannot calculate skewness with fewer than 3 elements")
+    m = mean(numbers)
+    s = stddev(numbers)
+    if s == 0:
+        raise ValueError("Cannot calculate skewness when standard deviation is 0")
+    return float(sum(((x - m) / s) ** 3 for x in numbers) / n)
 
 
 def range(numbers: List[T | float]) -> float:
@@ -13378,6 +13415,7 @@ from stats import (
     midrange,
     min_value,
     mode,
+    skewness,
     stddev,
     sum_of_squares,
     variance,
@@ -13538,6 +13576,43 @@ class TestStddev(unittest.TestCase):
     def test_stddev_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             stddev([])
+
+
+class TestSkewness(unittest.TestCase):
+    def test_symmetric_returns_zero(self) -> None:
+        self.assertEqual(skewness([1, 2, 3]), 0.0)
+
+    def test_positive_skew(self) -> None:
+        self.assertEqual(skewness([1, 1, 1, 1, 10]), 1.5)
+
+    def test_single_element_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            skewness([5])
+
+    def test_two_elements_raise(self) -> None:
+        with self.assertRaises(ValueError):
+            skewness([1, 2])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            skewness([])
+
+    def test_zero_stddev_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            skewness([7, 7, 7])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            skewness((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            skewness(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            skewness([True, 1, 2])  # type: ignore[type-var]
 
 
 class TestMedianAbsoluteDeviation(unittest.TestCase):
@@ -34631,6 +34706,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `is_ascii(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* is non-empty and every character is ASCII, `False` otherwise (including for the empty string). Added tests in `tests/test_strings.py`. Updated the `strings` module section of `README.md` to list the new helper. Synchronized `strings.py`, `tests/test_strings.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
+- Added `skewness(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it returns the population skewness of a list of numbers, raising `ValueError` for fewer than 3 elements or a zero standard deviation. Added `TestSkewness` to `tests/test_stats.py` covering symmetric, positively skewed, and invalid-input cases. Updated the `stats` module section of `README.md` to list the new helper. Synchronized `stats.py`, `tests/test_stats.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `roman_utils.py` with `to_roman`, `from_roman`, and `is_valid_roman` helpers for converting between integers and Roman numerals in the range 1 to 3999, each with a typed signature, a Google-style docstring, and input validation raising `TypeError` or `ValueError` on invalid arguments, plus unit tests in `tests/test_roman_utils.py`. Synchronized `roman_utils.py` and `tests/test_roman_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
 
 - Added `is_finite(value)`, `is_infinite(value)`, and `is_nan(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments (values are finite/inf/nan classified correctly for floats, with ints treated as finite). Added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -35622,7 +35699,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, and `median_absolute_deviation`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, `skewness`, and `median_absolute_deviation`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

@@ -10,6 +10,7 @@ from stats import (
     midrange,
     min_value,
     mode,
+    skewness,
     stddev,
     sum_of_squares,
     variance,
@@ -170,6 +171,43 @@ class TestStddev(unittest.TestCase):
     def test_stddev_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             stddev([])
+
+
+class TestSkewness(unittest.TestCase):
+    def test_symmetric_returns_zero(self) -> None:
+        self.assertEqual(skewness([1, 2, 3]), 0.0)
+
+    def test_positive_skew(self) -> None:
+        self.assertEqual(skewness([1, 1, 1, 1, 10]), 1.5)
+
+    def test_single_element_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            skewness([5])
+
+    def test_two_elements_raise(self) -> None:
+        with self.assertRaises(ValueError):
+            skewness([1, 2])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            skewness([])
+
+    def test_zero_stddev_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            skewness([7, 7, 7])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            skewness((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            skewness(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            skewness([True, 1, 2])  # type: ignore[type-var]
 
 
 class TestMedianAbsoluteDeviation(unittest.TestCase):

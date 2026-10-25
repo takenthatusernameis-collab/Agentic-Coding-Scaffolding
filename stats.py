@@ -11,6 +11,7 @@ __all__: List[str] = [
     "mode",
     "variance",
     "stddev",
+    "skewness",
     "range",
     "min_value",
     "max_value",
@@ -176,6 +177,42 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
         raise TypeError("population must be a bool")
     var = variance(numbers, population=population)
     return math.sqrt(var)
+
+
+def skewness(numbers: List[T | float]) -> float:
+    """Return the population skewness of a list of numbers.
+
+    Skewness measures the asymmetry of a distribution about its mean. A
+    symmetric distribution has skewness 0; a distribution with a longer
+    right tail has positive skewness, and one with a longer left tail has
+    negative skewness.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The population skewness of the numbers.
+
+    Raises:
+        ValueError: If the list is empty, has fewer than 3 elements, or if
+            the standard deviation is 0.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> skewness([1, 2, 3])
+        0.0
+        >>> skewness([1, 1, 1, 1, 10])
+        1.5
+    """
+    _require_numbers(numbers, "numbers")
+    n = len(numbers)
+    if n < 3:
+        raise ValueError("Cannot calculate skewness with fewer than 3 elements")
+    m = mean(numbers)
+    s = stddev(numbers)
+    if s == 0:
+        raise ValueError("Cannot calculate skewness when standard deviation is 0")
+    return float(sum(((x - m) / s) ** 3 for x in numbers) / n)
 
 
 def range(numbers: List[T | float]) -> float:
