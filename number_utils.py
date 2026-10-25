@@ -19,6 +19,8 @@ __all__: List[str] = [
     "is_negative",
     "is_positive",
     "is_zero",
+    "is_non_negative",
+    "is_non_positive",
 ]
 
 
