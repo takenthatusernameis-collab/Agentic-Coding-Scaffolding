@@ -87,6 +87,8 @@
 - Added `deprecation_utils.py` and `tests/test_deprecation_utils.py`.
 - Added `dict_utils.py` and `tests/test_dict_utils.py`.
 - Added `difflib_utils.py` and `tests/test_difflib_utils.py`.
+- Added `html_parser_utils.py` and `tests/test_html_parser_utils.py`.
+- Added `html_entities_utils.py` and `tests/test_html_entities_utils.py`.
 - Added `dis_utils.py` and `tests/test_dis_utils.py`.
 - Added `doctest_utils.py` and `tests/test_doctest_utils.py`.
 - Added `duration_utils.py` and `tests/test_duration_utils.py`.

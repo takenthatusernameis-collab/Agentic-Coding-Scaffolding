@@ -33870,6 +33870,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Added `deprecation_utils.py` and `tests/test_deprecation_utils.py`.
 - Added `dict_utils.py` and `tests/test_dict_utils.py`.
 - Added `difflib_utils.py` and `tests/test_difflib_utils.py`.
+- Added `html_parser_utils.py` and `tests/test_html_parser_utils.py`.
+- Added `html_entities_utils.py` and `tests/test_html_entities_utils.py`.
 - Added `dis_utils.py` and `tests/test_dis_utils.py`.
 - Added `doctest_utils.py` and `tests/test_doctest_utils.py`.
 - Added `duration_utils.py` and `tests/test_duration_utils.py`.
@@ -35056,6 +35058,16 @@ The project includes filename pattern matching utilities in `fnmatch_utils.py` w
 ## HTML Utilities Module
 
 The project includes HTML utility functions in `html_utils.py` for escaping, unescaping, and sanitizing HTML content: `escape_html` escapes special characters (`&`, `<`, `>`, `"`, `'`) for safe insertion into HTML documents, `unescape_html` decodes named and numeric HTML entities back to their original characters, `strip_tags` removes all HTML tags leaving only text content, and `escape_attribute` escapes values for safe use inside HTML attributes. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_html_utils.py`.
+
+## HTML Parser Utilities Module
+
+The project includes HTML parser utilities in `html_parser_utils.py` wrapping the standard library `html.parser` module: `HTMLParser` is re-exported for custom parsing, `strip_tags` removes all HTML tags leaving only text content, and `parse_html` creates and feeds a parser with optional custom handlers for start/end tags, data, comments, entities, declarations, and processing instructions. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_html_parser_utils.py`.
+
+
+## HTML Entities Utilities Module
+
+The project includes HTML entities utilities in `html_entities_utils.py` wrapping the standard library `html.entities` module: `name2codepoint`, `codepoint2name`, `entitydefs`, and `html5` are re-exported, with helpers `name_to_codepoint`/`get_entity_by_name` to look up entity names, `codepoint_to_name` to look up names from codepoints, and `decode_entity`/`unescape_entity` to decode named entities to characters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_html_entities_utils.py`.
+
 
 ## Bytes Utilities Module
 
@@ -106006,6 +106018,290 @@ class TestBackoffUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_BACKOFF_UTILS
+
+# --- html_parser_utils.py ---
+cat > "$OUTPUT_DIR/html_parser_utils.py" <<'HTML_PARSER_UTILS'
+"""HTML parser utilities wrapping the standard library html.parser module.
+
+Provides helpers for parsing HTML using HTMLParser with convenient wrappers.
+"""
+
+from __future__ import annotations
+
+from html.parser import HTMLParser
+from typing import Any, Callable, List, Optional, Union
+
+__all__ = [
+    "HTMLParser",
+    "parse_html",
+    "strip_tags",
+]
+
+
+class _TagStripper(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.reset()
+        self.fed: List[str] = []
+
+    def handle_data(self, data: str) -> None:
+        self.fed.append(data)
+
+    def get_data(self) -> str:
+        return "".join(self.fed)
+
+
+def strip_tags(html: Union[str, None]) -> str:
+    """Remove all HTML tags from ``html`` and return the text content.
+
+    Args:
+        html: Input HTML string.
+
+    Returns:
+        Text content with tags removed.
+
+    Raises:
+        TypeError: If ``html`` is not a string or None.
+    """
+    if html is None:
+        return ""
+    if not isinstance(html, str):
+        raise TypeError("html must be a string or None")
+    s = _TagStripper()
+    s.feed(html)
+    s.close()
+    return s.get_data()
+
+
+def parse_html(
+    html: str,
+    *,
+    handle_starttag: Optional[Callable[..., Any]] = None,
+    handle_endtag: Optional[Callable[..., Any]] = None,
+    handle_data: Optional[Callable[..., Any]] = None,
+    handle_comment: Optional[Callable[..., Any]] = None,
+    handle_entityref: Optional[Callable[..., Any]] = None,
+    handle_charref: Optional[Callable[..., Any]] = None,
+    handle_decl: Optional[Callable[..., Any]] = None,
+    handle_pi: Optional[Callable[..., Any]] = None,
+) -> HTMLParser:
+    """Create and feed an HTMLParser with optional custom handlers.
+
+    Args:
+        html: HTML string to parse.
+        handle_starttag: Optional callback for start tags.
+        handle_endtag: Optional callback for end tags.
+        handle_data: Optional callback for data.
+        handle_comment: Optional callback for comments.
+        handle_entityref: Optional callback for entity references.
+        handle_charref: Optional callback for character references.
+        handle_decl: Optional callback for declarations.
+        handle_pi: Optional callback for processing instructions.
+
+    Returns:
+        The HTMLParser instance after feeding ``html``.
+
+    Raises:
+        TypeError: If ``html`` is not a string.
+    """
+    if not isinstance(html, str):
+        raise TypeError("html must be a string")
+
+    class CustomParser(HTMLParser):
+        pass
+
+    parser = CustomParser()
+    if handle_starttag is not None:
+        parser.handle_starttag = handle_starttag  # type: ignore[method-assign]
+    if handle_endtag is not None:
+        parser.handle_endtag = handle_endtag  # type: ignore[method-assign]
+    if handle_data is not None:
+        parser.handle_data = handle_data  # type: ignore[method-assign]
+    if handle_comment is not None:
+        parser.handle_comment = handle_comment  # type: ignore[method-assign]
+    if handle_entityref is not None:
+        parser.handle_entityref = handle_entityref  # type: ignore[method-assign]
+    if handle_charref is not None:
+        parser.handle_charref = handle_charref  # type: ignore[method-assign]
+    if handle_decl is not None:
+        parser.handle_decl = handle_decl  # type: ignore[method-assign]
+    if handle_pi is not None:
+        parser.handle_pi = handle_pi  # type: ignore[method-assign]
+
+    parser.feed(html)
+    parser.close()
+    return parser
+HTML_PARSER_UTILS
+
+# --- tests/test_html_parser_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_html_parser_utils.py" <<'TEST_HTML_PARSER_UTILS'
+"""Tests for html_parser_utils."""
+
+from html_parser_utils import HTMLParser, parse_html, strip_tags
+
+
+def test_strip_tags_basic() -> None:
+    html = "<p>Hello <b>World</b>!</p>"
+    assert strip_tags(html) == "Hello World!"
+
+
+def test_strip_tags_none() -> None:
+    assert strip_tags(None) == ""
+
+
+def test_strip_tags_no_tags() -> None:
+    assert strip_tags("plain text") == "plain text"
+
+
+def test_parse_html_with_custom_handlers() -> None:
+    tags = []
+
+    def handle_starttag(tag: str, attrs: list) -> None:
+        tags.append(("start", tag))
+
+    def handle_endtag(tag: str) -> None:
+        tags.append(("end", tag))
+
+    parser = parse_html(
+        "<div>Hi</div>",
+        handle_starttag=handle_starttag,
+        handle_endtag=handle_endtag,
+    )
+    assert isinstance(parser, HTMLParser)
+    assert ("start", "div") in tags
+    assert ("end", "div") in tags
+
+
+def test_parse_html_default() -> None:
+    parser = parse_html("<span>test</span>")
+    assert isinstance(parser, HTMLParser)
+TEST_HTML_PARSER_UTILS
+
+# --- html_entities_utils.py ---
+cat > "$OUTPUT_DIR/html_entities_utils.py" <<'HTML_ENTITIES_UTILS'
+"""HTML entities utilities wrapping the standard library html.entities module.
+
+Provides helpers for working with HTML entity names and numeric codes.
+"""
+
+from __future__ import annotations
+
+import html.entities
+from typing import Dict, Optional, Union
+
+__all__ = [
+    "html5",
+    "name2codepoint",
+    "codepoint2name",
+    "entitydefs",
+    "get_entity_by_name",
+    "name_to_codepoint",
+    "codepoint_to_name",
+    "decode_entity",
+    "unescape_entity",
+]
+
+
+html5 = getattr(html.entities, "html5", {})
+name2codepoint = html.entities.name2codepoint
+codepoint2name = html.entities.codepoint2name
+entitydefs = html.entities.entitydefs
+
+
+def name_to_codepoint(name: str) -> Optional[int]:
+    """Get the codepoint for a named HTML entity.
+
+    Args:
+        name: Entity name without ampersand and semicolon.
+
+    Returns:
+        Codepoint as int, or None if not found.
+
+    Raises:
+        TypeError: If name is not a string.
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a string")
+    return name2codepoint.get(name)
+
+
+def get_entity_by_name(name: str) -> Optional[int]:
+    """Alias for name_to_codepoint."""
+    return name_to_codepoint(name)
+
+
+def codepoint_to_name(codepoint: int) -> Optional[str]:
+    """Get the entity name for a codepoint.
+
+    Args:
+        codepoint: Unicode codepoint.
+
+    Returns:
+        Entity name or None if not found.
+
+    Raises:
+        TypeError: If codepoint is not an int.
+        ValueError: If codepoint is out of range.
+    """
+    if not isinstance(codepoint, int) or isinstance(codepoint, bool):
+        raise TypeError("codepoint must be an int")
+    if codepoint < 0 or codepoint > 0x10FFFF:
+        raise ValueError("codepoint out of range")
+    return codepoint2name.get(codepoint)
+
+
+def decode_entity(name: str) -> Optional[str]:
+    """Decode a named entity to its string character.
+
+    Args:
+        name: Entity name without ampersand and semicolon.
+
+    Returns:
+        Decoded character or None if not found.
+
+    Raises:
+        TypeError: If name is not a string.
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a string")
+    code = name2codepoint.get(name)
+    if code is None:
+        return None
+    return chr(code)
+
+
+def unescape_entity(name: str) -> Optional[str]:
+    """Alias for decode_entity."""
+    return decode_entity(name)
+HTML_ENTITIES_UTILS
+
+# --- tests/test_html_entities_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_html_entities_utils.py" <<'TEST_HTML_ENTITIES_UTILS'
+"""Tests for html_entities_utils."""
+
+from html_entities_utils import (
+    codepoint_to_name,
+    decode_entity,
+    get_entity_by_name,
+    name_to_codepoint,
+    unescape_entity,
+)
+
+
+def test_name_to_codepoint() -> None:
+    assert name_to_codepoint("amp") == ord("&")
+    assert name_to_codepoint("lt") == ord("<")
+    assert get_entity_by_name("gt") == ord(">")
+
+
+def test_codepoint_to_name() -> None:
+    assert codepoint_to_name(ord("&")) == "amp"
+
+
+def test_decode_entity() -> None:
+    assert decode_entity("nbsp") == "\xa0"
+    assert unescape_entity("copy") is not None
+TEST_HTML_ENTITIES_UTILS
 
 
 

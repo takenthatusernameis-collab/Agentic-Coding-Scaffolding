@@ -967,6 +967,16 @@ The project includes filename pattern matching utilities in `fnmatch_utils.py` w
 
 The project includes HTML utility functions in `html_utils.py` for escaping, unescaping, and sanitizing HTML content: `escape_html` escapes special characters (`&`, `<`, `>`, `"`, `'`) for safe insertion into HTML documents, `unescape_html` decodes named and numeric HTML entities back to their original characters, `strip_tags` removes all HTML tags leaving only text content, and `escape_attribute` escapes values for safe use inside HTML attributes. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_html_utils.py`.
 
+## HTML Parser Utilities Module
+
+The project includes HTML parser utilities in `html_parser_utils.py` wrapping the standard library `html.parser` module: `HTMLParser` is re-exported for custom parsing, `strip_tags` removes all HTML tags leaving only text content, and `parse_html` creates and feeds a parser with optional custom handlers for start/end tags, data, comments, entities, declarations, and processing instructions. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_html_parser_utils.py`.
+
+
+## HTML Entities Utilities Module
+
+The project includes HTML entities utilities in `html_entities_utils.py` wrapping the standard library `html.entities` module: `name2codepoint`, `codepoint2name`, `entitydefs`, and `html5` are re-exported, with helpers `name_to_codepoint`/`get_entity_by_name` to look up entity names, `codepoint_to_name` to look up names from codepoints, and `decode_entity`/`unescape_entity` to decode named entities to characters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_html_entities_utils.py`.
+
+
 ## Bytes Utilities Module
 
 The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, and `chunk` splits bytes into fixed-size chunks. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
