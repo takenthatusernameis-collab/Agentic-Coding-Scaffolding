@@ -9638,10 +9638,8 @@ from typing import List
 
 __all__: List[str] = [
     "circle_area",
-    "circle_diameter",
     "circle_perimeter",
     "rectangle_area",
-    "rectangle_diagonal",
     "rectangle_perimeter",
     "triangle_area",
     "triangle_perimeter",
@@ -9651,17 +9649,27 @@ __all__: List[str] = [
     "rhombus_perimeter",
     "trapezoid_area",
     "triangle_heron_area",
+    "triangle_inradius",
+    "triangle_circumradius",
     "parallelogram_area",
     "parallelogram_perimeter",
     "ellipse_area",
     "polygon_area",
     "regular_polygon_area",
     "regular_polygon_perimeter",
+    "circle_diameter",
+    "rectangle_diagonal",
     "sector_area",
     "arc_length",
     "ellipse_circumference",
-    "triangle_inradius",
-    "triangle_circumradius",
+    "sphere_surface_area",
+    "sphere_volume",
+    "cube_surface_area",
+    "cube_volume",
+    "cylinder_surface_area",
+    "cylinder_volume",
+    "cone_surface_area",
+    "cone_volume",
 ]
 
 
@@ -10154,6 +10162,94 @@ def ellipse_circumference(a: float, b: float) -> float:
     a_f = float(a)
     b_f = float(b)
     return float(math.pi * (3 * (a_f + b_f) - math.sqrt((3 * a_f + b_f) * (a_f + 3 * b_f))))
+
+
+def sphere_surface_area(radius: float) -> float:
+    """Return the surface area of a sphere."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    return float(4 * math.pi * radius ** 2)
+
+
+def sphere_volume(radius: float) -> float:
+    """Return the volume of a sphere."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    return float((4 / 3) * math.pi * radius ** 3)
+
+
+def cube_surface_area(side: float) -> float:
+    """Return the surface area of a cube."""
+    if not isinstance(side, (int, float)) or isinstance(side, bool):
+        raise TypeError("side must be a number")
+    if side < 0:
+        raise ValueError("Side cannot be negative.")
+    return float(6 * side ** 2)
+
+
+def cube_volume(side: float) -> float:
+    """Return the volume of a cube."""
+    if not isinstance(side, (int, float)) or isinstance(side, bool):
+        raise TypeError("side must be a number")
+    if side < 0:
+        raise ValueError("Side cannot be negative.")
+    return float(side ** 3)
+
+
+def cylinder_surface_area(radius: float, height: float) -> float:
+    """Return the total surface area of a cylinder (including bases)."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if not isinstance(height, (int, float)) or isinstance(height, bool):
+        raise TypeError("height must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if height < 0:
+        raise ValueError("Height cannot be negative.")
+    return float(2 * math.pi * radius ** 2 + 2 * math.pi * radius * height)
+
+
+def cylinder_volume(radius: float, height: float) -> float:
+    """Return the volume of a cylinder."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if not isinstance(height, (int, float)) or isinstance(height, bool):
+        raise TypeError("height must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if height < 0:
+        raise ValueError("Height cannot be negative.")
+    return float(math.pi * radius ** 2 * height)
+
+
+def cone_surface_area(radius: float, slant_height: float) -> float:
+    """Return the total surface area of a cone (including base)."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if not isinstance(slant_height, (int, float)) or isinstance(slant_height, bool):
+        raise TypeError("slant_height must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if slant_height < 0:
+        raise ValueError("Slant height cannot be negative.")
+    return float(math.pi * radius ** 2 + math.pi * radius * slant_height)
+
+
+def cone_volume(radius: float, height: float) -> float:
+    """Return the volume of a cone."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if not isinstance(height, (int, float)) or isinstance(height, bool):
+        raise TypeError("height must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if height < 0:
+        raise ValueError("Height cannot be negative.")
+    return float((1 / 3) * math.pi * radius ** 2 * height)
 SHAPES
 
 # --- tests/test_shapes.py ---
@@ -10570,6 +10666,148 @@ class TestEllipseCircumference(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             ellipse_circumference(True, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ellipse_circumference(1, False)
+
+
+class TestSphere(unittest.TestCase):
+    def test_surface_area(self):
+        from shapes import sphere_surface_area
+
+        self.assertAlmostEqual(sphere_surface_area(1), 4 * math.pi)
+
+    def test_volume(self):
+        from shapes import sphere_volume
+
+        self.assertAlmostEqual(sphere_volume(1), 4 / 3 * math.pi)
+
+    def test_rejects_negative(self):
+        from shapes import sphere_surface_area, sphere_volume
+
+        with self.assertRaises(ValueError):
+            sphere_surface_area(-1)
+        with self.assertRaises(ValueError):
+            sphere_volume(-1)
+
+    def test_rejects_non_numeric(self):
+        from shapes import sphere_surface_area, sphere_volume
+
+        with self.assertRaises(TypeError):
+            sphere_surface_area("1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sphere_volume(None)  # type: ignore[arg-type]
+
+    def test_rejects_bool(self):
+        from shapes import sphere_surface_area, sphere_volume
+
+        with self.assertRaises(TypeError):
+            sphere_surface_area(True)
+        with self.assertRaises(TypeError):
+            sphere_volume(False)
+
+
+class TestCube(unittest.TestCase):
+    def test_surface_area(self):
+        from shapes import cube_surface_area
+
+        self.assertEqual(cube_surface_area(2), 24)
+
+    def test_volume(self):
+        from shapes import cube_volume
+
+        self.assertEqual(cube_volume(2), 8)
+
+    def test_rejects_negative(self):
+        from shapes import cube_surface_area, cube_volume
+
+        with self.assertRaises(ValueError):
+            cube_surface_area(-1)
+        with self.assertRaises(ValueError):
+            cube_volume(-1)
+
+    def test_rejects_non_numeric(self):
+        from shapes import cube_surface_area, cube_volume
+
+        with self.assertRaises(TypeError):
+            cube_surface_area([])  # type: ignore[arg-type]
+
+    def test_rejects_bool(self):
+        from shapes import cube_surface_area, cube_volume
+
+        with self.assertRaises(TypeError):
+            cube_surface_area(True)
+
+
+class TestCylinder(unittest.TestCase):
+    def test_surface_area(self):
+        from shapes import cylinder_surface_area
+
+        self.assertAlmostEqual(cylinder_surface_area(1, 1), 2 * math.pi + 2 * math.pi)
+
+    def test_volume(self):
+        from shapes import cylinder_volume
+
+        self.assertAlmostEqual(cylinder_volume(1, 2), 2 * math.pi)
+
+    def test_rejects_negative(self):
+        from shapes import cylinder_surface_area, cylinder_volume
+
+        with self.assertRaises(ValueError):
+            cylinder_surface_area(-1, 1)
+        with self.assertRaises(ValueError):
+            cylinder_volume(1, -1)
+
+    def test_rejects_non_numeric(self):
+        from shapes import cylinder_surface_area, cylinder_volume
+
+        with self.assertRaises(TypeError):
+            cylinder_surface_area("1", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cylinder_volume(1, None)  # type: ignore[arg-type]
+
+    def test_rejects_bool(self):
+        from shapes import cylinder_surface_area, cylinder_volume
+
+        with self.assertRaises(TypeError):
+            cylinder_surface_area(True, 1)
+        with self.assertRaises(TypeError):
+            cylinder_volume(1, False)
+
+
+class TestCone(unittest.TestCase):
+    def test_surface_area(self):
+        from shapes import cone_surface_area
+
+        self.assertAlmostEqual(cone_surface_area(3, 5), math.pi * 9 + math.pi * 3 * 5)
+
+    def test_volume(self):
+        from shapes import cone_volume
+
+        self.assertAlmostEqual(cone_volume(3, 4), (1 / 3) * math.pi * 9 * 4)
+
+    def test_rejects_negative(self):
+        from shapes import cone_surface_area, cone_volume
+
+        with self.assertRaises(ValueError):
+            cone_surface_area(-1, 5)
+        with self.assertRaises(ValueError):
+            cone_volume(3, -1)
+
+    def test_rejects_non_numeric(self):
+        from shapes import cone_surface_area, cone_volume
+
+        with self.assertRaises(TypeError):
+            cone_surface_area("3", 5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cone_volume(3, [])  # type: ignore[arg-type]
+
+    def test_rejects_bool(self):
+        from shapes import cone_surface_area, cone_volume
+
+        with self.assertRaises(TypeError):
+            cone_surface_area(True, 5)
+        with self.assertRaises(TypeError):
+            cone_volume(3, False)
 TESTSHAPES
 
 # --- strings.py ---
@@ -32274,7 +32512,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
-- `shapes.py` — geometry utilities for areas and perimeters of common shapes
+- `shapes.py` — geometry utilities for areas, perimeters, and surface/volume of common 2D and 3D shapes
 - `strings.py` — string utilities for text operations
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
@@ -34348,6 +34586,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `is_finite(value)`, `is_infinite(value)`, and `is_nan(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments (values are finite/inf/nan classified correctly for floats, with ints treated as finite). Added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `is_non_negative(value)` and `is_non_positive(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments; added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` and `.kilo/command/scaffold-project.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `is_palindromic_number(value)` to `number_utils.py` with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation for non-number arguments (rejecting `bool`). Returns `True` for non-negative integers whose decimal representation is a palindrome; raises `ValueError` for negative integers. Added tests in `tests/test_number_utils.py`. Updated documentation and synchronized copies into `scaffold.sh`.
+- Added 3D shape helpers to `shapes.py`: `sphere_surface_area`/`sphere_volume`, `cube_surface_area`/`cube_volume`, `cylinder_surface_area`/`cylinder_volume`, `cone_surface_area`/`cone_volume` with typed APIs, `__all__` exports, validation (raising `TypeError` for non-numbers including `bool`, `ValueError` for negatives), and tests in `tests/test_shapes.py`. Updated `README.md` and `.kilo/command/scaffold-project.md` to document the new helpers. Synchronized `shapes.py`, `tests/test_shapes.py`, README, and the command doc into `scaffold.sh`.
 - Added `is_negative(value)`, `is_positive(value)`, and `is_zero(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments; added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` and `.kilo/command/scaffold-project.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `is_perfect_square(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments; returns False for negative integers and uses `math.isqrt` to test whether a non-negative integer is a perfect square. Added tests in `tests/test_prime_utils.py` covering zero, small and large squares, non-squares, negatives, and the `TypeError` path. Updated the `prime_utils` prose sections of `README.md` and `.kilo/command/scaffold-project.md` to list the new helper. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Bootstrap session: verified repository health — `make test` runs 5410 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 544 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. The board held no task, so this session proceeded as a bootstrap.
@@ -35325,7 +35565,7 @@ The project includes a simple calculator module in `calculator.py` with function
 
 ## Shapes Module
 
-The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, triangles, and polygons. Circular sectors and arcs are supported via `sector_area` and `arc_length`, regular polygons via `regular_polygon_area` and `regular_polygon_perimeter`, and ellipses via `ellipse_area` and `ellipse_circumference`. `triangle_heron_area` computes area via Heron's formula, and `triangle_inradius` and `triangle_circumradius` return inradius and circumradius. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
+The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, triangles, and polygons. Circular sectors and arcs are supported via `sector_area` and `arc_length`, regular polygons via `regular_polygon_area` and `regular_polygon_perimeter`, and ellipses via `ellipse_area` and `ellipse_circumference`. `triangle_heron_area` computes area via Heron's formula, and `triangle_inradius` and `triangle_circumradius` return inradius and circumradius. 3D helpers include `sphere_surface_area`/`sphere_volume`, `cube_surface_area`/`cube_volume`, `cylinder_surface_area`/`cylinder_volume`, and `cone_surface_area`/`cone_volume`. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
 
 ## Strings Module
 
@@ -53893,6 +54133,7 @@ __all__: List[str] = [
     "is_perfect_cube",
     "is_perfect_square",
     "is_power_of_two",
+    "is_palindromic_number",
 ]
 
 
@@ -54289,6 +54530,43 @@ def is_power_of_two(value: Number) -> bool:
     return (n & (n - 1)) == 0
 
 
+def is_palindromic_number(value: Number) -> bool:
+    """Return True if the decimal representation of *value* is a palindrome.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* reads the same forwards and backwards.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if isinstance(value, bool):
+        raise TypeError(f"value must be a number, got bool")
+    if isinstance(value, float):
+        return False
+    if not isinstance(value, int):
+        # try to convert
+        try:
+            f = float(value)
+        except (TypeError, ValueError):
+            raise TypeError(f"value must be a number, got {type(value).__name__}")
+        if not f.is_integer():
+            return False
+        value_int = int(f)
+        if value_int < 0:
+            return False
+        s = str(value_int)
+        return s == s[::-1]
+    n = int(value)
+    if n < 0:
+        return False
+    s = str(n)
+    return s == s[::-1]
+
+
 def safe_divide(numerator: Number, denominator: Number) -> float:
     """Divide numerator by denominator, returning 0.0 when denominator is zero.
 
@@ -54502,6 +54780,43 @@ class TestIsNonPositive(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_non_positive("x")  # type: ignore[arg-type]
+
+
+class TestIsPalindromicNumber(unittest.TestCase):
+    def test_palindromes(self) -> None:
+        from number_utils import is_palindromic_number
+
+        for value in (0, 1, 11, 121, 1221, 1331, 12321):
+            self.assertTrue(is_palindromic_number(value))
+        for value in (10, 12, 102, 1210, 123):
+            self.assertFalse(is_palindromic_number(value))
+
+    def test_float_not_integer(self) -> None:
+        from number_utils import is_palindromic_number
+
+        self.assertFalse(is_palindromic_number(1.1))
+        self.assertFalse(is_palindromic_number(11.0))
+
+    def test_negative(self) -> None:
+        from number_utils import is_palindromic_number
+
+        self.assertFalse(is_palindromic_number(-121))
+
+    def test_rejects_bool(self) -> None:
+        from number_utils import is_palindromic_number
+
+        with self.assertRaises(TypeError):
+            is_palindromic_number(True)
+        with self.assertRaises(TypeError):
+            is_palindromic_number(False)
+
+    def test_rejects_non_number(self) -> None:
+        from number_utils import is_palindromic_number
+
+        with self.assertRaises(TypeError):
+            is_palindromic_number("121")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_palindromic_number(None)  # type: ignore[arg-type]
 
 
 class TestIsEven(unittest.TestCase):

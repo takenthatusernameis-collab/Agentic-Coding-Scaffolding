@@ -191,6 +191,43 @@ class TestIsNonPositive(unittest.TestCase):
             is_non_positive("x")  # type: ignore[arg-type]
 
 
+class TestIsPalindromicNumber(unittest.TestCase):
+    def test_palindromes(self) -> None:
+        from number_utils import is_palindromic_number
+
+        for value in (0, 1, 11, 121, 1221, 1331, 12321):
+            self.assertTrue(is_palindromic_number(value))
+        for value in (10, 12, 102, 1210, 123):
+            self.assertFalse(is_palindromic_number(value))
+
+    def test_float_not_integer(self) -> None:
+        from number_utils import is_palindromic_number
+
+        self.assertFalse(is_palindromic_number(1.1))
+        self.assertFalse(is_palindromic_number(11.0))
+
+    def test_negative(self) -> None:
+        from number_utils import is_palindromic_number
+
+        self.assertFalse(is_palindromic_number(-121))
+
+    def test_rejects_bool(self) -> None:
+        from number_utils import is_palindromic_number
+
+        with self.assertRaises(TypeError):
+            is_palindromic_number(True)
+        with self.assertRaises(TypeError):
+            is_palindromic_number(False)
+
+    def test_rejects_non_number(self) -> None:
+        from number_utils import is_palindromic_number
+
+        with self.assertRaises(TypeError):
+            is_palindromic_number("121")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_palindromic_number(None)  # type: ignore[arg-type]
+
+
 class TestIsEven(unittest.TestCase):
     def test_even_ints(self) -> None:
         self.assertTrue(is_even(0))

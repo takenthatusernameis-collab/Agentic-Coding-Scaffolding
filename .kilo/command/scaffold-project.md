@@ -114,7 +114,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
-- `shapes.py` — geometry utilities for areas and perimeters of common shapes
+- `shapes.py` — geometry utilities for areas, perimeters, and surface/volume of common 2D and 3D shapes
 - `strings.py` — string utilities for text operations
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions

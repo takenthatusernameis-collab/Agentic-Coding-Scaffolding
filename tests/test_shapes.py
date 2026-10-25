@@ -410,3 +410,145 @@ class TestEllipseCircumference(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             ellipse_circumference(True, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ellipse_circumference(1, False)
+
+
+class TestSphere(unittest.TestCase):
+    def test_surface_area(self):
+        from shapes import sphere_surface_area
+
+        self.assertAlmostEqual(sphere_surface_area(1), 4 * math.pi)
+
+    def test_volume(self):
+        from shapes import sphere_volume
+
+        self.assertAlmostEqual(sphere_volume(1), 4 / 3 * math.pi)
+
+    def test_rejects_negative(self):
+        from shapes import sphere_surface_area, sphere_volume
+
+        with self.assertRaises(ValueError):
+            sphere_surface_area(-1)
+        with self.assertRaises(ValueError):
+            sphere_volume(-1)
+
+    def test_rejects_non_numeric(self):
+        from shapes import sphere_surface_area, sphere_volume
+
+        with self.assertRaises(TypeError):
+            sphere_surface_area("1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sphere_volume(None)  # type: ignore[arg-type]
+
+    def test_rejects_bool(self):
+        from shapes import sphere_surface_area, sphere_volume
+
+        with self.assertRaises(TypeError):
+            sphere_surface_area(True)
+        with self.assertRaises(TypeError):
+            sphere_volume(False)
+
+
+class TestCube(unittest.TestCase):
+    def test_surface_area(self):
+        from shapes import cube_surface_area
+
+        self.assertEqual(cube_surface_area(2), 24)
+
+    def test_volume(self):
+        from shapes import cube_volume
+
+        self.assertEqual(cube_volume(2), 8)
+
+    def test_rejects_negative(self):
+        from shapes import cube_surface_area, cube_volume
+
+        with self.assertRaises(ValueError):
+            cube_surface_area(-1)
+        with self.assertRaises(ValueError):
+            cube_volume(-1)
+
+    def test_rejects_non_numeric(self):
+        from shapes import cube_surface_area, cube_volume
+
+        with self.assertRaises(TypeError):
+            cube_surface_area([])  # type: ignore[arg-type]
+
+    def test_rejects_bool(self):
+        from shapes import cube_surface_area, cube_volume
+
+        with self.assertRaises(TypeError):
+            cube_surface_area(True)
+
+
+class TestCylinder(unittest.TestCase):
+    def test_surface_area(self):
+        from shapes import cylinder_surface_area
+
+        self.assertAlmostEqual(cylinder_surface_area(1, 1), 2 * math.pi + 2 * math.pi)
+
+    def test_volume(self):
+        from shapes import cylinder_volume
+
+        self.assertAlmostEqual(cylinder_volume(1, 2), 2 * math.pi)
+
+    def test_rejects_negative(self):
+        from shapes import cylinder_surface_area, cylinder_volume
+
+        with self.assertRaises(ValueError):
+            cylinder_surface_area(-1, 1)
+        with self.assertRaises(ValueError):
+            cylinder_volume(1, -1)
+
+    def test_rejects_non_numeric(self):
+        from shapes import cylinder_surface_area, cylinder_volume
+
+        with self.assertRaises(TypeError):
+            cylinder_surface_area("1", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cylinder_volume(1, None)  # type: ignore[arg-type]
+
+    def test_rejects_bool(self):
+        from shapes import cylinder_surface_area, cylinder_volume
+
+        with self.assertRaises(TypeError):
+            cylinder_surface_area(True, 1)
+        with self.assertRaises(TypeError):
+            cylinder_volume(1, False)
+
+
+class TestCone(unittest.TestCase):
+    def test_surface_area(self):
+        from shapes import cone_surface_area
+
+        self.assertAlmostEqual(cone_surface_area(3, 5), math.pi * 9 + math.pi * 3 * 5)
+
+    def test_volume(self):
+        from shapes import cone_volume
+
+        self.assertAlmostEqual(cone_volume(3, 4), (1 / 3) * math.pi * 9 * 4)
+
+    def test_rejects_negative(self):
+        from shapes import cone_surface_area, cone_volume
+
+        with self.assertRaises(ValueError):
+            cone_surface_area(-1, 5)
+        with self.assertRaises(ValueError):
+            cone_volume(3, -1)
+
+    def test_rejects_non_numeric(self):
+        from shapes import cone_surface_area, cone_volume
+
+        with self.assertRaises(TypeError):
+            cone_surface_area("3", 5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cone_volume(3, [])  # type: ignore[arg-type]
+
+    def test_rejects_bool(self):
+        from shapes import cone_surface_area, cone_volume
+
+        with self.assertRaises(TypeError):
+            cone_surface_area(True, 5)
+        with self.assertRaises(TypeError):
+            cone_volume(3, False)

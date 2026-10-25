@@ -659,7 +659,7 @@ The project includes a simple calculator module in `calculator.py` with function
 
 ## Shapes Module
 
-The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, triangles, and polygons. Circular sectors and arcs are supported via `sector_area` and `arc_length`, regular polygons via `regular_polygon_area` and `regular_polygon_perimeter`, and ellipses via `ellipse_area` and `ellipse_circumference`. `triangle_heron_area` computes area via Heron's formula, and `triangle_inradius` and `triangle_circumradius` return inradius and circumradius. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
+The project includes a geometry utilities module in `shapes.py` with functions for calculating the area and perimeter of circles, rectangles, triangles, and polygons. Circular sectors and arcs are supported via `sector_area` and `arc_length`, regular polygons via `regular_polygon_area` and `regular_polygon_perimeter`, and ellipses via `ellipse_area` and `ellipse_circumference`. `triangle_heron_area` computes area via Heron's formula, and `triangle_inradius` and `triangle_circumradius` return inradius and circumradius. 3D helpers include `sphere_surface_area`/`sphere_volume`, `cube_surface_area`/`cube_volume`, `cylinder_surface_area`/`cylinder_volume`, and `cone_surface_area`/`cone_volume`. Input validation enforces non-negative dimensions and the triangle inequality. The module is tested in `tests/test_shapes.py`.
 
 ## Strings Module
 

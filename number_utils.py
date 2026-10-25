@@ -439,8 +439,23 @@ def is_palindromic_number(value: Number) -> bool:
         TypeError: If *value* is not a number.
     """
     _require_number(value, "value")
-    if not is_integer(value):
+    if isinstance(value, bool):
+        raise TypeError(f"value must be a number, got bool")
+    if isinstance(value, float):
         return False
+    if not isinstance(value, int):
+        # try to convert
+        try:
+            f = float(value)
+        except (TypeError, ValueError):
+            raise TypeError(f"value must be a number, got {type(value).__name__}")
+        if not f.is_integer():
+            return False
+        value_int = int(f)
+        if value_int < 0:
+            return False
+        s = str(value_int)
+        return s == s[::-1]
     n = int(value)
     if n < 0:
         return False

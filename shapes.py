@@ -5,10 +5,8 @@ from typing import List
 
 __all__: List[str] = [
     "circle_area",
-    "circle_diameter",
     "circle_perimeter",
     "rectangle_area",
-    "rectangle_diagonal",
     "rectangle_perimeter",
     "triangle_area",
     "triangle_perimeter",
@@ -18,17 +16,27 @@ __all__: List[str] = [
     "rhombus_perimeter",
     "trapezoid_area",
     "triangle_heron_area",
+    "triangle_inradius",
+    "triangle_circumradius",
     "parallelogram_area",
     "parallelogram_perimeter",
     "ellipse_area",
     "polygon_area",
     "regular_polygon_area",
     "regular_polygon_perimeter",
+    "circle_diameter",
+    "rectangle_diagonal",
     "sector_area",
     "arc_length",
     "ellipse_circumference",
-    "triangle_inradius",
-    "triangle_circumradius",
+    "sphere_surface_area",
+    "sphere_volume",
+    "cube_surface_area",
+    "cube_volume",
+    "cylinder_surface_area",
+    "cylinder_volume",
+    "cone_surface_area",
+    "cone_volume",
 ]
 
 
@@ -521,3 +529,91 @@ def ellipse_circumference(a: float, b: float) -> float:
     a_f = float(a)
     b_f = float(b)
     return float(math.pi * (3 * (a_f + b_f) - math.sqrt((3 * a_f + b_f) * (a_f + 3 * b_f))))
+
+
+def sphere_surface_area(radius: float) -> float:
+    """Return the surface area of a sphere."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    return float(4 * math.pi * radius ** 2)
+
+
+def sphere_volume(radius: float) -> float:
+    """Return the volume of a sphere."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    return float((4 / 3) * math.pi * radius ** 3)
+
+
+def cube_surface_area(side: float) -> float:
+    """Return the surface area of a cube."""
+    if not isinstance(side, (int, float)) or isinstance(side, bool):
+        raise TypeError("side must be a number")
+    if side < 0:
+        raise ValueError("Side cannot be negative.")
+    return float(6 * side ** 2)
+
+
+def cube_volume(side: float) -> float:
+    """Return the volume of a cube."""
+    if not isinstance(side, (int, float)) or isinstance(side, bool):
+        raise TypeError("side must be a number")
+    if side < 0:
+        raise ValueError("Side cannot be negative.")
+    return float(side ** 3)
+
+
+def cylinder_surface_area(radius: float, height: float) -> float:
+    """Return the total surface area of a cylinder (including bases)."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if not isinstance(height, (int, float)) or isinstance(height, bool):
+        raise TypeError("height must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if height < 0:
+        raise ValueError("Height cannot be negative.")
+    return float(2 * math.pi * radius ** 2 + 2 * math.pi * radius * height)
+
+
+def cylinder_volume(radius: float, height: float) -> float:
+    """Return the volume of a cylinder."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if not isinstance(height, (int, float)) or isinstance(height, bool):
+        raise TypeError("height must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if height < 0:
+        raise ValueError("Height cannot be negative.")
+    return float(math.pi * radius ** 2 * height)
+
+
+def cone_surface_area(radius: float, slant_height: float) -> float:
+    """Return the total surface area of a cone (including base)."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if not isinstance(slant_height, (int, float)) or isinstance(slant_height, bool):
+        raise TypeError("slant_height must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if slant_height < 0:
+        raise ValueError("Slant height cannot be negative.")
+    return float(math.pi * radius ** 2 + math.pi * radius * slant_height)
+
+
+def cone_volume(radius: float, height: float) -> float:
+    """Return the volume of a cone."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if not isinstance(height, (int, float)) or isinstance(height, bool):
+        raise TypeError("height must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    if height < 0:
+        raise ValueError("Height cannot be negative.")
+    return float((1 / 3) * math.pi * radius ** 2 * height)
