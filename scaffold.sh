@@ -59304,6 +59304,11 @@ __all__: List[str] = [
     "is_power_of_two",
     "is_semiprime",
     "is_squarefree",
+    "is_prime_power",
+    "is_emirp",
+    "is_twin_prime",
+    "is_palindromic_prime",
+    "is_mersenne_prime",
 ]
 
 
@@ -59638,6 +59643,168 @@ def is_squarefree(n: int) -> bool:
             return False
         seen.add(p)
     return True
+
+
+def is_prime_power(n: int) -> bool:
+    """Return True if *n* is a prime power.
+
+    A prime power is a positive integer that is a power of a single prime
+    number. This includes prime numbers themselves (p^1) and prime powers
+    like p^2, p^3, etc. By definition, 1 is not considered a prime power.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a prime power, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 1:
+        return False
+    if is_prime(n):
+        return True
+    if n < 0:
+        n = -n
+    if n <= 1:
+        return False
+    # Find integer k >= 2 such that there exists prime p with p^k == n
+    # Find maximum possible exponent
+    max_exp = n.bit_length()
+    for k in range(2, max_exp + 1):
+        # Try to find integer p = n^(1/k)
+        p_float = n ** (1.0 / k)
+        p = round(p_float)
+        if p < 2:
+            continue
+        # Check p, p+0,p±1 due to floating point precision
+        for candidate in [p - 1, p, p + 1]:
+            if candidate < 2:
+                continue
+            pow_val = candidate ** k
+            if pow_val == n and is_prime(candidate):
+                return True
+            if pow_val > n:
+                break
+    return False
+
+
+def is_emirp(n: int) -> bool:
+    """Return True if *n* is an emirp.
+
+    An emirp (a prime spelled backwards) is a prime number that results
+    in a different prime when its decimal digits are reversed. In other
+    words, *n* is prime, its reverse *r* is prime, and *n != r*.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is an emirp, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    if n < 10:
+        return False
+    s = str(abs(n))
+    r_s = s[::-1]
+    if r_s == s:
+        return False
+    try:
+        r = int(r_s)
+    except ValueError:
+        return False
+    if r < 2:
+        return False
+    return is_prime(r)
+
+
+def is_twin_prime(n: int) -> bool:
+    """Return True if *n* is a twin prime.
+
+    A twin prime is a prime number that is either 2 less or 2 more than
+    another prime number. This function returns True if *n* is prime and
+    either n+2 or n-2 is also prime.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a twin prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    return is_prime(n - 2) or is_prime(n + 2)
+
+
+def is_palindromic_prime(n: int) -> bool:
+    """Return True if *n* is a palindromic prime.
+
+    A palindromic prime is a prime number that is also a palindromic
+    number in base 10, meaning its decimal representation reads the same
+    forwards and backwards (e.g., 2, 3, 5, 7, 11, 101, 131, ...).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a palindromic prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    s = str(abs(n))
+    return s == s[::-1]
+
+
+def is_mersenne_prime(n: int) -> bool:
+    """Return True if *n* is a Mersenne prime.
+
+    A Mersenne prime is a prime number of the form M_p = 2^p - 1
+    for some prime number *p*. Known examples include 3 (2^2-1),
+    7 (2^3-1), 31 (2^5-1), 127 (2^7-1), etc.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a Mersenne prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    if n == 3:
+        return True  # 2^2 - 1, p=2 (prime)
+    if n < 7:
+        return False
+    # n = 2^p - 1 implies p = log2(n+1)
+    m = n + 1
+    if m <= 0 or (m & (m - 1)) != 0:
+        return False
+    # Find exponent p
+    p = m.bit_length() - 1
+    # Verify m == 2^p
+    if (1 << p) != m:
+        return False
+    if p < 2:
+        return False
+    return is_prime(p)
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -59653,6 +59820,7 @@ from prime_utils import (
     is_prime,
     is_semiprime,
     is_squarefree,
+    is_prime_power,
     next_prime,
     nth_prime,
     prev_prime,
@@ -59994,6 +60162,46 @@ class TestSquarefree(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIsPrimePower(unittest.TestCase):
+    def test_primes_are_prime_powers(self):
+        self.assertTrue(is_prime_power(2))
+        self.assertTrue(is_prime_power(3))
+        self.assertTrue(is_prime_power(5))
+        self.assertTrue(is_prime_power(101))
+
+    def test_prime_powers(self):
+        self.assertTrue(is_prime_power(4))  # 2^2
+        self.assertTrue(is_prime_power(8))  # 2^3
+        self.assertTrue(is_prime_power(9))  # 3^2
+        self.assertTrue(is_prime_power(16))  # 2^4
+        self.assertTrue(is_prime_power(25))  # 5^2
+        self.assertTrue(is_prime_power(27))  # 3^3
+        self.assertTrue(is_prime_power( p**6 if False else 2**6))  # 64
+
+    def test_non_prime_powers(self):
+        self.assertFalse(is_prime_power(1))
+        self.assertFalse(is_prime_power(6))  # 2*3
+        self.assertFalse(is_prime_power(10))
+        self.assertFalse(is_prime_power(12))
+        self.assertFalse(is_prime_power(18))
+        self.assertFalse(is_prime_power(36))  # 6^2 but base not prime
+
+    def test_negative_numbers(self):
+        self.assertFalse(is_prime_power(-4))
+        self.assertFalse(is_prime_power(-2))
+
+    def test_zero(self):
+        self.assertFalse(is_prime_power(0))
+
+    def test_non_int_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            is_prime_power(2.0)
+        with self.assertRaises(TypeError):
+            is_prime_power("4")
+        with self.assertRaises(TypeError):
+            is_prime_power(None)
 TEST_PRIME_UTILS
 
 # --- pstats_utils.py ---
