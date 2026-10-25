@@ -94,6 +94,8 @@
 
 #   - calculator.py — # Simple calculator module with arithmetic operations
 
+#   - roman_utils.py — # Roman numeral conversion utilities
+
 #   - config_utils.py — # Configuration utilities for JSON file management
 
 #   - shapes.py — # Geometry utilities for areas and perimeters
@@ -426,6 +428,8 @@
 #   - test_cache_utils.py — # Tests for cache_utils.py
 
 #   - test_calculator.py — # Tests for calculator.py
+
+#   - test_roman_utils.py — # Tests for roman_utils.py
 
 #   - test_calendar_utils.py — # Tests for calendar_utils.py
 
@@ -4411,6 +4415,7 @@ py_modules = [
     "url_utils",
     "urllib_utils",
     "random_utils",
+    "roman_utils",
     "tempfile_utils",
     "re_utils",
     "rlcompleter_utils",
@@ -32274,6 +32279,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
+- `roman_utils.py` — Roman numeral conversion utilities (`to_roman`, `from_roman`, `is_valid_roman`) with input validation
 - `mmap_utils.py` — utilities wrapping the standard library mmap module
 - `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping stdlib stat and os.stat
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
@@ -32326,6 +32332,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `tests/test_stats.py` — unit tests for `stats.py`
+- `tests/test_roman_utils.py` — unit tests for `roman_utils.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
 - `tests/test_mmap_utils.py` — unit tests for `mmap_utils.py`
 - `tests/test_stat_utils.py` — unit tests for `stat_utils.py`
@@ -34337,6 +34344,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `roman_utils.py` with `to_roman`, `from_roman`, and `is_valid_roman` helpers for converting between integers and Roman numerals in the range 1 to 3999, each with a typed signature, a Google-style docstring, and input validation raising `TypeError` or `ValueError` on invalid arguments, plus unit tests in `tests/test_roman_utils.py`. Synchronized `roman_utils.py` and `tests/test_roman_utils.py` across `scaffold.sh`, `pyproject.toml`, README, `.kilo/command/scaffold-project.md`, `tests/test_scaffold.py`, and this CHANGELOG.
+
 - Added `is_finite(value)`, `is_infinite(value)`, and `is_nan(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments (values are finite/inf/nan classified correctly for floats, with ints treated as finite). Added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `is_non_negative(value)` and `is_non_positive(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments; added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` and `.kilo/command/scaffold-project.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `is_negative(value)`, `is_positive(value)`, and `is_zero(value)` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-number arguments; added tests in `tests/test_number_utils.py`. Updated the `number_utils` module tree entry and prose section of `README.md` and `.kilo/command/scaffold-project.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, README, the command doc, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -34721,6 +34730,7 @@ urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
 prompt_utils.py             # Prompt utility functions for working with text prompts
 random_utils.py             # Random number generation and sampling utilities
+roman_utils.py              # Roman numeral conversion utilities (to_roman, from_roman, is_valid_roman)
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
 rlcompleter_utils.py        # Interactive tab completion utilities wrapping stdlib rlcompleter (Completer, complete)
 tempfile_utils.py           # Temporary file and directory management utilities (mkstemp, mkdtemp, NamedTemporaryFile, TemporaryDirectory)
@@ -35081,6 +35091,7 @@ test_pickle_utils.py        # Tests for pickle_utils.py
   test_prompt_utils.py        # Tests for prompt_utils.py
   test_queue_utils.py         # Tests for queue_utils.py
   test_random_utils.py        # Tests for random_utils.py
+  test_roman_utils.py         # Tests for roman_utils.py
   test_re_utils.py            # Tests for re_utils.py
   test_tempfile_utils.py      # Tests for tempfile_utils.py
   test_traceback_utils.py     # Tests for traceback_utils.py
@@ -35323,6 +35334,8 @@ The project includes a string utilities module in `strings.py` with functions fo
 ## Statistics Module
 
 The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, and `median_absolute_deviation`. The module supports both population and sample variance/stddev calculations. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+
+The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 
 ## License
 
@@ -108317,6 +108330,205 @@ class TestCaseAliases(unittest.TestCase):
     def test_sentence_case(self):
         self.assertEqual(sentence_case("hello WORLD"), "Hello world")
 TEST_CASE_UTILS
+
+# --- roman_utils.py ---
+cat > "$OUTPUT_DIR/roman_utils.py" <<'ROMAN_UTILS'
+"""Roman numeral conversion utilities.
+
+Converts between integers and Roman numerals with input validation.
+Supports the standard range 1 through 3999.
+"""
+
+_ROMAN_NUMERALS = (
+    (1000, "M"),
+    (900, "CM"),
+    (500, "D"),
+    (400, "CD"),
+    (100, "C"),
+    (90, "XC"),
+    (50, "L"),
+    (40, "XL"),
+    (10, "X"),
+    (9, "IX"),
+    (5, "V"),
+    (4, "IV"),
+    (1, "I"),
+)
+
+_ROMAN_DIGITS = {
+    "I": 1,
+    "V": 5,
+    "X": 10,
+    "L": 50,
+    "C": 100,
+    "D": 500,
+    "M": 1000,
+}
+
+_ROMAN_PATTERN = (
+    r"^(?=.)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$"
+)
+
+
+def to_roman(number: int) -> str:
+    """Convert an integer to a Roman numeral.
+
+    Args:
+        number: Integer in the range 1 to 3999 inclusive.
+
+    Returns:
+        The Roman numeral representation of *number*.
+
+    Raises:
+        TypeError: If *number* is not an integer.
+        ValueError: If *number* is outside the supported range.
+    """
+    if isinstance(number, bool) or not isinstance(number, int):
+        raise TypeError("number must be an integer")
+    if number < 1 or number > 3999:
+        raise ValueError("number must be in the range 1 to 3999")
+    result = []
+    for value, symbol in _ROMAN_NUMERALS:
+        count, number = divmod(number, value)
+        result.append(symbol * count)
+    return "".join(result)
+
+
+def from_roman(roman: str) -> int:
+    """Convert a Roman numeral to an integer.
+
+    Args:
+        roman: Roman numeral string to convert.
+
+    Returns:
+        The integer value of *roman*.
+
+    Raises:
+        TypeError: If *roman* is not a string.
+        ValueError: If *roman* is not a valid Roman numeral.
+    """
+    if not isinstance(roman, str):
+        raise TypeError("roman must be a string")
+    if not roman:
+        raise ValueError("roman must not be empty")
+    total = 0
+    index = 0
+    for value, symbol in _ROMAN_NUMERALS:
+        while roman[index:index + len(symbol)] == symbol:
+            total += value
+            index += len(symbol)
+    if index != len(roman):
+        raise ValueError(f"invalid Roman numeral: {roman!r}")
+    if to_roman(total) != roman:
+        raise ValueError(f"invalid Roman numeral: {roman!r}")
+    return total
+
+
+def is_valid_roman(roman: str) -> bool:
+    """Return ``True`` when *roman* is a valid Roman numeral.
+
+    Args:
+        roman: Roman numeral string to validate.
+
+    Returns:
+        ``True`` if *roman* is a valid Roman numeral, ``False`` otherwise.
+    """
+    try:
+        from_roman(roman)
+    except (TypeError, ValueError):
+        return False
+    return True
+ROMAN_UTILS
+
+# --- tests/test_roman_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_roman_utils.py" <<'TEST_ROMAN_UTILS'
+import unittest
+
+from roman_utils import from_roman, is_valid_roman, to_roman
+
+
+class TestRomanUtils(unittest.TestCase):
+    def test_to_roman_basic(self):
+        self.assertEqual(to_roman(1), "I")
+        self.assertEqual(to_roman(2), "II")
+        self.assertEqual(to_roman(3), "III")
+        self.assertEqual(to_roman(4), "IV")
+        self.assertEqual(to_roman(5), "V")
+        self.assertEqual(to_roman(6), "VI")
+        self.assertEqual(to_roman(9), "IX")
+        self.assertEqual(to_roman(10), "X")
+        self.assertEqual(to_roman(14), "XIV")
+        self.assertEqual(to_roman(19), "XIX")
+        self.assertEqual(to_roman(40), "XL")
+        self.assertEqual(to_roman(49), "XLIX")
+        self.assertEqual(to_roman(50), "L")
+        self.assertEqual(to_roman(90), "XC")
+        self.assertEqual(to_roman(100), "C")
+        self.assertEqual(to_roman(400), "CD")
+        self.assertEqual(to_roman(500), "D")
+        self.assertEqual(to_roman(900), "CM")
+        self.assertEqual(to_roman(1000), "M")
+        self.assertEqual(to_roman(1984), "MCMLXXXIV")
+        self.assertEqual(to_roman(3999), "MMMCMXCIX")
+
+    def test_to_roman_roundtrip(self):
+        for number in range(1, 4000):
+            self.assertEqual(from_roman(to_roman(number)), number)
+
+    def test_to_roman_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            to_roman("1")
+        with self.assertRaises(TypeError):
+            to_roman(1.5)
+        with self.assertRaises(TypeError):
+            to_roman(True)
+
+    def test_to_roman_rejects_out_of_range(self):
+        with self.assertRaises(ValueError):
+            to_roman(0)
+        with self.assertRaises(ValueError):
+            to_roman(-1)
+        with self.assertRaises(ValueError):
+            to_roman(4000)
+
+    def test_from_roman(self):
+        self.assertEqual(from_roman("I"), 1)
+        self.assertEqual(from_roman("IV"), 4)
+        self.assertEqual(from_roman("IX"), 9)
+        self.assertEqual(from_roman("XL"), 40)
+        self.assertEqual(from_roman("XC"), 90)
+        self.assertEqual(from_roman("CD"), 400)
+        self.assertEqual(from_roman("CM"), 900)
+        self.assertEqual(from_roman("MCMLXXXIV"), 1984)
+        self.assertEqual(from_roman("MMMCMXCIX"), 3999)
+
+    def test_from_roman_rejects_invalid(self):
+        with self.assertRaises(ValueError):
+            from_roman("")
+        with self.assertRaises(ValueError):
+            from_roman("IIII")
+        with self.assertRaises(ValueError):
+            from_roman("VV")
+        with self.assertRaises(ValueError):
+            from_roman("XXXX")
+        with self.assertRaises(ValueError):
+            from_roman("notroman")
+        with self.assertRaises(TypeError):
+            from_roman(1)
+
+    def test_is_valid_roman(self):
+        self.assertTrue(is_valid_roman("I"))
+        self.assertTrue(is_valid_roman("IV"))
+        self.assertTrue(is_valid_roman("MMMCMXCIX"))
+        self.assertFalse(is_valid_roman(""))
+        self.assertFalse(is_valid_roman("IIII"))
+        self.assertFalse(is_valid_roman("notroman"))
+        self.assertFalse(is_valid_roman(1))
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_ROMAN_UTILS
 
 
 

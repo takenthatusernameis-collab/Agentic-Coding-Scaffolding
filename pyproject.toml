@@ -81,6 +81,7 @@ py_modules = [
     "url_utils",
     "urllib_utils",
     "random_utils",
+    "roman_utils",
     "tempfile_utils",
     "re_utils",
     "rlcompleter_utils",

@@ -119,6 +119,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `utils.py` — general utility helper functions
 - `stats.py` — statistical utility functions
 - `math_utils.py` — mathematical utility functions
+- `roman_utils.py` — Roman numeral conversion utilities (`to_roman`, `from_roman`, `is_valid_roman`) with input validation
 - `mmap_utils.py` — utilities wrapping the standard library mmap module
 - `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping stdlib stat and os.stat
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
@@ -171,6 +172,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_strings.py` — unit tests for `strings.py`
 - `tests/test_utils.py` — unit tests for `utils.py`
 - `tests/test_stats.py` — unit tests for `stats.py`
+- `tests/test_roman_utils.py` — unit tests for `roman_utils.py`
 - `tests/test_math_utils.py` — unit tests for `math_utils.py`
 - `tests/test_mmap_utils.py` — unit tests for `mmap_utils.py`
 - `tests/test_stat_utils.py` — unit tests for `stat_utils.py`
