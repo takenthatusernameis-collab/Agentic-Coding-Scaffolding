@@ -645,5 +645,197 @@ class TestPrimeUtilsBoundary(unittest.TestCase):
                 fn(None)  # type: ignore[arg-type]
 
 
+class TestPrimeCount(unittest.TestCase):
+    def test_below_two_returns_zero(self):
+        self.assertEqual(prime_count(-100), 0)
+        self.assertEqual(prime_count(0), 0)
+        self.assertEqual(prime_count(1), 0)
+
+    def test_small_values(self):
+        self.assertEqual(prime_count(2), 1)
+        self.assertEqual(prime_count(3), 2)
+        self.assertEqual(prime_count(4), 2)
+        self.assertEqual(prime_count(5), 3)
+        self.assertEqual(prime_count(10), 4)
+
+    def test_known_values(self):
+        self.assertEqual(prime_count(10), 4)
+        self.assertEqual(prime_count(20), 8)
+        self.assertEqual(prime_count(100), 25)
+        self.assertEqual(prime_count(1000), 168)
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            prime_count(10.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            prime_count("10")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            prime_count(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            prime_count(True)  # type: ignore[arg-type]
+
+
+class TestPrimeClassificationNegatives(unittest.TestCase):
+    """Prime-classification helpers must reject negatives, not classify them."""
+
+    def test_is_twin_prime_negative(self):
+        self.assertFalse(is_twin_prime(-5))
+        self.assertFalse(is_twin_prime(-3))
+
+    def test_is_cousin_prime_negative(self):
+        self.assertFalse(is_cousin_prime(-7))
+        self.assertFalse(is_cousin_prime(-3))
+
+    def test_is_sexy_prime_negative(self):
+        self.assertFalse(is_sexy_prime(-11))
+        self.assertFalse(is_sexy_prime(-5))
+
+    def test_is_palindromic_prime_negative(self):
+        self.assertFalse(is_palindromic_prime(-11))
+        self.assertFalse(is_palindromic_prime(-101))
+
+    def test_is_mersenne_prime_negative(self):
+        self.assertFalse(is_mersenne_prime(-7))
+        self.assertFalse(is_mersenne_prime(-31))
+
+    def test_is_safe_prime_negative(self):
+        self.assertFalse(is_safe_prime(-5))
+        self.assertFalse(is_safe_prime(-11))
+
+    def test_is_sophie_germain_prime_negative(self):
+        self.assertFalse(is_sophie_germain_prime(-5))
+        self.assertFalse(is_sophie_germain_prime(-2))
+
+    def test_is_emirp_negative(self):
+        self.assertFalse(is_emirp(-13))
+        self.assertFalse(is_emirp(-17))
+
+    def test_is_circular_prime_negative(self):
+        self.assertFalse(is_circular_prime(-7))
+        self.assertFalse(is_circular_prime(-197))
+
+
+class TestSumOfProperDivisorsEdge(unittest.TestCase):
+    def test_negative_inputs(self):
+        self.assertEqual(sum_of_proper_divisors(-1), 0)
+        self.assertEqual(sum_of_proper_divisors(-6), 0)
+        self.assertEqual(sum_of_proper_divisors(-28), 0)
+
+    def test_two(self):
+        self.assertEqual(sum_of_proper_divisors(2), 1)
+
+    def test_prime(self):
+        self.assertEqual(sum_of_proper_divisors(13), 1)
+
+
+class TestIsPrimePowerLarge(unittest.TestCase):
+    def test_large_power_of_two(self):
+        self.assertTrue(is_prime_power(2 ** 31))
+        self.assertTrue(is_prime_power(2 ** 62))
+
+    def test_large_non_power(self):
+        self.assertFalse(is_prime_power(2 ** 31 + 1))
+        self.assertFalse(is_prime_power(2 ** 62 + 1))
+
+    def test_large_prime_power_of_odd_prime(self):
+        self.assertTrue(is_prime_power(3 ** 20))
+        self.assertFalse(is_prime_power(3 ** 20 + 1))
+
+
+class TestIsSquarefreeEdge(unittest.TestCase):
+    def test_negative_squarefree(self):
+        self.assertTrue(is_squarefree(-1))
+        self.assertTrue(is_squarefree(-2))
+        self.assertTrue(is_squarefree(-30))
+
+    def test_negative_not_squarefree(self):
+        self.assertFalse(is_squarefree(-4))
+        self.assertFalse(is_squarefree(-12))
+
+    def test_zero(self):
+        self.assertFalse(is_squarefree(0))
+
+
+class TestIsSemiprimeEdge(unittest.TestCase):
+    def test_small_non_semiprime(self):
+        self.assertFalse(is_semiprime(0))
+        self.assertFalse(is_semiprime(1))
+        self.assertFalse(is_semiprime(2))
+        self.assertFalse(is_semiprime(3))
+
+    def test_negative(self):
+        self.assertFalse(is_semiprime(-6))
+        self.assertFalse(is_semiprime(-10))
+
+
+class TestIsPerfectSquareEdge(unittest.TestCase):
+    def test_zero_is_square(self):
+        self.assertTrue(is_perfect_square(0))
+
+    def test_negative_not_square(self):
+        self.assertFalse(is_perfect_square(-1))
+        self.assertFalse(is_perfect_square(-4))
+
+
+class TestNextPrevPrimeEdge(unittest.TestCase):
+    def test_next_prime_negative(self):
+        self.assertEqual(next_prime(-5), 2)
+        self.assertEqual(next_prime(-1), 2)
+
+    def test_next_prime_even(self):
+        self.assertEqual(next_prime(4), 5)
+        self.assertEqual(next_prime(6), 7)
+
+    def test_prev_prime_two(self):
+        self.assertEqual(prev_prime(2), 2)
+
+    def test_prev_prime_three(self):
+        self.assertEqual(prev_prime(3), 3)
+
+    def test_prev_prime_even(self):
+        self.assertEqual(prev_prime(10), 7)
+        self.assertEqual(prev_prime(8), 7)
+
+
+class TestPrimesUpToEdge(unittest.TestCase):
+    def test_two(self):
+        self.assertEqual(primes_up_to(2), [2])
+
+    def test_three(self):
+        self.assertEqual(primes_up_to(3), [2, 3])
+
+    def test_below_two(self):
+        self.assertEqual(primes_up_to(0), [])
+        self.assertEqual(primes_up_to(1), [])
+        self.assertEqual(primes_up_to(-5), [])
+
+
+class TestIsCoprimeEdge(unittest.TestCase):
+    def test_with_zero(self):
+        self.assertTrue(is_coprime(0, 1))
+        self.assertFalse(is_coprime(0, 5))
+
+    def test_negative(self):
+        self.assertTrue(is_coprime(-8, 9))
+        self.assertFalse(is_coprime(-6, 9))
+
+
+class TestIsPerfectAbundantDeficientEdge(unittest.TestCase):
+    def test_perfect_number_496(self):
+        self.assertTrue(is_perfect_number(496))
+
+    def test_abundant_number_edge(self):
+        self.assertTrue(is_abundant_number(945))
+
+    def test_deficient_primes(self):
+        for p in [2, 3, 5, 7, 11, 13, 17, 19, 23]:
+            self.assertTrue(is_deficient_number(p))
+
+    def test_negative_not_classified(self):
+        self.assertFalse(is_perfect_number(-6))
+        self.assertFalse(is_abundant_number(-12))
+        self.assertFalse(is_deficient_number(-5))
+
+
 if __name__ == "__main__":
     unittest.main()
