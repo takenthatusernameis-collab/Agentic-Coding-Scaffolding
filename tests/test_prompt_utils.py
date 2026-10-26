@@ -5,6 +5,7 @@ import unittest
 from prompt_utils import (
     clean_prompt,
     collapse_blank_lines,
+    count_placeholders,
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
@@ -196,6 +197,24 @@ class TestCollapseBlankLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             collapse_blank_lines(123)  # type: ignore[arg-type]
+
+
+class TestCountPlaceholders(unittest.TestCase):
+    def test_counts_occurrences(self):
+        self.assertEqual(count_placeholders("Hello {name}, {greeting}!"), 2)
+
+    def test_counts_duplicates(self):
+        self.assertEqual(count_placeholders("{a} {b} {a}"), 3)
+
+    def test_no_placeholders(self):
+        self.assertEqual(count_placeholders("No placeholders"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_placeholders(""), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_placeholders(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

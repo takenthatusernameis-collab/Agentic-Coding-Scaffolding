@@ -21,6 +21,7 @@ __all__: List[str] = [
     "estimate_token_count",
     "count_words",
     "collapse_blank_lines",
+    "count_placeholders",
 ]
 
 
@@ -327,3 +328,27 @@ def collapse_blank_lines(text: str) -> str:
     """
     _require_string(text, "text")
     return re.sub(r"\n{3,}", "\n\n", text)
+
+
+def count_placeholders(template: str) -> int:
+    """Count the number of placeholders in *template*.
+
+    Counts every ``{name}`` placeholder occurrence, including duplicates.
+
+    Args:
+        template: The template string to scan.
+
+    Returns:
+        The number of placeholder occurrences.
+
+    Raises:
+        TypeError: If *template* is not a string.
+
+    Examples:
+        >>> count_placeholders("Hello {name}, {greeting}!")
+        2
+        >>> count_placeholders("No placeholders")
+        0
+    """
+    _require_string(template, "template")
+    return len(re.findall(r"\{\w+\}", template))

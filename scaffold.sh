@@ -15463,6 +15463,7 @@ import unittest
 from prompt_utils import (
     clean_prompt,
     collapse_blank_lines,
+    count_placeholders,
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
@@ -15654,6 +15655,24 @@ class TestCollapseBlankLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             collapse_blank_lines(123)  # type: ignore[arg-type]
+
+
+class TestCountPlaceholders(unittest.TestCase):
+    def test_counts_occurrences(self):
+        self.assertEqual(count_placeholders("Hello {name}, {greeting}!"), 2)
+
+    def test_counts_duplicates(self):
+        self.assertEqual(count_placeholders("{a} {b} {a}"), 3)
+
+    def test_no_placeholders(self):
+        self.assertEqual(count_placeholders("No placeholders"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_placeholders(""), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_placeholders(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -23816,6 +23835,7 @@ __all__: List[str] = [
     "estimate_token_count",
     "count_words",
     "collapse_blank_lines",
+    "count_placeholders",
 ]
 
 
@@ -24122,6 +24142,30 @@ def collapse_blank_lines(text: str) -> str:
     """
     _require_string(text, "text")
     return re.sub(r"\n{3,}", "\n\n", text)
+
+
+def count_placeholders(template: str) -> int:
+    """Count the number of placeholders in *template*.
+
+    Counts every ``{name}`` placeholder occurrence, including duplicates.
+
+    Args:
+        template: The template string to scan.
+
+    Returns:
+        The number of placeholder occurrences.
+
+    Raises:
+        TypeError: If *template* is not a string.
+
+    Examples:
+        >>> count_placeholders("Hello {name}, {greeting}!")
+        2
+        >>> count_placeholders("No placeholders")
+        0
+    """
+    _require_string(template, "template")
+    return len(re.findall(r"\{\w+\}", template))
 PROMPTUTILS
 
 # --- type_utils.py ---
