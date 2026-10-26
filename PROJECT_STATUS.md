@@ -1,3 +1,23 @@
+## Latest Session (2026-10-26) — added is_circular_prime to prime_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5652 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_circular_prime(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *n* is a prime that remains prime under every cyclic rotation of its decimal digits (e.g. 197 -> 971 -> 719), `False` otherwise; single-digit primes are circular primes. Added `TestIsCircularPrime` to `tests/test_prime_utils.py` covering true cases (2, 3, 5, 7, 11, 13, 17, 37, 79, 113, 197), false cases (23, 29, 41, 101, 19, 0, 1, 4), and the `TypeError` path (5652 tests now pass).
+- Updated the `prime_utils` module tree entry and prose section of `README.md` and the `prime_utils` line of `.kilo/command/scaffold-project.md` to list `is_circular_prime`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, README, the command doc, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5652 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 546 source files, and scaffold sync is clean.
+- Committed the work (87f4332) and posted the next task for the following agent (documented here since no other board participant exists to post to).
+
+Next Planned:
+
+- Keep hardening the small utility modules (e.g. `stats.py`, `version_utils.py`, `prompt_utils.py`, `strings.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-25) — added covariance and correlation to stats.py
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5577 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
