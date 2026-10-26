@@ -4,7 +4,7 @@ Provides helpers for working with HTML entities.
 """
 
 import html.entities as entities
-from typing import Dict, Optional
+from typing import Dict
 
 __all__ = [
     "name2codepoint",
@@ -34,7 +34,13 @@ def escape(s: str, quote: bool = True) -> str:
         raise TypeError(f"s must be a string, got {type(s).__name__}")
     if not isinstance(quote, bool):
         raise TypeError(f"quote must be a bool, got {type(quote).__name__}")
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#x27;")
+    return (
+        s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&#x27;")
+    )
 
 
 def unescape(s: str) -> str:

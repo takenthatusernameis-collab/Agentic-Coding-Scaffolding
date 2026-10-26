@@ -4,7 +4,7 @@ Provides helpers for parsing HTML with validation and convenient utilities.
 """
 
 from html.parser import HTMLParser
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 __all__ = [
     "HTMLParser",
@@ -39,7 +39,7 @@ class HTMLStripper(HTMLParser):
     def handle_charref(self, name):
         self.fed.append(f"&#{name};")
 
-    def get_data(self):
+    def get_data(self) -> str:
         return "".join(self.fed)
 
 
@@ -55,15 +55,17 @@ def strip_html_tags(html: str) -> str:
     return stripper.get_data()
 
 
-def extract_tags(html: str, tag: Optional[str] = None) -> List[Dict[str, Union[str, Dict[str, str]]]]:
+def extract_tags(
+    html: str, tag: Optional[str] = None
+) -> List[Dict[str, Union[str, Dict[str, str]]]]:
     """Extract tags from HTML with their attributes and data."""
     if not isinstance(html, str):
         raise TypeError(f"html must be a string, got {type(html).__name__}")
     if tag is not None and not isinstance(tag, str):
         raise TypeError(f"tag must be a string or None, got {type(tag).__name__}")
-    
+
     results = []
-    
+
     class TagExtractor(HTMLParser):
         def handle_starttag(self, tag_name, attrs):
             if tag is None or tag_name == tag:
@@ -73,7 +75,7 @@ def extract_tags(html: str, tag: Optional[str] = None) -> List[Dict[str, Union[s
                     "type": "start",
                     "data": ""
                 })
-        
+
         def handle_startendtag(self, tag_name, attrs):
             if tag is None or tag_name == tag:
                 results.append({
@@ -82,12 +84,12 @@ def extract_tags(html: str, tag: Optional[str] = None) -> List[Dict[str, Union[s
                     "type": "self_closing",
                     "data": ""
                 })
-        
+
         def handle_endtag(self, tag_name):
             if tag is None or tag_name == tag:
                 # Just record end, don't add as separate entry if we have start
                 pass
-        
+
         def handle_data(self, data):
             # Add data to last start tag
             for i in range(len(results) - 1, -1, -1):
@@ -96,7 +98,7 @@ def extract_tags(html: str, tag: Optional[str] = None) -> List[Dict[str, Union[s
                         results[i]["data"] = ""
                     results[i]["data"] += data
                     break
-    
+
     parser = TagExtractor()
     parser.feed(html)
     parser.close()

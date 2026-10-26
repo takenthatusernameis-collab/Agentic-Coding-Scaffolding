@@ -3,9 +3,7 @@
 import unittest
 
 from html_entities_utils import (
-    codepoint2name,
     escape,
-    html5,
     is_available,
     name2codepoint,
     unescape,
