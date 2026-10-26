@@ -8,6 +8,10 @@ from version_utils import (
     bump_patch,
     bump_version,
     compare_versions,
+    decrement_major,
+    decrement_minor,
+    decrement_patch,
+    decrement_version,
     get_major_version,
     get_minor_version,
     get_patch_version,
@@ -340,11 +344,6 @@ class TestIsInitialRelease(unittest.TestCase):
             is_initial_release("1.2.a")
 
 
-if __name__ == "__main__":
-
-    unittest.main()
-
-
 class TestIsCompatible(unittest.TestCase):
     def test_same_major(self):
         self.assertTrue(is_compatible("1.2.3", "1.9.0"))
@@ -362,3 +361,118 @@ class TestIsCompatible(unittest.TestCase):
     def test_invalid_raises(self):
         with self.assertRaises(ValueError):
             is_compatible("1.2.a", "1.0.0")
+
+
+class TestDecrementMajor(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(decrement_major("1.2.3"), "0.0.0")
+
+    def test_single_component(self):
+        self.assertEqual(decrement_major("5"), "4")
+
+    def test_zero_major_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_major("0.1.0")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            decrement_major(1)  # type: ignore[arg-type]
+
+    def test_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_major("1.2.a")
+
+
+class TestDecrementMinor(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(decrement_minor("1.2.3"), "1.1.0")
+
+    def test_zero_minor_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_minor("1.0.0")
+
+    def test_single_component_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_minor("5")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            decrement_minor(1)  # type: ignore[arg-type]
+
+
+class TestDecrementPatch(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(decrement_patch("1.2.3"), "1.2.2")
+
+    def test_zero_patch_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_patch("1.2.0")
+
+    def test_single_component_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_patch("5")
+
+    def test_two_components_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_patch("1.2")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            decrement_patch(1)  # type: ignore[arg-type]
+
+
+class TestDecrementVersion(unittest.TestCase):
+    def test_default_is_patch(self):
+        self.assertEqual(decrement_version("1.2.3"), "1.2.2")
+
+    def test_major(self):
+        self.assertEqual(decrement_version("1.2.3", "major"), "0.0.0")
+
+    def test_minor(self):
+        self.assertEqual(decrement_version("1.2.3", "minor"), "1.1.0")
+
+    def test_patch(self):
+        self.assertEqual(decrement_version("1.2.3", "patch"), "1.2.2")
+
+    def test_case_insensitive(self):
+        self.assertEqual(decrement_version("1.2.3", "MAJOR"), "0.0.0")
+        self.assertEqual(decrement_version("1.2.3", "Minor"), "1.1.0")
+
+    def test_single_component_major(self):
+        self.assertEqual(decrement_version("5", "major"), "4")
+
+    def test_single_component_minor_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_version("5", "minor")
+
+    def test_single_component_patch_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_version("5", "patch")
+
+    def test_non_string_version_raises(self):
+        with self.assertRaises(TypeError):
+            decrement_version(1, "patch")  # type: ignore[arg-type]
+
+    def test_non_string_part_raises(self):
+        with self.assertRaises(TypeError):
+            decrement_version("1.2.3", 2)  # type: ignore[arg-type]
+
+    def test_invalid_part_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_version("1.2.3", "build")
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_version("1.2.a", "patch")
+
+    def test_zero_component_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_version("1.0.0", "minor")
+        with self.assertRaises(ValueError):
+            decrement_version("1.2.0", "patch")
+        with self.assertRaises(ValueError):
+            decrement_version("0.1.0", "major")
+
+
+if __name__ == "__main__":
+    unittest.main()

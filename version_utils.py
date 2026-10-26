@@ -53,6 +53,11 @@ __all__: List[str] = [
     "is_initial_release",
     "is_compatible",
     "version_satisfies_major",
+    "decrement_major",
+    "decrement_minor",
+    "decrement_patch",
+    "decrement_version",
+    "decrement",
 ]
 
 
@@ -557,3 +562,40 @@ def decrement_patch(version: str) -> str:
         raise ValueError("patch version cannot go below 0")
     parts[2] = parts[2] - 1
     return ".".join(str(p) for p in parts)
+
+
+def decrement_version(version: str, part: str = "patch") -> str:
+    """Decrement a specific component of a version string.
+
+    Args:
+        version: A dotted version string.
+        part: Which component to decrement: ``"major"``, ``"minor"``, or
+            ``"patch"``. Defaults to ``"patch"``.
+
+    Returns:
+        The version string with the chosen component decremented and all
+        lower-significance components reset to zero.
+
+    Raises:
+        TypeError: If *version* is not a string or *part* is not a string.
+        ValueError: If *version* is invalid, *part* is not one of the
+            recognized component names, or the chosen component is already 0.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not isinstance(part, str):
+        raise TypeError("part must be a string")
+    normalized = part.lower()
+    if normalized == "major":
+        return decrement_major(version)
+    if normalized == "minor":
+        return decrement_minor(version)
+    if normalized == "patch":
+        return decrement_patch(version)
+    raise ValueError(
+        "part must be one of 'major', 'minor', or 'patch', "
+        f"got {part!r}"
+    )
+
+
+decrement = decrement_version

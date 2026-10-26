@@ -35684,6 +35684,8 @@ TEST_INTERVAL_UTILS
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
+- Added `decrement_version(version, part="patch")` to `version_utils.py` as the symmetric counterpart to `bump_version`: it validates that *version* is a string and *part* is a string, is case-insensitive on the recognized component names (`"major"`, `"minor"`, `"patch"`), and dispatches to the existing `decrement_major`/`decrement_minor`/`decrement_patch` helpers, raising `ValueError` for unrecognized parts or when the chosen component is already 0. Also exported `decrement_major`, `decrement_minor`, and `decrement_patch` (they were previously defined but absent from `__all__`), and added the `decrement` alias. Added `TestDecrementMajor`, `TestDecrementMinor`, `TestDecrementPatch`, and `TestDecrementVersion` to `tests/test_version_utils.py`. Updated the `version_utils` module tree entry and prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `is_compatible` to `version_utils.py`.
 
 - Added `trimmed_mean(numbers, trim_count=0)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it discards *trim_count* values from each end of the sorted list and returns the arithmetic mean of the remaining interior values, raising `ValueError` for a negative *trim_count* or one that is at least half the list length (so at least one value remains). It defaults to *trim_count* 0, in which case it matches `mean`. Added `TestTrimmedMean` to `tests/test_stats.py`. Updated the `stats` module section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -36198,7 +36200,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 greeting_utils.py          # Greeting utilities (format_greeting, format_names)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
-version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions)
+version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions, bump_version, decrement_version)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
@@ -37111,7 +37113,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -55772,6 +55774,7 @@ import unittest
 from number_utils import (
     clamp,
     format_number,
+    is_between,
     is_even,
     is_finite,
     is_infinite,
@@ -55780,7 +55783,6 @@ from number_utils import (
     is_negative,
     is_non_negative,
     is_non_positive,
-    is_between,
     is_odd,
     is_perfect_cube,
     is_perfect_square,
@@ -78933,6 +78935,11 @@ __all__: List[str] = [
     "is_initial_release",
     "is_compatible",
     "version_satisfies_major",
+    "decrement_major",
+    "decrement_minor",
+    "decrement_patch",
+    "decrement_version",
+    "decrement",
 ]
 
 
@@ -79437,6 +79444,43 @@ def decrement_patch(version: str) -> str:
         raise ValueError("patch version cannot go below 0")
     parts[2] = parts[2] - 1
     return ".".join(str(p) for p in parts)
+
+
+def decrement_version(version: str, part: str = "patch") -> str:
+    """Decrement a specific component of a version string.
+
+    Args:
+        version: A dotted version string.
+        part: Which component to decrement: ``"major"``, ``"minor"``, or
+            ``"patch"``. Defaults to ``"patch"``.
+
+    Returns:
+        The version string with the chosen component decremented and all
+        lower-significance components reset to zero.
+
+    Raises:
+        TypeError: If *version* is not a string or *part* is not a string.
+        ValueError: If *version* is invalid, *part* is not one of the
+            recognized component names, or the chosen component is already 0.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not isinstance(part, str):
+        raise TypeError("part must be a string")
+    normalized = part.lower()
+    if normalized == "major":
+        return decrement_major(version)
+    if normalized == "minor":
+        return decrement_minor(version)
+    if normalized == "patch":
+        return decrement_patch(version)
+    raise ValueError(
+        "part must be one of 'major', 'minor', or 'patch', "
+        f"got {part!r}"
+    )
+
+
+decrement = decrement_version
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
@@ -79451,6 +79495,10 @@ from version_utils import (
     bump_patch,
     bump_version,
     compare_versions,
+    decrement_major,
+    decrement_minor,
+    decrement_patch,
+    decrement_version,
     get_major_version,
     get_minor_version,
     get_patch_version,
@@ -79783,11 +79831,6 @@ class TestIsInitialRelease(unittest.TestCase):
             is_initial_release("1.2.a")
 
 
-if __name__ == "__main__":
-
-    unittest.main()
-
-
 class TestIsCompatible(unittest.TestCase):
     def test_same_major(self):
         self.assertTrue(is_compatible("1.2.3", "1.9.0"))
@@ -79805,6 +79848,121 @@ class TestIsCompatible(unittest.TestCase):
     def test_invalid_raises(self):
         with self.assertRaises(ValueError):
             is_compatible("1.2.a", "1.0.0")
+
+
+class TestDecrementMajor(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(decrement_major("1.2.3"), "0.0.0")
+
+    def test_single_component(self):
+        self.assertEqual(decrement_major("5"), "4")
+
+    def test_zero_major_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_major("0.1.0")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            decrement_major(1)  # type: ignore[arg-type]
+
+    def test_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_major("1.2.a")
+
+
+class TestDecrementMinor(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(decrement_minor("1.2.3"), "1.1.0")
+
+    def test_zero_minor_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_minor("1.0.0")
+
+    def test_single_component_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_minor("5")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            decrement_minor(1)  # type: ignore[arg-type]
+
+
+class TestDecrementPatch(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(decrement_patch("1.2.3"), "1.2.2")
+
+    def test_zero_patch_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_patch("1.2.0")
+
+    def test_single_component_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_patch("5")
+
+    def test_two_components_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_patch("1.2")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            decrement_patch(1)  # type: ignore[arg-type]
+
+
+class TestDecrementVersion(unittest.TestCase):
+    def test_default_is_patch(self):
+        self.assertEqual(decrement_version("1.2.3"), "1.2.2")
+
+    def test_major(self):
+        self.assertEqual(decrement_version("1.2.3", "major"), "0.0.0")
+
+    def test_minor(self):
+        self.assertEqual(decrement_version("1.2.3", "minor"), "1.1.0")
+
+    def test_patch(self):
+        self.assertEqual(decrement_version("1.2.3", "patch"), "1.2.2")
+
+    def test_case_insensitive(self):
+        self.assertEqual(decrement_version("1.2.3", "MAJOR"), "0.0.0")
+        self.assertEqual(decrement_version("1.2.3", "Minor"), "1.1.0")
+
+    def test_single_component_major(self):
+        self.assertEqual(decrement_version("5", "major"), "4")
+
+    def test_single_component_minor_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_version("5", "minor")
+
+    def test_single_component_patch_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_version("5", "patch")
+
+    def test_non_string_version_raises(self):
+        with self.assertRaises(TypeError):
+            decrement_version(1, "patch")  # type: ignore[arg-type]
+
+    def test_non_string_part_raises(self):
+        with self.assertRaises(TypeError):
+            decrement_version("1.2.3", 2)  # type: ignore[arg-type]
+
+    def test_invalid_part_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_version("1.2.3", "build")
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_version("1.2.a", "patch")
+
+    def test_zero_component_raises(self):
+        with self.assertRaises(ValueError):
+            decrement_version("1.0.0", "minor")
+        with self.assertRaises(ValueError):
+            decrement_version("1.2.0", "patch")
+        with self.assertRaises(ValueError):
+            decrement_version("0.1.0", "major")
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_VERSION_UTILS
 
 # --- warnings_utils.py ---
