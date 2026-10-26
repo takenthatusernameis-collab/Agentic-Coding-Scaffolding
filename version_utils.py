@@ -28,6 +28,7 @@ __all__: List[str] = [
     "min_version",
     "bump_version",
     "is_stable",
+    "is_initial_release",
 ]
 
 
@@ -385,3 +386,11 @@ def is_stable(version: str) -> bool:
         raise TypeError("version must be a string")
     parts = parse_version(version)
     return bool(parts) and parts[0] >= 1
+
+
+def is_initial_release(version: str) -> bool:
+    """Return True if *version* is an initial (major 0) release."""
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = parse_version(version)
+    return bool(parts) and parts[0] == 0

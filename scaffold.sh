@@ -35491,6 +35491,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Added `is_initial_release` to `version_utils.py`.
+
 - Added `has_placeholders(template)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *template* contains at least one ``{name}`` placeholder, `False` otherwise. Added `TestHasPlaceholders` to `tests/test_prompt_utils.py`. Updated the `prompt_utils` module section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 ## case_utils
@@ -36907,7 +36909,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `is_stable` returns `True` when the major version component is at least 1. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -78638,6 +78640,7 @@ __all__: List[str] = [
     "min_version",
     "bump_version",
     "is_stable",
+    "is_initial_release",
 ]
 
 
@@ -78995,6 +78998,14 @@ def is_stable(version: str) -> bool:
         raise TypeError("version must be a string")
     parts = parse_version(version)
     return bool(parts) and parts[0] >= 1
+
+
+def is_initial_release(version: str) -> bool:
+    """Return True if *version* is an initial (major 0) release."""
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = parse_version(version)
+    return bool(parts) and parts[0] == 0
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
@@ -79014,6 +79025,7 @@ from version_utils import (
     get_patch_version,
     is_equal,
     is_greater,
+    is_initial_release,
     is_less,
     is_stable,
     is_valid_version,
@@ -79320,7 +79332,27 @@ class TestIsStable(unittest.TestCase):
             is_stable("1.2.a")
 
 
+class TestIsInitialRelease(unittest.TestCase):
+    def test_initial(self):
+        self.assertTrue(is_initial_release("0.1.0"))
+        self.assertTrue(is_initial_release("0.0.1"))
+        self.assertTrue(is_initial_release("0"))
+
+    def test_not_initial(self):
+        self.assertFalse(is_initial_release("1.0.0"))
+        self.assertFalse(is_initial_release("2.3.4"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_initial_release(1)  # type: ignore[arg-type]
+
+    def test_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            is_initial_release("1.2.a")
+
+
 if __name__ == "__main__":
+
     unittest.main()
 TEST_VERSION_UTILS
 

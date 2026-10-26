@@ -13,6 +13,7 @@ from version_utils import (
     get_patch_version,
     is_equal,
     is_greater,
+    is_initial_release,
     is_less,
     is_stable,
     is_valid_version,
@@ -319,5 +320,25 @@ class TestIsStable(unittest.TestCase):
             is_stable("1.2.a")
 
 
+class TestIsInitialRelease(unittest.TestCase):
+    def test_initial(self):
+        self.assertTrue(is_initial_release("0.1.0"))
+        self.assertTrue(is_initial_release("0.0.1"))
+        self.assertTrue(is_initial_release("0"))
+
+    def test_not_initial(self):
+        self.assertFalse(is_initial_release("1.0.0"))
+        self.assertFalse(is_initial_release("2.3.4"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_initial_release(1)  # type: ignore[arg-type]
+
+    def test_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            is_initial_release("1.2.a")
+
+
 if __name__ == "__main__":
+
     unittest.main()
