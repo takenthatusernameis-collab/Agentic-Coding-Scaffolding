@@ -243,6 +243,9 @@ def bump_patch(version: str) -> str:
     return ".".join(str(p) for p in parts)
 
 
+increment_patch = bump_patch
+
+
 def bump_version(version: str, part: str = "patch") -> str:
     """Bump a specific component of a version string.
 
