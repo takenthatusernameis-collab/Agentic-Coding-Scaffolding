@@ -20,6 +20,7 @@ __all__: List[str] = [
     "wrap_prompt",
     "estimate_token_count",
     "count_words",
+    "collapse_blank_lines",
 ]
 
 
@@ -304,3 +305,25 @@ def count_words(text: str) -> int:
     """
     _require_string(text, "text")
     return len(text.split())
+
+
+def collapse_blank_lines(text: str) -> str:
+    """Collapse runs of three or more newlines into a single blank line.
+
+    Args:
+        text: The text to normalize.
+
+    Returns:
+        Text with consecutive blank lines collapsed to at most one.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> collapse_blank_lines("a\\n\\n\\nb")
+        'a\\n\\nb'
+        >>> collapse_blank_lines("a\\nb")
+        'a\\nb'
+    """
+    _require_string(text, "text")
+    return re.sub(r"\n{3,}", "\n\n", text)

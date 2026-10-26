@@ -4,6 +4,7 @@ import unittest
 
 from prompt_utils import (
     clean_prompt,
+    collapse_blank_lines,
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
@@ -177,6 +178,24 @@ class TestExtractPlaceholders(unittest.TestCase):
     def test_extract_placeholders_rejects_non_str(self):
         with self.assertRaises(TypeError):
             extract_placeholders(123)  # type: ignore[arg-type]
+
+
+class TestCollapseBlankLines(unittest.TestCase):
+    def test_collapses_three(self):
+        self.assertEqual(collapse_blank_lines("a\n\n\nb"), "a\n\nb")
+
+    def test_collapses_many(self):
+        self.assertEqual(collapse_blank_lines("a\n\n\n\n\nb"), "a\n\nb")
+
+    def test_no_change(self):
+        self.assertEqual(collapse_blank_lines("a\nb"), "a\nb")
+
+    def test_empty(self):
+        self.assertEqual(collapse_blank_lines(""), "")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            collapse_blank_lines(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

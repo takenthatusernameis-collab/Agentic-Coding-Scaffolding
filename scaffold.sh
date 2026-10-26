@@ -15462,6 +15462,7 @@ import unittest
 
 from prompt_utils import (
     clean_prompt,
+    collapse_blank_lines,
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
@@ -15635,6 +15636,24 @@ class TestExtractPlaceholders(unittest.TestCase):
     def test_extract_placeholders_rejects_non_str(self):
         with self.assertRaises(TypeError):
             extract_placeholders(123)  # type: ignore[arg-type]
+
+
+class TestCollapseBlankLines(unittest.TestCase):
+    def test_collapses_three(self):
+        self.assertEqual(collapse_blank_lines("a\n\n\nb"), "a\n\nb")
+
+    def test_collapses_many(self):
+        self.assertEqual(collapse_blank_lines("a\n\n\n\n\nb"), "a\n\nb")
+
+    def test_no_change(self):
+        self.assertEqual(collapse_blank_lines("a\nb"), "a\nb")
+
+    def test_empty(self):
+        self.assertEqual(collapse_blank_lines(""), "")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            collapse_blank_lines(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -23796,6 +23815,7 @@ __all__: List[str] = [
     "wrap_prompt",
     "estimate_token_count",
     "count_words",
+    "collapse_blank_lines",
 ]
 
 
@@ -24080,6 +24100,28 @@ def count_words(text: str) -> int:
     """
     _require_string(text, "text")
     return len(text.split())
+
+
+def collapse_blank_lines(text: str) -> str:
+    """Collapse runs of three or more newlines into a single blank line.
+
+    Args:
+        text: The text to normalize.
+
+    Returns:
+        Text with consecutive blank lines collapsed to at most one.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> collapse_blank_lines("a\\n\\n\\nb")
+        'a\\n\\nb'
+        >>> collapse_blank_lines("a\\nb")
+        'a\\nb'
+    """
+    _require_string(text, "text")
+    return re.sub(r"\n{3,}", "\n\n", text)
 PROMPTUTILS
 
 # --- type_utils.py ---
