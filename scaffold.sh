@@ -111881,6 +111881,443 @@ if __name__ == "__main__":
     unittest.main()
 TEST_ROMAN_UTILS
 
+# --- asynchat_utils.py ---
+cat > "$OUTPUT_DIR/asynchat_utils.py" <<'ASYNCHAT_UTILS'
+"""Asynchronous chat utilities (wrapping :mod:`asynchat` from test support)."""
+
+from __future__ import annotations
+
+from typing import Any
+
+try:
+    from test.support import asynchat as _asynchat
+except Exception:  # pragma: no cover
+    import asynchat as _asynchat  # type: ignore
+
+
+__all__ = [
+    "async_chat",
+    "find_prefix_at_end",
+    "simple_producer",
+    "deque",
+]
+
+
+async_chat = _asynchat.async_chat
+find_prefix_at_end = _asynchat.find_prefix_at_end
+simple_producer = _asynchat.simple_producer
+deque = _asynchat.deque
+ASYNCHAT_UTILS
+
+# --- tests/test_asynchat_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_asynchat_utils.py" <<'TEST_ASYNCHAT_UTILS'
+"""Tests for asynchat_utils module."""
+
+import unittest
+
+import asynchat_utils
+from test.support import asynchat
+
+
+class TestAsynchatUtils(unittest.TestCase):
+    def test_exports(self):
+        self.assertIs(asynchat_utils.async_chat, asynchat.async_chat)
+        self.assertIs(asynchat_utils.find_prefix_at_end, asynchat.find_prefix_at_end)
+        self.assertIs(asynchat_utils.simple_producer, asynchat.simple_producer)
+        self.assertIs(asynchat_utils.deque, asynchat.deque)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_ASYNCHAT_UTILS
+
+# --- asyncore_utils.py ---
+cat > "$OUTPUT_DIR/asyncore_utils.py" <<'ASYNCORE_UTILS'
+"""Asynchronous socket services utilities (wrapping :mod:`asyncore` from test support)."""
+
+from __future__ import annotations
+
+from typing import Any, Optional, Tuple
+
+try:
+    from test.support import asyncore as _asyncore
+except Exception:  # pragma: no cover
+    import asyncore as _asyncore  # type: ignore
+
+
+__all__ = [
+    "dispatcher",
+    "dispatcher_with_send",
+    "file_dispatcher",
+    "file_wrapper",
+    "loop",
+    "socket_map",
+    "read",
+    "write",
+    "readwrite",
+    "close_all",
+    "compact_traceback",
+    "poll",
+    "poll2",
+    "poll3",
+    "ExitNow",
+    "errorcode",
+    "create_dispatcher",
+]
+
+
+dispatcher = _asyncore.dispatcher
+dispatcher_with_send = _asyncore.dispatcher_with_send
+file_dispatcher = _asyncore.file_dispatcher
+file_wrapper = _asyncore.file_wrapper
+loop = _asyncore.loop
+socket_map = _asyncore.socket_map
+read = _asyncore.read
+write = _asyncore.write
+readwrite = _asyncore.readwrite
+close_all = _asyncore.close_all
+compact_traceback = _asyncore.compact_traceback
+poll = _asyncore.poll
+poll2 = _asyncore.poll2
+poll3 = _asyncore.poll3
+ExitNow = _asyncore.ExitNow
+errorcode = _asyncore.errorcode
+
+
+def _require_tuple_pair(value: Any, name: str) -> Tuple[Any, Any]:
+    if not isinstance(value, tuple) or len(value) != 2:
+        raise TypeError(f"{name} must be a (host, port) tuple")
+    return value
+
+
+def _require_str(value: Any, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_int(value: Any, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def create_dispatcher(sock=None, map: Optional[dict] = None) -> dispatcher:
+    if map is not None and not isinstance(map, dict):
+        raise TypeError("map must be a dict or None")
+    try:
+        return dispatcher(sock=sock, map=map)
+    except TypeError:
+        return dispatcher(sock)
+ASYNCORE_UTILS
+
+# --- tests/test_asyncore_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_asyncore_utils.py" <<'TEST_ASYNCORE_UTILS'
+"""Tests for asyncore_utils module."""
+
+import unittest
+from unittest import mock
+
+import asyncore_utils
+from test.support import asyncore
+
+
+class TestExports(unittest.TestCase):
+    def test_classes_exported(self):
+        self.assertIs(asyncore_utils.dispatcher, asyncore.dispatcher)
+        self.assertIs(asyncore_utils.dispatcher_with_send, asyncore.dispatcher_with_send)
+        self.assertIs(asyncore_utils.file_dispatcher, asyncore.file_dispatcher)
+
+    def test_functions_exported(self):
+        self.assertIs(asyncore_utils.loop, asyncore.loop)
+        self.assertIs(asyncore_utils.poll, asyncore.poll)
+
+
+class TestCreateDispatcher(unittest.TestCase):
+    def test_create_dispatcher(self):
+        with mock.patch("asyncore_utils.dispatcher") as m:
+            m.return_value = mock.sentinel.dispatcher
+            result = asyncore_utils.create_dispatcher()
+            self.assertIs(result, mock.sentinel.dispatcher)
+
+    def test_create_dispatcher_bad_types(self):
+        with self.assertRaises(TypeError):
+            asyncore_utils.create_dispatcher(map=[])  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_ASYNCORE_UTILS
+
+# --- smtpd_utils.py ---
+cat > "$OUTPUT_DIR/smtpd_utils.py" <<'SMTPD_UTILS'
+"""SMTP server utilities (wrapping :mod:`smtpd` from test support).
+
+The :mod:`smtpd` module provides simple SMTP server classes for testing and
+development. This wrapper re-exports the standard classes and helpers and
+adds validated convenience constructors and helpers.
+"""
+
+from __future__ import annotations
+
+import socket
+from typing import Any, Optional, Tuple
+
+try:
+    from test.support import smtpd as _smtpd
+except Exception:  # pragma: no cover
+    import smtpd as _smtpd  # type: ignore
+
+
+__all__ = [
+    "COMMASPACE",
+    "DATA_SIZE_DEFAULT",
+    "DEBUGSTREAM",
+    "NEWLINE",
+    "Devnull",
+    "Options",
+    "PureProxy",
+    "SMTPChannel",
+    "SMTPServer",
+    "DebuggingServer",
+    "create_smtp_server",
+    "create_debugging_server",
+    "create_pure_proxy",
+    "process_message",
+]
+
+
+COMMASPACE = _smtpd.COMMASPACE
+DATA_SIZE_DEFAULT = _smtpd.DATA_SIZE_DEFAULT
+DEBUGSTREAM = _smtpd.DEBUGSTREAM
+NEWLINE = _smtpd.NEWLINE
+Devnull = _smtpd.Devnull
+Options = _smtpd.Options
+
+SMTPChannel = _smtpd.SMTPChannel
+SMTPServer = _smtpd.SMTPServer
+DebuggingServer = _smtpd.DebuggingServer
+PureProxy = _smtpd.PureProxy
+
+_process_message = getattr(_smtpd.SMTPServer, "process_message", None)
+
+
+def _require_str(value: Any, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    return value
+
+
+def _require_int(value: Any, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
+def _require_tuple_pair(value: Any, name: str) -> Tuple[Any, Any]:
+    if not isinstance(value, tuple) or len(value) != 2:
+        raise TypeError(f"{name} must be a (host, port) tuple")
+    return value
+
+
+def create_smtp_server(
+    localaddr: Tuple[str, int] = ("localhost", 1025),
+    remoteaddr: Optional[Tuple[str, int]] = None,
+    data_size_limit: int = DATA_SIZE_DEFAULT,
+    map: Optional[dict] = None,
+    enable_SMTPUTF8: bool = False,
+    decode_data: bool = False,
+) -> SMTPServer:
+    _require_tuple_pair(localaddr, "localaddr")
+    _require_str(localaddr[0], "localaddr[0]")
+    _require_int(localaddr[1], "localaddr[1]")
+    if localaddr[1] < 0 or localaddr[1] > 65535:
+        raise ValueError("localaddr[1] must be between 0 and 65535")
+    if remoteaddr is not None:
+        _require_tuple_pair(remoteaddr, "remoteaddr")
+        _require_str(remoteaddr[0], "remoteaddr[0]")
+        _require_int(remoteaddr[1], "remoteaddr[1]")
+        if remoteaddr[1] < 0 or remoteaddr[1] > 65535:
+            raise ValueError("remoteaddr[1] must be between 0 and 65535")
+    _require_int(data_size_limit, "data_size_limit")
+    if isinstance(enable_SMTPUTF8, bool) is False or not isinstance(enable_SMTPUTF8, bool):
+        raise TypeError("enable_SMTPUTF8 must be a bool")
+    if not isinstance(decode_data, bool):
+        raise TypeError("decode_data must be a bool")
+    if map is not None and not isinstance(map, dict):
+        raise TypeError("map must be a dict or None")
+    try:
+        return SMTPServer(
+            localaddr,
+            remoteaddr,
+            data_size_limit=data_size_limit,
+            map=map,
+            enable_SMTPUTF8=enable_SMTPUTF8,
+            decode_data=decode_data,
+        )
+    except TypeError:
+        # Fallback for older signatures
+        return SMTPServer(localaddr, remoteaddr)
+
+
+def create_debugging_server(
+    localaddr: Tuple[str, int] = ("localhost", 1025),
+    remoteaddr: Optional[Tuple[str, int]] = None,
+) -> DebuggingServer:
+    _require_tuple_pair(localaddr, "localaddr")
+    _require_str(localaddr[0], "localaddr[0]")
+    _require_int(localaddr[1], "localaddr[1]")
+    if localaddr[1] < 0 or localaddr[1] > 65535:
+        raise ValueError("localaddr[1] must be between 0 and 65535")
+    if remoteaddr is not None:
+        _require_tuple_pair(remoteaddr, "remoteaddr")
+        _require_str(remoteaddr[0], "remoteaddr[0]")
+        _require_int(remoteaddr[1], "remoteaddr[1]")
+        if remoteaddr[1] < 0 or remoteaddr[1] > 65535:
+            raise ValueError("remoteaddr[1] must be between 0 and 65535")
+    return DebuggingServer(localaddr, remoteaddr)
+
+
+def create_pure_proxy(
+    localaddr: Tuple[str, int] = ("localhost", 1025),
+    remoteaddr: Optional[Tuple[str, int]] = None,
+) -> PureProxy:
+    _require_tuple_pair(localaddr, "localaddr")
+    _require_str(localaddr[0], "localaddr[0]")
+    _require_int(localaddr[1], "localaddr[1]")
+    if localaddr[1] < 0 or localaddr[1] > 65535:
+        raise ValueError("localaddr[1] must be between 0 and 65535")
+    if remoteaddr is not None:
+        _require_tuple_pair(remoteaddr, "remoteaddr")
+        _require_str(remoteaddr[0], "remoteaddr[0]")
+        _require_int(remoteaddr[1], "remoteaddr[1]")
+        if remoteaddr[1] < 0 or remoteaddr[1] > 65535:
+            raise ValueError("remoteaddr[1] must be between 0 and 65535")
+    return PureProxy(localaddr, remoteaddr)
+
+
+def process_message(
+    server: SMTPServer,
+    peer: Tuple[str, int],
+    mailfrom: str,
+    rcpttos: list,
+    data: bytes,
+    **kwargs: Any,
+) -> Optional[str]:
+    if not isinstance(server, SMTPServer):
+        raise TypeError("server must be an SMTPServer instance")
+    _require_tuple_pair(peer, "peer")
+    _require_str(peer[0], "peer[0]")
+    _require_int(peer[1], "peer[1]")
+    if peer[1] < 0 or peer[1] > 65535:
+        raise ValueError("peer[1] must be between 0 and 65535")
+    _require_str(mailfrom, "mailfrom")
+    if not isinstance(rcpttos, list):
+        raise TypeError("rcpttos must be a list")
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if hasattr(server, "process_message"):
+        try:
+            return server.process_message(peer, mailfrom, rcpttos, bytes(data), **kwargs)
+        except Exception:
+            pass
+    # Fallback to module function if available
+    if _process_message is not None:
+        try:
+            return _process_message(server, peer, mailfrom, rcpttos, bytes(data), **kwargs)
+        except Exception:
+            pass
+    return None
+SMTPD_UTILS
+
+# --- tests/test_smtpd_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_smtpd_utils.py" <<'TEST_SMTPD_UTILS'
+"""Tests for smtpd_utils module."""
+
+import unittest
+from unittest import mock
+
+import smtpd_utils
+from test.support import smtpd
+
+
+class TestExports(unittest.TestCase):
+    def test_classes_exported(self):
+        self.assertIs(smtpd_utils.SMTPServer, smtpd.SMTPServer)
+        self.assertIs(smtpd_utils.DebuggingServer, smtpd.DebuggingServer)
+        self.assertIs(smtpd_utils.PureProxy, smtpd.PureProxy)
+        self.assertIs(smtpd_utils.SMTPChannel, smtpd.SMTPChannel)
+
+    def test_constants_exported(self):
+        self.assertIs(smtpd_utils.COMMASPACE, smtpd.COMMASPACE)
+        self.assertIs(smtpd_utils.NEWLINE, smtpd.NEWLINE)
+
+
+class TestCreateSMTPServer(unittest.TestCase):
+    def test_create_smtp_server(self):
+        with mock.patch("smtpd_utils.SMTPServer") as m:
+            m.return_value = mock.sentinel.server
+            result = smtpd_utils.create_smtp_server(("localhost", 1025))
+            self.assertIs(result, mock.sentinel.server)
+            m.assert_called_once()
+
+    def test_create_smtp_server_bad_types(self):
+        with self.assertRaises(TypeError):
+            smtpd_utils.create_smtp_server(localaddr="bad")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            smtpd_utils.create_smtp_server(localaddr=("host", "25"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            smtpd_utils.create_smtp_server(localaddr=("host", 70000))
+        with self.assertRaises(TypeError):
+            smtpd_utils.create_smtp_server(enable_SMTPUTF8="true")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            smtpd_utils.create_smtp_server(map=[])  # type: ignore[arg-type]
+
+
+class TestCreateDebuggingServer(unittest.TestCase):
+    def test_create_debugging_server(self):
+        with mock.patch("smtpd_utils.DebuggingServer") as m:
+            m.return_value = mock.sentinel.server
+            result = smtpd_utils.create_debugging_server(("localhost", 1025))
+            self.assertIs(result, mock.sentinel.server)
+            m.assert_called_once()
+
+
+class TestCreatePureProxy(unittest.TestCase):
+    def test_create_pure_proxy(self):
+        with mock.patch("smtpd_utils.PureProxy") as m:
+            m.return_value = mock.sentinel.server
+            result = smtpd_utils.create_pure_proxy(("localhost", 1025))
+            self.assertIs(result, mock.sentinel.server)
+            m.assert_called_once()
+
+
+class TestProcessMessage(unittest.TestCase):
+    def test_process_message(self):
+        server = mock.Mock(spec=smtpd.SMTPServer)
+        server.process_message.return_value = "250 Ok"
+        result = smtpd_utils.process_message(
+            server, ("127.0.0.1", 1234), "from@x", ["to@x"], b"data"
+        )
+        self.assertEqual(result, "250 Ok")
+        server.process_message.assert_called_once()
+
+    def test_process_message_bad_types(self):
+        server = mock.Mock(spec=smtpd.SMTPServer)
+        with self.assertRaises(TypeError):
+            smtpd_utils.process_message("bad", ("127.0.0.1", 1), "f", [], b"x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            smtpd_utils.process_message(server, ("127.0.0.1", "1"), "f", [], b"x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            smtpd_utils.process_message(server, ("127.0.0.1", 1), "f", "[]", b"x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            smtpd_utils.process_message(server, ("127.0.0.1", 1), "f", [], "x")  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_SMTPD_UTILS
+
 
 
 # --- substitute the project name in the templated documents ---

@@ -391,6 +391,9 @@ test_markdown_utils.py      # Tests for markdown_utils.py
 test_path_utils.py          # Tests for path_utils.py
   test_pathlib_utils.py       # Tests for pathlib_utils.py
 poplib_utils.py            # Poplib utilities wrapping stdlib poplib (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
+asynchat_utils.py         # Asynchronous chat utilities wrapping stdlib asynchat (async_chat, find_prefix_at_end, simple_producer)
+asyncore_utils.py         # Asynchronous socket services utilities wrapping stdlib asyncore (dispatcher, dispatcher_with_send, file_dispatcher, file_wrapper, loop, socket_map, read/write, close_all, poll variants, ExitNow, errorcode)
+smtpd_utils.py            # SMTP server utilities wrapping stdlib smtpd (SMTPServer, DebuggingServer, PureProxy, SMTPChannel, create_smtp_server, create_debugging_server, create_pure_proxy, process_message)
   test_pattern_utils.py       # Tests for pattern_utils.py
   test_pprint_utils.py        # Tests for pprint_utils.py
 test_reprlib_utils.py       # Tests for reprlib_utils.py
@@ -1532,6 +1535,9 @@ The project includes FTP utilities in `ftplib_utils.py` wrapping the standard li
 
 
 tests/test_poplib_utils.py - Tests for poplib_utils module
+tests/test_asynchat_utils.py - Tests for asynchat_utils module
+tests/test_asyncore_utils.py - Tests for asyncore_utils module
+tests/test_smtpd_utils.py - Tests for smtpd_utils module
 
 ## Poplib Utilities Module
 
