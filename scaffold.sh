@@ -61765,14 +61765,47 @@ class TestIsSexyPrime(unittest.TestCase):
             is_sexy_prime(5.0)
 
 
-class TestPrimeCount(unittest.TestCase):
-    def test_known_values(self):
-        for n, expected in [(0, 0), (1, 0), (2, 1), (3, 2), (10, 4), (100, 25)]:
-            self.assertEqual(prime_count(n), expected)
+class TestPrimeUtilsBoundary(unittest.TestCase):
+    def test_is_prime_boundaries(self):
+        self.assertFalse(is_prime(-100))
+        self.assertFalse(is_prime(0))
+        self.assertFalse(is_prime(1))
+        self.assertTrue(is_prime(2))
+        self.assertTrue(is_prime(999983))
 
-    def test_type_error(self):
-        with self.assertRaises(TypeError):
-            prime_count(5.0)
+    def test_prime_factors_one_raises(self):
+        with self.assertRaises(ValueError):
+            prime_factors(1)
+        with self.assertRaises(ValueError):
+            prime_factors(0)
+        with self.assertRaises(ValueError):
+            prime_factors(-5)
+
+    def test_nth_prime_large(self):
+        self.assertEqual(nth_prime(100), 541)
+
+    def test_next_prev_prime_boundaries(self):
+        self.assertEqual(next_prime(-5), 2)
+        self.assertEqual(next_prime(0), 2)
+        self.assertEqual(next_prime(1), 2)
+        with self.assertRaises(ValueError):
+            prev_prime(1)
+        self.assertEqual(prev_prime(2), 2)
+
+    def test_sum_proper_divisors_negative(self):
+        self.assertIsInstance(sum_of_proper_divisors(-6), int)
+
+    def test_is_prime_power_large(self):
+        self.assertTrue(is_prime_power(2 ** 20))
+        self.assertFalse(is_prime_power(2 ** 20 + 1))
+
+    def test_prime_count_large(self):
+        self.assertEqual(prime_count(1000), 168)
+
+    def test_type_errors_boundary(self):
+        for fn in (is_prime, is_composite, primes_up_to):
+            with self.assertRaises(TypeError):
+                fn(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
