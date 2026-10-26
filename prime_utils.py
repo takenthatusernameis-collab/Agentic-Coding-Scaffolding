@@ -24,6 +24,7 @@ __all__: List[str] = [
     "is_palindromic_prime",
     "is_mersenne_prime",
     "is_sophie_germain_prime",
+    "is_safe_prime",
 ]
 
 
@@ -541,3 +542,26 @@ def is_sophie_germain_prime(n: int) -> bool:
     if not is_prime(n):
         return False
     return is_prime(2 * n + 1)
+
+
+def is_safe_prime(n: int) -> bool:
+    """Return True if *n* is a safe prime.
+
+    A safe prime is a prime number *p* such that (p - 1) / 2 is also prime
+    (the latter is called a Sophie Germain prime).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a safe prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    if n < 5:
+        return False
+    return is_prime((n - 1) // 2)

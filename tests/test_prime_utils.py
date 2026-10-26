@@ -11,6 +11,7 @@ from prime_utils import (
     is_perfect_square,
     is_prime,
     is_prime_power,
+    is_safe_prime,
     is_semiprime,
     is_sophie_germain_prime,
     is_squarefree,
@@ -465,6 +466,20 @@ class TestIsMersennePrime(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_mersenne_prime(3.0)
+
+
+class TestIsSafePrime(unittest.TestCase):
+    def test_true_cases(self):
+        for p in [5, 7, 11, 23, 47, 59, 83, 107]:
+            self.assertTrue(is_safe_prime(p))
+
+    def test_false_cases(self):
+        for n in [2, 3, 13, 17, 0, 1, 4, 6]:
+            self.assertFalse(is_safe_prime(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_safe_prime(5.0)
 
 
 if __name__ == "__main__":
