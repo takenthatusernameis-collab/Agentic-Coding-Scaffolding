@@ -583,8 +583,6 @@ def dedent_lines(text: str) -> str:
             continue
         # Remove min_indent worth of whitespace
         new_line = line
-        removed = 0
-        i = 0
         # Remove from start
         chars = list(new_line)
         j = 0

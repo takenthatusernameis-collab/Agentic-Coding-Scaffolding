@@ -10945,6 +10945,7 @@ __all__: List[str] = [
     "is_printable",
     "is_identifier",
     "is_pangram",
+    "is_subsequence",
     "is_whitespace",
     "is_space",
     "swap_case",
@@ -11047,6 +11048,46 @@ def is_anagram(s1: str, s2: str) -> bool:
     cleaned1 = "".join(ch.lower() for ch in s1 if not ch.isspace())
     cleaned2 = "".join(ch.lower() for ch in s2 if not ch.isspace())
     return sorted(cleaned1) == sorted(cleaned2)
+
+
+def is_subsequence(needle: str, haystack: str) -> bool:
+    """Return True if *needle* is a subsequence of *haystack*.
+
+    A subsequence is formed by deleting zero or more characters from
+    *haystack* without changing the order of the remaining characters, so
+    every character of *needle* must appear in *haystack* in the same
+    relative order (not necessarily consecutively). The empty string is a
+    subsequence of any string.
+
+    Args:
+        needle: The subsequence to search for.
+        haystack: The string to search within.
+
+    Returns:
+        True if *needle* is a subsequence of *haystack*.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> is_subsequence("abc", "aebdc")
+        True
+        >>> is_subsequence("abc", "acb")
+        False
+        >>> is_subsequence("", "anything")
+        True
+    """
+    _require_string(needle, "needle")
+    _require_string(haystack, "haystack")
+    if not needle:
+        return True
+    i = 0
+    for ch in haystack:
+        if ch == needle[i]:
+            i += 1
+            if i == len(needle):
+                return True
+    return False
 
 
 def capitalize_words(s: str) -> str:
@@ -12924,6 +12965,7 @@ from strings import (
     is_pangram,
     is_printable,
     is_space,
+    is_subsequence,
     is_upper,
     is_whitespace,
     levenshtein_distance,
@@ -13579,6 +13621,39 @@ class TestIsPangram(unittest.TestCase):
     def test_rejects_non_string(self) -> None:
         with self.assertRaises(TypeError):
             is_pangram(123)  # type: ignore[arg-type]
+
+
+class TestIsSubsequence(unittest.TestCase):
+    def test_subsequence_present(self) -> None:
+        self.assertTrue(is_subsequence("abc", "aebdc"))
+        self.assertTrue(is_subsequence("ace", "abcde"))
+        self.assertTrue(is_subsequence("abc", "abc"))
+        self.assertTrue(is_subsequence("a", "a"))
+
+    def test_subsequence_not_present(self) -> None:
+        self.assertFalse(is_subsequence("abc", "acb"))
+        self.assertFalse(is_subsequence("abc", "ab"))
+        self.assertFalse(is_subsequence("abc", "def"))
+        self.assertFalse(is_subsequence("abcd", "abc"))
+
+    def test_empty_needle_is_subsequence(self) -> None:
+        self.assertTrue(is_subsequence("", "anything"))
+        self.assertTrue(is_subsequence("", ""))
+
+    def test_empty_haystack(self) -> None:
+        self.assertFalse(is_subsequence("a", ""))
+        self.assertTrue(is_subsequence("", ""))
+
+    def test_case_sensitive(self) -> None:
+        self.assertFalse(is_subsequence("ABC", "abc"))
+        self.assertFalse(is_subsequence("abc", "ABC"))
+        self.assertTrue(is_subsequence("abc", "aXbYc"))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_subsequence("abc", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_subsequence(123, "abc")  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):
@@ -15732,13 +15807,13 @@ from prompt_utils import (
     collapse_blank_lines,
     count_placeholders,
     count_sentences,
+    dedent_lines,
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
     format_prompt_template,
     has_placeholders,
     indent_lines,
-    dedent_lines,
     truncate_prompt,
     truncate_words,
     wrap_prompt,
@@ -24780,8 +24855,6 @@ def dedent_lines(text: str) -> str:
             continue
         # Remove min_indent worth of whitespace
         new_line = line
-        removed = 0
-        i = 0
         # Remove from start
         chars = list(new_line)
         j = 0
@@ -36028,6 +36101,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Added `is_subsequence(needle, haystack)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *needle* is a subsequence of *haystack* (every character of *needle* appears in *haystack* in the same relative order, not necessarily consecutively), `False` otherwise; the empty needle is a subsequence of any string. Added `TestIsSubsequence` to `tests/test_strings.py` covering present/missing cases, the empty-needle case, empty haystack, case sensitivity, and the `TypeError` paths. Updated the `strings` module prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `indent_lines(text, prefix="    ", *, skip_blank=False)` to `prompt_utils.py` as a companion to `truncate_lines` and `wrap_prompt`: it prefixes every line of *text* with *prefix*, leaving blank lines untouched when *skip_blank* is True. It validates that *text* and *prefix* are strings and *skip_blank* is a bool, raising `TypeError` otherwise. Added `TestIndentLines` to `tests/test_prompt_utils.py` covering the default prefix, a custom prefix, blank-line handling with both modes, the empty-string case, and the `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `truncate_lines` to `prompt_utils.py`.
@@ -37070,7 +37145,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_subsequence`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

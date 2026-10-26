@@ -1,3 +1,23 @@
+## Latest Session (2026-10-26) — added is_subsequence to strings.py; fixed pre-existing lint errors
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5480 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_subsequence(needle, haystack)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *needle* is a subsequence of *haystack* (every character of *needle* appears in *haystack* in the same relative order, not necessarily consecutively), `False` otherwise; the empty needle is a subsequence of any string. Added `TestIsSubsequence` to `tests/test_strings.py` covering present/missing cases, the empty-needle case, empty haystack, case sensitivity, and the `TypeError` paths (5480 tests now pass).
+- Updated the `strings` module prose section of `README.md` to list `is_subsequence`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Fixed four pre-existing lint errors that were blocking the repo: removed two unused local variables (`removed`, `i`) in `prompt_utils.py:585-587`, sorted the `prompt_utils` import block in `tests/test_prompt_utils.py`, and added the missing trailing newline to `backoff_utils.py:73`. Refreshed the affected embedded copies in `scaffold.sh` with `make refresh-scaffold`.
+- Verified the work: `make test` runs 5480 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 514 source files, and scaffold sync is clean.
+
+Next Planned:
+
+- Keep hardening the small utility modules (e.g. `strings.py`, `prompt_utils.py`, `stats.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-26) — added indent_lines to prompt_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5750 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

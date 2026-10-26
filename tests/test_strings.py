@@ -27,6 +27,7 @@ from strings import (
     is_pangram,
     is_printable,
     is_space,
+    is_subsequence,
     is_upper,
     is_whitespace,
     levenshtein_distance,
@@ -682,6 +683,39 @@ class TestIsPangram(unittest.TestCase):
     def test_rejects_non_string(self) -> None:
         with self.assertRaises(TypeError):
             is_pangram(123)  # type: ignore[arg-type]
+
+
+class TestIsSubsequence(unittest.TestCase):
+    def test_subsequence_present(self) -> None:
+        self.assertTrue(is_subsequence("abc", "aebdc"))
+        self.assertTrue(is_subsequence("ace", "abcde"))
+        self.assertTrue(is_subsequence("abc", "abc"))
+        self.assertTrue(is_subsequence("a", "a"))
+
+    def test_subsequence_not_present(self) -> None:
+        self.assertFalse(is_subsequence("abc", "acb"))
+        self.assertFalse(is_subsequence("abc", "ab"))
+        self.assertFalse(is_subsequence("abc", "def"))
+        self.assertFalse(is_subsequence("abcd", "abc"))
+
+    def test_empty_needle_is_subsequence(self) -> None:
+        self.assertTrue(is_subsequence("", "anything"))
+        self.assertTrue(is_subsequence("", ""))
+
+    def test_empty_haystack(self) -> None:
+        self.assertFalse(is_subsequence("a", ""))
+        self.assertTrue(is_subsequence("", ""))
+
+    def test_case_sensitive(self) -> None:
+        self.assertFalse(is_subsequence("ABC", "abc"))
+        self.assertFalse(is_subsequence("abc", "ABC"))
+        self.assertTrue(is_subsequence("abc", "aXbYc"))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_subsequence("abc", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_subsequence(123, "abc")  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):
