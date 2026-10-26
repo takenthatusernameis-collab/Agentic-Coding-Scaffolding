@@ -5,12 +5,16 @@ import unittest
 from prime_utils import (
     is_composite,
     is_coprime,
+    is_emirp,
+    is_mersenne_prime,
+    is_palindromic_prime,
     is_perfect_square,
     is_prime,
     is_prime_power,
     is_semiprime,
     is_sophie_germain_prime,
     is_squarefree,
+    is_twin_prime,
     next_prime,
     nth_prime,
     prev_prime,
@@ -405,6 +409,62 @@ class TestIsSophieGermainPrime(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_sophie_germain_prime(2.0)
+
+
+class TestIsEmirp(unittest.TestCase):
+    def test_true_cases(self):
+        for p in [13, 17, 31, 37, 71, 73, 79, 97]:
+            self.assertTrue(is_emirp(p))
+
+    def test_false_cases(self):
+        for n in [2, 3, 5, 7, 11, 101, 0, 1, 4, 22]:
+            self.assertFalse(is_emirp(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_emirp(13.0)
+
+
+class TestIsTwinPrime(unittest.TestCase):
+    def test_true_cases(self):
+        for p in [3, 5, 7, 11, 17, 29, 41]:
+            self.assertTrue(is_twin_prime(p))
+
+    def test_false_cases(self):
+        for n in [2, 23, 0, 1, 4, 8]:
+            self.assertFalse(is_twin_prime(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_twin_prime(3.0)
+
+
+class TestIsPalindromicPrime(unittest.TestCase):
+    def test_true_cases(self):
+        for p in [2, 3, 5, 7, 11, 101, 131, 151, 181, 191]:
+            self.assertTrue(is_palindromic_prime(p))
+
+    def test_false_cases(self):
+        for n in [13, 17, 103, 0, 1, 4, 22]:
+            self.assertFalse(is_palindromic_prime(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_palindromic_prime(11.0)
+
+
+class TestIsMersennePrime(unittest.TestCase):
+    def test_true_cases(self):
+        for p in [3, 7, 31, 127]:
+            self.assertTrue(is_mersenne_prime(p))
+
+    def test_false_cases(self):
+        for n in [1, 5, 23, 31 * 2, 0, 2, 127 * 3]:
+            self.assertFalse(is_mersenne_prime(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_mersenne_prime(3.0)
 
 
 if __name__ == "__main__":
