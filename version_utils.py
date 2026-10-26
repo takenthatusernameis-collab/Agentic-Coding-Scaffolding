@@ -27,6 +27,7 @@ __all__: List[str] = [
     "max_version",
     "min_version",
     "bump_version",
+    "is_stable",
 ]
 
 
@@ -376,3 +377,11 @@ def get_patch_version(version: str) -> int:
         raise TypeError("version must be a string")
     parts = parse_version(version)
     return parts[2] if len(parts) > 2 else 0
+
+
+def is_stable(version: str) -> bool:
+    """Return True if *version* is a stable release (major >= 1)."""
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = parse_version(version)
+    return bool(parts) and parts[0] >= 1

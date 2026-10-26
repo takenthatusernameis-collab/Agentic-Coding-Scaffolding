@@ -14,6 +14,7 @@ from version_utils import (
     is_equal,
     is_greater,
     is_less,
+    is_stable,
     is_valid_version,
     is_version_equal,
     is_version_greater,
@@ -297,6 +298,25 @@ class TestGetVersionComponents(unittest.TestCase):
     def test_invalid_version_raises(self):
         with self.assertRaises(ValueError):
             get_major_version("1.2.a")
+
+
+class TestIsStable(unittest.TestCase):
+    def test_stable(self):
+        self.assertTrue(is_stable("1.0.0"))
+        self.assertTrue(is_stable("2.3.4"))
+        self.assertTrue(is_stable("1"))
+
+    def test_unstable(self):
+        self.assertFalse(is_stable("0.1.0"))
+        self.assertFalse(is_stable("0.0.1"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_stable(1)  # type: ignore[arg-type]
+
+    def test_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            is_stable("1.2.a")
 
 
 if __name__ == "__main__":

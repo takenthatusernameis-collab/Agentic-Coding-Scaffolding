@@ -35453,6 +35453,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `is_stable(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when the major version component is at least 1, `False` otherwise. Added `TestIsStable` to `tests/test_version_utils.py`. Updated the `version_utils` module section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `is_circular_prime(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *n* is a prime that remains prime under every cyclic rotation of its decimal digits (single-digit primes are circular primes), `False` otherwise. Added `TestIsCircularPrime` to `tests/test_prime_utils.py`. Updated the `prime_utils` module sections of `README.md` and `.kilo/command/scaffold-project.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `.kilo/command/scaffold-project.md`, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `extract_placeholders(template)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns the placeholder names in order of first appearance without duplicates. Added `TestExtractPlaceholders` to `tests/test_prompt_utils.py`. Updated the `prompt_utils` module section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -36851,7 +36853,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `is_stable` returns `True` when the major version component is at least 1. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -78548,6 +78550,7 @@ __all__: List[str] = [
     "max_version",
     "min_version",
     "bump_version",
+    "is_stable",
 ]
 
 
@@ -78897,6 +78900,14 @@ def get_patch_version(version: str) -> int:
         raise TypeError("version must be a string")
     parts = parse_version(version)
     return parts[2] if len(parts) > 2 else 0
+
+
+def is_stable(version: str) -> bool:
+    """Return True if *version* is a stable release (major >= 1)."""
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = parse_version(version)
+    return bool(parts) and parts[0] >= 1
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
@@ -78917,6 +78928,7 @@ from version_utils import (
     is_equal,
     is_greater,
     is_less,
+    is_stable,
     is_valid_version,
     is_version_equal,
     is_version_greater,
@@ -79200,6 +79212,25 @@ class TestGetVersionComponents(unittest.TestCase):
     def test_invalid_version_raises(self):
         with self.assertRaises(ValueError):
             get_major_version("1.2.a")
+
+
+class TestIsStable(unittest.TestCase):
+    def test_stable(self):
+        self.assertTrue(is_stable("1.0.0"))
+        self.assertTrue(is_stable("2.3.4"))
+        self.assertTrue(is_stable("1"))
+
+    def test_unstable(self):
+        self.assertFalse(is_stable("0.1.0"))
+        self.assertFalse(is_stable("0.0.1"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_stable(1)  # type: ignore[arg-type]
+
+    def test_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            is_stable("1.2.a")
 
 
 if __name__ == "__main__":
