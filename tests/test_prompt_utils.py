@@ -6,6 +6,7 @@ from prompt_utils import (
     clean_prompt,
     collapse_blank_lines,
     count_placeholders,
+    count_sentences,
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
@@ -215,6 +216,22 @@ class TestCountPlaceholders(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_placeholders(123)  # type: ignore[arg-type]
+
+
+
+class TestCountSentences(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_sentences("Hello world. How are you?"), 2)
+
+    def test_empty(self):
+        self.assertEqual(count_sentences(""), 0)
+
+    def test_whitespace(self):
+        self.assertEqual(count_sentences("   "), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_sentences(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

@@ -22,6 +22,7 @@ __all__: List[str] = [
     "count_words",
     "collapse_blank_lines",
     "count_placeholders",
+    "count_sentences",
 ]
 
 
@@ -352,3 +353,30 @@ def count_placeholders(template: str) -> int:
     """
     _require_string(template, "template")
     return len(re.findall(r"\{\w+\}", template))
+
+
+def count_sentences(text: str) -> int:
+    """Count the number of sentences in *text*.
+
+    A sentence is delimited by a terminating punctuation mark (``.``,
+    ``!`` or ``?``) followed by whitespace or end of string.
+
+    Args:
+        text: The text to count sentences in.
+
+    Returns:
+        The number of sentences.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_sentences("Hello world. How are you?")
+        2
+        >>> count_sentences("")
+        0
+    """
+    _require_string(text, "text")
+    if not text.strip():
+        return 0
+    return len(re.findall(r"[.!?](?:\s|$)", text))
