@@ -35995,7 +35995,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
@@ -36857,7 +36857,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), and `is_squarefree` tests whether an integer is squarefree (not divisible by the square of any prime). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, and `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 ## Decimal Utilities Module
 
@@ -59526,6 +59526,11 @@ __all__: List[str] = [
     "is_mersenne_prime",
     "is_sophie_germain_prime",
     "is_safe_prime",
+    "sum_of_proper_divisors",
+    "aliquot_sum",
+    "is_perfect_number",
+    "is_abundant_number",
+    "is_deficient_number",
 ]
 
 
@@ -60066,6 +60071,102 @@ def is_safe_prime(n: int) -> bool:
     if n < 5:
         return False
     return is_prime((n - 1) // 2)
+
+
+def sum_of_proper_divisors(n: int) -> int:
+    """Return the sum of proper divisors of *n*.
+
+    Proper divisors are positive divisors other than *n* itself.
+
+    Args:
+        n: The integer to sum proper divisors of.
+
+    Returns:
+        The sum of proper positive divisors of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 1:
+        return 0
+    total = 0
+    for i in range(1, int(math.sqrt(abs(n))) + 1):
+        if n % i == 0:
+            a = i
+            b = n // i
+            if a < abs(n):
+                total += a
+            if b != a and b < abs(n):
+                total += b
+    return total
+
+
+aliquot_sum = sum_of_proper_divisors
+
+
+def is_perfect_number(n: int) -> bool:
+    """Return True if *n* is a perfect number.
+
+    A perfect number is a positive integer that is equal to the sum of its
+    proper positive divisors (e.g., 6, 28, 496, 8128).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is perfect, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 0:
+        return False
+    return sum_of_proper_divisors(n) == n
+
+
+def is_abundant_number(n: int) -> bool:
+    """Return True if *n* is an abundant number.
+
+    An abundant number is a number for which the sum of its proper divisors
+    is greater than the number itself (e.g., 12, 18, 20, 24).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is abundant, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 0:
+        return False
+    return sum_of_proper_divisors(n) > n
+
+
+def is_deficient_number(n: int) -> bool:
+    """Return True if *n* is a deficient number.
+
+    A deficient number is a number for which the sum of its proper divisors
+    is less than the number itself (e.g., 1, 2, 3, 4, 5, 7, ...). All primes
+    and prime powers are deficient.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is deficient, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 0:
+        return False
+    return sum_of_proper_divisors(n) < n
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -60075,11 +60176,14 @@ cat > "$OUTPUT_DIR/tests/test_prime_utils.py" <<'TEST_PRIME_UTILS'
 import unittest
 
 from prime_utils import (
+    is_abundant_number,
     is_composite,
     is_coprime,
+    is_deficient_number,
     is_emirp,
     is_mersenne_prime,
     is_palindromic_prime,
+    is_perfect_number,
     is_perfect_square,
     is_prime,
     is_prime_power,
@@ -60093,6 +60197,7 @@ from prime_utils import (
     prev_prime,
     prime_factors,
     primes_up_to,
+    sum_of_proper_divisors,
 )
 
 
@@ -60552,6 +60657,70 @@ class TestIsSafePrime(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_safe_prime(5.0)
+
+
+class TestSumOfProperDivisors(unittest.TestCase):
+    def test_basic_cases(self):
+        self.assertEqual(sum_of_proper_divisors(1), 0)
+        self.assertEqual(sum_of_proper_divisors(6), 1 + 2 + 3)
+        self.assertEqual(sum_of_proper_divisors(28), 1 + 2 + 4 + 7 + 14)
+        self.assertEqual(sum_of_proper_divisors(12), 1 + 2 + 3 + 4 + 6)
+        self.assertEqual(sum_of_proper_divisors(0), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            sum_of_proper_divisors(6.0)
+        with self.assertRaises(TypeError):
+            sum_of_proper_divisors(None)
+
+
+class TestAliquotSum(unittest.TestCase):
+    def test_alias(self):
+        from prime_utils import aliquot_sum
+
+        self.assertEqual(aliquot_sum(6), sum_of_proper_divisors(6))
+
+
+class TestIsPerfectNumber(unittest.TestCase):
+    def test_true_cases(self):
+        for n in [6, 28, 496]:
+            self.assertTrue(is_perfect_number(n))
+
+    def test_false_cases(self):
+        for n in [1, 2, 4, 12, 0, -6]:
+            self.assertFalse(is_perfect_number(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_perfect_number(6.0)
+
+
+class TestIsAbundantNumber(unittest.TestCase):
+    def test_true_cases(self):
+        for n in [12, 18, 20, 24]:
+            self.assertTrue(is_abundant_number(n))
+
+    def test_false_cases(self):
+        for n in [1, 2, 6, 28, 0]:
+            self.assertFalse(is_abundant_number(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_abundant_number(12.0)
+
+
+class TestIsDeficientNumber(unittest.TestCase):
+    def test_true_cases(self):
+        for n in [1, 2, 3, 4, 5, 7, 8, 9, 10]:
+            self.assertTrue(is_deficient_number(n))
+
+    def test_false_cases(self):
+        for n in [0, 12, 18, 20, 24]:
+            self.assertFalse(is_deficient_number(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_deficient_number(2.0)
 
 
 if __name__ == "__main__":
