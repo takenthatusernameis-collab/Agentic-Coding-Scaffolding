@@ -1068,6 +1068,250 @@ class TestRemoveBlankLines(unittest.TestCase):
             remove_blank_lines(123)
 
 
+class TestPartition(unittest.TestCase):
+    def test_partition_basic(self):
+        from strings import partition
+
+        self.assertEqual(partition("hello/world", "/"), ("hello", "/", "world"))
+
+    def test_partition_not_found(self):
+        from strings import partition
+
+        self.assertEqual(partition("hello", "/"), ("hello", "", ""))
+
+    def test_partition_empty_separator_raises(self):
+        from strings import partition
+
+        with self.assertRaises(ValueError):
+            partition("hello", "")
+
+    def test_partition_rejects_non_string(self):
+        from strings import partition
+
+        with self.assertRaises(TypeError):
+            partition(123, "/")
+        with self.assertRaises(TypeError):
+            partition("hello", 123)  # type: ignore[arg-type]
+
+
+class TestRPartition(unittest.TestCase):
+    def test_rpartition_basic(self):
+        from strings import rpartition
+
+        self.assertEqual(rpartition("a/b/c", "/"), ("a/b", "/", "c"))
+
+    def test_rpartition_not_found(self):
+        from strings import rpartition
+
+        self.assertEqual(rpartition("hello", "/"), ("", "", "hello"))
+
+    def test_rpartition_empty_separator_raises(self):
+        from strings import rpartition
+
+        with self.assertRaises(ValueError):
+            rpartition("hello", "")
+
+    def test_rpartition_rejects_non_string(self):
+        from strings import rpartition
+
+        with self.assertRaises(TypeError):
+            rpartition(123, "/")
+        with self.assertRaises(TypeError):
+            rpartition("hello", 123)  # type: ignore[arg-type]
+
+
+class TestSplitLines(unittest.TestCase):
+    def test_split_lines_basic(self):
+        from strings import split_lines
+
+        self.assertEqual(split_lines("a\nb\nc"), ["a", "b", "c"])
+
+    def test_split_lines_keepends(self):
+        from strings import split_lines
+
+        self.assertEqual(split_lines("a\nb", keepends=True), ["a\n", "b"])
+
+    def test_split_lines_empty(self):
+        from strings import split_lines
+
+        self.assertEqual(split_lines(""), [])
+
+    def test_split_lines_keepends_non_bool_raises(self):
+        from strings import split_lines
+
+        with self.assertRaises(TypeError):
+            split_lines("a\nb", keepends="true")  # type: ignore[arg-type]
+
+    def test_split_lines_rejects_non_string(self):
+        from strings import split_lines
+
+        with self.assertRaises(TypeError):
+            split_lines(123)  # type: ignore[arg-type]
+
+
+class TestJoinLines(unittest.TestCase):
+    def test_join_lines_basic(self):
+        from strings import join_lines
+
+        self.assertEqual(join_lines(["a", "b"], "\n"), "a\nb")
+
+    def test_join_lines_default_sep(self):
+        from strings import join_lines
+
+        self.assertEqual(join_lines(["a", "b"]), "a\nb")
+
+    def test_join_lines_non_list_raises(self):
+        from strings import join_lines
+
+        with self.assertRaises(TypeError):
+            join_lines("ab")  # type: ignore[arg-type]
+
+    def test_join_lines_bad_element_raises(self):
+        from strings import join_lines
+
+        with self.assertRaises(TypeError):
+            join_lines(["a", 123])  # type: ignore[arg-type]
+
+    def test_join_lines_sep_non_string_raises(self):
+        from strings import join_lines
+
+        with self.assertRaises(TypeError):
+            join_lines(["a"], 123)  # type: ignore[arg-type]
+
+
+class TestReplaceMany(unittest.TestCase):
+    def test_replace_many_basic(self):
+        from strings import replace_many
+
+        self.assertEqual(replace_many("hello world", {"hello": "hi", "world": "there"}), "hi there")
+
+    def test_replace_many_non_dict_raises(self):
+        from strings import replace_many
+
+        with self.assertRaises(TypeError):
+            replace_many("hi", [])  # type: ignore[arg-type]
+
+    def test_replace_many_bad_key_or_value_raises(self):
+        from strings import replace_many
+
+        with self.assertRaises(TypeError):
+            replace_many("hi", {123: "x"})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            replace_many("hi", {"x": 123})  # type: ignore[arg-type]
+
+    def test_replace_many_rejects_non_string(self):
+        from strings import replace_many
+
+        with self.assertRaises(TypeError):
+            replace_many(123, {"a": "b"})  # type: ignore[arg-type]
+
+
+class TestStripHtml(unittest.TestCase):
+    def test_strip_html_basic(self):
+        from strings import strip_html
+
+        self.assertEqual(strip_html("<p>hello</p>"), "hello")
+
+    def test_strip_html_nested(self):
+        from strings import strip_html
+
+        self.assertEqual(strip_html("<div><b>hi</b></div>"), "hi")
+
+    def test_strip_html_no_tags(self):
+        from strings import strip_html
+
+        self.assertEqual(strip_html("hello"), "hello")
+
+    def test_strip_html_rejects_non_string(self):
+        from strings import strip_html
+
+        with self.assertRaises(TypeError):
+            strip_html(123)  # type: ignore[arg-type]
+
+
+class TestBetween(unittest.TestCase):
+    def test_between_basic(self):
+        from strings import between
+
+        self.assertEqual(between("hello [world]", "[", "]"), "world")
+
+    def test_between_start_not_found(self):
+        from strings import between
+
+        self.assertEqual(between("hello", "x", "]"), "")
+
+    def test_between_end_not_found(self):
+        from strings import between
+
+        self.assertEqual(between("hello [world", "[", "]"), "")
+
+    def test_between_rejects_non_string(self):
+        from strings import between
+
+        with self.assertRaises(TypeError):
+            between(123, "[", "]")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            between("hello", 123, "]")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            between("hello", "[", 123)  # type: ignore[arg-type]
+
+
+class TestContainsAnyAll(unittest.TestCase):
+    def test_contains_any_basic(self):
+        from strings import contains_any
+
+        self.assertTrue(contains_any("hello", ["x", "he"]))
+        self.assertFalse(contains_any("hello", ["x", "y"]))
+
+    def test_contains_all_basic(self):
+        from strings import contains_all
+
+        self.assertTrue(contains_all("hello world", ["hello", "world"]))
+        self.assertFalse(contains_all("hello world", ["hello", "foo"]))
+
+    def test_contains_any_all_non_list_raises(self):
+        from strings import contains_all, contains_any
+
+        with self.assertRaises(TypeError):
+            contains_any("hi", "h")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains_all("hi", "h")  # type: ignore[arg-type]
+
+    def test_contains_any_all_bad_elements_raise(self):
+        from strings import contains_all, contains_any
+
+        with self.assertRaises(TypeError):
+            contains_any("hi", [123])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains_all("hi", [123])  # type: ignore[arg-type]
+
+    def test_contains_any_all_rejects_non_string(self):
+        from strings import contains_all, contains_any
+
+        with self.assertRaises(TypeError):
+            contains_any(123, ["a"])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains_all(123, ["a"])  # type: ignore[arg-type]
+
+
+class TestCharFrequency(unittest.TestCase):
+    def test_char_frequency_basic(self):
+        from strings import char_frequency
+
+        self.assertEqual(char_frequency("aba"), {"a": 2, "b": 1})
+
+    def test_char_frequency_empty(self):
+        from strings import char_frequency
+
+        self.assertEqual(char_frequency(""), {})
+
+    def test_char_frequency_rejects_non_string(self):
+        from strings import char_frequency
+
+        with self.assertRaises(TypeError):
+            char_frequency(123)  # type: ignore[arg-type]
+
+
 class TestChunkString(unittest.TestCase):
     def test_basic(self):
         from strings import chunk_string
