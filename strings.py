@@ -72,6 +72,7 @@ __all__: List[str] = [
     "remove_punctuation",
     "remove_digits",
     "remove_blank_lines",
+    "chunk_string",
 ]
 
 
@@ -955,3 +956,26 @@ def remove_blank_lines(s: str) -> str:
     """Remove blank lines from *s*, preserving order of non-blank lines."""
     _require_string(s, "s")
     return "\n".join(line for line in s.splitlines() if line.strip() != "")
+
+
+def chunk_string(s: str, size: int) -> List[str]:
+    """Split string *s* into chunks of length *size*.
+
+    Args:
+        s: The string to split.
+        size: The maximum length of each chunk.
+
+    Returns:
+        A list of string chunks. If *s* is empty, an empty list is returned.
+
+    Raises:
+        TypeError: If *s* is not a string or *size* is not an int.
+        ValueError: If *size* is not positive.
+    """
+    _require_string(s, "s")
+    _require_int(size, "size")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    if not s:
+        return []
+    return [s[i : i + size] for i in range(0, len(s), size)]

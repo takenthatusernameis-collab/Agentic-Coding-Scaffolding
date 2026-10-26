@@ -10982,6 +10982,7 @@ __all__: List[str] = [
     "remove_punctuation",
     "remove_digits",
     "remove_blank_lines",
+    "chunk_string",
 ]
 
 
@@ -11865,6 +11866,29 @@ def remove_blank_lines(s: str) -> str:
     """Remove blank lines from *s*, preserving order of non-blank lines."""
     _require_string(s, "s")
     return "\n".join(line for line in s.splitlines() if line.strip() != "")
+
+
+def chunk_string(s: str, size: int) -> List[str]:
+    """Split string *s* into chunks of length *size*.
+
+    Args:
+        s: The string to split.
+        size: The maximum length of each chunk.
+
+    Returns:
+        A list of string chunks. If *s* is empty, an empty list is returned.
+
+    Raises:
+        TypeError: If *s* is not a string or *size* is not an int.
+        ValueError: If *size* is not positive.
+    """
+    _require_string(s, "s")
+    _require_int(size, "size")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    if not s:
+        return []
+    return [s[i : i + size] for i in range(0, len(s), size)]
 STRINGS
 
 # --- utils.py ---
@@ -14080,6 +14104,51 @@ class TestRemoveBlankLines(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             remove_blank_lines(123)
+
+
+class TestChunkString(unittest.TestCase):
+    def test_basic(self):
+        from strings import chunk_string
+
+        self.assertEqual(chunk_string("abcdef", 2), ["ab", "cd", "ef"])
+        self.assertEqual(chunk_string("hello", 3), ["hel", "lo"])
+
+    def test_empty_string(self):
+        from strings import chunk_string
+
+        self.assertEqual(chunk_string("", 5), [])
+
+    def test_size_larger_than_string(self):
+        from strings import chunk_string
+
+        self.assertEqual(chunk_string("abc", 10), ["abc"])
+
+    def test_size_one(self):
+        from strings import chunk_string
+
+        self.assertEqual(chunk_string("abc", 1), ["a", "b", "c"])
+
+    def test_invalid_size(self):
+        from strings import chunk_string
+
+        with self.assertRaises(ValueError):
+            chunk_string("abc", 0)
+        with self.assertRaises(ValueError):
+            chunk_string("abc", -1)
+
+    def test_non_str_raises(self):
+        from strings import chunk_string
+
+        with self.assertRaises(TypeError):
+            chunk_string(123, 2)
+
+    def test_non_int_size_raises(self):
+        from strings import chunk_string
+
+        with self.assertRaises(TypeError):
+            chunk_string("abc", 2.5)
+        with self.assertRaises(TypeError):
+            chunk_string("abc", True)  # type: ignore[arg-type]
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -36304,6 +36373,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Added `remove_blank_lines` to `strings.py`.
 
 - Added `is_subsequence(needle, haystack)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *needle* is a subsequence of *haystack* (every character of *needle* appears in *haystack* in the same relative order, not necessarily consecutively), `False` otherwise; the empty needle is a subsequence of any string. Added `TestIsSubsequence` to `tests/test_strings.py` covering present/missing cases, the empty-needle case, empty haystack, case sensitivity, and the `TypeError` paths. Updated the `strings` module prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `chunk_string(s, size)` to `strings.py` with validation (TypeError for non-string/non-int, ValueError for non-positive size) returning chunks of length *size* (empty list for empty string). Added `TestChunkString` to `tests/test_strings.py`. Updated `README.md`. Synchronized into scaffold.
 
 - Added `indent_lines(text, prefix="    ", *, skip_blank=False)` to `prompt_utils.py` as a companion to `truncate_lines` and `wrap_prompt`: it prefixes every line of *text* with *prefix*, leaving blank lines untouched when *skip_blank* is True. It validates that *text* and *prefix* are strings and *skip_blank* is a bool, raising `TypeError` otherwise. Added `TestIndentLines` to `tests/test_prompt_utils.py` covering the default prefix, a custom prefix, blank-line handling with both modes, the empty-string case, and the `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -37349,7 +37419,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_subsequence`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_subsequence`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

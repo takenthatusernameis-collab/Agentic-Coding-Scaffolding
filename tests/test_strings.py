@@ -1066,3 +1066,49 @@ class TestRemoveBlankLines(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             remove_blank_lines(123)
+
+
+class TestChunkString(unittest.TestCase):
+    def test_basic(self):
+        from strings import chunk_string
+
+        self.assertEqual(chunk_string("abcdef", 2), ["ab", "cd", "ef"])
+        self.assertEqual(chunk_string("hello", 3), ["hel", "lo"])
+
+    def test_empty_string(self):
+        from strings import chunk_string
+
+        self.assertEqual(chunk_string("", 5), [])
+
+    def test_size_larger_than_string(self):
+        from strings import chunk_string
+
+        self.assertEqual(chunk_string("abc", 10), ["abc"])
+
+    def test_size_one(self):
+        from strings import chunk_string
+
+        self.assertEqual(chunk_string("abc", 1), ["a", "b", "c"])
+
+    def test_invalid_size(self):
+        from strings import chunk_string
+
+        with self.assertRaises(ValueError):
+            chunk_string("abc", 0)
+        with self.assertRaises(ValueError):
+            chunk_string("abc", -1)
+
+    def test_non_str_raises(self):
+        from strings import chunk_string
+
+        with self.assertRaises(TypeError):
+            chunk_string(123, 2)
+
+    def test_non_int_size_raises(self):
+        from strings import chunk_string
+
+        with self.assertRaises(TypeError):
+            chunk_string("abc", 2.5)
+        with self.assertRaises(TypeError):
+            chunk_string("abc", True)  # type: ignore[arg-type]
+
