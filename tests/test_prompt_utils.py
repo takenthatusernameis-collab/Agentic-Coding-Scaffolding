@@ -11,6 +11,7 @@ from prompt_utils import (
     extract_keywords,
     extract_placeholders,
     format_prompt_template,
+    has_placeholders,
     truncate_prompt,
     wrap_prompt,
 )
@@ -180,6 +181,25 @@ class TestExtractPlaceholders(unittest.TestCase):
     def test_extract_placeholders_rejects_non_str(self):
         with self.assertRaises(TypeError):
             extract_placeholders(123)  # type: ignore[arg-type]
+
+
+class TestHasPlaceholders(unittest.TestCase):
+    def test_has_placeholders_true(self):
+        self.assertTrue(has_placeholders("Hello {name}!"))
+        self.assertTrue(has_placeholders("{a} {b} {a}"))
+
+    def test_has_placeholders_false(self):
+        self.assertFalse(has_placeholders("No placeholders here"))
+        self.assertFalse(has_placeholders(""))
+        self.assertFalse(has_placeholders("just text"))
+
+    def test_has_placeholders_matches_count(self):
+        self.assertEqual(has_placeholders("Hello {name}, {greeting}!"), True)
+        self.assertEqual(has_placeholders("plain"), False)
+
+    def test_has_placeholders_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            has_placeholders(123)  # type: ignore[arg-type]
 
 
 class TestCollapseBlankLines(unittest.TestCase):

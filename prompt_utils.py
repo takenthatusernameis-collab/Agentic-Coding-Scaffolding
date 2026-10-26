@@ -17,6 +17,7 @@ __all__: List[str] = [
     "clean_prompt",
     "extract_keywords",
     "extract_placeholders",
+    "has_placeholders",
     "wrap_prompt",
     "estimate_token_count",
     "count_words",
@@ -216,6 +217,35 @@ def extract_placeholders(template: str) -> List[str]:
             seen.add(name)
             result.append(name)
     return result
+
+
+def has_placeholders(template: str) -> bool:
+    """Return True if *template* contains any ``{name}`` placeholders.
+
+    A lightweight boolean companion to :func:`extract_placeholders` and
+    :func:`count_placeholders` that reports whether a template string
+    contains at least one placeholder.
+
+    Args:
+        template: The template string to scan for placeholders.
+
+    Returns:
+        ``True`` if *template* contains at least one placeholder, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *template* is not a string.
+
+    Examples:
+        >>> has_placeholders("Hello {name}!")
+        True
+        >>> has_placeholders("No placeholders here")
+        False
+        >>> has_placeholders("")
+        False
+    """
+    _require_string(template, "template")
+    return bool(re.findall(r"\{\w+\}", template))
 
 
 def wrap_prompt(text: str, width: int = 80) -> str:

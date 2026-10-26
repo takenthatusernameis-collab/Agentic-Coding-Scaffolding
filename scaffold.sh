@@ -15469,6 +15469,7 @@ from prompt_utils import (
     extract_keywords,
     extract_placeholders,
     format_prompt_template,
+    has_placeholders,
     truncate_prompt,
     wrap_prompt,
 )
@@ -15638,6 +15639,25 @@ class TestExtractPlaceholders(unittest.TestCase):
     def test_extract_placeholders_rejects_non_str(self):
         with self.assertRaises(TypeError):
             extract_placeholders(123)  # type: ignore[arg-type]
+
+
+class TestHasPlaceholders(unittest.TestCase):
+    def test_has_placeholders_true(self):
+        self.assertTrue(has_placeholders("Hello {name}!"))
+        self.assertTrue(has_placeholders("{a} {b} {a}"))
+
+    def test_has_placeholders_false(self):
+        self.assertFalse(has_placeholders("No placeholders here"))
+        self.assertFalse(has_placeholders(""))
+        self.assertFalse(has_placeholders("just text"))
+
+    def test_has_placeholders_matches_count(self):
+        self.assertEqual(has_placeholders("Hello {name}, {greeting}!"), True)
+        self.assertEqual(has_placeholders("plain"), False)
+
+    def test_has_placeholders_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            has_placeholders(123)  # type: ignore[arg-type]
 
 
 class TestCollapseBlankLines(unittest.TestCase):
@@ -23848,6 +23868,7 @@ __all__: List[str] = [
     "clean_prompt",
     "extract_keywords",
     "extract_placeholders",
+    "has_placeholders",
     "wrap_prompt",
     "estimate_token_count",
     "count_words",
@@ -24047,6 +24068,35 @@ def extract_placeholders(template: str) -> List[str]:
             seen.add(name)
             result.append(name)
     return result
+
+
+def has_placeholders(template: str) -> bool:
+    """Return True if *template* contains any ``{name}`` placeholders.
+
+    A lightweight boolean companion to :func:`extract_placeholders` and
+    :func:`count_placeholders` that reports whether a template string
+    contains at least one placeholder.
+
+    Args:
+        template: The template string to scan for placeholders.
+
+    Returns:
+        ``True`` if *template* contains at least one placeholder, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *template* is not a string.
+
+    Examples:
+        >>> has_placeholders("Hello {name}!")
+        True
+        >>> has_placeholders("No placeholders here")
+        False
+        >>> has_placeholders("")
+        False
+    """
+    _require_string(template, "template")
+    return bool(re.findall(r"\{\w+\}", template))
 
 
 def wrap_prompt(text: str, width: int = 80) -> str:
@@ -35439,6 +35489,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased
+
+- Added `has_placeholders(template)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *template* contains at least one ``{name}`` placeholder, `False` otherwise. Added `TestHasPlaceholders` to `tests/test_prompt_utils.py`. Updated the `prompt_utils` module section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## case_utils
 
 - Add `case_utils.py` with `kebab_case`, `pascal_case`, and `constant_case` helpers that split text on whitespace, separators, and case transitions, each with a typed signature, `__all__` export, a Google-style docstring, and input validation raising `TypeError` for non-string arguments, plus unit tests in `tests/test_case_utils.py`.
@@ -36708,7 +36762,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `wrap_prompt`, `estimate_token_count`, and `count_words`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, and `count_words`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 
