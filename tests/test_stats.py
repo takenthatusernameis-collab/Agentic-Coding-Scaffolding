@@ -8,6 +8,7 @@ from stats import (
     kurtosis,
     max_value,
     mean,
+    mean_absolute_deviation,
     median,
     median_absolute_deviation,
     midrange,
@@ -214,6 +215,30 @@ class TestSkewness(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             skewness([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestMeanAbsoluteDeviation(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(mean_absolute_deviation([1, 2, 3, 4, 5]), 1.2)
+
+    def test_constant(self) -> None:
+        self.assertEqual(mean_absolute_deviation([2, 2, 2]), 0.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            mean_absolute_deviation([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            mean_absolute_deviation((1, 2))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            mean_absolute_deviation([1, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            mean_absolute_deviation([True, 1])  # type: ignore[list-item]
 
 
 class TestMedianAbsoluteDeviation(unittest.TestCase):

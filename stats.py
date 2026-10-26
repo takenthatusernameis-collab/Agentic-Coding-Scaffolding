@@ -26,6 +26,7 @@ __all__: List[str] = [
     "coefficient_of_variation",
     "geometric_mean",
     "harmonic_mean",
+    "mean_absolute_deviation",
     "median_absolute_deviation",
     "weighted_mean",
     "kurtosis",
@@ -489,6 +490,34 @@ def harmonic_mean(numbers: List[T | float]) -> float:
             raise ValueError("All numbers must be positive")
         total += 1.0 / float(x)
     return float(len(numbers) / total)
+
+
+def mean_absolute_deviation(numbers: List[T | float]) -> float:
+    """Return the mean absolute deviation of a list of numbers.
+
+    The mean absolute deviation (MAD) is the average of the absolute
+    deviations of each number from the mean of the list.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The mean absolute deviation of the numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> mean_absolute_deviation([1, 2, 3, 4, 5])
+        1.2
+        >>> mean_absolute_deviation([2, 2, 2, 2])
+        0.0
+    """
+    _require_numbers(numbers, "numbers")
+    m = mean(numbers)
+    deviations = [abs(x - m) for x in numbers]
+    return mean(deviations)
 
 
 def median_absolute_deviation(numbers: List[T | float]) -> float:
