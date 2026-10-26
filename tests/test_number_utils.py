@@ -5,6 +5,7 @@ import unittest
 from number_utils import (
     clamp,
     format_number,
+    is_between,
     is_even,
     is_finite,
     is_infinite,
@@ -189,6 +190,42 @@ class TestIsNonPositive(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_non_positive("x")  # type: ignore[arg-type]
+
+
+class TestIsBetween(unittest.TestCase):
+    def test_inclusive_default(self) -> None:
+        self.assertTrue(is_between(5, 0, 10))
+        self.assertTrue(is_between(0, 0, 10))
+        self.assertTrue(is_between(10, 0, 10))
+        self.assertFalse(is_between(-1, 0, 10))
+        self.assertFalse(is_between(11, 0, 10))
+
+    def test_exclusive(self) -> None:
+        self.assertTrue(is_between(5, 0, 10, inclusive=False))
+        self.assertFalse(is_between(0, 0, 10, inclusive=False))
+        self.assertFalse(is_between(10, 0, 10, inclusive=False))
+
+    def test_floats(self) -> None:
+        self.assertTrue(is_between(2.5, 1.0, 3.0))
+        self.assertTrue(is_between(1.0, 1.0, 3.0))
+
+    def test_invalid_bounds(self) -> None:
+        with self.assertRaises(ValueError):
+            is_between(5, 10, 0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_between("x", 0, 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_between(5, "x", 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_between(5, 0, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_between(5, 0, 10, inclusive="yes")  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
 
 
 class TestIsPalindromicNumber(unittest.TestCase):

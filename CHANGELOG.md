@@ -354,3 +354,6 @@
 - Added `.pre-commit-config.yaml`.
 - Added `CHANGELOG.md`.
 - Added `.kilo/.gitignore`.
+- Added `is_between(value, lower, upper, inclusive=True)` to `number_utils.py` with range membership testing and validation (raising `TypeError`/ValueError); updated `__all__`, README, and tests.
+
+- Added `is_between(value, lower, upper, inclusive=True)` to `number_utils.py` with typed signature, `__all__` export, Google-style docstring, and validation raising `TypeError`/`ValueError` for range membership testing (inclusive by default). Added `TestIsBetween` to `tests/test_number_utils.py`. Updated `number_utils` module sections in `README.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`.

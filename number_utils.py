@@ -22,6 +22,7 @@ __all__: List[str] = [
     "is_zero",
     "is_non_negative",
     "is_non_positive",
+    "is_between",
     "is_finite",
     "is_infinite",
     "is_nan",
@@ -299,6 +300,34 @@ def is_non_positive(value: Number) -> bool:
     """
     _require_number(value, "value")
     return value <= 0
+
+
+def is_between(value: Number, lower: Number, upper: Number, inclusive: bool = True) -> bool:
+    """Return True if *value* is between *lower* and *upper*.
+
+    Args:
+        value: The number to test.
+        lower: The lower bound.
+        upper: The upper bound.
+        inclusive: If True (default), bounds are inclusive.
+
+    Returns:
+        True if *value* is between the bounds.
+
+    Raises:
+        TypeError: If *value*, *lower*, or *upper* are not numbers or *inclusive* is not a bool.
+        ValueError: If *lower* exceeds *upper*.
+    """
+    _require_number(value, "value")
+    _require_number(lower, "lower")
+    _require_number(upper, "upper")
+    if isinstance(inclusive, bool) is False or not isinstance(inclusive, bool):
+        raise TypeError(f"inclusive must be a bool, got {type(inclusive).__name__}")
+    if lower > upper:
+        raise ValueError("lower must not exceed upper")
+    if inclusive:
+        return lower <= value <= upper
+    return lower < value < upper
 
 
 def is_finite(value: Number) -> bool:

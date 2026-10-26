@@ -36039,6 +36039,9 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Added `.pre-commit-config.yaml`.
 - Added `CHANGELOG.md`.
 - Added `.kilo/.gitignore`.
+- Added `is_between(value, lower, upper, inclusive=True)` to `number_utils.py` with range membership testing and validation (raising `TypeError`/ValueError); updated `__all__`, README, and tests.
+
+- Added `is_between(value, lower, upper, inclusive=True)` to `number_utils.py` with typed signature, `__all__` export, Google-style docstring, and validation raising `TypeError`/`ValueError` for range membership testing (inclusive by default). Added `TestIsBetween` to `tests/test_number_utils.py`. Updated `number_utils` module sections in `README.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`.
 CHANGELOG
 
 # Substitute project name in templated documents
@@ -36172,7 +36175,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_finite, is_infinite, is_nan)
+number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_finite, is_infinite, is_nan)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -37092,7 +37095,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, and special floating-point properties. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -55270,6 +55273,7 @@ __all__: List[str] = [
     "is_zero",
     "is_non_negative",
     "is_non_positive",
+    "is_between",
     "is_finite",
     "is_infinite",
     "is_nan",
@@ -55549,6 +55553,34 @@ def is_non_positive(value: Number) -> bool:
     return value <= 0
 
 
+def is_between(value: Number, lower: Number, upper: Number, inclusive: bool = True) -> bool:
+    """Return True if *value* is between *lower* and *upper*.
+
+    Args:
+        value: The number to test.
+        lower: The lower bound.
+        upper: The upper bound.
+        inclusive: If True (default), bounds are inclusive.
+
+    Returns:
+        True if *value* is between the bounds.
+
+    Raises:
+        TypeError: If *value*, *lower*, or *upper* are not numbers or *inclusive* is not a bool.
+        ValueError: If *lower* exceeds *upper*.
+    """
+    _require_number(value, "value")
+    _require_number(lower, "lower")
+    _require_number(upper, "upper")
+    if isinstance(inclusive, bool) is False or not isinstance(inclusive, bool):
+        raise TypeError(f"inclusive must be a bool, got {type(inclusive).__name__}")
+    if lower > upper:
+        raise ValueError("lower must not exceed upper")
+    if inclusive:
+        return lower <= value <= upper
+    return lower < value < upper
+
+
 def is_finite(value: Number) -> bool:
     """Return True if *value* is finite (not infinite and not NaN).
 
@@ -55748,6 +55780,7 @@ from number_utils import (
     is_negative,
     is_non_negative,
     is_non_positive,
+    is_between,
     is_odd,
     is_perfect_cube,
     is_perfect_square,
@@ -55924,6 +55957,42 @@ class TestIsNonPositive(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_non_positive("x")  # type: ignore[arg-type]
+
+
+class TestIsBetween(unittest.TestCase):
+    def test_inclusive_default(self) -> None:
+        self.assertTrue(is_between(5, 0, 10))
+        self.assertTrue(is_between(0, 0, 10))
+        self.assertTrue(is_between(10, 0, 10))
+        self.assertFalse(is_between(-1, 0, 10))
+        self.assertFalse(is_between(11, 0, 10))
+
+    def test_exclusive(self) -> None:
+        self.assertTrue(is_between(5, 0, 10, inclusive=False))
+        self.assertFalse(is_between(0, 0, 10, inclusive=False))
+        self.assertFalse(is_between(10, 0, 10, inclusive=False))
+
+    def test_floats(self) -> None:
+        self.assertTrue(is_between(2.5, 1.0, 3.0))
+        self.assertTrue(is_between(1.0, 1.0, 3.0))
+
+    def test_invalid_bounds(self) -> None:
+        with self.assertRaises(ValueError):
+            is_between(5, 10, 0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_between("x", 0, 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_between(5, "x", 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_between(5, 0, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_between(5, 0, 10, inclusive="yes")  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
 
 
 class TestIsPalindromicNumber(unittest.TestCase):
