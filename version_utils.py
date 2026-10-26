@@ -9,6 +9,9 @@ __all__: List[str] = [
     "is_less",
     "is_equal",
     "is_valid_version",
+    "get_major_version",
+    "get_minor_version",
+    "get_patch_version",
     "is_version_greater",
     "is_version_less",
     "is_version_equal",
@@ -316,3 +319,60 @@ def is_valid_version(version: object) -> bool:
     if not version:
         return False
     return all(part.isdigit() for part in version.split("."))
+
+
+def get_major_version(version: str) -> int:
+    """Return the major version component.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The major version component.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = parse_version(version)
+    return parts[0] if parts else 0
+
+
+def get_minor_version(version: str) -> int:
+    """Return the minor version component.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The minor version component.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = parse_version(version)
+    return parts[1] if len(parts) > 1 else 0
+
+
+def get_patch_version(version: str) -> int:
+    """Return the patch version component.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The patch version component.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = parse_version(version)
+    return parts[2] if len(parts) > 2 else 0

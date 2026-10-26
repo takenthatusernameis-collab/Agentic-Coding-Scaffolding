@@ -8,6 +8,9 @@ from version_utils import (
     bump_patch,
     bump_version,
     compare_versions,
+    get_major_version,
+    get_minor_version,
+    get_patch_version,
     is_equal,
     is_greater,
     is_less,
@@ -267,6 +270,33 @@ class TestIsValidVersion(unittest.TestCase):
     def test_non_string(self):
         self.assertFalse(is_valid_version(123))  # type: ignore[arg-type]
         self.assertFalse(is_valid_version(None))  # type: ignore[arg-type]
+
+
+class TestGetVersionComponents(unittest.TestCase):
+    def test_major(self):
+        self.assertEqual(get_major_version("1.2.3"), 1)
+        self.assertEqual(get_major_version("5"), 5)
+
+    def test_minor(self):
+        self.assertEqual(get_minor_version("1.2.3"), 2)
+        self.assertEqual(get_minor_version("1"), 0)
+
+    def test_patch(self):
+        self.assertEqual(get_patch_version("1.2.3"), 3)
+        self.assertEqual(get_patch_version("1.2"), 0)
+        self.assertEqual(get_patch_version("1"), 0)
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            get_major_version(1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_minor_version(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_patch_version([])  # type: ignore[arg-type]
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            get_major_version("1.2.a")
 
 
 if __name__ == "__main__":
