@@ -13842,6 +13842,12 @@ class TestNewHelpers(unittest.TestCase):
         from strings import remove_punctuation
 
         self.assertEqual(remove_punctuation("hello, world!"), "hello world")
+
+    def test_remove_digits(self):
+        from strings import remove_digits
+
+        self.assertEqual(remove_digits("a1b2c3"), "abc")
+        self.assertEqual(remove_digits("no digits"), "no digits")
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
