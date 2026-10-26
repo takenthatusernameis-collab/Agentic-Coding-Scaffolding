@@ -11777,6 +11777,8 @@ def last_n(s: str, n: int) -> str:
     _require_int(n, "n")
     if n < 0:
         raise ValueError("n cannot be negative")
+    if n == 0:
+        return ""
     return s[-n:]
 
 
