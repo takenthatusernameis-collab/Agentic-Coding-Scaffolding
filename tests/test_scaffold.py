@@ -2871,3 +2871,11 @@ class TestScaffoldHeredocs(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+_EXTRA_ASSERTED_MODULES = [
+    "ensurepip_utils.py",
+    "tests/test_ensurepip_utils.py",
+    "venv_utils.py",
+    "tests/test_venv_utils.py",
+]
