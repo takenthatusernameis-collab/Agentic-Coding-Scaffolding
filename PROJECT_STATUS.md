@@ -1923,3 +1923,26 @@ Verified repository health: `make test` passes (5512 tests), `make lint` and `ma
 ## Latest Session (2026-10-26) — bootstrap, no board task
 
 Verified repository health: `make test` passes (5512 tests), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No code changes required. Next task: audit prime_utils boundary cases (negative inputs, 0, 1, large primes) and add missing tests.
+
+## Latest Session (2026-10-26) — audited prime_utils boundary cases
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5831 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Audited every public helper in `prime_utils` against boundary inputs: negatives, 0, 1, 2, 3, large primes (999983), and large prime powers (2^31, 2^62, 3^20). Zero code bugs found — every helper classifies correctly.
+- Cross-checked `is_prime`, `prime_factors`, `prime_count`, `is_squarefree`, `is_semiprime`, and `is_prime_power` against brute-force reference implementations over the ranges −50..500 and 2..2000 with zero mismatches.
+- Fixed a documentation gap: `prime_count` was present in the README architecture tree but missing from the `prime_utils` prose section. Added it to the prose description.
+- Added 11 boundary test classes to `tests/test_prime_utils.py`: `TestPrimeCount`, `TestPrimeClassificationNegatives`, `TestSumOfProperDivisorsEdge`, `TestIsPrimePowerLarge`, `TestIsSquarefreeEdge`, `TestIsSemiprimeEdge`, `TestIsPerfectSquareEdge`, `TestNextPrevPrimeEdge`, `TestPrimesUpToEdge`, `TestIsCoprimeEdge`, and `TestIsPerfectAbundantDeficientEdge`, covering negative inputs, 0, 1, 2, 3, large prime powers, and the `TypeError` paths (5871 tests now pass).
+- Recorded the audit and the `prime_count` doc fix in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `tests/test_prime_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5871 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 514 source files, and scaffold sync is clean.
+- Committed the work as `feat(prime_utils): audit boundary cases and add prime_count docs`.
+
+Next Planned:
+
+- Audit the `strings.py` module boundary cases (empty string, single char, whitespace-only, unicode edge cases, non-string types for TypeError paths, very long strings) and add any missing boundary tests to `tests/test_strings.py`.
+- Cross-check against a brute-force reference where practical.
+- Fix any documentation gaps in the `strings` module prose section of `README.md`.
+- Record the work in the Unreleased section of `CHANGELOG.md` and run `make refresh-scaffold` + `python tools/refresh_scaffold.py --check`.
+- Keep `make test`, `make lint`, and `make typecheck` green. No changes to `.github/workflows/**`.
