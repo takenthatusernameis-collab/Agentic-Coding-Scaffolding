@@ -3,11 +3,14 @@
 import unittest
 
 from prime_utils import (
+    is_abundant_number,
     is_composite,
     is_coprime,
+    is_deficient_number,
     is_emirp,
     is_mersenne_prime,
     is_palindromic_prime,
+    is_perfect_number,
     is_perfect_square,
     is_prime,
     is_prime_power,
@@ -21,6 +24,7 @@ from prime_utils import (
     prev_prime,
     prime_factors,
     primes_up_to,
+    sum_of_proper_divisors,
 )
 
 
@@ -480,6 +484,70 @@ class TestIsSafePrime(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_safe_prime(5.0)
+
+
+class TestSumOfProperDivisors(unittest.TestCase):
+    def test_basic_cases(self):
+        self.assertEqual(sum_of_proper_divisors(1), 0)
+        self.assertEqual(sum_of_proper_divisors(6), 1 + 2 + 3)
+        self.assertEqual(sum_of_proper_divisors(28), 1 + 2 + 4 + 7 + 14)
+        self.assertEqual(sum_of_proper_divisors(12), 1 + 2 + 3 + 4 + 6)
+        self.assertEqual(sum_of_proper_divisors(0), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            sum_of_proper_divisors(6.0)
+        with self.assertRaises(TypeError):
+            sum_of_proper_divisors(None)
+
+
+class TestAliquotSum(unittest.TestCase):
+    def test_alias(self):
+        from prime_utils import aliquot_sum
+
+        self.assertEqual(aliquot_sum(6), sum_of_proper_divisors(6))
+
+
+class TestIsPerfectNumber(unittest.TestCase):
+    def test_true_cases(self):
+        for n in [6, 28, 496]:
+            self.assertTrue(is_perfect_number(n))
+
+    def test_false_cases(self):
+        for n in [1, 2, 4, 12, 0, -6]:
+            self.assertFalse(is_perfect_number(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_perfect_number(6.0)
+
+
+class TestIsAbundantNumber(unittest.TestCase):
+    def test_true_cases(self):
+        for n in [12, 18, 20, 24]:
+            self.assertTrue(is_abundant_number(n))
+
+    def test_false_cases(self):
+        for n in [1, 2, 6, 28, 0]:
+            self.assertFalse(is_abundant_number(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_abundant_number(12.0)
+
+
+class TestIsDeficientNumber(unittest.TestCase):
+    def test_true_cases(self):
+        for n in [1, 2, 3, 4, 5, 7, 8, 9, 10]:
+            self.assertTrue(is_deficient_number(n))
+
+    def test_false_cases(self):
+        for n in [0, 12, 18, 20, 24]:
+            self.assertFalse(is_deficient_number(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_deficient_number(2.0)
 
 
 if __name__ == "__main__":

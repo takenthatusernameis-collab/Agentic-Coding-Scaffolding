@@ -25,6 +25,11 @@ __all__: List[str] = [
     "is_mersenne_prime",
     "is_sophie_germain_prime",
     "is_safe_prime",
+    "sum_of_proper_divisors",
+    "aliquot_sum",
+    "is_perfect_number",
+    "is_abundant_number",
+    "is_deficient_number",
 ]
 
 
@@ -565,3 +570,99 @@ def is_safe_prime(n: int) -> bool:
     if n < 5:
         return False
     return is_prime((n - 1) // 2)
+
+
+def sum_of_proper_divisors(n: int) -> int:
+    """Return the sum of proper divisors of *n*.
+
+    Proper divisors are positive divisors other than *n* itself.
+
+    Args:
+        n: The integer to sum proper divisors of.
+
+    Returns:
+        The sum of proper positive divisors of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 1:
+        return 0
+    total = 0
+    for i in range(1, int(math.sqrt(abs(n))) + 1):
+        if n % i == 0:
+            a = i
+            b = n // i
+            if a < abs(n):
+                total += a
+            if b != a and b < abs(n):
+                total += b
+    return total
+
+
+aliquot_sum = sum_of_proper_divisors
+
+
+def is_perfect_number(n: int) -> bool:
+    """Return True if *n* is a perfect number.
+
+    A perfect number is a positive integer that is equal to the sum of its
+    proper positive divisors (e.g., 6, 28, 496, 8128).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is perfect, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 0:
+        return False
+    return sum_of_proper_divisors(n) == n
+
+
+def is_abundant_number(n: int) -> bool:
+    """Return True if *n* is an abundant number.
+
+    An abundant number is a number for which the sum of its proper divisors
+    is greater than the number itself (e.g., 12, 18, 20, 24).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is abundant, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 0:
+        return False
+    return sum_of_proper_divisors(n) > n
+
+
+def is_deficient_number(n: int) -> bool:
+    """Return True if *n* is a deficient number.
+
+    A deficient number is a number for which the sum of its proper divisors
+    is less than the number itself (e.g., 1, 2, 3, 4, 5, 7, ...). All primes
+    and prime powers are deficient.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is deficient, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n <= 0:
+        return False
+    return sum_of_proper_divisors(n) < n
