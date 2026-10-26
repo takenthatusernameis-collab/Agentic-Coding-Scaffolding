@@ -78815,32 +78815,55 @@ from typing import List, Tuple
 
 __all__: List[str] = [
     "parse_version",
+    "parse",
     "compare_versions",
+    "cmp_versions",
+    "compare",
+    "cmp",
     "is_greater",
     "is_less",
     "is_equal",
+    "greater_than",
+    "less_than",
+    "equal_to",
     "is_valid_version",
+    "is_semver",
     "get_major_version",
     "get_minor_version",
     "get_patch_version",
+    "major",
+    "minor",
+    "patch",
     "is_version_greater",
     "is_version_less",
     "is_version_equal",
     "is_version_greater_equal",
     "is_version_less_equal",
+    "is_newer",
+    "is_older",
     "normalize_version",
     "bump_major",
     "bump_minor",
     "bump_patch",
+    "increment_major",
+    "increment_minor",
+    "increment_patch",
+    "decrement_major",
+    "decrement_minor",
+    "decrement_patch",
     "version_to_tuple",
     "tuple_to_version",
+    "from_tuple",
+    "to_tuple",
     "sort_versions",
     "max_version",
     "min_version",
     "bump_version",
+    "bump",
     "is_stable",
     "is_initial_release",
     "is_compatible",
+    "version_satisfies_major",
 ]
 
 
@@ -78859,9 +78882,22 @@ def parse_version(version: str) -> Tuple[int, ...]:
     return tuple(result)
 
 
+def parse(version: str) -> Tuple[int, ...]:
+    """Parse a dotted version string into a tuple of integers."""
+    return parse_version(version)
+
+
+# aliases
+parse_version_alias = parse_version
+
+
 def version_to_tuple(version: str) -> Tuple[int, ...]:
     """Parse a dotted version string into a tuple of integers."""
     return parse_version(version)
+
+
+to_tuple = version_to_tuple
+
 
 
 def compare_versions(a: str, b: str) -> int:
@@ -78873,6 +78909,12 @@ def compare_versions(a: str, b: str) -> int:
     if va > vb:
         return 1
     return 0
+
+
+cmp_versions = compare_versions
+compare = compare_versions
+cmp = compare_versions
+
 
 
 def is_greater(a: str, b: str) -> bool:
@@ -78888,6 +78930,14 @@ def is_less(a: str, b: str) -> bool:
 def is_equal(a: str, b: str) -> bool:
     """Return True if versions are equal."""
     return compare_versions(a, b) == 0
+
+
+greater_than = is_greater
+less_than = is_less
+equal_to = is_equal
+is_newer = is_greater
+is_older = is_less
+
 
 
 def normalize_version(version: str, length: int = 3) -> str:
@@ -78914,6 +78964,10 @@ def tuple_to_version(version_tuple: Tuple[int, ...]) -> str:
     return ".".join(str(p) for p in version_tuple)
 
 
+from_tuple = tuple_to_version
+
+
+
 def bump_major(version: str) -> str:
     """Bump the major version component.
 
@@ -78936,6 +78990,10 @@ def bump_major(version: str) -> str:
     for i in range(1, len(parts)):
         parts[i] = 0
     return ".".join(str(p) for p in parts)
+
+
+increment_major = bump_major
+
 
 
 def bump_minor(version: str) -> str:
@@ -78965,6 +79023,10 @@ def bump_minor(version: str) -> str:
     return ".".join(str(p) for p in parts)
 
 
+increment_minor = bump_minor
+
+
+
 def bump_patch(version: str) -> str:
     """Bump the patch version component.
 
@@ -78990,6 +79052,42 @@ def bump_patch(version: str) -> str:
         idx = 2
     parts[idx] = parts[idx] + 1
     return ".".join(str(p) for p in parts)
+
+
+def bump_version(version: str, part: str = "patch") -> str:
+    """Bump a specific component of a version string.
+
+    Args:
+        version: A dotted version string.
+        part: Which component to bump: ``"major"``, ``"minor"``, or
+            ``"patch"``. Defaults to ``"patch"``.
+
+    Returns:
+        The version string with the chosen component incremented and all
+        lower-significance components reset to zero.
+
+    Raises:
+        TypeError: If *version* is not a string or *part* is not a string.
+        ValueError: If *version* is invalid or *part* is not one of the
+            recognized component names.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not isinstance(part, str):
+        raise TypeError("part must be a string")
+    normalized = part.lower()
+    if normalized == "major":
+        return bump_major(version)
+    if normalized == "minor":
+        return bump_minor(version)
+    if normalized == "patch":
+        return bump_patch(version)
+    raise ValueError(
+        "part must be one of 'major', 'minor', or 'patch', "
+        f"got {part!r}"
+    )
+
+
 
 
 def bump_version(version: str, part: str = "patch") -> str:
@@ -79135,6 +79233,10 @@ def is_valid_version(version: object) -> bool:
     return all(part.isdigit() for part in version.split("."))
 
 
+is_semver = is_valid_version
+
+
+
 def get_major_version(version: str) -> int:
     """Return the major version component.
 
@@ -79192,6 +79294,12 @@ def get_patch_version(version: str) -> int:
     return parts[2] if len(parts) > 2 else 0
 
 
+major = get_major_version
+minor = get_minor_version
+patch = get_patch_version
+
+
+
 def is_stable(version: str) -> bool:
     """Return True if *version* is a stable release (major >= 1)."""
     if not isinstance(version, str):
@@ -79231,6 +79339,65 @@ def is_compatible(a: str, b: str) -> bool:
     ma = pa[0] if pa else 0
     mb = pb[0] if pb else 0
     return ma == mb
+
+
+def version_satisfies_major(version: str, required_major: int) -> bool:
+    """Return True if *version* has the same major version as *required_major*."""
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not isinstance(required_major, int) or isinstance(required_major, bool):
+        raise TypeError("required_major must be an int")
+    parts = parse_version(version)
+    ma = parts[0] if parts else 0
+    return ma == required_major
+
+
+def decrement_major(version: str) -> str:
+    """Decrement the major version component."""
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = list(parse_version(version))
+    if not parts:
+        raise ValueError("invalid version")
+    if parts[0] == 0:
+        raise ValueError("major version cannot go below 0")
+    parts[0] = parts[0] - 1
+    for i in range(1, len(parts)):
+        parts[i] = 0
+    return ".".join(str(p) for p in parts)
+
+
+def decrement_minor(version: str) -> str:
+    """Decrement the minor version component."""
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = list(parse_version(version))
+    if not parts:
+        raise ValueError("invalid version")
+    if len(parts) == 1:
+        parts.append(0)
+    if parts[1] == 0:
+        raise ValueError("minor version cannot go below 0")
+    parts[1] = parts[1] - 1
+    for i in range(2, len(parts)):
+        parts[i] = 0
+    return ".".join(str(p) for p in parts)
+
+
+def decrement_patch(version: str) -> str:
+    """Decrement the patch version component."""
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = list(parse_version(version))
+    if not parts:
+        raise ValueError("invalid version")
+    if len(parts) < 3:
+        while len(parts) < 3:
+            parts.append(0)
+    if parts[2] == 0:
+        raise ValueError("patch version cannot go below 0")
+    parts[2] = parts[2] - 1
+    return ".".join(str(p) for p in parts)
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
