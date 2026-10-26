@@ -57,6 +57,7 @@ __all__: List[str] = [
     "version_satisfies_major",
     "decrement_version",
     "decrement",
+    "dec",
 ]
 
 
@@ -610,3 +611,5 @@ def decrement_version(version: str, part: str = "patch") -> str:
 
 
 decrement = decrement_version
+
+dec = decrement_version
