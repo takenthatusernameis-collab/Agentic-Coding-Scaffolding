@@ -17,6 +17,7 @@ __all__: List[str] = [
     "min_value",
     "max_value",
     "midrange",
+    "trimmed_mean",
     "sum_values",
     "sum_of_squares",
     "percentile",
@@ -41,6 +42,13 @@ def _require_numbers(numbers: List[T | float], name: str = "numbers") -> None:
     for x in numbers:
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             raise TypeError(f"{name} must contain only numbers")
+
+
+def _require_int(value: object, name: str) -> int:
+    """Validate that *value* is an int, raising ``TypeError`` otherwise."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
 
 
 def mean(numbers: List[T | float]) -> float:
@@ -313,6 +321,52 @@ def midrange(numbers: List[T | float]) -> float:
     """
     _require_numbers(numbers, "numbers")
     return (min(numbers) + max(numbers)) / 2.0
+
+
+def trimmed_mean(numbers: List[T | float], trim_count: int = 0) -> float:
+    """Return the trimmed mean of a list of numbers.
+
+    The *trim_count* smallest and *trim_count* largest values are discarded
+    before computing the arithmetic mean of the remaining values. This makes
+    the result robust to outliers. When *trim_count* is 0 (the default) the
+    result is identical to :func:`mean`.
+
+    Args:
+        numbers: A list of numeric values.
+        trim_count: How many values to drop from each end of the sorted
+            list. Must be non-negative and strictly less than half the list
+            length so that at least one value remains.
+
+    Returns:
+        The arithmetic mean of the interior values.
+
+    Raises:
+        ValueError: If the list is empty, if *trim_count* is negative, or if
+            *trim_count* is greater than or equal to half the list length.
+        TypeError: If *numbers* is not a list, contains non-numeric values,
+            or *trim_count* is not an int.
+
+    Examples:
+        >>> trimmed_mean([1, 2, 3, 4, 5])
+        3.0
+        >>> trimmed_mean([1, 2, 3, 4, 5], trim_count=1)
+        3.0
+        >>> trimmed_mean([1, 2, 3, 4, 5, 6], trim_count=1)
+        3.5
+    """
+    _require_numbers(numbers, "numbers")
+    _require_int(trim_count, "trim_count")
+    if trim_count < 0:
+        raise ValueError("trim_count must be non-negative")
+    n = len(numbers)
+    if trim_count >= n / 2:
+        raise ValueError(
+            "trim_count must be less than half the list length, "
+            f"got {trim_count} for list of length {n}"
+        )
+    sorted_nums = sorted(numbers)
+    trimmed = sorted_nums[trim_count: n - trim_count]
+    return sum(trimmed) / len(trimmed)
 
 
 def sum_values(numbers: List[T | float]) -> float:

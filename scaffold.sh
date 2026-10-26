@@ -12210,6 +12210,7 @@ __all__: List[str] = [
     "min_value",
     "max_value",
     "midrange",
+    "trimmed_mean",
     "sum_values",
     "sum_of_squares",
     "percentile",
@@ -12234,6 +12235,13 @@ def _require_numbers(numbers: List[T | float], name: str = "numbers") -> None:
     for x in numbers:
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             raise TypeError(f"{name} must contain only numbers")
+
+
+def _require_int(value: object, name: str) -> int:
+    """Validate that *value* is an int, raising ``TypeError`` otherwise."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
 
 
 def mean(numbers: List[T | float]) -> float:
@@ -12506,6 +12514,52 @@ def midrange(numbers: List[T | float]) -> float:
     """
     _require_numbers(numbers, "numbers")
     return (min(numbers) + max(numbers)) / 2.0
+
+
+def trimmed_mean(numbers: List[T | float], trim_count: int = 0) -> float:
+    """Return the trimmed mean of a list of numbers.
+
+    The *trim_count* smallest and *trim_count* largest values are discarded
+    before computing the arithmetic mean of the remaining values. This makes
+    the result robust to outliers. When *trim_count* is 0 (the default) the
+    result is identical to :func:`mean`.
+
+    Args:
+        numbers: A list of numeric values.
+        trim_count: How many values to drop from each end of the sorted
+            list. Must be non-negative and strictly less than half the list
+            length so that at least one value remains.
+
+    Returns:
+        The arithmetic mean of the interior values.
+
+    Raises:
+        ValueError: If the list is empty, if *trim_count* is negative, or if
+            *trim_count* is greater than or equal to half the list length.
+        TypeError: If *numbers* is not a list, contains non-numeric values,
+            or *trim_count* is not an int.
+
+    Examples:
+        >>> trimmed_mean([1, 2, 3, 4, 5])
+        3.0
+        >>> trimmed_mean([1, 2, 3, 4, 5], trim_count=1)
+        3.0
+        >>> trimmed_mean([1, 2, 3, 4, 5, 6], trim_count=1)
+        3.5
+    """
+    _require_numbers(numbers, "numbers")
+    _require_int(trim_count, "trim_count")
+    if trim_count < 0:
+        raise ValueError("trim_count must be non-negative")
+    n = len(numbers)
+    if trim_count >= n / 2:
+        raise ValueError(
+            "trim_count must be less than half the list length, "
+            f"got {trim_count} for list of length {n}"
+        )
+    sorted_nums = sorted(numbers)
+    trimmed = sorted_nums[trim_count: n - trim_count]
+    return sum(trimmed) / len(trimmed)
 
 
 def sum_values(numbers: List[T | float]) -> float:
@@ -13874,6 +13928,7 @@ from stats import (
     skewness,
     stddev,
     sum_of_squares,
+    trimmed_mean,
     variance,
 )
 
@@ -14339,6 +14394,67 @@ class TestMultimode(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             multimode([True, 1])  # type: ignore[type-var]
+
+
+class TestTrimmedMean(unittest.TestCase):
+    def test_default_is_mean(self) -> None:
+        self.assertEqual(trimmed_mean([1, 2, 3, 4, 5]), 3.0)
+
+    def test_trim_one_from_each_end(self) -> None:
+        self.assertEqual(trimmed_mean([1, 2, 3, 4, 5], trim_count=1), 3.0)
+
+    def test_trim_even_list(self) -> None:
+        self.assertEqual(trimmed_mean([1, 2, 3, 4, 5, 6], trim_count=1), 3.5)
+
+    def test_trim_two_from_each_end(self) -> None:
+        self.assertEqual(
+            trimmed_mean([1, 2, 3, 4, 5, 6, 7, 8], trim_count=2),
+            4.5,
+        )
+
+    def test_unsorted_input(self) -> None:
+        self.assertEqual(trimmed_mean([9, 1, 5, 2, 8], trim_count=1), 5.0)
+
+    def test_single_element(self) -> None:
+        self.assertEqual(trimmed_mean([7]), 7.0)
+
+    def test_negative_values(self) -> None:
+        self.assertEqual(trimmed_mean([-3, -1, 0, 1, 3], trim_count=1), 0.0)
+
+    def test_float_values(self) -> None:
+        self.assertAlmostEqual(trimmed_mean([1.0, 2.0, 100.0], trim_count=1), 2.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            trimmed_mean([])
+
+    def test_negative_trim_count_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            trimmed_mean([1, 2, 3], trim_count=-1)
+
+    def test_trim_count_too_large_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            trimmed_mean([1, 2, 3], trim_count=2)
+        with self.assertRaises(ValueError):
+            trimmed_mean([1, 2, 3, 4], trim_count=2)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean([True, 1, 2])  # type: ignore[type-var]
+
+    def test_rejects_non_int_trim_count(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean([1, 2, 3], 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            trimmed_mean([1, 2, 3], True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -35569,6 +35685,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Added `trimmed_mean(numbers, trim_count=0)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it discards *trim_count* values from each end of the sorted list and returns the arithmetic mean of the remaining interior values, raising `ValueError` for a negative *trim_count* or one that is at least half the list length (so at least one value remains). It defaults to *trim_count* 0, in which case it matches `mean`. Added `TestTrimmedMean` to `tests/test_stats.py`. Updated the `stats` module section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `multimode(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it returns every value that shares the highest frequency in the order each value first appears (a companion to `mode`, like `statistics.multimode`). Added `TestMultimode` to `tests/test_stats.py`. Updated the `stats` module section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `is_initial_release` to `version_utils.py`.
@@ -36598,7 +36716,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, `skewness`, `kurtosis`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

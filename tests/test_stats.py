@@ -17,6 +17,7 @@ from stats import (
     skewness,
     stddev,
     sum_of_squares,
+    trimmed_mean,
     variance,
 )
 
@@ -482,6 +483,67 @@ class TestMultimode(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             multimode([True, 1])  # type: ignore[type-var]
+
+
+class TestTrimmedMean(unittest.TestCase):
+    def test_default_is_mean(self) -> None:
+        self.assertEqual(trimmed_mean([1, 2, 3, 4, 5]), 3.0)
+
+    def test_trim_one_from_each_end(self) -> None:
+        self.assertEqual(trimmed_mean([1, 2, 3, 4, 5], trim_count=1), 3.0)
+
+    def test_trim_even_list(self) -> None:
+        self.assertEqual(trimmed_mean([1, 2, 3, 4, 5, 6], trim_count=1), 3.5)
+
+    def test_trim_two_from_each_end(self) -> None:
+        self.assertEqual(
+            trimmed_mean([1, 2, 3, 4, 5, 6, 7, 8], trim_count=2),
+            4.5,
+        )
+
+    def test_unsorted_input(self) -> None:
+        self.assertEqual(trimmed_mean([9, 1, 5, 2, 8], trim_count=1), 5.0)
+
+    def test_single_element(self) -> None:
+        self.assertEqual(trimmed_mean([7]), 7.0)
+
+    def test_negative_values(self) -> None:
+        self.assertEqual(trimmed_mean([-3, -1, 0, 1, 3], trim_count=1), 0.0)
+
+    def test_float_values(self) -> None:
+        self.assertAlmostEqual(trimmed_mean([1.0, 2.0, 100.0], trim_count=1), 2.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            trimmed_mean([])
+
+    def test_negative_trim_count_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            trimmed_mean([1, 2, 3], trim_count=-1)
+
+    def test_trim_count_too_large_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            trimmed_mean([1, 2, 3], trim_count=2)
+        with self.assertRaises(ValueError):
+            trimmed_mean([1, 2, 3, 4], trim_count=2)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean([True, 1, 2])  # type: ignore[type-var]
+
+    def test_rejects_non_int_trim_count(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean([1, 2, 3], 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            trimmed_mean([1, 2, 3], True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

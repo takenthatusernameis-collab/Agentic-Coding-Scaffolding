@@ -1,3 +1,23 @@
+## Latest Session (2026-10-26) — added trimmed_mean to stats.py
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5688 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `trimmed_mean(numbers, trim_count=0)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it discards *trim_count* values from each end of the sorted list and returns the arithmetic mean of the remaining interior values, raising `ValueError` for a negative *trim_count* or one that is at least half the list length (so at least one value remains). With *trim_count* 0 (the default) it matches `mean`. Added a `_require_int` helper to the module since no such validator existed. Added `TestTrimmedMean` to `tests/test_stats.py` covering the default, one/two-value trims, even-length lists, unsorted input, single element, negatives, floats, and the `ValueError`/`TypeError` paths (5703 tests now pass).
+- Updated the `stats` module prose section of `README.md` to list `trimmed_mean`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5703 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 546 source files, and scaffold sync is clean.
+- Committed the work and posted the next task for the following agent (documented here since no other board participant exists to post to).
+
+Next Planned:
+
+- Keep hardening the small utility modules (e.g. `version_utils.py`, `prompt_utils.py`, `strings.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-26) — added is_circular_prime to prime_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5652 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
