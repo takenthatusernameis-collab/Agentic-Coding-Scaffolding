@@ -33736,7 +33736,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
 - `textwrap_utils.py` — text wrapping utilities (`wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, `fill_text`)
 - `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
-- `prime_utils.py` — prime number utilities (`is_prime`, `prime_factors`, `nth_prime`, `primes_up_to`, `is_coprime`, `next_prime`, `prev_prime`, `is_perfect_square`)
+- `prime_utils.py` — prime number utilities (`is_prime`, `prime_factors`, `nth_prime`, `primes_up_to`, `is_coprime`, `is_circular_prime`, `next_prime`, `prev_prime`, `is_perfect_square`)
 - `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
 - `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`)
 - `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`
@@ -35453,6 +35453,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `is_circular_prime(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *n* is a prime that remains prime under every cyclic rotation of its decimal digits (single-digit primes are circular primes), `False` otherwise. Added `TestIsCircularPrime` to `tests/test_prime_utils.py`. Updated the `prime_utils` module sections of `README.md` and `.kilo/command/scaffold-project.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `.kilo/command/scaffold-project.md`, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `extract_placeholders(template)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns the placeholder names in order of first appearance without duplicates. Added `TestExtractPlaceholders` to `tests/test_prompt_utils.py`. Updated the `prompt_utils` module section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `is_squarefree(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *n* is squarefree (not divisible by the square of any prime; every prime factor appears at most once), `False` otherwise (0, numbers divisible by a prime square like 4, 8, 12, 16, and negatives return the squarefree-ness of their absolute value). Added `TestSquarefree` to `tests/test_prime_utils.py`. Updated the `prime_utils` module section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -35995,7 +35997,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_circular_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
@@ -36857,7 +36859,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, and `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, and `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 ## Decimal Utilities Module
 
@@ -59513,6 +59515,7 @@ __all__: List[str] = [
     "nth_prime",
     "primes_up_to",
     "is_coprime",
+    "is_circular_prime",
     "next_prime",
     "prev_prime",
     "is_perfect_square",
@@ -59735,6 +59738,41 @@ def is_coprime(a: int, b: int) -> bool:
     _require_int(a, "a")
     _require_int(b, "b")
     return math.gcd(a, b) == 1
+
+
+def is_circular_prime(n: int) -> bool:
+    """Return True if *n* is a circular prime.
+
+    A circular prime is a prime number that remains prime under every
+    cyclic rotation of its decimal digits (e.g. 197, because 197, 971,
+    and 719 are all prime). Single-digit primes are circular primes.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a circular prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_circular_prime(2)
+        True
+        >>> is_circular_prime(197)
+        True
+        >>> is_circular_prime(23)
+        False
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    digits = str(n)
+    for i in range(len(digits)):
+        rotation = int(digits[i:] + digits[:i])
+        if not is_prime(rotation):
+            return False
+    return True
 
 
 def is_perfect_square(n: int) -> bool:
@@ -60200,9 +60238,10 @@ import unittest
 
 from prime_utils import (
     is_abundant_number,
+    is_circular_prime,
     is_composite,
-    is_cousin_prime,
     is_coprime,
+    is_cousin_prime,
     is_deficient_number,
     is_emirp,
     is_mersenne_prime,
@@ -60368,6 +60407,26 @@ class TestIsCoprime(unittest.TestCase):
             is_coprime(None, 9)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_coprime(8, True)  # type: ignore[arg-type]
+
+
+class TestIsCircularPrime(unittest.TestCase):
+    def test_true_cases(self):
+        for n in [2, 3, 5, 7, 11, 13, 17, 37, 79, 113, 197]:
+            self.assertTrue(is_circular_prime(n))
+
+    def test_false_cases(self):
+        for n in [23, 29, 41, 101, 19, 0, 1, 4]:
+            self.assertFalse(is_circular_prime(n))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_circular_prime(13.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_circular_prime("13")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_circular_prime(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_circular_prime(True)  # type: ignore[arg-type]
 
 
 class TestNextPrime(unittest.TestCase):

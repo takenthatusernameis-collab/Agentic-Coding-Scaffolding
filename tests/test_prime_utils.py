@@ -4,6 +4,7 @@ import unittest
 
 from prime_utils import (
     is_abundant_number,
+    is_circular_prime,
     is_composite,
     is_coprime,
     is_cousin_prime,
@@ -172,6 +173,26 @@ class TestIsCoprime(unittest.TestCase):
             is_coprime(None, 9)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_coprime(8, True)  # type: ignore[arg-type]
+
+
+class TestIsCircularPrime(unittest.TestCase):
+    def test_true_cases(self):
+        for n in [2, 3, 5, 7, 11, 13, 17, 37, 79, 113, 197]:
+            self.assertTrue(is_circular_prime(n))
+
+    def test_false_cases(self):
+        for n in [23, 29, 41, 101, 19, 0, 1, 4]:
+            self.assertFalse(is_circular_prime(n))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_circular_prime(13.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_circular_prime("13")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_circular_prime(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_circular_prime(True)  # type: ignore[arg-type]
 
 
 class TestNextPrime(unittest.TestCase):

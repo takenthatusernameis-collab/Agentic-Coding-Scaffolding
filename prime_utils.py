@@ -12,6 +12,7 @@ __all__: List[str] = [
     "nth_prime",
     "primes_up_to",
     "is_coprime",
+    "is_circular_prime",
     "next_prime",
     "prev_prime",
     "is_perfect_square",
@@ -234,6 +235,41 @@ def is_coprime(a: int, b: int) -> bool:
     _require_int(a, "a")
     _require_int(b, "b")
     return math.gcd(a, b) == 1
+
+
+def is_circular_prime(n: int) -> bool:
+    """Return True if *n* is a circular prime.
+
+    A circular prime is a prime number that remains prime under every
+    cyclic rotation of its decimal digits (e.g. 197, because 197, 971,
+    and 719 are all prime). Single-digit primes are circular primes.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a circular prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_circular_prime(2)
+        True
+        >>> is_circular_prime(197)
+        True
+        >>> is_circular_prime(23)
+        False
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    digits = str(n)
+    for i in range(len(digits)):
+        rotation = int(digits[i:] + digits[:i])
+        if not is_prime(rotation):
+            return False
+    return True
 
 
 def is_perfect_square(n: int) -> bool:
