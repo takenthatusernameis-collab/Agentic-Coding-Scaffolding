@@ -12354,6 +12354,7 @@ __all__: List[str] = [
     "kurtosis",
     "covariance",
     "correlation",
+    "z_scores",
 ]
 
 
@@ -12978,6 +12979,35 @@ def correlation(x: List[T | float], y: List[T | float]) -> float:
         raise ValueError("Cannot calculate correlation when standard deviation is 0")
     cov = covariance(x, y, population=True)
     return float(cov / (sx * sy))
+
+
+def z_scores(numbers: List[T | float], population: bool = True) -> List[float]:
+    """Return the z-scores of the values in *numbers*.
+
+    Each z-score measures how many standard deviations a value is from
+    the mean of *numbers*. When *population* is True the population
+    standard deviation is used, otherwise the sample standard deviation.
+
+    Args:
+        numbers: A list of numeric values.
+        population: Use population standard deviation when True (default).
+
+    Returns:
+        A list of z-scores in the same order as *numbers*.
+
+    Raises:
+        ValueError: If *numbers* is empty or has zero standard deviation.
+        TypeError: If *numbers* is not a list or contains non-numeric values,
+            or if *population* is not a bool.
+    """
+    _require_numbers(numbers)
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
+    m = mean(numbers)
+    s = stddev(numbers, population=population)
+    if s == 0:
+        raise ValueError("Cannot calculate z-scores when standard deviation is 0")
+    return [float((x - m) / s) for x in numbers]
 STATS
 
 # --- tests/test_strings.py ---
@@ -14205,6 +14235,7 @@ from stats import (
     sum_of_squares,
     trimmed_mean,
     variance,
+    z_scores,
 )
 
 
@@ -14734,6 +14765,37 @@ class TestTrimmedMean(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestZScores(unittest.TestCase):
+    def test_basic(self) -> None:
+        result = z_scores([1, 2, 3, 4, 5])
+        expected = [
+            -1.4142135623730951,
+            -0.7071067811865475,
+            0.0,
+            0.7071067811865475,
+            1.4142135623730951,
+        ]
+        self.assertEqual(len(result), len(expected))
+        for a, b in zip(result, expected):
+            self.assertAlmostEqual(a, b, places=12)
+
+    def test_constant_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            z_scores([5, 5, 5])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            z_scores([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            z_scores((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            z_scores([1, 2, "a"])  # type: ignore[type-var]
 TESTSTATS
 
 # --- math_utils.py ---
@@ -36228,6 +36290,8 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+- Added `z_scores(numbers, population=True)` to `stats.py` returning the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. Added `TestZScores` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased
 - Added `hostname_utils.py` with `is_valid_hostname`, `normalize_hostname`, `get_local_hostname`, `is_fully_qualified`, and `split_hostname` helpers, each with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` input validation, plus unit tests in `tests/test_hostname_utils.py`. Synchronized `hostname_utils.py`, `tests/test_hostname_utils.py`, `README.md`, `.kilo/command/scaffold-project.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -37289,7 +37353,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

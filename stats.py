@@ -31,6 +31,7 @@ __all__: List[str] = [
     "kurtosis",
     "covariance",
     "correlation",
+    "z_scores",
 ]
 
 
@@ -655,3 +656,32 @@ def correlation(x: List[T | float], y: List[T | float]) -> float:
         raise ValueError("Cannot calculate correlation when standard deviation is 0")
     cov = covariance(x, y, population=True)
     return float(cov / (sx * sy))
+
+
+def z_scores(numbers: List[T | float], population: bool = True) -> List[float]:
+    """Return the z-scores of the values in *numbers*.
+
+    Each z-score measures how many standard deviations a value is from
+    the mean of *numbers*. When *population* is True the population
+    standard deviation is used, otherwise the sample standard deviation.
+
+    Args:
+        numbers: A list of numeric values.
+        population: Use population standard deviation when True (default).
+
+    Returns:
+        A list of z-scores in the same order as *numbers*.
+
+    Raises:
+        ValueError: If *numbers* is empty or has zero standard deviation.
+        TypeError: If *numbers* is not a list or contains non-numeric values,
+            or if *population* is not a bool.
+    """
+    _require_numbers(numbers)
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
+    m = mean(numbers)
+    s = stddev(numbers, population=population)
+    if s == 0:
+        raise ValueError("Cannot calculate z-scores when standard deviation is 0")
+    return [float((x - m) / s) for x in numbers]

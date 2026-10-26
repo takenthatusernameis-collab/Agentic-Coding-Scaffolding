@@ -1,3 +1,5 @@
+- Added `z_scores(numbers, population=True)` to `stats.py` returning the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. Added `TestZScores` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased
 - Added `hostname_utils.py` with `is_valid_hostname`, `normalize_hostname`, `get_local_hostname`, `is_fully_qualified`, and `split_hostname` helpers, each with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` input validation, plus unit tests in `tests/test_hostname_utils.py`. Synchronized `hostname_utils.py`, `tests/test_hostname_utils.py`, `README.md`, `.kilo/command/scaffold-project.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 

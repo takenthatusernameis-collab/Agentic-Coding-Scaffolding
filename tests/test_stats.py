@@ -19,6 +19,7 @@ from stats import (
     sum_of_squares,
     trimmed_mean,
     variance,
+    z_scores,
 )
 
 
@@ -548,3 +549,34 @@ class TestTrimmedMean(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestZScores(unittest.TestCase):
+    def test_basic(self) -> None:
+        result = z_scores([1, 2, 3, 4, 5])
+        expected = [
+            -1.4142135623730951,
+            -0.7071067811865475,
+            0.0,
+            0.7071067811865475,
+            1.4142135623730951,
+        ]
+        self.assertEqual(len(result), len(expected))
+        for a, b in zip(result, expected):
+            self.assertAlmostEqual(a, b, places=12)
+
+    def test_constant_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            z_scores([5, 5, 5])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            z_scores([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            z_scores((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            z_scores([1, 2, "a"])  # type: ignore[type-var]
