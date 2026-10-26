@@ -66,6 +66,11 @@ def parse_version(version: str) -> Tuple[int, ...]:
         raise TypeError("version must be a string")
     if not version:
         raise TypeError("version must be a non-empty string")
+    # Strip leading 'v' or 'V' if present
+    if version and version[0] in ('v', 'V'):
+        version = version[1:]
+    if not version:
+        raise ValueError("invalid version")
     parts = version.split(".")
     result = []
     for part in parts:
@@ -141,6 +146,9 @@ def normalize_version(version: str, length: int = 3) -> str:
         raise TypeError("length must be an int")
     if length < 0:
         raise ValueError("length must be non-negative")
+    # Handle v prefix
+    if version and version[0] in ('v', 'V'):
+        version = version[1:]
     parts = list(parse_version(version))
     while len(parts) < length:
         parts.append(0)
