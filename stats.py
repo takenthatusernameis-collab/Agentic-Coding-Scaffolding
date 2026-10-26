@@ -9,6 +9,7 @@ __all__: List[str] = [
     "mean",
     "median",
     "mode",
+    "multimode",
     "variance",
     "stddev",
     "skewness",
@@ -125,6 +126,43 @@ def mode(numbers: List[T | float]) -> float:
         if frequency[num] == max_count:
             return float(num)
     raise ValueError("Cannot calculate mode of empty list")
+
+
+def multimode(numbers: List[T | float]) -> List[float]:
+    """Return the list of modes (most frequent values) of a list of numbers.
+
+    Unlike :func:`mode`, which returns a single mode, this returns every value
+    that shares the highest frequency, in the order each value first appears in
+    *numbers*.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        A list of the most frequently occurring values.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> multimode([1, 2, 2, 3, 3])
+        [2.0, 3.0]
+        >>> multimode([1, 1, 2, 2])
+        [1.0, 2.0]
+    """
+    _require_numbers(numbers, "numbers")
+    frequency: dict = {}
+    for num in numbers:
+        frequency[num] = frequency.get(num, 0) + 1
+    max_count = max(frequency.values())
+    seen: set = set()
+    result: List[float] = []
+    for num in numbers:
+        if frequency[num] == max_count and num not in seen:
+            seen.add(num)
+            result.append(float(num))
+    return result
 
 
 def variance(numbers: List[T | float], population: bool = True) -> float:

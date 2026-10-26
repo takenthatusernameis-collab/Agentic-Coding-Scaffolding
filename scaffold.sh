@@ -12202,6 +12202,7 @@ __all__: List[str] = [
     "mean",
     "median",
     "mode",
+    "multimode",
     "variance",
     "stddev",
     "skewness",
@@ -12318,6 +12319,43 @@ def mode(numbers: List[T | float]) -> float:
         if frequency[num] == max_count:
             return float(num)
     raise ValueError("Cannot calculate mode of empty list")
+
+
+def multimode(numbers: List[T | float]) -> List[float]:
+    """Return the list of modes (most frequent values) of a list of numbers.
+
+    Unlike :func:`mode`, which returns a single mode, this returns every value
+    that shares the highest frequency, in the order each value first appears in
+    *numbers*.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        A list of the most frequently occurring values.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> multimode([1, 2, 2, 3, 3])
+        [2.0, 3.0]
+        >>> multimode([1, 1, 2, 2])
+        [1.0, 2.0]
+    """
+    _require_numbers(numbers, "numbers")
+    frequency: dict = {}
+    for num in numbers:
+        frequency[num] = frequency.get(num, 0) + 1
+    max_count = max(frequency.values())
+    seen: set = set()
+    result: List[float] = []
+    for num in numbers:
+        if frequency[num] == max_count and num not in seen:
+            seen.add(num)
+            result.append(float(num))
+    return result
 
 
 def variance(numbers: List[T | float], population: bool = True) -> float:
@@ -13832,6 +13870,7 @@ from stats import (
     midrange,
     min_value,
     mode,
+    multimode,
     skewness,
     stddev,
     sum_of_squares,
@@ -14261,6 +14300,45 @@ class TestCorrelation(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             correlation([True, 1], [1, 2])  # type: ignore[type-var]
+
+
+class TestMultimode(unittest.TestCase):
+    def test_single_mode(self) -> None:
+        self.assertEqual(multimode([1, 2, 2, 3]), [2.0])
+
+    def test_multiple_modes(self) -> None:
+        self.assertEqual(multimode([1, 1, 2, 2, 3]), [1.0, 2.0])
+
+    def test_all_unique(self) -> None:
+        self.assertEqual(multimode([1, 2, 3]), [1.0, 2.0, 3.0])
+
+    def test_order_of_first_appearance(self) -> None:
+        self.assertEqual(multimode([3, 1, 3, 2, 2]), [3.0, 2.0])
+
+    def test_single_element(self) -> None:
+        self.assertEqual(multimode([5]), [5.0])
+
+    def test_negative_values(self) -> None:
+        self.assertEqual(multimode([-1, -1, 0]), [-1.0])
+
+    def test_float_values(self) -> None:
+        self.assertEqual(multimode([1.5, 2.5, 1.5]), [1.5])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            multimode([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            multimode((1, 2, 2))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            multimode([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            multimode([True, 1])  # type: ignore[type-var]
 
 
 if __name__ == "__main__":
@@ -35491,6 +35569,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Added `multimode(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it returns every value that shares the highest frequency in the order each value first appears (a companion to `mode`, like `statistics.multimode`). Added `TestMultimode` to `tests/test_stats.py`. Updated the `stats` module section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `is_initial_release` to `version_utils.py`.
 
 - Added `has_placeholders(template)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *template* contains at least one ``{name}`` placeholder, `False` otherwise. Added `TestHasPlaceholders` to `tests/test_prompt_utils.py`. Updated the `prompt_utils` module section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -36518,7 +36598,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, `skewness`, `kurtosis`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `variance`, `stddev`, `skewness`, `kurtosis`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

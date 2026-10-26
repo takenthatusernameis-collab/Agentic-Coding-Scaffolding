@@ -13,6 +13,7 @@ from stats import (
     midrange,
     min_value,
     mode,
+    multimode,
     skewness,
     stddev,
     sum_of_squares,
@@ -442,6 +443,45 @@ class TestCorrelation(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             correlation([True, 1], [1, 2])  # type: ignore[type-var]
+
+
+class TestMultimode(unittest.TestCase):
+    def test_single_mode(self) -> None:
+        self.assertEqual(multimode([1, 2, 2, 3]), [2.0])
+
+    def test_multiple_modes(self) -> None:
+        self.assertEqual(multimode([1, 1, 2, 2, 3]), [1.0, 2.0])
+
+    def test_all_unique(self) -> None:
+        self.assertEqual(multimode([1, 2, 3]), [1.0, 2.0, 3.0])
+
+    def test_order_of_first_appearance(self) -> None:
+        self.assertEqual(multimode([3, 1, 3, 2, 2]), [3.0, 2.0])
+
+    def test_single_element(self) -> None:
+        self.assertEqual(multimode([5]), [5.0])
+
+    def test_negative_values(self) -> None:
+        self.assertEqual(multimode([-1, -1, 0]), [-1.0])
+
+    def test_float_values(self) -> None:
+        self.assertEqual(multimode([1.5, 2.5, 1.5]), [1.5])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            multimode([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            multimode((1, 2, 2))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            multimode([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            multimode([True, 1])  # type: ignore[type-var]
 
 
 if __name__ == "__main__":
