@@ -666,3 +666,26 @@ def is_deficient_number(n: int) -> bool:
     if n <= 0:
         return False
     return sum_of_proper_divisors(n) < n
+
+
+def is_cousin_prime(n: int) -> bool:
+    """Return True if *n* is a cousin prime.
+
+    A cousin prime is a prime that is a member of a pair of primes that
+    differ by 4 (e.g., 3 and 7, 7 and 11, 13 and 17).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a cousin prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n < 2:
+        return False
+    if not is_prime(n):
+        return False
+    return is_prime(n - 4) or is_prime(n + 4)

@@ -6,6 +6,7 @@ from prime_utils import (
     is_abundant_number,
     is_composite,
     is_coprime,
+    is_cousin_prime,
     is_deficient_number,
     is_emirp,
     is_mersenne_prime,
@@ -552,3 +553,17 @@ class TestIsDeficientNumber(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIsCousinPrime(unittest.TestCase):
+    def test_true_cases(self):
+        for p in [3, 7, 13, 19, 37, 43]:
+            self.assertTrue(is_cousin_prime(p))
+
+    def test_false_cases(self):
+        for n in [2, 0, 1, 4, 8]:
+            self.assertFalse(is_cousin_prime(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_cousin_prime(3.0)
