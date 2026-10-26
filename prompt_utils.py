@@ -27,6 +27,7 @@ __all__: List[str] = [
     "truncate_words",
     "truncate_lines",
     "indent_lines",
+    "dedent_lines",
 ]
 
 
@@ -528,4 +529,75 @@ def indent_lines(text: str, prefix: str = "    ", *, skip_blank: bool = False) -
             result.append(line)
         else:
             result.append(prefix + line)
+    return "\n".join(result)
+
+def dedent_lines(text: str) -> str:
+    """Remove common leading whitespace from every line in *text*.
+
+    This is similar to Python's ``textwrap.dedent`` but implemented as a
+    simple helper for prompt strings. It finds the minimum indentation
+    (spaces/tabs) among non-blank lines and removes that much whitespace
+    from the start of every line.
+
+    Args:
+        text: The text to dedent.
+
+    Returns:
+        The dedented text.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> dedent_lines("    hello\\n      world")
+        'hello\\n  world'
+        >>> dedent_lines("\\n    hello\\n\\n    world\\n")
+        '\\nhello\\n\\nworld\\n'
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    # Find minimum indentation for non-blank lines
+    min_indent = None
+    for line in lines:
+        if line.strip() == "":
+            continue
+        # Count leading whitespace
+        indent = 0
+        for ch in line:
+            if ch == " ":
+                indent += 1
+            elif ch == "\t":
+                indent += 4  # treat tabs as 4 spaces
+            else:
+                break
+        if min_indent is None or indent < min_indent:
+            min_indent = indent
+    if min_indent is None or min_indent == 0:
+        return text
+    result: List[str] = []
+    for line in lines:
+        if line.strip() == "":
+            result.append(line)
+            continue
+        # Remove min_indent worth of whitespace
+        new_line = line
+        removed = 0
+        i = 0
+        # Remove from start
+        chars = list(new_line)
+        j = 0
+        removed_count = 0
+        while j < len(chars) and removed_count < min_indent:
+            if chars[j] == " ":
+                removed_count += 1
+                j += 1
+            elif chars[j] == "\t":
+                removed_count += 4
+                j += 1
+                # If we went over due to tab, that's fine as approximation
+            else:
+                break
+        result.append("".join(chars[j:]))
     return "\n".join(result)

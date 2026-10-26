@@ -13,6 +13,7 @@ from prompt_utils import (
     format_prompt_template,
     has_placeholders,
     indent_lines,
+    dedent_lines,
     truncate_prompt,
     truncate_words,
     wrap_prompt,
@@ -306,6 +307,30 @@ class TestIndentLines(unittest.TestCase):
     def test_rejects_non_bool_skip_blank(self):
         with self.assertRaises(TypeError):
             indent_lines("a", skip_blank="yes")  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+class TestDedentLines(unittest.TestCase):
+    def test_basic(self):
+        result = dedent_lines("    a\n      b")
+        self.assertEqual(result, "a\n  b")
+
+    def test_empty(self):
+        self.assertEqual(dedent_lines(""), "")
+
+    def test_no_indent(self):
+        self.assertEqual(dedent_lines("hello\nworld"), "hello\nworld")
+
+    def test_skip_blank_lines(self):
+        result = dedent_lines("\n    hello\n\n    world\n")
+        self.assertEqual(result, "\nhello\n\nworld\n")
+
+    def test_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            dedent_lines(123)  # type: ignore[arg-type]
+
 
 
 if __name__ == "__main__":
