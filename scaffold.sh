@@ -104940,6 +104940,9 @@ TEST_SLUGIFY_UTILS
 
 # --- backoff_utils.py ---
 cat > "$OUTPUT_DIR/backoff_utils.py" <<'BACKOFF_UTILS'
+import random
+
+
 def constant_backoff(delay: float) -> float:
     """Return a fixed backoff delay for every attempt.
 
@@ -104984,16 +104987,98 @@ def backoff_delay(*, strategy: str = "constant", **kwargs: float) -> float:
     if strategy == "exponential":
         return exponential_backoff(kwargs["initial"], kwargs["factor"], kwargs["max_delay"])
     raise ValueError(f"unknown backoff strategy: {strategy!r}")
+
+
+def jittered_backoff(delay: float, jitter: float = 0.1) -> float:
+    """Return a backoff delay multiplied by a random jitter factor.
+
+    Args:
+        delay: The base delay in seconds.
+        jitter: The maximum relative jitter in [0, 1].
+
+    Returns:
+        A delay in [delay * (1 - jitter), delay * (1 + jitter)].
+
+    Raises:
+        TypeError: When *delay* or *jitter* is not a number.
+        ValueError: When *delay* is negative or *jitter* is out of range.
+    """
+    if isinstance(delay, bool) or not isinstance(delay, (int, float)):
+        raise TypeError("delay must be a number")
+    if isinstance(jitter, bool) or not isinstance(jitter, (int, float)):
+        raise TypeError("jitter must be a number")
+    if delay < 0:
+        raise ValueError("delay must be non-negative")
+    if jitter < 0 or jitter > 1:
+        raise ValueError("jitter must be between 0 and 1")
+    factor = random.uniform(1 - jitter, 1 + jitter)
+    return delay * factor
 BACKOFF_UTILS
 
 # --- tests/test_backoff_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_backoff_utils.py" <<'TEST_BACKOFF_UTILS'
 import unittest
 
-from backoff_utils import backoff_delay, constant_backoff, exponential_backoff
+from backoff_utils import backoff_delay, constant_backoff, exponential_backoff, jittered_backoff
 
 
 class TestBackoffUtils(unittest.TestCase):
+    def test_constant_backoff(self):
+        self.assertEqual(constant_backoff(1.0), 1.0)
+        self.assertEqual(constant_backoff(0.5), 0.5)
+
+    def test_exponential_backoff_uncapped(self):
+        self.assertEqual(exponential_backoff(1.0, 2.0, 100.0), 2.0)
+        self.assertEqual(exponential_backoff(1.0, 3.0, 100.0), 3.0)
+
+    def test_exponential_backoff_capped(self):
+        self.assertEqual(exponential_backoff(10.0, 2.0, 15.0), 15.0)
+        self.assertEqual(exponential_backoff(10.0, 100.0, 15.0), 15.0)
+
+    def test_backoff_delay_constant(self):
+        self.assertEqual(backoff_delay(strategy="constant", delay=2.5), 2.5)
+
+    def test_backoff_delay_exponential(self):
+        self.assertEqual(
+            backoff_delay(strategy="exponential", initial=1.0, factor=2.0, max_delay=50.0),
+            2.0,
+        )
+
+    def test_backoff_delay_default_strategy(self):
+        self.assertEqual(backoff_delay(delay=3.0), 3.0)
+
+    def test_backoff_delay_unknown_strategy(self):
+        with self.assertRaises(ValueError):
+            backoff_delay(strategy="nonexistent", delay=1.0)
+
+    def test_jittered_backoff_bounds(self):
+        for _ in range(100):
+            value = jittered_backoff(10.0, 0.2)
+            self.assertGreaterEqual(value, 8.0)
+            self.assertLessEqual(value, 12.0)
+
+    def test_jittered_backoff_zero_jitter(self):
+        self.assertEqual(jittered_backoff(5.0, 0.0), 5.0)
+
+    def test_jittered_backoff_negative_delay_raises(self):
+        with self.assertRaises(ValueError):
+            jittered_backoff(-1.0)
+
+    def test_jittered_backoff_bad_jitter_raises(self):
+        with self.assertRaises(ValueError):
+            jittered_backoff(1.0, 1.5)
+        with self.assertRaises(ValueError):
+            jittered_backoff(1.0, -0.1)
+
+    def test_jittered_backoff_type_errors(self):
+        with self.assertRaises(TypeError):
+            jittered_backoff("x")
+        with self.assertRaises(TypeError):
+            jittered_backoff(1.0, "x")
+
+
+if __name__ == "__main__":
+    unittest.main()
     def test_constant_backoff(self):
         self.assertEqual(constant_backoff(1.0), 1.0)
         self.assertEqual(constant_backoff(0.5), 0.5)

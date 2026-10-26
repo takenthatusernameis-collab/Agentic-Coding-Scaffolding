@@ -1,3 +1,6 @@
+import random
+
+
 def constant_backoff(delay: float) -> float:
     """Return a fixed backoff delay for every attempt.
 
@@ -42,3 +45,29 @@ def backoff_delay(*, strategy: str = "constant", **kwargs: float) -> float:
     if strategy == "exponential":
         return exponential_backoff(kwargs["initial"], kwargs["factor"], kwargs["max_delay"])
     raise ValueError(f"unknown backoff strategy: {strategy!r}")
+
+
+def jittered_backoff(delay: float, jitter: float = 0.1) -> float:
+    """Return a backoff delay multiplied by a random jitter factor.
+
+    Args:
+        delay: The base delay in seconds.
+        jitter: The maximum relative jitter in [0, 1].
+
+    Returns:
+        A delay in [delay * (1 - jitter), delay * (1 + jitter)].
+
+    Raises:
+        TypeError: When *delay* or *jitter* is not a number.
+        ValueError: When *delay* is negative or *jitter* is out of range.
+    """
+    if isinstance(delay, bool) or not isinstance(delay, (int, float)):
+        raise TypeError("delay must be a number")
+    if isinstance(jitter, bool) or not isinstance(jitter, (int, float)):
+        raise TypeError("jitter must be a number")
+    if delay < 0:
+        raise ValueError("delay must be non-negative")
+    if jitter < 0 or jitter > 1:
+        raise ValueError("jitter must be between 0 and 1")
+    factor = random.uniform(1 - jitter, 1 + jitter)
+    return delay * factor
