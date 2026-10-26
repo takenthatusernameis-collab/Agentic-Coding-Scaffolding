@@ -12373,6 +12373,7 @@ __all__: List[str] = [
     "coefficient_of_variation",
     "geometric_mean",
     "harmonic_mean",
+    "mean_absolute_deviation",
     "median_absolute_deviation",
     "weighted_mean",
     "kurtosis",
@@ -12836,6 +12837,34 @@ def harmonic_mean(numbers: List[T | float]) -> float:
             raise ValueError("All numbers must be positive")
         total += 1.0 / float(x)
     return float(len(numbers) / total)
+
+
+def mean_absolute_deviation(numbers: List[T | float]) -> float:
+    """Return the mean absolute deviation of a list of numbers.
+
+    The mean absolute deviation (MAD) is the average of the absolute
+    deviations of each number from the mean of the list.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The mean absolute deviation of the numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> mean_absolute_deviation([1, 2, 3, 4, 5])
+        1.2
+        >>> mean_absolute_deviation([2, 2, 2, 2])
+        0.0
+    """
+    _require_numbers(numbers, "numbers")
+    m = mean(numbers)
+    deviations = [abs(x - m) for x in numbers]
+    return mean(deviations)
 
 
 def median_absolute_deviation(numbers: List[T | float]) -> float:
@@ -14537,6 +14566,7 @@ from stats import (
     kurtosis,
     max_value,
     mean,
+    mean_absolute_deviation,
     median,
     median_absolute_deviation,
     midrange,
@@ -14743,6 +14773,30 @@ class TestSkewness(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             skewness([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestMeanAbsoluteDeviation(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(mean_absolute_deviation([1, 2, 3, 4, 5]), 1.2)
+
+    def test_constant(self) -> None:
+        self.assertEqual(mean_absolute_deviation([2, 2, 2]), 0.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            mean_absolute_deviation([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            mean_absolute_deviation((1, 2))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            mean_absolute_deviation([1, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            mean_absolute_deviation([True, 1])  # type: ignore[list-item]
 
 
 class TestMedianAbsoluteDeviation(unittest.TestCase):
@@ -33273,73 +33327,127 @@ __all__: list[str] = [
 ]
 
 
+def _require_array(arr: object, name: str) -> array:
+    if not isinstance(arr, array):
+        raise TypeError(f"{name} must be an array, got {type(arr).__name__}")
+    return arr
+
+
+def _require_str(value: object, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _require_list(value: object, name: str) -> list[Any]:
+    if not isinstance(value, list):
+        raise TypeError(f"{name} must be a list, got {type(value).__name__}")
+    return value
+
+
+def _require_int(value: object, name: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
+
+
 def array_create(typecode: str, initial: Iterable[Any] | None = None) -> array:
     """Create a new array with the given typecode."""
+    _require_str(typecode, "typecode")
     if initial is None:
         return array(typecode)
+    if isinstance(initial, str):
+        raise TypeError("initial must not be a string")
+    try:
+        iter(initial)
+    except TypeError:
+        raise TypeError(f"initial must be iterable, got {type(initial).__name__}")
     return array(typecode, initial)
 
 
 def array_fromlist(typecode: str, lst: list[Any]) -> array:
     """Create an array from a list."""
+    _require_str(typecode, "typecode")
+    _require_list(lst, "lst")
     return array(typecode, lst)
 
 
 def array_tolist(arr: array) -> list[Any]:
     """Convert an array to a list."""
+    _require_array(arr, "arr")
     return list(arr)
 
 
 def array_append(arr: array, item: Any) -> None:
     """Append an item to the array."""
+    _require_array(arr, "arr")
     arr.append(item)
 
 
 def array_extend(arr: array, iterable: Iterable[Any]) -> None:
     """Extend array with items from iterable."""
+    _require_array(arr, "arr")
+    if isinstance(iterable, str):
+        raise TypeError("iterable must not be a string")
+    try:
+        iter(iterable)
+    except TypeError:
+        raise TypeError(f"iterable must be iterable, got {type(iterable).__name__}")
     arr.extend(iterable)
 
 
 def array_insert(arr: array, index: int, item: Any) -> None:
     """Insert item at index in array."""
+    _require_array(arr, "arr")
+    _require_int(index, "index")
     arr.insert(index, item)
 
 
 def array_pop(arr: array, index: int = -1) -> Any:
     """Remove and return item at index."""
+    _require_array(arr, "arr")
+    _require_int(index, "index")
     return arr.pop(index)
 
 
 def array_remove(arr: array, item: Any) -> None:
     """Remove first occurrence of item from array."""
+    _require_array(arr, "arr")
     arr.remove(item)
 
 
 def array_reverse(arr: array) -> None:
     """Reverse array in place."""
+    _require_array(arr, "arr")
     arr.reverse()
 
 
 def array_buffer_info(arr: array) -> tuple[int, int]:
     """Return (address, length) of the buffer used by array."""
+    _require_array(arr, "arr")
     return arr.buffer_info()
 
 
 def array_byteswap(arr: array) -> None:
     """Swap bytes in place if array is not single byte."""
+    _require_array(arr, "arr")
     arr.byteswap()
 
 
 def array_count(arr: array, item: Any) -> int:
     """Count occurrences of item in array."""
+    _require_array(arr, "arr")
     return arr.count(item)
 
 
 def array_index(arr: array, item: Any, start: int = 0, stop: int | None = None) -> int:
     """Return index of first occurrence of item."""
-    if stop is None:
-        return arr.index(item, start)
-    return arr.index(item, start, stop)
+    _require_array(arr, "arr")
+    _require_int(start, "start")
+    if stop is not None:
+        _require_int(stop, "stop")
+        return arr.index(item, start, stop)
+    return arr.index(item, start)
 ARRAY_UTILS
 
 # --- tests/test_array_utils.py ---
@@ -33445,6 +33553,103 @@ def test_array_index():
     assert array_index(a, 2) == 1
     assert array_index(a, 2, 2) == 2
     assert array_index(a, 2, 0, 3) == 1
+
+
+def test_array_create_rejects_non_string_typecode():
+    import pytest
+
+    from array_utils import array_create
+
+    with pytest.raises(TypeError):
+        array_create(123)
+
+
+def test_array_create_rejects_string_initial():
+    import pytest
+
+    from array_utils import array_create
+
+    with pytest.raises(TypeError):
+        array_create("i", "abc")
+
+
+def test_array_fromlist_rejects_invalid():
+    import pytest
+
+    from array_utils import array_fromlist
+
+    with pytest.raises(TypeError):
+        array_fromlist(123, [1, 2])
+    with pytest.raises(TypeError):
+        array_fromlist("i", (1, 2))
+
+
+def test_array_tolist_rejects_non_array():
+    import pytest
+
+    from array_utils import array_tolist
+
+    with pytest.raises(TypeError):
+        array_tolist([1, 2, 3])
+
+
+def test_array_append_rejects_non_array():
+    import pytest
+
+    from array_utils import array_append
+
+    with pytest.raises(TypeError):
+        array_append([], 1)
+
+
+def test_array_extend_rejects_string():
+    from array import array
+
+    import pytest
+
+    from array_utils import array_extend
+
+    a = array("i", [1])
+    with pytest.raises(TypeError):
+        array_extend(a, "23")
+
+
+def test_array_insert_rejects_bad_index():
+    from array import array
+
+    import pytest
+
+    from array_utils import array_insert
+
+    a = array("i", [1, 2])
+    with pytest.raises(TypeError):
+        array_insert(a, 1.5, 3)
+
+
+def test_array_pop_rejects_bad_index():
+    from array import array
+
+    import pytest
+
+    from array_utils import array_pop
+
+    a = array("i", [1, 2])
+    with pytest.raises(TypeError):
+        array_pop(a, 1.0)
+
+
+def test_array_index_rejects_bad_args():
+    from array import array
+
+    import pytest
+
+    from array_utils import array_index
+
+    a = array("i", [1, 2, 3])
+    with pytest.raises(TypeError):
+        array_index(a, 1, 0.0)
+    with pytest.raises(TypeError):
+        array_index(a, 1, 0, 2.0)
 TEST_ARRAY_UTILS
 # --- bisect_utils.py ---
 cat > "$OUTPUT_DIR/bisect_utils.py" <<'BISECT_UTILS'
@@ -36608,6 +36813,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Audited `strings.py` boundary cases (empty strings, single char, whitespace-only, unicode edge cases, non-string/invalid-type inputs, negative/invalid ints, very long strings). Added boundary tests in `tests/test_strings.py` for partition/rpartition/split_lines/join_lines/replace_many/strip_html/between/contains_any/contains_all/char_frequency/snake_to_camel/is_subsequence unicode cases and more TypeError/ValueError paths; all existing behavior verified. Cross-checked helper logic against brute-force expectations where practical. Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 ## Unreleased
+- Audited and hardened `array_utils.py` boundary cases (non-array/non-string/non-int/invalid iterables), added stricter TypeError validation consistent with project style, and expanded `tests/test_array_utils.py` with boundary tests; synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md` into `scaffold.sh` with `make refresh-scaffold`.
+
 - Added `hostname_utils.py` with `is_valid_hostname`, `normalize_hostname`, `get_local_hostname`, `is_fully_qualified`, and `split_hostname` helpers, each with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` input validation, plus unit tests in `tests/test_hostname_utils.py`. Synchronized `hostname_utils.py`, `tests/test_hostname_utils.py`, `README.md`, `.kilo/command/scaffold-project.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Audited `prime_utils` boundary cases (negative inputs, 0, 1, 2, 3, large primes, large prime powers) and confirmed every helper classifies them correctly: `is_prime`, `is_composite`, `is_semiprime`, `is_squarefree`, `is_prime_power`, `is_circular_prime`, `is_emirp`, `is_twin_prime`, `is_cousin_prime`, `is_sexy_prime`, `is_palindromic_prime`, `is_mersenne_prime`, `is_safe_prime`, `is_sophie_germain_prime`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `sum_of_proper_divisors`, `primes_up_to`, `nth_prime`, `next_prime`, `prev_prime`, `is_coprime`, `is_perfect_square`, and `prime_count` all behave as documented. Cross-checked `is_prime`, `prime_factors`, `prime_count`, `is_squarefree`, `is_semiprime`, and `is_prime_power` against brute-force reference implementations for the ranges −50..500 and 2..2000 with zero mismatches.
@@ -37669,7 +37876,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

@@ -99,3 +99,100 @@ def test_array_index():
     assert array_index(a, 2) == 1
     assert array_index(a, 2, 2) == 2
     assert array_index(a, 2, 0, 3) == 1
+
+
+def test_array_create_rejects_non_string_typecode():
+    import pytest
+
+    from array_utils import array_create
+
+    with pytest.raises(TypeError):
+        array_create(123)
+
+
+def test_array_create_rejects_string_initial():
+    import pytest
+
+    from array_utils import array_create
+
+    with pytest.raises(TypeError):
+        array_create("i", "abc")
+
+
+def test_array_fromlist_rejects_invalid():
+    import pytest
+
+    from array_utils import array_fromlist
+
+    with pytest.raises(TypeError):
+        array_fromlist(123, [1, 2])
+    with pytest.raises(TypeError):
+        array_fromlist("i", (1, 2))
+
+
+def test_array_tolist_rejects_non_array():
+    import pytest
+
+    from array_utils import array_tolist
+
+    with pytest.raises(TypeError):
+        array_tolist([1, 2, 3])
+
+
+def test_array_append_rejects_non_array():
+    import pytest
+
+    from array_utils import array_append
+
+    with pytest.raises(TypeError):
+        array_append([], 1)
+
+
+def test_array_extend_rejects_string():
+    from array import array
+
+    import pytest
+
+    from array_utils import array_extend
+
+    a = array("i", [1])
+    with pytest.raises(TypeError):
+        array_extend(a, "23")
+
+
+def test_array_insert_rejects_bad_index():
+    from array import array
+
+    import pytest
+
+    from array_utils import array_insert
+
+    a = array("i", [1, 2])
+    with pytest.raises(TypeError):
+        array_insert(a, 1.5, 3)
+
+
+def test_array_pop_rejects_bad_index():
+    from array import array
+
+    import pytest
+
+    from array_utils import array_pop
+
+    a = array("i", [1, 2])
+    with pytest.raises(TypeError):
+        array_pop(a, 1.0)
+
+
+def test_array_index_rejects_bad_args():
+    from array import array
+
+    import pytest
+
+    from array_utils import array_index
+
+    a = array("i", [1, 2, 3])
+    with pytest.raises(TypeError):
+        array_index(a, 1, 0.0)
+    with pytest.raises(TypeError):
+        array_index(a, 1, 0, 2.0)
