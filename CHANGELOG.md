@@ -1,4 +1,5 @@
 ## Unreleased
+- Added `remove_blank_lines` to `strings.py`.
 
 - Added `is_subsequence(needle, haystack)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *needle* is a subsequence of *haystack* (every character of *needle* appears in *haystack* in the same relative order, not necessarily consecutively), `False` otherwise; the empty needle is a subsequence of any string. Added `TestIsSubsequence` to `tests/test_strings.py` covering present/missing cases, the empty-needle case, empty haystack, case sensitivity, and the `TypeError` paths. Updated the `strings` module prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 

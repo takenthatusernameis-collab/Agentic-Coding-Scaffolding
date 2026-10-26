@@ -10977,6 +10977,7 @@ __all__: List[str] = [
     "count_words",
     "remove_punctuation",
     "remove_digits",
+    "remove_blank_lines",
 ]
 
 
@@ -11854,6 +11855,12 @@ def remove_digits(s: str) -> str:
     """Remove all digit characters from string."""
     _require_string(s, "s")
     return "".join(ch for ch in s if not ch.isdigit())
+
+
+def remove_blank_lines(s: str) -> str:
+    """Remove blank lines from *s*, preserving order of non-blank lines."""
+    _require_string(s, "s")
+    return "\n".join(line for line in s.splitlines() if line.strip() != "")
 STRINGS
 
 # --- utils.py ---
@@ -14016,6 +14023,29 @@ class TestNewHelpers(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             truncate("hello", -1)
+
+
+class TestRemoveBlankLines(unittest.TestCase):
+    def test_basic(self):
+        from strings import remove_blank_lines
+
+        self.assertEqual(remove_blank_lines("a\n\nb\n\nc"), "a\nb\nc")
+
+    def test_no_blanks(self):
+        from strings import remove_blank_lines
+
+        self.assertEqual(remove_blank_lines("a\nb"), "a\nb")
+
+    def test_all_blank(self):
+        from strings import remove_blank_lines
+
+        self.assertEqual(remove_blank_lines("\n\n"), "")
+
+    def test_non_str_raises(self):
+        from strings import remove_blank_lines
+
+        with self.assertRaises(TypeError):
+            remove_blank_lines(123)
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -36193,6 +36223,7 @@ TEST_INTERVAL_UTILS
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
+- Added `remove_blank_lines` to `strings.py`.
 
 - Added `is_subsequence(needle, haystack)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *needle* is a subsequence of *haystack* (every character of *needle* appears in *haystack* in the same relative order, not necessarily consecutively), `False` otherwise; the empty needle is a subsequence of any string. Added `TestIsSubsequence` to `tests/test_strings.py` covering present/missing cases, the empty-needle case, empty haystack, case sensitivity, and the `TypeError` paths. Updated the `strings` module prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -37238,7 +37269,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_subsequence`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_subsequence`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
@@ -105301,7 +105332,7 @@ Provides helpers for parsing HTML with validation and convenient utilities.
 """
 
 from html.parser import HTMLParser
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 __all__ = [
     "HTMLParser",
@@ -105336,7 +105367,7 @@ class HTMLStripper(HTMLParser):
     def handle_charref(self, name):
         self.fed.append(f"&#{name};")
 
-    def get_data(self):
+    def get_data(self) -> str:
         return "".join(self.fed)
 
 
@@ -105352,15 +105383,17 @@ def strip_html_tags(html: str) -> str:
     return stripper.get_data()
 
 
-def extract_tags(html: str, tag: Optional[str] = None) -> List[Dict[str, Union[str, Dict[str, str]]]]:
+def extract_tags(
+    html: str, tag: Optional[str] = None
+) -> List[Dict[str, Union[str, Dict[str, str]]]]:
     """Extract tags from HTML with their attributes and data."""
     if not isinstance(html, str):
         raise TypeError(f"html must be a string, got {type(html).__name__}")
     if tag is not None and not isinstance(tag, str):
         raise TypeError(f"tag must be a string or None, got {type(tag).__name__}")
-    
+
     results = []
-    
+
     class TagExtractor(HTMLParser):
         def handle_starttag(self, tag_name, attrs):
             if tag is None or tag_name == tag:
@@ -105370,7 +105403,7 @@ def extract_tags(html: str, tag: Optional[str] = None) -> List[Dict[str, Union[s
                     "type": "start",
                     "data": ""
                 })
-        
+
         def handle_startendtag(self, tag_name, attrs):
             if tag is None or tag_name == tag:
                 results.append({
@@ -105379,12 +105412,12 @@ def extract_tags(html: str, tag: Optional[str] = None) -> List[Dict[str, Union[s
                     "type": "self_closing",
                     "data": ""
                 })
-        
+
         def handle_endtag(self, tag_name):
             if tag is None or tag_name == tag:
                 # Just record end, don't add as separate entry if we have start
                 pass
-        
+
         def handle_data(self, data):
             # Add data to last start tag
             for i in range(len(results) - 1, -1, -1):
@@ -105393,7 +105426,7 @@ def extract_tags(html: str, tag: Optional[str] = None) -> List[Dict[str, Union[s
                         results[i]["data"] = ""
                     results[i]["data"] += data
                     break
-    
+
     parser = TagExtractor()
     parser.feed(html)
     parser.close()
@@ -105467,7 +105500,7 @@ Provides helpers for working with HTML entities.
 """
 
 import html.entities as entities
-from typing import Dict, Optional
+from typing import Dict
 
 __all__ = [
     "name2codepoint",
@@ -105497,7 +105530,13 @@ def escape(s: str, quote: bool = True) -> str:
         raise TypeError(f"s must be a string, got {type(s).__name__}")
     if not isinstance(quote, bool):
         raise TypeError(f"quote must be a bool, got {type(quote).__name__}")
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#x27;")
+    return (
+        s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&#x27;")
+    )
 
 
 def unescape(s: str) -> str:
@@ -105516,9 +105555,7 @@ cat > "$OUTPUT_DIR/tests/test_html_entities_utils.py" <<'TEST_HTML_ENTITIES_UTIL
 import unittest
 
 from html_entities_utils import (
-    codepoint2name,
     escape,
-    html5,
     is_available,
     name2codepoint,
     unescape,

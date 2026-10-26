@@ -71,6 +71,7 @@ __all__: List[str] = [
     "count_words",
     "remove_punctuation",
     "remove_digits",
+    "remove_blank_lines",
 ]
 
 
@@ -948,3 +949,9 @@ def remove_digits(s: str) -> str:
     """Remove all digit characters from string."""
     _require_string(s, "s")
     return "".join(ch for ch in s if not ch.isdigit())
+
+
+def remove_blank_lines(s: str) -> str:
+    """Remove blank lines from *s*, preserving order of non-blank lines."""
+    _require_string(s, "s")
+    return "\n".join(line for line in s.splitlines() if line.strip() != "")

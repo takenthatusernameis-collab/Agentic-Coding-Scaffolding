@@ -1043,3 +1043,26 @@ class TestNewHelpers(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             truncate("hello", -1)
+
+
+class TestRemoveBlankLines(unittest.TestCase):
+    def test_basic(self):
+        from strings import remove_blank_lines
+
+        self.assertEqual(remove_blank_lines("a\n\nb\n\nc"), "a\nb\nc")
+
+    def test_no_blanks(self):
+        from strings import remove_blank_lines
+
+        self.assertEqual(remove_blank_lines("a\nb"), "a\nb")
+
+    def test_all_blank(self):
+        from strings import remove_blank_lines
+
+        self.assertEqual(remove_blank_lines("\n\n"), "")
+
+    def test_non_str_raises(self):
+        from strings import remove_blank_lines
+
+        with self.assertRaises(TypeError):
+            remove_blank_lines(123)
