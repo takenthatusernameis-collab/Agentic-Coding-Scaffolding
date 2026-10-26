@@ -10940,6 +10940,7 @@ __all__: List[str] = [
     "is_integer",
     "is_printable",
     "is_identifier",
+    "is_pangram",
     "is_whitespace",
     "is_space",
     "swap_case",
@@ -11420,6 +11421,37 @@ def is_identifier(s: str) -> bool:
     if not s:
         return False
     return s.isidentifier()
+
+
+def is_pangram(s: str) -> bool:
+    """Return True if *s* contains every letter of the alphabet at least once.
+
+    The check is case-insensitive and ignores non-alphabetic characters. A
+    pangram uses all 26 letters of the English alphabet (e.g. ``"The quick
+    brown fox jumps over the lazy dog"``).
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if *s* is a pangram, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_pangram("The quick brown fox jumps over the lazy dog")
+        True
+        >>> is_pangram("Pack my box with five dozen liquor jugs")
+        True
+        >>> is_pangram("Hello world")
+        False
+        >>> is_pangram("")
+        False
+    """
+    _require_string(s, "s")
+    letters = {ch.lower() for ch in s if ch.isalpha()}
+    return set("abcdefghijklmnopqrstuvwxyz").issubset(letters)
 
 
 def swap_case(s: str) -> str:
@@ -12878,6 +12910,7 @@ from strings import (
     is_integer,
     is_lower,
     is_palindrome,
+    is_pangram,
     is_printable,
     is_space,
     is_upper,
@@ -13512,6 +13545,29 @@ class TestIsIdentifier(unittest.TestCase):
     def test_rejects_non_string(self) -> None:
         with self.assertRaises(TypeError):
             is_identifier(123)  # type: ignore[arg-type]
+
+
+class TestIsPangram(unittest.TestCase):
+    def test_pangram(self) -> None:
+        self.assertTrue(is_pangram("The quick brown fox jumps over the lazy dog"))
+        self.assertTrue(is_pangram("Pack my box with five dozen liquor jugs"))
+
+    def test_pangram_case_insensitive(self) -> None:
+        self.assertTrue(is_pangram("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"))
+        self.assertTrue(is_pangram("the quick brown fox jumps over the lazy dog"))
+
+    def test_not_pangram_missing_letters(self) -> None:
+        self.assertFalse(is_pangram("Hello world"))
+        self.assertFalse(is_pangram("abcdefghijklmnopqrstuvwxy"))
+        self.assertFalse(is_pangram(""))
+
+    def test_pangram_ignores_non_alphabetic(self) -> None:
+        self.assertTrue(is_pangram("The quick brown fox jumps over the lazy dog!"))
+        self.assertTrue(is_pangram("The1quick2brown3fox4jumps5over6the7lazy8dog9"))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_pangram(123)  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):
@@ -35684,6 +35740,8 @@ TEST_INTERVAL_UTILS
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
+- Added `is_pangram(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* contains every letter of the English alphabet at least once (case-insensitive, ignoring non-alphabetic characters), `False` otherwise (including for the empty string). Added `TestIsPangram` to `tests/test_strings.py`. Updated the `strings` module section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `decrement_version(version, part="patch")` to `version_utils.py` as the symmetric counterpart to `bump_version`: it validates that *version* is a string and *part* is a string, is case-insensitive on the recognized component names (`"major"`, `"minor"`, `"patch"`), and dispatches to the existing `decrement_major`/`decrement_minor`/`decrement_patch` helpers, raising `ValueError` for unrecognized parts or when the chosen component is already 0. Also exported `decrement_major`, `decrement_minor`, and `decrement_patch` (they were previously defined but absent from `__all__`), and added the `decrement` alias. Added `TestDecrementMajor`, `TestDecrementMinor`, `TestDecrementPatch`, and `TestDecrementVersion` to `tests/test_version_utils.py`. Updated the `version_utils` module tree entry and prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `is_compatible` to `version_utils.py`.
@@ -36718,7 +36776,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

@@ -24,6 +24,7 @@ from strings import (
     is_integer,
     is_lower,
     is_palindrome,
+    is_pangram,
     is_printable,
     is_space,
     is_upper,
@@ -658,6 +659,29 @@ class TestIsIdentifier(unittest.TestCase):
     def test_rejects_non_string(self) -> None:
         with self.assertRaises(TypeError):
             is_identifier(123)  # type: ignore[arg-type]
+
+
+class TestIsPangram(unittest.TestCase):
+    def test_pangram(self) -> None:
+        self.assertTrue(is_pangram("The quick brown fox jumps over the lazy dog"))
+        self.assertTrue(is_pangram("Pack my box with five dozen liquor jugs"))
+
+    def test_pangram_case_insensitive(self) -> None:
+        self.assertTrue(is_pangram("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"))
+        self.assertTrue(is_pangram("the quick brown fox jumps over the lazy dog"))
+
+    def test_not_pangram_missing_letters(self) -> None:
+        self.assertFalse(is_pangram("Hello world"))
+        self.assertFalse(is_pangram("abcdefghijklmnopqrstuvwxy"))
+        self.assertFalse(is_pangram(""))
+
+    def test_pangram_ignores_non_alphabetic(self) -> None:
+        self.assertTrue(is_pangram("The quick brown fox jumps over the lazy dog!"))
+        self.assertTrue(is_pangram("The1quick2brown3fox4jumps5over6the7lazy8dog9"))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_pangram(123)  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):

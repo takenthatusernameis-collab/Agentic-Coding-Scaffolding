@@ -38,6 +38,7 @@ __all__: List[str] = [
     "is_integer",
     "is_printable",
     "is_identifier",
+    "is_pangram",
     "is_whitespace",
     "is_space",
     "swap_case",
@@ -518,6 +519,37 @@ def is_identifier(s: str) -> bool:
     if not s:
         return False
     return s.isidentifier()
+
+
+def is_pangram(s: str) -> bool:
+    """Return True if *s* contains every letter of the alphabet at least once.
+
+    The check is case-insensitive and ignores non-alphabetic characters. A
+    pangram uses all 26 letters of the English alphabet (e.g. ``"The quick
+    brown fox jumps over the lazy dog"``).
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if *s* is a pangram, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_pangram("The quick brown fox jumps over the lazy dog")
+        True
+        >>> is_pangram("Pack my box with five dozen liquor jugs")
+        True
+        >>> is_pangram("Hello world")
+        False
+        >>> is_pangram("")
+        False
+    """
+    _require_string(s, "s")
+    letters = {ch.lower() for ch in s if ch.isalpha()}
+    return set("abcdefghijklmnopqrstuvwxyz").issubset(letters)
 
 
 def swap_case(s: str) -> str:
