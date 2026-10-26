@@ -29,6 +29,7 @@ __all__: List[str] = [
     "bump_version",
     "is_stable",
     "is_initial_release",
+    "is_compatible",
 ]
 
 
@@ -394,3 +395,28 @@ def is_initial_release(version: str) -> bool:
         raise TypeError("version must be a string")
     parts = parse_version(version)
     return bool(parts) and parts[0] == 0
+
+
+def is_compatible(a: str, b: str) -> bool:
+    """Return True if versions *a* and *b* share the same major version.
+
+    Args:
+        a: A dotted version string.
+        b: A dotted version string.
+
+    Returns:
+        True if both versions have the same major component.
+
+    Raises:
+        TypeError: If either argument is not a string.
+        ValueError: If either version string is invalid.
+    """
+    if not isinstance(a, str):
+        raise TypeError("a must be a string")
+    if not isinstance(b, str):
+        raise TypeError("b must be a string")
+    pa = parse_version(a)
+    pb = parse_version(b)
+    ma = pa[0] if pa else 0
+    mb = pb[0] if pb else 0
+    return ma == mb

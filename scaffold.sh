@@ -35684,6 +35684,7 @@ TEST_INTERVAL_UTILS
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
+- Added `is_compatible` to `version_utils.py`.
 
 - Added `trimmed_mean(numbers, trim_count=0)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it discards *trim_count* values from each end of the sorted list and returns the arithmetic mean of the remaining interior values, raising `ValueError` for a negative *trim_count* or one that is at least half the list length (so at least one value remains). It defaults to *trim_count* 0, in which case it matches `mean`. Added `TestTrimmedMean` to `tests/test_stats.py`. Updated the `stats` module section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -37107,7 +37108,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -78839,6 +78840,7 @@ __all__: List[str] = [
     "bump_version",
     "is_stable",
     "is_initial_release",
+    "is_compatible",
 ]
 
 
@@ -79204,6 +79206,31 @@ def is_initial_release(version: str) -> bool:
         raise TypeError("version must be a string")
     parts = parse_version(version)
     return bool(parts) and parts[0] == 0
+
+
+def is_compatible(a: str, b: str) -> bool:
+    """Return True if versions *a* and *b* share the same major version.
+
+    Args:
+        a: A dotted version string.
+        b: A dotted version string.
+
+    Returns:
+        True if both versions have the same major component.
+
+    Raises:
+        TypeError: If either argument is not a string.
+        ValueError: If either version string is invalid.
+    """
+    if not isinstance(a, str):
+        raise TypeError("a must be a string")
+    if not isinstance(b, str):
+        raise TypeError("b must be a string")
+    pa = parse_version(a)
+    pb = parse_version(b)
+    ma = pa[0] if pa else 0
+    mb = pb[0] if pb else 0
+    return ma == mb
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
@@ -79221,6 +79248,7 @@ from version_utils import (
     get_major_version,
     get_minor_version,
     get_patch_version,
+    is_compatible,
     is_equal,
     is_greater,
     is_initial_release,
@@ -79552,6 +79580,25 @@ class TestIsInitialRelease(unittest.TestCase):
 if __name__ == "__main__":
 
     unittest.main()
+
+
+class TestIsCompatible(unittest.TestCase):
+    def test_same_major(self):
+        self.assertTrue(is_compatible("1.2.3", "1.9.0"))
+
+    def test_different_major(self):
+        self.assertFalse(is_compatible("1.2.3", "2.0.0"))
+
+    def test_zero_major(self):
+        self.assertTrue(is_compatible("0.1.0", "0.9.9"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_compatible(1, "1.0.0")  # type: ignore[arg-type]
+
+    def test_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            is_compatible("1.2.a", "1.0.0")
 TEST_VERSION_UTILS
 
 # --- warnings_utils.py ---

@@ -11,6 +11,7 @@ from version_utils import (
     get_major_version,
     get_minor_version,
     get_patch_version,
+    is_compatible,
     is_equal,
     is_greater,
     is_initial_release,
@@ -342,3 +343,22 @@ class TestIsInitialRelease(unittest.TestCase):
 if __name__ == "__main__":
 
     unittest.main()
+
+
+class TestIsCompatible(unittest.TestCase):
+    def test_same_major(self):
+        self.assertTrue(is_compatible("1.2.3", "1.9.0"))
+
+    def test_different_major(self):
+        self.assertFalse(is_compatible("1.2.3", "2.0.0"))
+
+    def test_zero_major(self):
+        self.assertTrue(is_compatible("0.1.0", "0.9.9"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_compatible(1, "1.0.0")  # type: ignore[arg-type]
+
+    def test_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            is_compatible("1.2.a", "1.0.0")
