@@ -10950,6 +10950,7 @@ __all__: List[str] = [
     "is_identifier",
     "is_pangram",
     "is_subsequence",
+    "initials",
     "swap_case",
     "count_occurrences",
     "starts_with",
@@ -11891,6 +11892,25 @@ def chunk_string(s: str, size: int) -> List[str]:
     if not s:
         return []
     return [s[i : i + size] for i in range(0, len(s), size)]
+
+
+def initials(s: str, *, separator: str = "") -> str:
+    """Return the initials of each whitespace-delimited word in *s*.
+
+    Args:
+        s: The string to extract initials from.
+        separator: The string placed between initials.
+
+    Returns:
+        The concatenated initials (uppercase).
+
+    Raises:
+        TypeError: If *s* or *separator* is not a string.
+    """
+    _require_string(s, "s")
+    _require_string(separator, "separator")
+    words = s.split()
+    return separator.join(word[0].upper() for word in words if word)
 STRINGS
 
 # --- utils.py ---
@@ -14424,6 +14444,36 @@ class TestChunkString(unittest.TestCase):
             chunk_string("abc", 2.5)
         with self.assertRaises(TypeError):
             chunk_string("abc", True)  # type: ignore[arg-type]
+
+
+
+class TestInitials(unittest.TestCase):
+    def test_basic(self):
+        from strings import initials
+
+        self.assertEqual(initials("foo bar baz"), "FBB")
+
+    def test_separator(self):
+        from strings import initials
+
+        self.assertEqual(initials("foo bar", separator="."), "F.B")
+
+    def test_empty(self):
+        from strings import initials
+
+        self.assertEqual(initials(""), "")
+
+    def test_non_str_raises(self):
+        from strings import initials
+
+        with self.assertRaises(TypeError):
+            initials(123)  # type: ignore[arg-type]
+
+    def test_non_str_separator_raises(self):
+        from strings import initials
+
+        with self.assertRaises(TypeError):
+            initials("foo bar", separator=5)  # type: ignore[arg-type]
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -38039,7 +38089,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_subsequence`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_subsequence`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

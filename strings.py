@@ -40,6 +40,7 @@ __all__: List[str] = [
     "is_identifier",
     "is_pangram",
     "is_subsequence",
+    "initials",
     "swap_case",
     "count_occurrences",
     "starts_with",
@@ -981,3 +982,22 @@ def chunk_string(s: str, size: int) -> List[str]:
     if not s:
         return []
     return [s[i : i + size] for i in range(0, len(s), size)]
+
+
+def initials(s: str, *, separator: str = "") -> str:
+    """Return the initials of each whitespace-delimited word in *s*.
+
+    Args:
+        s: The string to extract initials from.
+        separator: The string placed between initials.
+
+    Returns:
+        The concatenated initials (uppercase).
+
+    Raises:
+        TypeError: If *s* or *separator* is not a string.
+    """
+    _require_string(s, "s")
+    _require_string(separator, "separator")
+    words = s.split()
+    return separator.join(word[0].upper() for word in words if word)

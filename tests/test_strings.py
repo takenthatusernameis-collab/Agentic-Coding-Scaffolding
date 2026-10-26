@@ -1356,3 +1356,32 @@ class TestChunkString(unittest.TestCase):
         with self.assertRaises(TypeError):
             chunk_string("abc", True)  # type: ignore[arg-type]
 
+
+
+class TestInitials(unittest.TestCase):
+    def test_basic(self):
+        from strings import initials
+
+        self.assertEqual(initials("foo bar baz"), "FBB")
+
+    def test_separator(self):
+        from strings import initials
+
+        self.assertEqual(initials("foo bar", separator="."), "F.B")
+
+    def test_empty(self):
+        from strings import initials
+
+        self.assertEqual(initials(""), "")
+
+    def test_non_str_raises(self):
+        from strings import initials
+
+        with self.assertRaises(TypeError):
+            initials(123)  # type: ignore[arg-type]
+
+    def test_non_str_separator_raises(self):
+        from strings import initials
+
+        with self.assertRaises(TypeError):
+            initials("foo bar", separator=5)  # type: ignore[arg-type]
