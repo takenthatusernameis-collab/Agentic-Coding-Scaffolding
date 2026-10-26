@@ -16,6 +16,7 @@ __all__: List[str] = [
     "format_prompt_template",
     "clean_prompt",
     "extract_keywords",
+    "extract_placeholders",
     "wrap_prompt",
     "estimate_token_count",
     "count_words",
@@ -176,6 +177,41 @@ def extract_keywords(text: str, min_length: int = 3) -> List[str]:
         if k not in seen:
             seen.add(k)
             result.append(k)
+    return result
+
+
+def extract_placeholders(template: str) -> List[str]:
+    """Extract placeholder names from a prompt template.
+
+    Scans *template* for ``{name}`` placeholders (as used by
+    :func:`format_prompt_template`) and returns the placeholder names in the
+    order they first appear, without duplicates.
+
+    Args:
+        template: The template string to scan for placeholders.
+
+    Returns:
+        A list of placeholder name strings, in order of first appearance.
+
+    Raises:
+        TypeError: If *template* is not a string.
+
+    Examples:
+        >>> extract_placeholders("Hello {name}, welcome to {place}!")
+        ['name', 'place']
+        >>> extract_placeholders("{a} {b} {a}")
+        ['a', 'b']
+        >>> extract_placeholders("No placeholders here")
+        []
+    """
+    _require_string(template, "template")
+    placeholders = re.findall(r"\{(\w+)\}", template)
+    seen = set()
+    result: List[str] = []
+    for name in placeholders:
+        if name not in seen:
+            seen.add(name)
+            result.append(name)
     return result
 
 

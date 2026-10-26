@@ -6,6 +6,7 @@ from prompt_utils import (
     clean_prompt,
     estimate_token_count,
     extract_keywords,
+    extract_placeholders,
     format_prompt_template,
     truncate_prompt,
     wrap_prompt,
@@ -154,6 +155,28 @@ class TestEstimateTokenCount(unittest.TestCase):
     def test_estimate_rejects_non_str(self):
         with self.assertRaises(TypeError):
             estimate_token_count(None)  # type: ignore[arg-type]
+
+
+class TestExtractPlaceholders(unittest.TestCase):
+    def test_extract_placeholders_basic(self):
+        result = extract_placeholders("Hello {name}, welcome to {place}!")
+        self.assertEqual(result, ["name", "place"])
+
+    def test_extract_placeholders_duplicate_names(self):
+        result = extract_placeholders("{a} {b} {a} {c}")
+        self.assertEqual(result, ["a", "b", "c"])
+
+    def test_extract_placeholders_none(self):
+        result = extract_placeholders("No placeholders here")
+        self.assertEqual(result, [])
+
+    def test_extract_placeholders_empty(self):
+        result = extract_placeholders("")
+        self.assertEqual(result, [])
+
+    def test_extract_placeholders_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            extract_placeholders(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

@@ -15464,6 +15464,7 @@ from prompt_utils import (
     clean_prompt,
     estimate_token_count,
     extract_keywords,
+    extract_placeholders,
     format_prompt_template,
     truncate_prompt,
     wrap_prompt,
@@ -15612,6 +15613,28 @@ class TestEstimateTokenCount(unittest.TestCase):
     def test_estimate_rejects_non_str(self):
         with self.assertRaises(TypeError):
             estimate_token_count(None)  # type: ignore[arg-type]
+
+
+class TestExtractPlaceholders(unittest.TestCase):
+    def test_extract_placeholders_basic(self):
+        result = extract_placeholders("Hello {name}, welcome to {place}!")
+        self.assertEqual(result, ["name", "place"])
+
+    def test_extract_placeholders_duplicate_names(self):
+        result = extract_placeholders("{a} {b} {a} {c}")
+        self.assertEqual(result, ["a", "b", "c"])
+
+    def test_extract_placeholders_none(self):
+        result = extract_placeholders("No placeholders here")
+        self.assertEqual(result, [])
+
+    def test_extract_placeholders_empty(self):
+        result = extract_placeholders("")
+        self.assertEqual(result, [])
+
+    def test_extract_placeholders_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            extract_placeholders(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -23769,6 +23792,7 @@ __all__: List[str] = [
     "format_prompt_template",
     "clean_prompt",
     "extract_keywords",
+    "extract_placeholders",
     "wrap_prompt",
     "estimate_token_count",
     "count_words",
@@ -23929,6 +23953,41 @@ def extract_keywords(text: str, min_length: int = 3) -> List[str]:
         if k not in seen:
             seen.add(k)
             result.append(k)
+    return result
+
+
+def extract_placeholders(template: str) -> List[str]:
+    """Extract placeholder names from a prompt template.
+
+    Scans *template* for ``{name}`` placeholders (as used by
+    :func:`format_prompt_template`) and returns the placeholder names in the
+    order they first appear, without duplicates.
+
+    Args:
+        template: The template string to scan for placeholders.
+
+    Returns:
+        A list of placeholder name strings, in order of first appearance.
+
+    Raises:
+        TypeError: If *template* is not a string.
+
+    Examples:
+        >>> extract_placeholders("Hello {name}, welcome to {place}!")
+        ['name', 'place']
+        >>> extract_placeholders("{a} {b} {a}")
+        ['a', 'b']
+        >>> extract_placeholders("No placeholders here")
+        []
+    """
+    _require_string(template, "template")
+    placeholders = re.findall(r"\{(\w+)\}", template)
+    seen = set()
+    result: List[str] = []
+    for name in placeholders:
+        if name not in seen:
+            seen.add(name)
+            result.append(name)
     return result
 
 
@@ -35263,6 +35322,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `extract_placeholders(template)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns the placeholder names in order of first appearance without duplicates. Added `TestExtractPlaceholders` to `tests/test_prompt_utils.py`. Updated the `prompt_utils` module section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `is_squarefree(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *n* is squarefree (not divisible by the square of any prime; every prime factor appears at most once), `False` otherwise (0, numbers divisible by a prime square like 4, 8, 12, 16, and negatives return the squarefree-ness of their absolute value). Added `TestSquarefree` to `tests/test_prime_utils.py`. Updated the `prime_utils` module section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added 3D shape helpers `sphere_surface_area`/`sphere_volume`, `cube_surface_area`/`cube_volume`, `cylinder_surface_area`/`cylinder_volume`, `cone_surface_area`/`cone_volume`. Synchronized into `scaffold.sh`.
@@ -36512,7 +36573,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `wrap_prompt`, and `estimate_token_count`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `wrap_prompt`, `estimate_token_count`, and `count_words`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 
