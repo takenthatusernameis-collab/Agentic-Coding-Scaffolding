@@ -35451,7 +35451,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `kurtosis(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it returns the excess kurtosis of a list of numbers, raising `ValueError` for fewer than 4 elements or a zero standard deviation. Added tests in `tests/test_stats.py`. Updated the `stats` module section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
-## Unreleased
+- Added `prime_count(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns the number of primes less than or equal to *n* (the prime counting function π(*n*)), returning 0 for *n* < 2. Added `TestPrimeCount` to `tests/test_prime_utils.py`. Updated the `prime_utils` module section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `is_stable(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when the major version component is at least 1, `False` otherwise. Added `TestIsStable` to `tests/test_version_utils.py`. Updated the `version_utils` module section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -35999,7 +35999,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_circular_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_sexy_prime)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_circular_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_sexy_prime, prime_count)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
@@ -59538,6 +59538,7 @@ __all__: List[str] = [
     "is_deficient_number",
     "is_cousin_prime",
     "is_sexy_prime",
+    "prime_count",
 ]
 
 
@@ -60255,6 +60256,27 @@ def is_sexy_prime(n: int) -> bool:
     if not is_prime(n):
         return False
     return is_prime(n - 6) or is_prime(n + 6)
+
+
+def prime_count(n: int) -> int:
+    """Return the number of prime numbers less than or equal to *n*.
+
+    This is the prime counting function, commonly denoted π(*n*). It
+    returns 0 for any integer *n* less than 2.
+
+    Args:
+        n: The upper bound (inclusive) of the prime count.
+
+    Returns:
+        The count of primes less than or equal to *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n < 2:
+        return 0
+    return len(primes_up_to(n))
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -60286,6 +60308,7 @@ from prime_utils import (
     next_prime,
     nth_prime,
     prev_prime,
+    prime_count,
     prime_factors,
     primes_up_to,
     sum_of_proper_divisors,
@@ -60860,6 +60883,16 @@ class TestIsSexyPrime(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_sexy_prime(5.0)
+
+
+class TestPrimeCount(unittest.TestCase):
+    def test_known_values(self):
+        for n, expected in [(0, 0), (1, 0), (2, 1), (3, 2), (10, 4), (100, 25)]:
+            self.assertEqual(prime_count(n), expected)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            prime_count(5.0)
 
 
 if __name__ == "__main__":

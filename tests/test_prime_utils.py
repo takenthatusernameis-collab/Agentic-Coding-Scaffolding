@@ -25,6 +25,7 @@ from prime_utils import (
     next_prime,
     nth_prime,
     prev_prime,
+    prime_count,
     prime_factors,
     primes_up_to,
     sum_of_proper_divisors,
@@ -599,6 +600,16 @@ class TestIsSexyPrime(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_sexy_prime(5.0)
+
+
+class TestPrimeCount(unittest.TestCase):
+    def test_known_values(self):
+        for n, expected in [(0, 0), (1, 0), (2, 1), (3, 2), (10, 4), (100, 25)]:
+            self.assertEqual(prime_count(n), expected)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            prime_count(5.0)
 
 
 if __name__ == "__main__":

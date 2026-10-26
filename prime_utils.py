@@ -33,6 +33,7 @@ __all__: List[str] = [
     "is_deficient_number",
     "is_cousin_prime",
     "is_sexy_prime",
+    "prime_count",
 ]
 
 
@@ -750,3 +751,24 @@ def is_sexy_prime(n: int) -> bool:
     if not is_prime(n):
         return False
     return is_prime(n - 6) or is_prime(n + 6)
+
+
+def prime_count(n: int) -> int:
+    """Return the number of prime numbers less than or equal to *n*.
+
+    This is the prime counting function, commonly denoted π(*n*). It
+    returns 0 for any integer *n* less than 2.
+
+    Args:
+        n: The upper bound (inclusive) of the prime count.
+
+    Returns:
+        The count of primes less than or equal to *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n < 2:
+        return 0
+    return len(primes_up_to(n))
