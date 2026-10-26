@@ -15721,6 +15721,7 @@ from prompt_utils import (
     format_prompt_template,
     has_placeholders,
     truncate_prompt,
+    truncate_words,
     wrap_prompt,
 )
 
@@ -15960,6 +15961,25 @@ class TestCountSentences(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_sentences(123)  # type: ignore[arg-type]
+
+
+class TestTruncateWords(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(truncate_words("one two three four", 2), "one two...")
+
+    def test_no_truncation(self):
+        self.assertEqual(truncate_words("short text", 5), "short text")
+
+    def test_zero(self):
+        self.assertEqual(truncate_words("one two", 0), "...")
+
+    def test_negative(self):
+        with self.assertRaises(ValueError):
+            truncate_words("a b", -1)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            truncate_words(123, 2)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -24125,6 +24145,7 @@ __all__: List[str] = [
     "collapse_blank_lines",
     "count_placeholders",
     "count_sentences",
+    "truncate_words",
 ]
 
 
@@ -24511,6 +24532,41 @@ def count_sentences(text: str) -> int:
     if not text.strip():
         return 0
     return len(re.findall(r"[.!?](?:\s|$)", text))
+
+
+def truncate_words(text: str, max_words: int, suffix: str = "...") -> str:
+    """Truncate *text* to at most *max_words* whitespace-delimited words.
+
+    Args:
+        text: The text to truncate.
+        max_words: The maximum number of words to keep.
+        suffix: The suffix to append when truncated.
+
+    Returns:
+        The truncated text.
+
+    Raises:
+        TypeError: If *text* or *suffix* is not a string or *max_words* is
+            not an int.
+        ValueError: If *max_words* is negative.
+
+    Examples:
+        >>> truncate_words("one two three four", 2)
+        'one two...'
+        >>> truncate_words("short text", 5)
+        'short text'
+    """
+    _require_string(text, "text")
+    _require_int(max_words, "max_words")
+    if max_words < 0:
+        raise ValueError("max_words must be non-negative")
+    _require_string(suffix, "suffix")
+    words = text.split()
+    if len(words) <= max_words:
+        return text
+    if max_words == 0:
+        return suffix if suffix else ""
+    return " ".join(words[:max_words]) + suffix
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -78997,6 +79053,7 @@ __all__: List[str] = [
     "version_satisfies_major",
     "decrement_version",
     "decrement",
+    "dec",
 ]
 
 
@@ -79550,6 +79607,8 @@ def decrement_version(version: str, part: str = "patch") -> str:
 
 
 decrement = decrement_version
+
+dec = decrement_version
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---

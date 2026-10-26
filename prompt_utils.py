@@ -24,6 +24,7 @@ __all__: List[str] = [
     "collapse_blank_lines",
     "count_placeholders",
     "count_sentences",
+    "truncate_words",
 ]
 
 
@@ -410,3 +411,38 @@ def count_sentences(text: str) -> int:
     if not text.strip():
         return 0
     return len(re.findall(r"[.!?](?:\s|$)", text))
+
+
+def truncate_words(text: str, max_words: int, suffix: str = "...") -> str:
+    """Truncate *text* to at most *max_words* whitespace-delimited words.
+
+    Args:
+        text: The text to truncate.
+        max_words: The maximum number of words to keep.
+        suffix: The suffix to append when truncated.
+
+    Returns:
+        The truncated text.
+
+    Raises:
+        TypeError: If *text* or *suffix* is not a string or *max_words* is
+            not an int.
+        ValueError: If *max_words* is negative.
+
+    Examples:
+        >>> truncate_words("one two three four", 2)
+        'one two...'
+        >>> truncate_words("short text", 5)
+        'short text'
+    """
+    _require_string(text, "text")
+    _require_int(max_words, "max_words")
+    if max_words < 0:
+        raise ValueError("max_words must be non-negative")
+    _require_string(suffix, "suffix")
+    words = text.split()
+    if len(words) <= max_words:
+        return text
+    if max_words == 0:
+        return suffix if suffix else ""
+    return " ".join(words[:max_words]) + suffix

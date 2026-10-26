@@ -13,6 +13,7 @@ from prompt_utils import (
     format_prompt_template,
     has_placeholders,
     truncate_prompt,
+    truncate_words,
     wrap_prompt,
 )
 
@@ -252,6 +253,25 @@ class TestCountSentences(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_sentences(123)  # type: ignore[arg-type]
+
+
+class TestTruncateWords(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(truncate_words("one two three four", 2), "one two...")
+
+    def test_no_truncation(self):
+        self.assertEqual(truncate_words("short text", 5), "short text")
+
+    def test_zero(self):
+        self.assertEqual(truncate_words("one two", 0), "...")
+
+    def test_negative(self):
+        with self.assertRaises(ValueError):
+            truncate_words("a b", -1)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            truncate_words(123, 2)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
