@@ -18,6 +18,7 @@ __all__: List[str] = [
     "extract_keywords",
     "wrap_prompt",
     "estimate_token_count",
+    "count_words",
 ]
 
 
@@ -245,3 +246,25 @@ def estimate_token_count(text: str) -> int:
         return 0
     # Rough approximation: 4 chars per token
     return max(1, len(text) // 4)
+
+
+def count_words(text: str) -> int:
+    """Count the number of whitespace-delimited words in *text*.
+
+    Args:
+        text: The text to count words in.
+
+    Returns:
+        The number of words.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_words("Hello world")
+        2
+        >>> count_words("")
+        0
+    """
+    _require_string(text, "text")
+    return len(text.split())
