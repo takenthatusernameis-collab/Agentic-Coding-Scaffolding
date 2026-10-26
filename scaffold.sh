@@ -10937,7 +10937,7 @@ __all__: List[str] = [
     "is_ascii",
     "is_whitespace",
     "is_space",
-"is_alpha",
+    "is_alpha",
     "is_alphanumeric",
     "is_digit",
     "is_hex",
@@ -10946,8 +10946,6 @@ __all__: List[str] = [
     "is_identifier",
     "is_pangram",
     "is_subsequence",
-    "is_whitespace",
-    "is_space",
     "swap_case",
     "count_occurrences",
     "starts_with",
@@ -10979,9 +10977,6 @@ __all__: List[str] = [
     "count_words",
     "remove_punctuation",
     "remove_digits",
-    "is_palindrome",
-    "reverse_words",
-    "truncate",
 ]
 
 
@@ -11008,17 +11003,8 @@ def reverse_string(s: str) -> str:
 def reverse_words(s: str) -> str:
     """Return the string with the order of its words reversed."""
     _require_string(s, "s")
-    return " ".join(s.split()[::-1])
-
-
-def is_palindrome(s: str) -> bool:
-    """Return True if the string reads the same forwards and backwards.
-
-    Comparison is case-insensitive and ignores non-alphanumeric characters.
-    """
-    _require_string(s, "s")
-    cleaned = "".join(ch.lower() for ch in s if ch.isalnum())
-    return cleaned == cleaned[::-1]
+    words = s.split()
+    return " ".join(reversed(words))
 
 
 def count_vowels(s: str) -> int:
@@ -11114,6 +11100,10 @@ def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) 
         TypeError: If *s* is not a string.
     """
     _require_string(s, "s")
+    if not isinstance(ignore_case, bool):
+        raise TypeError(f"ignore_case must be a bool, got {type(ignore_case).__name__}")
+    if not isinstance(ignore_spaces, bool):
+        raise TypeError(f"ignore_spaces must be a bool, got {type(ignore_spaces).__name__}")
     cleaned = []
     for c in s:
         if ignore_spaces and c.isspace():
@@ -11126,13 +11116,6 @@ def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) 
             cleaned.append(c)
     cleaned_str = "".join(cleaned)
     return cleaned_str == cleaned_str[::-1]
-
-
-def reverse_words(s: str) -> str:
-    """Reverse the order of words in a string."""
-    _require_string(s, "s")
-    words = s.split()
-    return " ".join(reversed(words))
 
 
 def truncate(s: str, length: int, suffix: str = "...") -> str:
@@ -11151,30 +11134,16 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
         ValueError: If *length* is negative.
     """
     _require_string(s, "s")
-    if not isinstance(length, int):
-        raise TypeError("length must be an int")
+    _require_int(length, "length")
+    _require_string(suffix, "suffix")
     if length < 0:
         raise ValueError("length must be non-negative")
-    if len(s) <= length:
-        return s
-    if length <= len(suffix):
-        return suffix[:length]
-    return s[: length - len(suffix)] + suffix
-
-
-def truncate(s: str, length: int, suffix: str = "...") -> str:
-    """Truncate string to max length, adding suffix if truncated."""
-    _require_string(s, "s")
-    _require_int(length, "length")
-    if length < 0:
-        raise ValueError("length cannot be negative")
-    _require_string(suffix, "suffix")
     if length == 0:
         return ""
-    if len(suffix) > length:
-        raise ValueError("suffix cannot be longer than length")
     if len(s) <= length:
         return s
+    if len(suffix) > length:
+        raise ValueError("suffix cannot be longer than length")
     return s[: max(0, length - len(suffix))] + suffix
 
 
@@ -105328,284 +105297,267 @@ TEST_BACKOFF_UTILS
 cat > "$OUTPUT_DIR/html_parser_utils.py" <<'HTML_PARSER_UTILS'
 """HTML parser utilities wrapping the standard library html.parser module.
 
-Provides helpers for parsing HTML using HTMLParser with convenient wrappers.
+Provides helpers for parsing HTML with validation and convenient utilities.
 """
 
-from __future__ import annotations
-
 from html.parser import HTMLParser
-from typing import Any, Callable, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 __all__ = [
     "HTMLParser",
-    "parse_html",
-    "strip_tags",
+    "HTMLStripper",
+    "strip_html_tags",
+    "extract_tags",
+    "is_available",
 ]
 
 
-class _TagStripper(HTMLParser):
-    def __init__(self) -> None:
+def is_available() -> bool:
+    """Return True if html.parser is available."""
+    return True
+
+
+class HTMLStripper(HTMLParser):
+    """HTML parser that strips tags and returns plain text."""
+
+    def __init__(self):
         super().__init__()
         self.reset()
-        self.fed: List[str] = []
+        self.strict = False
+        self.convert_charrefs = True
+        self.fed = []
 
-    def handle_data(self, data: str) -> None:
-        self.fed.append(data)
+    def handle_data(self, d):
+        self.fed.append(d)
 
-    def get_data(self) -> str:
+    def handle_entityref(self, name):
+        self.fed.append(f"&{name};")
+
+    def handle_charref(self, name):
+        self.fed.append(f"&#{name};")
+
+    def get_data(self):
         return "".join(self.fed)
 
 
-def strip_tags(html: Union[str, None]) -> str:
-    """Remove all HTML tags from ``html`` and return the text content.
-
-    Args:
-        html: Input HTML string.
-
-    Returns:
-        Text content with tags removed.
-
-    Raises:
-        TypeError: If ``html`` is not a string or None.
-    """
-    if html is None:
-        return ""
+def strip_html_tags(html: str) -> str:
+    """Strip HTML tags from string and return plain text."""
     if not isinstance(html, str):
-        raise TypeError("html must be a string or None")
-    s = _TagStripper()
-    s.feed(html)
-    s.close()
-    return s.get_data()
+        raise TypeError(f"html must be a string, got {type(html).__name__}")
+    if not html:
+        return html
+    stripper = HTMLStripper()
+    stripper.feed(html)
+    stripper.close()
+    return stripper.get_data()
 
 
-def parse_html(
-    html: str,
-    *,
-    handle_starttag: Optional[Callable[..., Any]] = None,
-    handle_endtag: Optional[Callable[..., Any]] = None,
-    handle_data: Optional[Callable[..., Any]] = None,
-    handle_comment: Optional[Callable[..., Any]] = None,
-    handle_entityref: Optional[Callable[..., Any]] = None,
-    handle_charref: Optional[Callable[..., Any]] = None,
-    handle_decl: Optional[Callable[..., Any]] = None,
-    handle_pi: Optional[Callable[..., Any]] = None,
-) -> HTMLParser:
-    """Create and feed an HTMLParser with optional custom handlers.
-
-    Args:
-        html: HTML string to parse.
-        handle_starttag: Optional callback for start tags.
-        handle_endtag: Optional callback for end tags.
-        handle_data: Optional callback for data.
-        handle_comment: Optional callback for comments.
-        handle_entityref: Optional callback for entity references.
-        handle_charref: Optional callback for character references.
-        handle_decl: Optional callback for declarations.
-        handle_pi: Optional callback for processing instructions.
-
-    Returns:
-        The HTMLParser instance after feeding ``html``.
-
-    Raises:
-        TypeError: If ``html`` is not a string.
-    """
+def extract_tags(html: str, tag: Optional[str] = None) -> List[Dict[str, Union[str, Dict[str, str]]]]:
+    """Extract tags from HTML with their attributes and data."""
     if not isinstance(html, str):
-        raise TypeError("html must be a string")
-
-    class CustomParser(HTMLParser):
-        pass
-
-    parser = CustomParser()
-    if handle_starttag is not None:
-        parser.handle_starttag = handle_starttag  # type: ignore[method-assign]
-    if handle_endtag is not None:
-        parser.handle_endtag = handle_endtag  # type: ignore[method-assign]
-    if handle_data is not None:
-        parser.handle_data = handle_data  # type: ignore[method-assign]
-    if handle_comment is not None:
-        parser.handle_comment = handle_comment  # type: ignore[method-assign]
-    if handle_entityref is not None:
-        parser.handle_entityref = handle_entityref  # type: ignore[method-assign]
-    if handle_charref is not None:
-        parser.handle_charref = handle_charref  # type: ignore[method-assign]
-    if handle_decl is not None:
-        parser.handle_decl = handle_decl  # type: ignore[method-assign]
-    if handle_pi is not None:
-        parser.handle_pi = handle_pi  # type: ignore[method-assign]
-
+        raise TypeError(f"html must be a string, got {type(html).__name__}")
+    if tag is not None and not isinstance(tag, str):
+        raise TypeError(f"tag must be a string or None, got {type(tag).__name__}")
+    
+    results = []
+    
+    class TagExtractor(HTMLParser):
+        def handle_starttag(self, tag_name, attrs):
+            if tag is None or tag_name == tag:
+                results.append({
+                    "tag": tag_name,
+                    "attrs": dict(attrs),
+                    "type": "start",
+                    "data": ""
+                })
+        
+        def handle_startendtag(self, tag_name, attrs):
+            if tag is None or tag_name == tag:
+                results.append({
+                    "tag": tag_name,
+                    "attrs": dict(attrs),
+                    "type": "self_closing",
+                    "data": ""
+                })
+        
+        def handle_endtag(self, tag_name):
+            if tag is None or tag_name == tag:
+                # Just record end, don't add as separate entry if we have start
+                pass
+        
+        def handle_data(self, data):
+            # Add data to last start tag
+            for i in range(len(results) - 1, -1, -1):
+                if results[i].get("type") in ("start", "self_closing"):
+                    if "data" not in results[i]:
+                        results[i]["data"] = ""
+                    results[i]["data"] += data
+                    break
+    
+    parser = TagExtractor()
     parser.feed(html)
     parser.close()
-    return parser
+    return results
 HTML_PARSER_UTILS
 
 # --- tests/test_html_parser_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_html_parser_utils.py" <<'TEST_HTML_PARSER_UTILS'
-"""Tests for html_parser_utils."""
+"""Tests for html_parser_utils module."""
 
-from html_parser_utils import HTMLParser, parse_html, strip_tags
+import unittest
 
-
-def test_strip_tags_basic() -> None:
-    html = "<p>Hello <b>World</b>!</p>"
-    assert strip_tags(html) == "Hello World!"
+from html_parser_utils import HTMLParser, HTMLStripper, extract_tags, is_available, strip_html_tags
 
 
-def test_strip_tags_none() -> None:
-    assert strip_tags(None) == ""
+class TestHTMLParserUtils(unittest.TestCase):
+    def test_is_available(self):
+        self.assertTrue(is_available())
+
+    def test_html_parser_is_importable(self):
+        self.assertTrue(issubclass(HTMLParser, object))
+
+    def test_strip_html_tags_basic(self):
+        html = "<p>Hello <b>World</b></p>"
+        self.assertEqual(strip_html_tags(html), "Hello World")
+
+    def test_strip_html_tags_empty(self):
+        self.assertEqual(strip_html_tags(""), "")
+
+    def test_strip_html_tags_no_tags(self):
+        self.assertEqual(strip_html_tags("Hello World"), "Hello World")
+
+    def test_strip_html_tags_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            strip_html_tags(123)
+
+    def test_html_stripper(self):
+        stripper = HTMLStripper()
+        stripper.feed("<div>Test</div>")
+        stripper.close()
+        self.assertEqual(stripper.get_data(), "Test")
+
+    def test_extract_tags_all(self):
+        html = '<p class="test">Hello</p>'
+        tags = extract_tags(html)
+        self.assertTrue(len(tags) > 0)
+        self.assertEqual(tags[0]["tag"], "p")
+
+    def test_extract_tags_specific(self):
+        html = "<div>A</div><p>B</p>"
+        tags = extract_tags(html, tag="p")
+        self.assertEqual(len(tags), 1)
+        self.assertEqual(tags[0]["tag"], "p")
+
+    def test_extract_tags_rejects_bad_types(self):
+        with self.assertRaises(TypeError):
+            extract_tags(123)
+        with self.assertRaises(TypeError):
+            extract_tags("<p></p>", tag=123)
 
 
-def test_strip_tags_no_tags() -> None:
-    assert strip_tags("plain text") == "plain text"
-
-
-def test_parse_html_with_custom_handlers() -> None:
-    tags = []
-
-    def handle_starttag(tag: str, attrs: list) -> None:
-        tags.append(("start", tag))
-
-    def handle_endtag(tag: str) -> None:
-        tags.append(("end", tag))
-
-    parser = parse_html(
-        "<div>Hi</div>",
-        handle_starttag=handle_starttag,
-        handle_endtag=handle_endtag,
-    )
-    assert isinstance(parser, HTMLParser)
-    assert ("start", "div") in tags
-    assert ("end", "div") in tags
-
-
-def test_parse_html_default() -> None:
-    parser = parse_html("<span>test</span>")
-    assert isinstance(parser, HTMLParser)
+if __name__ == "__main__":
+    unittest.main()
 TEST_HTML_PARSER_UTILS
 
 # --- html_entities_utils.py ---
 cat > "$OUTPUT_DIR/html_entities_utils.py" <<'HTML_ENTITIES_UTILS'
-"""HTML entities utilities wrapping the standard library html.entities module.
+"""HTML entity utilities wrapping the standard library html.entities module.
 
-Provides helpers for working with HTML entity names and numeric codes.
+Provides helpers for working with HTML entities.
 """
 
-from __future__ import annotations
-
-import html.entities
-from typing import Optional
+import html.entities as entities
+from typing import Dict, Optional
 
 __all__ = [
-    "html5",
     "name2codepoint",
     "codepoint2name",
+    "html5",
     "entitydefs",
-    "get_entity_by_name",
-    "name_to_codepoint",
-    "codepoint_to_name",
-    "decode_entity",
-    "unescape_entity",
+    "escape",
+    "unescape",
+    "is_available",
 ]
 
 
-html5 = getattr(html.entities, "html5", {})
-name2codepoint = html.entities.name2codepoint
-codepoint2name = html.entities.codepoint2name
-entitydefs = html.entities.entitydefs
+def is_available() -> bool:
+    """Return True if html.entities is available."""
+    return True
 
 
-def name_to_codepoint(name: str) -> Optional[int]:
-    """Get the codepoint for a named HTML entity.
-
-    Args:
-        name: Entity name without ampersand and semicolon.
-
-    Returns:
-        Codepoint as int, or None if not found.
-
-    Raises:
-        TypeError: If name is not a string.
-    """
-    if not isinstance(name, str):
-        raise TypeError("name must be a string")
-    return name2codepoint.get(name)
+name2codepoint: Dict[str, int] = entities.name2codepoint
+codepoint2name: Dict[int, str] = entities.codepoint2name
+html5: Dict[str, str] = getattr(entities, "html5", {})
+entitydefs: Dict[str, str] = getattr(entities, "entitydefs", {})
 
 
-def get_entity_by_name(name: str) -> Optional[int]:
-    """Alias for name_to_codepoint."""
-    return name_to_codepoint(name)
+def escape(s: str, quote: bool = True) -> str:
+    """Escape HTML special characters."""
+    if not isinstance(s, str):
+        raise TypeError(f"s must be a string, got {type(s).__name__}")
+    if not isinstance(quote, bool):
+        raise TypeError(f"quote must be a bool, got {type(quote).__name__}")
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#x27;")
 
 
-def codepoint_to_name(codepoint: int) -> Optional[str]:
-    """Get the entity name for a codepoint.
+def unescape(s: str) -> str:
+    """Unescape HTML entities."""
+    if not isinstance(s, str):
+        raise TypeError(f"s must be a string, got {type(s).__name__}")
+    import html
 
-    Args:
-        codepoint: Unicode codepoint.
-
-    Returns:
-        Entity name or None if not found.
-
-    Raises:
-        TypeError: If codepoint is not an int.
-        ValueError: If codepoint is out of range.
-    """
-    if not isinstance(codepoint, int) or isinstance(codepoint, bool):
-        raise TypeError("codepoint must be an int")
-    if codepoint < 0 or codepoint > 0x10FFFF:
-        raise ValueError("codepoint out of range")
-    return codepoint2name.get(codepoint)
-
-
-def decode_entity(name: str) -> Optional[str]:
-    """Decode a named entity to its string character.
-
-    Args:
-        name: Entity name without ampersand and semicolon.
-
-    Returns:
-        Decoded character or None if not found.
-
-    Raises:
-        TypeError: If name is not a string.
-    """
-    if not isinstance(name, str):
-        raise TypeError("name must be a string")
-    code = name2codepoint.get(name)
-    if code is None:
-        return None
-    return chr(code)
-
-
-def unescape_entity(name: str) -> Optional[str]:
-    """Alias for decode_entity."""
-    return decode_entity(name)
+    return html.unescape(s)
 HTML_ENTITIES_UTILS
 
 # --- tests/test_html_entities_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_html_entities_utils.py" <<'TEST_HTML_ENTITIES_UTILS'
-"""Tests for html_entities_utils."""
+"""Tests for html_entities_utils module."""
+
+import unittest
 
 from html_entities_utils import (
-    codepoint_to_name,
-    decode_entity,
-    get_entity_by_name,
-    name_to_codepoint,
-    unescape_entity,
+    codepoint2name,
+    escape,
+    html5,
+    is_available,
+    name2codepoint,
+    unescape,
 )
 
 
-def test_name_to_codepoint() -> None:
-    assert name_to_codepoint("amp") == ord("&")
-    assert name_to_codepoint("lt") == ord("<")
-    assert get_entity_by_name("gt") == ord(">")
+class TestHTMLEntitiesUtils(unittest.TestCase):
+    def test_is_available(self):
+        self.assertTrue(is_available())
+
+    def test_name2codepoint_has_amp(self):
+        self.assertIn("amp", name2codepoint)
+
+    def test_escape_basic(self):
+        self.assertEqual(escape("<div>"), "&lt;div&gt;")
+
+    def test_escape_quotes(self):
+        self.assertEqual(escape('"hello"'), "&quot;hello&quot;")
+
+    def test_escape_ampersand(self):
+        self.assertEqual(escape("a & b"), "a &amp; b")
+
+    def test_escape_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            escape(123)
+
+    def test_unescape_basic(self):
+        self.assertEqual(unescape("&lt;div&gt;"), "<div>")
+
+    def test_unescape_amp(self):
+        self.assertEqual(unescape("a &amp; b"), "a & b")
+
+    def test_unescape_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            unescape(123)
 
 
-def test_codepoint_to_name() -> None:
-    assert codepoint_to_name(ord("&")) == "amp"
-
-
-def test_decode_entity() -> None:
-    assert decode_entity("nbsp") == "\xa0"
-    assert unescape_entity("copy") is not None
+if __name__ == "__main__":
+    unittest.main()
 TEST_HTML_ENTITIES_UTILS
 
 # --- ossaudiodev_utils.py ---

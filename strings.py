@@ -31,7 +31,7 @@ __all__: List[str] = [
     "is_ascii",
     "is_whitespace",
     "is_space",
-"is_alpha",
+    "is_alpha",
     "is_alphanumeric",
     "is_digit",
     "is_hex",
@@ -40,8 +40,6 @@ __all__: List[str] = [
     "is_identifier",
     "is_pangram",
     "is_subsequence",
-    "is_whitespace",
-    "is_space",
     "swap_case",
     "count_occurrences",
     "starts_with",
@@ -73,9 +71,6 @@ __all__: List[str] = [
     "count_words",
     "remove_punctuation",
     "remove_digits",
-    "is_palindrome",
-    "reverse_words",
-    "truncate",
 ]
 
 
@@ -102,17 +97,8 @@ def reverse_string(s: str) -> str:
 def reverse_words(s: str) -> str:
     """Return the string with the order of its words reversed."""
     _require_string(s, "s")
-    return " ".join(s.split()[::-1])
-
-
-def is_palindrome(s: str) -> bool:
-    """Return True if the string reads the same forwards and backwards.
-
-    Comparison is case-insensitive and ignores non-alphanumeric characters.
-    """
-    _require_string(s, "s")
-    cleaned = "".join(ch.lower() for ch in s if ch.isalnum())
-    return cleaned == cleaned[::-1]
+    words = s.split()
+    return " ".join(reversed(words))
 
 
 def count_vowels(s: str) -> int:
@@ -208,6 +194,10 @@ def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) 
         TypeError: If *s* is not a string.
     """
     _require_string(s, "s")
+    if not isinstance(ignore_case, bool):
+        raise TypeError(f"ignore_case must be a bool, got {type(ignore_case).__name__}")
+    if not isinstance(ignore_spaces, bool):
+        raise TypeError(f"ignore_spaces must be a bool, got {type(ignore_spaces).__name__}")
     cleaned = []
     for c in s:
         if ignore_spaces and c.isspace():
@@ -220,13 +210,6 @@ def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) 
             cleaned.append(c)
     cleaned_str = "".join(cleaned)
     return cleaned_str == cleaned_str[::-1]
-
-
-def reverse_words(s: str) -> str:
-    """Reverse the order of words in a string."""
-    _require_string(s, "s")
-    words = s.split()
-    return " ".join(reversed(words))
 
 
 def truncate(s: str, length: int, suffix: str = "...") -> str:
@@ -245,30 +228,16 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
         ValueError: If *length* is negative.
     """
     _require_string(s, "s")
-    if not isinstance(length, int):
-        raise TypeError("length must be an int")
+    _require_int(length, "length")
+    _require_string(suffix, "suffix")
     if length < 0:
         raise ValueError("length must be non-negative")
-    if len(s) <= length:
-        return s
-    if length <= len(suffix):
-        return suffix[:length]
-    return s[: length - len(suffix)] + suffix
-
-
-def truncate(s: str, length: int, suffix: str = "...") -> str:
-    """Truncate string to max length, adding suffix if truncated."""
-    _require_string(s, "s")
-    _require_int(length, "length")
-    if length < 0:
-        raise ValueError("length cannot be negative")
-    _require_string(suffix, "suffix")
     if length == 0:
         return ""
-    if len(suffix) > length:
-        raise ValueError("suffix cannot be longer than length")
     if len(s) <= length:
         return s
+    if len(suffix) > length:
+        raise ValueError("suffix cannot be longer than length")
     return s[: max(0, length - len(suffix))] + suffix
 
 

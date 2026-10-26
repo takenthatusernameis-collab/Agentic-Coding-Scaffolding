@@ -1,40 +1,55 @@
-"""Tests for html_parser_utils."""
+"""Tests for html_parser_utils module."""
 
-from html_parser_utils import HTMLParser, parse_html, strip_tags
+import unittest
 
-
-def test_strip_tags_basic() -> None:
-    html = "<p>Hello <b>World</b>!</p>"
-    assert strip_tags(html) == "Hello World!"
+from html_parser_utils import HTMLParser, HTMLStripper, extract_tags, is_available, strip_html_tags
 
 
-def test_strip_tags_none() -> None:
-    assert strip_tags(None) == ""
+class TestHTMLParserUtils(unittest.TestCase):
+    def test_is_available(self):
+        self.assertTrue(is_available())
+
+    def test_html_parser_is_importable(self):
+        self.assertTrue(issubclass(HTMLParser, object))
+
+    def test_strip_html_tags_basic(self):
+        html = "<p>Hello <b>World</b></p>"
+        self.assertEqual(strip_html_tags(html), "Hello World")
+
+    def test_strip_html_tags_empty(self):
+        self.assertEqual(strip_html_tags(""), "")
+
+    def test_strip_html_tags_no_tags(self):
+        self.assertEqual(strip_html_tags("Hello World"), "Hello World")
+
+    def test_strip_html_tags_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            strip_html_tags(123)
+
+    def test_html_stripper(self):
+        stripper = HTMLStripper()
+        stripper.feed("<div>Test</div>")
+        stripper.close()
+        self.assertEqual(stripper.get_data(), "Test")
+
+    def test_extract_tags_all(self):
+        html = '<p class="test">Hello</p>'
+        tags = extract_tags(html)
+        self.assertTrue(len(tags) > 0)
+        self.assertEqual(tags[0]["tag"], "p")
+
+    def test_extract_tags_specific(self):
+        html = "<div>A</div><p>B</p>"
+        tags = extract_tags(html, tag="p")
+        self.assertEqual(len(tags), 1)
+        self.assertEqual(tags[0]["tag"], "p")
+
+    def test_extract_tags_rejects_bad_types(self):
+        with self.assertRaises(TypeError):
+            extract_tags(123)
+        with self.assertRaises(TypeError):
+            extract_tags("<p></p>", tag=123)
 
 
-def test_strip_tags_no_tags() -> None:
-    assert strip_tags("plain text") == "plain text"
-
-
-def test_parse_html_with_custom_handlers() -> None:
-    tags = []
-
-    def handle_starttag(tag: str, attrs: list) -> None:
-        tags.append(("start", tag))
-
-    def handle_endtag(tag: str) -> None:
-        tags.append(("end", tag))
-
-    parser = parse_html(
-        "<div>Hi</div>",
-        handle_starttag=handle_starttag,
-        handle_endtag=handle_endtag,
-    )
-    assert isinstance(parser, HTMLParser)
-    assert ("start", "div") in tags
-    assert ("end", "div") in tags
-
-
-def test_parse_html_default() -> None:
-    parser = parse_html("<span>test</span>")
-    assert isinstance(parser, HTMLParser)
+if __name__ == "__main__":
+    unittest.main()
