@@ -1,3 +1,22 @@
+## Latest Session (2026-10-26) — added indent_lines to prompt_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5750 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `indent_lines(text, prefix="    ", *, skip_blank=False)` to `prompt_utils.py` as a companion to `truncate_lines` and `wrap_prompt`: it prefixes every line of *text* with *prefix*, leaving blank lines untouched when *skip_blank* is True. It validates that *text* and *prefix* are strings and *skip_blank* is a bool, raising `TypeError` otherwise, and returns *text* unchanged for the empty string. Added `TestIndentLines` to `tests/test_prompt_utils.py` covering the default prefix, a custom prefix, blank-line handling with both modes, the empty-string case, and the `TypeError` paths (5758 tests now pass).
+- Updated the `prompt_utils` module prose section of `README.md` to list `indent_lines`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5758 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 546 source files, and scaffold sync is clean.
+
+Next Planned:
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `strings.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-26) — added decrement_version to version_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5713 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync (after fixing one stale embedded copy of `tests/test_number_utils.py` with `make refresh-scaffold`).

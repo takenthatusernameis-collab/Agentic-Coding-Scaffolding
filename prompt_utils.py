@@ -26,6 +26,7 @@ __all__: List[str] = [
     "count_sentences",
     "truncate_words",
     "truncate_lines",
+    "indent_lines",
 ]
 
 
@@ -486,3 +487,45 @@ def truncate_lines(text: str, max_lines: int, suffix: str = "...") -> str:
     if max_lines == 0:
         return suffix if suffix else ""
     return "\n".join(lines[:max_lines]) + suffix
+
+
+def indent_lines(text: str, prefix: str = "    ", *, skip_blank: bool = False) -> str:
+    """Prefix every line of *text* with *prefix*.
+
+    A companion to :func:`truncate_lines` and :func:`wrap_prompt` that adds a
+    leading prefix to each line. Blank lines are left untouched when
+    *skip_blank* is True (the default), which is useful for indenting code
+    blocks without turning empty lines into lines of whitespace.
+
+    Args:
+        text: The text to indent.
+        prefix: The string to prepend to each non-blank line.
+        skip_blank: If True, leave blank lines without the prefix.
+
+    Returns:
+        The indented text.
+
+    Raises:
+        TypeError: If *text* or *prefix* is not a string, or *skip_blank* is
+            not a bool.
+
+    Examples:
+        >>> indent_lines("a\\nb\\nc")
+        '    a\\n    b\\n    c'
+        >>> indent_lines("a\\n\\nb", skip_blank=True)
+        '    a\\n\\n    b'
+    """
+    _require_string(text, "text")
+    _require_string(prefix, "prefix")
+    if not isinstance(skip_blank, bool):
+        raise TypeError(f"skip_blank must be a bool, got {type(skip_blank).__name__}")
+    if not text:
+        return text
+    lines = text.split("\n")
+    result: List[str] = []
+    for line in lines:
+        if skip_blank and line.strip() == "":
+            result.append(line)
+        else:
+            result.append(prefix + line)
+    return "\n".join(result)

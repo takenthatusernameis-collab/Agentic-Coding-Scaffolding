@@ -15720,6 +15720,7 @@ from prompt_utils import (
     extract_placeholders,
     format_prompt_template,
     has_placeholders,
+    indent_lines,
     truncate_prompt,
     truncate_words,
     wrap_prompt,
@@ -15980,6 +15981,39 @@ class TestTruncateWords(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             truncate_words(123, 2)  # type: ignore[arg-type]
+
+
+class TestIndentLines(unittest.TestCase):
+    def test_basic(self):
+        result = indent_lines("a\nb\nc")
+        self.assertEqual(result, "    a\n    b\n    c")
+
+    def test_custom_prefix(self):
+        result = indent_lines("a\nb", prefix="> ")
+        self.assertEqual(result, "> a\n> b")
+
+    def test_skip_blank_default_off(self):
+        result = indent_lines("a\n\nb")
+        self.assertEqual(result, "    a\n    \n    b")
+
+    def test_skip_blank_true(self):
+        result = indent_lines("a\n\nb", skip_blank=True)
+        self.assertEqual(result, "    a\n\n    b")
+
+    def test_empty(self):
+        self.assertEqual(indent_lines(""), "")
+
+    def test_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            indent_lines(123)  # type: ignore[arg-type]
+
+    def test_rejects_non_str_prefix(self):
+        with self.assertRaises(TypeError):
+            indent_lines("a", prefix=123)  # type: ignore[arg-type]
+
+    def test_rejects_non_bool_skip_blank(self):
+        with self.assertRaises(TypeError):
+            indent_lines("a", skip_blank="yes")  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -24147,6 +24181,7 @@ __all__: List[str] = [
     "count_sentences",
     "truncate_words",
     "truncate_lines",
+    "indent_lines",
 ]
 
 
@@ -24607,6 +24642,48 @@ def truncate_lines(text: str, max_lines: int, suffix: str = "...") -> str:
     if max_lines == 0:
         return suffix if suffix else ""
     return "\n".join(lines[:max_lines]) + suffix
+
+
+def indent_lines(text: str, prefix: str = "    ", *, skip_blank: bool = False) -> str:
+    """Prefix every line of *text* with *prefix*.
+
+    A companion to :func:`truncate_lines` and :func:`wrap_prompt` that adds a
+    leading prefix to each line. Blank lines are left untouched when
+    *skip_blank* is True (the default), which is useful for indenting code
+    blocks without turning empty lines into lines of whitespace.
+
+    Args:
+        text: The text to indent.
+        prefix: The string to prepend to each non-blank line.
+        skip_blank: If True, leave blank lines without the prefix.
+
+    Returns:
+        The indented text.
+
+    Raises:
+        TypeError: If *text* or *prefix* is not a string, or *skip_blank* is
+            not a bool.
+
+    Examples:
+        >>> indent_lines("a\\nb\\nc")
+        '    a\\n    b\\n    c'
+        >>> indent_lines("a\\n\\nb", skip_blank=True)
+        '    a\\n\\n    b'
+    """
+    _require_string(text, "text")
+    _require_string(prefix, "prefix")
+    if not isinstance(skip_blank, bool):
+        raise TypeError(f"skip_blank must be a bool, got {type(skip_blank).__name__}")
+    if not text:
+        return text
+    lines = text.split("\n")
+    result: List[str] = []
+    for line in lines:
+        if skip_blank and line.strip() == "":
+            result.append(line)
+        else:
+            result.append(prefix + line)
+    return "\n".join(result)
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -35837,6 +35914,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
 
+- Added `indent_lines(text, prefix="    ", *, skip_blank=False)` to `prompt_utils.py` as a companion to `truncate_lines` and `wrap_prompt`: it prefixes every line of *text* with *prefix*, leaving blank lines untouched when *skip_blank* is True. It validates that *text* and *prefix* are strings and *skip_blank* is a bool, raising `TypeError` otherwise. Added `TestIndentLines` to `tests/test_prompt_utils.py` covering the default prefix, a custom prefix, blank-line handling with both modes, the empty-string case, and the `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `truncate_lines` to `prompt_utils.py`.
 - Added `is_pangram(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* contains every letter of the English alphabet at least once (case-insensitive, ignoring non-alphabetic characters), `False` otherwise (including for the empty string). Added `TestIsPangram` to `tests/test_strings.py`. Updated the `strings` module section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -37124,7 +37203,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, and `truncate_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, and `indent_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

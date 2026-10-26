@@ -12,6 +12,7 @@ from prompt_utils import (
     extract_placeholders,
     format_prompt_template,
     has_placeholders,
+    indent_lines,
     truncate_prompt,
     truncate_words,
     wrap_prompt,
@@ -272,6 +273,39 @@ class TestTruncateWords(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             truncate_words(123, 2)  # type: ignore[arg-type]
+
+
+class TestIndentLines(unittest.TestCase):
+    def test_basic(self):
+        result = indent_lines("a\nb\nc")
+        self.assertEqual(result, "    a\n    b\n    c")
+
+    def test_custom_prefix(self):
+        result = indent_lines("a\nb", prefix="> ")
+        self.assertEqual(result, "> a\n> b")
+
+    def test_skip_blank_default_off(self):
+        result = indent_lines("a\n\nb")
+        self.assertEqual(result, "    a\n    \n    b")
+
+    def test_skip_blank_true(self):
+        result = indent_lines("a\n\nb", skip_blank=True)
+        self.assertEqual(result, "    a\n\n    b")
+
+    def test_empty(self):
+        self.assertEqual(indent_lines(""), "")
+
+    def test_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            indent_lines(123)  # type: ignore[arg-type]
+
+    def test_rejects_non_str_prefix(self):
+        with self.assertRaises(TypeError):
+            indent_lines("a", prefix=123)  # type: ignore[arg-type]
+
+    def test_rejects_non_bool_skip_blank(self):
+        with self.assertRaises(TypeError):
+            indent_lines("a", skip_blank="yes")  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
