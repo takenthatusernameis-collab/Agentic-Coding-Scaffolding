@@ -15169,7 +15169,27 @@ TESTSTATS
 cat > "$OUTPUT_DIR/math_utils.py" <<'MATH'
 """Mathematical utility functions."""
 
+from __future__ import annotations
+
 import math
+from typing import List
+
+__all__: List[str] = [
+    "factorial",
+    "fibonacci",
+    "gcd",
+    "lcm",
+    "is_prime",
+    "clamp",
+    "is_even",
+]
+
+
+def _require_int(value: object, name: str) -> int:
+    """Validate that *value* is an int (rejecting bool) and return it."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
 
 
 def factorial(n: int) -> int:
@@ -15182,8 +15202,8 @@ def factorial(n: int) -> int:
         The factorial of n (n!).
 
     Raises:
-        ValueError: If n is negative.
-        OverflowError: If n is too large.
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is negative.
 
     Examples:
         >>> factorial(0)
@@ -15191,14 +15211,13 @@ def factorial(n: int) -> int:
         >>> factorial(5)
         120
     """
+    n = _require_int(n, "n")
     if n < 0:
         raise ValueError("Factorial is not defined for negative numbers")
-    if n > 20:  # Prevent large numbers that might cause issues
-        result = 1
-        for i in range(2, n + 1):
-            result *= i
-        return result
-    return math.factorial(n)
+    result = 1
+    for i in range(2, n + 1):
+        result *= i
+    return result
 
 
 def fibonacci(n: int) -> int:
@@ -15211,7 +15230,8 @@ def fibonacci(n: int) -> int:
         The nth Fibonacci number.
 
     Raises:
-        ValueError: If n is negative.
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is negative.
 
     Examples:
         >>> fibonacci(0)
@@ -15221,6 +15241,7 @@ def fibonacci(n: int) -> int:
         >>> fibonacci(5)
         5
     """
+    n = _require_int(n, "n")
     if n < 0:
         raise ValueError("Fibonacci is not defined for negative numbers")
     if n == 0:
@@ -15243,12 +15264,17 @@ def gcd(a: int, b: int) -> int:
     Returns:
         The GCD of a and b.
 
+    Raises:
+        TypeError: If *a* or *b* is not an int.
+
     Examples:
         >>> gcd(48, 18)
         6
         >>> gcd(17, 13)
         1
     """
+    a = _require_int(a, "a")
+    b = _require_int(b, "b")
     return math.gcd(a, b)
 
 
@@ -15262,12 +15288,17 @@ def lcm(a: int, b: int) -> int:
     Returns:
         The LCM of a and b.
 
+    Raises:
+        TypeError: If *a* or *b* is not an int.
+
     Examples:
         >>> lcm(4, 6)
         12
         >>> lcm(3, 5)
         15
     """
+    a = _require_int(a, "a")
+    b = _require_int(b, "b")
     if a == 0 or b == 0:
         return 0
     return abs(a * b) // math.gcd(a, b)
@@ -15283,7 +15314,8 @@ def is_prime(n: int) -> bool:
         True if n is prime, False otherwise.
 
     Raises:
-        ValueError: If n < 2.
+        TypeError: If *n* is not an int.
+        ValueError: If *n* < 2.
 
     Examples:
         >>> is_prime(2)
@@ -15293,6 +15325,7 @@ def is_prime(n: int) -> bool:
         >>> is_prime(17)
         True
     """
+    n = _require_int(n, "n")
     if n < 2:
         raise ValueError("Prime check is only defined for integers >= 2")
     if n <= 3:
@@ -15319,6 +15352,7 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
         The clamped value.
 
     Raises:
+        TypeError: If any argument is not a number.
         ValueError: If min_val > max_val.
 
     Examples:
@@ -15329,15 +15363,36 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
         >>> clamp(15, 0, 10)
         10
     """
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"value must be a number, got {type(value).__name__}")
+    if isinstance(min_val, bool) or not isinstance(min_val, (int, float)):
+        raise TypeError(f"min_val must be a number, got {type(min_val).__name__}")
+    if isinstance(max_val, bool) or not isinstance(max_val, (int, float)):
+        raise TypeError(f"max_val must be a number, got {type(max_val).__name__}")
     if min_val > max_val:
         raise ValueError("min_val must be <= max_val")
     return max(min_val, min(value, max_val))
 
 
 def is_even(value: int) -> bool:
-    """Return True if *value* is an even integer."""
-    if not isinstance(value, int):
-        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    """Return True if *value* is an even integer.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is even.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_even(2)
+        True
+        >>> is_even(3)
+        False
+    """
+    value = _require_int(value, "value")
     return value % 2 == 0
 MATH
 
@@ -17101,7 +17156,7 @@ cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
 
 import unittest
 
-from math_utils import clamp, factorial, fibonacci, gcd, is_prime, lcm
+from math_utils import clamp, factorial, fibonacci, gcd, is_even, is_prime, lcm
 
 
 class TestFactorial(unittest.TestCase):
@@ -17109,12 +17164,24 @@ class TestFactorial(unittest.TestCase):
         self.assertEqual(factorial(0), 1)
 
     def test_factorial_positive(self) -> None:
-        self.assertEqual(factorial(5), 120)
         self.assertEqual(factorial(1), 1)
+        self.assertEqual(factorial(5), 120)
+
+    def test_factorial_large(self) -> None:
+        self.assertEqual(factorial(10), 3628800)
+        self.assertEqual(factorial(20), 2432902008176640000)
 
     def test_factorial_negative_raises(self) -> None:
         with self.assertRaises(ValueError):
             factorial(-1)
+
+    def test_factorial_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            factorial(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            factorial("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            factorial(True)  # type: ignore[arg-type]
 
 
 class TestFibonacci(unittest.TestCase):
@@ -17125,12 +17192,22 @@ class TestFibonacci(unittest.TestCase):
         self.assertEqual(fibonacci(1), 1)
 
     def test_fibonacci_sequence(self) -> None:
+        self.assertEqual(fibonacci(2), 1)
         self.assertEqual(fibonacci(5), 5)
         self.assertEqual(fibonacci(6), 8)
+        self.assertEqual(fibonacci(10), 55)
 
     def test_fibonacci_negative_raises(self) -> None:
         with self.assertRaises(ValueError):
             fibonacci(-1)
+
+    def test_fibonacci_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            fibonacci(1.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            fibonacci("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            fibonacci(False)  # type: ignore[arg-type]
 
 
 class TestGCD(unittest.TestCase):
@@ -17143,6 +17220,23 @@ class TestGCD(unittest.TestCase):
     def test_gcd_same(self) -> None:
         self.assertEqual(gcd(5, 5), 5)
 
+    def test_gcd_with_zero(self) -> None:
+        self.assertEqual(gcd(0, 5), 5)
+        self.assertEqual(gcd(5, 0), 5)
+        self.assertEqual(gcd(0, 0), 0)
+
+    def test_gcd_negative(self) -> None:
+        self.assertEqual(gcd(-48, 18), 6)
+        self.assertEqual(gcd(48, -18), 6)
+
+    def test_gcd_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            gcd(1.5, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd("48", 18)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd(48, True)  # type: ignore[arg-type]
+
 
 class TestLCM(unittest.TestCase):
     def test_lcm_basic(self) -> None:
@@ -17153,6 +17247,20 @@ class TestLCM(unittest.TestCase):
 
     def test_lcm_zero(self) -> None:
         self.assertEqual(lcm(0, 5), 0)
+        self.assertEqual(lcm(5, 0), 0)
+        self.assertEqual(lcm(0, 0), 0)
+
+    def test_lcm_negative(self) -> None:
+        self.assertEqual(lcm(-4, 6), 12)
+        self.assertEqual(lcm(4, -6), 12)
+
+    def test_lcm_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            lcm(1.5, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm("4", 6)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm(4, False)  # type: ignore[arg-type]
 
 
 class TestIsPrime(unittest.TestCase):
@@ -17168,9 +17276,24 @@ class TestIsPrime(unittest.TestCase):
         self.assertFalse(is_prime(15))
 
     def test_prime_edge_cases(self) -> None:
-        self.assertRaises(ValueError, is_prime, 1)
-        self.assertRaises(ValueError, is_prime, 0)
-        self.assertRaises(ValueError, is_prime, -7)
+        with self.assertRaises(ValueError):
+            is_prime(1)
+        with self.assertRaises(ValueError):
+            is_prime(0)
+        with self.assertRaises(ValueError):
+            is_prime(-7)
+
+    def test_prime_large(self) -> None:
+        self.assertTrue(is_prime(9999991))
+        self.assertFalse(is_prime(9999993))
+
+    def test_prime_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_prime(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(True)  # type: ignore[arg-type]
 
 
 class TestClamp(unittest.TestCase):
@@ -17183,9 +17306,48 @@ class TestClamp(unittest.TestCase):
     def test_clamp_above_range(self) -> None:
         self.assertEqual(clamp(15, 0, 10), 10)
 
+    def test_clamp_at_boundaries(self) -> None:
+        self.assertEqual(clamp(0, 0, 10), 0)
+        self.assertEqual(clamp(10, 0, 10), 10)
+
+    def test_clamp_floats(self) -> None:
+        self.assertAlmostEqual(clamp(2.5, 0.0, 1.0), 1.0)
+        self.assertAlmostEqual(clamp(-0.5, 0.0, 1.0), 0.0)
+        self.assertAlmostEqual(clamp(0.5, 0.0, 1.0), 0.5)
+
     def test_clamp_invalid_range(self) -> None:
         with self.assertRaises(ValueError):
             clamp(5, 10, 0)
+
+    def test_clamp_non_number_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            clamp("5", 0, 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(5, "0", 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(5, 0, "10")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(True, 0, 10)  # type: ignore[arg-type]
+
+
+class TestIsEven(unittest.TestCase):
+    def test_even_ints(self) -> None:
+        self.assertTrue(is_even(0))
+        self.assertTrue(is_even(2))
+        self.assertTrue(is_even(-4))
+
+    def test_odd_ints(self) -> None:
+        self.assertFalse(is_even(1))
+        self.assertFalse(is_even(3))
+        self.assertFalse(is_even(-3))
+
+    def test_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_even(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_even("2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_even(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -36808,11 +36970,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+- Audited and hardened `math_utils.py` boundary cases to match project conventions: added typed `__all__`, a `_require_int` helper, and `TypeError`/`ValueError` validation on every public function (`factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `clamp`, `is_even`); `clamp` now accepts floats and rejects bools. Expanded `tests/test_math_utils.py` with boundary tests (zero, negatives, large factorials, zero/negative args for gcd/lcm, large primes, floats, bools, non-ints) and added `is_even` with tests. Updated the `math_utils` module tree entry and prose section of `README.md`. Synchronized `math_utils.py`, `tests/test_math_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `z_scores(numbers, population=True)` to `stats.py` returning the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. Added `TestZScores` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Audited `strings.py` boundary cases (empty strings, single char, whitespace-only, unicode edge cases, non-string/invalid-type inputs, negative/invalid ints, very long strings). Added boundary tests in `tests/test_strings.py` for partition/rpartition/split_lines/join_lines/replace_many/strip_html/between/contains_any/contains_all/char_frequency/snake_to_camel/is_subsequence unicode cases and more TypeError/ValueError paths; all existing behavior verified. Cross-checked helper logic against brute-force expectations where practical. Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 ## Unreleased
+- Bootstrap session verified scaffold sync, lint, and typecheck all pass; posted next task to audit `math_utils.py` boundary cases.
 - Audited and hardened `array_utils.py` boundary cases (non-array/non-string/non-int/invalid iterables), added stricter TypeError validation consistent with project style, and expanded `tests/test_array_utils.py` with boundary tests; synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md` into `scaffold.sh` with `make refresh-scaffold`.
 
 - Added `hostname_utils.py` with `is_valid_hostname`, `normalize_hostname`, `get_local_hostname`, `is_fully_qualified`, and `split_hostname` helpers, each with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` input validation, plus unit tests in `tests/test_hostname_utils.py`. Synchronized `hostname_utils.py`, `tests/test_hostname_utils.py`, `README.md`, `.kilo/command/scaffold-project.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -37256,7 +37421,7 @@ shapes.py                    # Geometry utilities for areas and perimeters
 strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
-math_utils.py               # Mathematical utility functions
+math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, clamp, is_even)
 mmap_utils.py               # Utilities wrapping the standard library mmap module
 data_utils.py                # Data utility functions
 dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
@@ -37886,7 +38051,7 @@ MIT
 
 ## Math Utilities Module
 
-The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, and `clamp`. The module is tested in `tests/test_math_utils.py`.
+The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, and `clamp`. `is_even` tests whether an integer is even. The module is tested in `tests/test_math_utils.py`.
 
 ## Data Utilities Module
 

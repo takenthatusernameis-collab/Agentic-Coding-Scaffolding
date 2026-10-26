@@ -1,6 +1,26 @@
 """Mathematical utility functions."""
 
+from __future__ import annotations
+
 import math
+from typing import List
+
+__all__: List[str] = [
+    "factorial",
+    "fibonacci",
+    "gcd",
+    "lcm",
+    "is_prime",
+    "clamp",
+    "is_even",
+]
+
+
+def _require_int(value: object, name: str) -> int:
+    """Validate that *value* is an int (rejecting bool) and return it."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int, got {type(value).__name__}")
+    return value
 
 
 def factorial(n: int) -> int:
@@ -13,8 +33,8 @@ def factorial(n: int) -> int:
         The factorial of n (n!).
 
     Raises:
-        ValueError: If n is negative.
-        OverflowError: If n is too large.
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is negative.
 
     Examples:
         >>> factorial(0)
@@ -22,14 +42,13 @@ def factorial(n: int) -> int:
         >>> factorial(5)
         120
     """
+    n = _require_int(n, "n")
     if n < 0:
         raise ValueError("Factorial is not defined for negative numbers")
-    if n > 20:  # Prevent large numbers that might cause issues
-        result = 1
-        for i in range(2, n + 1):
-            result *= i
-        return result
-    return math.factorial(n)
+    result = 1
+    for i in range(2, n + 1):
+        result *= i
+    return result
 
 
 def fibonacci(n: int) -> int:
@@ -42,7 +61,8 @@ def fibonacci(n: int) -> int:
         The nth Fibonacci number.
 
     Raises:
-        ValueError: If n is negative.
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is negative.
 
     Examples:
         >>> fibonacci(0)
@@ -52,6 +72,7 @@ def fibonacci(n: int) -> int:
         >>> fibonacci(5)
         5
     """
+    n = _require_int(n, "n")
     if n < 0:
         raise ValueError("Fibonacci is not defined for negative numbers")
     if n == 0:
@@ -74,12 +95,17 @@ def gcd(a: int, b: int) -> int:
     Returns:
         The GCD of a and b.
 
+    Raises:
+        TypeError: If *a* or *b* is not an int.
+
     Examples:
         >>> gcd(48, 18)
         6
         >>> gcd(17, 13)
         1
     """
+    a = _require_int(a, "a")
+    b = _require_int(b, "b")
     return math.gcd(a, b)
 
 
@@ -93,12 +119,17 @@ def lcm(a: int, b: int) -> int:
     Returns:
         The LCM of a and b.
 
+    Raises:
+        TypeError: If *a* or *b* is not an int.
+
     Examples:
         >>> lcm(4, 6)
         12
         >>> lcm(3, 5)
         15
     """
+    a = _require_int(a, "a")
+    b = _require_int(b, "b")
     if a == 0 or b == 0:
         return 0
     return abs(a * b) // math.gcd(a, b)
@@ -114,7 +145,8 @@ def is_prime(n: int) -> bool:
         True if n is prime, False otherwise.
 
     Raises:
-        ValueError: If n < 2.
+        TypeError: If *n* is not an int.
+        ValueError: If *n* < 2.
 
     Examples:
         >>> is_prime(2)
@@ -124,6 +156,7 @@ def is_prime(n: int) -> bool:
         >>> is_prime(17)
         True
     """
+    n = _require_int(n, "n")
     if n < 2:
         raise ValueError("Prime check is only defined for integers >= 2")
     if n <= 3:
@@ -150,6 +183,7 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
         The clamped value.
 
     Raises:
+        TypeError: If any argument is not a number.
         ValueError: If min_val > max_val.
 
     Examples:
@@ -160,13 +194,34 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
         >>> clamp(15, 0, 10)
         10
     """
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"value must be a number, got {type(value).__name__}")
+    if isinstance(min_val, bool) or not isinstance(min_val, (int, float)):
+        raise TypeError(f"min_val must be a number, got {type(min_val).__name__}")
+    if isinstance(max_val, bool) or not isinstance(max_val, (int, float)):
+        raise TypeError(f"max_val must be a number, got {type(max_val).__name__}")
     if min_val > max_val:
         raise ValueError("min_val must be <= max_val")
     return max(min_val, min(value, max_val))
 
 
 def is_even(value: int) -> bool:
-    """Return True if *value* is an even integer."""
-    if not isinstance(value, int):
-        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    """Return True if *value* is an even integer.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is even.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_even(2)
+        True
+        >>> is_even(3)
+        False
+    """
+    value = _require_int(value, "value")
     return value % 2 == 0
