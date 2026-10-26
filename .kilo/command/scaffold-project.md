@@ -459,7 +459,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
 - `queue_utils.py` — FIFO queue helpers (`Queue` class, `enqueue`, `dequeue`, `peek`, `size`, `is_empty`, `clear`)
 - `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
-- `version_utils.py` — version parsing, comparison, and normalization utilities
+- `version_utils.py` — version parsing, comparison, normalization, and component extraction utilities
 - `tests/test_version_utils.py` — unit tests for `version_utils.py`
 - `sys_utils.py` — Python runtime and system information utilities (`get_python_version`, `get_executable`, `get_platform`, `get_path`, `get_argv`, `get_recursion_limit`, `set_recursion_limit`, stream encodings, frame info, refcount)
 - `tests/test_sys_utils.py` — unit tests for `sys_utils.py`
@@ -469,7 +469,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
 - `textwrap_utils.py` — text wrapping utilities (`wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, `fill_text`)
 - `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
-- `prime_utils.py` — prime number utilities (`is_prime`, `prime_factors`, `nth_prime`, `primes_up_to`, `is_coprime`, `is_circular_prime`, `next_prime`, `prev_prime`, `is_perfect_square`)
+- `prime_utils.py` — prime number utilities (`is_prime`, `prime_factors`, `nth_prime`, `primes_up_to`, `is_coprime`, `is_circular_prime`, `next_prime`, `prev_prime`, `is_perfect_square`, `is_power_of_two`, `is_semiprime`, `is_squarefree`, `is_prime_power`, `is_emirp`, `is_twin_prime`, `is_palindromic_prime`, `is_mersenne_prime`, `is_sophie_germain_prime`, `is_safe_prime`, `sum_of_proper_divisors`, `aliquot_sum`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_cousin_prime`, `is_sexy_prime`)
 - `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
 - `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`)
 - `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`

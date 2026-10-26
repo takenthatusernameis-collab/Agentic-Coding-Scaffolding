@@ -33726,7 +33726,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
 - `queue_utils.py` — FIFO queue helpers (`Queue` class, `enqueue`, `dequeue`, `peek`, `size`, `is_empty`, `clear`)
 - `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
-- `version_utils.py` — version parsing, comparison, and normalization utilities
+- `version_utils.py` — version parsing, comparison, normalization, and component extraction utilities
 - `tests/test_version_utils.py` — unit tests for `version_utils.py`
 - `sys_utils.py` — Python runtime and system information utilities (`get_python_version`, `get_executable`, `get_platform`, `get_path`, `get_argv`, `get_recursion_limit`, `set_recursion_limit`, stream encodings, frame info, refcount)
 - `tests/test_sys_utils.py` — unit tests for `sys_utils.py`
@@ -33736,7 +33736,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
 - `textwrap_utils.py` — text wrapping utilities (`wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, `fill_text`)
 - `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
-- `prime_utils.py` — prime number utilities (`is_prime`, `prime_factors`, `nth_prime`, `primes_up_to`, `is_coprime`, `is_circular_prime`, `next_prime`, `prev_prime`, `is_perfect_square`)
+- `prime_utils.py` — prime number utilities (`is_prime`, `prime_factors`, `nth_prime`, `primes_up_to`, `is_coprime`, `is_circular_prime`, `next_prime`, `prev_prime`, `is_perfect_square`, `is_power_of_two`, `is_semiprime`, `is_squarefree`, `is_prime_power`, `is_emirp`, `is_twin_prime`, `is_palindromic_prime`, `is_mersenne_prime`, `is_sophie_germain_prime`, `is_safe_prime`, `sum_of_proper_divisors`, `aliquot_sum`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_cousin_prime`, `is_sexy_prime`)
 - `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
 - `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`)
 - `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`
@@ -35997,7 +35997,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_circular_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_circular_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_sexy_prime)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
@@ -36851,7 +36851,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -36859,7 +36859,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, and `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, and `is_sexy_prime` tests whether a prime differs by 6 from another prime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 ## Decimal Utilities Module
 
@@ -59534,6 +59534,8 @@ __all__: List[str] = [
     "is_perfect_number",
     "is_abundant_number",
     "is_deficient_number",
+    "is_cousin_prime",
+    "is_sexy_prime",
 ]
 
 
@@ -60228,6 +60230,29 @@ def is_cousin_prime(n: int) -> bool:
     if not is_prime(n):
         return False
     return is_prime(n - 4) or is_prime(n + 4)
+
+
+def is_sexy_prime(n: int) -> bool:
+    """Return True if *n* is a sexy prime.
+
+    A sexy prime is a prime that is a member of a pair of primes that
+    differ by 6 (e.g., 5 and 11, 7 and 13, 11 and 17).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a sexy prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n < 2:
+        return False
+    if not is_prime(n):
+        return False
+    return is_prime(n - 6) or is_prime(n + 6)
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -60252,6 +60277,7 @@ from prime_utils import (
     is_prime_power,
     is_safe_prime,
     is_semiprime,
+    is_sexy_prime,
     is_sophie_germain_prime,
     is_squarefree,
     is_twin_prime,
@@ -60806,10 +60832,6 @@ class TestIsDeficientNumber(unittest.TestCase):
             is_deficient_number(2.0)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestIsCousinPrime(unittest.TestCase):
     def test_true_cases(self):
         for p in [3, 7, 13, 19, 37, 43]:
@@ -60822,6 +60844,24 @@ class TestIsCousinPrime(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_cousin_prime(3.0)
+
+
+class TestIsSexyPrime(unittest.TestCase):
+    def test_true_cases(self):
+        for p in [5, 7, 11, 13, 17, 23, 31, 37]:
+            self.assertTrue(is_sexy_prime(p))
+
+    def test_false_cases(self):
+        for n in [2, 3, 0, 1, 4, 127, 139, 149]:
+            self.assertFalse(is_sexy_prime(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_sexy_prime(5.0)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_PRIME_UTILS
 
 # --- pstats_utils.py ---
@@ -78490,6 +78530,9 @@ __all__: List[str] = [
     "is_less",
     "is_equal",
     "is_valid_version",
+    "get_major_version",
+    "get_minor_version",
+    "get_patch_version",
     "is_version_greater",
     "is_version_less",
     "is_version_equal",
@@ -78797,6 +78840,63 @@ def is_valid_version(version: object) -> bool:
     if not version:
         return False
     return all(part.isdigit() for part in version.split("."))
+
+
+def get_major_version(version: str) -> int:
+    """Return the major version component.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The major version component.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = parse_version(version)
+    return parts[0] if parts else 0
+
+
+def get_minor_version(version: str) -> int:
+    """Return the minor version component.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The minor version component.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = parse_version(version)
+    return parts[1] if len(parts) > 1 else 0
+
+
+def get_patch_version(version: str) -> int:
+    """Return the patch version component.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The patch version component.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    parts = parse_version(version)
+    return parts[2] if len(parts) > 2 else 0
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
@@ -78811,6 +78911,9 @@ from version_utils import (
     bump_patch,
     bump_version,
     compare_versions,
+    get_major_version,
+    get_minor_version,
+    get_patch_version,
     is_equal,
     is_greater,
     is_less,
@@ -79070,6 +79173,33 @@ class TestIsValidVersion(unittest.TestCase):
     def test_non_string(self):
         self.assertFalse(is_valid_version(123))  # type: ignore[arg-type]
         self.assertFalse(is_valid_version(None))  # type: ignore[arg-type]
+
+
+class TestGetVersionComponents(unittest.TestCase):
+    def test_major(self):
+        self.assertEqual(get_major_version("1.2.3"), 1)
+        self.assertEqual(get_major_version("5"), 5)
+
+    def test_minor(self):
+        self.assertEqual(get_minor_version("1.2.3"), 2)
+        self.assertEqual(get_minor_version("1"), 0)
+
+    def test_patch(self):
+        self.assertEqual(get_patch_version("1.2.3"), 3)
+        self.assertEqual(get_patch_version("1.2"), 0)
+        self.assertEqual(get_patch_version("1"), 0)
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            get_major_version(1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_minor_version(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_patch_version([])  # type: ignore[arg-type]
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            get_major_version("1.2.a")
 
 
 if __name__ == "__main__":

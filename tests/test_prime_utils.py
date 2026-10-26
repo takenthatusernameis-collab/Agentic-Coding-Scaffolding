@@ -18,6 +18,7 @@ from prime_utils import (
     is_prime_power,
     is_safe_prime,
     is_semiprime,
+    is_sexy_prime,
     is_sophie_germain_prime,
     is_squarefree,
     is_twin_prime,
@@ -572,10 +573,6 @@ class TestIsDeficientNumber(unittest.TestCase):
             is_deficient_number(2.0)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestIsCousinPrime(unittest.TestCase):
     def test_true_cases(self):
         for p in [3, 7, 13, 19, 37, 43]:
@@ -588,3 +585,21 @@ class TestIsCousinPrime(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_cousin_prime(3.0)
+
+
+class TestIsSexyPrime(unittest.TestCase):
+    def test_true_cases(self):
+        for p in [5, 7, 11, 13, 17, 23, 31, 37]:
+            self.assertTrue(is_sexy_prime(p))
+
+    def test_false_cases(self):
+        for n in [2, 3, 0, 1, 4, 127, 139, 149]:
+            self.assertFalse(is_sexy_prime(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_sexy_prime(5.0)
+
+
+if __name__ == "__main__":
+    unittest.main()
