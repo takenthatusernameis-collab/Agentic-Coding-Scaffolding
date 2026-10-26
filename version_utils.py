@@ -49,13 +49,12 @@ __all__: List[str] = [
     "min_version",
     "bump_version",
     "bump",
+    "increment_version",
+    "increment",
     "is_stable",
     "is_initial_release",
     "is_compatible",
     "version_satisfies_major",
-    "decrement_major",
-    "decrement_minor",
-    "decrement_patch",
     "decrement_version",
     "decrement",
 ]
@@ -286,6 +285,10 @@ def bump_version(version: str, part: str = "patch") -> str:
 
 
 bump = bump_version
+
+
+increment_version = bump_version
+increment = increment_version
 
 
 def is_version_greater(v1: str, v2: str) -> bool:
