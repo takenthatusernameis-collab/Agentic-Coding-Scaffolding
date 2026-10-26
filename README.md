@@ -38,6 +38,7 @@ tools/                       # Maintainer tools
 hello.py                     # Sample application entry point
 abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
 backoff_utils.py             # Backoff and retry delay utilities (constant, exponential)
+hostname_utils.py            # Hostname validation and normalization utilities (is_valid_hostname, normalize_hostname, get_local_hostname, is_fully_qualified, split_hostname)
 aifc_utils.py                # AIFF and AIFF-C format utilities wrapping stdlib aifc (open, is_available, aliases, re-exports Aifc_read, Aifc_write, Error) with input validation
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
 audioop_utils.py             # Audio utilities wrapping the standard library audioop module
@@ -598,6 +599,7 @@ Tasks for the next agent are posted on the Kilo shared board. Each session:
 
 The project includes abstract base class utilities in `abc_utils.py` wrapping the standard library `abc` module: `ABC` and `ABCMeta` return the standard abstract base class and metaclass, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, and `abstractproperty` decorate methods and properties as abstract, `get_cache_token` returns the abstract methods cache token, and `update_abstractmethods` recomputes the abstract methods set on a class. The module is tested in `tests/test_abc_utils.py`.
 The project includes backoff utilities in `backoff_utils.py`: `constant_backoff`, `exponential_backoff`, and `backoff_delay`. The module is tested in `tests/test_backoff_utils.py`.
+The project includes hostname utilities in `hostname_utils.py`: `is_valid_hostname` validates an RFC 1123 hostname, `normalize_hostname` lowercases and strips a trailing dot, `get_local_hostname` returns the local machine hostname, `is_fully_qualified` reports whether a hostname is fully qualified, and `split_hostname` returns the DNS labels. All functions validate their inputs and raise ``TypeError`` or ``ValueError`` on invalid arguments. The module is tested in `tests/test_hostname_utils.py`.
 
 The project includes AIFF and AIFF-C format utilities in `aifc_utils.py` wrapping the standard library `aifc` module: `open` opens an AIFF file and returns an `Aifc_read` or `Aifc_write` object, `is_available` reports whether the interpreter ships the module, and aliases `open_aifc`, `read_aifc`, `write_aifc`, `open_read`, and `open_write` are provided. The classes `Aifc_read`, `Aifc_write`, and `Error` are re-exported. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `aifc` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_aifc_utils.py`.
 

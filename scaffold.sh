@@ -169,6 +169,9 @@
 #   - backoff_utils.py — # Backoff and retry delay utilities (constant, exponential)
 #   - test_backoff_utils.py — # Tests for backoff_utils.py
 
+#   - hostname_utils.py — # Hostname validation and normalization utilities (is_valid_hostname, normalize_hostname, get_local_hostname, is_fully_qualified, split_hostname)
+#   - test_hostname_utils.py — # Tests for hostname_utils.py
+
 #   - bit_utils.py — # Bitwise utility functions for working with binary representations
 
 #   - concurrent_utils.py — # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
@@ -4378,6 +4381,7 @@ py_modules = [
     "hello",
     "calculator",
     "backoff_utils",
+    "hostname_utils",
     "collections_utils",
     "config_utils",
     "configparser_utils",
@@ -34488,8 +34492,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_shutil_utils.py` — unit tests for `shutil_utils.py`
 - `shlex_utils.py` — simple lexical analysis utilities wrapping the standard library `shlex` module (`split`, `quote`, `join`) with input validation
 - `backoff_utils.py` — backoff and retry delay utilities (`constant_backoff`, `exponential_backoff`, `backoff_delay`) with input validation
+- `hostname_utils.py` — hostname validation and normalization utilities (`is_valid_hostname`, `normalize_hostname`, `get_local_hostname`, `is_fully_qualified`, `split_hostname`) with input validation
 - `slugify_utils.py` — slug utilities converting strings into URL-friendly slugs (`slugify`, `is_slug`) with input validation
 - `tests/test_backoff_utils.py` — unit tests for `backoff_utils.py`
+- `tests/test_hostname_utils.py` — unit tests for `hostname_utils.py`
 - `tests/test_slugify_utils.py` — unit tests for `slugify_utils.py`
 - `tests/test_shlex_utils.py` — unit tests for `shlex_utils.py`
 - `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.
@@ -36223,6 +36229,8 @@ TEST_INTERVAL_UTILS
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
+- Added `hostname_utils.py` with `is_valid_hostname`, `normalize_hostname`, `get_local_hostname`, `is_fully_qualified`, and `split_hostname` helpers, each with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` input validation, plus unit tests in `tests/test_hostname_utils.py`. Synchronized `hostname_utils.py`, `tests/test_hostname_utils.py`, `README.md`, `.kilo/command/scaffold-project.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Audited `prime_utils` boundary cases (negative inputs, 0, 1, 2, 3, large primes, large prime powers) and confirmed every helper classifies them correctly: `is_prime`, `is_composite`, `is_semiprime`, `is_squarefree`, `is_prime_power`, `is_circular_prime`, `is_emirp`, `is_twin_prime`, `is_cousin_prime`, `is_sexy_prime`, `is_palindromic_prime`, `is_mersenne_prime`, `is_safe_prime`, `is_sophie_germain_prime`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `sum_of_proper_divisors`, `primes_up_to`, `nth_prime`, `next_prime`, `prev_prime`, `is_coprime`, `is_perfect_square`, and `prime_count` all behave as documented. Cross-checked `is_prime`, `prime_factors`, `prime_count`, `is_squarefree`, `is_semiprime`, and `is_prime_power` against brute-force reference implementations for the ranges −50..500 and 2..2000 with zero mismatches.
 
 - Added `prime_count` to the `prime_utils` module prose section of `README.md`; it was present in the architecture tree but missing from the prose description.
@@ -36647,6 +36655,7 @@ tools/                       # Maintainer tools
 hello.py                     # Sample application entry point
 abc_utils.py                 # Abstract base class utilities wrapping stdlib abc
 backoff_utils.py             # Backoff and retry delay utilities (constant, exponential)
+hostname_utils.py            # Hostname validation and normalization utilities (is_valid_hostname, normalize_hostname, get_local_hostname, is_fully_qualified, split_hostname)
 aifc_utils.py                # AIFF and AIFF-C format utilities wrapping stdlib aifc (open, is_available, aliases, re-exports Aifc_read, Aifc_write, Error) with input validation
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
 audioop_utils.py             # Audio utilities wrapping the standard library audioop module
@@ -37207,6 +37216,7 @@ Tasks for the next agent are posted on the Kilo shared board. Each session:
 
 The project includes abstract base class utilities in `abc_utils.py` wrapping the standard library `abc` module: `ABC` and `ABCMeta` return the standard abstract base class and metaclass, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, and `abstractproperty` decorate methods and properties as abstract, `get_cache_token` returns the abstract methods cache token, and `update_abstractmethods` recomputes the abstract methods set on a class. The module is tested in `tests/test_abc_utils.py`.
 The project includes backoff utilities in `backoff_utils.py`: `constant_backoff`, `exponential_backoff`, and `backoff_delay`. The module is tested in `tests/test_backoff_utils.py`.
+The project includes hostname utilities in `hostname_utils.py`: `is_valid_hostname` validates an RFC 1123 hostname, `normalize_hostname` lowercases and strips a trailing dot, `get_local_hostname` returns the local machine hostname, `is_fully_qualified` reports whether a hostname is fully qualified, and `split_hostname` returns the DNS labels. All functions validate their inputs and raise ``TypeError`` or ``ValueError`` on invalid arguments. The module is tested in `tests/test_hostname_utils.py`.
 
 The project includes AIFF and AIFF-C format utilities in `aifc_utils.py` wrapping the standard library `aifc` module: `open` opens an AIFF file and returns an `Aifc_read` or `Aifc_write` object, `is_available` reports whether the interpreter ships the module, and aliases `open_aifc`, `read_aifc`, `write_aifc`, `open_read`, and `open_write` are provided. The classes `Aifc_read`, `Aifc_write`, and `Error` are re-exported. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `aifc` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_aifc_utils.py`.
 
@@ -106645,6 +106655,225 @@ class TestProcessMessage(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_SMTPD_UTILS
+
+# --- hostname_utils.py ---
+cat > "$OUTPUT_DIR/hostname_utils.py" <<'HOSTNAME_UTILS'
+"""Hostname validation and normalization utilities."""
+
+from __future__ import annotations
+
+import socket
+from typing import List
+
+__all__: List[str] = [
+    "is_valid_hostname",
+    "normalize_hostname",
+    "get_local_hostname",
+    "is_fully_qualified",
+    "split_hostname",
+]
+
+
+def _require_string(value: object, name: str) -> str:
+    """Validate that *value* is a string, returning it or raising ``TypeError``."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _label_is_valid(label: str) -> bool:
+    """Return True when *label* is a valid DNS label.
+
+    A DNS label is 1 to 63 characters long, contains only ASCII alphanumeric
+    characters and hyphens, and does not start or end with a hyphen.
+    """
+    if not 1 <= len(label) <= 63:
+        return False
+    if label[0] == "-" or label[-1] == "-":
+        return False
+    for char in label:
+        if not (char.isascii() and char.isalnum()) and char != "-":
+            return False
+    return True
+
+
+def is_valid_hostname(hostname: str) -> bool:
+    """Return True if *hostname* is a valid RFC 1123 hostname.
+
+    A valid hostname consists of one or more labels separated by dots. Each
+    label must be between 1 and 63 characters long, contain only ASCII
+    alphanumeric characters and hyphens, and must not start or end with a
+    hyphen. The full hostname must not exceed 253 characters. An optional
+    trailing dot (fully qualified domain name form) is accepted.
+
+    Args:
+        hostname: The hostname to validate.
+
+    Returns:
+        True if *hostname* is valid, False otherwise.
+
+    Raises:
+        TypeError: If *hostname* is not a string.
+    """
+    _require_string(hostname, "hostname")
+    if not hostname:
+        return False
+    if len(hostname) > 253:
+        return False
+    candidate = hostname[:-1] if hostname.endswith(".") else hostname
+    if not candidate:
+        return False
+    labels = candidate.split(".")
+    return all(_label_is_valid(label) for label in labels)
+
+
+def normalize_hostname(hostname: str) -> str:
+    """Return a normalized, lowercase hostname without a trailing dot.
+
+    The hostname is validated first; a trailing dot is stripped and the
+    result is lowercased.
+
+    Args:
+        hostname: The hostname to normalize.
+
+    Returns:
+        The normalized hostname.
+
+    Raises:
+        TypeError: If *hostname* is not a string.
+        ValueError: If *hostname* is not a valid hostname.
+    """
+    _require_string(hostname, "hostname")
+    if not is_valid_hostname(hostname):
+        raise ValueError(f"invalid hostname: {hostname!r}")
+    normalized = hostname.lower()
+    if normalized.endswith("."):
+        normalized = normalized[:-1]
+    return normalized
+
+
+def get_local_hostname() -> str:
+    """Return the hostname of the local machine.
+
+    Returns:
+        The local hostname as reported by the operating system.
+    """
+    return socket.gethostname()
+
+
+def is_fully_qualified(hostname: str) -> bool:
+    """Return True if *hostname* is a fully qualified domain name.
+
+    A hostname is fully qualified when it ends with a trailing dot or when it
+    contains at least one dot separating multiple labels.
+
+    Args:
+        hostname: The hostname to check.
+
+    Returns:
+        True if *hostname* is fully qualified, False otherwise.
+
+    Raises:
+        TypeError: If *hostname* is not a string.
+    """
+    _require_string(hostname, "hostname")
+    if not hostname:
+        return False
+    return hostname.endswith(".") or "." in hostname
+
+
+def split_hostname(hostname: str) -> List[str]:
+    """Return the DNS labels of *hostname*.
+
+    An optional trailing dot is ignored. The labels are returned in order and
+    preserve their original case.
+
+    Args:
+        hostname: The hostname to split.
+
+    Returns:
+        A list of DNS labels.
+
+    Raises:
+        TypeError: If *hostname* is not a string.
+        ValueError: If *hostname* is not a valid hostname.
+    """
+    _require_string(hostname, "hostname")
+    if not is_valid_hostname(hostname):
+        raise ValueError(f"invalid hostname: {hostname!r}")
+    candidate = hostname[:-1] if hostname.endswith(".") else hostname
+    return candidate.split(".")
+HOSTNAME_UTILS
+
+# --- tests/test_hostname_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_hostname_utils.py" <<'TEST_HOSTNAME_UTILS'
+import unittest
+
+from hostname_utils import (
+    get_local_hostname,
+    is_fully_qualified,
+    is_valid_hostname,
+    normalize_hostname,
+    split_hostname,
+)
+
+
+class TestHostnameUtils(unittest.TestCase):
+    def test_valid_hostnames(self):
+        for hostname in ["example.com", "localhost", "my-host.example.org", "a.b.c", "EXAMPLE.COM", "sub.domain.co.uk"]:
+            self.assertTrue(is_valid_hostname(hostname), hostname)
+
+    def test_fully_qualified_form_is_valid(self):
+        self.assertTrue(is_valid_hostname("example.com."))
+
+    def test_invalid_hostnames(self):
+        for hostname in ["", "-example.com", "example-.com", "..", "ex*mple.com", "example..com", "-", "a" * 64 + ".com"]:
+            self.assertFalse(is_valid_hostname(hostname), hostname)
+
+    def test_hostname_too_long_is_invalid(self):
+        self.assertFalse(is_valid_hostname("a" * 254))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_valid_hostname(None)
+        with self.assertRaises(TypeError):
+            normalize_hostname(123)
+        with self.assertRaises(TypeError):
+            split_hostname(["example.com"])
+        with self.assertRaises(TypeError):
+            is_fully_qualified(b"example.com")
+
+    def test_normalize_hostname(self):
+        self.assertEqual(normalize_hostname("Example.COM."), "example.com")
+        self.assertEqual(normalize_hostname("My-Host.ORG"), "my-host.org")
+        self.assertEqual(normalize_hostname("example.com"), "example.com")
+
+    def test_normalize_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            normalize_hostname("-bad")
+
+    def test_get_local_hostname(self):
+        self.assertIsInstance(get_local_hostname(), str)
+
+    def test_is_fully_qualified(self):
+        self.assertTrue(is_fully_qualified("example.com."))
+        self.assertTrue(is_fully_qualified("example.com"))
+        self.assertFalse(is_fully_qualified("localhost"))
+        self.assertFalse(is_fully_qualified(""))
+
+    def test_split_hostname(self):
+        self.assertEqual(split_hostname("example.com."), ["example", "com"])
+        self.assertEqual(split_hostname("a.b.c"), ["a", "b", "c"])
+        self.assertEqual(split_hostname("Example.Com"), ["Example", "Com"])
+
+    def test_split_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            split_hostname("-bad")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_HOSTNAME_UTILS
 
 
 

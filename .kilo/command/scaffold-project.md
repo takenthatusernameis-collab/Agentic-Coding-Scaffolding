@@ -438,8 +438,10 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_shutil_utils.py` — unit tests for `shutil_utils.py`
 - `shlex_utils.py` — simple lexical analysis utilities wrapping the standard library `shlex` module (`split`, `quote`, `join`) with input validation
 - `backoff_utils.py` — backoff and retry delay utilities (`constant_backoff`, `exponential_backoff`, `backoff_delay`) with input validation
+- `hostname_utils.py` — hostname validation and normalization utilities (`is_valid_hostname`, `normalize_hostname`, `get_local_hostname`, `is_fully_qualified`, `split_hostname`) with input validation
 - `slugify_utils.py` — slug utilities converting strings into URL-friendly slugs (`slugify`, `is_slug`) with input validation
 - `tests/test_backoff_utils.py` — unit tests for `backoff_utils.py`
+- `tests/test_hostname_utils.py` — unit tests for `hostname_utils.py`
 - `tests/test_slugify_utils.py` — unit tests for `slugify_utils.py`
 - `tests/test_shlex_utils.py` — unit tests for `shlex_utils.py`
 - `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.
