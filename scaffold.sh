@@ -10979,6 +10979,9 @@ __all__: List[str] = [
     "count_words",
     "remove_punctuation",
     "remove_digits",
+    "is_palindrome",
+    "reverse_words",
+    "truncate",
 ]
 
 
@@ -11094,6 +11097,69 @@ def capitalize_words(s: str) -> str:
     """Capitalize the first letter of each word."""
     _require_string(s, "s")
     return " ".join(word.capitalize() for word in s.split(" "))
+
+
+def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) -> bool:
+    """Return True if *s* is a palindrome.
+
+    Args:
+        s: The string to check.
+        ignore_case: Whether to ignore case differences (default True).
+        ignore_spaces: Whether to ignore whitespace (default True).
+
+    Returns:
+        True if the string is a palindrome, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    _require_string(s, "s")
+    cleaned = []
+    for c in s:
+        if ignore_spaces and c.isspace():
+            continue
+        if not c.isalnum():
+            continue
+        if ignore_case:
+            cleaned.append(c.lower())
+        else:
+            cleaned.append(c)
+    cleaned_str = "".join(cleaned)
+    return cleaned_str == cleaned_str[::-1]
+
+
+def reverse_words(s: str) -> str:
+    """Reverse the order of words in a string."""
+    _require_string(s, "s")
+    words = s.split()
+    return " ".join(reversed(words))
+
+
+def truncate(s: str, length: int, suffix: str = "...") -> str:
+    """Truncate a string to a specified length.
+
+    Args:
+        s: The string to truncate.
+        length: Maximum length of the result.
+        suffix: Suffix to append if truncated (default "...").
+
+    Returns:
+        Truncated string.
+
+    Raises:
+        TypeError: If *s* is not a string or *length* is not an int.
+        ValueError: If *length* is negative.
+    """
+    _require_string(s, "s")
+    if not isinstance(length, int):
+        raise TypeError("length must be an int")
+    if length < 0:
+        raise ValueError("length must be non-negative")
+    if len(s) <= length:
+        return s
+    if length <= len(suffix):
+        return suffix[:length]
+    return s[: length - len(suffix)] + suffix
 
 
 def truncate(s: str, length: int, suffix: str = "...") -> str:
@@ -13923,6 +13989,64 @@ class TestNewHelpers(unittest.TestCase):
 
         self.assertEqual(remove_digits("a1b2c3"), "abc")
         self.assertEqual(remove_digits("no digits"), "no digits")
+
+    def test_is_palindrome(self):
+        from strings import is_palindrome
+
+        self.assertTrue(is_palindrome("racecar"))
+        self.assertTrue(is_palindrome("A man a plan a canal Panama"))
+        self.assertFalse(is_palindrome("hello"))
+        self.assertTrue(is_palindrome("Madam", ignore_case=True))
+        self.assertTrue(is_palindrome("12321"))
+
+    def test_is_palindrome_ignore_spaces_false(self):
+        from strings import is_palindrome
+
+        self.assertTrue(is_palindrome("a b a", ignore_spaces=False))
+
+    def test_is_palindrome_rejects_non_string(self):
+        from strings import is_palindrome
+
+        with self.assertRaises(TypeError):
+            is_palindrome(123)  # type: ignore[arg-type]
+
+    def test_reverse_words(self):
+        from strings import reverse_words
+
+        self.assertEqual(reverse_words("hello world"), "world hello")
+        self.assertEqual(reverse_words("one"), "one")
+
+    def test_reverse_words_rejects_non_string(self):
+        from strings import reverse_words
+
+        with self.assertRaises(TypeError):
+            reverse_words(123)  # type: ignore[arg-type]
+
+    def test_truncate(self):
+        from strings import truncate
+
+        self.assertEqual(truncate("hello world", 5), "he...")
+        self.assertEqual(truncate("hello", 10), "hello")
+        self.assertEqual(truncate("hello world", 3), "...")
+        self.assertEqual(truncate("hello world", 8, suffix="!!"), "hello !!")
+
+    def test_truncate_rejects_non_string(self):
+        from strings import truncate
+
+        with self.assertRaises(TypeError):
+            truncate(123, 5)  # type: ignore[arg-type]
+
+    def test_truncate_rejects_non_int_length(self):
+        from strings import truncate
+
+        with self.assertRaises(TypeError):
+            truncate("hello", "5")  # type: ignore[arg-type]
+
+    def test_truncate_negative_length_raises(self):
+        from strings import truncate
+
+        with self.assertRaises(ValueError):
+            truncate("hello", -1)
 TESTSTRINGS
 
 # --- tests/test_utils.py ---

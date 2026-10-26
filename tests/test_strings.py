@@ -985,3 +985,61 @@ class TestNewHelpers(unittest.TestCase):
 
         self.assertEqual(remove_digits("a1b2c3"), "abc")
         self.assertEqual(remove_digits("no digits"), "no digits")
+
+    def test_is_palindrome(self):
+        from strings import is_palindrome
+
+        self.assertTrue(is_palindrome("racecar"))
+        self.assertTrue(is_palindrome("A man a plan a canal Panama"))
+        self.assertFalse(is_palindrome("hello"))
+        self.assertTrue(is_palindrome("Madam", ignore_case=True))
+        self.assertTrue(is_palindrome("12321"))
+
+    def test_is_palindrome_ignore_spaces_false(self):
+        from strings import is_palindrome
+
+        self.assertTrue(is_palindrome("a b a", ignore_spaces=False))
+
+    def test_is_palindrome_rejects_non_string(self):
+        from strings import is_palindrome
+
+        with self.assertRaises(TypeError):
+            is_palindrome(123)  # type: ignore[arg-type]
+
+    def test_reverse_words(self):
+        from strings import reverse_words
+
+        self.assertEqual(reverse_words("hello world"), "world hello")
+        self.assertEqual(reverse_words("one"), "one")
+
+    def test_reverse_words_rejects_non_string(self):
+        from strings import reverse_words
+
+        with self.assertRaises(TypeError):
+            reverse_words(123)  # type: ignore[arg-type]
+
+    def test_truncate(self):
+        from strings import truncate
+
+        self.assertEqual(truncate("hello world", 5), "he...")
+        self.assertEqual(truncate("hello", 10), "hello")
+        self.assertEqual(truncate("hello world", 3), "...")
+        self.assertEqual(truncate("hello world", 8, suffix="!!"), "hello !!")
+
+    def test_truncate_rejects_non_string(self):
+        from strings import truncate
+
+        with self.assertRaises(TypeError):
+            truncate(123, 5)  # type: ignore[arg-type]
+
+    def test_truncate_rejects_non_int_length(self):
+        from strings import truncate
+
+        with self.assertRaises(TypeError):
+            truncate("hello", "5")  # type: ignore[arg-type]
+
+    def test_truncate_negative_length_raises(self):
+        from strings import truncate
+
+        with self.assertRaises(ValueError):
+            truncate("hello", -1)
