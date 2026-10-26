@@ -15464,6 +15464,7 @@ from prompt_utils import (
     clean_prompt,
     collapse_blank_lines,
     count_placeholders,
+    count_sentences,
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
@@ -15673,6 +15674,22 @@ class TestCountPlaceholders(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_placeholders(123)  # type: ignore[arg-type]
+
+
+
+class TestCountSentences(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_sentences("Hello world. How are you?"), 2)
+
+    def test_empty(self):
+        self.assertEqual(count_sentences(""), 0)
+
+    def test_whitespace(self):
+        self.assertEqual(count_sentences("   "), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_sentences(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -23836,6 +23853,7 @@ __all__: List[str] = [
     "count_words",
     "collapse_blank_lines",
     "count_placeholders",
+    "count_sentences",
 ]
 
 
@@ -24166,6 +24184,33 @@ def count_placeholders(template: str) -> int:
     """
     _require_string(template, "template")
     return len(re.findall(r"\{\w+\}", template))
+
+
+def count_sentences(text: str) -> int:
+    """Count the number of sentences in *text*.
+
+    A sentence is delimited by a terminating punctuation mark (``.``,
+    ``!`` or ``?``) followed by whitespace or end of string.
+
+    Args:
+        text: The text to count sentences in.
+
+    Returns:
+        The number of sentences.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_sentences("Hello world. How are you?")
+        2
+        >>> count_sentences("")
+        0
+    """
+    _require_string(text, "text")
+    if not text.strip():
+        return 0
+    return len(re.findall(r"[.!?](?:\s|$)", text))
 PROMPTUTILS
 
 # --- type_utils.py ---
