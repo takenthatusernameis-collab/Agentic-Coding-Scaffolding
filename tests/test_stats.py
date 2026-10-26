@@ -1,5 +1,6 @@
 """Tests for stats module."""
 
+import math
 import unittest
 
 from stats import (
@@ -15,6 +16,7 @@ from stats import (
     min_value,
     mode,
     multimode,
+    root_mean_square,
     skewness,
     stddev,
     sum_of_squares,
@@ -571,6 +573,28 @@ class TestTrimmedMean(unittest.TestCase):
         with self.assertRaises(TypeError):
             trimmed_mean([1, 2, 3], True)  # type: ignore[arg-type]
 
+
+
+
+class TestRootMeanSquare(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(root_mean_square([1, 2, 3]), math.sqrt(14 / 3))
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            root_mean_square([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            root_mean_square((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            root_mean_square([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            root_mean_square([True, 1, 2])  # type: ignore[type-var]
 
 if __name__ == "__main__":
     unittest.main()

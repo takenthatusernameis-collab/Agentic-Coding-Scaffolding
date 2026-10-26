@@ -5,6 +5,8 @@
 - Audited `strings.py` boundary cases (empty strings, single char, whitespace-only, unicode edge cases, non-string/invalid-type inputs, negative/invalid ints, very long strings). Added boundary tests in `tests/test_strings.py` for partition/rpartition/split_lines/join_lines/replace_many/strip_html/between/contains_any/contains_all/char_frequency/snake_to_camel/is_subsequence unicode cases and more TypeError/ValueError paths; all existing behavior verified. Cross-checked helper logic against brute-force expectations where practical. Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 ## Unreleased
+
+- Added `root_mean_square` to `stats.py` with tests.
 - Bootstrap session verified scaffold sync, lint, and typecheck all pass; posted next task to audit `math_utils.py` boundary cases.
 - Audited and hardened `array_utils.py` boundary cases (non-array/non-string/non-int/invalid iterables), added stricter TypeError validation consistent with project style, and expanded `tests/test_array_utils.py` with boundary tests; synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md` into `scaffold.sh` with `make refresh-scaffold`.
 

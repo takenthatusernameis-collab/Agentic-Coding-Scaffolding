@@ -33,6 +33,7 @@ __all__: List[str] = [
     "covariance",
     "correlation",
     "z_scores",
+    "root_mean_square",
 ]
 
 
@@ -714,3 +715,20 @@ def z_scores(numbers: List[T | float], population: bool = True) -> List[float]:
     if s == 0:
         raise ValueError("Cannot calculate z-scores when standard deviation is 0")
     return [float((x - m) / s) for x in numbers]
+
+
+def root_mean_square(numbers: List[T | float]) -> float:
+    """Return the root mean square of *numbers*.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The square root of the arithmetic mean of the squared values.
+
+    Raises:
+        ValueError: If *numbers* is empty.
+        TypeError: If *numbers* is not a list or contains non-numeric values.
+    """
+    _require_numbers(numbers)
+    return math.sqrt(sum(x * x for x in numbers) / len(numbers))

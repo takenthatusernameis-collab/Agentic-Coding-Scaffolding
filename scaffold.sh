@@ -12402,6 +12402,7 @@ __all__: List[str] = [
     "covariance",
     "correlation",
     "z_scores",
+    "root_mean_square",
 ]
 
 
@@ -13083,6 +13084,23 @@ def z_scores(numbers: List[T | float], population: bool = True) -> List[float]:
     if s == 0:
         raise ValueError("Cannot calculate z-scores when standard deviation is 0")
     return [float((x - m) / s) for x in numbers]
+
+
+def root_mean_square(numbers: List[T | float]) -> float:
+    """Return the root mean square of *numbers*.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The square root of the arithmetic mean of the squared values.
+
+    Raises:
+        ValueError: If *numbers* is empty.
+        TypeError: If *numbers* is not a list or contains non-numeric values.
+    """
+    _require_numbers(numbers)
+    return math.sqrt(sum(x * x for x in numbers) / len(numbers))
 STATS
 
 # --- tests/test_strings.py ---
@@ -14610,6 +14628,7 @@ TESTUTILS
 cat > "$OUTPUT_DIR/tests/test_stats.py" <<'TESTSTATS'
 """Tests for stats module."""
 
+import math
 import unittest
 
 from stats import (
@@ -14625,6 +14644,7 @@ from stats import (
     min_value,
     mode,
     multimode,
+    root_mean_square,
     skewness,
     stddev,
     sum_of_squares,
@@ -15181,6 +15201,28 @@ class TestTrimmedMean(unittest.TestCase):
         with self.assertRaises(TypeError):
             trimmed_mean([1, 2, 3], True)  # type: ignore[arg-type]
 
+
+
+
+class TestRootMeanSquare(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(root_mean_square([1, 2, 3]), math.sqrt(14 / 3))
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            root_mean_square([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            root_mean_square((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            root_mean_square([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            root_mean_square([True, 1, 2])  # type: ignore[type-var]
 
 if __name__ == "__main__":
     unittest.main()
@@ -37029,6 +37071,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Audited `strings.py` boundary cases (empty strings, single char, whitespace-only, unicode edge cases, non-string/invalid-type inputs, negative/invalid ints, very long strings). Added boundary tests in `tests/test_strings.py` for partition/rpartition/split_lines/join_lines/replace_many/strip_html/between/contains_any/contains_all/char_frequency/snake_to_camel/is_subsequence unicode cases and more TypeError/ValueError paths; all existing behavior verified. Cross-checked helper logic against brute-force expectations where practical. Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 ## Unreleased
+
+- Added `root_mean_square` to `stats.py` with tests.
 - Bootstrap session verified scaffold sync, lint, and typecheck all pass; posted next task to audit `math_utils.py` boundary cases.
 - Audited and hardened `array_utils.py` boundary cases (non-array/non-string/non-int/invalid iterables), added stricter TypeError validation consistent with project style, and expanded `tests/test_array_utils.py` with boundary tests; synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md` into `scaffold.sh` with `make refresh-scaffold`.
 
@@ -38093,7 +38137,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 
