@@ -71,6 +71,7 @@ __all__: List[str] = [
     "contains_all",
     "count_words",
     "remove_punctuation",
+    "remove_digits",
 ]
 
 
@@ -865,3 +866,9 @@ def remove_punctuation(s: str) -> str:
     import string
 
     return "".join(ch for ch in s if ch not in string.punctuation)
+
+
+def remove_digits(s: str) -> str:
+    """Remove all digit characters from string."""
+    _require_string(s, "s")
+    return "".join(ch for ch in s if not ch.isdigit())
