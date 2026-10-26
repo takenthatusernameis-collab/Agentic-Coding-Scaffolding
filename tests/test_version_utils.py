@@ -11,6 +11,7 @@ from version_utils import (
     is_equal,
     is_greater,
     is_less,
+    is_valid_version,
     is_version_equal,
     is_version_greater,
     is_version_greater_equal,
@@ -250,6 +251,22 @@ class TestMaxMinVersion(unittest.TestCase):
             max_version(["1.0.0", "bad"])
         with self.assertRaises(ValueError):
             min_version(["1.0.0", "bad"])
+
+
+
+
+class TestIsValidVersion(unittest.TestCase):
+    def test_valid(self):
+        for v in ("1", "1.0", "1.0.0", "0.0.0"):
+            self.assertTrue(is_valid_version(v))
+
+    def test_invalid(self):
+        for v in ("", "1.", ".1", "1.0.0a", "abc", "1.2.3.4x"):
+            self.assertFalse(is_valid_version(v))
+
+    def test_non_string(self):
+        self.assertFalse(is_valid_version(123))  # type: ignore[arg-type]
+        self.assertFalse(is_valid_version(None))  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

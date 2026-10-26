@@ -8,6 +8,7 @@ __all__: List[str] = [
     "is_greater",
     "is_less",
     "is_equal",
+    "is_valid_version",
     "is_version_greater",
     "is_version_less",
     "is_version_equal",
@@ -298,3 +299,20 @@ def min_version(versions: List[str]) -> str:
         if not isinstance(v, str):
             raise TypeError(f"versions[{i}] must be a string, got {type(v).__name__}")
     return min(versions, key=parse_version)
+
+
+def is_valid_version(version: object) -> bool:
+    """Return True if *version* is a valid dotted version string.
+
+    Args:
+        version: The value to check.
+
+    Returns:
+        True if *version* is a non-empty string whose components are all
+        non-negative integer strings, False otherwise.
+    """
+    if not isinstance(version, str):
+        return False
+    if not version:
+        return False
+    return all(part.isdigit() for part in version.split("."))

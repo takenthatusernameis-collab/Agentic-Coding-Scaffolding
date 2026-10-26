@@ -78489,6 +78489,7 @@ __all__: List[str] = [
     "is_greater",
     "is_less",
     "is_equal",
+    "is_valid_version",
     "is_version_greater",
     "is_version_less",
     "is_version_equal",
@@ -78779,6 +78780,23 @@ def min_version(versions: List[str]) -> str:
         if not isinstance(v, str):
             raise TypeError(f"versions[{i}] must be a string, got {type(v).__name__}")
     return min(versions, key=parse_version)
+
+
+def is_valid_version(version: object) -> bool:
+    """Return True if *version* is a valid dotted version string.
+
+    Args:
+        version: The value to check.
+
+    Returns:
+        True if *version* is a non-empty string whose components are all
+        non-negative integer strings, False otherwise.
+    """
+    if not isinstance(version, str):
+        return False
+    if not version:
+        return False
+    return all(part.isdigit() for part in version.split("."))
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
@@ -78796,6 +78814,7 @@ from version_utils import (
     is_equal,
     is_greater,
     is_less,
+    is_valid_version,
     is_version_equal,
     is_version_greater,
     is_version_greater_equal,
@@ -79035,6 +79054,22 @@ class TestMaxMinVersion(unittest.TestCase):
             max_version(["1.0.0", "bad"])
         with self.assertRaises(ValueError):
             min_version(["1.0.0", "bad"])
+
+
+
+
+class TestIsValidVersion(unittest.TestCase):
+    def test_valid(self):
+        for v in ("1", "1.0", "1.0.0", "0.0.0"):
+            self.assertTrue(is_valid_version(v))
+
+    def test_invalid(self):
+        for v in ("", "1.", ".1", "1.0.0a", "abc", "1.2.3.4x"):
+            self.assertFalse(is_valid_version(v))
+
+    def test_non_string(self):
+        self.assertFalse(is_valid_version(123))  # type: ignore[arg-type]
+        self.assertFalse(is_valid_version(None))  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
