@@ -106820,14 +106820,30 @@ from hostname_utils import (
 
 class TestHostnameUtils(unittest.TestCase):
     def test_valid_hostnames(self):
-        for hostname in ["example.com", "localhost", "my-host.example.org", "a.b.c", "EXAMPLE.COM", "sub.domain.co.uk"]:
+        for hostname in [
+            "example.com",
+            "localhost",
+            "my-host.example.org",
+            "a.b.c",
+            "EXAMPLE.COM",
+            "sub.domain.co.uk",
+        ]:
             self.assertTrue(is_valid_hostname(hostname), hostname)
 
     def test_fully_qualified_form_is_valid(self):
         self.assertTrue(is_valid_hostname("example.com."))
 
     def test_invalid_hostnames(self):
-        for hostname in ["", "-example.com", "example-.com", "..", "ex*mple.com", "example..com", "-", "a" * 64 + ".com"]:
+        for hostname in [
+            "",
+            "-example.com",
+            "example-.com",
+            "..",
+            "ex*mple.com",
+            "example..com",
+            "-",
+            "a" * 64 + ".com",
+        ]:
             self.assertFalse(is_valid_hostname(hostname), hostname)
 
     def test_hostname_too_long_is_invalid(self):
