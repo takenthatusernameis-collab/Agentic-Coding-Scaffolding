@@ -24146,6 +24146,7 @@ __all__: List[str] = [
     "count_placeholders",
     "count_sentences",
     "truncate_words",
+    "truncate_lines",
 ]
 
 
@@ -24567,6 +24568,45 @@ def truncate_words(text: str, max_words: int, suffix: str = "...") -> str:
     if max_words == 0:
         return suffix if suffix else ""
     return " ".join(words[:max_words]) + suffix
+
+
+def truncate_lines(text: str, max_lines: int, suffix: str = "...") -> str:
+    """Truncate *text* to at most *max_lines* lines.
+
+    Splits *text* on newline characters, keeps the first *max_lines* lines,
+    and appends *suffix* when lines are removed. Returns *text* unchanged
+    when it already has at most *max_lines* lines.
+
+    Args:
+        text: The text to truncate.
+        max_lines: The maximum number of lines to keep.
+        suffix: The suffix to append when truncated.
+
+    Returns:
+        The truncated text.
+
+    Raises:
+        TypeError: If *text* or *suffix* is not a string or *max_lines* is
+            not an int.
+        ValueError: If *max_lines* is negative.
+
+    Examples:
+        >>> truncate_lines("a\\nb\\nc\\nd", 2)
+        'a\\nb...'
+        >>> truncate_lines("a\\nb", 5)
+        'a\\nb'
+    """
+    _require_string(text, "text")
+    _require_int(max_lines, "max_lines")
+    if max_lines < 0:
+        raise ValueError("max_lines must be non-negative")
+    _require_string(suffix, "suffix")
+    lines = text.split("\n")
+    if len(lines) <= max_lines:
+        return text
+    if max_lines == 0:
+        return suffix if suffix else ""
+    return "\n".join(lines[:max_lines]) + suffix
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -35796,6 +35836,8 @@ TEST_INTERVAL_UTILS
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased
+
+- Added `truncate_lines` to `prompt_utils.py`.
 - Added `is_pangram(s)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *s* contains every letter of the English alphabet at least once (case-insensitive, ignoring non-alphabetic characters), `False` otherwise (including for the empty string). Added `TestIsPangram` to `tests/test_strings.py`. Updated the `strings` module section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `decrement_version(version, part="patch")` to `version_utils.py` as the symmetric counterpart to `bump_version`: it validates that *version* is a string and *part* is a string, is case-insensitive on the recognized component names (`"major"`, `"minor"`, `"patch"`), and dispatches to the existing `decrement_major`/`decrement_minor`/`decrement_patch` helpers, raising `ValueError` for unrecognized parts or when the chosen component is already 0. Also exported `decrement_major`, `decrement_minor`, and `decrement_patch` (they were previously defined but absent from `__all__`), and added the `decrement` alias. Added `TestDecrementMajor`, `TestDecrementMinor`, `TestDecrementPatch`, and `TestDecrementVersion` to `tests/test_version_utils.py`. Updated the `version_utils` module tree entry and prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -37082,7 +37124,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, and `count_words`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, and `truncate_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

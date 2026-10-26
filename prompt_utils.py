@@ -25,6 +25,7 @@ __all__: List[str] = [
     "count_placeholders",
     "count_sentences",
     "truncate_words",
+    "truncate_lines",
 ]
 
 
@@ -446,3 +447,42 @@ def truncate_words(text: str, max_words: int, suffix: str = "...") -> str:
     if max_words == 0:
         return suffix if suffix else ""
     return " ".join(words[:max_words]) + suffix
+
+
+def truncate_lines(text: str, max_lines: int, suffix: str = "...") -> str:
+    """Truncate *text* to at most *max_lines* lines.
+
+    Splits *text* on newline characters, keeps the first *max_lines* lines,
+    and appends *suffix* when lines are removed. Returns *text* unchanged
+    when it already has at most *max_lines* lines.
+
+    Args:
+        text: The text to truncate.
+        max_lines: The maximum number of lines to keep.
+        suffix: The suffix to append when truncated.
+
+    Returns:
+        The truncated text.
+
+    Raises:
+        TypeError: If *text* or *suffix* is not a string or *max_lines* is
+            not an int.
+        ValueError: If *max_lines* is negative.
+
+    Examples:
+        >>> truncate_lines("a\\nb\\nc\\nd", 2)
+        'a\\nb...'
+        >>> truncate_lines("a\\nb", 5)
+        'a\\nb'
+    """
+    _require_string(text, "text")
+    _require_int(max_lines, "max_lines")
+    if max_lines < 0:
+        raise ValueError("max_lines must be non-negative")
+    _require_string(suffix, "suffix")
+    lines = text.split("\n")
+    if len(lines) <= max_lines:
+        return text
+    if max_lines == 0:
+        return suffix if suffix else ""
+    return "\n".join(lines[:max_lines]) + suffix
