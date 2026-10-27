@@ -62,6 +62,7 @@ from strings import (
     snake_to_camel,
     split_lines,
     starts_with,
+    strip_chars,
     strip_html,
     strip_non_ascii,
     swap_case,
@@ -1926,5 +1927,5 @@ class TestStringsComprehensiveBoundary(unittest.TestCase):
 
     def test_truncate_bytes(self):
         self.assertEqual(truncate_bytes("hello", 10), "hello")
-        self.assertEqual(truncate_bytes("héllo", 4, encoding="utf-8"), "h")
+        self.assertEqual(truncate_bytes("héllo", 4, encoding="utf-8"), "hél")
         self.assertEqual(truncate_bytes("hello", 0), "")

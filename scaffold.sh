@@ -11942,6 +11942,49 @@ def remove_consonants(s: str) -> str:
     _require_string(s, "s")
     vowels = set("aeiouAEIOU")
     return "".join(ch for ch in s if not ch.isalpha() or ch in vowels)
+
+
+def strip_non_ascii(s: str) -> str:
+    """Remove all non-ASCII characters from string *s*.
+
+    Args:
+        s: The string to process.
+
+    Returns:
+        String with only ASCII characters retained.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    _require_string(s, "s")
+    return "".join(ch for ch in s if ord(ch) < 128)
+
+
+def truncate_bytes(s: str, max_bytes: int, encoding: str = "utf-8") -> str:
+    """Truncate string *s* to at most *max_bytes* bytes in given encoding.
+
+    Args:
+        s: The string to truncate.
+        max_bytes: Maximum number of bytes allowed.
+        encoding: Encoding to use for byte length calculation.
+
+    Returns:
+        Truncated string that fits within *max_bytes* when encoded.
+
+    Raises:
+        TypeError: If *s* is not a string or *max_bytes* is not an int.
+        ValueError: If *max_bytes* is negative.
+    """
+    _require_string(s, "s")
+    if not isinstance(max_bytes, int) or isinstance(max_bytes, bool):
+        raise TypeError("max_bytes must be an integer")
+    if max_bytes < 0:
+        raise ValueError("max_bytes must be non-negative")
+    encoded = s.encode(encoding)
+    if len(encoded) <= max_bytes:
+        return s
+    truncated = encoded[:max_bytes]
+    return truncated.decode(encoding, errors="ignore")
 STRINGS
 
 # --- utils.py ---
@@ -13314,9 +13357,11 @@ from strings import (
     starts_with,
     strip_chars,
     strip_html,
+    strip_non_ascii,
     swap_case,
     take,
     title_case,
+    truncate_bytes,
     truncate,
     word_count,
 )
@@ -15120,6 +15165,8 @@ class TestStringsComprehensiveBoundary(unittest.TestCase):
             swap_case,
             remove_punctuation,
             remove_digits,
+            strip_non_ascii,
+            truncate_bytes,
             count_occurrences,
             starts_with,
             ends_with,
@@ -15165,6 +15212,16 @@ class TestStringsComprehensiveBoundary(unittest.TestCase):
         self.assertIsInstance(count_vowels("café"), int)
         self.assertFalse(is_ascii("café"))
         self.assertEqual(slugify("café & crème"), "café-crème")
+
+    def test_strip_non_ascii(self):
+        self.assertEqual(strip_non_ascii("hello"), "hello")
+        self.assertEqual(strip_non_ascii("héllo"), "hllo")
+        self.assertEqual(strip_non_ascii("你好"), "")
+
+    def test_truncate_bytes(self):
+        self.assertEqual(truncate_bytes("hello", 10), "hello")
+        self.assertEqual(truncate_bytes("héllo", 4, encoding="utf-8"), "hél")
+        self.assertEqual(truncate_bytes("hello", 0), "")
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
