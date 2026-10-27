@@ -30,6 +30,7 @@ __all__: List[str] = [
     "dedent_lines",
     "remove_blank_lines",
     "ensure_trailing_newline",
+    "normalize_line_endings",
 ]
 
 
@@ -659,3 +660,31 @@ def ensure_trailing_newline(text: str) -> str:
     if text.endswith("\n"):
         return text
     return text + "\n"
+
+
+def normalize_line_endings(text: str) -> str:
+    """Normalize line endings in *text* to LF (``\\n``).
+
+    Converts CRLF (``\\r\\n``) and lone CR (``\\r``) line endings to LF
+    (``\\n``). Useful for normalizing prompts sourced from different
+    platforms before further processing.
+
+    Args:
+        text: The text to normalize.
+
+    Returns:
+        *text* with all line endings converted to ``\\n``.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> normalize_line_endings("a\\r\\nb\\r\\nc")
+        'a\\nb\\nc'
+        >>> normalize_line_endings("a\\r\\r\\nb")
+        'a\\n\\nb'
+        >>> normalize_line_endings("")
+        ''
+    """
+    _require_string(text, "text")
+    return text.replace("\r\n", "\n").replace("\r", "\n")

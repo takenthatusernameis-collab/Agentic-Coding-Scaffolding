@@ -15,6 +15,7 @@ from prompt_utils import (
     format_prompt_template,
     has_placeholders,
     indent_lines,
+    normalize_line_endings,
     remove_blank_lines,
     truncate_prompt,
     truncate_words,
@@ -366,6 +367,29 @@ class TestEnsureTrailingNewline(unittest.TestCase):
             ensure_trailing_newline(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_trailing_newline(None)  # type: ignore[arg-type]
+
+
+class TestNormalizeLineEndings(unittest.TestCase):
+    def test_crlf(self):
+        self.assertEqual(normalize_line_endings("a\r\nb\r\nc"), "a\nb\nc")
+
+    def test_lone_cr(self):
+        self.assertEqual(normalize_line_endings("a\rb\rc"), "a\nb\nc")
+
+    def test_mixed(self):
+        self.assertEqual(normalize_line_endings("a\r\nb\rc\nd"), "a\nb\nc\nd")
+
+    def test_empty(self):
+        self.assertEqual(normalize_line_endings(""), "")
+
+    def test_no_change(self):
+        self.assertEqual(normalize_line_endings("a\nb\nc"), "a\nb\nc")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            normalize_line_endings(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            normalize_line_endings(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
