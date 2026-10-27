@@ -15723,50 +15723,43 @@ class TestZScores(unittest.TestCase):
 
 class TestMidhinge(unittest.TestCase):
     def test_basic(self) -> None:
-        from stats import midhinge
 
         self.assertAlmostEqual(midhinge([1, 2, 3, 4, 5]), 3.0)
         self.assertAlmostEqual(midhinge([1, 2, 3, 4, 5, 6]), 3.5)
         self.assertAlmostEqual(midhinge([6, 2, 9, 1]), 4.25)
 
     def test_matches_quartile_mean(self) -> None:
-        from stats import midhinge, percentile
+        from stats import percentile
 
         data = [1, 2, 3, 4, 5, 6, 7, 8]
         expected = (percentile(data, 25) + percentile(data, 75)) / 2.0
         self.assertAlmostEqual(midhinge(data), expected)
 
     def test_empty_raises(self) -> None:
-        from stats import midhinge
 
         with self.assertRaises(ValueError):
             midhinge([])
 
     def test_single_value(self) -> None:
-        from stats import midhinge
 
         self.assertAlmostEqual(midhinge([42]), 42.0)
 
     def test_negatives_and_floats(self) -> None:
-        from stats import midhinge
 
         self.assertAlmostEqual(midhinge([-5, -1, 0, 1, 5]), 0.0)
         self.assertAlmostEqual(midhinge([1.5, 2.5, 3.5, 4.5]), 3.0)
 
     def test_rejects_non_list(self) -> None:
-        from stats import midhinge
 
         with self.assertRaises(TypeError):
             midhinge((1, 2, 3))  # type: ignore[arg-type]
 
     def test_rejects_non_numeric(self) -> None:
-        from stats import midhinge
 
         with self.assertRaises(TypeError):
             midhinge([1, 2, "a"])  # type: ignore[type-var]
 
     def test_rejects_bool(self) -> None:
-        from stats import midhinge
 
         with self.assertRaises(TypeError):
             midhinge([True, 1, 2])  # type: ignore[type-var]
@@ -17525,9 +17518,9 @@ import unittest
 
 from prompt_utils import (
     clean_prompt,
-    count_lines,
-    count_blank_lines,
     collapse_blank_lines,
+    count_blank_lines,
+    count_lines,
     count_placeholders,
     count_sentences,
     dedent_lines,
@@ -17540,10 +17533,9 @@ from prompt_utils import (
     has_placeholders,
     indent_lines,
     last_line,
-    normalize_line_endings,
+    lstrip_lines,
     remove_blank_lines,
     rstrip_lines,
-    lstrip_lines,
     strip_lines,
     truncate_prompt,
     truncate_words,
@@ -38864,6 +38856,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Audited `strings.py` boundary cases (empty strings, single char, whitespace-only, unicode edge cases, non-string/invalid-type inputs, negative/invalid ints, very long strings). Added boundary tests in `tests/test_strings.py` for partition/rpartition/split_lines/join_lines/replace_many/strip_html/between/contains_any/contains_all/char_frequency/snake_to_camel/is_subsequence unicode cases and more TypeError/ValueError paths; all existing behavior verified. Cross-checked helper logic against brute-force expectations where practical. Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 ## Unreleased
+
+- Refreshed the embedded copies of `prime_utils.py`, `tests/test_prime_utils.py`, `tests/test_prompt_utils.py`, and `tests/test_stats.py` inside `scaffold.sh` after the preceding checkpoint session edited those files without regenerating the generator. `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
 
 - Added `is_title(s)` to `strings.py` returning `True` when *s* is titlecased (all cased characters follow title-case rules and at least one alphabetic character is present), `False` otherwise. It validates that *s* is a string, raising `TypeError` otherwise, and is exported in `__all__` with a Google-style docstring. Added `TestIsTitle` to `tests/test_strings.py` covering titlecased, mixed-case, no-alphabetic, and `TypeError` paths. Updated the `strings` module prose section of `README.md`.
 
@@ -63112,6 +63106,7 @@ __all__: List[str] = [
     "radical",
     "prime_count",
     "primorial",
+    "total_prime_factors",
 ]
 
 
@@ -63940,6 +63935,44 @@ def primorial(n: int) -> int:
     for p in primes_up_to(n):
         result *= p
     return result
+
+
+def total_prime_factors(n: int) -> int:
+    """Return the total number of prime factors of *n* with multiplicity.
+
+    This is the arithmetic function ``Omega(n)``: for example,
+    ``total_prime_factors(12) == 3`` because ``12 = 2 * 2 * 3``.
+
+    Args:
+        n: The integer to analyze.
+
+    Returns:
+        The number of prime factors of *n* counted with multiplicity.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+    """
+    _require_int(n, "n")
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    if n == 1:
+        return 0
+    count = 0
+    remaining = n
+    if remaining % 2 == 0:
+        while remaining % 2 == 0:
+            remaining //= 2
+            count += 1
+    d = 3
+    while d * d <= remaining:
+        while remaining % d == 0:
+            remaining //= d
+            count += 1
+        d += 2
+    if remaining > 1:
+        count += 1
+    return count
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -63975,9 +64008,10 @@ from prime_utils import (
     prime_count,
     prime_factors,
     primes_up_to,
-    radical,
     primorial,
+    radical,
     sum_of_proper_divisors,
+    total_prime_factors,
 )
 
 
@@ -64861,6 +64895,30 @@ class TestPrimorial(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTotalPrimeFactors(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(total_prime_factors(1), 0)
+        self.assertEqual(total_prime_factors(2), 1)
+        self.assertEqual(total_prime_factors(12), 3)
+        self.assertEqual(total_prime_factors(30), 3)
+
+    def test_prime_power(self):
+        self.assertEqual(total_prime_factors(8), 3)
+        self.assertEqual(total_prime_factors(27), 3)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            total_prime_factors(5.0)
+        with self.assertRaises(TypeError):
+            total_prime_factors(True)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            total_prime_factors(0)
+        with self.assertRaises(ValueError):
+            total_prime_factors(-1)
 TEST_PRIME_UTILS
 
 # --- pstats_utils.py ---

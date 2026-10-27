@@ -1,3 +1,21 @@
+## Latest Session (2026-10-27) — synchronized scaffold copies after checkpoint edit
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5942 tests and passes (1 failure and 6 errors are pre-existing, environment-related SyntaxErrors in platform modules — confirmed identical with the change stashed), `make lint` is clean, `make typecheck` reports 11 pre-existing errors in 10 files (identical with the change stashed), and `python tools/refresh_scaffold.py --check` reported 4 embedded copies out of sync.
+
+Completed in this session:
+
+- Found that the preceding `chore(kilo): checkpoint agent session` commit (677e848) edited `prime_utils.py`, `tests/test_prime_utils.py`, `tests/test_prompt_utils.py`, and `tests/test_stats.py` without regenerating the embedded copies in `scaffold.sh`, violating the project's scaffold-sync invariant.
+- Refreshed the embedded copies of those four files inside `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- Recorded the refresh in the Unreleased section of `CHANGELOG.md` and synchronized the CHANGELOG into its embedded copy in `scaffold.sh`; the check reports all embedded copies in sync.
+- Verified the work: `make lint` is clean, scaffold sync is clean, and the pre-existing test/typecheck failures are unchanged by this work.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-27) — added product to stats.py
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5844 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 516 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
