@@ -12,6 +12,7 @@ from string_utils import (
     snake_to_camel,
     title_case,
     truncate,
+    truncate_words,
     wrap_text,
 )
 
@@ -193,6 +194,48 @@ class TestRemoveBlankLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             remove_blank_lines(123)  # type: ignore[arg-type]
+
+
+class TestTruncateWords(unittest.TestCase):
+    def test_truncate_with_default_suffix(self):
+        self.assertEqual(truncate_words("the quick brown fox", 2), "the quick...")
+
+    def test_custom_suffix(self):
+        self.assertEqual(truncate_words("the quick brown fox", 1, suffix="…"), "the…")
+
+    def test_no_truncation(self):
+        self.assertEqual(truncate_words("hi", 5), "hi")
+
+    def test_exact_word_count(self):
+        self.assertEqual(truncate_words("hi there", 2), "hi there")
+
+    def test_empty_text(self):
+        self.assertEqual(truncate_words("", 3), "")
+
+    def test_max_words_zero(self):
+        self.assertEqual(truncate_words("hi there", 0), "...")
+
+    def test_collapses_extra_whitespace(self):
+        self.assertEqual(truncate_words("  the   quick\tbrown  ", 2), "the quick...")
+
+    def test_single_word_kept_when_max_one(self):
+        self.assertEqual(truncate_words("hello", 1), "hello")
+
+    def test_negative_max_words(self):
+        with self.assertRaises(ValueError):
+            truncate_words("hello", -1)
+
+    def test_boolean_max_words_raises(self):
+        with self.assertRaises(TypeError):
+            truncate_words("hello", True)  # type: ignore[arg-type]
+
+    def test_non_string_text(self):
+        with self.assertRaises(TypeError):
+            truncate_words(123, 2)  # type: ignore[arg-type]
+
+    def test_non_string_suffix(self):
+        with self.assertRaises(TypeError):
+            truncate_words("hello world", 1, suffix=5)  # type: ignore[arg-type]
 
 
 class TestTitleCase(unittest.TestCase):

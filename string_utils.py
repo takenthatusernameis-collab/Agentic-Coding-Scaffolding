@@ -14,6 +14,7 @@ __all__: List[str] = [
     "indent_text",
     "remove_extra_whitespace",
     "remove_blank_lines",
+    "truncate_words",
     "title_case",
 ]
 
@@ -319,6 +320,46 @@ def remove_blank_lines(text: str) -> str:
     lines = text.split("\n")
     result = [line for line in lines if line.strip() != ""]
     return "\n".join(result)
+
+
+def truncate_words(text: str, max_words: int, suffix: str = "...") -> str:
+    """Truncate a string to at most *max_words* words, appending *suffix*.
+
+    Words are runs of non-whitespace characters separated by whitespace.
+    If the number of words is less than or equal to *max_words*, *text* is
+    returned unchanged. When truncation occurs, *suffix* is appended after
+    a single space following the last kept word.
+
+    Args:
+        text: The string to truncate.
+        max_words: Maximum number of words to keep.
+        suffix: Suffix appended when truncation occurs (default: "...").
+
+    Returns:
+        The truncated string.
+
+    Raises:
+        TypeError: If *text* or *suffix* is not a string.
+        ValueError: If *max_words* is negative.
+
+    Examples:
+        >>> truncate_words("the quick brown fox", 2)
+        'the quick...'
+        >>> truncate_words("hi", 5)
+        'hi'
+        >>> truncate_words("hi", 2)
+        'hi'
+    """
+    _require_string(text, "text")
+    _require_string(suffix, "suffix")
+    if not isinstance(max_words, int) or isinstance(max_words, bool):
+        raise TypeError("max_words must be an integer")
+    if max_words < 0:
+        raise ValueError("max_words must be non-negative")
+    words = text.split()
+    if len(words) <= max_words:
+        return text
+    return " ".join(words[:max_words]) + suffix
 
 
 def title_case(text: str, small_words: Optional[List[str]] = None) -> str:

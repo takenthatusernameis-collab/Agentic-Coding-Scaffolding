@@ -16473,6 +16473,7 @@ from string_utils import (
     snake_to_camel,
     title_case,
     truncate,
+    truncate_words,
     wrap_text,
 )
 
@@ -16654,6 +16655,48 @@ class TestRemoveBlankLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             remove_blank_lines(123)  # type: ignore[arg-type]
+
+
+class TestTruncateWords(unittest.TestCase):
+    def test_truncate_with_default_suffix(self):
+        self.assertEqual(truncate_words("the quick brown fox", 2), "the quick...")
+
+    def test_custom_suffix(self):
+        self.assertEqual(truncate_words("the quick brown fox", 1, suffix="…"), "the…")
+
+    def test_no_truncation(self):
+        self.assertEqual(truncate_words("hi", 5), "hi")
+
+    def test_exact_word_count(self):
+        self.assertEqual(truncate_words("hi there", 2), "hi there")
+
+    def test_empty_text(self):
+        self.assertEqual(truncate_words("", 3), "")
+
+    def test_max_words_zero(self):
+        self.assertEqual(truncate_words("hi there", 0), "...")
+
+    def test_collapses_extra_whitespace(self):
+        self.assertEqual(truncate_words("  the   quick\tbrown  ", 2), "the quick...")
+
+    def test_single_word_kept_when_max_one(self):
+        self.assertEqual(truncate_words("hello", 1), "hello")
+
+    def test_negative_max_words(self):
+        with self.assertRaises(ValueError):
+            truncate_words("hello", -1)
+
+    def test_boolean_max_words_raises(self):
+        with self.assertRaises(TypeError):
+            truncate_words("hello", True)  # type: ignore[arg-type]
+
+    def test_non_string_text(self):
+        with self.assertRaises(TypeError):
+            truncate_words(123, 2)  # type: ignore[arg-type]
+
+    def test_non_string_suffix(self):
+        with self.assertRaises(TypeError):
+            truncate_words("hello world", 1, suffix=5)  # type: ignore[arg-type]
 
 
 class TestTitleCase(unittest.TestCase):
@@ -23641,6 +23684,7 @@ __all__: List[str] = [
     "indent_text",
     "remove_extra_whitespace",
     "remove_blank_lines",
+    "truncate_words",
     "title_case",
 ]
 
@@ -23946,6 +23990,46 @@ def remove_blank_lines(text: str) -> str:
     lines = text.split("\n")
     result = [line for line in lines if line.strip() != ""]
     return "\n".join(result)
+
+
+def truncate_words(text: str, max_words: int, suffix: str = "...") -> str:
+    """Truncate a string to at most *max_words* words, appending *suffix*.
+
+    Words are runs of non-whitespace characters separated by whitespace.
+    If the number of words is less than or equal to *max_words*, *text* is
+    returned unchanged. When truncation occurs, *suffix* is appended after
+    a single space following the last kept word.
+
+    Args:
+        text: The string to truncate.
+        max_words: Maximum number of words to keep.
+        suffix: Suffix appended when truncation occurs (default: "...").
+
+    Returns:
+        The truncated string.
+
+    Raises:
+        TypeError: If *text* or *suffix* is not a string.
+        ValueError: If *max_words* is negative.
+
+    Examples:
+        >>> truncate_words("the quick brown fox", 2)
+        'the quick...'
+        >>> truncate_words("hi", 5)
+        'hi'
+        >>> truncate_words("hi", 2)
+        'hi'
+    """
+    _require_string(text, "text")
+    _require_string(suffix, "suffix")
+    if not isinstance(max_words, int) or isinstance(max_words, bool):
+        raise TypeError("max_words must be an integer")
+    if max_words < 0:
+        raise ValueError("max_words must be non-negative")
+    words = text.split()
+    if len(words) <= max_words:
+        return text
+    return " ".join(words[:max_words]) + suffix
 
 
 def title_case(text: str, small_words: Optional[List[str]] = None) -> str:
@@ -35355,7 +35439,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `mmap_utils.py` — utilities wrapping the standard library mmap module
 - `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping stdlib stat and os.stat
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
+- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case)
 - `data_utils.py` — data utility functions
 - `datetime_utils.py` — date and time utility functions
 - `dbm_utils.py` — database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
@@ -37414,6 +37498,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `truncate_words(text, max_words, suffix="...")` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it truncates a string to at most *max_words* whitespace-separated words and appends *suffix* when truncation occurs, returning the text unchanged when it already fits. Added `TestTruncateWords` to `tests/test_string_utils.py` covering the default suffix, a custom suffix, no-truncation cases, the exact word count, the empty string, zero max words, whitespace collapsing, and the `TypeError`/`ValueError` paths. Updated the `string_utils` module tree entry and prose section of `README.md` and the `string_utils` line of `.kilo/command/scaffold-project.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, README, the command doc, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `remove_blank_lines(text)` to `prompt_utils.py` with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation; it removes blank (whitespace-only) lines from *text*.
 
 - Audited `strings.py` boundary cases (empty strings, single char, whitespace-only, unicode edge cases, non-string/invalid-type inputs, negative/invalid ints, bools for int params, very long strings) and added comprehensive boundary tests to `tests/test_strings.py` covering `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_printable`, `is_identifier`, `is_pangram`, `is_palindrome` with flag variants, `first_n`/`last_n`/`take`/`drop`, `count_occurrences`, `starts_with`/`ends_with`, `levenshtein_distance`, `chunk_string`, `initials`, `swap_case`, and more TypeError/ValueError paths; all existing behavior verified. Cross-checked helper logic against Python string semantics where practical. Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -37924,7 +38010,7 @@ csv_utils.py             # CSV utility functions (read/write/append as dicts or 
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, title_case)
+string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
@@ -38619,7 +38705,7 @@ The project includes a statistical utilities module in `statistics_utils.py` wit
 
 ## String Utilities Module
 
-The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `indent_text`, `remove_extra_whitespace`, and `title_case`. Each function validates its inputs and raises `TypeError` for non-string arguments. The module is tested in `tests/test_string_utils.py`.
+The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, and `title_case`. Each function validates its inputs and raises `TypeError` for non-string arguments. The module is tested in `tests/test_string_utils.py`.
 
 ## Type Utilities Module
 
