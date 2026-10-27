@@ -8,6 +8,7 @@ __all__: List[str] = [
     "slugify",
     "camel_to_snake",
     "snake_to_camel",
+    "is_isogram",
     "pluralize",
     "truncate",
     "wrap_text",
@@ -463,3 +464,39 @@ def title_case(text: str, small_words: Optional[List[str]] = None) -> str:
         else:
             result.append(word.lower())
     return " ".join(result)
+
+
+def is_isogram(text: str) -> bool:
+    """Return True if *text* is an isogram (no repeating letters).
+
+    An isogram is a word or phrase in which no letter appears more than
+    once. The check is case-insensitive and ignores non-letter characters.
+
+    Args:
+        text: The string to check.
+
+    Returns:
+        True if *text* is an isogram, False otherwise. The empty string
+        is considered an isogram.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+
+    Examples:
+        >>> is_isogram("abc")
+        True
+        >>> is_isogram("hello")
+        False
+        >>> is_isogram("")
+        True
+        >>> is_isogram("Emily Jung Schwartzkopf")
+        True
+    """
+    _require_string(text, "text")
+    seen: set[str] = set()
+    for ch in text.lower():
+        if ch.isalpha():
+            if ch in seen:
+                return False
+            seen.add(ch)
+    return True

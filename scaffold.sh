@@ -16532,6 +16532,7 @@ import unittest
 from string_utils import (
     camel_to_snake,
     indent_text,
+    is_isogram,
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
@@ -17138,6 +17139,55 @@ class TestPluralizeCrossCheck(unittest.TestCase):
     def test_count_one_returns_input(self):
         for word in ("cat", "bus", "baby", "church", "café"):
             self.assertEqual(pluralize(word, 1), word)
+
+
+class TestIsIsogram(unittest.TestCase):
+    def test_isogram(self):
+        self.assertTrue(is_isogram("abc"))
+        self.assertTrue(is_isogram("abcdefghijklmnopqrstuvwxyz"))
+        self.assertTrue(is_isogram("Emily Jung Schwartzkopf"))
+
+    def test_not_isogram(self):
+        self.assertFalse(is_isogram("hello"))
+        self.assertFalse(is_isogram("bookkeeper"))
+        self.assertFalse(is_isogram("aabbcc"))
+
+    def test_case_insensitive(self):
+        self.assertFalse(is_isogram("Hh"))
+        self.assertFalse(is_isogram("Aa"))
+        self.assertTrue(is_isogram("AbC"))
+
+    def test_empty_string(self):
+        self.assertTrue(is_isogram(""))
+
+    def test_single_char(self):
+        self.assertTrue(is_isogram("a"))
+        self.assertTrue(is_isogram("Z"))
+
+    def test_ignores_non_letters(self):
+        self.assertTrue(is_isogram("a-b-c"))
+        self.assertTrue(is_isogram("a1b2c3"))
+        self.assertTrue(is_isogram("a b c"))
+
+    def test_unicode_letters(self):
+        self.assertTrue(is_isogram("café"))
+        self.assertFalse(is_isogram("caféfé"))
+
+    def test_whitespace_only(self):
+        self.assertTrue(is_isogram("   "))
+        self.assertTrue(is_isogram("\t\n"))
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            is_isogram(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_isogram(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_isogram(["a"])  # type: ignore[arg-type]
+
+    def test_very_long_string(self):
+        text = "".join(chr(97 + i % 26) for i in range(1000))
+        self.assertFalse(is_isogram(text))
 
 
 if __name__ == "__main__":
@@ -24092,6 +24142,7 @@ __all__: List[str] = [
     "slugify",
     "camel_to_snake",
     "snake_to_camel",
+    "is_isogram",
     "pluralize",
     "truncate",
     "wrap_text",
@@ -24547,6 +24598,42 @@ def title_case(text: str, small_words: Optional[List[str]] = None) -> str:
         else:
             result.append(word.lower())
     return " ".join(result)
+
+
+def is_isogram(text: str) -> bool:
+    """Return True if *text* is an isogram (no repeating letters).
+
+    An isogram is a word or phrase in which no letter appears more than
+    once. The check is case-insensitive and ignores non-letter characters.
+
+    Args:
+        text: The string to check.
+
+    Returns:
+        True if *text* is an isogram, False otherwise. The empty string
+        is considered an isogram.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+
+    Examples:
+        >>> is_isogram("abc")
+        True
+        >>> is_isogram("hello")
+        False
+        >>> is_isogram("")
+        True
+        >>> is_isogram("Emily Jung Schwartzkopf")
+        True
+    """
+    _require_string(text, "text")
+    seen: set[str] = set()
+    for ch in text.lower():
+        if ch.isalpha():
+            if ch in seen:
+                return False
+            seen.add(ch)
+    return True
 STRINGUTILS
 # --- tree_utils.py ---
 cat > "$OUTPUT_DIR/tree_utils.py" <<'TREEUTILS'
@@ -37973,6 +38060,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `is_isogram(text)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* is an isogram (no repeating letters, case-insensitive, ignoring non-letter characters), `False` otherwise, treating the empty string as an isogram. Added `TestIsIsogram` to `tests/test_string_utils.py` covering isograms, non-isograms, case-insensitivity, empty/single-char inputs, non-letter characters, unicode, whitespace-only, the `TypeError` path, and a very long string. Updated the `string_utils` module prose section of `README.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, README, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Audited `string_utils.py` boundary cases (very long strings, unicode, consecutive and leading/trailing underscores, empty and single-character inputs, `width=1`, non-string/invalid types including bools passed as ints) and added comprehensive boundary tests to `tests/test_string_utils.py` covering `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, and `title_case`. Added invariant-based cross-check tests (slug character class, line widths, word order preservation, title-case capitalization, pluralize count-one) verifying behavior against expectations. Moved the `if __name__ == "__main__"` block to the end of `tests/test_string_utils.py` so `TestWrapWords` runs when the file is executed directly, matching the convention applied to `tests/test_strings.py` and `tests/test_shapes.py`. Cross-checked behavior against expectations; all string_utils tests pass. Synchronized `tests/test_string_utils.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Audited `string_utils.py` boundary cases (empty strings, single char, whitespace-only, unicode, non-string/invalid types, bools passed as ints, negative/invalid widths/lengths/max_words, suffix/ prefix validation) and added comprehensive boundary tests to `tests/test_string_utils.py` covering `slugify` unicode/whitespace, `truncate` edge cases (empty string, single char, suffix longer than length), `wrap_text` and `wrap_words` boundary paths, `truncate_words` bool/negative/empty cases, `remove_blank_lines`/`remove_extra_whitespace`, and `title_case` with custom small words and empty strings. Cross-checked behavior against expectations; all string_utils tests pass. Updated `string_utils` module prose section in `README.md`. Synchronized `tests/test_string_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -39186,7 +39275,7 @@ The project includes a statistical utilities module in `statistics_utils.py` wit
 
 ## String Utilities Module
 
-The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, and `title_case`. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
+The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, and `title_case`. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
 
 ## Type Utilities Module
 

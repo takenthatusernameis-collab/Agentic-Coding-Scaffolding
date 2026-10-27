@@ -5,6 +5,7 @@ import unittest
 from string_utils import (
     camel_to_snake,
     indent_text,
+    is_isogram,
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
@@ -611,6 +612,55 @@ class TestPluralizeCrossCheck(unittest.TestCase):
     def test_count_one_returns_input(self):
         for word in ("cat", "bus", "baby", "church", "café"):
             self.assertEqual(pluralize(word, 1), word)
+
+
+class TestIsIsogram(unittest.TestCase):
+    def test_isogram(self):
+        self.assertTrue(is_isogram("abc"))
+        self.assertTrue(is_isogram("abcdefghijklmnopqrstuvwxyz"))
+        self.assertTrue(is_isogram("Emily Jung Schwartzkopf"))
+
+    def test_not_isogram(self):
+        self.assertFalse(is_isogram("hello"))
+        self.assertFalse(is_isogram("bookkeeper"))
+        self.assertFalse(is_isogram("aabbcc"))
+
+    def test_case_insensitive(self):
+        self.assertFalse(is_isogram("Hh"))
+        self.assertFalse(is_isogram("Aa"))
+        self.assertTrue(is_isogram("AbC"))
+
+    def test_empty_string(self):
+        self.assertTrue(is_isogram(""))
+
+    def test_single_char(self):
+        self.assertTrue(is_isogram("a"))
+        self.assertTrue(is_isogram("Z"))
+
+    def test_ignores_non_letters(self):
+        self.assertTrue(is_isogram("a-b-c"))
+        self.assertTrue(is_isogram("a1b2c3"))
+        self.assertTrue(is_isogram("a b c"))
+
+    def test_unicode_letters(self):
+        self.assertTrue(is_isogram("café"))
+        self.assertFalse(is_isogram("caféfé"))
+
+    def test_whitespace_only(self):
+        self.assertTrue(is_isogram("   "))
+        self.assertTrue(is_isogram("\t\n"))
+
+    def test_non_string(self):
+        with self.assertRaises(TypeError):
+            is_isogram(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_isogram(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_isogram(["a"])  # type: ignore[arg-type]
+
+    def test_very_long_string(self):
+        text = "".join(chr(97 + i % 26) for i in range(1000))
+        self.assertFalse(is_isogram(text))
 
 
 if __name__ == "__main__":
