@@ -12,6 +12,7 @@ from stats import (
     mean_absolute_deviation,
     median,
     median_absolute_deviation,
+    midhinge,
     midrange,
     min_value,
     mode,
@@ -694,3 +695,54 @@ class TestZScores(unittest.TestCase):
     def test_rejects_non_numeric(self) -> None:
         with self.assertRaises(TypeError):
             z_scores([1, 2, "a"])  # type: ignore[type-var]
+
+
+class TestMidhinge(unittest.TestCase):
+    def test_basic(self) -> None:
+        from stats import midhinge
+
+        self.assertAlmostEqual(midhinge([1, 2, 3, 4, 5]), 3.0)
+        self.assertAlmostEqual(midhinge([1, 2, 3, 4, 5, 6]), 3.5)
+        self.assertAlmostEqual(midhinge([6, 2, 9, 1]), 4.25)
+
+    def test_matches_quartile_mean(self) -> None:
+        from stats import midhinge, percentile
+
+        data = [1, 2, 3, 4, 5, 6, 7, 8]
+        expected = (percentile(data, 25) + percentile(data, 75)) / 2.0
+        self.assertAlmostEqual(midhinge(data), expected)
+
+    def test_empty_raises(self) -> None:
+        from stats import midhinge
+
+        with self.assertRaises(ValueError):
+            midhinge([])
+
+    def test_single_value(self) -> None:
+        from stats import midhinge
+
+        self.assertAlmostEqual(midhinge([42]), 42.0)
+
+    def test_negatives_and_floats(self) -> None:
+        from stats import midhinge
+
+        self.assertAlmostEqual(midhinge([-5, -1, 0, 1, 5]), 0.0)
+        self.assertAlmostEqual(midhinge([1.5, 2.5, 3.5, 4.5]), 3.0)
+
+    def test_rejects_non_list(self) -> None:
+        from stats import midhinge
+
+        with self.assertRaises(TypeError):
+            midhinge((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        from stats import midhinge
+
+        with self.assertRaises(TypeError):
+            midhinge([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        from stats import midhinge
+
+        with self.assertRaises(TypeError):
+            midhinge([True, 1, 2])  # type: ignore[type-var]

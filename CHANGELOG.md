@@ -6,6 +6,8 @@
 
 ## Unreleased
 
+- Added `midhinge(numbers)` to `stats.py` returning the midhinge ((Q1 + Q3) / 2), a robust measure of central tendency. It validates its input (raising `TypeError` for non-lists or non-numeric values and `ValueError` for an empty list) and is exported in `__all__` with a Google-style docstring and doctests. Added `TestMidhinge` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`.
+
 - Added `radical(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with validation raising `TypeError` for non-ints and `ValueError` for `n < 1` (returning `1` for `n == 1`); it returns the product of the distinct prime factors. Added `TestRadical` to `tests/test_prime_utils.py` covering primes, prime powers, multiple distinct primes, repeated factors, the empty/product-of-distinct cases, and the `TypeError`/`ValueError` paths. Updated the `prime_utils` module tree entry and prose section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `product(numbers)` to `stats.py` returning the product of all values in a list of numbers, complementing `sum_values`. It validates its input (raising `TypeError` for non-lists or non-numeric values and `ValueError` for an empty list) and is exported in `__all__` with a Google-style docstring and doctests. Added `TestProduct` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`.

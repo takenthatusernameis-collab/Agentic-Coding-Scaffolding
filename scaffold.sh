@@ -12401,6 +12401,7 @@ __all__: List[str] = [
     "median_absolute_deviation",
     "weighted_mean",
     "trimean",
+    "midhinge",
     "kurtosis",
     "covariance",
     "correlation",
@@ -12892,6 +12893,35 @@ def trimean(numbers: List[T | float]) -> float:
     q2 = percentile(numbers, 50)
     q3 = percentile(numbers, 75)
     return (q1 + 2.0 * q2 + q3) / 4.0
+
+
+def midhinge(numbers: List[T | float]) -> float:
+    """Return the midhinge of a list of numbers.
+
+    The midhinge is the arithmetic mean of the first and third quartiles,
+    (Q1 + Q3) / 2. It is a robust measure of central tendency that is less
+    sensitive to outliers than the mean.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The midhinge of the numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> midhinge([1, 2, 3, 4, 5])
+        3.0
+        >>> midhinge([1, 2, 3, 4, 5, 6])
+        3.5
+    """
+    _require_numbers(numbers, "numbers")
+    q1 = percentile(numbers, 25)
+    q3 = percentile(numbers, 75)
+    return (q1 + q3) / 2.0
 
 
 def iqr(numbers: List[T | float]) -> float:
@@ -14978,6 +15008,7 @@ from stats import (
     mean_absolute_deviation,
     median,
     median_absolute_deviation,
+    midhinge,
     midrange,
     min_value,
     mode,
@@ -15660,6 +15691,57 @@ class TestZScores(unittest.TestCase):
     def test_rejects_non_numeric(self) -> None:
         with self.assertRaises(TypeError):
             z_scores([1, 2, "a"])  # type: ignore[type-var]
+
+
+class TestMidhinge(unittest.TestCase):
+    def test_basic(self) -> None:
+        from stats import midhinge
+
+        self.assertAlmostEqual(midhinge([1, 2, 3, 4, 5]), 3.0)
+        self.assertAlmostEqual(midhinge([1, 2, 3, 4, 5, 6]), 3.5)
+        self.assertAlmostEqual(midhinge([6, 2, 9, 1]), 4.25)
+
+    def test_matches_quartile_mean(self) -> None:
+        from stats import midhinge, percentile
+
+        data = [1, 2, 3, 4, 5, 6, 7, 8]
+        expected = (percentile(data, 25) + percentile(data, 75)) / 2.0
+        self.assertAlmostEqual(midhinge(data), expected)
+
+    def test_empty_raises(self) -> None:
+        from stats import midhinge
+
+        with self.assertRaises(ValueError):
+            midhinge([])
+
+    def test_single_value(self) -> None:
+        from stats import midhinge
+
+        self.assertAlmostEqual(midhinge([42]), 42.0)
+
+    def test_negatives_and_floats(self) -> None:
+        from stats import midhinge
+
+        self.assertAlmostEqual(midhinge([-5, -1, 0, 1, 5]), 0.0)
+        self.assertAlmostEqual(midhinge([1.5, 2.5, 3.5, 4.5]), 3.0)
+
+    def test_rejects_non_list(self) -> None:
+        from stats import midhinge
+
+        with self.assertRaises(TypeError):
+            midhinge((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        from stats import midhinge
+
+        with self.assertRaises(TypeError):
+            midhinge([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        from stats import midhinge
+
+        with self.assertRaises(TypeError):
+            midhinge([True, 1, 2])  # type: ignore[type-var]
 TESTSTATS
 
 # --- math_utils.py ---
@@ -38362,6 +38444,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `midhinge(numbers)` to `stats.py` returning the midhinge ((Q1 + Q3) / 2), a robust measure of central tendency. It validates its input (raising `TypeError` for non-lists or non-numeric values and `ValueError` for an empty list) and is exported in `__all__` with a Google-style docstring and doctests. Added `TestMidhinge` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`.
+
 - Added `radical(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with validation raising `TypeError` for non-ints and `ValueError` for `n < 1` (returning `1` for `n == 1`); it returns the product of the distinct prime factors. Added `TestRadical` to `tests/test_prime_utils.py` covering primes, prime powers, multiple distinct primes, repeated factors, the empty/product-of-distinct cases, and the `TypeError`/`ValueError` paths. Updated the `prime_utils` module tree entry and prose section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `product(numbers)` to `stats.py` returning the product of all values in a list of numbers, complementing `sum_values`. It validates its input (raising `TypeError` for non-lists or non-numeric values and `ValueError` for an empty list) and is exported in `__all__` with a Google-style docstring and doctests. Added `TestProduct` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`.
@@ -39447,7 +39531,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

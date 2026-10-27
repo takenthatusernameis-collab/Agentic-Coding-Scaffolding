@@ -32,6 +32,7 @@ __all__: List[str] = [
     "median_absolute_deviation",
     "weighted_mean",
     "trimean",
+    "midhinge",
     "kurtosis",
     "covariance",
     "correlation",
@@ -523,6 +524,35 @@ def trimean(numbers: List[T | float]) -> float:
     q2 = percentile(numbers, 50)
     q3 = percentile(numbers, 75)
     return (q1 + 2.0 * q2 + q3) / 4.0
+
+
+def midhinge(numbers: List[T | float]) -> float:
+    """Return the midhinge of a list of numbers.
+
+    The midhinge is the arithmetic mean of the first and third quartiles,
+    (Q1 + Q3) / 2. It is a robust measure of central tendency that is less
+    sensitive to outliers than the mean.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The midhinge of the numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> midhinge([1, 2, 3, 4, 5])
+        3.0
+        >>> midhinge([1, 2, 3, 4, 5, 6])
+        3.5
+    """
+    _require_numbers(numbers, "numbers")
+    q1 = percentile(numbers, 25)
+    q3 = percentile(numbers, 75)
+    return (q1 + q3) / 2.0
 
 
 def iqr(numbers: List[T | float]) -> float:
