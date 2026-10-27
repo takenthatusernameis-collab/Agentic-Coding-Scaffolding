@@ -276,7 +276,7 @@ def wrap_words(
 
     Examples:
         >>> wrap_words("hello world", 5)
-        'hello\nworld'
+        'hello\\nworld'
         >>> wrap_words("abcdefghij", 4, False)
         'abcdefghij'
     """
