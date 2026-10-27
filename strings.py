@@ -76,6 +76,7 @@ __all__: List[str] = [
     "remove_blank_lines",
     "chunk_string",
     "remove_vowels",
+    "remove_consonants",
 ]
 
 
@@ -1021,3 +1022,13 @@ def remove_vowels(s: str) -> str:
     _require_string(s, "s")
     vowels = set("aeiouAEIOU")
     return "".join(ch for ch in s if ch not in vowels)
+
+
+def remove_consonants(s: str) -> str:
+    """Remove all consonant characters from *s*.
+
+    Comparison is case-insensitive; non-alphabetic characters are kept.
+    """
+    _require_string(s, "s")
+    vowels = set("aeiouAEIOU")
+    return "".join(ch for ch in s if not ch.isalpha() or ch in vowels)

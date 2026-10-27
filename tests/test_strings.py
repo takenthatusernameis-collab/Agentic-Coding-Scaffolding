@@ -48,8 +48,10 @@ from strings import (
     pad_right,
     partition,
     remove_blank_lines,
+    remove_consonants,
     remove_digits,
     remove_punctuation,
+    remove_vowels,
     remove_whitespace,
     replace_many,
     reverse_string,
@@ -1014,6 +1016,15 @@ class TestNewHelpers(unittest.TestCase):
     def test_remove_punctuation(self):
 
         self.assertEqual(remove_punctuation("hello, world!"), "hello world")
+
+    def test_remove_consonants(self):
+        self.assertEqual(remove_consonants("hello"), "eo")
+        self.assertEqual(remove_consonants("HELLO"), "EO")
+        self.assertEqual(remove_consonants("a1b2"), "a12")
+
+    def test_remove_vowels(self):
+        self.assertEqual(remove_vowels("hello"), "hll")
+        self.assertEqual(remove_vowels("a1e2"), "12")
 
     def test_remove_digits(self):
 

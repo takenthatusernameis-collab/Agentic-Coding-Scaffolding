@@ -10986,6 +10986,7 @@ __all__: List[str] = [
     "remove_blank_lines",
     "chunk_string",
     "remove_vowels",
+    "remove_consonants",
 ]
 
 
@@ -11931,6 +11932,16 @@ def remove_vowels(s: str) -> str:
     _require_string(s, "s")
     vowels = set("aeiouAEIOU")
     return "".join(ch for ch in s if ch not in vowels)
+
+
+def remove_consonants(s: str) -> str:
+    """Remove all consonant characters from *s*.
+
+    Comparison is case-insensitive; non-alphabetic characters are kept.
+    """
+    _require_string(s, "s")
+    vowels = set("aeiouAEIOU")
+    return "".join(ch for ch in s if not ch.isalpha() or ch in vowels)
 STRINGS
 
 # --- utils.py ---
@@ -13287,8 +13298,10 @@ from strings import (
     pad_right,
     partition,
     remove_blank_lines,
+    remove_consonants,
     remove_digits,
     remove_punctuation,
+    remove_vowels,
     remove_whitespace,
     replace_many,
     reverse_string,
@@ -14253,6 +14266,15 @@ class TestNewHelpers(unittest.TestCase):
     def test_remove_punctuation(self):
 
         self.assertEqual(remove_punctuation("hello, world!"), "hello world")
+
+    def test_remove_consonants(self):
+        self.assertEqual(remove_consonants("hello"), "eo")
+        self.assertEqual(remove_consonants("HELLO"), "EO")
+        self.assertEqual(remove_consonants("a1b2"), "a12")
+
+    def test_remove_vowels(self):
+        self.assertEqual(remove_vowels("hello"), "hll")
+        self.assertEqual(remove_vowels("a1e2"), "12")
 
     def test_remove_digits(self):
 
