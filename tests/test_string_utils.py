@@ -6,6 +6,7 @@ from string_utils import (
     camel_to_snake,
     indent_text,
     pluralize,
+    remove_blank_lines,
     remove_extra_whitespace,
     slugify,
     snake_to_camel,
@@ -174,6 +175,24 @@ class TestRemoveExtraWhitespace(unittest.TestCase):
     def test_non_string(self):
         with self.assertRaises(TypeError):
             remove_extra_whitespace(7)
+
+
+class TestRemoveBlankLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(remove_blank_lines("a\n\nb\n\n\nc"), "a\nb\nc")
+
+    def test_no_blanks(self):
+        self.assertEqual(remove_blank_lines("a\nb\nc"), "a\nb\nc")
+
+    def test_empty(self):
+        self.assertEqual(remove_blank_lines(""), "")
+
+    def test_whitespace_only_lines(self):
+        self.assertEqual(remove_blank_lines("a\n   \n\tb\n"), "a\n\tb")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            remove_blank_lines(123)  # type: ignore[arg-type]
 
 
 class TestTitleCase(unittest.TestCase):

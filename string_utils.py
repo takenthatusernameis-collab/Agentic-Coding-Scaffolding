@@ -13,6 +13,7 @@ __all__: List[str] = [
     "wrap_text",
     "indent_text",
     "remove_extra_whitespace",
+    "remove_blank_lines",
     "title_case",
 ]
 
@@ -291,6 +292,33 @@ def remove_extra_whitespace(text: str) -> str:
     """
     _require_string(text, "text")
     return " ".join(text.split())
+
+
+def remove_blank_lines(text: str) -> str:
+    """Remove blank (whitespace-only) lines from *text*.
+
+    Args:
+        text: The text to filter.
+
+    Returns:
+        *text* with every blank line removed, preserving order of the
+        remaining lines and the original newline structure otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> remove_blank_lines("a\\n\\nb\\n\\n\\nc")
+        'a\\nb\\nc'
+        >>> remove_blank_lines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    result = [line for line in lines if line.strip() != ""]
+    return "\n".join(result)
 
 
 def title_case(text: str, small_words: Optional[List[str]] = None) -> str:

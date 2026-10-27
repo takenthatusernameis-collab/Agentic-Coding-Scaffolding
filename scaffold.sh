@@ -16467,6 +16467,7 @@ from string_utils import (
     camel_to_snake,
     indent_text,
     pluralize,
+    remove_blank_lines,
     remove_extra_whitespace,
     slugify,
     snake_to_camel,
@@ -16635,6 +16636,24 @@ class TestRemoveExtraWhitespace(unittest.TestCase):
     def test_non_string(self):
         with self.assertRaises(TypeError):
             remove_extra_whitespace(7)
+
+
+class TestRemoveBlankLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(remove_blank_lines("a\n\nb\n\n\nc"), "a\nb\nc")
+
+    def test_no_blanks(self):
+        self.assertEqual(remove_blank_lines("a\nb\nc"), "a\nb\nc")
+
+    def test_empty(self):
+        self.assertEqual(remove_blank_lines(""), "")
+
+    def test_whitespace_only_lines(self):
+        self.assertEqual(remove_blank_lines("a\n   \n\tb\n"), "a\n\tb")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            remove_blank_lines(123)  # type: ignore[arg-type]
 
 
 class TestTitleCase(unittest.TestCase):
@@ -23621,6 +23640,7 @@ __all__: List[str] = [
     "wrap_text",
     "indent_text",
     "remove_extra_whitespace",
+    "remove_blank_lines",
     "title_case",
 ]
 
@@ -23899,6 +23919,33 @@ def remove_extra_whitespace(text: str) -> str:
     """
     _require_string(text, "text")
     return " ".join(text.split())
+
+
+def remove_blank_lines(text: str) -> str:
+    """Remove blank (whitespace-only) lines from *text*.
+
+    Args:
+        text: The text to filter.
+
+    Returns:
+        *text* with every blank line removed, preserving order of the
+        remaining lines and the original newline structure otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> remove_blank_lines("a\\n\\nb\\n\\n\\nc")
+        'a\\nb\\nc'
+        >>> remove_blank_lines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    result = [line for line in lines if line.strip() != ""]
+    return "\n".join(result)
 
 
 def title_case(text: str, small_words: Optional[List[str]] = None) -> str:
