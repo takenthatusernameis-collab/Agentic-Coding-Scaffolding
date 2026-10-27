@@ -75,6 +75,7 @@ __all__: List[str] = [
     "remove_digits",
     "remove_blank_lines",
     "chunk_string",
+    "remove_vowels",
 ]
 
 
@@ -1010,3 +1011,13 @@ def initials(s: str, *, separator: str = "") -> str:
     _require_string(separator, "separator")
     words = s.split()
     return separator.join(word[0].upper() for word in words if word)
+
+
+def remove_vowels(s: str) -> str:
+    """Remove all vowel characters (a, e, i, o, u) from *s*.
+
+    Comparison is case-insensitive; non-alphabetic characters are kept.
+    """
+    _require_string(s, "s")
+    vowels = set("aeiouAEIOU")
+    return "".join(ch for ch in s if ch not in vowels)

@@ -10985,6 +10985,7 @@ __all__: List[str] = [
     "remove_digits",
     "remove_blank_lines",
     "chunk_string",
+    "remove_vowels",
 ]
 
 
@@ -11920,6 +11921,16 @@ def initials(s: str, *, separator: str = "") -> str:
     _require_string(separator, "separator")
     words = s.split()
     return separator.join(word[0].upper() for word in words if word)
+
+
+def remove_vowels(s: str) -> str:
+    """Remove all vowel characters (a, e, i, o, u) from *s*.
+
+    Comparison is case-insensitive; non-alphabetic characters are kept.
+    """
+    _require_string(s, "s")
+    vowels = set("aeiouAEIOU")
+    return "".join(ch for ch in s if ch not in vowels)
 STRINGS
 
 # --- utils.py ---
@@ -63162,6 +63173,7 @@ __all__: List[str] = [
     "is_sexy_prime",
     "radical",
     "prime_count",
+    "prime_gap",
     "primorial",
     "total_prime_factors",
 ]
@@ -63926,6 +63938,30 @@ def prime_count(n: int) -> int:
     return len(primes_up_to(n))
 
 
+def prime_gap(n: int) -> int:
+    """Return the gap between *n* and the next prime after *n*.
+
+    The prime gap is the difference between the next prime greater than *n*
+    and *n* itself. If *n* is already prime, this returns the gap to the
+    prime immediately after *n* (i.e. ``next_prime(n + 1) - n``).
+
+    Args:
+        n: The integer to measure the gap from.
+
+    Returns:
+        The difference between the next prime after *n* and *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if is_prime(n):
+        p = next_prime(n + 1)
+    else:
+        p = next_prime(n)
+    return p - n
+
+
 def radical(n: int) -> int:
     """Return the radical of *n* (product of the distinct prime factors).
 
@@ -64063,6 +64099,7 @@ from prime_utils import (
     nth_prime,
     prev_prime,
     prime_count,
+    prime_gap,
     prime_factors,
     primes_up_to,
     primorial,
@@ -64713,6 +64750,32 @@ class TestPrimeCount(unittest.TestCase):
             prime_count(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             prime_count(True)  # type: ignore[arg-type]
+
+
+class TestPrimeGap(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(prime_gap(14), 3)  # 17 - 14
+        self.assertEqual(prime_gap(10), 1)  # 11 - 10
+
+    def test_prime_input(self):
+        self.assertEqual(prime_gap(7), 4)  # 11 - 7
+        self.assertEqual(prime_gap(2), 1)  # 3 - 2
+        self.assertEqual(prime_gap(3), 2)  # 5 - 3
+        self.assertEqual(prime_gap(5), 2)  # 7 - 5
+
+    def test_large(self):
+        self.assertEqual(prime_gap(89), 2)  # 97 - 89 (twin in terms of gap to next)
+        self.assertEqual(prime_gap(90), 1)  # 97 - 90
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            prime_gap(5.0)
+        with self.assertRaises(TypeError):
+            prime_gap("5")
+        with self.assertRaises(TypeError):
+            prime_gap(None)
+        with self.assertRaises(TypeError):
+            prime_gap(True)
 
 
 class TestPrimeClassificationNegatives(unittest.TestCase):
