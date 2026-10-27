@@ -16065,7 +16065,7 @@ class TestMidhinge(unittest.TestCase):
     def test_matches_quartile_mean(self) -> None:
         from stats import percentile
 
-        data = [1, 2, 3, 4, 5, 6, 7, 8]
+        data: list[int | float] = [1, 2, 3, 4, 5, 6, 7, 8]
         expected = (percentile(data, 25) + percentile(data, 75)) / 2.0
         self.assertAlmostEqual(midhinge(data), expected)
 
