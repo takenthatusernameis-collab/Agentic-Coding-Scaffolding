@@ -347,5 +347,28 @@ class TestRemoveBlankLines(unittest.TestCase):
             remove_blank_lines(123)  # type: ignore[arg-type]
 
 
+from prompt_utils import ensure_trailing_newline
+
+
+class TestEnsureTrailingNewline(unittest.TestCase):
+    def test_adds_newline(self):
+        self.assertEqual(ensure_trailing_newline("hello"), "hello\n")
+
+    def test_keeps_existing_newline(self):
+        self.assertEqual(ensure_trailing_newline("hello\n"), "hello\n")
+
+    def test_empty_string(self):
+        self.assertEqual(ensure_trailing_newline(""), "")
+
+    def test_multiple_newlines(self):
+        self.assertEqual(ensure_trailing_newline("hello\n\n"), "hello\n\n")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ensure_trailing_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_trailing_newline(None)  # type: ignore[arg-type]
+
+
 if __name__ == "__main__":
     unittest.main()

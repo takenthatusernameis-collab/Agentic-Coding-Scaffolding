@@ -29,6 +29,7 @@ __all__: List[str] = [
     "indent_lines",
     "dedent_lines",
     "remove_blank_lines",
+    "ensure_trailing_newline",
 ]
 
 
@@ -627,3 +628,34 @@ def remove_blank_lines(text: str) -> str:
     lines = text.split("\n")
     result = [line for line in lines if line.strip() != ""]
     return "\n".join(result)
+
+
+def ensure_trailing_newline(text: str) -> str:
+    """Ensure *text* ends with a newline character.
+
+    If *text* is empty, it is returned unchanged. If it already ends with a
+    newline, it is returned unchanged. Otherwise a single ``\\n`` is appended.
+
+    Args:
+        text: The text to normalize.
+
+    Returns:
+        *text* with a trailing newline when appropriate.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> ensure_trailing_newline("hello")
+        'hello\\n'
+        >>> ensure_trailing_newline("hello\\n")
+        'hello\\n'
+        >>> ensure_trailing_newline("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    if text.endswith("\n"):
+        return text
+    return text + "\n"
