@@ -21,6 +21,8 @@ from prompt_utils import (
     normalize_line_endings,
     remove_blank_lines,
     rstrip_lines,
+    lstrip_lines,
+    strip_lines,
     truncate_prompt,
     truncate_words,
     wrap_prompt,
@@ -372,6 +374,42 @@ class TestRstripLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             rstrip_lines(123)  # type: ignore[arg-type]
+
+
+class TestLstripLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(lstrip_lines("   hello\n  world\n"), "hello\nworld\n")
+
+    def test_no_leading(self):
+        self.assertEqual(lstrip_lines("no leading"), "no leading")
+
+    def test_empty(self):
+        self.assertEqual(lstrip_lines(""), "")
+
+    def test_whitespace_only_lines(self):
+        self.assertEqual(lstrip_lines("   \n\t\n"), "\n\n")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            lstrip_lines(123)  # type: ignore[arg-type]
+
+
+class TestStripLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(strip_lines("   hello   \n  world  \n"), "hello\nworld\n")
+
+    def test_no_trim(self):
+        self.assertEqual(strip_lines("no trim"), "no trim")
+
+    def test_empty(self):
+        self.assertEqual(strip_lines(""), "")
+
+    def test_whitespace_only_lines(self):
+        self.assertEqual(strip_lines("   \n\t\n"), "\n\n")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            strip_lines(123)  # type: ignore[arg-type]
 
 
 class TestEnsureTrailingNewline(unittest.TestCase):

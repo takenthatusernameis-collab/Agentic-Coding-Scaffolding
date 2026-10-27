@@ -30,6 +30,8 @@ __all__: List[str] = [
     "dedent_lines",
     "remove_blank_lines",
     "rstrip_lines",
+    "lstrip_lines",
+    "strip_lines",
     "ensure_trailing_newline",
     "normalize_line_endings",
     "first_line",
@@ -650,8 +652,8 @@ def rstrip_lines(text: str) -> str:
         TypeError: If *text* is not a string.
 
     Examples:
-        >>> rstrip_lines("hello   \\nworld  \\n")
-        'hello\\nworld\\n'
+        >>> rstrip_lines("hello   \nworld  \n")
+        'hello\nworld\n'
         >>> rstrip_lines("no trailing")
         'no trailing'
         >>> rstrip_lines("")
@@ -662,6 +664,64 @@ def rstrip_lines(text: str) -> str:
         return text
     lines = text.split("\n")
     result = [line.rstrip(" \t") for line in lines]
+    return "\n".join(result)
+
+
+def lstrip_lines(text: str) -> str:
+    """Strip leading whitespace from each line in *text*.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with leading whitespace removed from every line,
+        preserving line endings and blank lines.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> lstrip_lines("   hello\n  world\n")
+        'hello\nworld\n'
+        >>> lstrip_lines("no leading")
+        'no leading'
+        >>> lstrip_lines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    result = [line.lstrip(" \t") for line in lines]
+    return "\n".join(result)
+
+
+def strip_lines(text: str) -> str:
+    """Strip leading and trailing whitespace from each line in *text*.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with leading and trailing whitespace removed from every line,
+        preserving line endings and blank lines.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_lines("   hello   \n  world  \n")
+        'hello\nworld\n'
+        >>> strip_lines("  no trim  ")
+        'no trim'
+        >>> strip_lines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    result = [line.strip(" \t") for line in lines]
     return "\n".join(result)
 
 

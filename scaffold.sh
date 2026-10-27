@@ -17514,6 +17514,8 @@ from prompt_utils import (
     normalize_line_endings,
     remove_blank_lines,
     rstrip_lines,
+    lstrip_lines,
+    strip_lines,
     truncate_prompt,
     truncate_words,
     wrap_prompt,
@@ -17865,6 +17867,42 @@ class TestRstripLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             rstrip_lines(123)  # type: ignore[arg-type]
+
+
+class TestLstripLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(lstrip_lines("   hello\n  world\n"), "hello\nworld\n")
+
+    def test_no_leading(self):
+        self.assertEqual(lstrip_lines("no leading"), "no leading")
+
+    def test_empty(self):
+        self.assertEqual(lstrip_lines(""), "")
+
+    def test_whitespace_only_lines(self):
+        self.assertEqual(lstrip_lines("   \n\t\n"), "\n\n")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            lstrip_lines(123)  # type: ignore[arg-type]
+
+
+class TestStripLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(strip_lines("   hello   \n  world  \n"), "hello\nworld\n")
+
+    def test_no_trim(self):
+        self.assertEqual(strip_lines("no trim"), "no trim")
+
+    def test_empty(self):
+        self.assertEqual(strip_lines(""), "")
+
+    def test_whitespace_only_lines(self):
+        self.assertEqual(strip_lines("   \n\t\n"), "\n\n")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            strip_lines(123)  # type: ignore[arg-type]
 
 
 class TestEnsureTrailingNewline(unittest.TestCase):
@@ -26475,6 +26513,8 @@ __all__: List[str] = [
     "dedent_lines",
     "remove_blank_lines",
     "rstrip_lines",
+    "lstrip_lines",
+    "strip_lines",
     "ensure_trailing_newline",
     "normalize_line_endings",
     "first_line",
@@ -27095,8 +27135,8 @@ def rstrip_lines(text: str) -> str:
         TypeError: If *text* is not a string.
 
     Examples:
-        >>> rstrip_lines("hello   \\nworld  \\n")
-        'hello\\nworld\\n'
+        >>> rstrip_lines("hello   \nworld  \n")
+        'hello\nworld\n'
         >>> rstrip_lines("no trailing")
         'no trailing'
         >>> rstrip_lines("")
@@ -27107,6 +27147,64 @@ def rstrip_lines(text: str) -> str:
         return text
     lines = text.split("\n")
     result = [line.rstrip(" \t") for line in lines]
+    return "\n".join(result)
+
+
+def lstrip_lines(text: str) -> str:
+    """Strip leading whitespace from each line in *text*.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with leading whitespace removed from every line,
+        preserving line endings and blank lines.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> lstrip_lines("   hello\n  world\n")
+        'hello\nworld\n'
+        >>> lstrip_lines("no leading")
+        'no leading'
+        >>> lstrip_lines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    result = [line.lstrip(" \t") for line in lines]
+    return "\n".join(result)
+
+
+def strip_lines(text: str) -> str:
+    """Strip leading and trailing whitespace from each line in *text*.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with leading and trailing whitespace removed from every line,
+        preserving line endings and blank lines.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_lines("   hello   \n  world  \n")
+        'hello\nworld\n'
+        >>> strip_lines("  no trim  ")
+        'no trim'
+        >>> strip_lines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    result = [line.strip(" \t") for line in lines]
     return "\n".join(result)
 
 
@@ -38643,7 +38741,7 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-- Added `rstrip_lines(text)` to `prompt_utils.py` with typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation; it strips trailing whitespace (spaces/tabs) from each line while preserving line endings and blank lines. Added `TestRstripLines` to `tests/test_prompt_utils.py` covering basic cases, whitespace-only lines, mixed spaces/tabs, empty strings, and `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `rstrip_lines(text)`, `lstrip_lines(text)`, and `strip_lines(text)` to `prompt_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation; they strip whitespace (spaces/tabs) from each line in the respective direction while preserving line endings and blank lines. Added `TestLstripLines` and `TestStripLines` to `tests/test_prompt_utils.py` covering basic cases, whitespace-only lines, empty strings, and `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Audited and hardened `math_utils.py` boundary cases to match project conventions: added typed `__all__`, a `_require_int` helper, and `TypeError`/`ValueError` validation on every public function (`factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `clamp`, `is_even`); `clamp` now accepts floats and rejects bools. Expanded `tests/test_math_utils.py` with boundary tests (zero, negatives, large factorials, zero/negative args for gcd/lcm, large primes, floats, bools, non-ints) and added `is_even` with tests. Updated the `math_utils` module tree entry and prose section of `README.md`. Synchronized `math_utils.py`, `tests/test_math_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -39993,7 +40091,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, and `last_line`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 
