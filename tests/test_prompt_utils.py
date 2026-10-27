@@ -5,6 +5,7 @@ import unittest
 from prompt_utils import (
     clean_prompt,
     count_lines,
+    count_blank_lines,
     collapse_blank_lines,
     count_placeholders,
     count_sentences,
@@ -510,3 +511,27 @@ class TestCountLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_lines(123)  # type: ignore[arg-type]
+
+
+class TestCountBlankLines(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_blank_lines(""), 0)
+
+    def test_no_blank_lines(self):
+        self.assertEqual(count_blank_lines("hello\nworld"), 0)
+
+    def test_blank_line_between(self):
+        self.assertEqual(count_blank_lines("hello\n\nworld"), 1)
+
+    def test_whitespace_only_line(self):
+        self.assertEqual(count_blank_lines("hello\n   \n\t\nworld"), 2)
+
+    def test_all_blank(self):
+        self.assertEqual(count_blank_lines("\n\n"), 2)
+
+    def test_crlf(self):
+        self.assertEqual(count_blank_lines("a\r\n\r\nb"), 1)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_blank_lines(123)  # type: ignore[arg-type]

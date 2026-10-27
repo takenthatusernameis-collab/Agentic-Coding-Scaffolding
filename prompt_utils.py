@@ -37,6 +37,7 @@ __all__: List[str] = [
     "first_line",
     "last_line",
     "count_lines",
+    "count_blank_lines",
 ]
 
 
