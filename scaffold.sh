@@ -64451,8 +64451,8 @@ from prime_utils import (
     nth_prime,
     prev_prime,
     prime_count,
-    prime_gap,
     prime_factors,
+    prime_gap,
     primes_up_to,
     primorial,
     radical,
@@ -65116,8 +65116,10 @@ class TestPrimeGap(unittest.TestCase):
         self.assertEqual(prime_gap(5), 2)  # 7 - 5
 
     def test_large(self):
-        self.assertEqual(prime_gap(89), 2)  # 97 - 89 (twin in terms of gap to next)
-        self.assertEqual(prime_gap(90), 1)  # 97 - 90
+        # 89 is prime, so the gap is measured to the next prime after 89
+        # (i.e. next_prime(90) - 89 = 97 - 89 = 8).
+        self.assertEqual(prime_gap(89), 8)
+        self.assertEqual(prime_gap(90), 7)  # 97 - 90
 
     def test_type_error(self):
         with self.assertRaises(TypeError):

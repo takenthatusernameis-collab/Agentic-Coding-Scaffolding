@@ -348,6 +348,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_number_utils.py",
             "os_utils.py",
             "tests/test_os_utils.py",
+            "ossaudiodev_utils.py",
+            "tests/test_ossaudiodev_utils.py",
             "sort_utils.py",
             "tests/test_sort_utils.py",
             "graphlib_utils.py",
@@ -2747,6 +2749,32 @@ class TestScaffoldProjectNameNormalization(unittest.TestCase):
             gc_utils.set_threshold(1000)
         finally:
             gc_utils.set_threshold(*orig_t)
+
+    def test_ossaudiodev_utils_functions_work(self):
+        """Generated ossaudiodev_utils.py should have working functions."""
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            import ossaudiodev
+
+            from ossaudiodev_utils import (
+                AFMT_S16_LE,
+                SOUND_MIXER_PCM,
+                OSSAudioError,
+                error,
+                openmixer,
+            )
+            from ossaudiodev_utils import open as _open
+
+            self.assertTrue(callable(_open))
+            self.assertTrue(callable(openmixer))
+            self.assertIs(OSSAudioError, ossaudiodev.OSSAudioError)
+            self.assertIs(error, ossaudiodev.error)
+            self.assertIsInstance(AFMT_S16_LE, int)
+            self.assertIsInstance(SOUND_MIXER_PCM, int)
+            self.assertEqual(AFMT_S16_LE, ossaudiodev.AFMT_S16_LE)
+            self.assertEqual(SOUND_MIXER_PCM, ossaudiodev.SOUND_MIXER_PCM)
 
 
     def test_spaces_and_mixed_case_normalized(self) -> None:
