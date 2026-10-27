@@ -56994,10 +56994,13 @@ identical inputs.
 
 from __future__ import annotations
 
+import collections
 import functools
 from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
+
+__all__ = ["memoize", "lru_memoize"]
 
 
 def memoize(func: Callable[..., T]) -> Callable[..., T]:
@@ -57035,13 +57038,65 @@ def memoize(func: Callable[..., T]) -> Callable[..., T]:
 
     wrapper.cache_clear = cache_clear  # type: ignore[attr-defined]
     return wrapper
+
+
+def lru_memoize(func: Callable[..., T] = None, maxsize: int = 128) -> Callable[..., T]:  # type: ignore[assignment]
+    """Return a least-recently-used memoized version of ``func``.
+
+    Behaves like :func:`memoize` but evicts the least recently used entry when
+    the cache exceeds ``maxsize``. A ``maxsize`` of ``0`` disables caching.
+
+    Args:
+        func: The function to memoize.
+        maxsize: Maximum number of cached results.
+
+    Returns:
+        A callable that caches results by arguments.
+
+    Raises:
+        TypeError: If ``func`` is not callable or ``maxsize`` is not an int.
+        ValueError: If ``maxsize`` is negative.
+    """
+    if func is None:
+        def factory(f: Callable[..., T]) -> Callable[..., T]:
+            return lru_memoize(f, maxsize=maxsize)
+        return factory  # type: ignore[return-value]
+
+    if not callable(func):
+        raise TypeError("func must be callable")
+    if not isinstance(maxsize, int):
+        raise TypeError("maxsize must be an int")
+    if maxsize < 0:
+        raise ValueError("maxsize must be non-negative")
+
+    cache: "collections.OrderedDict[tuple[Any, ...], T]" = collections.OrderedDict()
+
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> T:
+        key = (args, tuple(sorted(kwargs.items())))
+        if key in cache:
+            cache.move_to_end(key)
+            return cache[key]
+        if maxsize == 0:
+            return func(*args, **kwargs)
+        result = func(*args, **kwargs)
+        cache[key] = result
+        if len(cache) > maxsize:
+            cache.popitem(last=False)
+        return result
+
+    def cache_clear() -> None:
+        cache.clear()
+
+    wrapper.cache_clear = cache_clear  # type: ignore[attr-defined]
+    return wrapper
 MEMOIZE_UTILS
 
 # --- tests/test_memoize_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_memoize_utils.py" <<'TEST_MEMOIZE_UTILS'
 import unittest
 
-from memoize_utils import memoize
+from memoize_utils import lru_memoize, memoize
 
 
 class TestMemoize(unittest.TestCase):
@@ -57102,6 +57157,56 @@ class TestMemoize(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+class TestLruMemoize(unittest.TestCase):
+    def test_caches_result(self):
+        calls = []
+
+        @lru_memoize
+        def compute(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        self.assertEqual(compute(5), 10)
+        self.assertEqual(compute(5), 10)
+        self.assertEqual(len(calls), 1)
+
+    def test_evicts_lru(self):
+        calls = []
+
+        @lru_memoize(maxsize=2)
+        def compute(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        compute(1)
+        compute(2)
+        compute(3)
+        calls_before = len(calls)
+        compute(1)
+        self.assertEqual(len(calls), calls_before + 1)
+
+    def test_maxsize_zero_disables_cache(self):
+        calls = []
+
+        @lru_memoize(maxsize=0)
+        def compute(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        compute(5)
+        compute(5)
+        self.assertEqual(len(calls), 2)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            lru_memoize("not callable")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lru_memoize(lambda x: x, maxsize="a")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            lru_memoize(lambda x: x, maxsize=-1)
 TEST_MEMOIZE_UTILS
 
 # --- mimetypes_utils.py ---

@@ -1,6 +1,6 @@
 import unittest
 
-from memoize_utils import memoize
+from memoize_utils import lru_memoize, memoize
 
 
 class TestMemoize(unittest.TestCase):
@@ -61,3 +61,53 @@ class TestMemoize(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+class TestLruMemoize(unittest.TestCase):
+    def test_caches_result(self):
+        calls = []
+
+        @lru_memoize
+        def compute(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        self.assertEqual(compute(5), 10)
+        self.assertEqual(compute(5), 10)
+        self.assertEqual(len(calls), 1)
+
+    def test_evicts_lru(self):
+        calls = []
+
+        @lru_memoize(maxsize=2)
+        def compute(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        compute(1)
+        compute(2)
+        compute(3)
+        calls_before = len(calls)
+        compute(1)
+        self.assertEqual(len(calls), calls_before + 1)
+
+    def test_maxsize_zero_disables_cache(self):
+        calls = []
+
+        @lru_memoize(maxsize=0)
+        def compute(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        compute(5)
+        compute(5)
+        self.assertEqual(len(calls), 2)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            lru_memoize("not callable")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lru_memoize(lambda x: x, maxsize="a")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            lru_memoize(lambda x: x, maxsize=-1)
