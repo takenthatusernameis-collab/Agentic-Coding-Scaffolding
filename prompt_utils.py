@@ -33,6 +33,7 @@ __all__: List[str] = [
     "normalize_line_endings",
     "first_line",
     "last_line",
+    "count_lines",
 ]
 
 
@@ -751,3 +752,37 @@ def last_line(text: str) -> str:
         return lines[-2]
     return lines[-1]
 
+
+def count_lines(text: str) -> int:
+    """Return the number of lines in *text*.
+
+    Empty text counts as zero lines. A trailing newline does not create
+    an extra empty line.
+
+    Args:
+        text: The text to count lines in.
+
+    Returns:
+        The number of lines.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_lines("")
+        0
+        >>> count_lines("hello")
+        1
+        >>> count_lines("hello\nworld")
+        2
+        >>> count_lines("hello\n")
+        1
+    """
+    _require_string(text, "text")
+    if not text:
+        return 0
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    if lines and lines[-1] == "":
+        lines = lines[:-1]
+    return len(lines)

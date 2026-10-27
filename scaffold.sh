@@ -17497,6 +17497,7 @@ import unittest
 
 from prompt_utils import (
     clean_prompt,
+    count_lines,
     collapse_blank_lines,
     count_placeholders,
     count_sentences,
@@ -17921,6 +17922,27 @@ class TestLastLine(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCountLines(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_lines(""), 0)
+
+    def test_single(self):
+        self.assertEqual(count_lines("hello"), 1)
+
+    def test_multiple(self):
+        self.assertEqual(count_lines("hello\nworld"), 2)
+
+    def test_trailing_newline(self):
+        self.assertEqual(count_lines("hello\n"), 1)
+
+    def test_crlf(self):
+        self.assertEqual(count_lines("a\r\nb"), 2)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_lines(123)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -26434,6 +26456,7 @@ __all__: List[str] = [
     "normalize_line_endings",
     "first_line",
     "last_line",
+    "count_lines",
 ]
 
 
@@ -27151,6 +27174,41 @@ def last_line(text: str) -> str:
     if lines and lines[-1] == "" and len(lines) > 1:
         return lines[-2]
     return lines[-1]
+
+
+def count_lines(text: str) -> int:
+    """Return the number of lines in *text*.
+
+    Empty text counts as zero lines. A trailing newline does not create
+    an extra empty line.
+
+    Args:
+        text: The text to count lines in.
+
+    Returns:
+        The number of lines.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_lines("")
+        0
+        >>> count_lines("hello")
+        1
+        >>> count_lines("hello\nworld")
+        2
+        >>> count_lines("hello\n")
+        1
+    """
+    _require_string(text, "text")
+    if not text:
+        return 0
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    if lines and lines[-1] == "":
+        lines = lines[:-1]
+    return len(lines)
 PROMPTUTILS
 
 # --- type_utils.py ---

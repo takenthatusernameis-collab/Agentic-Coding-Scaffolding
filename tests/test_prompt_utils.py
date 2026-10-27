@@ -4,6 +4,7 @@ import unittest
 
 from prompt_utils import (
     clean_prompt,
+    count_lines,
     collapse_blank_lines,
     count_placeholders,
     count_sentences,
@@ -429,3 +430,23 @@ class TestLastLine(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
+
+class TestCountLines(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_lines(""), 0)
+
+    def test_single(self):
+        self.assertEqual(count_lines("hello"), 1)
+
+    def test_multiple(self):
+        self.assertEqual(count_lines("hello\nworld"), 2)
+
+    def test_trailing_newline(self):
+        self.assertEqual(count_lines("hello\n"), 1)
+
+    def test_crlf(self):
+        self.assertEqual(count_lines("a\r\nb"), 2)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_lines(123)  # type: ignore[arg-type]
