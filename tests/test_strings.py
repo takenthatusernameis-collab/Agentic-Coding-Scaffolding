@@ -50,8 +50,6 @@ from strings import (
     remove_digits,
     remove_punctuation,
     remove_whitespace,
-    removeprefix,
-    removesuffix,
     replace_many,
     reverse_string,
     reverse_words,
@@ -946,12 +944,11 @@ if __name__ == "__main__":
 
 class TestNewHelpers(unittest.TestCase):
     def test_char_frequency(self):
-        from strings import char_frequency
 
         self.assertEqual(char_frequency("aab"), {"a": 2, "b": 1})
 
     def test_first_last_take_drop(self):
-        from strings import drop, first_n, last_n, take
+        from strings import drop, first_n, last_n
 
         self.assertEqual(first_n("hello", 3), "hel")
         self.assertEqual(take("hello", 2), "he")
@@ -984,7 +981,7 @@ class TestNewHelpers(unittest.TestCase):
         self.assertEqual(between("<tag>hello</tag>", "<tag>", "</tag>"), "hello")
 
     def test_contains_any_all(self):
-        from strings import contains_all, contains_any
+        from strings import contains_all
 
         self.assertTrue(contains_any("hello", ["x", "he"]))
         self.assertFalse(contains_any("hello", ["x", "y"]))
@@ -992,17 +989,14 @@ class TestNewHelpers(unittest.TestCase):
         self.assertFalse(contains_all("hello", ["hello", "world"]))
 
     def test_count_words(self):
-        from strings import count_words
 
         self.assertEqual(count_words("hello world"), 2)
 
     def test_remove_punctuation(self):
-        from strings import remove_punctuation
 
         self.assertEqual(remove_punctuation("hello, world!"), "hello world")
 
     def test_remove_digits(self):
-        from strings import remove_digits
 
         self.assertEqual(remove_digits("a1b2c3"), "abc")
         self.assertEqual(remove_digits("no digits"), "no digits")
@@ -1068,22 +1062,18 @@ class TestNewHelpers(unittest.TestCase):
 
 class TestRemoveBlankLines(unittest.TestCase):
     def test_basic(self):
-        from strings import remove_blank_lines
 
         self.assertEqual(remove_blank_lines("a\n\nb\n\nc"), "a\nb\nc")
 
     def test_no_blanks(self):
-        from strings import remove_blank_lines
 
         self.assertEqual(remove_blank_lines("a\nb"), "a\nb")
 
     def test_all_blank(self):
-        from strings import remove_blank_lines
 
         self.assertEqual(remove_blank_lines("\n\n"), "")
 
     def test_non_str_raises(self):
-        from strings import remove_blank_lines
 
         with self.assertRaises(TypeError):
             remove_blank_lines(123)
@@ -1091,23 +1081,19 @@ class TestRemoveBlankLines(unittest.TestCase):
 
 class TestPartition(unittest.TestCase):
     def test_partition_basic(self):
-        from strings import partition
 
         self.assertEqual(partition("hello/world", "/"), ("hello", "/", "world"))
 
     def test_partition_not_found(self):
-        from strings import partition
 
         self.assertEqual(partition("hello", "/"), ("hello", "", ""))
 
     def test_partition_empty_separator_raises(self):
-        from strings import partition
 
         with self.assertRaises(ValueError):
             partition("hello", "")
 
     def test_partition_rejects_non_string(self):
-        from strings import partition
 
         with self.assertRaises(TypeError):
             partition(123, "/")
@@ -1117,23 +1103,19 @@ class TestPartition(unittest.TestCase):
 
 class TestRPartition(unittest.TestCase):
     def test_rpartition_basic(self):
-        from strings import rpartition
 
         self.assertEqual(rpartition("a/b/c", "/"), ("a/b", "/", "c"))
 
     def test_rpartition_not_found(self):
-        from strings import rpartition
 
         self.assertEqual(rpartition("hello", "/"), ("", "", "hello"))
 
     def test_rpartition_empty_separator_raises(self):
-        from strings import rpartition
 
         with self.assertRaises(ValueError):
             rpartition("hello", "")
 
     def test_rpartition_rejects_non_string(self):
-        from strings import rpartition
 
         with self.assertRaises(TypeError):
             rpartition(123, "/")
@@ -1143,7 +1125,6 @@ class TestRPartition(unittest.TestCase):
 
 class TestSplitLines(unittest.TestCase):
     def test_split_lines_basic(self):
-        from strings import split_lines
 
         self.assertEqual(split_lines("a\nb\nc"), ["a", "b", "c"])
 
@@ -1194,7 +1175,6 @@ class TestJoinLines(unittest.TestCase):
             join_lines(["a", 123])  # type: ignore[arg-type]
 
     def test_join_lines_sep_non_string_raises(self):
-        from strings import join_lines
 
         with self.assertRaises(TypeError):
             join_lines(["a"], 123)  # type: ignore[arg-type]
@@ -1221,7 +1201,6 @@ class TestReplaceMany(unittest.TestCase):
             replace_many("hi", {"x": 123})  # type: ignore[arg-type]
 
     def test_replace_many_rejects_non_string(self):
-        from strings import replace_many
 
         with self.assertRaises(TypeError):
             replace_many(123, {"a": "b"})  # type: ignore[arg-type]
@@ -1229,22 +1208,18 @@ class TestReplaceMany(unittest.TestCase):
 
 class TestStripHtml(unittest.TestCase):
     def test_strip_html_basic(self):
-        from strings import strip_html
 
         self.assertEqual(strip_html("<p>hello</p>"), "hello")
 
     def test_strip_html_nested(self):
-        from strings import strip_html
 
         self.assertEqual(strip_html("<div><b>hi</b></div>"), "hi")
 
     def test_strip_html_no_tags(self):
-        from strings import strip_html
 
         self.assertEqual(strip_html("hello"), "hello")
 
     def test_strip_html_rejects_non_string(self):
-        from strings import strip_html
 
         with self.assertRaises(TypeError):
             strip_html(123)  # type: ignore[arg-type]
@@ -1279,19 +1254,17 @@ class TestBetween(unittest.TestCase):
 
 class TestContainsAnyAll(unittest.TestCase):
     def test_contains_any_basic(self):
-        from strings import contains_any
 
         self.assertTrue(contains_any("hello", ["x", "he"]))
         self.assertFalse(contains_any("hello", ["x", "y"]))
 
     def test_contains_all_basic(self):
-        from strings import contains_all
 
         self.assertTrue(contains_all("hello world", ["hello", "world"]))
         self.assertFalse(contains_all("hello world", ["hello", "foo"]))
 
     def test_contains_any_all_non_list_raises(self):
-        from strings import contains_all, contains_any
+        from strings import contains_all
 
         with self.assertRaises(TypeError):
             contains_any("hi", "h")  # type: ignore[arg-type]
@@ -1299,7 +1272,7 @@ class TestContainsAnyAll(unittest.TestCase):
             contains_all("hi", "h")  # type: ignore[arg-type]
 
     def test_contains_any_all_bad_elements_raise(self):
-        from strings import contains_all, contains_any
+        from strings import contains_all
 
         with self.assertRaises(TypeError):
             contains_any("hi", [123])  # type: ignore[arg-type]
@@ -1307,7 +1280,7 @@ class TestContainsAnyAll(unittest.TestCase):
             contains_all("hi", [123])  # type: ignore[arg-type]
 
     def test_contains_any_all_rejects_non_string(self):
-        from strings import contains_all, contains_any
+        from strings import contains_all
 
         with self.assertRaises(TypeError):
             contains_any(123, ["a"])  # type: ignore[arg-type]
@@ -1317,17 +1290,14 @@ class TestContainsAnyAll(unittest.TestCase):
 
 class TestCharFrequency(unittest.TestCase):
     def test_char_frequency_basic(self):
-        from strings import char_frequency
 
         self.assertEqual(char_frequency("aba"), {"a": 2, "b": 1})
 
     def test_char_frequency_empty(self):
-        from strings import char_frequency
 
         self.assertEqual(char_frequency(""), {})
 
     def test_char_frequency_rejects_non_string(self):
-        from strings import char_frequency
 
         with self.assertRaises(TypeError):
             char_frequency(123)  # type: ignore[arg-type]
@@ -1410,230 +1380,230 @@ class TestInitials(unittest.TestCase):
 
 class TestStringsBoundaryCases(unittest.TestCase):
     """Boundary case tests for string utilities."""
-    
+
     # Empty string edge cases
     def test_is_palindrome_empty_is_true(self):
         self.assertTrue(is_palindrome(""))
-    
+
     def test_reverse_empty(self):
         self.assertEqual(reverse_string(""), "")
-    
+
     def test_capitalize_words_empty(self):
         self.assertEqual(capitalize_words(""), "")
-    
+
     def test_title_case_empty(self):
         self.assertEqual(title_case(""), "")
-    
+
     def test_truncate_empty(self):
         self.assertEqual(truncate("", 5), "")
-    
+
     def test_slugify_empty(self):
         self.assertEqual(slugify(""), "")
-    
+
     def test_remove_whitespace_empty(self):
         self.assertEqual(remove_whitespace(""), "")
-    
+
     def test_normalize_whitespace_empty(self):
         self.assertEqual(normalize_whitespace(""), "")
-    
+
     def test_swap_case_empty(self):
         self.assertEqual(swap_case(""), "")
-    
+
     def test_reverse_words_empty(self):
         self.assertEqual(reverse_words(""), "")
-    
+
     def test_is_blank_empty(self):
         self.assertTrue(is_blank(""))
-    
+
     def test_is_blank_whitespace_only_spaces(self):
         self.assertTrue(is_blank("   "))
-    
+
     def test_is_blank_whitespace_only_tabs(self):
         self.assertTrue(is_blank("\t"))
-    
+
     def test_is_blank_whitespace_only_newlines(self):
         self.assertTrue(is_blank("\n"))
-    
+
     def test_is_blank_whitespace_mixed(self):
         self.assertTrue(is_blank(" \t\n\r"))
-    
+
     def test_is_blank_with_content(self):
         self.assertFalse(is_blank("hello"))
-    
+
     # Single character
     def test_single_char_is_palindrome(self):
         self.assertTrue(is_palindrome("a"))
         self.assertTrue(is_palindrome("Z"))
-    
+
     def test_is_alpha_single_char(self):
         self.assertTrue(is_alpha("a"))
         self.assertFalse(is_alpha("1"))
-    
+
     def test_is_alphanumeric_single_char(self):
         self.assertTrue(is_alphanumeric("a"))
         self.assertTrue(is_alphanumeric("5"))
-    
+
     def test_is_digit_single_zero(self):
         self.assertTrue(is_digit("0"))
-    
+
     def test_is_hex_single_digit(self):
         self.assertTrue(is_hex("a"))
         self.assertTrue(is_hex("F"))
         self.assertTrue(is_hex("5"))
-    
+
     # Whitespace only
     def test_word_count_whitespace_only_spaces(self):
         self.assertEqual(word_count("   "), 0)
-    
+
     def test_word_count_whitespace_only_tabs(self):
         self.assertEqual(word_count("\t\t"), 0)
-    
+
     def test_word_count_whitespace_only_newlines(self):
         self.assertEqual(word_count("\n\n"), 0)
-    
+
     def test_count_vowels_whitespace_only(self):
         self.assertEqual(count_vowels("   "), 0)
-    
+
     def test_count_consonants_whitespace_only(self):
         self.assertEqual(count_consonants("   "), 0)
-    
+
     # Unicode boundary cases
     def test_is_alpha_unicode_letters(self):
         self.assertTrue(is_alpha("café"))
         self.assertTrue(is_alpha("naïve"))
         self.assertTrue(is_alpha("Москва"))  # Russian
-    
+
     def test_is_alphanumeric_unicode(self):
         self.assertTrue(is_alphanumeric("café123"))
-    
+
     def test_is_ascii_unicode_false(self):
         self.assertFalse(is_ascii("café"))
         self.assertFalse(is_ascii("Москва"))
-    
+
     def test_is_ascii_pure_ascii_true(self):
         self.assertTrue(is_ascii("hello123!"))
-    
+
     def test_is_pangram_empty_string(self):
         self.assertFalse(is_pangram(""))
-    
+
     def test_is_identifier_unicode_letters(self):
-        # Python identifiers can have unicode letters in some cases, but behavior follows str.isidentifier
-        # Just test that it doesn't crash
+        # Python identifiers can have unicode letters in some cases,
+        # but behavior follows str.isidentifier. Just test that it doesn't crash.
         result = is_identifier("café")
         self.assertIsInstance(result, bool)
-    
+
     # is_integer edge cases
     def test_is_integer_positive_with_plus(self):
         self.assertTrue(is_integer("+123"))
-    
+
     def test_is_integer_negative(self):
         self.assertTrue(is_integer("-123"))
-    
+
     def test_is_integer_empty_after_strip(self):
         self.assertFalse(is_integer("   "))
-    
+
     def test_is_integer_just_plus(self):
         self.assertFalse(is_integer("+"))
-    
+
     def test_is_integer_just_minus(self):
         self.assertFalse(is_integer("-"))
-    
+
     def test_is_integer_with_decimal(self):
         self.assertFalse(is_integer("123.45"))
-    
+
     # is_palindrome with different params
     def test_is_palindrome_ignore_case_false(self):
         self.assertFalse(is_palindrome("Racecar", ignore_case=False))
         self.assertTrue(is_palindrome("racecar", ignore_case=False))
-    
+
     def test_is_palindrome_ignore_spaces_false(self):
         # With ignore_spaces False, spaces count as chars
         result = is_palindrome("a b a", ignore_spaces=False)
-        # "a b a" vs "a b a" reversed with spaces kept? "a b a" reversed charwise is "a b a"? 
+        # "a b a" vs "a b a" reversed with spaces kept? "a b a" reversed charwise is "a b a"?
         # "a b a" -> chars a, space, b, space, a -> reversed a, space, b, space, a -> same
         self.assertTrue(result)
-    
+
     def test_is_palindrome_ignore_case_non_bool(self):
         with self.assertRaises(TypeError):
             is_palindrome("test", ignore_case="yes")  # type: ignore[arg-type]
-    
+
     def test_is_palindrome_ignore_spaces_non_bool(self):
         with self.assertRaises(TypeError):
             is_palindrome("test", ignore_spaces=1)  # type: ignore[arg-type]
-    
+
     # levenshtein_distance
     def test_levenshtein_distance_empty_strings(self):
         self.assertEqual(levenshtein_distance("", ""), 0)
-    
+
     def test_levenshtein_distance_one_empty(self):
         self.assertEqual(levenshtein_distance("hello", ""), 5)
         self.assertEqual(levenshtein_distance("", "world"), 5)
-    
+
     def test_levenshtein_distance_identical(self):
         self.assertEqual(levenshtein_distance("test", "test"), 0)
-    
+
     # first_n/last_n/drop boundaries
     def test_first_n_zero(self):
         self.assertEqual(first_n("hello", 0), "")
-    
+
     def test_last_n_zero(self):
         self.assertEqual(last_n("hello", 0), "")
-    
+
     def test_first_n_all_chars(self):
         self.assertEqual(first_n("hello", 5), "hello")
-    
+
     def test_first_n_more_than_length(self):
         self.assertEqual(first_n("hi", 10), "hi")
-    
+
     def test_last_n_more_than_length(self):
         self.assertEqual(last_n("hi", 10), "hi")
-    
+
     def test_drop_all_chars(self):
         self.assertEqual(drop("hello", 5), "")
-    
+
     def test_drop_more_than_length(self):
         self.assertEqual(drop("hello", 10), "")
-    
+
     def test_first_n_negative_raises(self):
         with self.assertRaises(ValueError):
             first_n("hello", -1)
-    
+
     def test_last_n_negative_raises(self):
         with self.assertRaises(ValueError):
             last_n("hello", -1)
-    
+
     # count_occurrences edge cases
     def test_count_occurrences_same_string(self):
         self.assertEqual(count_occurrences("hello", "hello"), 1)
-    
+
     def test_count_occurrences_no_match(self):
         self.assertEqual(count_occurrences("hello", "xyz"), 0)
-    
+
     # starts_with/ends_with
     def test_starts_with_empty_prefix(self):
         self.assertTrue(starts_with("hello", ""))
-    
+
     def test_ends_with_empty_suffix(self):
         self.assertTrue(ends_with("hello", ""))
-    
+
     # chunk_string edge cases
     def test_chunk_string_size_equal_to_length(self):
         self.assertEqual(chunk_string("abc", 3), ["abc"])
-    
+
     # initials edge cases
     def test_initials_whitespace_only(self):
         self.assertEqual(initials("   "), "")
-    
+
     def test_initials_multiple_spaces(self):
         self.assertEqual(initials("foo   bar"), "FB")
-    
+
     # is_printable
     def test_is_printable_empty(self):
         self.assertFalse(is_printable(""))
-    
+
     def test_is_printable_normal_text(self):
         self.assertTrue(is_printable("hello world!"))
-    
+
     def test_is_printable_with_tab(self):
         # tab might be considered printable depending, but test current behavior
         result = is_printable("\t")

@@ -1,17 +1,23 @@
-## Latest Session (2026-10-27) — added truncate_words to string_utils; refreshed stale scaffold copy
+## Latest Session (2026-10-27) — repaired pre-existing lint regressions in tests/test_strings.py
 
-The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5725 tests and passes, `python tools/refresh_scaffold.py --check` initially reported one stale embedded copy (README.md), which `make refresh-scaffold` repaired. Installed `pytest`, `ruff`, and `mypy` (they were absent from the environment) to enable full verification.
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6069 tests and passes, `make typecheck` reports no issues in 516 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 Completed in this session:
 
-- Added `truncate_words(text, max_words, suffix="...")` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it truncates a string to at most *max_words* whitespace-separated words and appends *suffix* when truncation occurs, returning *text* unchanged when it already fits. Added `TestTruncateWords` to `tests/test_string_utils.py` covering the default suffix, a custom suffix, no-truncation cases, the exact word count, the empty string, zero max words, whitespace collapsing, and the `TypeError`/`ValueError` paths (5737 tests now pass).
-- Updated the `string_utils` module tree entry and prose section of `README.md` and the `string_utils` line of `.kilo/command/scaffold-project.md` to list `truncate_words`.
-- Recorded the change in the Unreleased section of `CHANGELOG.md`.
-- Synchronized `string_utils.py`, `tests/test_string_utils.py`, README, the command doc, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-- Verified the work: `make test` runs 5737 tests and passes, `ruff` is clean on the changed files (`string_utils.py`, `tests/test_string_utils.py`), `mypy` reports no issues in those files, and doctests for `truncate_words` pass. Note: `make lint` across the whole repo reports 130 pre-existing errors in `tests/test_strings.py` (unused imports and blank-line whitespace) that are not caused by this session's changes; they predate this work and are left untouched per the "no changes to `.github/workflows/**`" and focused-incremental conventions.
-- Committed the work as `0595b3b feat(string_utils): add truncate_words helper with tests`.
+- Found that `make lint` was failing across the tree with 130 errors, all concentrated in `tests/test_strings.py`. Confirmed via `git show HEAD:tests/test_strings.py` that the errors are pre-existing (introduced by an earlier `strings.py` boundary-audit session) and not caused by this session's work.
+- Repaired `tests/test_strings.py`: removed 100 unused-import (`F401`) and redundant-blank-line (`W293`) errors with `ruff check --fix`, then fixed the single remaining over-length comment line (`E501`, line 1490). `make lint` now reports "All checks passed!" across the whole tree, restoring the project's claimed green-lint invariant.
+- Verified that all 349 `test_strings.py` tests still pass after the cleanup.
+- Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6069 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 516 source files, and scaffold sync is clean.
+- Committed the work as `fix(test_strings): repair pre-existing lint regressions`.
 
 Next Planned:
+
+- Audit the `string_utils.py` module boundary cases (empty string, single char, whitespace-only, unicode edge cases, non-string types for TypeError paths, very long strings) and add any missing boundary tests to `tests/test_string_utils.py`.
+- Cross-check against a brute-force reference where practical.
+- Fix any documentation gaps in the `string_utils` module prose section of `README.md`.
+- Record the work in the Unreleased section of `CHANGELOG.md` and run `make refresh-scaffold` + `python tools/refresh_scaffold.py --check`.
+- Keep `make test`, `make lint`, and `make typecheck` green. No changes to `.github/workflows/**`.
 
 - Add a `wrap_words(text, width=70, break_long_words=True)` helper to `string_utils.py` as a word-aware counterpart to the existing `wrap_text` (which uses `textwrap` on the whole string). It should split on whitespace, greedily pack words into lines up to *width* characters, and break words that exceed the width when *break_long_words* is True. Validate that *text* is a string, *width* is a positive int, and *break_long_words* is a bool; raise `TypeError`/`ValueError` accordingly. Export it in `__all__`, add a Google-style docstring with doctest examples, and add a `TestWrapWords` class to `tests/test_string_utils.py` covering default width, custom width, long-word breaking (both modes), empty string, single word, and the TypeError/ValueError paths. Update the `string_utils` tree entry and prose section of `README.md` and the `string_utils` line of `.kilo/command/scaffold-project.md`, record it in the Unreleased section of `CHANGELOG.md`, then run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. Verify with `make test`. Do not modify `.github/workflows/**`.
 - Keep hardening the small utility modules (e.g. `string_utils.py`, `prompt_utils.py`, `stats.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
