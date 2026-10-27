@@ -4,6 +4,7 @@ import unittest
 
 from string_utils import (
     camel_to_snake,
+    dedent_text,
     indent_text,
     is_isogram,
     pluralize,
@@ -661,6 +662,48 @@ class TestIsIsogram(unittest.TestCase):
     def test_very_long_string(self):
         text = "".join(chr(97 + i % 26) for i in range(1000))
         self.assertFalse(is_isogram(text))
+
+
+class TestDedentText(unittest.TestCase):
+    def test_basic_dedent(self):
+        self.assertEqual(dedent_text("    hello\n      world"), "hello\n  world")
+
+    def test_blank_lines_untouched(self):
+        self.assertEqual(
+            dedent_text("\n    hello\n\n    world\n"),
+            "\nhello\n\nworld\n",
+        )
+
+    def test_no_indent(self):
+        self.assertEqual(dedent_text("no indent"), "no indent")
+
+    def test_empty_string(self):
+        self.assertEqual(dedent_text(""), "")
+
+    def test_tabs_count_as_four(self):
+        # The common indent is 2 (from "  world"); the leading tab on the
+        # first line counts as 4, so it is fully consumed by the 2-space strip.
+        self.assertEqual(dedent_text("\thello\n  world"), "hello\nworld")
+
+    def test_single_line(self):
+        self.assertEqual(dedent_text("    hello"), "hello")
+
+    def test_uneven_indent_keeps_relative(self):
+        self.assertEqual(
+            dedent_text("  a\n    b\n      c"),
+            "a\n  b\n    c",
+        )
+
+    def test_invariant_round_trip(self):
+        text = "line one\nline two\nline three"
+        indented = indent_text(text, "    ")
+        self.assertEqual(dedent_text(indented), text)
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    dedent_text(value)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

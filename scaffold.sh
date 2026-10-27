@@ -16615,6 +16615,7 @@ import unittest
 
 from string_utils import (
     camel_to_snake,
+    dedent_text,
     indent_text,
     is_isogram,
     pluralize,
@@ -17272,6 +17273,48 @@ class TestIsIsogram(unittest.TestCase):
     def test_very_long_string(self):
         text = "".join(chr(97 + i % 26) for i in range(1000))
         self.assertFalse(is_isogram(text))
+
+
+class TestDedentText(unittest.TestCase):
+    def test_basic_dedent(self):
+        self.assertEqual(dedent_text("    hello\n      world"), "hello\n  world")
+
+    def test_blank_lines_untouched(self):
+        self.assertEqual(
+            dedent_text("\n    hello\n\n    world\n"),
+            "\nhello\n\nworld\n",
+        )
+
+    def test_no_indent(self):
+        self.assertEqual(dedent_text("no indent"), "no indent")
+
+    def test_empty_string(self):
+        self.assertEqual(dedent_text(""), "")
+
+    def test_tabs_count_as_four(self):
+        # The common indent is 2 (from "  world"); the leading tab on the
+        # first line counts as 4, so it is fully consumed by the 2-space strip.
+        self.assertEqual(dedent_text("\thello\n  world"), "hello\nworld")
+
+    def test_single_line(self):
+        self.assertEqual(dedent_text("    hello"), "hello")
+
+    def test_uneven_indent_keeps_relative(self):
+        self.assertEqual(
+            dedent_text("  a\n    b\n      c"),
+            "a\n  b\n    c",
+        )
+
+    def test_invariant_round_trip(self):
+        text = "line one\nline two\nline three"
+        indented = indent_text(text, "    ")
+        self.assertEqual(dedent_text(indented), text)
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    dedent_text(value)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -24281,6 +24324,7 @@ __all__: List[str] = [
     "truncate_words",
     "wrap_words",
     "title_case",
+    "dedent_text",
 ]
 
 _SMALL_WORDS = {
@@ -24596,6 +24640,74 @@ def indent_text(text: str, prefix: str = "    ") -> str:
     _require_string(prefix, "prefix")
     lines = text.split("\n")
     return "\n".join(prefix + line for line in lines)
+
+
+def dedent_text(text: str) -> str:
+    """Remove the common leading whitespace from every line in *text*.
+
+    This is the inverse of :func:`indent_text`: it finds the minimum
+    indentation (spaces or tabs) among non-blank lines and strips that
+    much whitespace from the start of every line. Blank lines are left
+    untouched. When the common indentation is zero (or there are no
+    non-blank lines), *text* is returned unchanged.
+
+    Args:
+        text: The string to dedent.
+
+    Returns:
+        The dedented string.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+
+    Examples:
+        >>> dedent_text("    hello\\n      world")
+        'hello\\n  world'
+        >>> dedent_text("\\n    hello\\n\\n    world\\n")
+        '\\nhello\\n\\nworld\\n'
+        >>> dedent_text("no indent")
+        'no indent'
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    min_indent: Optional[int] = None
+    for line in lines:
+        if line.strip() == "":
+            continue
+        indent = 0
+        for ch in line:
+            if ch == " ":
+                indent += 1
+            elif ch == "\t":
+                indent += 4  # treat tabs as 4 spaces
+            else:
+                break
+        if min_indent is None or indent < min_indent:
+            min_indent = indent
+    if not min_indent:
+        return text
+    result: List[str] = []
+    for line in lines:
+        if line.strip() == "":
+            result.append(line)
+            continue
+        # Strip min_indent worth of leading whitespace (tabs count as 4)
+        chars = list(line)
+        j = 0
+        stripped = 0
+        while j < len(chars) and stripped < min_indent:
+            if chars[j] == " ":
+                stripped += 1
+                j += 1
+            elif chars[j] == "\t":
+                stripped += 4
+                j += 1
+            else:
+                break
+        result.append("".join(chars[j:]))
+    return "\n".join(result)
 
 
 def remove_extra_whitespace(text: str) -> str:
@@ -36191,7 +36303,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `mmap_utils.py` — utilities wrapping the standard library mmap module
 - `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping stdlib stat and os.stat
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case)
+- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text)
 - `data_utils.py` — data utility functions
 - `datetime_utils.py` — date and time utility functions
 - `dbm_utils.py` — database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
@@ -38250,6 +38362,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `dedent_text(text)` to `string_utils.py` as the inverse of `indent_text`: it removes the common leading whitespace (spaces or tabs, tabs counting as 4) from every line, leaving blank lines untouched and returning *text* unchanged when there is no common indentation. It has a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments. Added `TestDedentText` to `tests/test_string_utils.py` covering basic dedenting, blank-line preservation, no-indent, empty string, tabs, single line, uneven indentation, an `indent_text` round-trip invariant, and the `TypeError` paths. Updated the `string_utils` module tree entry and prose section of `README.md`.
+
 - Added `product(numbers)` to `stats.py` returning the product of all values in a list of numbers, complementing `sum_values`. It validates its input (raising `TypeError` for non-lists or non-numeric values and `ValueError` for an empty list) and is exported in `__all__` with a Google-style docstring and doctests. Added `TestProduct` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`.
 
 - Added `is_prerelease(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation; it returns `True` when *version* contains a pre-release marker (a hyphen suffix), `False` otherwise. Added `TestIsPrerelease` to `tests/test_version_utils.py` covering pre-release and stable cases plus the `TypeError` path.
@@ -38774,7 +38888,7 @@ csv_utils.py             # CSV utility functions (read/write/append as dicts or 
 set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case)
+string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
 path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
@@ -39469,7 +39583,7 @@ The project includes a statistical utilities module in `statistics_utils.py` wit
 
 ## String Utilities Module
 
-The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, and `title_case`. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
+The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `title_case`, and `dedent_text`. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. `dedent_text` is the inverse of `indent_text`: it removes the common leading whitespace from every line. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
 
 ## Type Utilities Module
 

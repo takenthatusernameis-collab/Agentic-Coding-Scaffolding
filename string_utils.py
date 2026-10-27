@@ -18,6 +18,7 @@ __all__: List[str] = [
     "truncate_words",
     "wrap_words",
     "title_case",
+    "dedent_text",
 ]
 
 _SMALL_WORDS = {
@@ -333,6 +334,74 @@ def indent_text(text: str, prefix: str = "    ") -> str:
     _require_string(prefix, "prefix")
     lines = text.split("\n")
     return "\n".join(prefix + line for line in lines)
+
+
+def dedent_text(text: str) -> str:
+    """Remove the common leading whitespace from every line in *text*.
+
+    This is the inverse of :func:`indent_text`: it finds the minimum
+    indentation (spaces or tabs) among non-blank lines and strips that
+    much whitespace from the start of every line. Blank lines are left
+    untouched. When the common indentation is zero (or there are no
+    non-blank lines), *text* is returned unchanged.
+
+    Args:
+        text: The string to dedent.
+
+    Returns:
+        The dedented string.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+
+    Examples:
+        >>> dedent_text("    hello\\n      world")
+        'hello\\n  world'
+        >>> dedent_text("\\n    hello\\n\\n    world\\n")
+        '\\nhello\\n\\nworld\\n'
+        >>> dedent_text("no indent")
+        'no indent'
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    min_indent: Optional[int] = None
+    for line in lines:
+        if line.strip() == "":
+            continue
+        indent = 0
+        for ch in line:
+            if ch == " ":
+                indent += 1
+            elif ch == "\t":
+                indent += 4  # treat tabs as 4 spaces
+            else:
+                break
+        if min_indent is None or indent < min_indent:
+            min_indent = indent
+    if not min_indent:
+        return text
+    result: List[str] = []
+    for line in lines:
+        if line.strip() == "":
+            result.append(line)
+            continue
+        # Strip min_indent worth of leading whitespace (tabs count as 4)
+        chars = list(line)
+        j = 0
+        stripped = 0
+        while j < len(chars) and stripped < min_indent:
+            if chars[j] == " ":
+                stripped += 1
+                j += 1
+            elif chars[j] == "\t":
+                stripped += 4
+                j += 1
+            else:
+                break
+        result.append("".join(chars[j:]))
+    return "\n".join(result)
 
 
 def remove_extra_whitespace(text: str) -> str:
