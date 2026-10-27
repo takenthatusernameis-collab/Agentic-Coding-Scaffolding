@@ -62,11 +62,12 @@ from strings import (
     snake_to_camel,
     split_lines,
     starts_with,
-    strip_chars,
     strip_html,
+    strip_non_ascii,
     swap_case,
     take,
     title_case,
+    truncate_bytes,
     truncate,
     word_count,
 )
@@ -1870,6 +1871,8 @@ class TestStringsComprehensiveBoundary(unittest.TestCase):
             swap_case,
             remove_punctuation,
             remove_digits,
+            strip_non_ascii,
+            truncate_bytes,
             count_occurrences,
             starts_with,
             ends_with,
@@ -1915,3 +1918,13 @@ class TestStringsComprehensiveBoundary(unittest.TestCase):
         self.assertIsInstance(count_vowels("café"), int)
         self.assertFalse(is_ascii("café"))
         self.assertEqual(slugify("café & crème"), "café-crème")
+
+    def test_strip_non_ascii(self):
+        self.assertEqual(strip_non_ascii("hello"), "hello")
+        self.assertEqual(strip_non_ascii("héllo"), "hllo")
+        self.assertEqual(strip_non_ascii("你好"), "")
+
+    def test_truncate_bytes(self):
+        self.assertEqual(truncate_bytes("hello", 10), "hello")
+        self.assertEqual(truncate_bytes("héllo", 4, encoding="utf-8"), "h")
+        self.assertEqual(truncate_bytes("hello", 0), "")
