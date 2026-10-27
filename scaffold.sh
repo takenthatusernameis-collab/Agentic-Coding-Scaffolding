@@ -14746,6 +14746,39 @@ class TestStringsBoundaryCases(unittest.TestCase):
         # tab might be considered printable depending, but test current behavior
         result = is_printable("\t")
         self.assertIsInstance(result, bool)
+
+
+class TestStringsBoundaryAudit(unittest.TestCase):
+    def test_empty_string_helpers(self):
+        self.assertEqual(reverse_string(""), "")
+        self.assertEqual(reverse_words(""), "")
+        self.assertEqual(count_vowels(""), 0)
+        self.assertEqual(count_consonants(""), 0)
+        self.assertEqual(word_count(""), 0)
+        self.assertEqual(char_count(""), 0)
+        self.assertTrue(is_blank(""))
+        self.assertEqual(normalize_whitespace(""), "")
+        self.assertEqual(remove_whitespace(""), "")
+        self.assertEqual(slugify(""), "")
+        self.assertEqual(truncate("", 5), "")
+        self.assertEqual(first_n("", 3), "")
+        self.assertEqual(last_n("", 3), "")
+        self.assertEqual(take("", 3), "")
+        self.assertEqual(drop("", 3), "")
+        self.assertEqual(chunk_string("", 2), [])
+        self.assertEqual(initials(""), "")
+        self.assertEqual(common_prefix("", ""), "")
+        self.assertEqual(common_suffix("", ""), "")
+
+    def test_unicode_basic(self):
+        self.assertEqual(reverse_string("café"), "éfac")
+        self.assertTrue(is_palindrome("A man a plan a canal Panama".replace(" ", "").lower()))
+        self.assertIsInstance(count_vowels("café"), int)
+
+    def test_type_errors(self):
+        for name, fn in [("reverse_string", reverse_string)]:
+            with self.assertRaises(TypeError):
+                fn(123)  # type: ignore[arg-type]
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
