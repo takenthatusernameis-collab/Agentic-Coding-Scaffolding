@@ -1,3 +1,21 @@
+## Latest Session (2026-10-27) — added count_non_blank_lines boundary tests
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5942 tests and passes (1 failure and 6 errors are pre-existing, environment-related SyntaxErrors in platform modules — confirmed identical with the change stashed), `make lint` is clean, `make typecheck` reports 11 pre-existing errors in 10 files (identical with the change stashed), and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `prompt_utils.py` exports `count_non_blank_lines(text)` in `__all__` and the README lists it, but `tests/test_prompt_utils.py` had no test class for it (it was imported nowhere and untested), leaving a coverage gap in a module otherwise fully tested.
+- Added `TestCountNonBlankLines` to `tests/test_prompt_utils.py` covering empty, single, multiple, trailing-newline, blank-line exclusion, whitespace-only lines, all-blank, CRLF, and `TypeError` paths (10 new tests). Imported `count_non_blank_lines` at the top of the test file to match the module's `__all__` contract.
+- Verified the work: `make test` runs 5952 tests and passes with no new failures, `make lint` is clean, and `make typecheck` reports the same 11 pre-existing errors in 10 files (unchanged by this work).
+- Synchronized `tests/test_prompt_utils.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-27) — synchronized scaffold copies after checkpoint edit
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5942 tests and passes (1 failure and 6 errors are pre-existing, environment-related SyntaxErrors in platform modules — confirmed identical with the change stashed), `make lint` is clean, `make typecheck` reports 11 pre-existing errors in 10 files (identical with the change stashed), and `python tools/refresh_scaffold.py --check` reported 4 embedded copies out of sync.

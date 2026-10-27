@@ -1,3 +1,23 @@
+## Latest Session (2026-10-27) — added count_non_blank_lines boundary tests
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5942 tests and passes (1 failure and 6 errors are pre-existing, environment-related SyntaxErrors in platform modules — confirmed identical with the change stashed), `make lint` is clean, `make typecheck` reports 11 pre-existing errors in 10 files (identical with the change stashed), and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `prompt_utils.py` exports `count_non_blank_lines(text)` in `__all__` and the README lists it, but `tests/test_prompt_utils.py` had no test class for it (it was imported nowhere and untested), leaving a coverage gap in a module otherwise fully tested.
+- Added `TestCountNonBlankLines` to `tests/test_prompt_utils.py` covering empty, single, multiple, trailing-newline, blank-line exclusion, whitespace-only lines, all-blank, CRLF, and `TypeError` paths (10 new tests). Imported `count_non_blank_lines` at the top of the test file to match the module's `__all__` contract.
+- Verified the work: `make test` runs 5952 tests and passes with no new failures, `make lint` is clean, and `make typecheck` reports the same 11 pre-existing errors in 10 files (unchanged by this work).
+- Synchronized `tests/test_prompt_utils.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
+- Added boundary tests for `count_non_blank_lines(text)` to `tests/test_prompt_utils.py` (`TestCountNonBlankLines`), covering empty, single, multiple, trailing-newline, blank-line exclusion, whitespace-only lines, all-blank, CRLF, and `TypeError` paths; the helper was already exported in `prompt_utils.__all__` but lacked test coverage. Synchronized `tests/test_prompt_utils.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `rstrip_lines(text)`, `lstrip_lines(text)`, and `strip_lines(text)` to `prompt_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation; they strip whitespace (spaces/tabs) from each line in the respective direction while preserving line endings and blank lines. Added `TestLstripLines` and `TestStripLines` to `tests/test_prompt_utils.py` covering basic cases, whitespace-only lines, empty strings, and `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Audited and hardened `math_utils.py` boundary cases to match project conventions: added typed `__all__`, a `_require_int` helper, and `TypeError`/`ValueError` validation on every public function (`factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `clamp`, `is_even`); `clamp` now accepts floats and rejects bools. Expanded `tests/test_math_utils.py` with boundary tests (zero, negatives, large factorials, zero/negative args for gcd/lcm, large primes, floats, bools, non-ints) and added `is_even` with tests. Updated the `math_utils` module tree entry and prose section of `README.md`. Synchronized `math_utils.py`, `tests/test_math_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

@@ -7,6 +7,7 @@ from prompt_utils import (
     collapse_blank_lines,
     count_blank_lines,
     count_lines,
+    count_non_blank_lines,
     count_placeholders,
     count_sentences,
     dedent_lines,
@@ -534,3 +535,39 @@ class TestCountBlankLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_blank_lines(123)  # type: ignore[arg-type]
+
+
+class TestCountNonBlankLines(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_non_blank_lines(""), 0)
+
+    def test_single_non_blank(self):
+        self.assertEqual(count_non_blank_lines("hello"), 1)
+
+    def test_multiple_non_blank(self):
+        self.assertEqual(count_non_blank_lines("hello\nworld"), 2)
+
+    def test_trailing_newline(self):
+        self.assertEqual(count_non_blank_lines("hello\n"), 1)
+
+    def test_blank_lines_excluded(self):
+        self.assertEqual(count_non_blank_lines("hello\n\nworld"), 2)
+
+    def test_whitespace_only_lines_excluded(self):
+        self.assertEqual(count_non_blank_lines("hello\n   \n\t\nworld"), 2)
+
+    def test_all_blank(self):
+        self.assertEqual(count_non_blank_lines("\n\n"), 0)
+
+    def test_crlf(self):
+        self.assertEqual(count_non_blank_lines("a\r\n\r\nb"), 2)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_non_blank_lines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_non_blank_lines(None)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
