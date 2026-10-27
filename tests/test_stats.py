@@ -16,6 +16,7 @@ from stats import (
     min_value,
     mode,
     multimode,
+    product,
     root_mean_square,
     skewness,
     stddev,
@@ -627,6 +628,38 @@ class TestRootMeanSquare(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             root_mean_square([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestProduct(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(product([1, 2, 3]), 6.0)
+
+    def test_single(self) -> None:
+        self.assertEqual(product([5]), 5.0)
+
+    def test_negatives(self) -> None:
+        self.assertEqual(product([2, -3, 4]), -24.0)
+        self.assertEqual(product([-1, -2, -3]), -6.0)
+
+    def test_floats(self) -> None:
+        self.assertAlmostEqual(product([1.5, 2.0]), 3.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            product([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            product((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            product([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            product([True, 1, 2])  # type: ignore[type-var]
+
 
 if __name__ == "__main__":
     unittest.main()

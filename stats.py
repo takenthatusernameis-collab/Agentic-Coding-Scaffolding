@@ -20,6 +20,7 @@ __all__: List[str] = [
     "trimmed_mean",
     "sum_values",
     "sum_of_squares",
+    "product",
     "percentile",
     "iqr",
     "interquartile_range",
@@ -403,6 +404,34 @@ def sum_of_squares(numbers: List[T | float]) -> float:
     """
     _require_numbers(numbers, "numbers")
     return float(sum(x * x for x in numbers))
+
+
+def product(numbers: List[T | float]) -> float:
+    """Return the product of all values in a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The product of all numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> product([1, 2, 3])
+        6.0
+        >>> product([2, -3, 4])
+        -24.0
+        >>> product([1.5, 2.0])
+        3.0
+    """
+    _require_numbers(numbers, "numbers")
+    result = 1.0
+    for x in numbers:
+        result *= float(x)
+    return float(result)
 
 
 def percentile(numbers: List[T | float], p: float) -> float:

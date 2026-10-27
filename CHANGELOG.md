@@ -6,6 +6,8 @@
 
 ## Unreleased
 
+- Added `product(numbers)` to `stats.py` returning the product of all values in a list of numbers, complementing `sum_values`. It validates its input (raising `TypeError` for non-lists or non-numeric values and `ValueError` for an empty list) and is exported in `__all__` with a Google-style docstring and doctests. Added `TestProduct` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`.
+
 - Added `is_prerelease(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation; it returns `True` when *version* contains a pre-release marker (a hyphen suffix), `False` otherwise. Added `TestIsPrerelease` to `tests/test_version_utils.py` covering pre-release and stable cases plus the `TypeError` path.
 
 - Added `is_isogram(text)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* is an isogram (no repeating letters, case-insensitive, ignoring non-letter characters), `False` otherwise, treating the empty string as an isogram. Added `TestIsIsogram` to `tests/test_string_utils.py` covering isograms, non-isograms, case-insensitivity, empty/single-char inputs, non-letter characters, unicode, whitespace-only, the `TypeError` path, and a very long string. Updated the `string_utils` module prose section of `README.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, README, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

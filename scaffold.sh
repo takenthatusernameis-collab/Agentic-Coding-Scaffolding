@@ -12389,6 +12389,7 @@ __all__: List[str] = [
     "trimmed_mean",
     "sum_values",
     "sum_of_squares",
+    "product",
     "percentile",
     "iqr",
     "interquartile_range",
@@ -12772,6 +12773,34 @@ def sum_of_squares(numbers: List[T | float]) -> float:
     """
     _require_numbers(numbers, "numbers")
     return float(sum(x * x for x in numbers))
+
+
+def product(numbers: List[T | float]) -> float:
+    """Return the product of all values in a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The product of all numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> product([1, 2, 3])
+        6.0
+        >>> product([2, -3, 4])
+        -24.0
+        >>> product([1.5, 2.0])
+        3.0
+    """
+    _require_numbers(numbers, "numbers")
+    result = 1.0
+    for x in numbers:
+        result *= float(x)
+    return float(result)
 
 
 def percentile(numbers: List[T | float], p: float) -> float:
@@ -14931,6 +14960,7 @@ from stats import (
     min_value,
     mode,
     multimode,
+    product,
     root_mean_square,
     skewness,
     stddev,
@@ -15542,6 +15572,38 @@ class TestRootMeanSquare(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             root_mean_square([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestProduct(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(product([1, 2, 3]), 6.0)
+
+    def test_single(self) -> None:
+        self.assertEqual(product([5]), 5.0)
+
+    def test_negatives(self) -> None:
+        self.assertEqual(product([2, -3, 4]), -24.0)
+        self.assertEqual(product([-1, -2, -3]), -6.0)
+
+    def test_floats(self) -> None:
+        self.assertAlmostEqual(product([1.5, 2.0]), 3.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            product([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            product((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            product([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            product([True, 1, 2])  # type: ignore[type-var]
+
 
 if __name__ == "__main__":
     unittest.main()
@@ -38113,6 +38175,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `product(numbers)` to `stats.py` returning the product of all values in a list of numbers, complementing `sum_values`. It validates its input (raising `TypeError` for non-lists or non-numeric values and `ValueError` for an empty list) and is exported in `__all__` with a Google-style docstring and doctests. Added `TestProduct` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`.
+
 - Added `is_prerelease(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation; it returns `True` when *version* contains a pre-release marker (a hyphen suffix), `False` otherwise. Added `TestIsPrerelease` to `tests/test_version_utils.py` covering pre-release and stable cases plus the `TypeError` path.
 
 - Added `is_isogram(text)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* is an isogram (no repeating letters, case-insensitive, ignoring non-letter characters), `False` otherwise, treating the empty string as an isogram. Added `TestIsIsogram` to `tests/test_string_utils.py` covering isograms, non-isograms, case-insensitivity, empty/single-char inputs, non-letter characters, unicode, whitespace-only, the `TypeError` path, and a very long string. Updated the `string_utils` module prose section of `README.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, README, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -39194,7 +39258,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 
