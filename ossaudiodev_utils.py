@@ -28,7 +28,7 @@ if ossaudiodev is not None:
     open = ossaudiodev.open
     openmixer = ossaudiodev.openmixer
     OSSAudioError = ossaudiodev.OSSAudioError
-    error = ossaudiodev.error
+    error: type[Exception] = ossaudiodev.error  # type: ignore[no-redef]
     AFMT_S16_LE = getattr(ossaudiodev, "AFMT_S16_LE")
     SOUND_MIXER_PCM = getattr(ossaudiodev, "SOUND_MIXER_PCM")
 else:  # pragma: no cover
@@ -41,6 +41,6 @@ else:  # pragma: no cover
     class OSSAudioError(Exception):  # type: ignore
         pass
 
-    error = OSSAudioError
+    error: type[Exception] = OSSAudioError  # type: ignore[no-redef]
     AFMT_S16_LE = 0x00000010  # common value as fallback
     SOUND_MIXER_PCM = 0

@@ -68,8 +68,8 @@ from strings import (
     swap_case,
     take,
     title_case,
-    truncate_bytes,
     truncate,
+    truncate_bytes,
     word_count,
 )
 
