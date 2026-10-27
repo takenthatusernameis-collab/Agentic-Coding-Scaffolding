@@ -12389,6 +12389,7 @@ __all__: List[str] = [
     "trimmed_mean",
     "sum_values",
     "sum_of_squares",
+    "sum_of_cubes",
     "product",
     "percentile",
     "iqr",
@@ -12773,6 +12774,27 @@ def sum_of_squares(numbers: List[T | float]) -> float:
     """
     _require_numbers(numbers, "numbers")
     return float(sum(x * x for x in numbers))
+
+
+def sum_of_cubes(numbers: List[T | float]) -> float:
+    """Return the sum of the cubes of the values in a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The sum of the cubed values.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> sum_of_cubes([1, 2, 3])
+        36.0
+    """
+    _require_numbers(numbers, "numbers")
+    return float(sum(x * x * x for x in numbers))
 
 
 def product(numbers: List[T | float]) -> float:
