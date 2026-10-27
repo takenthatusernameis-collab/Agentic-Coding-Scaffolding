@@ -36,6 +36,7 @@ __all__: List[str] = [
     "is_sexy_prime",
     "radical",
     "prime_count",
+    "prime_gap",
     "primorial",
     "total_prime_factors",
 ]
@@ -798,6 +799,30 @@ def prime_count(n: int) -> int:
     if n < 2:
         return 0
     return len(primes_up_to(n))
+
+
+def prime_gap(n: int) -> int:
+    """Return the gap between *n* and the next prime after *n*.
+
+    The prime gap is the difference between the next prime greater than *n*
+    and *n* itself. If *n* is already prime, this returns the gap to the
+    prime immediately after *n* (i.e. ``next_prime(n + 1) - n``).
+
+    Args:
+        n: The integer to measure the gap from.
+
+    Returns:
+        The difference between the next prime after *n* and *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if is_prime(n):
+        p = next_prime(n + 1)
+    else:
+        p = next_prime(n)
+    return p - n
 
 
 def radical(n: int) -> int:

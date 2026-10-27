@@ -27,6 +27,7 @@ from prime_utils import (
     nth_prime,
     prev_prime,
     prime_count,
+    prime_gap,
     prime_factors,
     primes_up_to,
     primorial,
@@ -677,6 +678,32 @@ class TestPrimeCount(unittest.TestCase):
             prime_count(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             prime_count(True)  # type: ignore[arg-type]
+
+
+class TestPrimeGap(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(prime_gap(14), 3)  # 17 - 14
+        self.assertEqual(prime_gap(10), 1)  # 11 - 10
+
+    def test_prime_input(self):
+        self.assertEqual(prime_gap(7), 4)  # 11 - 7
+        self.assertEqual(prime_gap(2), 1)  # 3 - 2
+        self.assertEqual(prime_gap(3), 2)  # 5 - 3
+        self.assertEqual(prime_gap(5), 2)  # 7 - 5
+
+    def test_large(self):
+        self.assertEqual(prime_gap(89), 2)  # 97 - 89 (twin in terms of gap to next)
+        self.assertEqual(prime_gap(90), 1)  # 97 - 90
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            prime_gap(5.0)
+        with self.assertRaises(TypeError):
+            prime_gap("5")
+        with self.assertRaises(TypeError):
+            prime_gap(None)
+        with self.assertRaises(TypeError):
+            prime_gap(True)
 
 
 class TestPrimeClassificationNegatives(unittest.TestCase):
