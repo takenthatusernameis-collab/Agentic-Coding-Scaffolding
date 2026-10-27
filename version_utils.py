@@ -53,6 +53,7 @@ __all__: List[str] = [
     "increment",
     "is_stable",
     "is_initial_release",
+    "is_prerelease",
     "is_compatible",
     "version_satisfies_major",
     "decrement_version",
@@ -490,6 +491,23 @@ def is_initial_release(version: str) -> bool:
         raise TypeError("version must be a string")
     parts = parse_version(version)
     return bool(parts) and parts[0] == 0
+
+
+def is_prerelease(version: str) -> bool:
+    """Return True if *version* is a pre-release (has a suffix after a hyphen).
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if *version* contains a pre-release marker (e.g. ``1.2.3-rc1``).
+
+    Raises:
+        TypeError: If *version* is not a string.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return "-" in version
 
 
 def is_compatible(a: str, b: str) -> bool:

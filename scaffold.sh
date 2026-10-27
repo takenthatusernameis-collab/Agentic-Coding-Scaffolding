@@ -38060,6 +38060,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `is_prerelease(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation; it returns `True` when *version* contains a pre-release marker (a hyphen suffix), `False` otherwise. Added `TestIsPrerelease` to `tests/test_version_utils.py` covering pre-release and stable cases plus the `TypeError` path.
+
 - Added `is_isogram(text)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* is an isogram (no repeating letters, case-insensitive, ignoring non-letter characters), `False` otherwise, treating the empty string as an isogram. Added `TestIsIsogram` to `tests/test_string_utils.py` covering isograms, non-isograms, case-insensitivity, empty/single-char inputs, non-letter characters, unicode, whitespace-only, the `TypeError` path, and a very long string. Updated the `string_utils` module prose section of `README.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, README, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Audited `string_utils.py` boundary cases (very long strings, unicode, consecutive and leading/trailing underscores, empty and single-character inputs, `width=1`, non-string/invalid types including bools passed as ints) and added comprehensive boundary tests to `tests/test_string_utils.py` covering `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, and `title_case`. Added invariant-based cross-check tests (slug character class, line widths, word order preservation, title-case capitalization, pluralize count-one) verifying behavior against expectations. Moved the `if __name__ == "__main__"` block to the end of `tests/test_string_utils.py` so `TestWrapWords` runs when the file is executed directly, matching the convention applied to `tests/test_strings.py` and `tests/test_shapes.py`. Cross-checked behavior against expectations; all string_utils tests pass. Synchronized `tests/test_string_utils.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -81310,6 +81312,7 @@ __all__: List[str] = [
     "increment",
     "is_stable",
     "is_initial_release",
+    "is_prerelease",
     "is_compatible",
     "version_satisfies_major",
     "decrement_version",
@@ -81749,6 +81752,23 @@ def is_initial_release(version: str) -> bool:
     return bool(parts) and parts[0] == 0
 
 
+def is_prerelease(version: str) -> bool:
+    """Return True if *version* is a pre-release (has a suffix after a hyphen).
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if *version* contains a pre-release marker (e.g. ``1.2.3-rc1``).
+
+    Raises:
+        TypeError: If *version* is not a string.
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return "-" in version
+
+
 def is_compatible(a: str, b: str) -> bool:
     """Return True if versions *a* and *b* share the same major version.
 
@@ -81896,6 +81916,7 @@ from version_utils import (
     is_greater,
     is_initial_release,
     is_less,
+    is_prerelease,
     is_stable,
     is_valid_version,
     is_version_equal,
@@ -82348,6 +82369,20 @@ class TestDecrementVersion(unittest.TestCase):
             decrement_version("1.2.0", "patch")
         with self.assertRaises(ValueError):
             decrement_version("0.1.0", "major")
+
+
+class TestIsPrerelease(unittest.TestCase):
+    def test_prerelease_true(self):
+        self.assertTrue(is_prerelease("1.2.3-rc1"))
+        self.assertTrue(is_prerelease("1.0.0-alpha"))
+
+    def test_prerelease_false(self):
+        self.assertFalse(is_prerelease("1.2.3"))
+        self.assertFalse(is_prerelease("2.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_prerelease(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

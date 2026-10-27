@@ -20,6 +20,7 @@ from version_utils import (
     is_greater,
     is_initial_release,
     is_less,
+    is_prerelease,
     is_stable,
     is_valid_version,
     is_version_equal,
@@ -472,6 +473,20 @@ class TestDecrementVersion(unittest.TestCase):
             decrement_version("1.2.0", "patch")
         with self.assertRaises(ValueError):
             decrement_version("0.1.0", "major")
+
+
+class TestIsPrerelease(unittest.TestCase):
+    def test_prerelease_true(self):
+        self.assertTrue(is_prerelease("1.2.3-rc1"))
+        self.assertTrue(is_prerelease("1.0.0-alpha"))
+
+    def test_prerelease_false(self):
+        self.assertFalse(is_prerelease("1.2.3"))
+        self.assertFalse(is_prerelease("2.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_prerelease(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
