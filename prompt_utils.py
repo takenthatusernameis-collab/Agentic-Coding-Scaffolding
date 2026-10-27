@@ -29,6 +29,7 @@ __all__: List[str] = [
     "indent_lines",
     "dedent_lines",
     "remove_blank_lines",
+    "rstrip_lines",
     "ensure_trailing_newline",
     "normalize_line_endings",
     "first_line",
@@ -631,6 +632,36 @@ def remove_blank_lines(text: str) -> str:
         return text
     lines = text.split("\n")
     result = [line for line in lines if line.strip() != ""]
+    return "\n".join(result)
+
+
+def rstrip_lines(text: str) -> str:
+    """Strip trailing whitespace from each line in *text*.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with trailing whitespace removed from every line,
+        preserving line endings and blank lines as-is except for
+        trailing spaces/tabs.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> rstrip_lines("hello   \\nworld  \\n")
+        'hello\\nworld\\n'
+        >>> rstrip_lines("no trailing")
+        'no trailing'
+        >>> rstrip_lines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    result = [line.rstrip(" \t") for line in lines]
     return "\n".join(result)
 
 

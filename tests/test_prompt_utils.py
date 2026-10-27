@@ -20,6 +20,7 @@ from prompt_utils import (
     last_line,
     normalize_line_endings,
     remove_blank_lines,
+    rstrip_lines,
     truncate_prompt,
     truncate_words,
     wrap_prompt,
@@ -350,6 +351,27 @@ class TestRemoveBlankLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             remove_blank_lines(123)  # type: ignore[arg-type]
+
+
+class TestRstripLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(rstrip_lines("hello   \nworld  \n"), "hello\nworld\n")
+
+    def test_no_trailing(self):
+        self.assertEqual(rstrip_lines("no trailing"), "no trailing")
+
+    def test_empty(self):
+        self.assertEqual(rstrip_lines(""), "")
+
+    def test_whitespace_only_lines(self):
+        self.assertEqual(rstrip_lines("   \n\t\n"), "\n\n")
+
+    def test_mixed_spaces_and_tabs(self):
+        self.assertEqual(rstrip_lines("a \t\nb\t "), "a\nb")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            rstrip_lines(123)  # type: ignore[arg-type]
 
 
 class TestEnsureTrailingNewline(unittest.TestCase):
