@@ -38,6 +38,7 @@ __all__: List[str] = [
     "last_line",
     "count_lines",
     "count_blank_lines",
+    "count_non_blank_lines",
 ]
 
 
@@ -902,3 +903,38 @@ def count_lines(text: str) -> int:
     if lines and lines[-1] == "":
         lines = lines[:-1]
     return len(lines)
+
+
+def count_non_blank_lines(text: str) -> int:
+    """Return the number of non-blank (non-whitespace-only) lines in *text*.
+
+    Empty text counts as zero lines. A trailing newline does not create
+    an extra empty line.
+
+    Args:
+        text: The text to count non-blank lines in.
+
+    Returns:
+        The number of non-blank lines.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_non_blank_lines("")
+        0
+        >>> count_non_blank_lines("hello")
+        1
+        >>> count_non_blank_lines("hello\n\nworld")
+        2
+        >>> count_non_blank_lines("hello\n")
+        1
+    """
+    _require_string(text, "text")
+    if not text:
+        return 0
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    if lines and lines[-1] == "":
+        lines = lines[:-1]
+    return sum(1 for line in lines if line.strip() != "")

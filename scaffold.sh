@@ -26574,6 +26574,7 @@ __all__: List[str] = [
     "last_line",
     "count_lines",
     "count_blank_lines",
+    "count_non_blank_lines",
 ]
 
 
@@ -27438,6 +27439,41 @@ def count_lines(text: str) -> int:
     if lines and lines[-1] == "":
         lines = lines[:-1]
     return len(lines)
+
+
+def count_non_blank_lines(text: str) -> int:
+    """Return the number of non-blank (non-whitespace-only) lines in *text*.
+
+    Empty text counts as zero lines. A trailing newline does not create
+    an extra empty line.
+
+    Args:
+        text: The text to count non-blank lines in.
+
+    Returns:
+        The number of non-blank lines.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_non_blank_lines("")
+        0
+        >>> count_non_blank_lines("hello")
+        1
+        >>> count_non_blank_lines("hello\n\nworld")
+        2
+        >>> count_non_blank_lines("hello\n")
+        1
+    """
+    _require_string(text, "text")
+    if not text:
+        return 0
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    if lines and lines[-1] == "":
+        lines = lines[:-1]
+    return sum(1 for line in lines if line.strip() != "")
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -40173,7 +40209,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 
