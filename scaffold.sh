@@ -38362,7 +38362,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
-- Added `dedent_text(text)` to `string_utils.py` as the inverse of `indent_text`: it removes the common leading whitespace (spaces or tabs, tabs counting as 4) from every line, leaving blank lines untouched and returning *text* unchanged when there is no common indentation. It has a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments. Added `TestDedentText` to `tests/test_string_utils.py` covering basic dedenting, blank-line preservation, no-indent, empty string, tabs, single line, uneven indentation, an `indent_text` round-trip invariant, and the `TypeError` paths. Updated the `string_utils` module tree entry and prose section of `README.md`.
+- Added `radical(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with validation raising `TypeError` for non-ints and `ValueError` for `n < 1` (returning `1` for `n == 1`); it returns the product of the distinct prime factors. Added `TestRadical` to `tests/test_prime_utils.py` covering primes, prime powers, multiple distinct primes, repeated factors, the empty/product-of-distinct cases, and the `TypeError`/`ValueError` paths. Updated the `prime_utils` module tree entry and prose section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `product(numbers)` to `stats.py` returning the product of all values in a list of numbers, complementing `sum_values`. It validates its input (raising `TypeError` for non-lists or non-numeric values and `ValueError` for an empty list) and is exported in `__all__` with a Google-style docstring and doctests. Added `TestProduct` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`.
 
@@ -38980,7 +38980,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_circular_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_sexy_prime, prime_count)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, is_circular_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_sexy_prime, radical, prime_count)
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
@@ -39846,7 +39846,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, and `is_sexy_prime` tests whether a prime differs by 6 from another prime. `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime, `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), and `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 ## Decimal Utilities Module
 
@@ -62593,7 +62593,7 @@ __all__: List[str] = [
     "is_cousin_prime",
     "is_pythagorean_prime",
     "is_sexy_prime",
-
+    "radical",
     "prime_count",
 ]
 
@@ -63355,6 +63355,46 @@ def prime_count(n: int) -> int:
     if n < 2:
         return 0
     return len(primes_up_to(n))
+
+
+def radical(n: int) -> int:
+    """Return the radical of *n* (product of the distinct prime factors).
+
+    The radical rad(n) is the product of the distinct prime numbers
+    dividing *n*.
+
+    Args:
+        n: The integer to analyze.
+
+    Returns:
+        The product of the distinct prime factors of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+    """
+    _require_int(n, "n")
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    if n == 1:
+        return 1
+    result = 1
+    d = 2
+    remaining = n
+    if remaining % 2 == 0:
+        result *= 2
+        while remaining % 2 == 0:
+            remaining //= 2
+    d = 3
+    while d * d <= remaining:
+        if remaining % d == 0:
+            result *= d
+            while remaining % d == 0:
+                remaining //= d
+        d += 2
+    if remaining > 1:
+        result *= remaining
+    return result
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -63390,6 +63430,7 @@ from prime_utils import (
     prime_count,
     prime_factors,
     primes_up_to,
+    radical,
     sum_of_proper_divisors,
 )
 
@@ -64211,6 +64252,39 @@ class TestIsPythagoreanPrime(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_pythagorean_prime(5.0)
+
+
+class TestRadical(unittest.TestCase):
+    def test_radical_one(self):
+        self.assertEqual(radical(1), 1)
+
+    def test_radical_primes(self):
+        for p in [2, 3, 5, 7, 11]:
+            self.assertEqual(radical(p), p)
+
+    def test_radical_prime_power(self):
+        self.assertEqual(radical(8), 2)
+        self.assertEqual(radical(16), 2)
+
+    def test_radical_multiple_primes(self):
+        self.assertEqual(radical(12), 6)
+        self.assertEqual(radical(18), 6)
+        self.assertEqual(radical(30), 30)
+
+    def test_radical_with_repeats(self):
+        self.assertEqual(radical(60), 30)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            radical(4.0)
+        with self.assertRaises(TypeError):
+            radical(True)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            radical(0)
+        with self.assertRaises(ValueError):
+            radical(-6)
 
 
 if __name__ == "__main__":
