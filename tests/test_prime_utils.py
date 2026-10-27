@@ -29,6 +29,7 @@ from prime_utils import (
     prime_count,
     prime_factors,
     primes_up_to,
+    radical,
     sum_of_proper_divisors,
 )
 
@@ -850,6 +851,39 @@ class TestIsPythagoreanPrime(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_pythagorean_prime(5.0)
+
+
+class TestRadical(unittest.TestCase):
+    def test_radical_one(self):
+        self.assertEqual(radical(1), 1)
+
+    def test_radical_primes(self):
+        for p in [2, 3, 5, 7, 11]:
+            self.assertEqual(radical(p), p)
+
+    def test_radical_prime_power(self):
+        self.assertEqual(radical(8), 2)
+        self.assertEqual(radical(16), 2)
+
+    def test_radical_multiple_primes(self):
+        self.assertEqual(radical(12), 6)
+        self.assertEqual(radical(18), 6)
+        self.assertEqual(radical(30), 30)
+
+    def test_radical_with_repeats(self):
+        self.assertEqual(radical(60), 30)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            radical(4.0)
+        with self.assertRaises(TypeError):
+            radical(True)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            radical(0)
+        with self.assertRaises(ValueError):
+            radical(-6)
 
 
 if __name__ == "__main__":

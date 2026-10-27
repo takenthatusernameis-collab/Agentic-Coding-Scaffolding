@@ -34,7 +34,7 @@ __all__: List[str] = [
     "is_cousin_prime",
     "is_pythagorean_prime",
     "is_sexy_prime",
-
+    "radical",
     "prime_count",
 ]
 
@@ -796,3 +796,43 @@ def prime_count(n: int) -> int:
     if n < 2:
         return 0
     return len(primes_up_to(n))
+
+
+def radical(n: int) -> int:
+    """Return the radical of *n* (product of the distinct prime factors).
+
+    The radical rad(n) is the product of the distinct prime numbers
+    dividing *n*.
+
+    Args:
+        n: The integer to analyze.
+
+    Returns:
+        The product of the distinct prime factors of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+    """
+    _require_int(n, "n")
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    if n == 1:
+        return 1
+    result = 1
+    d = 2
+    remaining = n
+    if remaining % 2 == 0:
+        result *= 2
+        while remaining % 2 == 0:
+            remaining //= 2
+    d = 3
+    while d * d <= remaining:
+        if remaining % d == 0:
+            result *= d
+            while remaining % d == 0:
+                remaining //= d
+        d += 2
+    if remaining > 1:
+        result *= remaining
+    return result
