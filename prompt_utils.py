@@ -375,6 +375,30 @@ def collapse_blank_lines(text: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", text)
 
 
+def count_blank_lines(text: str) -> int:
+    """Return the number of blank (whitespace-only) lines in *text*.
+
+    Args:
+        text: The text to analyze.
+
+    Returns:
+        The number of blank lines.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_blank_lines("")
+        0
+        >>> count_blank_lines("hello\nworld")
+        0
+        >>> count_blank_lines("hello\n\nworld")
+        1
+    """
+    _require_string(text, "text")
+    return sum(1 for line in text.splitlines() if line.strip() == "")
+
+
 def count_placeholders(template: str) -> int:
     """Count the number of placeholders in *template*.
 

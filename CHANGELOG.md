@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+- Added `is_title(s)` to `strings.py` returning `True` when *s* is titlecased (all cased characters follow title-case rules and at least one alphabetic character is present), `False` otherwise. It validates that *s* is a string, raising `TypeError` otherwise, and is exported in `__all__` with a Google-style docstring. Added `TestIsTitle` to `tests/test_strings.py` covering titlecased, mixed-case, no-alphabetic, and `TypeError` paths. Updated the `strings` module prose section of `README.md`.
+
+- Implemented `count_blank_lines(text)` in `prompt_utils.py` (declared in `__all__` and tested but previously undefined) returning the number of blank (whitespace-only) lines in *text*, with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation.
+
 - Added `first_line(text)` and `last_line(text)` to `prompt_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation; they return the first and last lines with line endings stripped, handling empty strings and CRLF/CR. Added `TestFirstLine` and `TestLastLine` to `tests/test_prompt_utils.py` covering basic cases, CRLF/CR, trailing newlines, and `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `midhinge(numbers)` to `stats.py` returning the midhinge ((Q1 + Q3) / 2), a robust measure of central tendency. It validates its input (raising `TypeError` for non-lists or non-numeric values and `ValueError` for an empty list) and is exported in `__all__` with a Google-style docstring and doctests. Added `TestMidhinge` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`.
 

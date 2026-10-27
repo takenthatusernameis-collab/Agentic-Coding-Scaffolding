@@ -28,6 +28,7 @@ __all__: List[str] = [
     "normalize_whitespace",
     "is_upper",
     "is_lower",
+    "is_title",
     "is_ascii",
     "is_whitespace",
     "is_space",
@@ -354,6 +355,14 @@ def is_lower(s: str) -> bool:
     if not any(c.isalpha() for c in s):
         return False
     return s == s.lower()
+
+
+def is_title(s: str) -> bool:
+    """Return True if the string is titlecased and contains at least one cased character."""
+    _require_string(s, "s")
+    if not any(c.isalpha() for c in s):
+        return False
+    return s == s.title()
 
 
 def is_alpha(s: str) -> bool:

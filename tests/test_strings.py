@@ -36,6 +36,7 @@ from strings import (
     is_printable,
     is_space,
     is_subsequence,
+    is_title,
     is_upper,
     is_whitespace,
     join_lines,
@@ -472,6 +473,24 @@ class TestIsLower(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_lower(123)  # type: ignore[arg-type]
+
+
+class TestIsTitle(unittest.TestCase):
+    def test_title(self):
+        self.assertTrue(is_title("Hello World"))
+        self.assertTrue(is_title("This Is A Title"))
+
+    def test_mixed(self):
+        self.assertFalse(is_title("hello world"))
+        self.assertFalse(is_title("HELLO WORLD"))
+        self.assertFalse(is_title("Hello world"))
+
+    def test_no_alpha(self):
+        self.assertFalse(is_title("123!"))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_title(123)  # type: ignore[arg-type]
 
 
 class TestIsAlpha(unittest.TestCase):

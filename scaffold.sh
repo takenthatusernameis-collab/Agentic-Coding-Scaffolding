@@ -10938,6 +10938,7 @@ __all__: List[str] = [
     "normalize_whitespace",
     "is_upper",
     "is_lower",
+    "is_title",
     "is_ascii",
     "is_whitespace",
     "is_space",
@@ -11264,6 +11265,14 @@ def is_lower(s: str) -> bool:
     if not any(c.isalpha() for c in s):
         return False
     return s == s.lower()
+
+
+def is_title(s: str) -> bool:
+    """Return True if the string is titlecased and contains at least one cased character."""
+    _require_string(s, "s")
+    if not any(c.isalpha() for c in s):
+        return False
+    return s == s.title()
 
 
 def is_alpha(s: str) -> bool:
@@ -13255,6 +13264,7 @@ from strings import (
     is_printable,
     is_space,
     is_subsequence,
+    is_title,
     is_upper,
     is_whitespace,
     join_lines,
@@ -13691,6 +13701,24 @@ class TestIsLower(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_lower(123)  # type: ignore[arg-type]
+
+
+class TestIsTitle(unittest.TestCase):
+    def test_title(self):
+        self.assertTrue(is_title("Hello World"))
+        self.assertTrue(is_title("This Is A Title"))
+
+    def test_mixed(self):
+        self.assertFalse(is_title("hello world"))
+        self.assertFalse(is_title("HELLO WORLD"))
+        self.assertFalse(is_title("Hello world"))
+
+    def test_no_alpha(self):
+        self.assertFalse(is_title("123!"))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_title(123)  # type: ignore[arg-type]
 
 
 class TestIsAlpha(unittest.TestCase):
@@ -17498,6 +17526,7 @@ import unittest
 from prompt_utils import (
     clean_prompt,
     count_lines,
+    count_blank_lines,
     collapse_blank_lines,
     count_placeholders,
     count_sentences,
@@ -18003,6 +18032,30 @@ class TestCountLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_lines(123)  # type: ignore[arg-type]
+
+
+class TestCountBlankLines(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_blank_lines(""), 0)
+
+    def test_no_blank_lines(self):
+        self.assertEqual(count_blank_lines("hello\nworld"), 0)
+
+    def test_blank_line_between(self):
+        self.assertEqual(count_blank_lines("hello\n\nworld"), 1)
+
+    def test_whitespace_only_line(self):
+        self.assertEqual(count_blank_lines("hello\n   \n\t\nworld"), 2)
+
+    def test_all_blank(self):
+        self.assertEqual(count_blank_lines("\n\n"), 2)
+
+    def test_crlf(self):
+        self.assertEqual(count_blank_lines("a\r\n\r\nb"), 1)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_blank_lines(123)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -26520,6 +26573,7 @@ __all__: List[str] = [
     "first_line",
     "last_line",
     "count_lines",
+    "count_blank_lines",
 ]
 
 
@@ -26855,6 +26909,30 @@ def collapse_blank_lines(text: str) -> str:
     """
     _require_string(text, "text")
     return re.sub(r"\n{3,}", "\n\n", text)
+
+
+def count_blank_lines(text: str) -> int:
+    """Return the number of blank (whitespace-only) lines in *text*.
+
+    Args:
+        text: The text to analyze.
+
+    Returns:
+        The number of blank lines.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_blank_lines("")
+        0
+        >>> count_blank_lines("hello\nworld")
+        0
+        >>> count_blank_lines("hello\n\nworld")
+        1
+    """
+    _require_string(text, "text")
+    return sum(1 for line in text.splitlines() if line.strip() == "")
 
 
 def count_placeholders(template: str) -> int:
@@ -38751,6 +38829,10 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `is_title(s)` to `strings.py` returning `True` when *s* is titlecased (all cased characters follow title-case rules and at least one alphabetic character is present), `False` otherwise. It validates that *s* is a string, raising `TypeError` otherwise, and is exported in `__all__` with a Google-style docstring. Added `TestIsTitle` to `tests/test_strings.py` covering titlecased, mixed-case, no-alphabetic, and `TypeError` paths. Updated the `strings` module prose section of `README.md`.
+
+- Implemented `count_blank_lines(text)` in `prompt_utils.py` (declared in `__all__` and tested but previously undefined) returning the number of blank (whitespace-only) lines in *text*, with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation.
+
 - Added `first_line(text)` and `last_line(text)` to `prompt_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation; they return the first and last lines with line endings stripped, handling empty strings and CRLF/CR. Added `TestFirstLine` and `TestLastLine` to `tests/test_prompt_utils.py` covering basic cases, CRLF/CR, trailing newlines, and `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `midhinge(numbers)` to `stats.py` returning the midhinge ((Q1 + Q3) / 2), a robust measure of central tendency. It validates its input (raising `TypeError` for non-lists or non-numeric values and `ValueError` for an empty list) and is exported in `__all__` with a Google-style docstring and doctests. Added `TestMidhinge` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`.
 
@@ -39841,7 +39923,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_subsequence`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
@@ -40091,7 +40173,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 
