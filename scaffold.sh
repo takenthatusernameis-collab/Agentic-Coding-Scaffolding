@@ -14899,6 +14899,250 @@ class TestStringsBoundaryAudit(unittest.TestCase):
         for name, fn in [("reverse_string", reverse_string)]:
             with self.assertRaises(TypeError):
                 fn(123)  # type: ignore[arg-type]
+
+
+class TestStringsComprehensiveBoundary(unittest.TestCase):
+    def test_all_is_alpha_empty_and_cases(self):
+        self.assertFalse(is_alpha(""))
+        self.assertTrue(is_alpha("abc"))
+        self.assertTrue(is_alpha("ABC"))
+        self.assertFalse(is_alpha("abc123"))
+        self.assertFalse(is_alpha("abc def"))
+
+    def test_all_is_alphanumeric_cases(self):
+        self.assertFalse(is_alphanumeric(""))
+        self.assertTrue(is_alphanumeric("abc123"))
+        self.assertTrue(is_alphanumeric("123"))
+        self.assertFalse(is_alphanumeric("abc!"))
+
+    def test_all_is_ascii_cases(self):
+        self.assertFalse(is_ascii(""))
+        self.assertTrue(is_ascii("hello"))
+        self.assertFalse(is_ascii("café"))
+
+    def test_all_is_digit_hex_integer(self):
+        self.assertFalse(is_digit(""))
+        self.assertTrue(is_digit("123"))
+        self.assertFalse(is_digit("12.3"))
+        self.assertFalse(is_hex(""))
+        self.assertTrue(is_hex("deadBEEF123"))
+        self.assertFalse(is_hex("xyz"))
+        self.assertFalse(is_integer(""))
+        self.assertTrue(is_integer("123"))
+        self.assertTrue(is_integer("-123"))
+        self.assertTrue(is_integer("+123"))
+        self.assertFalse(is_integer("12.3"))
+
+    def test_all_is_whitespace_space_blank(self):
+        self.assertFalse(is_whitespace(""))
+        self.assertTrue(is_whitespace("   "))
+        self.assertTrue(is_whitespace("\t\n\r"))
+        self.assertFalse(is_space(""))
+        self.assertTrue(is_space("   "))
+        self.assertTrue(is_space("\t"))
+        self.assertTrue(is_blank(""))
+        self.assertTrue(is_blank(" \t\n"))
+        self.assertFalse(is_blank("x"))
+
+    def test_all_is_title_upper_lower(self):
+        self.assertFalse(is_title(""))
+        self.assertTrue(is_title("Hello World"))
+        self.assertFalse(is_title("hello World"))
+        self.assertFalse(is_upper(""))
+        self.assertTrue(is_upper("HELLO"))
+        self.assertFalse(is_upper("Hello"))
+        self.assertFalse(is_lower(""))
+        self.assertTrue(is_lower("hello"))
+        self.assertFalse(is_lower("Hello"))
+
+    def test_is_identifier_cases(self):
+        self.assertFalse(is_identifier(""))
+        self.assertTrue(is_identifier("foo"))
+        self.assertTrue(is_identifier("_foo"))
+        self.assertTrue(is_identifier("foo123"))
+        self.assertFalse(is_identifier("123foo"))
+        self.assertFalse(is_identifier("foo-bar"))
+
+    def test_is_pangram_cases(self):
+        self.assertFalse(is_pangram(""))
+        self.assertTrue(is_pangram("The quick brown fox jumps over the lazy dog"))
+
+    def test_is_printable_cases(self):
+        self.assertFalse(is_printable(""))
+        self.assertTrue(is_printable("hello world!"))
+
+    def test_is_subsequence_edges(self):
+        self.assertTrue(is_subsequence("", "abc"))
+        self.assertTrue(is_subsequence("ac", "abc"))
+        self.assertFalse(is_subsequence("ca", "abc"))
+        self.assertTrue(is_subsequence("abc", "abc"))
+
+    def test_is_anagram_case_insensitive_ignore_spaces(self):
+        self.assertTrue(is_anagram("Dormitory", "dirty room"))
+        self.assertFalse(is_anagram("abc", "ab"))
+
+    def test_levenshtein_edges(self):
+        self.assertEqual(levenshtein_distance("", ""), 0)
+        self.assertEqual(levenshtein_distance("abc", ""), 3)
+        self.assertEqual(levenshtein_distance("", "abc"), 3)
+        self.assertEqual(levenshtein_distance("abc", "abc"), 0)
+
+    def test_truncate_edges(self):
+        self.assertEqual(truncate("", 5), "")
+        self.assertEqual(truncate("hello", 10), "hello")
+        self.assertEqual(truncate("hello world", 8), "hello...")
+        self.assertEqual(truncate("hello world", 5, "..."), "he...")
+
+    def test_truncate_type_errors(self):
+        with self.assertRaises(TypeError):
+            truncate(123, 5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            truncate("hi", "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            truncate("hi", 5, 123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            truncate("hi", -1)
+
+    def test_is_palindrome_type_and_cases(self):
+        self.assertTrue(is_palindrome(""))
+        self.assertTrue(is_palindrome("A man, a plan, a canal: Panama!"))
+        with self.assertRaises(TypeError):
+            is_palindrome("test", ignore_case="yes")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_palindrome("test", ignore_spaces=1)  # type: ignore[arg-type]
+
+    def test_chunk_string_edges(self):
+        self.assertEqual(chunk_string("", 2), [])
+        self.assertEqual(chunk_string("abc", 3), ["abc"])
+        self.assertEqual(chunk_string("abcd", 2), ["ab", "cd"])
+        with self.assertRaises(ValueError):
+            chunk_string("abc", 0)
+        with self.assertRaises(ValueError):
+            chunk_string("abc", -1)
+        with self.assertRaises(TypeError):
+            chunk_string(123, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            chunk_string("abc", "x")  # type: ignore[arg-type]
+
+    def test_initials_edges(self):
+        self.assertEqual(initials(""), "")
+        self.assertEqual(initials("   "), "")
+        self.assertEqual(initials("foo   bar"), "FB")
+        self.assertEqual(initials("John Doe Smith"), "JDS")
+        self.assertEqual(initials("John Doe", separator="."), "J.D")
+
+    def test_common_prefix_suffix_edges(self):
+        self.assertEqual(common_prefix("", ""), "")
+        self.assertEqual(common_prefix("abc", "abx"), "ab")
+        self.assertEqual(common_suffix("", ""), "")
+        self.assertEqual(common_suffix("hello", "bello"), "ello")
+
+    def test_count_words_char_count_edges(self):
+        self.assertEqual(word_count(""), 0)
+        self.assertEqual(word_count("   "), 0)
+        self.assertEqual(word_count("hello world"), 2)
+        self.assertEqual(char_count(""), 0)
+        self.assertEqual(char_count("abc"), 3)
+
+    def test_slugify_edges(self):
+        self.assertEqual(slugify(""), "")
+        self.assertEqual(slugify("Hello World!"), "hello-world")
+
+    def test_remove_blank_lines_edges(self):
+        self.assertEqual(remove_blank_lines("a\n\nb"), "a\nb")
+        self.assertEqual(remove_blank_lines("\n\n"), "")
+
+    def test_starts_ends_with_empty(self):
+        self.assertTrue(starts_with("hello", ""))
+        self.assertTrue(ends_with("hello", ""))
+
+    def test_between_edges(self):
+        from strings import between
+        self.assertEqual(between("hello[world]test", "[", "]"), "world")
+
+    def test_contains_any_all_edges(self):
+        self.assertTrue(contains_any("hello", ["x", "he"]))
+        self.assertFalse(contains_any("hello", ["x", "y"]))
+        self.assertTrue(contains_all("hello", ["he", "lo"]))
+        self.assertFalse(contains_all("hello", ["he", "x"]))
+
+    def test_type_errors_comprehensive(self):
+        string_funcs = [
+            reverse_string,
+            reverse_words,
+            count_vowels,
+            count_consonants,
+            word_count,
+            char_count,
+            is_blank,
+            normalize_whitespace,
+            remove_whitespace,
+            slugify,
+            is_alpha,
+            is_alphanumeric,
+            is_ascii,
+            is_digit,
+            is_hex,
+            is_integer,
+            is_whitespace,
+            is_space,
+            is_title,
+            is_upper,
+            is_lower,
+            is_subsequence,
+            is_anagram,
+            capitalize_words,
+            title_case,
+            snake_to_camel,
+            camel_to_snake,
+            swap_case,
+            remove_punctuation,
+            remove_digits,
+            count_occurrences,
+            starts_with,
+            ends_with,
+            lstrip_chars,
+            rstrip_chars,
+            strip_chars,
+            split_lines,
+            replace_many,
+            strip_html,
+            char_frequency,
+            first_n,
+            last_n,
+            drop,
+            take,
+        ]
+        for fn in string_funcs:
+            try:
+                fn(123)  # type: ignore[arg-type]
+                self.fail(f"{fn.__name__} should raise TypeError")
+            except TypeError:
+                pass
+
+    def test_levenshtein_type_errors(self):
+        with self.assertRaises(TypeError):
+            levenshtein_distance(123, "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            levenshtein_distance("a", 123)  # type: ignore[arg-type]
+
+    def test_is_subsequence_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_subsequence(123, "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_subsequence("a", 123)  # type: ignore[arg-type]
+
+    def test_is_anagram_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_anagram(123, "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_anagram("a", 123)  # type: ignore[arg-type]
+
+    def test_unicode_multibyte(self):
+        self.assertEqual(reverse_string("你好世界"), "界世好你")
+        self.assertIsInstance(count_vowels("café"), int)
+        self.assertFalse(is_ascii("café"))
+        self.assertEqual(slugify("café & crème"), "café-crème")
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -38924,6 +39168,9 @@ Next Planned (posted for the following agent):
 - Audited `strings.py` boundary cases (empty strings, single char, whitespace-only, unicode edge cases, non-string/invalid-type inputs, negative/invalid ints, very long strings). Added boundary tests in `tests/test_strings.py` for partition/rpartition/split_lines/join_lines/replace_many/strip_html/between/contains_any/contains_all/char_frequency/snake_to_camel/is_subsequence unicode cases and more TypeError/ValueError paths; all existing behavior verified. Cross-checked helper logic against brute-force expectations where practical. Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 ## Unreleased
+
+### Added
+- Added comprehensive boundary tests for `strings.py` (empty strings, whitespace-only, unicode/multibyte, type errors, edge cases) to `tests/test_strings.py`.
 
 - Refreshed the embedded copies of `prime_utils.py`, `tests/test_prime_utils.py`, `tests/test_prompt_utils.py`, and `tests/test_stats.py` inside `scaffold.sh` after the preceding checkpoint session edited those files without regenerating the generator. `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
 
