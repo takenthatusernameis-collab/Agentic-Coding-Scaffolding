@@ -4,9 +4,9 @@ import unittest
 
 from prompt_utils import (
     clean_prompt,
-    count_lines,
-    count_blank_lines,
     collapse_blank_lines,
+    count_blank_lines,
+    count_lines,
     count_placeholders,
     count_sentences,
     dedent_lines,
@@ -19,10 +19,9 @@ from prompt_utils import (
     has_placeholders,
     indent_lines,
     last_line,
-    normalize_line_endings,
+    lstrip_lines,
     remove_blank_lines,
     rstrip_lines,
-    lstrip_lines,
     strip_lines,
     truncate_prompt,
     truncate_words,

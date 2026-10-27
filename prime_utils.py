@@ -37,6 +37,7 @@ __all__: List[str] = [
     "radical",
     "prime_count",
     "primorial",
+    "total_prime_factors",
 ]
 
 
@@ -865,3 +866,41 @@ def primorial(n: int) -> int:
     for p in primes_up_to(n):
         result *= p
     return result
+
+
+def total_prime_factors(n: int) -> int:
+    """Return the total number of prime factors of *n* with multiplicity.
+
+    This is the arithmetic function ``Omega(n)``: for example,
+    ``total_prime_factors(12) == 3`` because ``12 = 2 * 2 * 3``.
+
+    Args:
+        n: The integer to analyze.
+
+    Returns:
+        The number of prime factors of *n* counted with multiplicity.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+    """
+    _require_int(n, "n")
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    if n == 1:
+        return 0
+    count = 0
+    remaining = n
+    if remaining % 2 == 0:
+        while remaining % 2 == 0:
+            remaining //= 2
+            count += 1
+    d = 3
+    while d * d <= remaining:
+        while remaining % d == 0:
+            remaining //= d
+            count += 1
+        d += 2
+    if remaining > 1:
+        count += 1
+    return count

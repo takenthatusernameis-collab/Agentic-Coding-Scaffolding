@@ -29,9 +29,10 @@ from prime_utils import (
     prime_count,
     prime_factors,
     primes_up_to,
-    radical,
     primorial,
+    radical,
     sum_of_proper_divisors,
+    total_prime_factors,
 )
 
 
@@ -915,3 +916,27 @@ class TestPrimorial(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTotalPrimeFactors(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(total_prime_factors(1), 0)
+        self.assertEqual(total_prime_factors(2), 1)
+        self.assertEqual(total_prime_factors(12), 3)
+        self.assertEqual(total_prime_factors(30), 3)
+
+    def test_prime_power(self):
+        self.assertEqual(total_prime_factors(8), 3)
+        self.assertEqual(total_prime_factors(27), 3)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            total_prime_factors(5.0)
+        with self.assertRaises(TypeError):
+            total_prime_factors(True)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            total_prime_factors(0)
+        with self.assertRaises(ValueError):
+            total_prime_factors(-1)
