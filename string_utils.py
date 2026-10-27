@@ -15,6 +15,7 @@ __all__: List[str] = [
     "remove_extra_whitespace",
     "remove_blank_lines",
     "truncate_words",
+    "wrap_words",
     "title_case",
 ]
 
@@ -248,6 +249,66 @@ def wrap_text(text: str, width: int = 70) -> str:
     if width <= 0:
         raise ValueError("width must be positive")
     return textwrap.fill(text, width=width)
+
+
+def wrap_words(
+    text: str, width: int = 70, break_long_words: bool = True
+) -> str:
+    """Wrap *text* into lines of at most *width* characters.
+
+    Words are split on whitespace and greedily packed into lines. A word
+    that does not fit on the current line starts a new line. When
+    *break_long_words* is True, words longer than *width* are broken into
+    chunks of at most *width* characters.
+
+    Args:
+        text: The string to wrap.
+        width: Maximum line width (default: 70).
+        break_long_words: Whether to break words longer than *width*.
+
+    Returns:
+        The wrapped string with newlines inserted.
+
+    Raises:
+        TypeError: If ``text`` is not a string, ``width`` is not an int,
+            or ``break_long_words`` is not a bool.
+        ValueError: If ``width`` is not positive.
+
+    Examples:
+        >>> wrap_words("hello world", 5)
+        'hello\nworld'
+        >>> wrap_words("abcdefghij", 4, False)
+        'abcdefghij'
+    """
+    _require_string(text, "text")
+    if not isinstance(width, int) or isinstance(width, bool):
+        raise TypeError("width must be an integer")
+    if width <= 0:
+        raise ValueError("width must be positive")
+    if not isinstance(break_long_words, bool):
+        raise TypeError("break_long_words must be a bool")
+
+    tokens = []
+    for word in text.split():
+        if break_long_words and len(word) > width:
+            for i in range(0, len(word), width):
+                tokens.append(word[i : i + width])
+        else:
+            tokens.append(word)
+
+    lines: List[str] = []
+    current = ""
+    for token in tokens:
+        if not current:
+            current = token
+        elif len(current) + 1 + len(token) <= width:
+            current += " " + token
+        else:
+            lines.append(current)
+            current = token
+    if current:
+        lines.append(current)
+    return "\n".join(lines)
 
 
 def indent_text(text: str, prefix: str = "    ") -> str:

@@ -16475,6 +16475,7 @@ from string_utils import (
     truncate,
     truncate_words,
     wrap_text,
+    wrap_words,
 )
 
 
@@ -16728,6 +16729,44 @@ class TestTitleCase(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestWrapWords(unittest.TestCase):
+    def test_default_width(self):
+        text = "a b c d e f g h i j k l m n o p"
+        result = wrap_words(text)
+        self.assertLessEqual(max(len(line) for line in result.split("\n")), 70)
+
+    def test_custom_width(self):
+        self.assertEqual(wrap_words("hello world", 5), "hello\nworld")
+
+    def test_long_word_break(self):
+        self.assertEqual(wrap_words("abcdefghij", 4), "abcd\nefgh\nij")
+
+    def test_no_break(self):
+        self.assertEqual(wrap_words("abcdefghij", 4, False), "abcdefghij")
+
+    def test_empty_string(self):
+        self.assertEqual(wrap_words(""), "")
+
+    def test_single_word(self):
+        self.assertEqual(wrap_words("hello", 10), "hello")
+
+    def test_type_error_text(self):
+        with self.assertRaises(TypeError):
+            wrap_words(123)  # type: ignore[arg-type]
+
+    def test_type_error_width(self):
+        with self.assertRaises(TypeError):
+            wrap_words("hello", True)  # type: ignore[arg-type]
+
+    def test_value_error_width(self):
+        with self.assertRaises(ValueError):
+            wrap_words("hello", 0)
+
+    def test_type_error_break_flag(self):
+        with self.assertRaises(TypeError):
+            wrap_words("hello", 5, "yes")  # type: ignore[arg-type]
 TESTSTRINGUTILS
 # --- tests/test_uuid_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_uuid_utils.py" <<'TESTUUIDUTILS'
@@ -23685,6 +23724,7 @@ __all__: List[str] = [
     "remove_extra_whitespace",
     "remove_blank_lines",
     "truncate_words",
+    "wrap_words",
     "title_case",
 ]
 
@@ -23918,6 +23958,66 @@ def wrap_text(text: str, width: int = 70) -> str:
     if width <= 0:
         raise ValueError("width must be positive")
     return textwrap.fill(text, width=width)
+
+
+def wrap_words(
+    text: str, width: int = 70, break_long_words: bool = True
+) -> str:
+    """Wrap *text* into lines of at most *width* characters.
+
+    Words are split on whitespace and greedily packed into lines. A word
+    that does not fit on the current line starts a new line. When
+    *break_long_words* is True, words longer than *width* are broken into
+    chunks of at most *width* characters.
+
+    Args:
+        text: The string to wrap.
+        width: Maximum line width (default: 70).
+        break_long_words: Whether to break words longer than *width*.
+
+    Returns:
+        The wrapped string with newlines inserted.
+
+    Raises:
+        TypeError: If ``text`` is not a string, ``width`` is not an int,
+            or ``break_long_words`` is not a bool.
+        ValueError: If ``width`` is not positive.
+
+    Examples:
+        >>> wrap_words("hello world", 5)
+        'hello\nworld'
+        >>> wrap_words("abcdefghij", 4, False)
+        'abcdefghij'
+    """
+    _require_string(text, "text")
+    if not isinstance(width, int) or isinstance(width, bool):
+        raise TypeError("width must be an integer")
+    if width <= 0:
+        raise ValueError("width must be positive")
+    if not isinstance(break_long_words, bool):
+        raise TypeError("break_long_words must be a bool")
+
+    tokens = []
+    for word in text.split():
+        if break_long_words and len(word) > width:
+            for i in range(0, len(word), width):
+                tokens.append(word[i : i + width])
+        else:
+            tokens.append(word)
+
+    lines: List[str] = []
+    current = ""
+    for token in tokens:
+        if not current:
+            current = token
+        elif len(current) + 1 + len(token) <= width:
+            current += " " + token
+        else:
+            lines.append(current)
+            current = token
+    if current:
+        lines.append(current)
+    return "\n".join(lines)
 
 
 def indent_text(text: str, prefix: str = "    ") -> str:

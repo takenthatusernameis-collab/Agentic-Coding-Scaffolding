@@ -14,6 +14,7 @@ from string_utils import (
     truncate,
     truncate_words,
     wrap_text,
+    wrap_words,
 )
 
 
@@ -267,3 +268,41 @@ class TestTitleCase(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestWrapWords(unittest.TestCase):
+    def test_default_width(self):
+        text = "a b c d e f g h i j k l m n o p"
+        result = wrap_words(text)
+        self.assertLessEqual(max(len(line) for line in result.split("\n")), 70)
+
+    def test_custom_width(self):
+        self.assertEqual(wrap_words("hello world", 5), "hello\nworld")
+
+    def test_long_word_break(self):
+        self.assertEqual(wrap_words("abcdefghij", 4), "abcd\nefgh\nij")
+
+    def test_no_break(self):
+        self.assertEqual(wrap_words("abcdefghij", 4, False), "abcdefghij")
+
+    def test_empty_string(self):
+        self.assertEqual(wrap_words(""), "")
+
+    def test_single_word(self):
+        self.assertEqual(wrap_words("hello", 10), "hello")
+
+    def test_type_error_text(self):
+        with self.assertRaises(TypeError):
+            wrap_words(123)  # type: ignore[arg-type]
+
+    def test_type_error_width(self):
+        with self.assertRaises(TypeError):
+            wrap_words("hello", True)  # type: ignore[arg-type]
+
+    def test_value_error_width(self):
+        with self.assertRaises(ValueError):
+            wrap_words("hello", 0)
+
+    def test_type_error_break_flag(self):
+        with self.assertRaises(TypeError):
+            wrap_words("hello", 5, "yes")  # type: ignore[arg-type]

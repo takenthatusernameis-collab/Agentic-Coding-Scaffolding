@@ -123,7 +123,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `mmap_utils.py` — utilities wrapping the standard library mmap module
 - `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping stdlib stat and os.stat
 - `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case)
+- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case)
 - `data_utils.py` — data utility functions
 - `datetime_utils.py` — date and time utility functions
 - `dbm_utils.py` — database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
