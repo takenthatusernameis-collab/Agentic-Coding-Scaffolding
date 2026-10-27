@@ -1,3 +1,20 @@
+## Latest Session (2026-10-27) — added is_isogram to string_utils.py
+
+The board held no task (bootstrap). The previous next task (string_utils.py boundary audit) was already complete: all boundary tests, cross-check tests, README docs, and CHANGELOG Unreleased entries existed and all checks were green (6144 tests, ruff clean, mypy clean, scaffold sync clean).
+
+Completed in this session:
+
+- Added `is_isogram(text)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* is an isogram (no repeating letters, case-insensitive, ignoring non-letter characters), `False` otherwise, treating the empty string as an isogram. Added `TestIsIsogram` to `tests/test_string_utils.py` covering isograms, non-isograms, case-insensitivity, empty/single-char inputs, non-letter characters, unicode, whitespace-only, the `TypeError` path, and a very long string (14 new tests). Updated the `string_utils` module prose section of `README.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6154 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 516 source files, and scaffold sync is clean.
+- Committed the work as `feat(string_utils): add is_isogram helper`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-27) — completed wrap_words task; recorded next task for following agent
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5747 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 516 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
