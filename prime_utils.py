@@ -36,6 +36,7 @@ __all__: List[str] = [
     "is_sexy_prime",
     "radical",
     "prime_count",
+    "primorial",
 ]
 
 
@@ -835,4 +836,32 @@ def radical(n: int) -> int:
         d += 2
     if remaining > 1:
         result *= remaining
+    return result
+
+
+def primorial(n: int) -> int:
+    """Return the primorial of *n*.
+
+    The primorial *n#* is the product of all prime numbers less than or
+    equal to *n*. For example, ``5# = 2 * 3 * 5 = 30`` and
+    ``0# = 1# = 1``.
+
+    Args:
+        n: The upper bound for primes to multiply together.
+
+    Returns:
+        The product of all primes <= *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 0.
+    """
+    _require_int(n, "n")
+    if n < 0:
+        raise ValueError("n must be >= 0")
+    if n < 2:
+        return 1
+    result = 1
+    for p in primes_up_to(n):
+        result *= p
     return result

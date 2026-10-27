@@ -30,6 +30,7 @@ from prime_utils import (
     prime_factors,
     primes_up_to,
     radical,
+    primorial,
     sum_of_proper_divisors,
 )
 
@@ -884,6 +885,32 @@ class TestRadical(unittest.TestCase):
             radical(0)
         with self.assertRaises(ValueError):
             radical(-6)
+
+
+class TestPrimorial(unittest.TestCase):
+    def test_primorial_small(self):
+        self.assertEqual(primorial(0), 1)
+        self.assertEqual(primorial(1), 1)
+        self.assertEqual(primorial(2), 2)
+        self.assertEqual(primorial(3), 6)
+        self.assertEqual(primorial(5), 30)
+        self.assertEqual(primorial(7), 210)
+
+    def test_primorial_composite_upper_bound(self):
+        self.assertEqual(primorial(4), 6)
+        self.assertEqual(primorial(10), 210)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            primorial(5.0)
+        with self.assertRaises(TypeError):
+            primorial(True)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            primorial(-1)
+        with self.assertRaises(ValueError):
+            primorial(-10)
 
 
 if __name__ == "__main__":
