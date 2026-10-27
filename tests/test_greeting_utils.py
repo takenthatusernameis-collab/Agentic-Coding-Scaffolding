@@ -1,6 +1,6 @@
 import unittest
 
-from greeting_utils import format_greeting, format_names
+from greeting_utils import format_farewell, format_greeting, format_names
 
 
 class TestGreetingUtils(unittest.TestCase):
@@ -27,6 +27,27 @@ class TestGreetingUtils(unittest.TestCase):
 
     def test_format_names_empty(self):
         self.assertEqual(format_names([]), "")
+
+
+
+
+class TestFormatFarewell(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_farewell("World"), "Goodbye, World!")
+
+    def test_custom(self):
+        self.assertEqual(format_farewell("Alice", "Bye"), "Bye, Alice!")
+
+    def test_empty_name(self):
+        self.assertEqual(format_farewell(""), "Goodbye, !")
+
+    def test_type_error_name(self):
+        with self.assertRaises(TypeError):
+            format_farewell(123)  # type: ignore[arg-type]
+
+    def test_type_error_farewell(self):
+        with self.assertRaises(TypeError):
+            format_farewell("Alice", 5)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

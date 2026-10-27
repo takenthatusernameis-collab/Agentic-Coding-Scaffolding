@@ -32814,13 +32814,33 @@ def format_names(names: list[str], greeting: str = "Hello") -> str:
         A string of the form "{greeting}, {name1}! {greeting}, {name2}!".
     """
     return " ".join(format_greeting(name, greeting) for name in names)
+
+
+def format_farewell(name: str, farewell: str = "Goodbye") -> str:
+    """Return a formatted farewell string for the given name.
+
+    Args:
+        name: The name to farewell.
+        farewell: The farewell word to use. Defaults to "Goodbye".
+
+    Returns:
+        A string of the form "{farewell}, {name}!".
+
+    Raises:
+        TypeError: If ``name`` or ``farewell`` is not a str.
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    if not isinstance(farewell, str):
+        raise TypeError("farewell must be a str")
+    return f"{farewell}, {name}!"
 GREETING_UTILS
 
 # --- tests/test_greeting_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_greeting_utils.py" <<'TESTGREETINGUTILS'
 import unittest
 
-from greeting_utils import format_greeting, format_names
+from greeting_utils import format_farewell, format_greeting, format_names
 
 
 class TestGreetingUtils(unittest.TestCase):
@@ -32847,6 +32867,27 @@ class TestGreetingUtils(unittest.TestCase):
 
     def test_format_names_empty(self):
         self.assertEqual(format_names([]), "")
+
+
+
+
+class TestFormatFarewell(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_farewell("World"), "Goodbye, World!")
+
+    def test_custom(self):
+        self.assertEqual(format_farewell("Alice", "Bye"), "Bye, Alice!")
+
+    def test_empty_name(self):
+        self.assertEqual(format_farewell(""), "Goodbye, !")
+
+    def test_type_error_name(self):
+        with self.assertRaises(TypeError):
+            format_farewell(123)  # type: ignore[arg-type]
+
+    def test_type_error_farewell(self):
+        with self.assertRaises(TypeError):
+            format_farewell("Alice", 5)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -39249,6 +39290,7 @@ Next Planned (posted for the following agent):
 ## Unreleased
 
 ### Added
+- Added `format_farewell(name, farewell="Goodbye")` to `greeting_utils.py` returning a formatted farewell string, with typed signature, Google-style docstring, and `TypeError` validation. Added `TestFormatFarewell` to `tests/test_greeting_utils.py` covering default, custom, empty name, and `TypeError` paths. Updated the `greeting_utils` module prose section of `README.md`.
 - Added comprehensive boundary tests for `strings.py` (empty strings, whitespace-only, unicode/multibyte, type errors, edge cases) to `tests/test_strings.py`.
 
 - Refreshed the embedded copies of `prime_utils.py`, `tests/test_prime_utils.py`, `tests/test_prompt_utils.py`, and `tests/test_stats.py` inside `scaffold.sh` after the preceding checkpoint session edited those files without regenerating the generator. `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
@@ -39822,7 +39864,7 @@ sunau_utils.py             # Sun AU format utilities wrapping stdlib sunau (open
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
-greeting_utils.py          # Greeting utilities (format_greeting, format_names)
+greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
 version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions, bump_version, decrement_version)
@@ -41056,7 +41098,7 @@ The project includes garbage collector utilities in `gc_utils.py` wrapping the s
 
 ## Greeting Utilities Module
 
-The project includes greeting utilities in `greeting_utils.py`: `format_greeting` renders a greeting for a person and `format_names` renders a greeting for a list of people. The module is tested in `tests/test_greeting_utils.py`.
+The project includes greeting utilities in `greeting_utils.py`: `format_greeting` renders a greeting for a person, `format_names` renders a greeting for a list of people, and `format_farewell` renders a farewell for a person. The module is tested in `tests/test_greeting_utils.py`.
 
 ## Importlib Utilities Module
 

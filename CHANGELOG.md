@@ -29,6 +29,7 @@ Next Planned (posted for the following agent):
 ## Unreleased
 
 ### Added
+- Added `format_farewell(name, farewell="Goodbye")` to `greeting_utils.py` returning a formatted farewell string, with typed signature, Google-style docstring, and `TypeError` validation. Added `TestFormatFarewell` to `tests/test_greeting_utils.py` covering default, custom, empty name, and `TypeError` paths. Updated the `greeting_utils` module prose section of `README.md`.
 - Added comprehensive boundary tests for `strings.py` (empty strings, whitespace-only, unicode/multibyte, type errors, edge cases) to `tests/test_strings.py`.
 
 - Refreshed the embedded copies of `prime_utils.py`, `tests/test_prime_utils.py`, `tests/test_prompt_utils.py`, and `tests/test_stats.py` inside `scaffold.sh` after the preceding checkpoint session edited those files without regenerating the generator. `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
