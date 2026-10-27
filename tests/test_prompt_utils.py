@@ -8,6 +8,7 @@ from prompt_utils import (
     count_placeholders,
     count_sentences,
     dedent_lines,
+    ensure_trailing_newline,
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
@@ -345,9 +346,6 @@ class TestRemoveBlankLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             remove_blank_lines(123)  # type: ignore[arg-type]
-
-
-from prompt_utils import ensure_trailing_newline
 
 
 class TestEnsureTrailingNewline(unittest.TestCase):
