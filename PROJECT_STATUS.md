@@ -2030,3 +2030,23 @@ Next Planned:
 ## Latest Session (2026-10-26) — bootstrap, no board task
 
 Verified repository health: make test passes (5968 tests), make lint and make typecheck green, scaffold sync clean. Posted next task (audit strings.py boundary cases) to board.
+
+## Latest Session (2026-10-27) — added midhinge to stats.py
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5884 tests and passes (the only failures are pre-existing environment issues: `test_sre_parse_utils` and the `ossaudiodev_utils` scaffold-sync test both require `pytest`, which is not installed in this environment; `ruff` and `mypy` are also not installed). `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `midhinge(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation via the existing `_require_numbers` helper; it returns the midhinge ((Q1 + Q3) / 2), a robust measure of central tendency.
+- Added `TestMidhinge` to `tests/test_stats.py` covering basic values, a quartile-mean cross-check, the empty-list `ValueError`, single value, negatives/floats, and the `TypeError` paths for non-lists, non-numeric values, and bools (8 new tests; 164 tests now pass for the module).
+- Updated the `stats` module prose section of `README.md` to list `midhinge`. Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `tests/test_stats.py` passes (164 tests). Full suite runs 5892 tests with the same 7 pre-existing environment failures as before this session (no new regressions).
+- Committed the work as `feat(stats): add midhinge helper` (0246735). Working tree clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `string_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
