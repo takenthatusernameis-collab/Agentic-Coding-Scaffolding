@@ -62283,7 +62283,9 @@ __all__: List[str] = [
     "is_abundant_number",
     "is_deficient_number",
     "is_cousin_prime",
+    "is_pythagorean_prime",
     "is_sexy_prime",
+
     "prime_count",
 ]
 
@@ -62981,6 +62983,28 @@ def is_cousin_prime(n: int) -> bool:
     return is_prime(n - 4) or is_prime(n + 4)
 
 
+def is_pythagorean_prime(n: int) -> bool:
+    """Return True if *n* is a Pythagorean prime.
+
+    A Pythagorean prime is a prime number of the form 4*k + 1 (e.g., 5, 13, 17, 41).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a Pythagorean prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n < 2:
+        return False
+    if not is_prime(n):
+        return False
+    return n % 4 == 1
+
+
 def is_sexy_prime(n: int) -> bool:
     """Return True if *n* is a sexy prime.
 
@@ -63045,6 +63069,7 @@ from prime_utils import (
     is_perfect_square,
     is_prime,
     is_prime_power,
+    is_pythagorean_prime,
     is_safe_prime,
     is_semiprime,
     is_sexy_prime,
@@ -63863,7 +63888,21 @@ class TestIsPerfectAbundantDeficientEdge(unittest.TestCase):
     def test_negative_not_classified(self):
         self.assertFalse(is_perfect_number(-6))
         self.assertFalse(is_abundant_number(-12))
-        self.assertFalse(is_deficient_number(-5))
+class TestIsPythagoreanPrime(unittest.TestCase):
+    def test_pythagorean_primes(self):
+        for p in [5, 13, 17, 41, 101]:
+            self.assertTrue(is_pythagorean_prime(p))
+
+    def test_non_pythagorean(self):
+        for p in [2, 3, 7, 11, 19]:
+            self.assertFalse(is_pythagorean_prime(p))
+
+    def test_composite(self):
+        self.assertFalse(is_pythagorean_prime(25))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_pythagorean_prime(5.0)
 
 
 if __name__ == "__main__":

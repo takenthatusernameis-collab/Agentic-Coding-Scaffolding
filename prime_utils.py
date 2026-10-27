@@ -32,7 +32,9 @@ __all__: List[str] = [
     "is_abundant_number",
     "is_deficient_number",
     "is_cousin_prime",
+    "is_pythagorean_prime",
     "is_sexy_prime",
+
     "prime_count",
 ]
 
@@ -728,6 +730,28 @@ def is_cousin_prime(n: int) -> bool:
     if not is_prime(n):
         return False
     return is_prime(n - 4) or is_prime(n + 4)
+
+
+def is_pythagorean_prime(n: int) -> bool:
+    """Return True if *n* is a Pythagorean prime.
+
+    A Pythagorean prime is a prime number of the form 4*k + 1 (e.g., 5, 13, 17, 41).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a Pythagorean prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n < 2:
+        return False
+    if not is_prime(n):
+        return False
+    return n % 4 == 1
 
 
 def is_sexy_prime(n: int) -> bool:

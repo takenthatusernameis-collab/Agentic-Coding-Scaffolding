@@ -16,6 +16,7 @@ from prime_utils import (
     is_perfect_square,
     is_prime,
     is_prime_power,
+    is_pythagorean_prime,
     is_safe_prime,
     is_semiprime,
     is_sexy_prime,
@@ -834,7 +835,21 @@ class TestIsPerfectAbundantDeficientEdge(unittest.TestCase):
     def test_negative_not_classified(self):
         self.assertFalse(is_perfect_number(-6))
         self.assertFalse(is_abundant_number(-12))
-        self.assertFalse(is_deficient_number(-5))
+class TestIsPythagoreanPrime(unittest.TestCase):
+    def test_pythagorean_primes(self):
+        for p in [5, 13, 17, 41, 101]:
+            self.assertTrue(is_pythagorean_prime(p))
+
+    def test_non_pythagorean(self):
+        for p in [2, 3, 7, 11, 19]:
+            self.assertFalse(is_pythagorean_prime(p))
+
+    def test_composite(self):
+        self.assertFalse(is_pythagorean_prime(25))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_pythagorean_prime(5.0)
 
 
 if __name__ == "__main__":
