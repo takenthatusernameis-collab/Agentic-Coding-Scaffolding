@@ -17505,9 +17505,11 @@ from prompt_utils import (
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
+    first_line,
     format_prompt_template,
     has_placeholders,
     indent_lines,
+    last_line,
     normalize_line_endings,
     remove_blank_lines,
     truncate_prompt,
@@ -17862,27 +17864,59 @@ class TestEnsureTrailingNewline(unittest.TestCase):
             ensure_trailing_newline(None)  # type: ignore[arg-type]
 
 
-class TestNormalizeLineEndings(unittest.TestCase):
-    def test_crlf(self):
-        self.assertEqual(normalize_line_endings("a\r\nb\r\nc"), "a\nb\nc")
+class TestFirstLine(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(first_line("hello\nworld"), "hello")
 
-    def test_lone_cr(self):
-        self.assertEqual(normalize_line_endings("a\rb\rc"), "a\nb\nc")
-
-    def test_mixed(self):
-        self.assertEqual(normalize_line_endings("a\r\nb\rc\nd"), "a\nb\nc\nd")
+    def test_single_line(self):
+        self.assertEqual(first_line("single"), "single")
 
     def test_empty(self):
-        self.assertEqual(normalize_line_endings(""), "")
+        self.assertEqual(first_line(""), "")
 
-    def test_no_change(self):
-        self.assertEqual(normalize_line_endings("a\nb\nc"), "a\nb\nc")
+    def test_crlf(self):
+        self.assertEqual(first_line("a\r\nb"), "a")
+
+    def test_cr(self):
+        self.assertEqual(first_line("a\rb"), "a")
+
+    def test_ends_with_newline(self):
+        self.assertEqual(first_line("hello\n"), "hello")
 
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
-            normalize_line_endings(123)  # type: ignore[arg-type]
+            first_line(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            normalize_line_endings(None)  # type: ignore[arg-type]
+            first_line(None)  # type: ignore[arg-type]
+
+
+class TestLastLine(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(last_line("hello\nworld"), "world")
+
+    def test_single_line(self):
+        self.assertEqual(last_line("single"), "single")
+
+    def test_empty(self):
+        self.assertEqual(last_line(""), "")
+
+    def test_crlf(self):
+        self.assertEqual(last_line("a\r\nb"), "b")
+
+    def test_cr(self):
+        self.assertEqual(last_line("a\rb"), "b")
+
+    def test_ends_with_newline(self):
+        self.assertEqual(last_line("hello\n"), "hello")
+
+    def test_trailing_newlines(self):
+        self.assertEqual(last_line("hello\n\n"), "")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            last_line(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            last_line(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -26398,6 +26432,8 @@ __all__: List[str] = [
     "remove_blank_lines",
     "ensure_trailing_newline",
     "normalize_line_endings",
+    "first_line",
+    "last_line",
 ]
 
 
@@ -27055,6 +27091,66 @@ def normalize_line_endings(text: str) -> str:
     """
     _require_string(text, "text")
     return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def first_line(text: str) -> str:
+    """Return the first line of text.
+
+    Args:
+        text: The text to extract from.
+
+    Returns:
+        The first line. If the text is empty, returns an empty string.
+        Line endings are stripped from the returned line.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> first_line("hello\\nworld")
+        'hello'
+        >>> first_line("single")
+        'single'
+        >>> first_line("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return ""
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    line = normalized.split("\n")[0]
+    return line
+
+
+def last_line(text: str) -> str:
+    """Return the last line of text.
+
+    Args:
+        text: The text to extract from.
+
+    Returns:
+        The last line. If the text is empty, returns an empty string.
+        Line endings are stripped from the returned line.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> last_line("hello\\nworld")
+        'world'
+        >>> last_line("single")
+        'single'
+        >>> last_line("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return ""
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    if lines and lines[-1] == "" and len(lines) > 1:
+        return lines[-2]
+    return lines[-1]
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -38444,6 +38540,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `first_line(text)` and `last_line(text)` to `prompt_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation; they return the first and last lines with line endings stripped, handling empty strings and CRLF/CR. Added `TestFirstLine` and `TestLastLine` to `tests/test_prompt_utils.py` covering basic cases, CRLF/CR, trailing newlines, and `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `midhinge(numbers)` to `stats.py` returning the midhinge ((Q1 + Q3) / 2), a robust measure of central tendency. It validates its input (raising `TypeError` for non-lists or non-numeric values and `ValueError` for an empty list) and is exported in `__all__` with a Google-style docstring and doctests. Added `TestMidhinge` to `tests/test_stats.py`. Updated the `stats` module prose section of `README.md`.
 
 - Added `radical(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with validation raising `TypeError` for non-ints and `ValueError` for `n < 1` (returning `1` for `n == 1`); it returns the product of the distinct prime factors. Added `TestRadical` to `tests/test_prime_utils.py` covering primes, prime powers, multiple distinct primes, repeated factors, the empty/product-of-distinct cases, and the `TypeError`/`ValueError` paths. Updated the `prime_utils` module tree entry and prose section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -39777,7 +39874,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, and `ensure_trailing_newline`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, and `last_line`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

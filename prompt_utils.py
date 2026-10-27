@@ -31,6 +31,8 @@ __all__: List[str] = [
     "remove_blank_lines",
     "ensure_trailing_newline",
     "normalize_line_endings",
+    "first_line",
+    "last_line",
 ]
 
 
@@ -688,3 +690,64 @@ def normalize_line_endings(text: str) -> str:
     """
     _require_string(text, "text")
     return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def first_line(text: str) -> str:
+    """Return the first line of text.
+
+    Args:
+        text: The text to extract from.
+
+    Returns:
+        The first line. If the text is empty, returns an empty string.
+        Line endings are stripped from the returned line.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> first_line("hello\\nworld")
+        'hello'
+        >>> first_line("single")
+        'single'
+        >>> first_line("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return ""
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    line = normalized.split("\n")[0]
+    return line
+
+
+def last_line(text: str) -> str:
+    """Return the last line of text.
+
+    Args:
+        text: The text to extract from.
+
+    Returns:
+        The last line. If the text is empty, returns an empty string.
+        Line endings are stripped from the returned line.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> last_line("hello\\nworld")
+        'world'
+        >>> last_line("single")
+        'single'
+        >>> last_line("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return ""
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    if lines and lines[-1] == "" and len(lines) > 1:
+        return lines[-2]
+    return lines[-1]
+

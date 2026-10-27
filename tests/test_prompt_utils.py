@@ -12,9 +12,11 @@ from prompt_utils import (
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
+    first_line,
     format_prompt_template,
     has_placeholders,
     indent_lines,
+    last_line,
     normalize_line_endings,
     remove_blank_lines,
     truncate_prompt,
@@ -369,28 +371,61 @@ class TestEnsureTrailingNewline(unittest.TestCase):
             ensure_trailing_newline(None)  # type: ignore[arg-type]
 
 
-class TestNormalizeLineEndings(unittest.TestCase):
-    def test_crlf(self):
-        self.assertEqual(normalize_line_endings("a\r\nb\r\nc"), "a\nb\nc")
+class TestFirstLine(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(first_line("hello\nworld"), "hello")
 
-    def test_lone_cr(self):
-        self.assertEqual(normalize_line_endings("a\rb\rc"), "a\nb\nc")
-
-    def test_mixed(self):
-        self.assertEqual(normalize_line_endings("a\r\nb\rc\nd"), "a\nb\nc\nd")
+    def test_single_line(self):
+        self.assertEqual(first_line("single"), "single")
 
     def test_empty(self):
-        self.assertEqual(normalize_line_endings(""), "")
+        self.assertEqual(first_line(""), "")
 
-    def test_no_change(self):
-        self.assertEqual(normalize_line_endings("a\nb\nc"), "a\nb\nc")
+    def test_crlf(self):
+        self.assertEqual(first_line("a\r\nb"), "a")
+
+    def test_cr(self):
+        self.assertEqual(first_line("a\rb"), "a")
+
+    def test_ends_with_newline(self):
+        self.assertEqual(first_line("hello\n"), "hello")
 
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
-            normalize_line_endings(123)  # type: ignore[arg-type]
+            first_line(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            normalize_line_endings(None)  # type: ignore[arg-type]
+            first_line(None)  # type: ignore[arg-type]
+
+
+class TestLastLine(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(last_line("hello\nworld"), "world")
+
+    def test_single_line(self):
+        self.assertEqual(last_line("single"), "single")
+
+    def test_empty(self):
+        self.assertEqual(last_line(""), "")
+
+    def test_crlf(self):
+        self.assertEqual(last_line("a\r\nb"), "b")
+
+    def test_cr(self):
+        self.assertEqual(last_line("a\rb"), "b")
+
+    def test_ends_with_newline(self):
+        self.assertEqual(last_line("hello\n"), "hello")
+
+    def test_trailing_newlines(self):
+        self.assertEqual(last_line("hello\n\n"), "")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            last_line(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            last_line(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
     unittest.main()
+
