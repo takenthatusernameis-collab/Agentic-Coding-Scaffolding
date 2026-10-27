@@ -1,3 +1,23 @@
+## Latest Session (2026-10-27) — added truncate_words to string_utils; refreshed stale scaffold copy
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5725 tests and passes, `python tools/refresh_scaffold.py --check` initially reported one stale embedded copy (README.md), which `make refresh-scaffold` repaired. Installed `pytest`, `ruff`, and `mypy` (they were absent from the environment) to enable full verification.
+
+Completed in this session:
+
+- Added `truncate_words(text, max_words, suffix="...")` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError`/`ValueError` validation; it truncates a string to at most *max_words* whitespace-separated words and appends *suffix* when truncation occurs, returning *text* unchanged when it already fits. Added `TestTruncateWords` to `tests/test_string_utils.py` covering the default suffix, a custom suffix, no-truncation cases, the exact word count, the empty string, zero max words, whitespace collapsing, and the `TypeError`/`ValueError` paths (5737 tests now pass).
+- Updated the `string_utils` module tree entry and prose section of `README.md` and the `string_utils` line of `.kilo/command/scaffold-project.md` to list `truncate_words`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `string_utils.py`, `tests/test_string_utils.py`, README, the command doc, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5737 tests and passes, `ruff` is clean on the changed files (`string_utils.py`, `tests/test_string_utils.py`), `mypy` reports no issues in those files, and doctests for `truncate_words` pass. Note: `make lint` across the whole repo reports 130 pre-existing errors in `tests/test_strings.py` (unused imports and blank-line whitespace) that are not caused by this session's changes; they predate this work and are left untouched per the "no changes to `.github/workflows/**`" and focused-incremental conventions.
+- Committed the work as `0595b3b feat(string_utils): add truncate_words helper with tests`.
+
+Next Planned:
+
+- Keep hardening the small utility modules (e.g. `string_utils.py`, `prompt_utils.py`, `stats.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-26) — added is_subsequence to strings.py; fixed pre-existing lint errors
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5480 tests and passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
