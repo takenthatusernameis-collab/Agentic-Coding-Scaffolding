@@ -16817,10 +16817,6 @@ class TestTitleCase(unittest.TestCase):
             title_case(True)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestWrapWords(unittest.TestCase):
     def test_default_width(self):
         text = "a b c d e f g h i j k l m n o p"
@@ -16857,6 +16853,295 @@ class TestWrapWords(unittest.TestCase):
     def test_type_error_break_flag(self):
         with self.assertRaises(TypeError):
             wrap_words("hello", 5, "yes")  # type: ignore[arg-type]
+
+
+class TestSlugifyBoundary(unittest.TestCase):
+    def test_very_long_string(self):
+        text = "a " * 5000
+        result = slugify(text)
+        self.assertTrue(result)
+        self.assertRegex(result, r"^[a-z0-9-]+$")
+
+    def test_only_punctuation(self):
+        self.assertEqual(slugify("!@#$%^&*()"), "")
+
+    def test_slashes_and_dots(self):
+        self.assertEqual(slugify("a/b.c d"), "abc-d")
+
+    def test_no_leading_trailing_or_consecutive_hyphens(self):
+        result = slugify("  Hello   World  ")
+        self.assertFalse(result.startswith("-"))
+        self.assertFalse(result.endswith("-"))
+        self.assertNotIn("--", result)
+
+    def test_unicode_slug_preserved(self):
+        self.assertEqual(slugify("café & naïve"), "café-naïve")
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    slugify(value)  # type: ignore[arg-type]
+
+
+class TestCamelToSnakeBoundary(unittest.TestCase):
+    def test_consecutive_underscores(self):
+        self.assertEqual(camel_to_snake("hello__world"), "hello__world")
+
+    def test_leading_and_trailing_underscores(self):
+        self.assertEqual(camel_to_snake("_hello_world_"), "_hello_world_")
+
+    def test_single_char(self):
+        self.assertEqual(camel_to_snake("a"), "a")
+        self.assertEqual(camel_to_snake("A"), "a")
+
+    def test_very_long_string(self):
+        text = "A" + "b" * 10000
+        self.assertEqual(camel_to_snake(text), "a" + "b" * 10000)
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    camel_to_snake(value)  # type: ignore[arg-type]
+
+
+class TestSnakeToCamelBoundary(unittest.TestCase):
+    def test_consecutive_underscores(self):
+        self.assertEqual(snake_to_camel("hello__world"), "helloWorld")
+
+    def test_leading_and_trailing_underscores(self):
+        self.assertEqual(snake_to_camel("_hello_world_"), "HelloWorld")
+
+    def test_single_char(self):
+        self.assertEqual(snake_to_camel("a"), "a")
+
+    def test_very_long_string(self):
+        text = "a_" + "b" * 10000
+        self.assertEqual(snake_to_camel(text), "a" + "B" + "b" * 9999)
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    snake_to_camel(value)  # type: ignore[arg-type]
+
+
+class TestPluralizeBoundary(unittest.TestCase):
+    def test_empty_string(self):
+        self.assertEqual(pluralize(""), "s")
+
+    def test_single_char(self):
+        self.assertEqual(pluralize("a"), "as")
+
+    def test_unicode_word(self):
+        self.assertEqual(pluralize("café"), "cafés")
+
+    def test_count_zero_returns_plural(self):
+        self.assertEqual(pluralize("cat", 0), "cats")
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    pluralize(value)  # type: ignore[arg-type]
+
+
+class TestTruncateBoundary(unittest.TestCase):
+    def test_length_zero_with_empty_suffix(self):
+        self.assertEqual(truncate("hello", 0, suffix=""), "")
+
+    def test_length_zero_with_nonempty_suffix(self):
+        self.assertEqual(truncate("hello", 0), "")
+
+    def test_very_long_suffix(self):
+        self.assertEqual(truncate("hello", 10, suffix="x" * 100), "hello")
+
+    def test_length_equals_text_length(self):
+        self.assertEqual(truncate("hello", 5), "hello")
+
+    def test_unicode_text(self):
+        self.assertEqual(truncate("café au lait", 7), "café...")
+
+    def test_non_string_types(self):
+        with self.assertRaises(TypeError):
+            truncate(None, 5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            truncate("hello", 5, suffix=None)  # type: ignore[arg-type]
+
+
+class TestWrapTextBoundary(unittest.TestCase):
+    def test_width_one(self):
+        self.assertEqual(wrap_text("a b c", 1), "a\nb\nc")
+
+    def test_whitespace_only(self):
+        self.assertEqual(wrap_text("   ", 5), "")
+
+    def test_very_long_text(self):
+        text = "word " * 1000
+        result = wrap_text(text, 10)
+        self.assertLessEqual(max(len(line) for line in result.split("\n")), 10)
+
+    def test_unicode_text(self):
+        self.assertEqual(wrap_text("café naïve", 5), "café\nnaïve")
+
+
+class TestWrapWordsBoundary(unittest.TestCase):
+    def test_width_one(self):
+        self.assertEqual(wrap_words("a b c", 1), "a\nb\nc")
+
+    def test_word_exactly_width(self):
+        self.assertEqual(wrap_words("abcd efgh", 4), "abcd\nefgh")
+
+    def test_whitespace_only(self):
+        self.assertEqual(wrap_words("   \t  ", 5), "")
+
+    def test_single_char_words(self):
+        self.assertEqual(wrap_words("a b c d e", 3), "a b\nc d\ne")
+
+    def test_very_long_text(self):
+        text = "word " * 1000
+        result = wrap_words(text, 10)
+        self.assertLessEqual(max(len(line) for line in result.split("\n")), 10)
+
+    def test_width_equals_text_length(self):
+        self.assertEqual(wrap_words("hello world", 11), "hello world")
+
+
+class TestIndentTextBoundary(unittest.TestCase):
+    def test_empty_prefix(self):
+        self.assertEqual(indent_text("a\nb", ""), "a\nb")
+
+    def test_very_long_prefix(self):
+        self.assertEqual(indent_text("a", "-" * 100), "-" * 100 + "a")
+
+    def test_single_line(self):
+        self.assertEqual(indent_text("hello", "  "), "  hello")
+
+    def test_non_string_types(self):
+        with self.assertRaises(TypeError):
+            indent_text(None, "  ")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            indent_text("a", None)  # type: ignore[arg-type]
+
+
+class TestRemoveExtraWhitespaceBoundary(unittest.TestCase):
+    def test_unicode_whitespace(self):
+        self.assertEqual(remove_extra_whitespace("a\u00a0b"), "a b")
+
+    def test_very_long_string(self):
+        text = "a   b" * 10000
+        self.assertEqual(remove_extra_whitespace(text), "a b" * 10000)
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    remove_extra_whitespace(value)  # type: ignore[arg-type]
+
+
+class TestRemoveBlankLinesBoundary(unittest.TestCase):
+    def test_all_blank_lines(self):
+        self.assertEqual(remove_blank_lines("\n\n   \n\t\n"), "")
+
+    def test_very_long_text(self):
+        text = "\n".join(["line"] * 1000 + [""] * 1000)
+        result = remove_blank_lines(text)
+        self.assertEqual(result.count("line"), 1000)
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    remove_blank_lines(value)  # type: ignore[arg-type]
+
+
+class TestTitleCaseBoundary(unittest.TestCase):
+    def test_whitespace_only(self):
+        self.assertEqual(title_case("   "), "   ")
+
+    def test_single_char(self):
+        self.assertEqual(title_case("a"), "A")
+
+    def test_unicode_text(self):
+        self.assertEqual(title_case("café au lait"), "Café Au Lait")
+
+    def test_very_long_text(self):
+        text = "word " * 10000
+        result = title_case(text)
+        self.assertEqual(result.count("Word"), 10000)
+
+    def test_all_small_words(self):
+        self.assertEqual(
+            title_case("the and of", small_words=["the", "and", "of"]),
+            "The and Of",
+        )
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    title_case(value)  # type: ignore[arg-type]
+
+
+class TestSlugifyCrossCheck(unittest.TestCase):
+    def test_ascii_slug_invariant(self):
+        for text in (
+            "Hello World",
+            "a/b.c d",
+            "   ",
+            "!@#$",
+            "XMLParser2",
+            "already-a-slug",
+        ):
+            result = slugify(text)
+            self.assertRegex(result, r"^[a-z0-9-]*$")
+            self.assertFalse(result.startswith("-"))
+            self.assertFalse(result.endswith("-"))
+            self.assertNotIn("--", result)
+
+    def test_unicode_slug_no_bad_hyphens(self):
+        result = slugify("café & naïve")
+        self.assertEqual(result, "café-naïve")
+        self.assertFalse(result.startswith("-"))
+        self.assertFalse(result.endswith("-"))
+        self.assertNotIn("--", result)
+
+
+class TestWrapWordsCrossCheck(unittest.TestCase):
+    def test_lines_respect_width(self):
+        text = "The quick brown fox jumps over the lazy dog"
+        for width in (1, 5, 10, 20, 70):
+            result = wrap_words(text, width)
+            for line in result.split("\n"):
+                self.assertLessEqual(len(line), width)
+
+    def test_words_preserved_in_order(self):
+        text = "one two three four five"
+        result = wrap_words(text, 10, break_long_words=False)
+        words = result.replace("\n", " ").split()
+        self.assertEqual(words, ["one", "two", "three", "four", "five"])
+
+
+class TestTitleCaseCrossCheck(unittest.TestCase):
+    def test_first_and_last_capitalized(self):
+        result = title_case("the quick brown fox")
+        self.assertEqual(result[0], "T")
+        self.assertTrue(result.endswith("Fox"))
+
+    def test_small_words_lowercased_in_middle(self):
+        result = title_case("war and peace")
+        self.assertIn("and", result)
+
+
+class TestPluralizeCrossCheck(unittest.TestCase):
+    def test_count_one_returns_input(self):
+        for word in ("cat", "bus", "baby", "church", "café"):
+            self.assertEqual(pluralize(word, 1), word)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TESTSTRINGUTILS
 # --- tests/test_uuid_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_uuid_utils.py" <<'TESTUUIDUTILS'
@@ -37687,6 +37972,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Audited `strings.py` boundary cases (empty strings, single char, whitespace-only, unicode edge cases, non-string/invalid-type inputs, negative/invalid ints, very long strings). Added boundary tests in `tests/test_strings.py` for partition/rpartition/split_lines/join_lines/replace_many/strip_html/between/contains_any/contains_all/char_frequency/snake_to_camel/is_subsequence unicode cases and more TypeError/ValueError paths; all existing behavior verified. Cross-checked helper logic against brute-force expectations where practical. Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 ## Unreleased
+
+- Audited `string_utils.py` boundary cases (very long strings, unicode, consecutive and leading/trailing underscores, empty and single-character inputs, `width=1`, non-string/invalid types including bools passed as ints) and added comprehensive boundary tests to `tests/test_string_utils.py` covering `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, and `title_case`. Added invariant-based cross-check tests (slug character class, line widths, word order preservation, title-case capitalization, pluralize count-one) verifying behavior against expectations. Moved the `if __name__ == "__main__"` block to the end of `tests/test_string_utils.py` so `TestWrapWords` runs when the file is executed directly, matching the convention applied to `tests/test_strings.py` and `tests/test_shapes.py`. Cross-checked behavior against expectations; all string_utils tests pass. Synchronized `tests/test_string_utils.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Audited `string_utils.py` boundary cases (empty strings, single char, whitespace-only, unicode, non-string/invalid types, bools passed as ints, negative/invalid widths/lengths/max_words, suffix/ prefix validation) and added comprehensive boundary tests to `tests/test_string_utils.py` covering `slugify` unicode/whitespace, `truncate` edge cases (empty string, single char, suffix longer than length), `wrap_text` and `wrap_words` boundary paths, `truncate_words` bool/negative/empty cases, `remove_blank_lines`/`remove_extra_whitespace`, and `title_case` with custom small words and empty strings. Cross-checked behavior against expectations; all string_utils tests pass. Updated `string_utils` module prose section in `README.md`. Synchronized `tests/test_string_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
