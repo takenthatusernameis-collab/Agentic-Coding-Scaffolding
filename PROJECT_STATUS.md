@@ -1,3 +1,20 @@
+## Latest Session (2026-10-27) — added product to stats.py
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5844 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 516 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `product(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `sum_values`; it returns the product of all values in a list of numbers and raises `ValueError` for an empty list. Added `TestProduct` to `tests/test_stats.py` covering basic products, negatives, floats, single elements, the empty-list `ValueError`, and the `TypeError` paths for non-lists, non-numeric values, and bools (8 new tests; 5852 tests now pass). Updated the `stats` module prose section of `README.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 5852 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 516 source files, and scaffold sync is clean.
+- Committed the work as `feat(stats): add product helper`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-27) — added is_isogram to string_utils.py
 
 The board held no task (bootstrap). The previous next task (string_utils.py boundary audit) was already complete: all boundary tests, cross-check tests, README docs, and CHANGELOG Unreleased entries existed and all checks were green (6144 tests, ruff clean, mypy clean, scaffold sync clean).
