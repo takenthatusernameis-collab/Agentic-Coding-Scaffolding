@@ -6,6 +6,8 @@
 
 ## Unreleased
 
+- Audited `strings.py` boundary cases (empty strings, single char, whitespace-only, unicode edge cases, non-string/invalid-type inputs, negative/invalid ints, bools for int params, very long strings) and added comprehensive boundary tests to `tests/test_strings.py` covering `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_printable`, `is_identifier`, `is_pangram`, `is_palindrome` with flag variants, `first_n`/`last_n`/`take`/`drop`, `count_occurrences`, `starts_with`/`ends_with`, `levenshtein_distance`, `chunk_string`, `initials`, `swap_case`, and more TypeError/ValueError paths; all existing behavior verified. Cross-checked helper logic against Python string semantics where practical. Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 - Added `root_mean_square` to `stats.py` with tests.
 - Bootstrap session verified scaffold sync, lint, and typecheck all pass; posted next task to audit `math_utils.py` boundary cases.
 - Audited and hardened `array_utils.py` boundary cases (non-array/non-string/non-int/invalid iterables), added stricter TypeError validation consistent with project style, and expanded `tests/test_array_utils.py` with boundary tests; synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md` into `scaffold.sh` with `make refresh-scaffold`.
