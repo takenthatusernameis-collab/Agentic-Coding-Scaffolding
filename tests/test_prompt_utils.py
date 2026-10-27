@@ -14,6 +14,7 @@ from prompt_utils import (
     format_prompt_template,
     has_placeholders,
     indent_lines,
+    remove_blank_lines,
     truncate_prompt,
     truncate_words,
     wrap_prompt,
@@ -331,6 +332,19 @@ class TestDedentLines(unittest.TestCase):
         with self.assertRaises(TypeError):
             dedent_lines(123)  # type: ignore[arg-type]
 
+
+class TestRemoveBlankLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(remove_blank_lines("a\n\nb\n\n\nc"), "a\nb\nc")
+    def test_no_blanks(self):
+        self.assertEqual(remove_blank_lines("a\nb\nc"), "a\nb\nc")
+    def test_empty(self):
+        self.assertEqual(remove_blank_lines(""), "")
+    def test_whitespace_only_lines(self):
+        self.assertEqual(remove_blank_lines("a\n   \n\tb\n"), "a\n\tb")
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            remove_blank_lines(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

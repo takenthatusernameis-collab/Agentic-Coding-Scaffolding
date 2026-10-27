@@ -28,6 +28,7 @@ __all__: List[str] = [
     "truncate_lines",
     "indent_lines",
     "dedent_lines",
+    "remove_blank_lines",
 ]
 
 
@@ -598,4 +599,31 @@ def dedent_lines(text: str) -> str:
             else:
                 break
         result.append("".join(chars[j:]))
+    return "\n".join(result)
+
+
+def remove_blank_lines(text: str) -> str:
+    """Remove blank (whitespace-only) lines from *text*.
+
+    Args:
+        text: The text to filter.
+
+    Returns:
+        *text* with every blank line removed, preserving order of the
+        remaining lines and the original newline structure otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> remove_blank_lines("a\\n\\nb\\n\\n\\nc")
+        'a\\nb\\nc'
+        >>> remove_blank_lines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    result = [line for line in lines if line.strip() != ""]
     return "\n".join(result)

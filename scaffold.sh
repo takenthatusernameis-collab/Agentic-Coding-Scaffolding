@@ -16772,6 +16772,7 @@ from prompt_utils import (
     format_prompt_template,
     has_placeholders,
     indent_lines,
+    remove_blank_lines,
     truncate_prompt,
     truncate_words,
     wrap_prompt,
@@ -17089,6 +17090,19 @@ class TestDedentLines(unittest.TestCase):
         with self.assertRaises(TypeError):
             dedent_lines(123)  # type: ignore[arg-type]
 
+
+class TestRemoveBlankLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(remove_blank_lines("a\n\nb\n\n\nc"), "a\nb\nc")
+    def test_no_blanks(self):
+        self.assertEqual(remove_blank_lines("a\nb\nc"), "a\nb\nc")
+    def test_empty(self):
+        self.assertEqual(remove_blank_lines(""), "")
+    def test_whitespace_only_lines(self):
+        self.assertEqual(remove_blank_lines("a\n   \n\tb\n"), "a\n\tb")
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            remove_blank_lines(123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -25365,6 +25379,7 @@ __all__: List[str] = [
     "truncate_lines",
     "indent_lines",
     "dedent_lines",
+    "remove_blank_lines",
 ]
 
 
@@ -25935,6 +25950,33 @@ def dedent_lines(text: str) -> str:
             else:
                 break
         result.append("".join(chars[j:]))
+    return "\n".join(result)
+
+
+def remove_blank_lines(text: str) -> str:
+    """Remove blank (whitespace-only) lines from *text*.
+
+    Args:
+        text: The text to filter.
+
+    Returns:
+        *text* with every blank line removed, preserving order of the
+        remaining lines and the original newline structure otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> remove_blank_lines("a\\n\\nb\\n\\n\\nc")
+        'a\\nb\\nc'
+        >>> remove_blank_lines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    result = [line for line in lines if line.strip() != ""]
     return "\n".join(result)
 PROMPTUTILS
 
@@ -37325,6 +37367,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
+- Added `remove_blank_lines(text)` to `prompt_utils.py` with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation; it removes blank (whitespace-only) lines from *text*.
+
 - Audited `strings.py` boundary cases (empty strings, single char, whitespace-only, unicode edge cases, non-string/invalid-type inputs, negative/invalid ints, bools for int params, very long strings) and added comprehensive boundary tests to `tests/test_strings.py` covering `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_printable`, `is_identifier`, `is_pangram`, `is_palindrome` with flag variants, `first_n`/`last_n`/`take`/`drop`, `count_occurrences`, `starts_with`/`ends_with`, `levenshtein_distance`, `chunk_string`, `initials`, `swap_case`, and more TypeError/ValueError paths; all existing behavior verified. Cross-checked helper logic against Python string semantics where practical. Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `root_mean_square` to `stats.py` with tests.
@@ -38638,7 +38682,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, and `indent_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, and `remove_blank_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 
