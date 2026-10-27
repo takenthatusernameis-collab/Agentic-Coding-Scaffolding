@@ -12398,6 +12398,7 @@ __all__: List[str] = [
     "mean_absolute_deviation",
     "median_absolute_deviation",
     "weighted_mean",
+    "trimean",
     "kurtosis",
     "covariance",
     "correlation",
@@ -12810,6 +12811,36 @@ def percentile(numbers: List[T | float], p: float) -> float:
     if f == c:
         return sorted_nums[int(k)]
     return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)
+
+
+def trimean(numbers: List[T | float]) -> float:
+    """Return the trimean of a list of numbers.
+
+    The trimean is a measure of central tendency defined as
+    (Q1 + 2*Q2 + Q3) / 4, where Q1 is the first quartile, Q2 the median,
+    and Q3 the third quartile.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The trimean value.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> trimean([1, 2, 3, 4, 5])
+        3.0
+        >>> trimean([1, 2, 3, 4, 5, 6])
+        3.5
+    """
+    _require_numbers(numbers, "numbers")
+    q1 = percentile(numbers, 25)
+    q2 = percentile(numbers, 50)
+    q3 = percentile(numbers, 75)
+    return (q1 + 2.0 * q2 + q3) / 4.0
 
 
 def iqr(numbers: List[T | float]) -> float:
@@ -15141,6 +15172,38 @@ class TestInterquartileRange(unittest.TestCase):
         self.assertAlmostEqual(interquartile_range(data), iqr(data))  # type: ignore[arg-type]
 
 
+class TestTrimean(unittest.TestCase):
+    def test_basic(self) -> None:
+        from stats import trimean
+
+        self.assertAlmostEqual(trimean([1, 2, 3, 4, 5]), 3.0)
+        self.assertAlmostEqual(trimean([1, 2, 3, 4, 5, 6]), 3.5)
+
+    def test_empty_raises(self) -> None:
+        from stats import trimean
+
+        with self.assertRaises(ValueError):
+            trimean([])
+
+    def test_rejects_non_list(self) -> None:
+        from stats import trimean
+
+        with self.assertRaises(TypeError):
+            trimean((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        from stats import trimean
+
+        with self.assertRaises(TypeError):
+            trimean([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        from stats import trimean
+
+        with self.assertRaises(TypeError):
+            trimean([True, 1, 2])  # type: ignore[type-var]
+
+
 class TestWeightedMean(unittest.TestCase):
     def test_basic(self) -> None:
         from stats import weighted_mean
@@ -16465,6 +16528,15 @@ class TestSlugify(unittest.TestCase):
     def test_empty(self):
         self.assertEqual(slugify(""), "")
 
+    def test_whitespace_only(self):
+        self.assertEqual(slugify("   "), "")
+
+    def test_unicode_characters(self):
+        self.assertEqual(slugify("café & naïve"), "café-naïve")
+
+    def test_consecutive_hyphens(self):
+        self.assertEqual(slugify("hello---world"), "hello-world")
+
     def test_non_string(self):
         with self.assertRaises(TypeError):
             slugify(123)
@@ -16555,9 +16627,24 @@ class TestTruncate(unittest.TestCase):
         with self.assertRaises(ValueError):
             truncate("hello", -1)
 
-    def test_non_string(self):
+    def test_non_string_text(self):
         with self.assertRaises(TypeError):
-            truncate(123, 5)
+            truncate(123, 5)  # type: ignore[arg-type]
+
+    def test_non_string_suffix(self):
+        with self.assertRaises(TypeError):
+            truncate("hello", 5, suffix=123)  # type: ignore[arg-type]
+
+    def test_empty_string(self):
+        self.assertEqual(truncate("", 5), "")
+
+    def test_single_char(self):
+        self.assertEqual(truncate("a", 1), "a")
+        self.assertEqual(truncate("a", 0, suffix="..."), "")
+
+    def test_length_less_than_suffix_truncation_case(self):
+        # When text needs truncation and length < len(suffix)
+        self.assertEqual(truncate("hello", 2, suffix="..."), "..")
 
 
 class TestWrapText(unittest.TestCase):
@@ -37568,7 +37655,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased
 
-- Added `wrap_words(text, width=70, break_long_words=True)` to `string_utils.py` as a word-aware counterpart to `wrap_text`: it splits on whitespace, greedily packs words into lines up to *width* characters, and breaks words longer than *width* when *break_long_words* is True. It validates that *text* is a string, *width* is a positive int (rejecting bools), and *break_long_words* is a bool, raising `TypeError`/`ValueError` accordingly. Exported in `__all__` with a Google-style docstring including doctest examples. Added `TestWrapWords` to `tests/test_string_utils.py` covering default width, custom width, long-word breaking in both modes, empty string, single word, and the `TypeError`/`ValueError` paths. Updated the `string_utils` tree entry and prose section of `README.md` and the `string_utils` line of `.kilo/command/scaffold-project.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, README, the command doc, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Audited `string_utils.py` boundary cases (empty strings, single char, whitespace-only, unicode, non-string/invalid types, bools passed as ints, negative/invalid widths/lengths/max_words, suffix/ prefix validation) and added comprehensive boundary tests to `tests/test_string_utils.py` covering `slugify` unicode/whitespace, `truncate` edge cases (empty string, single char, suffix longer than length), `wrap_text` and `wrap_words` boundary paths, `truncate_words` bool/negative/empty cases, `remove_blank_lines`/`remove_extra_whitespace`, and `title_case` with custom small words and empty strings. Cross-checked behavior against expectations; all string_utils tests pass. Updated `string_utils` module prose section in `README.md`. Synchronized `tests/test_string_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Repaired pre-existing lint regressions in `tests/test_strings.py` (introduced by an earlier `strings.py` boundary-audit session but never corrected): removed 100 unused-import (`F401`) and redundant-blank-line (`W293`) errors and fixed a single over-length comment line (`E501`). `make lint` now reports "All checks passed!" across the whole tree, restoring the project's claimed green-lint invariant. All 349 `test_strings.py` tests still pass. Synchronized `tests/test_strings.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -38779,7 +38866,7 @@ The project includes a statistical utilities module in `statistics_utils.py` wit
 
 ## String Utilities Module
 
-The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `wrap_words`, and `title_case`. Each function validates its inputs and raises `TypeError` for non-string arguments. The module is tested in `tests/test_string_utils.py`.
+The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, and `title_case`. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
 
 ## Type Utilities Module
 

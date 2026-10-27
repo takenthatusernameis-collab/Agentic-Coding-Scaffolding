@@ -34,6 +34,15 @@ class TestSlugify(unittest.TestCase):
     def test_empty(self):
         self.assertEqual(slugify(""), "")
 
+    def test_whitespace_only(self):
+        self.assertEqual(slugify("   "), "")
+
+    def test_unicode_characters(self):
+        self.assertEqual(slugify("café & naïve"), "café-naïve")
+
+    def test_consecutive_hyphens(self):
+        self.assertEqual(slugify("hello---world"), "hello-world")
+
     def test_non_string(self):
         with self.assertRaises(TypeError):
             slugify(123)
@@ -124,9 +133,24 @@ class TestTruncate(unittest.TestCase):
         with self.assertRaises(ValueError):
             truncate("hello", -1)
 
-    def test_non_string(self):
+    def test_non_string_text(self):
         with self.assertRaises(TypeError):
-            truncate(123, 5)
+            truncate(123, 5)  # type: ignore[arg-type]
+
+    def test_non_string_suffix(self):
+        with self.assertRaises(TypeError):
+            truncate("hello", 5, suffix=123)  # type: ignore[arg-type]
+
+    def test_empty_string(self):
+        self.assertEqual(truncate("", 5), "")
+
+    def test_single_char(self):
+        self.assertEqual(truncate("a", 1), "a")
+        self.assertEqual(truncate("a", 0, suffix="..."), "")
+
+    def test_length_less_than_suffix_truncation_case(self):
+        # When text needs truncation and length < len(suffix)
+        self.assertEqual(truncate("hello", 2, suffix="..."), "..")
 
 
 class TestWrapText(unittest.TestCase):

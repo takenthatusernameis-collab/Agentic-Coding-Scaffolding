@@ -29,6 +29,7 @@ __all__: List[str] = [
     "mean_absolute_deviation",
     "median_absolute_deviation",
     "weighted_mean",
+    "trimean",
     "kurtosis",
     "covariance",
     "correlation",
@@ -441,6 +442,36 @@ def percentile(numbers: List[T | float], p: float) -> float:
     if f == c:
         return sorted_nums[int(k)]
     return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)
+
+
+def trimean(numbers: List[T | float]) -> float:
+    """Return the trimean of a list of numbers.
+
+    The trimean is a measure of central tendency defined as
+    (Q1 + 2*Q2 + Q3) / 4, where Q1 is the first quartile, Q2 the median,
+    and Q3 the third quartile.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The trimean value.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> trimean([1, 2, 3, 4, 5])
+        3.0
+        >>> trimean([1, 2, 3, 4, 5, 6])
+        3.5
+    """
+    _require_numbers(numbers, "numbers")
+    q1 = percentile(numbers, 25)
+    q2 = percentile(numbers, 50)
+    q3 = percentile(numbers, 75)
+    return (q1 + 2.0 * q2 + q3) / 4.0
 
 
 def iqr(numbers: List[T | float]) -> float:

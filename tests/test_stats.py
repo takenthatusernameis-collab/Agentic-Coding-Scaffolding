@@ -290,6 +290,38 @@ class TestInterquartileRange(unittest.TestCase):
         self.assertAlmostEqual(interquartile_range(data), iqr(data))  # type: ignore[arg-type]
 
 
+class TestTrimean(unittest.TestCase):
+    def test_basic(self) -> None:
+        from stats import trimean
+
+        self.assertAlmostEqual(trimean([1, 2, 3, 4, 5]), 3.0)
+        self.assertAlmostEqual(trimean([1, 2, 3, 4, 5, 6]), 3.5)
+
+    def test_empty_raises(self) -> None:
+        from stats import trimean
+
+        with self.assertRaises(ValueError):
+            trimean([])
+
+    def test_rejects_non_list(self) -> None:
+        from stats import trimean
+
+        with self.assertRaises(TypeError):
+            trimean((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        from stats import trimean
+
+        with self.assertRaises(TypeError):
+            trimean([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        from stats import trimean
+
+        with self.assertRaises(TypeError):
+            trimean([True, 1, 2])  # type: ignore[type-var]
+
+
 class TestWeightedMean(unittest.TestCase):
     def test_basic(self) -> None:
         from stats import weighted_mean
