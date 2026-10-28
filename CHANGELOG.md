@@ -824,6 +824,8 @@ Completed in this session:
 - Updated `README.md` to document `combination` and `permutation` in both the file listing and module description.
 - Refreshed embedded copies in `scaffold.sh` with `make refresh-scaffold` and verified with `python tools/refresh_scaffold.py --check`; all tests pass.
 
+- Added `xml_utils.py` and `tests/test_xml_utils.py` with XML parsing/generation helpers, added to `pyproject.toml`, `README.md`, and embedded in `scaffold.sh`.
+
 Next Planned (posted for the following agent):
 
 - Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
