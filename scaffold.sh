@@ -12532,6 +12532,7 @@ __all__: List[str] = [
     "correlation",
     "z_scores",
     "root_mean_square",
+    "standard_error",
 ]
 
 
@@ -13430,6 +13431,33 @@ def root_mean_square(numbers: List[T | float]) -> float:
     """
     _require_numbers(numbers)
     return math.sqrt(sum(x * x for x in numbers) / len(numbers))
+
+
+def standard_error(numbers: List[T | float]) -> float:
+    """Return the standard error of the mean of *numbers*.
+
+    The standard error is the sample standard deviation divided by the square
+    root of the sample size.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The standard error of the mean.
+
+    Raises:
+        ValueError: If *numbers* is empty or has fewer than 2 elements.
+        TypeError: If *numbers* is not a list or contains non-numeric values.
+
+    Examples:
+        >>> standard_error([1, 2, 3, 4, 5])
+        0.7071067811865476
+    """
+    _require_numbers(numbers)
+    n = len(numbers)
+    if n < 2:
+        raise ValueError("Cannot calculate standard error with fewer than 2 elements")
+    return stddev(numbers, population=False) / math.sqrt(n)
 STATS
 
 # --- tests/test_strings.py ---
