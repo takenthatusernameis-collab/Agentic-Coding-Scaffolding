@@ -40,6 +40,7 @@ __all__: List[str] = [
     "lcm",
     "ceil_div",
     "is_divisible_by",
+    "is_coprime",
     "digit_sum",
 ]
 
@@ -760,6 +761,34 @@ def is_divisible_by(a: int, b: int) -> bool:
     if b == 0:
         raise ValueError("is_divisible_by() division by zero")
     return a % b == 0
+
+
+def is_coprime(a: int, b: int) -> bool:
+    """Return True if *a* and *b* are coprime (gcd is 1).
+
+    Args:
+        a: First integer.
+        b: Second integer.
+
+    Returns:
+        True if *a* and *b* have no common positive factors other than 1.
+
+    Raises:
+        TypeError: If either argument is not an int.
+
+    Examples:
+        >>> is_coprime(8, 9)
+        True
+        >>> is_coprime(8, 12)
+        False
+        >>> is_coprime(1, 100)
+        True
+    """
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    return gcd(a, b) == 1
 
 
 def digit_sum(value: int) -> int:

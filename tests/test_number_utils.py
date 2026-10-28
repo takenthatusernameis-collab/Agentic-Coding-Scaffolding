@@ -8,6 +8,7 @@ from number_utils import (
     format_number,
     is_between,
     is_close,
+    is_coprime,
     is_finite,
     is_infinite,
     is_integer,
