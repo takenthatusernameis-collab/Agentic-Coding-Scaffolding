@@ -866,6 +866,8 @@ def removesuffix(s: str, suffix: str) -> str:
     """
     _require_string(s, "s")
     _require_string(suffix, "suffix")
+    if not suffix:
+        return s
     if s.endswith(suffix):
         return s[: -len(suffix)]
     return s

@@ -182,7 +182,7 @@ class TestCountLowercase(unittest.TestCase):
         self.assertEqual(count_lowercase("HELLO"), 0)
 
     def test_count_mixed(self):
-        self.assertEqual(count_lowercase("PyThOn 3.10!"), 4)
+        self.assertEqual(count_lowercase("PyThOn 3.10!"), 3)
 
     def test_count_empty(self):
         self.assertEqual(count_lowercase(""), 0)
@@ -211,7 +211,7 @@ class TestCountUppercase(unittest.TestCase):
         self.assertEqual(count_uppercase("hello"), 0)
 
     def test_count_mixed(self):
-        self.assertEqual(count_uppercase("PyThOn 3.10!"), 2)
+        self.assertEqual(count_uppercase("PyThOn 3.10!"), 3)
 
     def test_count_empty(self):
         self.assertEqual(count_uppercase(""), 0)
