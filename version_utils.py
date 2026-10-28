@@ -56,6 +56,15 @@ __all__: List[str] = [
     "is_prerelease",
     "get_prerelease",
     "get_prerelease_tag",
+    "get_build_metadata",
+    "get_build",
+    "strip_prerelease",
+    "strip_prerelease_suffix",
+    "remove_prerelease",
+    "strip_build_metadata",
+    "strip_build",
+    "remove_build_metadata",
+    "strip_metadata",
     "is_compatible",
     "version_satisfies_major",
     "decrement_version",
@@ -540,6 +549,128 @@ def get_prerelease(version: str) -> str | None:
 
 
 get_prerelease_tag = get_prerelease
+
+
+def get_build_metadata(version: str) -> str | None:
+    """Return the build metadata from *version* if present.
+
+    Args:
+        version: A dotted version string, optionally with build metadata
+            separated by a plus sign (e.g., ``"1.2.3+20130313144700"``).
+
+    Returns:
+        The build metadata string (everything after the first plus sign), or
+        ``None`` if there is no build metadata suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> get_build_metadata("1.2.3+20130313144700")
+        '20130313144700'
+        >>> get_build_metadata("1.2.3")
+        None
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if "+" not in version:
+        return None
+    return version.split("+", 1)[1]
+
+
+get_build = get_build_metadata
+
+
+def strip_prerelease(version: str) -> str:
+    """Remove prerelease suffix from a version string.
+
+    Args:
+        version: A dotted version string, optionally with a prerelease
+            suffix separated by a hyphen.
+
+    Returns:
+        The version string without the prerelease suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+
+    Examples:
+        >>> strip_prerelease("1.2.3-rc1")
+        '1.2.3'
+        >>> strip_prerelease("1.2.3")
+        '1.2.3'
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    core = version.split("-", 1)[0]
+    # Validate the core part
+    parse_version(core)
+    return core
+
+
+def strip_build_metadata(version: str) -> str:
+    """Remove build metadata suffix from a version string.
+
+    Args:
+        version: A dotted version string, optionally with build metadata
+            separated by a plus sign.
+
+    Returns:
+        The version string without the build metadata suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+
+    Examples:
+        >>> strip_build_metadata("1.2.3+20130313144700")
+        '1.2.3'
+        >>> strip_build_metadata("1.2.3")
+        '1.2.3'
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    core = version.split("+", 1)[0]
+    parse_version(core)
+    return core
+
+
+def strip_metadata(version: str) -> str:
+    """Remove both prerelease and build metadata suffixes from a version string.
+
+    Args:
+        version: A dotted version string, optionally with prerelease and/or
+            build metadata suffixes.
+
+    Returns:
+        The base version string without prerelease or build metadata.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+
+    Examples:
+        >>> strip_metadata("1.2.3-rc1+build.123")
+        '1.2.3'
+        >>> strip_metadata("1.2.3")
+        '1.2.3'
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    core = version
+    if "-" in core:
+        core = core.split("-", 1)[0]
+    if "+" in core:
+        core = core.split("+", 1)[0]
+    parse_version(core)
+    return core
+
+
+strip_prerelease_suffix = strip_prerelease
+remove_prerelease = strip_prerelease
+remove_build_metadata = strip_build_metadata
+strip_build = strip_build_metadata
 
 
 def is_compatible(a: str, b: str) -> bool:

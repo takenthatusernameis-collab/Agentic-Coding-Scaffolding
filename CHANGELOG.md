@@ -1,3 +1,21 @@
+## Latest Session (2026-10-28) — extended version_utils with prerelease/build metadata helpers
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` ran 6120 tests with all passing, `make lint` and `make typecheck` were clean on touched files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Extended `version_utils.py` with prerelease/build metadata helpers: `get_build_metadata` (with `get_build`), `strip_prerelease` (with aliases), `strip_build_metadata` (with aliases), and `strip_metadata` to remove both suffixes. Updated `__all__` and added Google-style docstrings with doctests.
+- Added corresponding tests in `tests/test_version_utils.py` (new test classes for build metadata, stripping prerelease/build/combined) and updated imports.
+- Updated `README.md` and `.kilo/command/scaffold-project.md` to document the new version utilities.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
+
 ## Latest Session (2026-10-28) — fixed type_check_utils scaffold-sync failure
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6120 tests and fails once on `tests/test_scaffold_sync.py::TestScaffoldSync::test_every_module_is_asserted_by_scaffold_tests` for `type_check_utils` (a real registration gap, not environment-related), `make lint` reports only pre-existing errors outside the files touched, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

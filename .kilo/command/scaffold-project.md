@@ -463,7 +463,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
 - `queue_utils.py` — FIFO queue helpers (`Queue` class, `enqueue`, `dequeue`, `peek`, `size`, `is_empty`, `clear`)
 - `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
-- `version_utils.py` — version parsing, comparison, normalization, and component extraction utilities
+- `version_utils.py` — version parsing, comparison, normalization, component extraction, prerelease/build metadata handling, and version manipulation utilities
 - `tests/test_version_utils.py` — unit tests for `version_utils.py`
 - `sys_utils.py` — Python runtime and system information utilities (`get_python_version`, `get_executable`, `get_platform`, `get_path`, `get_argv`, `get_recursion_limit`, `set_recursion_limit`, stream encodings, frame info, refcount)
 - `tests/test_sys_utils.py` — unit tests for `sys_utils.py`

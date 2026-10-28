@@ -38518,7 +38518,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
 - `queue_utils.py` — FIFO queue helpers (`Queue` class, `enqueue`, `dequeue`, `peek`, `size`, `is_empty`, `clear`)
 - `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
-- `version_utils.py` — version parsing, comparison, normalization, and component extraction utilities
+- `version_utils.py` — version parsing, comparison, normalization, component extraction, prerelease/build metadata handling, and version manipulation utilities
 - `tests/test_version_utils.py` — unit tests for `version_utils.py`
 - `sys_utils.py` — Python runtime and system information utilities (`get_python_version`, `get_executable`, `get_platform`, `get_path`, `get_argv`, `get_recursion_limit`, `set_recursion_limit`, stream encodings, frame info, refcount)
 - `tests/test_sys_utils.py` — unit tests for `sys_utils.py`
@@ -40231,6 +40231,24 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — extended version_utils with prerelease/build metadata helpers
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` ran 6120 tests with all passing, `make lint` and `make typecheck` were clean on touched files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Extended `version_utils.py` with prerelease/build metadata helpers: `get_build_metadata` (with `get_build`), `strip_prerelease` (with aliases), `strip_build_metadata` (with aliases), and `strip_metadata` to remove both suffixes. Updated `__all__` and added Google-style docstrings with doctests.
+- Added corresponding tests in `tests/test_version_utils.py` (new test classes for build metadata, stripping prerelease/build/combined) and updated imports.
+- Updated `README.md` and `.kilo/command/scaffold-project.md` to document the new version utilities.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
+
 ## Latest Session (2026-10-28) — fixed type_check_utils scaffold-sync failure
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6120 tests and fails once on `tests/test_scaffold_sync.py::TestScaffoldSync::test_every_module_is_asserted_by_scaffold_tests` for `type_check_utils` (a real registration gap, not environment-related), `make lint` reports only pre-existing errors outside the files touched, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -41882,7 +41900,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -84179,6 +84197,15 @@ __all__: List[str] = [
     "is_prerelease",
     "get_prerelease",
     "get_prerelease_tag",
+    "get_build_metadata",
+    "get_build",
+    "strip_prerelease",
+    "strip_prerelease_suffix",
+    "remove_prerelease",
+    "strip_build_metadata",
+    "strip_build",
+    "remove_build_metadata",
+    "strip_metadata",
     "is_compatible",
     "version_satisfies_major",
     "decrement_version",
@@ -84665,6 +84692,128 @@ def get_prerelease(version: str) -> str | None:
 get_prerelease_tag = get_prerelease
 
 
+def get_build_metadata(version: str) -> str | None:
+    """Return the build metadata from *version* if present.
+
+    Args:
+        version: A dotted version string, optionally with build metadata
+            separated by a plus sign (e.g., ``"1.2.3+20130313144700"``).
+
+    Returns:
+        The build metadata string (everything after the first plus sign), or
+        ``None`` if there is no build metadata suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> get_build_metadata("1.2.3+20130313144700")
+        '20130313144700'
+        >>> get_build_metadata("1.2.3")
+        None
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if "+" not in version:
+        return None
+    return version.split("+", 1)[1]
+
+
+get_build = get_build_metadata
+
+
+def strip_prerelease(version: str) -> str:
+    """Remove prerelease suffix from a version string.
+
+    Args:
+        version: A dotted version string, optionally with a prerelease
+            suffix separated by a hyphen.
+
+    Returns:
+        The version string without the prerelease suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+
+    Examples:
+        >>> strip_prerelease("1.2.3-rc1")
+        '1.2.3'
+        >>> strip_prerelease("1.2.3")
+        '1.2.3'
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    core = version.split("-", 1)[0]
+    # Validate the core part
+    parse_version(core)
+    return core
+
+
+def strip_build_metadata(version: str) -> str:
+    """Remove build metadata suffix from a version string.
+
+    Args:
+        version: A dotted version string, optionally with build metadata
+            separated by a plus sign.
+
+    Returns:
+        The version string without the build metadata suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+
+    Examples:
+        >>> strip_build_metadata("1.2.3+20130313144700")
+        '1.2.3'
+        >>> strip_build_metadata("1.2.3")
+        '1.2.3'
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    core = version.split("+", 1)[0]
+    parse_version(core)
+    return core
+
+
+def strip_metadata(version: str) -> str:
+    """Remove both prerelease and build metadata suffixes from a version string.
+
+    Args:
+        version: A dotted version string, optionally with prerelease and/or
+            build metadata suffixes.
+
+    Returns:
+        The base version string without prerelease or build metadata.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid.
+
+    Examples:
+        >>> strip_metadata("1.2.3-rc1+build.123")
+        '1.2.3'
+        >>> strip_metadata("1.2.3")
+        '1.2.3'
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    core = version
+    if "-" in core:
+        core = core.split("-", 1)[0]
+    if "+" in core:
+        core = core.split("+", 1)[0]
+    parse_version(core)
+    return core
+
+
+strip_prerelease_suffix = strip_prerelease
+remove_prerelease = strip_prerelease
+remove_build_metadata = strip_build_metadata
+strip_build = strip_build_metadata
+
+
 def is_compatible(a: str, b: str) -> bool:
     """Return True if versions *a* and *b* share the same major version.
 
@@ -84809,6 +84958,15 @@ from version_utils import (
     get_patch_version,
     get_prerelease,
     get_prerelease_tag,
+    get_build_metadata,
+    get_build,
+    strip_prerelease,
+    strip_prerelease_suffix,
+    remove_prerelease,
+    strip_build_metadata,
+    strip_build,
+    remove_build_metadata,
+    strip_metadata,
     is_compatible,
     is_equal,
     is_greater,
@@ -85302,6 +85460,76 @@ class TestGetPrerelease(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+class TestGetBuildMetadata(unittest.TestCase):
+    def test_returns_metadata(self):
+        self.assertEqual(get_build_metadata("1.2.3+20130313144700"), "20130313144700")
+        self.assertEqual(get_build_metadata("1.0.0+build.123"), "build.123")
+
+    def test_returns_none_when_not_present(self):
+        self.assertIsNone(get_build_metadata("1.2.3"))
+        self.assertIsNone(get_build_metadata("2.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            get_build_metadata(123)  # type: ignore[arg-type]
+
+    def test_alias(self):
+        self.assertEqual(get_build("1.2.3+beta"), "beta")
+
+
+class TestStripPrerelease(unittest.TestCase):
+    def test_strips_prerelease(self):
+        self.assertEqual(strip_prerelease("1.2.3-rc1"), "1.2.3")
+        self.assertEqual(strip_prerelease("1.0.0-alpha.1"), "1.0.0")
+
+    def test_no_prerelease_returns_original(self):
+        self.assertEqual(strip_prerelease("1.2.3"), "1.2.3")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            strip_prerelease(123)  # type: ignore[arg-type]
+
+    def test_aliases(self):
+        self.assertEqual(strip_prerelease_suffix("1.2.3-rc1"), "1.2.3")
+        self.assertEqual(remove_prerelease("1.2.3-rc1"), "1.2.3")
+
+
+class TestStripBuildMetadata(unittest.TestCase):
+    def test_strips_build(self):
+        self.assertEqual(strip_build_metadata("1.2.3+20130313144700"), "1.2.3")
+        self.assertEqual(strip_build_metadata("1.0.0+build.123"), "1.0.0")
+
+    def test_no_build_returns_original(self):
+        self.assertEqual(strip_build_metadata("1.2.3"), "1.2.3")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            strip_build_metadata(123)  # type: ignore[arg-type]
+
+    def test_aliases(self):
+        self.assertEqual(strip_build("1.2.3+beta"), "1.2.3")
+        self.assertEqual(remove_build_metadata("1.2.3+beta"), "1.2.3")
+
+
+class TestStripMetadata(unittest.TestCase):
+    def test_strips_both(self):
+        self.assertEqual(strip_metadata("1.2.3-rc1+build.123"), "1.2.3")
+
+    def test_strips_prerelease_only(self):
+        self.assertEqual(strip_metadata("1.2.3-rc1"), "1.2.3")
+
+    def test_strips_build_only(self):
+        self.assertEqual(strip_metadata("1.2.3+build.123"), "1.2.3")
+
+    def test_no_metadata_returns_original(self):
+        self.assertEqual(strip_metadata("1.2.3"), "1.2.3")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            strip_metadata(123)  # type: ignore[arg-type]
 TEST_VERSION_UTILS
 
 # --- warnings_utils.py ---

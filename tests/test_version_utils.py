@@ -17,6 +17,15 @@ from version_utils import (
     get_patch_version,
     get_prerelease,
     get_prerelease_tag,
+    get_build_metadata,
+    get_build,
+    strip_prerelease,
+    strip_prerelease_suffix,
+    remove_prerelease,
+    strip_build_metadata,
+    strip_build,
+    remove_build_metadata,
+    strip_metadata,
     is_compatible,
     is_equal,
     is_greater,
@@ -510,4 +519,74 @@ class TestGetPrerelease(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+class TestGetBuildMetadata(unittest.TestCase):
+    def test_returns_metadata(self):
+        self.assertEqual(get_build_metadata("1.2.3+20130313144700"), "20130313144700")
+        self.assertEqual(get_build_metadata("1.0.0+build.123"), "build.123")
+
+    def test_returns_none_when_not_present(self):
+        self.assertIsNone(get_build_metadata("1.2.3"))
+        self.assertIsNone(get_build_metadata("2.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            get_build_metadata(123)  # type: ignore[arg-type]
+
+    def test_alias(self):
+        self.assertEqual(get_build("1.2.3+beta"), "beta")
+
+
+class TestStripPrerelease(unittest.TestCase):
+    def test_strips_prerelease(self):
+        self.assertEqual(strip_prerelease("1.2.3-rc1"), "1.2.3")
+        self.assertEqual(strip_prerelease("1.0.0-alpha.1"), "1.0.0")
+
+    def test_no_prerelease_returns_original(self):
+        self.assertEqual(strip_prerelease("1.2.3"), "1.2.3")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            strip_prerelease(123)  # type: ignore[arg-type]
+
+    def test_aliases(self):
+        self.assertEqual(strip_prerelease_suffix("1.2.3-rc1"), "1.2.3")
+        self.assertEqual(remove_prerelease("1.2.3-rc1"), "1.2.3")
+
+
+class TestStripBuildMetadata(unittest.TestCase):
+    def test_strips_build(self):
+        self.assertEqual(strip_build_metadata("1.2.3+20130313144700"), "1.2.3")
+        self.assertEqual(strip_build_metadata("1.0.0+build.123"), "1.0.0")
+
+    def test_no_build_returns_original(self):
+        self.assertEqual(strip_build_metadata("1.2.3"), "1.2.3")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            strip_build_metadata(123)  # type: ignore[arg-type]
+
+    def test_aliases(self):
+        self.assertEqual(strip_build("1.2.3+beta"), "1.2.3")
+        self.assertEqual(remove_build_metadata("1.2.3+beta"), "1.2.3")
+
+
+class TestStripMetadata(unittest.TestCase):
+    def test_strips_both(self):
+        self.assertEqual(strip_metadata("1.2.3-rc1+build.123"), "1.2.3")
+
+    def test_strips_prerelease_only(self):
+        self.assertEqual(strip_metadata("1.2.3-rc1"), "1.2.3")
+
+    def test_strips_build_only(self):
+        self.assertEqual(strip_metadata("1.2.3+build.123"), "1.2.3")
+
+    def test_no_metadata_returns_original(self):
+        self.assertEqual(strip_metadata("1.2.3"), "1.2.3")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            strip_metadata(123)  # type: ignore[arg-type]
 
