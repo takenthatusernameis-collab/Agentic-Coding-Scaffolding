@@ -14,6 +14,8 @@ __all__: List[str] = [
     "format_number",
     "percentage",
     "lerp",
+    "map_range",
+    "remap",
     "sign",
     "is_even",
     "is_odd",
@@ -168,6 +170,44 @@ def lerp(start: Number, stop: Number, t: Number) -> float:
     _require_number(stop, "stop")
     _require_number(t, "t")
     return start + (stop - start) * t
+
+
+def map_range(
+    value: Number,
+    from_min: Number,
+    from_max: Number,
+    to_min: Number,
+    to_max: Number,
+) -> float:
+    """Map a value from one range to another.
+
+    Args:
+        value: The value to map.
+        from_min: The minimum of the source range.
+        from_max: The maximum of the source range.
+        to_min: The minimum of the target range.
+        to_max: The maximum of the target range.
+
+    Returns:
+        The mapped value in the target range.
+
+    Raises:
+        TypeError: If any argument is not a number.
+        ValueError: If the source range has zero span.
+    """
+    _require_number(value, "value")
+    _require_number(from_min, "from_min")
+    _require_number(from_max, "from_max")
+    _require_number(to_min, "to_min")
+    _require_number(to_max, "to_max")
+    if from_max == from_min:
+        raise ValueError("source range must have non-zero span")
+    t = (value - from_min) / (from_max - from_min)
+    return to_min + t * (to_max - to_min)
+
+
+# Alias for map_range
+remap = map_range
 
 
 def sign(value: Number) -> int:
