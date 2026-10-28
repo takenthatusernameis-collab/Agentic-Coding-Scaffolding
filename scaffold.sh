@@ -21703,10 +21703,16 @@ class TestRandomChoices(unittest.TestCase):
         self.assertEqual(random_choices(["x"], k=3, seed=0), ["x", "x", "x"])
 
     def test_seeded_is_reproducible(self) -> None:
-        self.assertEqual(random_choices([1, 2, 3], k=3, seed=42), random_choices([1, 2, 3], k=3, seed=42))
+        self.assertEqual(
+            random_choices([1, 2, 3], k=3, seed=42),
+            random_choices([1, 2, 3], k=3, seed=42),
+        )
 
     def test_alias(self) -> None:
-        self.assertEqual(random_choice_with_replacement([1, 2], k=2, seed=7), random_choices([1, 2], k=2, seed=7))
+        self.assertEqual(
+            random_choice_with_replacement([1, 2], k=2, seed=7),
+            random_choices([1, 2], k=2, seed=7),
+        )
 
     def test_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
