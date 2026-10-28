@@ -14,6 +14,7 @@ from strings import (
     contains_all,
     contains_any,
     count_consonants,
+    count_letters,
     count_occurrences,
     count_vowels,
     count_words,
@@ -1879,6 +1880,7 @@ class TestStringsComprehensiveBoundary(unittest.TestCase):
             reverse_words,
             count_vowels,
             count_consonants,
+    count_letters,
             word_count,
             char_count,
             is_blank,
@@ -1962,3 +1964,13 @@ class TestStringsComprehensiveBoundary(unittest.TestCase):
         self.assertEqual(truncate_bytes("hello", 10), "hello")
         self.assertEqual(truncate_bytes("héllo", 4, encoding="utf-8"), "hél")
         self.assertEqual(truncate_bytes("hello", 0), "")
+
+
+class TestCountLetters(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_letters("abc123"), 3)
+        self.assertEqual(count_letters(""), 0)
+        self.assertEqual(count_letters("ABC"), 3)
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_letters(123)  # type: ignore[arg-type]

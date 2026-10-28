@@ -11075,6 +11075,7 @@ __all__: List[str] = [
     "remove_vowels",
     "remove_consonants",
     "count_digits",
+    "count_letters",
 ]
 
 
@@ -12156,6 +12157,22 @@ def count_digits(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isdigit())
+
+
+def count_letters(s: str) -> int:
+    """Return the number of alphabetic characters in *s*.
+
+    Args:
+        s: The string to count letters in.
+
+    Returns:
+        The number of alphabetic characters.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isalpha())
 STRINGS
 
 # --- utils.py ---
@@ -13598,6 +13615,7 @@ from strings import (
     contains_all,
     contains_any,
     count_consonants,
+    count_letters,
     count_occurrences,
     count_vowels,
     count_words,
@@ -15463,6 +15481,7 @@ class TestStringsComprehensiveBoundary(unittest.TestCase):
             reverse_words,
             count_vowels,
             count_consonants,
+    count_letters,
             word_count,
             char_count,
             is_blank,
@@ -15546,6 +15565,16 @@ class TestStringsComprehensiveBoundary(unittest.TestCase):
         self.assertEqual(truncate_bytes("hello", 10), "hello")
         self.assertEqual(truncate_bytes("héllo", 4, encoding="utf-8"), "hél")
         self.assertEqual(truncate_bytes("hello", 0), "")
+
+
+class TestCountLetters(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_letters("abc123"), 3)
+        self.assertEqual(count_letters(""), 0)
+        self.assertEqual(count_letters("ABC"), 3)
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_letters(123)  # type: ignore[arg-type]
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -40456,6 +40485,7 @@ Next Planned (posted for the following agent):
 ## Unreleased
 
 ### Added
+- Added `count_letters(s)` to `strings.py` returning the number of alphabetic characters in *s*, with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation. Added `TestCountLetters` to `tests/test_strings.py`.
 - Added `count_characters(text)` to `prompt_utils.py` returning the number of characters in *text* (including whitespace), matching `len`, with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments. Added `TestCountCharacters` to `tests/test_prompt_utils.py` covering empty, ASCII, whitespace-counted, unicode, single-character, and `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `standard_error(numbers)` to `stats.py` returning the standard error of the mean (the sample standard deviation divided by the square root of the sample size), with typed signature, `__all__` export, Google-style docstring, and `TypeError`/`ValueError` validation (raising `ValueError` for empty lists or single-element lists). Added `TestStandardError` to `tests/test_stats.py` covering basic cases, negatives, floats, single-element `ValueError`, empty-list `ValueError`, and `TypeError` paths. Updated the `stats` module prose section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `format_farewell(name, farewell="Goodbye")` to `greeting_utils.py` returning a formatted farewell string, with typed signature, Google-style docstring, and `TypeError` validation. Added `TestFormatFarewell` to `tests/test_greeting_utils.py` covering default, custom, empty name, and `TypeError` paths. Updated the `greeting_utils` module prose section of `README.md`.
@@ -41559,7 +41589,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`, `count_letters`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

@@ -81,6 +81,7 @@ __all__: List[str] = [
     "remove_vowels",
     "remove_consonants",
     "count_digits",
+    "count_letters",
 ]
 
 
@@ -1162,3 +1163,19 @@ def count_digits(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isdigit())
+
+
+def count_letters(s: str) -> int:
+    """Return the number of alphabetic characters in *s*.
+
+    Args:
+        s: The string to count letters in.
+
+    Returns:
+        The number of alphabetic characters.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isalpha())
