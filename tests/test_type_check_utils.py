@@ -101,6 +101,27 @@ class TestTypeChecks(unittest.TestCase):
         with self.assertRaises(TypeError):
             type_check_utils.coerce_to_float(None)
 
+    def test_coerce_to_bool(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bool(True), True)
+        self.assertEqual(type_check_utils.coerce_to_bool(False), False)
+        self.assertEqual(type_check_utils.coerce_to_bool(1), True)
+        self.assertEqual(type_check_utils.coerce_to_bool(0), False)
+        self.assertEqual(type_check_utils.coerce_to_bool(2), True)
+        self.assertEqual(type_check_utils.coerce_to_bool(0.0), False)
+        self.assertEqual(type_check_utils.coerce_to_bool(1.5), True)
+        self.assertEqual(type_check_utils.coerce_to_bool("true"), True)
+        self.assertEqual(type_check_utils.coerce_to_bool("False"), False)
+        self.assertEqual(type_check_utils.coerce_to_bool("1"), True)
+        self.assertEqual(type_check_utils.coerce_to_bool("0"), False)
+        self.assertEqual(type_check_utils.coerce_to_bool("yes"), True)
+        self.assertEqual(type_check_utils.coerce_to_bool("no"), False)
+        with self.assertRaises(ValueError):
+            type_check_utils.coerce_to_bool("not-a-bool")
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bool([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bool(None)
+
 
 if __name__ == "__main__":
     unittest.main()

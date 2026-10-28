@@ -24,6 +24,7 @@ __all__: List[str] = [
     "coerce_to_str",
     "coerce_to_int",
     "coerce_to_float",
+    "coerce_to_bool",
 ]
 
 
@@ -202,4 +203,48 @@ def coerce_to_float(value: object) -> float:
         return float(value)
     raise TypeError(
         f"cannot coerce {type(value).__name__} to float"
+    )
+
+
+def coerce_to_bool(value: object) -> bool:
+    """Convert *value* to a bool.
+
+    Accepts bools, ints, floats, and common truthy/falsy strings
+    (``"true"``, ``"false"``, ``"1"``, ``"0"``, ``"yes"``, ``"no"``);
+    raises ``TypeError`` for unsupported types and ``ValueError`` for
+    strings that do not parse as a bool.
+
+    Args:
+        value: The value to convert.
+
+    Returns:
+        The bool representation of *value*.
+
+    Raises:
+        TypeError: If *value* cannot be converted to a bool.
+        ValueError: If *value* is a string that is not a valid bool.
+
+    Examples:
+        >>> coerce_to_bool(True)
+        True
+        >>> coerce_to_bool("false")
+        False
+        >>> coerce_to_bool(1)
+        True
+    """
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value != 0
+    if isinstance(value, float):
+        return value != 0.0
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in ("true", "1", "yes", "y", "on"):
+            return True
+        if lowered in ("false", "0", "no", "n", "off"):
+            return False
+        raise ValueError(f"cannot coerce {value!r} to bool")
+    raise TypeError(
+        f"cannot coerce {type(value).__name__} to bool"
     )
