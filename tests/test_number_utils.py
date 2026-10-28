@@ -7,6 +7,7 @@ from number_utils import (
     digit_count,
     digit_product,
     digit_sum,
+    digital_root,
     format_number,
     is_between,
     is_close,
@@ -28,8 +29,6 @@ from number_utils import (
     percentage,
     remap,
     round_half_up,
-    round_to,
-    safe_divide,
 )
 
 
@@ -743,3 +742,29 @@ class TestDigitProduct(unittest.TestCase):
             digit_product(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             digit_product(None)  # type: ignore[arg-type]
+
+
+class TestDigitalRoot(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(digital_root(0), 0)
+        self.assertEqual(digital_root(5), 5)
+        self.assertEqual(digital_root(9), 9)
+        self.assertEqual(digital_root(123), 6)
+        self.assertEqual(digital_root(99), 9)
+        self.assertEqual(digital_root(199), 1)
+        self.assertEqual(digital_root(999), 9)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(digital_root(-123), 6)
+        self.assertEqual(digital_root(-5), 5)
+        self.assertEqual(digital_root(-99), 9)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            digital_root("123")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digital_root(12.3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digital_root(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digital_root(None)  # type: ignore[arg-type]
