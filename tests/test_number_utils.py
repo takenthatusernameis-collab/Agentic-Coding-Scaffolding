@@ -656,3 +656,40 @@ class TestDigitSum(unittest.TestCase):
             digit_sum(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             digit_sum(None)  # type: ignore[arg-type]
+
+
+class TestIsCoprime(unittest.TestCase):
+    def test_coprime_pairs(self) -> None:
+        self.assertTrue(is_coprime(8, 9))
+        self.assertTrue(is_coprime(14, 25))
+        self.assertTrue(is_coprime(1, 100))
+        self.assertTrue(is_coprime(1, 1))
+        self.assertTrue(is_coprime(17, 19))
+
+    def test_non_coprime_pairs(self) -> None:
+        self.assertFalse(is_coprime(8, 12))
+        self.assertFalse(is_coprime(21, 14))
+        self.assertFalse(is_coprime(100, 10))
+        self.assertFalse(is_coprime(0, 5))
+        self.assertFalse(is_coprime(0, 0))
+
+    def test_sign_and_zero_edge_cases(self) -> None:
+        self.assertTrue(is_coprime(-8, 9))
+        self.assertTrue(is_coprime(8, -9))
+        self.assertTrue(is_coprime(-8, -9))
+        self.assertTrue(is_coprime(0, 1))
+        self.assertFalse(is_coprime(0, 0))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_coprime("8", 9)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(8, "9")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(True, 9)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(8, True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(8.0, 9)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(8, None)  # type: ignore[arg-type]

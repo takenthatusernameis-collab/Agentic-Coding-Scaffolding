@@ -1,3 +1,22 @@
+## Latest Session (2026-10-28) — added is_coprime to number_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` failed on scaffold-sync (embedded `number_utils.py`/`tests/test_number_utils.py` stale, missing `is_coprime`) and `make lint` reported an unused `is_coprime` import in `tests/test_number_utils.py`; `make typecheck` was clean.
+
+Completed in this session:
+
+- Added `TestIsCoprime` to `tests/test_number_utils.py` covering coprime pairs, non-coprime pairs, sign/zero edge cases, and the `TypeError` paths (13 new tests); this uses the previously imported-but-unused `is_coprime`, clearing the `F401` lint error.
+- Updated the `number_utils` module tree entry and prose section of `README.md` to document `is_coprime`.
+- Recorded the change in this Unreleased session entry of `CHANGELOG.md`.
+- Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` passes, `make lint` clean, `make typecheck` clean, scaffold sync clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added digit_sum to number_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make lint` was failing on a pre-existing import regression in `tests/test_number_utils.py` (8 ruff errors), `make typecheck` was clean, and `python tools/refresh_scaffold.py --check` reported 2 stale embedded copies (`number_utils.py`, `tests/test_number_utils.py`) left by the previous checkpoint commit; all were resolved before adding new work.
