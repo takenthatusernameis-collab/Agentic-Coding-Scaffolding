@@ -13,6 +13,7 @@ __all__: List[str] = [
     "is_prime",
     "clamp",
     "is_even",
+    "is_odd",
     "combination",
     "permutation",
 ]
@@ -227,6 +228,27 @@ def is_even(value: int) -> bool:
     """
     value = _require_int(value, "value")
     return value % 2 == 0
+
+def is_odd(value: int) -> bool:
+    """Return True if *value* is an odd integer.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is odd.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_odd(3)
+        True
+        >>> is_odd(2)
+        False
+    """
+    value = _require_int(value, "value")
+    return value % 2 != 0
 
 
 def combination(n: int, k: int) -> int:

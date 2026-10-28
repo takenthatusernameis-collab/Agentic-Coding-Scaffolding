@@ -9,6 +9,7 @@ from math_utils import (
     fibonacci,
     gcd,
     is_even,
+    is_odd,
     is_prime,
     lcm,
     permutation,
@@ -204,6 +205,26 @@ class TestIsEven(unittest.TestCase):
             is_even("2")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_even(True)  # type: ignore[arg-type]
+
+
+class TestIsOdd(unittest.TestCase):
+    def test_odd_ints(self) -> None:
+        self.assertTrue(is_odd(1))
+        self.assertTrue(is_odd(3))
+        self.assertTrue(is_odd(-3))
+
+    def test_even_ints(self) -> None:
+        self.assertFalse(is_odd(0))
+        self.assertFalse(is_odd(2))
+        self.assertFalse(is_odd(-4))
+
+    def test_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_odd(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd("2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
