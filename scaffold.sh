@@ -62446,6 +62446,46 @@ def digital_root(value: int) -> int:
     while n >= 10:
         n = sum(int(digit) for digit in str(n))
     return n
+
+
+def is_perfect_number(value: int) -> bool:
+    """Return whether *value* is a perfect number.
+
+    A perfect number is a positive integer that equals the sum of its proper
+    positive divisors (excluding itself).
+
+    Args:
+        value: The integer to check.
+
+    Returns:
+        ``True`` if *value* is a perfect number, otherwise ``False``.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_perfect_number(6)
+        True
+        >>> is_perfect_number(28)
+        True
+        >>> is_perfect_number(12)
+        False
+        >>> is_perfect_number(1)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 2:
+        return False
+    total = 1
+    i = 2
+    while i * i <= value:
+        if value % i == 0:
+            total += i
+            if i != value // i:
+                total += value // i
+        i += 1
+    return total == value
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -62472,6 +62512,7 @@ from number_utils import (
     is_non_negative,
     is_non_positive,
     is_perfect_cube,
+    is_perfect_number,
     is_perfect_square,
     is_positive,
     is_power_of_two,
@@ -62481,6 +62522,8 @@ from number_utils import (
     percentage,
     remap,
     round_half_up,
+    round_to,
+    safe_divide,
 )
 
 
@@ -63220,6 +63263,21 @@ class TestDigitalRoot(unittest.TestCase):
             digital_root(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             digital_root(None)  # type: ignore[arg-type]
+
+
+class TestIsPerfectNumber(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(is_perfect_number(6))
+        self.assertTrue(is_perfect_number(28))
+        self.assertFalse(is_perfect_number(12))
+        self.assertFalse(is_perfect_number(1))
+        self.assertFalse(is_perfect_number(0))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_perfect_number("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_perfect_number(True)  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---

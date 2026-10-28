@@ -20,6 +20,7 @@ from number_utils import (
     is_non_negative,
     is_non_positive,
     is_perfect_cube,
+    is_perfect_number,
     is_perfect_square,
     is_positive,
     is_power_of_two,
@@ -29,6 +30,8 @@ from number_utils import (
     percentage,
     remap,
     round_half_up,
+    round_to,
+    safe_divide,
 )
 
 
@@ -768,3 +771,18 @@ class TestDigitalRoot(unittest.TestCase):
             digital_root(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             digital_root(None)  # type: ignore[arg-type]
+
+
+class TestIsPerfectNumber(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(is_perfect_number(6))
+        self.assertTrue(is_perfect_number(28))
+        self.assertFalse(is_perfect_number(12))
+        self.assertFalse(is_perfect_number(1))
+        self.assertFalse(is_perfect_number(0))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_perfect_number("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_perfect_number(True)  # type: ignore[arg-type]

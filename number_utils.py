@@ -931,3 +931,43 @@ def digital_root(value: int) -> int:
     while n >= 10:
         n = sum(int(digit) for digit in str(n))
     return n
+
+
+def is_perfect_number(value: int) -> bool:
+    """Return whether *value* is a perfect number.
+
+    A perfect number is a positive integer that equals the sum of its proper
+    positive divisors (excluding itself).
+
+    Args:
+        value: The integer to check.
+
+    Returns:
+        ``True`` if *value* is a perfect number, otherwise ``False``.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_perfect_number(6)
+        True
+        >>> is_perfect_number(28)
+        True
+        >>> is_perfect_number(12)
+        False
+        >>> is_perfect_number(1)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 2:
+        return False
+    total = 1
+    i = 2
+    while i * i <= value:
+        if value % i == 0:
+            total += i
+            if i != value // i:
+                total += value // i
+        i += 1
+    return total == value
