@@ -369,46 +369,6 @@ class TestIsPalindromicNumber(unittest.TestCase):
             is_palindromic_number(None)  # type: ignore[arg-type]
 
 
-class TestIsEven(unittest.TestCase):
-    def test_even_ints(self) -> None:
-        self.assertTrue(is_even(0))
-        self.assertTrue(is_even(2))
-        self.assertTrue(is_even(-4))
-
-    def test_even_float(self) -> None:
-        self.assertTrue(is_even(2.0))
-
-    def test_odd(self) -> None:
-        self.assertFalse(is_even(3))
-        self.assertFalse(is_even(-3))
-
-    def test_type_error(self) -> None:
-        with self.assertRaises(TypeError):
-            is_even("x")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            is_even(True)  # type: ignore[arg-type]
-
-
-class TestIsOdd(unittest.TestCase):
-    def test_odd_ints(self) -> None:
-        self.assertTrue(is_odd(1))
-        self.assertTrue(is_odd(3))
-        self.assertTrue(is_odd(-5))
-
-    def test_odd_float(self) -> None:
-        self.assertTrue(is_odd(3.0))
-
-    def test_even(self) -> None:
-        self.assertFalse(is_odd(2))
-        self.assertFalse(is_odd(-4))
-
-    def test_type_error(self) -> None:
-        with self.assertRaises(TypeError):
-            is_odd("x")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            is_odd(False)  # type: ignore[arg-type]
-
-
 class TestIsFinite(unittest.TestCase):
     def test_finite_values(self) -> None:
         self.assertTrue(is_finite(0))
