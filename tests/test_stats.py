@@ -1031,7 +1031,7 @@ class TestQuartile(unittest.TestCase):
         from stats import quartile
 
         with self.assertRaises(TypeError):
-            quartile([1, 2, "a"], 1)  # type: ignore[type-var]
+            quartile([1, 2, "a"], 1)  # type: ignore[list-item]
 
     def test_rejects_bool_in_list(self) -> None:
         from stats import quartile

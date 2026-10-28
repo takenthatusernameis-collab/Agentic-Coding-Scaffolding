@@ -1,7 +1,7 @@
 """Statistical utility functions for data analysis."""
 
 import math
-from typing import List, TypeVar
+from typing import List, Sequence, TypeVar
 
 T = TypeVar("T", int, float)
 
@@ -530,7 +530,7 @@ def percentile(numbers: List[T | float], p: float) -> float:
     return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)
 
 
-def quartile(numbers: List[T | float], q: int) -> float:
+def quartile(numbers: Sequence[int | float], q: int) -> float:
     """Return the q-th quartile of a list of numbers.
 
     Args:
@@ -553,26 +553,27 @@ def quartile(numbers: List[T | float], q: int) -> float:
         >>> quartile([1, 2, 3, 4, 5], 3)
         4.0
     """
-    _require_numbers(numbers, "numbers")
+    _require_numbers(numbers, "numbers")  # type: ignore[arg-type]
+    nums = list(numbers)
     q_int = _require_int(q, "q")
     if q_int < 0 or q_int > 4:
         raise ValueError("q must be between 0 and 4")
     if q_int == 0:
-        return min_value(numbers)
+        return min_value(nums)  # type: ignore[arg-type]
     if q_int == 4:
-        return max_value(numbers)
-    return percentile(numbers, 25 * q_int)
+        return max_value(nums)  # type: ignore[arg-type]
+    return percentile(nums, 25 * q_int)  # type: ignore[arg-type]
 
 
 # Aliases for quartiles
-def first_quartile(numbers: List[T | float]) -> float:
+def first_quartile(numbers: Sequence[int | float]) -> float:
     return quartile(numbers, 1)
 
 
 q1 = first_quartile
 
 
-def third_quartile(numbers: List[T | float]) -> float:
+def third_quartile(numbers: Sequence[int | float]) -> float:
     return quartile(numbers, 3)
 
 
