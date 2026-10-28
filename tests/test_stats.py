@@ -4,8 +4,11 @@ import math
 import unittest
 
 from stats import (
+    coefficient_of_variation,
     correlation,
     covariance,
+    geometric_mean,
+    harmonic_mean,
     kurtosis,
     max_value,
     mean,
@@ -18,10 +21,13 @@ from stats import (
     mode,
     multimode,
     product,
+    range,
     root_mean_square,
     skewness,
     stddev,
+    sum_of_cubes,
     sum_of_squares,
+    sum_values,
     trimmed_mean,
     variance,
     z_scores,
@@ -90,6 +96,37 @@ class TestMidrange(unittest.TestCase):
     def test_midrange_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             midrange([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestRange(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(range([1, 2, 3, 4, 5]), 4.0)
+
+    def test_single(self) -> None:
+        self.assertEqual(range([5]), 0.0)
+
+    def test_negative(self) -> None:
+        self.assertEqual(range([-2, 4]), 6.0)
+
+    def test_unsorted(self) -> None:
+        self.assertEqual(range([9, 1, 5]), 8.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            range([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            range((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            range(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            range([True, 1, 2])  # type: ignore[type-var]
 
 
 class TestMean(unittest.TestCase):
@@ -389,6 +426,172 @@ class TestSumOfSquares(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             sum_of_squares([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestSumValues(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(sum_values([1, 2, 3, 4, 5]), 15.0)
+
+    def test_single(self) -> None:
+        self.assertEqual(sum_values([5]), 5.0)
+
+    def test_negative(self) -> None:
+        self.assertEqual(sum_values([-1, 0, 1]), 0.0)
+
+    def test_floats(self) -> None:
+        self.assertAlmostEqual(sum_values([0.5, 0.25, 0.25]), 1.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            sum_values([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            sum_values((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            sum_values(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            sum_values([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestSumOfCubes(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(sum_of_cubes([1, 2, 3]), 36.0)
+
+    def test_single(self) -> None:
+        self.assertEqual(sum_of_cubes([5]), 125.0)
+
+    def test_negative(self) -> None:
+        self.assertEqual(sum_of_cubes([-1, 1]), 0.0)
+
+    def test_zero(self) -> None:
+        self.assertEqual(sum_of_cubes([0, 0, 0]), 0.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            sum_of_cubes([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            sum_of_cubes((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            sum_of_cubes(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            sum_of_cubes([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestCoefficientOfVariation(unittest.TestCase):
+    def test_basic(self) -> None:
+        # stddev(2,2,2,2)=0? no, use [1,2,3,4,5]: mean 3, pop std ~1.414
+        self.assertAlmostEqual(
+            coefficient_of_variation([1, 2, 3, 4, 5]), 1.4142135 / 3.0, places=6
+        )
+
+    def test_population_false(self) -> None:
+        self.assertAlmostEqual(
+            coefficient_of_variation([1, 2, 3, 4, 5], population=False),
+            1.5811388 / 3.0,
+            places=6,
+        )
+
+    def test_constant_mean_zero_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            coefficient_of_variation([0, 0, 0])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            coefficient_of_variation([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            coefficient_of_variation((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            coefficient_of_variation(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            coefficient_of_variation([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestGeometricMean(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(geometric_mean([1, 2, 3, 4, 5]), 2.605171, places=6)
+
+    def test_single(self) -> None:
+        self.assertEqual(geometric_mean([5]), 5.0)
+
+    def test_all_ones(self) -> None:
+        self.assertEqual(geometric_mean([1, 1, 1]), 1.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            geometric_mean([])
+
+    def test_non_positive_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            geometric_mean([1, -2, 3])
+        with self.assertRaises(ValueError):
+            geometric_mean([1, 0, 3])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            geometric_mean((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            geometric_mean(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            geometric_mean([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestHarmonicMean(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(harmonic_mean([1, 2, 3, 4, 5]), 2.189781, places=6)
+
+    def test_single(self) -> None:
+        self.assertEqual(harmonic_mean([5]), 5.0)
+
+    def test_all_ones(self) -> None:
+        self.assertEqual(harmonic_mean([1, 1, 1]), 1.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            harmonic_mean([])
+
+    def test_non_positive_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            harmonic_mean([1, -2, 3])
+        with self.assertRaises(ValueError):
+            harmonic_mean([1, 0, 3])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            harmonic_mean((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            harmonic_mean(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            harmonic_mean([True, 1, 2])  # type: ignore[type-var]
 
 
 class TestKurtosis(unittest.TestCase):

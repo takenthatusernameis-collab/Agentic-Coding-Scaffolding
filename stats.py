@@ -274,9 +274,23 @@ def skewness(numbers: List[T | float]) -> float:
 def range(numbers: List[T | float]) -> float:
     """Return the range (max - min) of a list of numbers.
 
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The difference between the maximum and minimum values.
+
     Raises:
         ValueError: If the list is empty.
         TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> range([1, 2, 3, 4, 5])
+        4.0
+        >>> range([5])
+        0.0
+        >>> range([-2, 4])
+        6.0
     """
     _require_numbers(numbers, "numbers")
     return float(max(numbers) - min(numbers))
@@ -379,9 +393,23 @@ def trimmed_mean(numbers: List[T | float], trim_count: int = 0) -> float:
 def sum_values(numbers: List[T | float]) -> float:
     """Return the sum of all values in a list of numbers.
 
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The sum of all values as a float.
+
     Raises:
         ValueError: If the list is empty.
         TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> sum_values([1, 2, 3, 4, 5])
+        15.0
+        >>> sum_values([5])
+        5.0
+        >>> sum_values([-1, 0, 1])
+        0.0
     """
     _require_numbers(numbers, "numbers")
     return float(sum(numbers))
@@ -572,7 +600,30 @@ def interquartile_range(numbers: List[T | float]) -> float:
 
 
 def coefficient_of_variation(numbers: List[T | float], population: bool = True) -> float:
-    """Return the coefficient of variation (stddev / mean)."""
+    """Return the coefficient of variation (stddev / mean).
+
+    The coefficient of variation is the ratio of the standard deviation to
+    the mean, expressed as a positive value. It is a dimensionless measure of
+    relative variability.
+
+    Args:
+        numbers: A list of numeric values.
+        population: If True, use the population standard deviation (default);
+            otherwise use the sample standard deviation.
+
+    Returns:
+        The absolute value of the standard deviation divided by the mean.
+
+    Raises:
+        ValueError: If the list is empty, the mean is zero, or sample
+            variance is requested with fewer than 2 elements.
+        TypeError: If numbers is not a list, contains non-numeric values, or
+            *population* is not a bool.
+
+    Examples:
+        >>> coefficient_of_variation([1, 2, 3, 4, 5])
+        0.47140452079103173
+    """
     _require_numbers(numbers, "numbers")
     if not isinstance(population, bool):
         raise TypeError("population must be a bool")
@@ -584,7 +635,27 @@ def coefficient_of_variation(numbers: List[T | float], population: bool = True) 
 
 
 def geometric_mean(numbers: List[T | float]) -> float:
-    """Return the geometric mean."""
+    """Return the geometric mean of a list of positive numbers.
+
+    The geometric mean is the *n*-th root of the product of the values. It is
+    only defined for strictly positive inputs.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The geometric mean as a float.
+
+    Raises:
+        ValueError: If the list is empty or contains a non-positive value.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> geometric_mean([1, 2, 3, 4, 5])
+        2.605171
+        >>> geometric_mean([5])
+        5.0
+    """
     _require_numbers(numbers, "numbers")
     product = 1.0
     for x in numbers:
@@ -595,7 +666,28 @@ def geometric_mean(numbers: List[T | float]) -> float:
 
 
 def harmonic_mean(numbers: List[T | float]) -> float:
-    """Return the harmonic mean."""
+    """Return the harmonic mean of a list of positive numbers.
+
+    The harmonic mean is the reciprocal of the arithmetic mean of the
+    reciprocals of the values. It is only defined for strictly positive
+    inputs.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The harmonic mean as a float.
+
+    Raises:
+        ValueError: If the list is empty or contains a non-positive value.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> harmonic_mean([1, 2, 3, 4, 5])
+        2.18978102189781
+        >>> harmonic_mean([5])
+        5.0
+    """
     _require_numbers(numbers, "numbers")
     total = 0.0
     for x in numbers:
