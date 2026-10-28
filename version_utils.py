@@ -70,6 +70,10 @@ __all__: List[str] = [
     "decrement_version",
     "decrement",
     "dec",
+    "is_version_at_least",
+    "is_version_at_most",
+    "at_least",
+    "at_most",
 ]
 
 
@@ -794,3 +798,63 @@ def decrement_version(version: str, part: str = "patch") -> str:
 decrement = decrement_version
 
 dec = decrement_version
+
+
+def is_version_at_least(version: str, minimum: str) -> bool:
+    """Return True if *version* is greater than or equal to *minimum*.
+
+    A relational companion to :func:`is_version_greater_equal` that reports
+    whether *version* satisfies a lower bound.
+
+    Args:
+        version: A dotted version string.
+        minimum: A dotted version string to compare against.
+
+    Returns:
+        True if *version* >= *minimum*.
+
+    Raises:
+        TypeError: If either argument is not a string.
+        ValueError: If either version string is invalid.
+
+    Examples:
+        >>> is_version_at_least("1.2.3", "1.2.0")
+        True
+        >>> is_version_at_least("1.2.3", "1.2.3")
+        True
+        >>> is_version_at_least("1.2.3", "1.3.0")
+        False
+    """
+    return compare_versions(version, minimum) >= 0
+
+
+def is_version_at_most(version: str, maximum: str) -> bool:
+    """Return True if *version* is less than or equal to *maximum*.
+
+    A relational companion to :func:`is_version_less_equal` that reports
+    whether *version* satisfies an upper bound.
+
+    Args:
+        version: A dotted version string.
+        maximum: A dotted version string to compare against.
+
+    Returns:
+        True if *version* <= *maximum*.
+
+    Raises:
+        TypeError: If either argument is not a string.
+        ValueError: If either version string is invalid.
+
+    Examples:
+        >>> is_version_at_most("1.2.3", "1.3.0")
+        True
+        >>> is_version_at_most("1.2.3", "1.2.3")
+        True
+        >>> is_version_at_most("1.2.3", "1.2.0")
+        False
+    """
+    return compare_versions(version, maximum) <= 0
+
+
+at_least = is_version_at_least
+at_most = is_version_at_most

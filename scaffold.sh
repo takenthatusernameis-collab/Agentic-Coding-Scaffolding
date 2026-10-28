@@ -41556,6 +41556,25 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added is_version_at_least/is_version_at_most to version_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6313 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_version_at_least(version, minimum)` and `is_version_at_most(version, maximum)` to `version_utils.py` as relational companions to `is_version_greater_equal`/`is_version_less_equal`: they return whether a version satisfies a lower/upper bound, delegating to `compare_versions`. Exported in `__all__` with Google-style docstrings and doctests, plus the aliases `at_least`/`at_most`.
+- Added `TestIsVersionAtLeast` and `TestIsVersionAtMost` to `tests/test_version_utils.py` covering greater/equal/less cases, the tuple-length asymmetry (e.g. `1.3` vs `1.3.0`), alias behavior, the `TypeError` paths for non-string arguments, and the `ValueError` path for invalid versions (16 new tests).
+- Updated the `version_utils` module prose section of `README.md` to document `is_version_at_least`/`is_version_at_most`.
+- Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` runs 6329 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added coerce_to_float to type_check_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6309 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -43444,7 +43463,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most` report whether a version satisfies a lower/upper bound (with the aliases `at_least`/`at_most`). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -86760,6 +86779,10 @@ __all__: List[str] = [
     "decrement_version",
     "decrement",
     "dec",
+    "is_version_at_least",
+    "is_version_at_most",
+    "at_least",
+    "at_most",
 ]
 
 
@@ -87484,6 +87507,66 @@ def decrement_version(version: str, part: str = "patch") -> str:
 decrement = decrement_version
 
 dec = decrement_version
+
+
+def is_version_at_least(version: str, minimum: str) -> bool:
+    """Return True if *version* is greater than or equal to *minimum*.
+
+    A relational companion to :func:`is_version_greater_equal` that reports
+    whether *version* satisfies a lower bound.
+
+    Args:
+        version: A dotted version string.
+        minimum: A dotted version string to compare against.
+
+    Returns:
+        True if *version* >= *minimum*.
+
+    Raises:
+        TypeError: If either argument is not a string.
+        ValueError: If either version string is invalid.
+
+    Examples:
+        >>> is_version_at_least("1.2.3", "1.2.0")
+        True
+        >>> is_version_at_least("1.2.3", "1.2.3")
+        True
+        >>> is_version_at_least("1.2.3", "1.3.0")
+        False
+    """
+    return compare_versions(version, minimum) >= 0
+
+
+def is_version_at_most(version: str, maximum: str) -> bool:
+    """Return True if *version* is less than or equal to *maximum*.
+
+    A relational companion to :func:`is_version_less_equal` that reports
+    whether *version* satisfies an upper bound.
+
+    Args:
+        version: A dotted version string.
+        maximum: A dotted version string to compare against.
+
+    Returns:
+        True if *version* <= *maximum*.
+
+    Raises:
+        TypeError: If either argument is not a string.
+        ValueError: If either version string is invalid.
+
+    Examples:
+        >>> is_version_at_most("1.2.3", "1.3.0")
+        True
+        >>> is_version_at_most("1.2.3", "1.2.3")
+        True
+        >>> is_version_at_most("1.2.3", "1.2.0")
+        False
+    """
+    return compare_versions(version, maximum) <= 0
+
+
+at_least = is_version_at_least
+at_most = is_version_at_most
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
@@ -87522,6 +87605,10 @@ from version_utils import (
     is_version_greater_equal,
     is_version_less,
     is_version_less_equal,
+    is_version_at_least,
+    is_version_at_most,
+    at_least,
+    at_most,
     max_version,
     min_version,
     normalize_version,
@@ -88079,6 +88166,63 @@ class TestStripMetadata(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             strip_metadata(123)  # type: ignore[arg-type]
+
+
+class TestIsVersionAtLeast(unittest.TestCase):
+    def test_greater(self):
+        self.assertTrue(is_version_at_least("1.2.3", "1.2.0"))
+
+    def test_equal(self):
+        self.assertTrue(is_version_at_least("1.2.3", "1.2.3"))
+
+    def test_less(self):
+        self.assertFalse(is_version_at_least("1.2.3", "1.3.0"))
+
+    def test_shorter_minimum_is_greater(self):
+        # 1.3.0 > 1.3 because (1, 3, 0) > (1, 3)
+        self.assertFalse(is_version_at_least("1.3", "1.3.0"))
+
+    def test_alias(self):
+        self.assertTrue(at_least("2.0.0", "1.9.9"))
+        self.assertFalse(at_least("0.9.0", "1.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_version_at_least("1.0.0", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_version_at_least(1, "1.0.0")  # type: ignore[arg-type]
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            is_version_at_least("1.x", "1.0.0")
+
+
+class TestIsVersionAtMost(unittest.TestCase):
+    def test_less(self):
+        self.assertTrue(is_version_at_most("1.2.3", "1.3.0"))
+
+    def test_equal(self):
+        self.assertTrue(is_version_at_most("1.2.3", "1.2.3"))
+
+    def test_greater(self):
+        self.assertFalse(is_version_at_most("1.2.3", "1.2.0"))
+
+    def test_shorter_maximum_is_greater(self):
+        self.assertFalse(is_version_at_most("1.3.0", "1.3"))
+
+    def test_alias(self):
+        self.assertTrue(at_most("1.0.0", "2.0.0"))
+        self.assertFalse(at_most("2.0.0", "1.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_version_at_most("1.0.0", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_version_at_most(1, "1.0.0")  # type: ignore[arg-type]
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            is_version_at_most("1.x", "1.0.0")
 TEST_VERSION_UTILS
 
 # --- warnings_utils.py ---

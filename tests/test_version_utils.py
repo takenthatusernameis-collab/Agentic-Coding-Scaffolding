@@ -32,6 +32,10 @@ from version_utils import (
     is_version_greater_equal,
     is_version_less,
     is_version_less_equal,
+    is_version_at_least,
+    is_version_at_most,
+    at_least,
+    at_most,
     max_version,
     min_version,
     normalize_version,
@@ -589,4 +593,61 @@ class TestStripMetadata(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             strip_metadata(123)  # type: ignore[arg-type]
+
+
+class TestIsVersionAtLeast(unittest.TestCase):
+    def test_greater(self):
+        self.assertTrue(is_version_at_least("1.2.3", "1.2.0"))
+
+    def test_equal(self):
+        self.assertTrue(is_version_at_least("1.2.3", "1.2.3"))
+
+    def test_less(self):
+        self.assertFalse(is_version_at_least("1.2.3", "1.3.0"))
+
+    def test_shorter_minimum_is_greater(self):
+        # 1.3.0 > 1.3 because (1, 3, 0) > (1, 3)
+        self.assertFalse(is_version_at_least("1.3", "1.3.0"))
+
+    def test_alias(self):
+        self.assertTrue(at_least("2.0.0", "1.9.9"))
+        self.assertFalse(at_least("0.9.0", "1.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_version_at_least("1.0.0", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_version_at_least(1, "1.0.0")  # type: ignore[arg-type]
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            is_version_at_least("1.x", "1.0.0")
+
+
+class TestIsVersionAtMost(unittest.TestCase):
+    def test_less(self):
+        self.assertTrue(is_version_at_most("1.2.3", "1.3.0"))
+
+    def test_equal(self):
+        self.assertTrue(is_version_at_most("1.2.3", "1.2.3"))
+
+    def test_greater(self):
+        self.assertFalse(is_version_at_most("1.2.3", "1.2.0"))
+
+    def test_shorter_maximum_is_greater(self):
+        self.assertFalse(is_version_at_most("1.3.0", "1.3"))
+
+    def test_alias(self):
+        self.assertTrue(at_most("1.0.0", "2.0.0"))
+        self.assertFalse(at_most("2.0.0", "1.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_version_at_most("1.0.0", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_version_at_most(1, "1.0.0")  # type: ignore[arg-type]
+
+    def test_invalid_version_raises(self):
+        with self.assertRaises(ValueError):
+            is_version_at_most("1.x", "1.0.0")
 

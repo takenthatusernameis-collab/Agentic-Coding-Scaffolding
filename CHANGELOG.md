@@ -1,3 +1,22 @@
+## Latest Session (2026-10-28) — added is_version_at_least/is_version_at_most to version_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6313 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_version_at_least(version, minimum)` and `is_version_at_most(version, maximum)` to `version_utils.py` as relational companions to `is_version_greater_equal`/`is_version_less_equal`: they return whether a version satisfies a lower/upper bound, delegating to `compare_versions`. Exported in `__all__` with Google-style docstrings and doctests, plus the aliases `at_least`/`at_most`.
+- Added `TestIsVersionAtLeast` and `TestIsVersionAtMost` to `tests/test_version_utils.py` covering greater/equal/less cases, the tuple-length asymmetry (e.g. `1.3` vs `1.3.0`), alias behavior, the `TypeError` paths for non-string arguments, and the `ValueError` path for invalid versions (16 new tests).
+- Updated the `version_utils` module prose section of `README.md` to document `is_version_at_least`/`is_version_at_most`.
+- Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` runs 6329 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added coerce_to_float to type_check_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6309 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
