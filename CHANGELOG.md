@@ -1,3 +1,22 @@
+## Latest Session (2026-10-28) — added coerce_to_float to type_check_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6309 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `coerce_to_float(value)` to `type_check_utils.py` as a complement to `coerce_to_str` and `coerce_to_int`: it accepts ints (including bools), floats, and numeric strings, raising `TypeError` for unsupported types and `ValueError` for non-numeric strings. Exported in `__all__` with a Google-style docstring and doctests.
+- Added `TestCoerceToFloat` to `tests/test_type_check_utils.py` covering ints, floats, bools, numeric strings, negative strings, the `ValueError` path, and the `TypeError` paths for lists and None (11 new tests).
+- Updated the `type_check_utils` module prose section of `README.md` to document `coerce_to_float`.
+- Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` runs 6320 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added count_paragraphs to prompt_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6298 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync (after fixing a stale `prime_utils.py`/`tests/test_prime_utils.py` copy and a mypy `no-any-return` error in `prime_utils.py`).

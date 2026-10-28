@@ -85,6 +85,22 @@ class TestTypeChecks(unittest.TestCase):
         with self.assertRaises(TypeError):
             type_check_utils.coerce_to_int(None)
 
+    def test_coerce_to_float(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_float(123), 123.0)
+        self.assertEqual(type_check_utils.coerce_to_float("4.56"), 4.56)
+        self.assertEqual(type_check_utils.coerce_to_float(True), 1.0)
+        self.assertEqual(type_check_utils.coerce_to_float(False), 0.0)
+        self.assertEqual(type_check_utils.coerce_to_float(3), 3.0)
+        self.assertEqual(type_check_utils.coerce_to_float(-7.5), -7.5)
+        self.assertEqual(type_check_utils.coerce_to_float("-7"), -7.0)
+        self.assertEqual(type_check_utils.coerce_to_float("0"), 0.0)
+        with self.assertRaises(ValueError):
+            type_check_utils.coerce_to_float("not-a-float")
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float(None)
+
 
 if __name__ == "__main__":
     unittest.main()

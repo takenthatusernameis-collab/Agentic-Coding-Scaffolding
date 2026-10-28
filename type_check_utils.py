@@ -23,6 +23,7 @@ __all__: List[str] = [
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
+    "coerce_to_float",
 ]
 
 
@@ -165,4 +166,40 @@ def coerce_to_int(value: object) -> int:
         return int(value)
     raise TypeError(
         f"cannot coerce {type(value).__name__} to int"
+    )
+
+
+def coerce_to_float(value: object) -> float:
+    """Convert *value* to a float.
+
+    Accepts ints (including bools, which are converted to ``0.0``/``1.0``),
+    floats, and numeric strings; raises ``TypeError`` for unsupported
+    types and ``ValueError`` for strings that do not parse as a float.
+
+    Args:
+        value: The value to convert.
+
+    Returns:
+        The float representation of *value*.
+
+    Raises:
+        TypeError: If *value* cannot be converted to a float.
+        ValueError: If *value* is a string that is not a valid float.
+
+    Examples:
+        >>> coerce_to_float(123)
+        123.0
+        >>> coerce_to_float("4.56")
+        4.56
+        >>> coerce_to_float(True)
+        1.0
+    """
+    if isinstance(value, bool) or isinstance(value, int):
+        return float(value)
+    if isinstance(value, float):
+        return value
+    if isinstance(value, str):
+        return float(value)
+    raise TypeError(
+        f"cannot coerce {type(value).__name__} to float"
     )

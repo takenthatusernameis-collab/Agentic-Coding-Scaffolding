@@ -41526,6 +41526,25 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added coerce_to_float to type_check_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6309 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `coerce_to_float(value)` to `type_check_utils.py` as a complement to `coerce_to_str` and `coerce_to_int`: it accepts ints (including bools), floats, and numeric strings, raising `TypeError` for unsupported types and `ValueError` for non-numeric strings. Exported in `__all__` with a Google-style docstring and doctests.
+- Added `TestCoerceToFloat` to `tests/test_type_check_utils.py` covering ints, floats, bools, numeric strings, negative strings, the `ValueError` path, and the `TypeError` paths for lists and None (11 new tests).
+- Updated the `type_check_utils` module prose section of `README.md` to document `coerce_to_float`.
+- Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` runs 6320 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added count_paragraphs to prompt_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6298 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync (after fixing a stale `prime_utils.py`/`tests/test_prime_utils.py` copy and a mypy `no-any-return` error in `prime_utils.py`).
@@ -44088,7 +44107,7 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 
 ## Type Check Utilities Module
 
-The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, `coerce_to_str`, and `coerce_to_int`. The module is tested in `tests/test_type_check_utils.py`.
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, and `coerce_to_float`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -114472,6 +114491,7 @@ __all__: List[str] = [
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
+    "coerce_to_float",
 ]
 
 
@@ -114615,6 +114635,42 @@ def coerce_to_int(value: object) -> int:
     raise TypeError(
         f"cannot coerce {type(value).__name__} to int"
     )
+
+
+def coerce_to_float(value: object) -> float:
+    """Convert *value* to a float.
+
+    Accepts ints (including bools, which are converted to ``0.0``/``1.0``),
+    floats, and numeric strings; raises ``TypeError`` for unsupported
+    types and ``ValueError`` for strings that do not parse as a float.
+
+    Args:
+        value: The value to convert.
+
+    Returns:
+        The float representation of *value*.
+
+    Raises:
+        TypeError: If *value* cannot be converted to a float.
+        ValueError: If *value* is a string that is not a valid float.
+
+    Examples:
+        >>> coerce_to_float(123)
+        123.0
+        >>> coerce_to_float("4.56")
+        4.56
+        >>> coerce_to_float(True)
+        1.0
+    """
+    if isinstance(value, bool) or isinstance(value, int):
+        return float(value)
+    if isinstance(value, float):
+        return value
+    if isinstance(value, str):
+        return float(value)
+    raise TypeError(
+        f"cannot coerce {type(value).__name__} to float"
+    )
 TYPE_CHECK_UTILS
 
 # --- tests/test_type_check_utils.py ---
@@ -114705,6 +114761,22 @@ class TestTypeChecks(unittest.TestCase):
             type_check_utils.coerce_to_int([1, 2])
         with self.assertRaises(TypeError):
             type_check_utils.coerce_to_int(None)
+
+    def test_coerce_to_float(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_float(123), 123.0)
+        self.assertEqual(type_check_utils.coerce_to_float("4.56"), 4.56)
+        self.assertEqual(type_check_utils.coerce_to_float(True), 1.0)
+        self.assertEqual(type_check_utils.coerce_to_float(False), 0.0)
+        self.assertEqual(type_check_utils.coerce_to_float(3), 3.0)
+        self.assertEqual(type_check_utils.coerce_to_float(-7.5), -7.5)
+        self.assertEqual(type_check_utils.coerce_to_float("-7"), -7.0)
+        self.assertEqual(type_check_utils.coerce_to_float("0"), 0.0)
+        with self.assertRaises(ValueError):
+            type_check_utils.coerce_to_float("not-a-float")
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float(None)
 
 
 if __name__ == "__main__":
