@@ -19112,6 +19112,7 @@ from prompt_utils import (
     count_non_blank_lines,
     count_placeholders,
     count_sentences,
+    count_words,
     dedent_lines,
     ensure_trailing_newline,
     estimate_token_count,
@@ -19123,9 +19124,11 @@ from prompt_utils import (
     indent_lines,
     last_line,
     lstrip_lines,
+    normalize_line_endings,
     remove_blank_lines,
     rstrip_lines,
     strip_lines,
+    truncate_lines,
     truncate_prompt,
     truncate_words,
     wrap_prompt,
@@ -19669,6 +19672,103 @@ class TestCountNonBlankLines(unittest.TestCase):
             count_non_blank_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_non_blank_lines(None)  # type: ignore[arg-type]
+
+
+class TestCountWords(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_words(""), 0)
+
+    def test_single_word(self):
+        self.assertEqual(count_words("hello"), 1)
+
+    def test_multiple_words(self):
+        self.assertEqual(count_words("Hello world"), 2)
+
+    def test_multiple_whitespace(self):
+        self.assertEqual(count_words("a   b\tc\n  d"), 4)
+
+    def test_leading_trailing_whitespace(self):
+        self.assertEqual(count_words("  hello  "), 1)
+
+    def test_unicode(self):
+        self.assertEqual(count_words("héllo wörld"), 2)
+
+    def test_punctuation(self):
+        self.assertEqual(count_words("one, two! three?"), 3)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_words(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_words(None)  # type: ignore[arg-type]
+
+
+class TestTruncateLines(unittest.TestCase):
+    def test_no_truncation(self):
+        self.assertEqual(truncate_lines("a\nb\nc", 5), "a\nb\nc")
+
+    def test_exact_lines(self):
+        self.assertEqual(truncate_lines("a\nb\nc", 3), "a\nb\nc")
+
+    def test_truncates(self):
+        self.assertEqual(truncate_lines("a\nb\nc\nd", 2), "a\nb...")
+
+    def test_zero_lines(self):
+        self.assertEqual(truncate_lines("a\nb", 0), "...")
+
+    def test_zero_lines_default_suffix(self):
+        self.assertEqual(truncate_lines("a\nb", 0, suffix="..."), "...")
+
+    def test_custom_suffix(self):
+        self.assertEqual(truncate_lines("a\nb\nc\nd", 2, suffix=" <more>"), "a\nb <more>")
+
+    def test_empty_suffix(self):
+        self.assertEqual(truncate_lines("a\nb\nc", 1, suffix=""), "a")
+
+    def test_single_line_kept(self):
+        self.assertEqual(truncate_lines("only", 1), "only")
+
+    def test_negative_lines(self):
+        with self.assertRaises(ValueError):
+            truncate_lines("a\nb", -1)
+
+    def test_non_str_text(self):
+        with self.assertRaises(TypeError):
+            truncate_lines(123, 1)  # type: ignore[arg-type]
+
+    def test_non_int_max_lines(self):
+        with self.assertRaises(TypeError):
+            truncate_lines("a\nb", "two")  # type: ignore[arg-type]
+
+    def test_non_str_suffix(self):
+        with self.assertRaises(TypeError):
+            truncate_lines("a\nb", 1, suffix=5)  # type: ignore[arg-type]
+
+
+class TestNormalizeLineEndings(unittest.TestCase):
+    def test_no_change(self):
+        self.assertEqual(normalize_line_endings("a\nb\nc"), "a\nb\nc")
+
+    def test_crlf(self):
+        self.assertEqual(normalize_line_endings("a\r\nb\r\nc"), "a\nb\nc")
+
+    def test_lone_cr(self):
+        self.assertEqual(normalize_line_endings("a\rb\rc"), "a\nb\nc")
+
+    def test_mixed(self):
+        self.assertEqual(normalize_line_endings("a\r\nb\rc\nd"), "a\nb\nc\nd")
+
+    def test_empty(self):
+        self.assertEqual(normalize_line_endings(""), "")
+
+    def test_only_crlf(self):
+        self.assertEqual(normalize_line_endings("\r\n\r\n"), "\n\n")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            normalize_line_endings(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            normalize_line_endings(None)  # type: ignore[arg-type]
 
 
 class TestCountCharacters(unittest.TestCase):
@@ -40975,6 +41075,23 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added tests for count_words, truncate_lines, and normalize_line_endings
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6145 tests and passes, `make lint` and `make typecheck` are clean on touched files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Audited the `prompt_utils` module against its test suite and found three public exports listed in `__all__` and the README that had no corresponding tests: `count_words`, `truncate_lines`, and `normalize_line_endings` (all other 41 exports were already covered). These were fully implemented with typed signatures and input validation but left a coverage gap.
+- Added `TestCountWords`, `TestTruncateLines`, and `TestNormalizeLineEndings` to `tests/test_prompt_utils.py`, covering basic counts/truncation/normalization, empty inputs, whitespace handling, CRLF/CR line endings, boundary behavior (exact line count, zero lines, custom/empty suffix), and the `TypeError`/`ValueError` paths for non-string and non-int arguments (28 new tests). Imported the three helpers in the test file's import block to match the `__all__` contract.
+- Verified the work: `make test` runs 6173 tests and passes, `make lint` is clean on the touched files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added tests for count_lowercase, count_uppercase, count_digits, removeprefix, and removesuffix
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6145 tests and passes, `make lint` and `make typecheck` are clean on touched files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

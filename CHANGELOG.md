@@ -1,3 +1,20 @@
+## Latest Session (2026-10-28) — added tests for count_words, truncate_lines, and normalize_line_endings
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6145 tests and passes, `make lint` and `make typecheck` are clean on touched files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Audited the `prompt_utils` module against its test suite and found three public exports listed in `__all__` and the README that had no corresponding tests: `count_words`, `truncate_lines`, and `normalize_line_endings` (all other 41 exports were already covered). These were fully implemented with typed signatures and input validation but left a coverage gap.
+- Added `TestCountWords`, `TestTruncateLines`, and `TestNormalizeLineEndings` to `tests/test_prompt_utils.py`, covering basic counts/truncation/normalization, empty inputs, whitespace handling, CRLF/CR line endings, boundary behavior (exact line count, zero lines, custom/empty suffix), and the `TypeError`/`ValueError` paths for non-string and non-int arguments (28 new tests). Imported the three helpers in the test file's import block to match the `__all__` contract.
+- Verified the work: `make test` runs 6173 tests and passes, `make lint` is clean on the touched files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added tests for count_lowercase, count_uppercase, count_digits, removeprefix, and removesuffix
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6145 tests and passes, `make lint` and `make typecheck` are clean on touched files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
