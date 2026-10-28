@@ -61062,6 +61062,8 @@ __all__: List[str] = [
     "format_number",
     "percentage",
     "lerp",
+    "map_range",
+    "remap",
     "sign",
     "is_even",
     "is_odd",
@@ -61216,6 +61218,44 @@ def lerp(start: Number, stop: Number, t: Number) -> float:
     _require_number(stop, "stop")
     _require_number(t, "t")
     return start + (stop - start) * t
+
+
+def map_range(
+    value: Number,
+    from_min: Number,
+    from_max: Number,
+    to_min: Number,
+    to_max: Number,
+) -> float:
+    """Map a value from one range to another.
+
+    Args:
+        value: The value to map.
+        from_min: The minimum of the source range.
+        from_max: The maximum of the source range.
+        to_min: The minimum of the target range.
+        to_max: The maximum of the target range.
+
+    Returns:
+        The mapped value in the target range.
+
+    Raises:
+        TypeError: If any argument is not a number.
+        ValueError: If the source range has zero span.
+    """
+    _require_number(value, "value")
+    _require_number(from_min, "from_min")
+    _require_number(from_max, "from_max")
+    _require_number(to_min, "to_min")
+    _require_number(to_max, "to_max")
+    if from_max == from_min:
+        raise ValueError("source range must have non-zero span")
+    t = (value - from_min) / (from_max - from_min)
+    return to_min + t * (to_max - to_min)
+
+
+# Alias for map_range
+remap = map_range
 
 
 def sign(value: Number) -> int:
@@ -61658,7 +61698,9 @@ from number_utils import (
     is_power_of_two,
     is_zero,
     lerp,
+    map_range,
     percentage,
+    remap,
     round_to,
     safe_divide,
 )
@@ -62058,6 +62100,35 @@ class TestIsPowerOfTwo(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_power_of_two("x")  # type: ignore[arg-type]
+
+
+class TestMapRange(unittest.TestCase):
+    def test_basic_mapping(self) -> None:
+        self.assertEqual(map_range(0, 0, 10, 0, 100), 0)
+        self.assertEqual(map_range(5, 0, 10, 0, 100), 50)
+        self.assertEqual(map_range(10, 0, 10, 0, 100), 100)
+
+    def test_different_ranges(self) -> None:
+        self.assertAlmostEqual(map_range(50, 0, 100, 0, 1), 0.5)
+        self.assertAlmostEqual(map_range(25, 0, 100, -1, 1), -0.5)
+
+    def test_inverted_target_range(self) -> None:
+        self.assertEqual(map_range(0, 0, 10, 100, 0), 100)
+        self.assertEqual(map_range(10, 0, 10, 100, 0), 0)
+        self.assertEqual(map_range(5, 0, 10, 100, 0), 50)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            map_range("x", 0, 10, 0, 100)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            map_range(5, "x", 10, 0, 100)  # type: ignore[arg-type]
+
+    def test_zero_source_span(self) -> None:
+        with self.assertRaises(ValueError):
+            map_range(5, 10, 10, 0, 100)
+
+    def test_remap_alias(self) -> None:
+        self.assertEqual(remap(5, 0, 10, 0, 100), map_range(5, 0, 10, 0, 100))
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---

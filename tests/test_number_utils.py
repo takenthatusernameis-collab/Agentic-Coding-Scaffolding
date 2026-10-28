@@ -21,7 +21,9 @@ from number_utils import (
     is_power_of_two,
     is_zero,
     lerp,
+    map_range,
     percentage,
+    remap,
     round_to,
     safe_divide,
 )
@@ -421,3 +423,32 @@ class TestIsPowerOfTwo(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_power_of_two("x")  # type: ignore[arg-type]
+
+
+class TestMapRange(unittest.TestCase):
+    def test_basic_mapping(self) -> None:
+        self.assertEqual(map_range(0, 0, 10, 0, 100), 0)
+        self.assertEqual(map_range(5, 0, 10, 0, 100), 50)
+        self.assertEqual(map_range(10, 0, 10, 0, 100), 100)
+
+    def test_different_ranges(self) -> None:
+        self.assertAlmostEqual(map_range(50, 0, 100, 0, 1), 0.5)
+        self.assertAlmostEqual(map_range(25, 0, 100, -1, 1), -0.5)
+
+    def test_inverted_target_range(self) -> None:
+        self.assertEqual(map_range(0, 0, 10, 100, 0), 100)
+        self.assertEqual(map_range(10, 0, 10, 100, 0), 0)
+        self.assertEqual(map_range(5, 0, 10, 100, 0), 50)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            map_range("x", 0, 10, 0, 100)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            map_range(5, "x", 10, 0, 100)  # type: ignore[arg-type]
+
+    def test_zero_source_span(self) -> None:
+        with self.assertRaises(ValueError):
+            map_range(5, 10, 10, 0, 100)
+
+    def test_remap_alias(self) -> None:
+        self.assertEqual(remap(5, 0, 10, 0, 100), map_range(5, 0, 10, 0, 100))
