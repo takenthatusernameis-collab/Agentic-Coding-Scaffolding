@@ -1,3 +1,20 @@
+## Latest Session (2026-10-28) — fixed type_check_utils scaffold-sync failure
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6120 tests and fails once on `tests/test_scaffold_sync.py::TestScaffoldSync::test_every_module_is_asserted_by_scaffold_tests` for `type_check_utils` (a real registration gap, not environment-related), `make lint` reports only pre-existing errors outside the files touched, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Diagnosed the failure: `type_check_utils.py` and `tests/test_type_check_utils.py` exist in the repository and are registered in `pyproject.toml`, `README.md`, `.kilo/command/scaffold-project.md`, and the `scaffold.sh` heredocs, but `tests/test_scaffold.py`'s `expected` list (the file the sync test reads to confirm every module is asserted) was missing the `"type_check_utils.py"` / `"tests/test_type_check_utils.py"` pair. The sync test therefore flagged the module as unasserted.
+- Added the missing `"type_check_utils.py"` and `"tests/test_type_check_utils.py"` entries to the `expected` list in `tests/test_scaffold.py` (in the three places the list repeats, next to the existing `"type_utils.py"` entries) so the scaffold assertions cover the module.
+- Verified the work: `make test` runs 6120 tests and passes (OK), `make lint` reports no new errors in `tests/test_scaffold.py`, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added TestIsPowerOfTwo for is_power_of_two
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6116 tests and passes except 1 pre-existing failure in `tests/test_scaffold_sync.py` for `type_check_utils` (environment-related, unchanged by this work), `make lint` and `make typecheck` report only pre-existing errors outside the files touched, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
