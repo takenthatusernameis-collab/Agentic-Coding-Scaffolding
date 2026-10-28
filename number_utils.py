@@ -34,6 +34,7 @@ __all__: List[str] = [
     "is_perfect_square",
     "is_power_of_two",
     "is_palindromic_number",
+    "round_half_up",
     "gcd",
     "lcm",
 ]
@@ -88,6 +89,45 @@ def round_to(value: float, places: int = 0) -> float:
     if places < 0:
         raise ValueError("places must be non-negative")
     return round(value, places)
+
+
+def round_half_up(value: Number, places: int = 0) -> float:
+    """Round a value to the given number of decimal places, rounding halves away from zero.
+
+    Unlike :func:`round_to`, which uses banker's rounding (round-half-to-even),
+    this helper rounds a value whose fractional part is exactly 0.5 (at the
+    requested precision) away from zero: ``2.5`` rounds to ``3`` and
+    ``-2.5`` rounds to ``-3``.
+
+    Args:
+        value: The value to round.
+        places: The number of decimal places.
+
+    Returns:
+        The rounded value.
+
+    Raises:
+        TypeError: If *value* is not a number or *places* is not an int.
+        ValueError: If *places* is negative.
+
+    Examples:
+        >>> round_half_up(2.5)
+        3.0
+        >>> round_half_up(-2.5)
+        -3.0
+        >>> round_half_up(3.14159, 2)
+        3.14
+    """
+    _require_number(value, "value")
+    if isinstance(places, bool) or not isinstance(places, int):
+        raise TypeError(f"places must be an int, got {type(places).__name__}")
+    if places < 0:
+        raise ValueError("places must be non-negative")
+    factor = 10 ** places
+    scaled = value * factor
+    if scaled >= 0:
+        return math.floor(scaled + 0.5) / factor
+    return math.ceil(scaled - 0.5) / factor
 
 
 def is_integer(value: Number) -> bool:

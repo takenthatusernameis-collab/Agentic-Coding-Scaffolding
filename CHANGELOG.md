@@ -1,3 +1,21 @@
+## Latest Session (2026-10-28) — added round_half_up to number_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6224 tests and passes, `make lint` is clean, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, and `make typecheck` is not available in this environment (mypy not installed).
+
+Completed in this session:
+
+- Added `round_half_up(value, places=0)` to `number_utils.py` as a complement to `round_to`, which uses banker's rounding (round-half-to-even). The new helper rounds a value whose fractional part is exactly 0.5 at the requested precision away from zero (so `2.5` -> `3` and `-2.5` -> `-3`), using a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation consistent with the rest of the module.
+- Added `TestRoundHalfUp` to `tests/test_number_utils.py` covering default places, negative halves rounding away from zero, multi-place rounding, zero places on integers, no-rounding cases, zero value, large precision, `TypeError` paths (non-number, non-int places, bool places), and the negative-places `ValueError` (10 new tests). Imported `round_half_up` in the test file's import block to match the `__all__` contract.
+- Updated the `number_utils` module prose section and file listing of `README.md` to document `round_half_up`.
+- Verified the work: `make test` runs 6234 tests and passes, `make lint` is clean, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added tests for count_words, truncate_lines, and normalize_line_endings
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6145 tests and passes, `make lint` and `make typecheck` are clean on touched files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

@@ -41088,6 +41088,24 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added round_half_up to number_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6224 tests and passes, `make lint` is clean, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, and `make typecheck` is not available in this environment (mypy not installed).
+
+Completed in this session:
+
+- Added `round_half_up(value, places=0)` to `number_utils.py` as a complement to `round_to`, which uses banker's rounding (round-half-to-even). The new helper rounds a value whose fractional part is exactly 0.5 at the requested precision away from zero (so `2.5` -> `3` and `-2.5` -> `-3`), using a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation consistent with the rest of the module.
+- Added `TestRoundHalfUp` to `tests/test_number_utils.py` covering default places, negative halves rounding away from zero, multi-place rounding, zero places on integers, no-rounding cases, zero value, large precision, `TypeError` paths (non-number, non-int places, bool places), and the negative-places `ValueError` (10 new tests). Imported `round_half_up` in the test file's import block to match the `__all__` contract.
+- Updated the `number_utils` module prose section and file listing of `README.md` to document `round_half_up`.
+- Verified the work: `make test` runs 6234 tests and passes, `make lint` is clean, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added tests for count_words, truncate_lines, and normalize_line_endings
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6145 tests and passes, `make lint` and `make typecheck` are clean on touched files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -41854,7 +41872,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_finite, is_infinite, is_nan)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_finite, is_infinite, is_nan)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -42779,7 +42797,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -61082,6 +61100,7 @@ __all__: List[str] = [
     "is_perfect_square",
     "is_power_of_two",
     "is_palindromic_number",
+    "round_half_up",
     "gcd",
     "lcm",
 ]
@@ -61136,6 +61155,45 @@ def round_to(value: float, places: int = 0) -> float:
     if places < 0:
         raise ValueError("places must be non-negative")
     return round(value, places)
+
+
+def round_half_up(value: Number, places: int = 0) -> float:
+    """Round a value to the given number of decimal places, rounding halves away from zero.
+
+    Unlike :func:`round_to`, which uses banker's rounding (round-half-to-even),
+    this helper rounds a value whose fractional part is exactly 0.5 (at the
+    requested precision) away from zero: ``2.5`` rounds to ``3`` and
+    ``-2.5`` rounds to ``-3``.
+
+    Args:
+        value: The value to round.
+        places: The number of decimal places.
+
+    Returns:
+        The rounded value.
+
+    Raises:
+        TypeError: If *value* is not a number or *places* is not an int.
+        ValueError: If *places* is negative.
+
+    Examples:
+        >>> round_half_up(2.5)
+        3.0
+        >>> round_half_up(-2.5)
+        -3.0
+        >>> round_half_up(3.14159, 2)
+        3.14
+    """
+    _require_number(value, "value")
+    if isinstance(places, bool) or not isinstance(places, int):
+        raise TypeError(f"places must be an int, got {type(places).__name__}")
+    if places < 0:
+        raise ValueError("places must be non-negative")
+    factor = 10 ** places
+    scaled = value * factor
+    if scaled >= 0:
+        return math.floor(scaled + 0.5) / factor
+    return math.ceil(scaled - 0.5) / factor
 
 
 def is_integer(value: Number) -> bool:
@@ -61704,6 +61762,7 @@ from number_utils import (
     map_range,
     percentage,
     remap,
+    round_half_up,
     round_to,
     safe_divide,
 )
@@ -61730,6 +61789,57 @@ class TestRoundTo(unittest.TestCase):
 
     def test_places(self) -> None:
         self.assertEqual(round_to(3.14159, 2), 3.14)
+
+
+class TestRoundHalfUp(unittest.TestCase):
+    def test_default_places(self) -> None:
+        self.assertEqual(round_half_up(2.5), 3)
+        self.assertEqual(round_half_up(2.4), 2)
+        self.assertEqual(round_half_up(2.6), 3)
+
+    def test_negative_halves_away_from_zero(self) -> None:
+        self.assertEqual(round_half_up(-2.5), -3)
+        self.assertEqual(round_half_up(-2.4), -2)
+        self.assertEqual(round_half_up(-2.6), -3)
+
+    def test_places(self) -> None:
+        self.assertEqual(round_half_up(3.14159, 2), 3.14)
+        self.assertEqual(round_half_up(3.145, 2), 3.15)
+        self.assertEqual(round_half_up(3.135, 2), 3.14)
+
+    def test_negative_with_places(self) -> None:
+        self.assertEqual(round_half_up(-3.145, 2), -3.15)
+        self.assertEqual(round_half_up(-3.135, 2), -3.14)
+
+    def test_zero_places_integers(self) -> None:
+        self.assertEqual(round_half_up(0.5), 1)
+        self.assertEqual(round_half_up(1.5), 2)
+        self.assertEqual(round_half_up(2.5), 3)
+        self.assertEqual(round_half_up(9.5), 10)
+
+    def test_no_rounding_needed(self) -> None:
+        self.assertEqual(round_half_up(3.0), 3)
+        self.assertEqual(round_half_up(3.14159, 0), 3)
+        self.assertEqual(round_half_up(3.14159, 6), 3.14159)
+
+    def test_zero_value(self) -> None:
+        self.assertEqual(round_half_up(0), 0)
+        self.assertEqual(round_half_up(0.0, 2), 0.0)
+
+    def test_large_places(self) -> None:
+        self.assertEqual(round_half_up(1.23456789, 4), 1.2346)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            round_half_up("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            round_half_up(2.5, "2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            round_half_up(2.5, True)
+
+    def test_negative_places_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            round_half_up(2.5, -1)
 
 
 class TestIsInteger(unittest.TestCase):

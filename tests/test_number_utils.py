@@ -24,6 +24,7 @@ from number_utils import (
     map_range,
     percentage,
     remap,
+    round_half_up,
     round_to,
     safe_divide,
 )
@@ -50,6 +51,57 @@ class TestRoundTo(unittest.TestCase):
 
     def test_places(self) -> None:
         self.assertEqual(round_to(3.14159, 2), 3.14)
+
+
+class TestRoundHalfUp(unittest.TestCase):
+    def test_default_places(self) -> None:
+        self.assertEqual(round_half_up(2.5), 3)
+        self.assertEqual(round_half_up(2.4), 2)
+        self.assertEqual(round_half_up(2.6), 3)
+
+    def test_negative_halves_away_from_zero(self) -> None:
+        self.assertEqual(round_half_up(-2.5), -3)
+        self.assertEqual(round_half_up(-2.4), -2)
+        self.assertEqual(round_half_up(-2.6), -3)
+
+    def test_places(self) -> None:
+        self.assertEqual(round_half_up(3.14159, 2), 3.14)
+        self.assertEqual(round_half_up(3.145, 2), 3.15)
+        self.assertEqual(round_half_up(3.135, 2), 3.14)
+
+    def test_negative_with_places(self) -> None:
+        self.assertEqual(round_half_up(-3.145, 2), -3.15)
+        self.assertEqual(round_half_up(-3.135, 2), -3.14)
+
+    def test_zero_places_integers(self) -> None:
+        self.assertEqual(round_half_up(0.5), 1)
+        self.assertEqual(round_half_up(1.5), 2)
+        self.assertEqual(round_half_up(2.5), 3)
+        self.assertEqual(round_half_up(9.5), 10)
+
+    def test_no_rounding_needed(self) -> None:
+        self.assertEqual(round_half_up(3.0), 3)
+        self.assertEqual(round_half_up(3.14159, 0), 3)
+        self.assertEqual(round_half_up(3.14159, 6), 3.14159)
+
+    def test_zero_value(self) -> None:
+        self.assertEqual(round_half_up(0), 0)
+        self.assertEqual(round_half_up(0.0, 2), 0.0)
+
+    def test_large_places(self) -> None:
+        self.assertEqual(round_half_up(1.23456789, 4), 1.2346)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            round_half_up("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            round_half_up(2.5, "2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            round_half_up(2.5, True)
+
+    def test_negative_places_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            round_half_up(2.5, -1)
 
 
 class TestIsInteger(unittest.TestCase):
