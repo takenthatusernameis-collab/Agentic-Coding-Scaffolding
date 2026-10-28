@@ -1,6 +1,12 @@
 import unittest
 
-from greeting_utils import format_farewell, format_greeting, format_names, format_welcome
+from greeting_utils import (
+    format_farewell,
+    format_greeting,
+    format_names,
+    format_thanks,
+    format_welcome,
+)
 
 
 class TestGreetingUtils(unittest.TestCase):
@@ -29,8 +35,6 @@ class TestGreetingUtils(unittest.TestCase):
         self.assertEqual(format_names([]), "")
 
 
-
-
 class TestFormatFarewell(unittest.TestCase):
     def test_default(self):
         self.assertEqual(format_farewell("World"), "Goodbye, World!")
@@ -50,8 +54,6 @@ class TestFormatFarewell(unittest.TestCase):
             format_farewell("Alice", 5)  # type: ignore[arg-type]
 
 
-
-
 class TestFormatWelcome(unittest.TestCase):
     def test_default(self):
         self.assertEqual(format_welcome("World"), "Welcome, World!")
@@ -69,6 +71,26 @@ class TestFormatWelcome(unittest.TestCase):
     def test_type_error_welcome(self):
         with self.assertRaises(TypeError):
             format_welcome("Alice", 5)  # type: ignore[arg-type]
+
+
+class TestFormatThanks(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_thanks("World"), "Thanks, World!")
+
+    def test_custom(self):
+        self.assertEqual(format_thanks("Alice", "Cheers"), "Cheers, Alice!")
+
+    def test_empty_name(self):
+        self.assertEqual(format_thanks(""), "Thanks, !")
+
+    def test_type_error_name(self):
+        with self.assertRaises(TypeError):
+            format_thanks(123)  # type: ignore[arg-type]
+
+    def test_type_error_thanks(self):
+        with self.assertRaises(TypeError):
+            format_thanks("Alice", 5)  # type: ignore[arg-type]
+
 
 if __name__ == "__main__":
     unittest.main()

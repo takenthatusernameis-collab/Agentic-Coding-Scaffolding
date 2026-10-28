@@ -33200,13 +33200,39 @@ def format_welcome(name: str, welcome: str = "Welcome") -> str:
     if not isinstance(welcome, str):
         raise TypeError("welcome must be a str")
     return f"{welcome}, {name}!"
+
+
+def format_thanks(name: str, thanks: str = "Thanks") -> str:
+    """Return a formatted thanks string for the given name.
+
+    Args:
+        name: The name to thank.
+        thanks: The thanks word to use. Defaults to "Thanks".
+
+    Returns:
+        A string of the form "{thanks}, {name}!".
+
+    Raises:
+        TypeError: If ``name`` or ``thanks`` is not a str.
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    if not isinstance(thanks, str):
+        raise TypeError("thanks must be a str")
+    return f"{thanks}, {name}!"
 GREETING_UTILS
 
 # --- tests/test_greeting_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_greeting_utils.py" <<'TESTGREETINGUTILS'
 import unittest
 
-from greeting_utils import format_farewell, format_greeting, format_names, format_welcome
+from greeting_utils import (
+    format_farewell,
+    format_greeting,
+    format_names,
+    format_thanks,
+    format_welcome,
+)
 
 
 class TestGreetingUtils(unittest.TestCase):
@@ -33235,8 +33261,6 @@ class TestGreetingUtils(unittest.TestCase):
         self.assertEqual(format_names([]), "")
 
 
-
-
 class TestFormatFarewell(unittest.TestCase):
     def test_default(self):
         self.assertEqual(format_farewell("World"), "Goodbye, World!")
@@ -33256,8 +33280,6 @@ class TestFormatFarewell(unittest.TestCase):
             format_farewell("Alice", 5)  # type: ignore[arg-type]
 
 
-
-
 class TestFormatWelcome(unittest.TestCase):
     def test_default(self):
         self.assertEqual(format_welcome("World"), "Welcome, World!")
@@ -33275,6 +33297,26 @@ class TestFormatWelcome(unittest.TestCase):
     def test_type_error_welcome(self):
         with self.assertRaises(TypeError):
             format_welcome("Alice", 5)  # type: ignore[arg-type]
+
+
+class TestFormatThanks(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_thanks("World"), "Thanks, World!")
+
+    def test_custom(self):
+        self.assertEqual(format_thanks("Alice", "Cheers"), "Cheers, Alice!")
+
+    def test_empty_name(self):
+        self.assertEqual(format_thanks(""), "Thanks, !")
+
+    def test_type_error_name(self):
+        with self.assertRaises(TypeError):
+            format_thanks(123)  # type: ignore[arg-type]
+
+    def test_type_error_thanks(self):
+        with self.assertRaises(TypeError):
+            format_thanks("Alice", 5)  # type: ignore[arg-type]
+
 
 if __name__ == "__main__":
     unittest.main()

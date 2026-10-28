@@ -62,3 +62,23 @@ def format_welcome(name: str, welcome: str = "Welcome") -> str:
     if not isinstance(welcome, str):
         raise TypeError("welcome must be a str")
     return f"{welcome}, {name}!"
+
+
+def format_thanks(name: str, thanks: str = "Thanks") -> str:
+    """Return a formatted thanks string for the given name.
+
+    Args:
+        name: The name to thank.
+        thanks: The thanks word to use. Defaults to "Thanks".
+
+    Returns:
+        A string of the form "{thanks}, {name}!".
+
+    Raises:
+        TypeError: If ``name`` or ``thanks`` is not a str.
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    if not isinstance(thanks, str):
+        raise TypeError("thanks must be a str")
+    return f"{thanks}, {name}!"
