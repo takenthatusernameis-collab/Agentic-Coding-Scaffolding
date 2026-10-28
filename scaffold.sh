@@ -40231,6 +40231,24 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added TestIsPowerOfTwo for is_power_of_two
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6116 tests and passes except 1 pre-existing failure in `tests/test_scaffold_sync.py` for `type_check_utils` (environment-related, unchanged by this work), `make lint` and `make typecheck` report only pre-existing errors outside the files touched, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `prime_utils.py` exports `is_power_of_two(n)` in `__all__` and the README documents it, but `tests/test_prime_utils.py` had no test class for it (it was imported nowhere and untested), leaving a coverage gap in a module otherwise fully tested.
+- Added `TestIsPowerOfTwo` to `tests/test_prime_utils.py` covering powers of two (including 1 and large values), non-powers, negatives, and the `TypeError` paths for floats, strings, None, and bools (14 new tests). Imported `is_power_of_two` at the top of the test file to match the module's `__all__` contract.
+- Verified the work: `make test` runs 6130 tests and passes except the pre-existing `type_check_utils` scaffold-sync failure, `make lint` is clean on the touched files, `make typecheck` reports no issues in `tests/test_prime_utils.py`, and doctests for `prime_utils.py` pass.
+- Synchronized `tests/test_prime_utils.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added is_rotation to strings.py
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6111 tests and passes except 1 pre-existing failure in `tests/test_scaffold_sync.py` for `type_check_utils` (environment-related, unchanged by this work), `make lint` and `make typecheck` report only pre-existing errors outside the files touched, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -65745,6 +65763,7 @@ from prime_utils import (
     is_palindromic_prime,
     is_perfect_number,
     is_perfect_square,
+    is_power_of_two,
     is_prime,
     is_prime_power,
     is_pythagorean_prime,
@@ -66050,6 +66069,43 @@ class TestIsPerfectSquare(unittest.TestCase):
             is_perfect_square(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_perfect_square(True)  # type: ignore[arg-type]
+
+
+class TestIsPowerOfTwo(unittest.TestCase):
+    def test_powers_of_two(self):
+        self.assertTrue(is_power_of_two(1))    # 2^0
+        self.assertTrue(is_power_of_two(2))    # 2^1
+        self.assertTrue(is_power_of_two(4))    # 2^2
+        self.assertTrue(is_power_of_two(8))    # 2^3
+        self.assertTrue(is_power_of_two(16))   # 2^4
+        self.assertTrue(is_power_of_two(32))   # 2^5
+        self.assertTrue(is_power_of_two(64))   # 2^6
+        self.assertTrue(is_power_of_two(1024)) # 2^10
+        self.assertTrue(is_power_of_two(1 << 20))
+
+    def test_not_power_of_two(self):
+        self.assertFalse(is_power_of_two(0))
+        self.assertFalse(is_power_of_two(3))
+        self.assertFalse(is_power_of_two(5))
+        self.assertFalse(is_power_of_two(6))
+        self.assertFalse(is_power_of_two(12))
+        self.assertFalse(is_power_of_two(15))
+        self.assertFalse(is_power_of_two(100))
+
+    def test_negative(self):
+        self.assertFalse(is_power_of_two(-1))
+        self.assertFalse(is_power_of_two(-2))
+        self.assertFalse(is_power_of_two(-8))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_power_of_two(2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two(True)  # type: ignore[arg-type]
 
 
 class TestIsSemiprime(unittest.TestCase):

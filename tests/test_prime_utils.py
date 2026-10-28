@@ -14,6 +14,7 @@ from prime_utils import (
     is_palindromic_prime,
     is_perfect_number,
     is_perfect_square,
+    is_power_of_two,
     is_prime,
     is_prime_power,
     is_pythagorean_prime,
@@ -319,6 +320,43 @@ class TestIsPerfectSquare(unittest.TestCase):
             is_perfect_square(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_perfect_square(True)  # type: ignore[arg-type]
+
+
+class TestIsPowerOfTwo(unittest.TestCase):
+    def test_powers_of_two(self):
+        self.assertTrue(is_power_of_two(1))    # 2^0
+        self.assertTrue(is_power_of_two(2))    # 2^1
+        self.assertTrue(is_power_of_two(4))    # 2^2
+        self.assertTrue(is_power_of_two(8))    # 2^3
+        self.assertTrue(is_power_of_two(16))   # 2^4
+        self.assertTrue(is_power_of_two(32))   # 2^5
+        self.assertTrue(is_power_of_two(64))   # 2^6
+        self.assertTrue(is_power_of_two(1024)) # 2^10
+        self.assertTrue(is_power_of_two(1 << 20))
+
+    def test_not_power_of_two(self):
+        self.assertFalse(is_power_of_two(0))
+        self.assertFalse(is_power_of_two(3))
+        self.assertFalse(is_power_of_two(5))
+        self.assertFalse(is_power_of_two(6))
+        self.assertFalse(is_power_of_two(12))
+        self.assertFalse(is_power_of_two(15))
+        self.assertFalse(is_power_of_two(100))
+
+    def test_negative(self):
+        self.assertFalse(is_power_of_two(-1))
+        self.assertFalse(is_power_of_two(-2))
+        self.assertFalse(is_power_of_two(-8))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_power_of_two(2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of_two(True)  # type: ignore[arg-type]
 
 
 class TestIsSemiprime(unittest.TestCase):

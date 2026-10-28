@@ -1,3 +1,21 @@
+## Latest Session (2026-10-28) — added TestIsPowerOfTwo for is_power_of_two
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6116 tests and passes except 1 pre-existing failure in `tests/test_scaffold_sync.py` for `type_check_utils` (environment-related, unchanged by this work), `make lint` and `make typecheck` report only pre-existing errors outside the files touched, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `prime_utils.py` exports `is_power_of_two(n)` in `__all__` and the README documents it, but `tests/test_prime_utils.py` had no test class for it (it was imported nowhere and untested), leaving a coverage gap in a module otherwise fully tested.
+- Added `TestIsPowerOfTwo` to `tests/test_prime_utils.py` covering powers of two (including 1 and large values), non-powers, negatives, and the `TypeError` paths for floats, strings, None, and bools (14 new tests). Imported `is_power_of_two` at the top of the test file to match the module's `__all__` contract.
+- Verified the work: `make test` runs 6130 tests and passes except the pre-existing `type_check_utils` scaffold-sync failure, `make lint` is clean on the touched files, `make typecheck` reports no issues in `tests/test_prime_utils.py`, and doctests for `prime_utils.py` pass.
+- Synchronized `tests/test_prime_utils.py` and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added is_rotation to strings.py
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6111 tests and passes except 1 pre-existing failure in `tests/test_scaffold_sync.py` for `type_check_utils` (environment-related, unchanged by this work), `make lint` and `make typecheck` report only pre-existing errors outside the files touched, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
