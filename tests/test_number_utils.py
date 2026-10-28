@@ -452,3 +452,37 @@ class TestMapRange(unittest.TestCase):
 
     def test_remap_alias(self) -> None:
         self.assertEqual(remap(5, 0, 10, 0, 100), map_range(5, 0, 10, 0, 100))
+
+
+class TestInRange(unittest.TestCase):
+    def test_inclusive_default(self) -> None:
+        from number_utils import in_range
+
+        self.assertTrue(in_range(5, 0, 10))
+        self.assertTrue(in_range(0, 0, 10))
+        self.assertTrue(in_range(10, 0, 10))
+        self.assertFalse(in_range(-1, 0, 10))
+        self.assertFalse(in_range(11, 0, 10))
+
+    def test_exclusive(self) -> None:
+        from number_utils import in_range
+
+        self.assertTrue(in_range(5, 0, 10, inclusive=False))
+        self.assertFalse(in_range(0, 0, 10, inclusive=False))
+        self.assertFalse(in_range(10, 0, 10, inclusive=False))
+
+    def test_invalid_bounds(self) -> None:
+        from number_utils import in_range
+
+        with self.assertRaises(ValueError):
+            in_range(5, 10, 0)
+
+    def test_type_errors(self) -> None:
+        from number_utils import in_range
+
+        with self.assertRaises(TypeError):
+            in_range("x", 0, 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            in_range(5, "x", 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            in_range(5, 0, "x")  # type: ignore[arg-type]

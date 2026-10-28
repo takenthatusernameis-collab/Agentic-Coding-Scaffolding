@@ -25,6 +25,7 @@ __all__: List[str] = [
     "is_non_negative",
     "is_non_positive",
     "is_between",
+    "in_range",
     "is_finite",
     "is_infinite",
     "is_nan",
@@ -33,6 +34,8 @@ __all__: List[str] = [
     "is_perfect_square",
     "is_power_of_two",
     "is_palindromic_number",
+    "gcd",
+    "lcm",
 ]
 
 
