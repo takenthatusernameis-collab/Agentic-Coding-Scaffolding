@@ -61557,10 +61557,12 @@ __all__: List[str] = [
     "is_divisible_by",
     "is_coprime",
     "digit_sum",
-     "digit_count",
-     "digit_product",
- ]
-
+    "digit_count",
+    "digit_product",
+    "safe_divide",
+    "round_to",
+    "digital_root",
+]
 
 def _require_number(value: object, name: str) -> Number:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
@@ -62400,6 +62402,50 @@ def digit_product(value: int) -> int:
     for digit in str(abs(value)):
         product *= int(digit)
     return product
+
+
+def digital_root(value: int) -> int:
+    """Return the digital root of *value*.
+
+    The digital root is the single-digit result obtained by an iterative process
+    of summing digits, on each iteration using the result from the previous
+    iteration to compute a digit sum. The process continues until a single-digit
+    number is reached.
+
+    The sign of *value* is ignored, so ``digital_root(-123)`` returns ``6``.
+    ``digital_root(0)`` returns ``0``.
+
+    Args:
+        value: The integer to compute the digital root for.
+
+    Returns:
+        The single-digit digital root of *value* (0-9).
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> digital_root(123)
+        6
+        >>> digital_root(-123)
+        6
+        >>> digital_root(0)
+        0
+        >>> digital_root(9)
+        9
+        >>> digital_root(99)
+        9
+        >>> digital_root(199)
+        1
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value == 0:
+        return 0
+    n = abs(value)
+    while n >= 10:
+        n = sum(int(digit) for digit in str(n))
+    return n
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -62413,6 +62459,7 @@ from number_utils import (
     digit_count,
     digit_product,
     digit_sum,
+    digital_root,
     format_number,
     is_between,
     is_close,
@@ -62434,8 +62481,6 @@ from number_utils import (
     percentage,
     remap,
     round_half_up,
-    round_to,
-    safe_divide,
 )
 
 
@@ -63149,6 +63194,32 @@ class TestDigitProduct(unittest.TestCase):
             digit_product(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             digit_product(None)  # type: ignore[arg-type]
+
+
+class TestDigitalRoot(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(digital_root(0), 0)
+        self.assertEqual(digital_root(5), 5)
+        self.assertEqual(digital_root(9), 9)
+        self.assertEqual(digital_root(123), 6)
+        self.assertEqual(digital_root(99), 9)
+        self.assertEqual(digital_root(199), 1)
+        self.assertEqual(digital_root(999), 9)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(digital_root(-123), 6)
+        self.assertEqual(digital_root(-5), 5)
+        self.assertEqual(digital_root(-99), 9)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            digital_root("123")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digital_root(12.3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digital_root(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digital_root(None)  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
