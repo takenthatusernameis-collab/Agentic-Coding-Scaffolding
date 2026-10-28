@@ -66902,6 +66902,7 @@ import unittest
 
 from prime_utils import (
     coprime,
+    distinct_prime_factors,
     is_abundant_number,
     is_circular_prime,
     is_composite,
@@ -66934,7 +66935,6 @@ from prime_utils import (
     radical,
     sum_of_proper_divisors,
     total_prime_factors,
-    distinct_prime_factors,
 )
 
 
@@ -67224,14 +67224,14 @@ class TestIsPerfectSquare(unittest.TestCase):
 
 class TestIsPowerOfTwo(unittest.TestCase):
     def test_powers_of_two(self):
-        self.assertTrue(is_power_of_two(1))    # 2^0
-        self.assertTrue(is_power_of_two(2))    # 2^1
-        self.assertTrue(is_power_of_two(4))    # 2^2
-        self.assertTrue(is_power_of_two(8))    # 2^3
-        self.assertTrue(is_power_of_two(16))   # 2^4
-        self.assertTrue(is_power_of_two(32))   # 2^5
-        self.assertTrue(is_power_of_two(64))   # 2^6
-        self.assertTrue(is_power_of_two(1024)) # 2^10
+        self.assertTrue(is_power_of_two(1))  # 2^0
+        self.assertTrue(is_power_of_two(2))  # 2^1
+        self.assertTrue(is_power_of_two(4))  # 2^2
+        self.assertTrue(is_power_of_two(8))  # 2^3
+        self.assertTrue(is_power_of_two(16))  # 2^4
+        self.assertTrue(is_power_of_two(32))  # 2^5
+        self.assertTrue(is_power_of_two(64))  # 2^6
+        self.assertTrue(is_power_of_two(1024))  # 2^10
         self.assertTrue(is_power_of_two(1 << 20))
 
     def test_not_power_of_two(self):
@@ -67343,7 +67343,7 @@ class TestIsPrimePower(unittest.TestCase):
         self.assertTrue(is_prime_power(16))  # 2^4
         self.assertTrue(is_prime_power(25))  # 5^2
         self.assertTrue(is_prime_power(27))  # 3^3
-        self.assertTrue(is_prime_power(2 ** 6))  # 64
+        self.assertTrue(is_prime_power(2**6))  # 64
 
     def test_non_prime_powers(self):
         self.assertFalse(is_prime_power(1))
@@ -67576,8 +67576,8 @@ class TestPrimeUtilsBoundary(unittest.TestCase):
         self.assertIsInstance(sum_of_proper_divisors(-6), int)
 
     def test_is_prime_power_large(self):
-        self.assertTrue(is_prime_power(2 ** 20))
-        self.assertFalse(is_prime_power(2 ** 20 + 1))
+        self.assertTrue(is_prime_power(2**20))
+        self.assertFalse(is_prime_power(2**20 + 1))
 
     def test_prime_count_large(self):
         self.assertEqual(prime_count(1000), 168)
@@ -67701,16 +67701,16 @@ class TestSumOfProperDivisorsEdge(unittest.TestCase):
 
 class TestIsPrimePowerLarge(unittest.TestCase):
     def test_large_power_of_two(self):
-        self.assertTrue(is_prime_power(2 ** 31))
-        self.assertTrue(is_prime_power(2 ** 62))
+        self.assertTrue(is_prime_power(2**31))
+        self.assertTrue(is_prime_power(2**62))
 
     def test_large_non_power(self):
-        self.assertFalse(is_prime_power(2 ** 31 + 1))
-        self.assertFalse(is_prime_power(2 ** 62 + 1))
+        self.assertFalse(is_prime_power(2**31 + 1))
+        self.assertFalse(is_prime_power(2**62 + 1))
 
     def test_large_prime_power_of_odd_prime(self):
-        self.assertTrue(is_prime_power(3 ** 20))
-        self.assertFalse(is_prime_power(3 ** 20 + 1))
+        self.assertTrue(is_prime_power(3**20))
+        self.assertFalse(is_prime_power(3**20 + 1))
 
 
 class TestIsSquarefreeEdge(unittest.TestCase):
@@ -67805,6 +67805,8 @@ class TestIsPerfectAbundantDeficientEdge(unittest.TestCase):
     def test_negative_not_classified(self):
         self.assertFalse(is_perfect_number(-6))
         self.assertFalse(is_abundant_number(-12))
+
+
 class TestIsPythagoreanPrime(unittest.TestCase):
     def test_pythagorean_primes(self):
         for p in [5, 13, 17, 41, 101]:
@@ -67846,7 +67848,6 @@ class TestRadical(unittest.TestCase):
         self.assertEqual(radical(16), 2)
 
     def test_radical_multiple_primes(self):
-
 
         self.assertEqual(radical(12), 6)
         self.assertEqual(radical(18), 6)
