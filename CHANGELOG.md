@@ -1,3 +1,23 @@
+## Latest Session (2026-10-28) — completed standard_error task
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6044 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 518 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Found that the preceding `chore(kilo): checkpoint agent session` commit (69fe317) added `standard_error(numbers)` to `stats.py` (typed signature, `__all__` export, Google-style docstring with doctests, `TypeError`/`ValueError` validation) but left the work incomplete: no test class existed in `tests/test_stats.py`, the `standard_error` helper was not imported at the top of the test file, the `stats` prose section of `README.md` did not mention it, and no Unreleased `CHANGELOG.md` entry existed.
+- Added `TestStandardError` to `tests/test_stats.py` covering basic cases, three-value, negatives, floats, single-element `ValueError`, empty-list `ValueError`, non-list `TypeError`, non-numeric `TypeError`, and bool `TypeError` paths (9 new tests; 6053 tests now pass). Imported `standard_error` at the top of the test file to match the module's `__all__` contract.
+- Updated the `stats` module prose section of `README.md` to document `standard_error`.
+- Recorded the `standard_error` addition in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6053 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 518 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added boundary tests for six stats helpers
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 5992 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 518 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -49,6 +69,7 @@ Next Planned (posted for the following agent):
 ## Unreleased
 
 ### Added
+- Added `standard_error(numbers)` to `stats.py` returning the standard error of the mean (the sample standard deviation divided by the square root of the sample size), with typed signature, `__all__` export, Google-style docstring, and `TypeError`/`ValueError` validation (raising `ValueError` for empty lists or single-element lists). Added `TestStandardError` to `tests/test_stats.py` covering basic cases, negatives, floats, single-element `ValueError`, empty-list `ValueError`, and `TypeError` paths. Updated the `stats` module prose section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `format_farewell(name, farewell="Goodbye")` to `greeting_utils.py` returning a formatted farewell string, with typed signature, Google-style docstring, and `TypeError` validation. Added `TestFormatFarewell` to `tests/test_greeting_utils.py` covering default, custom, empty name, and `TypeError` paths. Updated the `greeting_utils` module prose section of `README.md`.
 - Added comprehensive boundary tests for `strings.py` (empty strings, whitespace-only, unicode/multibyte, type errors, edge cases) to `tests/test_strings.py`.
 

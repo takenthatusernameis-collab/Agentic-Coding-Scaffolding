@@ -24,6 +24,7 @@ from stats import (
     range,
     root_mean_square,
     skewness,
+    standard_error,
     stddev,
     sum_of_cubes,
     sum_of_squares,
@@ -832,6 +833,40 @@ class TestRootMeanSquare(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             root_mean_square([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestStandardError(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(standard_error([1, 2, 3, 4, 5]), 0.7071067811865476)
+
+    def test_three_values(self) -> None:
+        self.assertAlmostEqual(standard_error([1, 2, 3]), 0.5773502691896258)
+
+    def test_negatives(self) -> None:
+        self.assertAlmostEqual(standard_error([-2, -1, 0, 1, 2]), 0.7071067811865476)
+
+    def test_floats(self) -> None:
+        self.assertAlmostEqual(standard_error([1.5, 2.5, 3.5]), 0.5773502691896258)
+
+    def test_single_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            standard_error([42])
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            standard_error([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            standard_error((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            standard_error([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            standard_error([True, 1, 2])  # type: ignore[type-var]
 
 
 class TestProduct(unittest.TestCase):
