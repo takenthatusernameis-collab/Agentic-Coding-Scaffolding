@@ -28879,6 +28879,7 @@ __all__: List[str] = [
     "count_paragraphs",
     "count_characters",
     "reverse_lines",
+    "strip_blank_lines",
 ]
 
 
@@ -29885,9 +29886,38 @@ def reverse_lines(text: str) -> str:
     _require_string(text, "text")
     if not text:
         return text
-    lines = text.split("\n")
+    lines = text.split("\\n")
     lines.reverse()
-    return "\n".join(lines)
+    return "\\n".join(lines)
+
+
+def strip_blank_lines(text: str) -> str:
+    """Remove leading and trailing blank (whitespace-only) lines.
+
+    Args:
+        text: The text whose outer blank lines should be removed.
+
+    Returns:
+        The text with leading and trailing blank lines removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_blank_lines("\\n\\nhello\\nworld\\n\\n")
+        'hello\\nworld'
+        >>> strip_blank_lines("hello")
+        'hello'
+        >>> strip_blank_lines("\\n\\n")
+        ''
+    """
+    _require_string(text, "text")
+    lines = text.split("\\n")
+    while lines and lines[0].strip() == "":
+        lines.pop(0)
+    while lines and lines[-1].strip() == "":
+        lines.pop()
+    return "\\n".join(lines)
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -61714,6 +61744,7 @@ __all__: List[str] = [
     "safe_divide",
     "round_to",
     "digital_root",
+    "is_triangular_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -62638,6 +62669,48 @@ def is_perfect_number(value: int) -> bool:
                 total += value // i
         i += 1
     return total == value
+
+
+def is_triangular_number(value: int) -> bool:
+    """Return whether *value* is a triangular number.
+
+    A triangular number is a number that can be represented as the sum of
+    the first *n* natural numbers (``n * (n + 1) // 2``) for some
+    non-negative integer *n*.
+
+    Args:
+        value: The integer to check.
+
+    Returns:
+        ``True`` if *value* is a triangular number, otherwise ``False``.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_triangular_number(0)
+        True
+        >>> is_triangular_number(1)
+        True
+        >>> is_triangular_number(3)
+        True
+        >>> is_triangular_number(6)
+        True
+        >>> is_triangular_number(10)
+        True
+        >>> is_triangular_number(4)
+        False
+        >>> is_triangular_number(-1)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    # n*(n+1)/2 = value => (8*value+1) must be a perfect square
+    discriminant = 8 * value + 1
+    root = math.isqrt(discriminant)
+    return root * root == discriminant
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -62668,6 +62741,7 @@ from number_utils import (
     is_perfect_square,
     is_positive,
     is_power_of_two,
+    is_triangular_number,
     is_zero,
     lerp,
     map_range,
@@ -63430,6 +63504,25 @@ class TestIsPerfectNumber(unittest.TestCase):
             is_perfect_number("6")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_perfect_number(True)  # type: ignore[arg-type]
+
+
+class TestIsTriangularNumber(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(is_triangular_number(0))
+        self.assertTrue(is_triangular_number(1))
+        self.assertTrue(is_triangular_number(3))
+        self.assertTrue(is_triangular_number(6))
+        self.assertTrue(is_triangular_number(10))
+        self.assertTrue(is_triangular_number(15))
+        self.assertFalse(is_triangular_number(4))
+        self.assertFalse(is_triangular_number(2))
+        self.assertFalse(is_triangular_number(-1))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_triangular_number("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_triangular_number(True)  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
