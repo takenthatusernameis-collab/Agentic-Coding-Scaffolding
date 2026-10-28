@@ -51,12 +51,15 @@ def is_numeric(value: object) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
+from typing import Any, cast
+
+
 def is_iterable(value: object) -> bool:
     """Return True if value is iterable but not a string."""
     if isinstance(value, str):
         return False
     try:
-        iter(value)
+        iter(cast(Any, value))
         return True
     except TypeError:
         return False

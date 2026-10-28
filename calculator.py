@@ -48,7 +48,7 @@ def floor_divide(a: float, b: float) -> float:
 
 def power(a: float, b: float) -> float:
     """Return a raised to the power b."""
-    return a ** b
+    return float(a ** b)
 
 
 def sqrt(a: float) -> float:
@@ -59,7 +59,7 @@ def sqrt(a: float) -> float:
     """
     if a < 0:
         raise ValueError("Cannot take square root of negative number.")
-    return a ** 0.5
+    return float(a ** 0.5)
 
 
 def negate(a: float) -> float:

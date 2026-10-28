@@ -129,8 +129,8 @@ def round_half_up(value: Number, places: int = 0) -> float:
     factor = 10 ** places
     scaled = value * factor
     if scaled >= 0:
-        return math.floor(scaled + 0.5) / factor
-    return math.ceil(scaled - 0.5) / factor
+        return float(math.floor(scaled + 0.5) / factor)
+    return float(math.ceil(scaled - 0.5) / factor)
 
 
 def is_integer(value: Number) -> bool:
