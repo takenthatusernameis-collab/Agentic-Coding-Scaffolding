@@ -13,6 +13,8 @@ __all__: List[str] = [
     "is_palindrome",
     "count_vowels",
     "count_consonants",
+    "count_lowercase",
+    "count_uppercase",
     "is_anagram",
     "capitalize_words",
     "truncate",
@@ -125,6 +127,38 @@ def count_consonants(s: str) -> int:
     _require_string(s, "s")
     vowels = {"a", "e", "i", "o", "u"}
     return sum(1 for ch in s.lower() if ch.isalpha() and ch not in vowels)
+
+
+def count_uppercase(s: str) -> int:
+    """Return the number of uppercase letters in *s*.
+
+    Args:
+        s: The string to count uppercase letters in.
+
+    Returns:
+        The number of uppercase alphabetic characters.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isupper())
+
+
+def count_lowercase(s: str) -> int:
+    """Return the number of lowercase letters in *s*.
+
+    Args:
+        s: The string to count lowercase letters in.
+
+    Returns:
+        The number of lowercase alphabetic characters.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.islower())
 
 
 def is_anagram(s1: str, s2: str) -> bool:
