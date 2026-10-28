@@ -24,6 +24,7 @@ from number_utils import (
     is_perfect_square,
     is_positive,
     is_power_of_two,
+    is_triangular_number,
     is_zero,
     lerp,
     map_range,
@@ -786,3 +787,22 @@ class TestIsPerfectNumber(unittest.TestCase):
             is_perfect_number("6")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_perfect_number(True)  # type: ignore[arg-type]
+
+
+class TestIsTriangularNumber(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(is_triangular_number(0))
+        self.assertTrue(is_triangular_number(1))
+        self.assertTrue(is_triangular_number(3))
+        self.assertTrue(is_triangular_number(6))
+        self.assertTrue(is_triangular_number(10))
+        self.assertTrue(is_triangular_number(15))
+        self.assertFalse(is_triangular_number(4))
+        self.assertFalse(is_triangular_number(2))
+        self.assertFalse(is_triangular_number(-1))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_triangular_number("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_triangular_number(True)  # type: ignore[arg-type]
