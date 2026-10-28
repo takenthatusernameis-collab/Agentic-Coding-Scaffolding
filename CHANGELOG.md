@@ -1,3 +1,13 @@
+## Latest Session (2026-10-28) — added digit_count to number_utils
+
+The board held no task (bootstrap).
+
+Completed in this session:
+
+- Added `digit_count(value)` to `number_utils.py` returning the number of decimal digits of an integer (sign ignored; zero returns 1), with `TypeError` validation. Exported in `__all__`, Google-style docstring with doctests.
+- Added `TestDigitCount` to `tests/test_number_utils.py` (4 new tests).
+- Updated `README.md` and synchronized with `make refresh-scaffold`.
+
 ## Latest Session (2026-10-28) — added is_coprime to number_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` failed on scaffold-sync (embedded `number_utils.py`/`tests/test_number_utils.py` stale, missing `is_coprime`) and `make lint` reported an unused `is_coprime` import in `tests/test_number_utils.py`; `make typecheck` was clean.

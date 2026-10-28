@@ -4,6 +4,7 @@ import unittest
 
 from number_utils import (
     clamp,
+    digit_count,
     digit_sum,
     format_number,
     is_between,
@@ -656,6 +657,30 @@ class TestDigitSum(unittest.TestCase):
             digit_sum(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             digit_sum(None)  # type: ignore[arg-type]
+
+
+class TestDigitCount(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(digit_count(0), 1)
+        self.assertEqual(digit_count(5), 1)
+        self.assertEqual(digit_count(123), 3)
+        self.assertEqual(digit_count(999), 3)
+        self.assertEqual(digit_count(1001), 4)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(digit_count(-123), 3)
+        self.assertEqual(digit_count(-5), 1)
+        self.assertEqual(digit_count(-1001), 4)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            digit_count("123")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_count(12.3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_count(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_count(None)  # type: ignore[arg-type]
 
 
 class TestIsCoprime(unittest.TestCase):

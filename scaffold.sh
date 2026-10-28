@@ -41434,6 +41434,16 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added digit_count to number_utils
+
+The board held no task (bootstrap).
+
+Completed in this session:
+
+- Added `digit_count(value)` to `number_utils.py` returning the number of decimal digits of an integer (sign ignored; zero returns 1), with `TypeError` validation. Exported in `__all__`, Google-style docstring with doctests.
+- Added `TestDigitCount` to `tests/test_number_utils.py` (4 new tests).
+- Updated `README.md` and synchronized with `make refresh-scaffold`.
+
 ## Latest Session (2026-10-28) — added is_coprime to number_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` failed on scaffold-sync (embedded `number_utils.py`/`tests/test_number_utils.py` stale, missing `is_coprime`) and `make lint` reported an unused `is_coprime` import in `tests/test_number_utils.py`; `make typecheck` was clean.
@@ -42311,7 +42321,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
-number_utils.py            # Number utility functions (clamp, digit_sum, round_to, round_half_up, is_close, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_finite, is_infinite, is_nan, is_coprime)
+number_utils.py            # Number utility functions (clamp, digit_sum, digit_count, round_to, round_half_up, is_close, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_finite, is_infinite, is_nan, is_coprime)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -43236,7 +43246,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `is_coprime` reports whether two integers share no common positive factor other than 1. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_coprime` reports whether two integers share no common positive factor other than 1. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -61547,6 +61557,7 @@ __all__: List[str] = [
     "is_divisible_by",
     "is_coprime",
     "digit_sum",
+    "digit_count",
 ]
 
 
@@ -62325,6 +62336,36 @@ def digit_sum(value: int) -> int:
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError(f"value must be an int, got {type(value).__name__}")
     return sum(int(digit) for digit in str(abs(value)))
+
+
+def digit_count(value: int) -> int:
+    """Return the number of decimal digits of *value*.
+
+    The sign of *value* is ignored, so ``digit_count(-123)`` returns ``3``.
+    ``digit_count(0)`` returns ``1``.
+
+    Args:
+        value: The integer whose decimal digits are counted.
+
+    Returns:
+        The number of decimal digits of *value*.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> digit_count(123)
+        3
+        >>> digit_count(-123)
+        3
+        >>> digit_count(0)
+        1
+        >>> digit_count(1001)
+        4
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    return len(str(abs(value)))
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -62335,6 +62376,7 @@ import unittest
 
 from number_utils import (
     clamp,
+    digit_count,
     digit_sum,
     format_number,
     is_between,
@@ -62987,6 +63029,30 @@ class TestDigitSum(unittest.TestCase):
             digit_sum(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             digit_sum(None)  # type: ignore[arg-type]
+
+
+class TestDigitCount(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(digit_count(0), 1)
+        self.assertEqual(digit_count(5), 1)
+        self.assertEqual(digit_count(123), 3)
+        self.assertEqual(digit_count(999), 3)
+        self.assertEqual(digit_count(1001), 4)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(digit_count(-123), 3)
+        self.assertEqual(digit_count(-5), 1)
+        self.assertEqual(digit_count(-1001), 4)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            digit_count("123")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_count(12.3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_count(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_count(None)  # type: ignore[arg-type]
 
 
 class TestIsCoprime(unittest.TestCase):
