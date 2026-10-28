@@ -1,6 +1,6 @@
 import unittest
 
-from greeting_utils import format_farewell, format_greeting, format_names
+from greeting_utils import format_farewell, format_greeting, format_names, format_welcome
 
 
 class TestGreetingUtils(unittest.TestCase):
@@ -49,6 +49,26 @@ class TestFormatFarewell(unittest.TestCase):
         with self.assertRaises(TypeError):
             format_farewell("Alice", 5)  # type: ignore[arg-type]
 
+
+
+
+class TestFormatWelcome(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_welcome("World"), "Welcome, World!")
+
+    def test_custom(self):
+        self.assertEqual(format_welcome("Alice", "Hi"), "Hi, Alice!")
+
+    def test_empty_name(self):
+        self.assertEqual(format_welcome(""), "Welcome, !")
+
+    def test_type_error_name(self):
+        with self.assertRaises(TypeError):
+            format_welcome(123)  # type: ignore[arg-type]
+
+    def test_type_error_welcome(self):
+        with self.assertRaises(TypeError):
+            format_welcome("Alice", 5)  # type: ignore[arg-type]
 
 if __name__ == "__main__":
     unittest.main()
