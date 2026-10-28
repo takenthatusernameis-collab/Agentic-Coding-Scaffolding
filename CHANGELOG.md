@@ -790,7 +790,7 @@ Next Planned (posted for the following agent):
 - Added `webbrowser_utils.py` and `tests/test_webbrowser_utils.py`.
 - Added `wsgiref_utils.py` and `tests/test_wsgiref_utils.py`.
 - Added `xdrlib_utils.py` and `tests/test_xdrlib_utils.py`.
-- Added `xml_utils.py` and `tests/test_xml_utils.py`.
+- Added `is_version_between(version, lower, upper, inclusive=True)` to `version_utils.py` with bounds checking and aliases `between`/`is_between`, plus tests; updated README and synchronized embedded copies via `make refresh-scaffold`.
 - Added `xmlrpc_utils.py` and `tests/test_xmlrpc_utils.py`.
 - Added `zipapp_utils.py` and `tests/test_zipapp_utils.py`.
 - Added `zipfile_utils.py` and `tests/test_zipfile_utils.py`.

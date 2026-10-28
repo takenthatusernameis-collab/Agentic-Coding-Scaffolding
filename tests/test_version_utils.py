@@ -34,8 +34,11 @@ from version_utils import (
     is_version_less_equal,
     is_version_at_least,
     is_version_at_most,
+    is_version_between,
     at_least,
     at_most,
+    between,
+    is_between,
     max_version,
     min_version,
     normalize_version,
@@ -650,4 +653,41 @@ class TestIsVersionAtMost(unittest.TestCase):
     def test_invalid_version_raises(self):
         with self.assertRaises(ValueError):
             is_version_at_most("1.x", "1.0.0")
+
+
+class TestIsVersionBetween(unittest.TestCase):
+    def test_between_inclusive(self):
+        self.assertTrue(is_version_between("1.2.5", "1.2.0", "1.3.0"))
+        self.assertTrue(is_version_between("1.2.0", "1.2.0", "1.3.0"))
+        self.assertTrue(is_version_between("1.3.0", "1.2.0", "1.3.0"))
+        self.assertFalse(is_version_between("1.1.9", "1.2.0", "1.3.0"))
+        self.assertFalse(is_version_between("1.3.1", "1.2.0", "1.3.0"))
+
+    def test_between_exclusive(self):
+        self.assertTrue(is_version_between("1.2.5", "1.2.0", "1.3.0", inclusive=False))
+        self.assertFalse(is_version_between("1.2.0", "1.2.0", "1.3.0", inclusive=False))
+        self.assertFalse(is_version_between("1.3.0", "1.2.0", "1.3.0", inclusive=False))
+
+    def test_aliases(self):
+        self.assertTrue(between("1.0.0", "1.0.0", "2.0.0"))
+        self.assertTrue(is_between("1.5.0", "1.0.0", "2.0.0"))
+        self.assertFalse(is_between("0.9.0", "1.0.0", "2.0.0"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_version_between(123, "1.0.0", "2.0.0")
+        with self.assertRaises(TypeError):
+            is_version_between("1.0.0", 123, "2.0.0")
+        with self.assertRaises(TypeError):
+            is_version_between("1.0.0", "1.0.0", 123)
+        with self.assertRaises(TypeError):
+            is_version_between("1.0.0", "1.0.0", "2.0.0", inclusive="yes")
+
+    def test_invalid_version(self):
+        with self.assertRaises(ValueError):
+            is_version_between("bad", "1.0.0", "2.0.0")
+        with self.assertRaises(ValueError):
+            is_version_between("1.0.0", "bad", "2.0.0")
+        with self.assertRaises(ValueError):
+            is_version_between("1.0.0", "1.0.0", "bad")
 

@@ -72,8 +72,11 @@ __all__: List[str] = [
     "dec",
     "is_version_at_least",
     "is_version_at_most",
+    "is_version_between",
     "at_least",
     "at_most",
+    "between",
+    "is_between",
 ]
 
 
@@ -856,5 +859,50 @@ def is_version_at_most(version: str, maximum: str) -> bool:
     return compare_versions(version, maximum) <= 0
 
 
+def is_version_between(
+    version: str, lower: str, upper: str, inclusive: bool = True
+) -> bool:
+    """Return True if *version* is between *lower* and *upper*.
+
+    Args:
+        version: A dotted version string.
+        lower: The lower bound version string.
+        upper: The upper bound version string.
+        inclusive: If True (default), bounds are inclusive.
+
+    Returns:
+        True if *version* is between *lower* and *upper*.
+
+    Raises:
+        TypeError: If any argument is not a string or *inclusive* is not a bool.
+        ValueError: If any version string is invalid.
+
+    Examples:
+        >>> is_version_between("1.2.5", "1.2.0", "1.3.0")
+        True
+        >>> is_version_between("1.3.0", "1.2.0", "1.3.0")
+        True
+        >>> is_version_between("1.3.0", "1.2.0", "1.3.0", inclusive=False)
+        False
+        >>> is_version_between("1.1.9", "1.2.0", "1.3.0")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not isinstance(lower, str):
+        raise TypeError("lower must be a string")
+    if not isinstance(upper, str):
+        raise TypeError("upper must be a string")
+    if not isinstance(inclusive, bool):
+        raise TypeError("inclusive must be a bool")
+    if inclusive:
+        return compare_versions(version, lower) >= 0 and compare_versions(
+            version, upper
+        ) <= 0
+    return compare_versions(version, lower) > 0 and compare_versions(version, upper) < 0
+
+
 at_least = is_version_at_least
 at_most = is_version_at_most
+between = is_version_between
+is_between = is_version_between

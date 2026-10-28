@@ -42348,7 +42348,7 @@ Next Planned (posted for the following agent):
 - Added `webbrowser_utils.py` and `tests/test_webbrowser_utils.py`.
 - Added `wsgiref_utils.py` and `tests/test_wsgiref_utils.py`.
 - Added `xdrlib_utils.py` and `tests/test_xdrlib_utils.py`.
-- Added `xml_utils.py` and `tests/test_xml_utils.py`.
+- Added `is_version_between(version, lower, upper, inclusive=True)` to `version_utils.py` with bounds checking and aliases `between`/`is_between`, plus tests; updated README and synchronized embedded copies via `make refresh-scaffold`.
 - Added `xmlrpc_utils.py` and `tests/test_xmlrpc_utils.py`.
 - Added `zipapp_utils.py` and `tests/test_zipapp_utils.py`.
 - Added `zipfile_utils.py` and `tests/test_zipfile_utils.py`.
@@ -42545,7 +42545,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
-version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions, bump_version, decrement_version)
+version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
@@ -43463,7 +43463,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most` report whether a version satisfies a lower/upper bound (with the aliases `at_least`/`at_most`). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -86781,8 +86781,11 @@ __all__: List[str] = [
     "dec",
     "is_version_at_least",
     "is_version_at_most",
+    "is_version_between",
     "at_least",
     "at_most",
+    "between",
+    "is_between",
 ]
 
 
@@ -87565,8 +87568,53 @@ def is_version_at_most(version: str, maximum: str) -> bool:
     return compare_versions(version, maximum) <= 0
 
 
+def is_version_between(
+    version: str, lower: str, upper: str, inclusive: bool = True
+) -> bool:
+    """Return True if *version* is between *lower* and *upper*.
+
+    Args:
+        version: A dotted version string.
+        lower: The lower bound version string.
+        upper: The upper bound version string.
+        inclusive: If True (default), bounds are inclusive.
+
+    Returns:
+        True if *version* is between *lower* and *upper*.
+
+    Raises:
+        TypeError: If any argument is not a string or *inclusive* is not a bool.
+        ValueError: If any version string is invalid.
+
+    Examples:
+        >>> is_version_between("1.2.5", "1.2.0", "1.3.0")
+        True
+        >>> is_version_between("1.3.0", "1.2.0", "1.3.0")
+        True
+        >>> is_version_between("1.3.0", "1.2.0", "1.3.0", inclusive=False)
+        False
+        >>> is_version_between("1.1.9", "1.2.0", "1.3.0")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not isinstance(lower, str):
+        raise TypeError("lower must be a string")
+    if not isinstance(upper, str):
+        raise TypeError("upper must be a string")
+    if not isinstance(inclusive, bool):
+        raise TypeError("inclusive must be a bool")
+    if inclusive:
+        return compare_versions(version, lower) >= 0 and compare_versions(
+            version, upper
+        ) <= 0
+    return compare_versions(version, lower) > 0 and compare_versions(version, upper) < 0
+
+
 at_least = is_version_at_least
 at_most = is_version_at_most
+between = is_version_between
+is_between = is_version_between
 VERSION_UTILS
 
 # --- tests/test_version_utils.py ---
@@ -87607,8 +87655,11 @@ from version_utils import (
     is_version_less_equal,
     is_version_at_least,
     is_version_at_most,
+    is_version_between,
     at_least,
     at_most,
+    between,
+    is_between,
     max_version,
     min_version,
     normalize_version,
@@ -88223,6 +88274,43 @@ class TestIsVersionAtMost(unittest.TestCase):
     def test_invalid_version_raises(self):
         with self.assertRaises(ValueError):
             is_version_at_most("1.x", "1.0.0")
+
+
+class TestIsVersionBetween(unittest.TestCase):
+    def test_between_inclusive(self):
+        self.assertTrue(is_version_between("1.2.5", "1.2.0", "1.3.0"))
+        self.assertTrue(is_version_between("1.2.0", "1.2.0", "1.3.0"))
+        self.assertTrue(is_version_between("1.3.0", "1.2.0", "1.3.0"))
+        self.assertFalse(is_version_between("1.1.9", "1.2.0", "1.3.0"))
+        self.assertFalse(is_version_between("1.3.1", "1.2.0", "1.3.0"))
+
+    def test_between_exclusive(self):
+        self.assertTrue(is_version_between("1.2.5", "1.2.0", "1.3.0", inclusive=False))
+        self.assertFalse(is_version_between("1.2.0", "1.2.0", "1.3.0", inclusive=False))
+        self.assertFalse(is_version_between("1.3.0", "1.2.0", "1.3.0", inclusive=False))
+
+    def test_aliases(self):
+        self.assertTrue(between("1.0.0", "1.0.0", "2.0.0"))
+        self.assertTrue(is_between("1.5.0", "1.0.0", "2.0.0"))
+        self.assertFalse(is_between("0.9.0", "1.0.0", "2.0.0"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_version_between(123, "1.0.0", "2.0.0")
+        with self.assertRaises(TypeError):
+            is_version_between("1.0.0", 123, "2.0.0")
+        with self.assertRaises(TypeError):
+            is_version_between("1.0.0", "1.0.0", 123)
+        with self.assertRaises(TypeError):
+            is_version_between("1.0.0", "1.0.0", "2.0.0", inclusive="yes")
+
+    def test_invalid_version(self):
+        with self.assertRaises(ValueError):
+            is_version_between("bad", "1.0.0", "2.0.0")
+        with self.assertRaises(ValueError):
+            is_version_between("1.0.0", "bad", "2.0.0")
+        with self.assertRaises(ValueError):
+            is_version_between("1.0.0", "1.0.0", "bad")
 TEST_VERSION_UTILS
 
 # --- warnings_utils.py ---
