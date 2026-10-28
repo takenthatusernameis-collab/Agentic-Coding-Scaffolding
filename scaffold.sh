@@ -11094,13 +11094,54 @@ def _require_int(value: object, name: str) -> int:
 
 
 def reverse_string(s: str) -> str:
-    """Return the reverse of the given string."""
+    """Return the reverse of the given string.
+
+    Args:
+        s: The string to reverse.
+
+    Returns:
+        The characters of *s* in reverse order. The empty string is returned
+        unchanged.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> reverse_string("hello")
+        'olleh'
+        >>> reverse_string("")
+        ''
+    """
     _require_string(s, "s")
     return s[::-1]
 
 
 def reverse_words(s: str) -> str:
-    """Return the string with the order of its words reversed."""
+    """Return the string with the order of its words reversed.
+
+    Words are the whitespace-delimited runs of characters in *s*; the words
+    are returned in reverse order, separated by a single space.
+
+    Args:
+        s: The string whose words to reverse.
+
+    Returns:
+        A string with the words of *s* in reverse order. Leading, trailing,
+        and internal runs of whitespace are collapsed to a single separating
+        space, so ``reverse_words("  hello   world  ")`` is ``"world hello"``.
+        The empty string and a single word are returned unchanged.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> reverse_words("hello world")
+        'world hello'
+        >>> reverse_words("one")
+        'one'
+        >>> reverse_words("")
+        ''
+    """
     _require_string(s, "s")
     words = s.split()
     return " ".join(reversed(words))
@@ -11110,6 +11151,25 @@ def count_vowels(s: str) -> int:
     """Return the number of vowels (a, e, i, o, u) in the given string.
 
     Comparison is case-insensitive.
+
+    Args:
+        s: The string to count vowels in.
+
+    Returns:
+        The number of vowel characters. Non-alphabetic characters are ignored.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_vowels("hello world")
+        3
+        >>> count_vowels("HELLO")
+        2
+        >>> count_vowels("rhythm")
+        0
+        >>> count_vowels("")
+        0
     """
     _require_string(s, "s")
     vowels = {"a", "e", "i", "o", "u"}
@@ -11120,6 +11180,25 @@ def count_consonants(s: str) -> int:
     """Return the number of consonants in the given string.
 
     Comparison is case-insensitive and ignores non-alphabetic characters.
+
+    Args:
+        s: The string to count consonants in.
+
+    Returns:
+        The number of consonant characters.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_consonants("hello world")
+        7
+        >>> count_consonants("HELLO")
+        3
+        >>> count_consonants("a1e2")
+        0
+        >>> count_consonants("")
+        0
     """
     _require_string(s, "s")
     vowels = {"a", "e", "i", "o", "u"}
@@ -11182,6 +11261,25 @@ def is_anagram(s1: str, s2: str) -> bool:
     """Return True if s1 and s2 are anagrams of each other.
 
     Comparison is case-insensitive and ignores whitespace.
+
+    Args:
+        s1: The first string.
+        s2: The second string.
+
+    Returns:
+        True when the alphabetic characters of *s1* and *s2* are the same
+        multiset, False otherwise. The empty string is an anagram of itself.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> is_anagram("listen", "silent")
+        True
+        >>> is_anagram("Hello", "World")
+        False
+        >>> is_anagram("", "")
+        True
     """
     _require_string(s1, "s1")
     _require_string(s2, "s2")
@@ -11266,7 +11364,30 @@ def is_rotation(s1: str, s2: str) -> bool:
 
 
 def capitalize_words(s: str) -> str:
-    """Capitalize the first letter of each word."""
+    """Capitalize the first letter of each whitespace-delimited word in *s*.
+
+    Each word has its first character upper-cased and the rest lower-cased.
+    Words are separated by single spaces in the output, so runs of whitespace
+    in *s* are collapsed.
+
+    Args:
+        s: The string to capitalize.
+
+    Returns:
+        A string with the first letter of each word capitalized. The empty
+        string is returned unchanged.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> capitalize_words("hello world")
+        'Hello World'
+        >>> capitalize_words("a b c")
+        'A B C'
+        >>> capitalize_words("")
+        ''
+    """
     _require_string(s, "s")
     return " ".join(word.capitalize() for word in s.split(" "))
 
@@ -11280,10 +11401,22 @@ def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) 
         ignore_spaces: Whether to ignore whitespace (default True).
 
     Returns:
-        True if the string is a palindrome, False otherwise.
+        True if the string is a palindrome, False otherwise. The empty string
+        is a palindrome.
 
     Raises:
-        TypeError: If *s* is not a string.
+        TypeError: If *s* is not a string, or if *ignore_case* or
+            *ignore_spaces* is not a bool.
+
+    Examples:
+        >>> is_palindrome("racecar")
+        True
+        >>> is_palindrome("A man a plan a canal Panama")
+        True
+        >>> is_palindrome("hello")
+        False
+        >>> is_palindrome("")
+        True
     """
     _require_string(s, "s")
     if not isinstance(ignore_case, bool):
@@ -11313,11 +11446,23 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
         suffix: Suffix to append if truncated (default "...").
 
     Returns:
-        Truncated string.
+        The truncated string. If *s* is already no longer than *length*, it
+        is returned unchanged. When *length* is zero, the empty string is
+        returned. When *suffix* is longer than *length*, a ``ValueError`` is
+        raised.
 
     Raises:
         TypeError: If *s* is not a string or *length* is not an int.
-        ValueError: If *length* is negative.
+        ValueError: If *length* is negative or *suffix* is longer than
+            *length*.
+
+    Examples:
+        >>> truncate("hello world", 5)
+        'he...'
+        >>> truncate("hello", 10)
+        'hello'
+        >>> truncate("hello world", 0)
+        ''
     """
     _require_string(s, "s")
     _require_int(length, "length")
@@ -11334,7 +11479,31 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
 
 
 def levenshtein_distance(s1: str, s2: str) -> int:
-    """Return the Levenshtein distance between s1 and s2."""
+    """Return the Levenshtein distance between *s1* and *s2*.
+
+    The Levenshtein distance is the minimum number of single-character
+    insertions, deletions, or substitutions required to turn *s1* into *s2*.
+
+    Args:
+        s1: The first string.
+        s2: The second string.
+
+    Returns:
+        The edit distance between the two strings. Identical strings have a
+        distance of 0; an empty string compared with a string of length *n*
+        has a distance of *n*.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> levenshtein_distance("kitten", "sitting")
+        3
+        >>> levenshtein_distance("abc", "abc")
+        0
+        >>> levenshtein_distance("", "abc")
+        3
+    """
     _require_string(s1, "s1")
     _require_string(s2, "s2")
     if s1 == s2:
@@ -11356,13 +11525,52 @@ def levenshtein_distance(s1: str, s2: str) -> int:
 
 
 def title_case(s: str) -> str:
-    """Convert string to title case."""
+    """Convert string to title case.
+
+    Each whitespace-delimited word of *s* has its first character
+    upper-cased and the remaining characters lower-cased.
+
+    Args:
+        s: The string to title-case.
+
+    Returns:
+        The title-cased string. The empty string is returned unchanged.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> title_case("hello world")
+        'Hello World'
+        >>> title_case("a b c")
+        'A B C'
+        >>> title_case("")
+        ''
+    """
     _require_string(s, "s")
     return " ".join(word.capitalize() for word in s.split())
 
 
 def camel_to_snake(s: str) -> str:
-    """Convert camelCase to snake_case."""
+    """Convert a camelCase string to snake_case.
+
+    Args:
+        s: The camelCase string to convert.
+
+    Returns:
+        The snake_case form of *s*. The empty string is returned unchanged.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> camel_to_snake("camelCase")
+        'camel_case'
+        >>> camel_to_snake("HTMLParser")
+        'html_parser'
+        >>> camel_to_snake("")
+        ''
+    """
     _require_string(s, "s")
     import re
 
@@ -11371,7 +11579,27 @@ def camel_to_snake(s: str) -> str:
 
 
 def snake_to_camel(s: str, capitalize_first: bool = False) -> str:
-    """Convert snake_case to camelCase."""
+    """Convert a snake_case string to camelCase.
+
+    Args:
+        s: The snake_case string to convert.
+        capitalize_first: If True, produce PascalCase (first letter
+            capitalized); if False (the default), produce lower camelCase.
+
+    Returns:
+        The camelCase form of *s*. The empty string is returned unchanged.
+
+    Raises:
+        TypeError: If *s* is not a string or *capitalize_first* is not a bool.
+
+    Examples:
+        >>> snake_to_camel("hello_world")
+        'helloWorld'
+        >>> snake_to_camel("hello_world", capitalize_first=True)
+        'HelloWorld'
+        >>> snake_to_camel("")
+        ''
+    """
     _require_string(s, "s")
     if not isinstance(capitalize_first, bool):
         raise TypeError(f"capitalize_first must be a bool, got {type(capitalize_first).__name__}")
@@ -11384,7 +11612,29 @@ def snake_to_camel(s: str, capitalize_first: bool = False) -> str:
 
 
 def slugify(s: str) -> str:
-    """Convert string to URL-friendly slug."""
+    """Convert a string to a URL-friendly slug.
+
+    The string is lower-cased, stripped, and runs of non-word characters,
+    whitespace, underscores, and hyphens are collapsed to a single
+    hyphen. Leading and trailing hyphens are removed.
+
+    Args:
+        s: The string to slugify.
+
+    Returns:
+        The slug form of *s*. The empty string is returned unchanged.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> slugify("Hello World!")
+        'hello-world'
+        >>> slugify("  Some Title  ")
+        'some-title'
+        >>> slugify("")
+        ''
+    """
     _require_string(s, "s")
     import re
 
@@ -11396,13 +11646,50 @@ def slugify(s: str) -> str:
 
 
 def remove_whitespace(s: str) -> str:
-    """Remove all whitespace from string."""
+    """Remove all whitespace characters from *s*.
+
+    Args:
+        s: The string to strip whitespace from.
+
+    Returns:
+        *s* with every whitespace character (spaces, tabs, newlines, etc.)
+        removed. The empty string is returned unchanged.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> remove_whitespace("hello world")
+        'helloworld'
+        >>> remove_whitespace("a\tb\nc")
+        'abc'
+        >>> remove_whitespace("")
+        ''
+    """
     _require_string(s, "s")
     return "".join(s.split())
 
 
 def word_count(s: str) -> int:
-    """Count words in string."""
+    """Count the number of whitespace-delimited words in *s*.
+
+    Args:
+        s: The string to count words in.
+
+    Returns:
+        The number of words. Whitespace-only and empty strings return 0.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> word_count("hello world")
+        2
+        >>> word_count("   ")
+        0
+        >>> word_count("")
+        0
+    """
     _require_string(s, "s")
     if not s.strip():
         return 0
@@ -11410,13 +11697,51 @@ def word_count(s: str) -> int:
 
 
 def char_count(s: str) -> int:
-    """Count characters in string."""
+    """Return the number of characters in *s*.
+
+    Equivalent to ``len(s)`` but provided as a typed helper.
+
+    Args:
+        s: The string to count characters in.
+
+    Returns:
+        The number of characters in *s*, including whitespace.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> char_count("hello")
+        5
+        >>> char_count("")
+        0
+    """
     _require_string(s, "s")
     return len(s)
 
 
 def normalize_whitespace(s: str) -> str:
-    """Collapse runs of whitespace to a single space and trim."""
+    """Collapse runs of whitespace in *s* to a single space and trim ends.
+
+    Args:
+        s: The string to normalize.
+
+    Returns:
+        *s* with all runs of whitespace replaced by a single space and
+        leading/trailing whitespace removed. The empty string is returned
+        unchanged.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> normalize_whitespace("hello   world")
+        'hello world'
+        >>> normalize_whitespace("  a  b  ")
+        'a b'
+        >>> normalize_whitespace("")
+        ''
+    """
     _require_string(s, "s")
     import re
 
@@ -11424,13 +11749,56 @@ def normalize_whitespace(s: str) -> str:
 
 
 def is_blank(s: str) -> bool:
-    """Return True if string is empty or contains only whitespace."""
+    """Return True if *s* is empty or contains only whitespace.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        True when *s* is empty or every character is whitespace, False
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_blank("")
+        True
+        >>> is_blank("   ")
+        True
+        >>> is_blank("hello")
+        False
+    """
     _require_string(s, "s")
     return s.strip() == ""
 
 
 def is_upper(s: str) -> bool:
-    """Return True if all alphabetic chars are uppercase and at least one alphabetic char."""
+    """Return True if all alphabetic chars in *s* are uppercase.
+
+    At least one alphabetic character must be present for the result to be
+    True, so strings containing no letters return False.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        True when *s* contains at least one alphabetic character and every
+        alphabetic character is uppercase, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_upper("HELLO")
+        True
+        >>> is_upper("Hello")
+        False
+        >>> is_upper("123")
+        False
+        >>> is_upper("")
+        False
+    """
     _require_string(s, "s")
     if not any(c.isalpha() for c in s):
         return False
@@ -11438,7 +11806,31 @@ def is_upper(s: str) -> bool:
 
 
 def is_lower(s: str) -> bool:
-    """Return True if all alphabetic chars are lowercase and at least one alphabetic char."""
+    """Return True if all alphabetic chars in *s* are lowercase.
+
+    At least one alphabetic character must be present for the result to be
+    True, so strings containing no letters return False.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        True when *s* contains at least one alphabetic character and every
+        alphabetic character is lowercase, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_lower("hello")
+        True
+        >>> is_lower("Hello")
+        False
+        >>> is_lower("123")
+        False
+        >>> is_lower("")
+        False
+    """
     _require_string(s, "s")
     if not any(c.isalpha() for c in s):
         return False
@@ -11446,7 +11838,29 @@ def is_lower(s: str) -> bool:
 
 
 def is_title(s: str) -> bool:
-    """Return True if the string is titlecased and contains at least one cased character."""
+    """Return True if *s* is titlecased.
+
+    A string is titlecased when each word starts with an uppercase character
+    and the remaining characters are lowercase, and at least one cased
+    character is present.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        True when *s* is titlecased, False otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_title("Hello World")
+        True
+        >>> is_title("hello World")
+        False
+        >>> is_title("")
+        False
+    """
     _require_string(s, "s")
     if not any(c.isalpha() for c in s):
         return False
@@ -11663,16 +12077,28 @@ def is_integer(s: str) -> bool:
 
 
 def is_printable(s: str) -> bool:
-    """Return True if all characters in the string are printable.
+    """Return True if all characters in *s* are printable.
+
+    A character is printable when ``str.isprintable()`` returns True for it;
+    whitespace characters other than the space character are not printable.
 
     Args:
         s: The string to test.
 
     Returns:
-        True if all characters are printable and the string is not empty.
+        True if *s* is non-empty and every character is printable, False
+        otherwise.
 
     Raises:
         TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_printable("hello world!")
+        True
+        >>> is_printable("hello\tworld")
+        False
+        >>> is_printable("")
+        False
     """
     _require_string(s, "s")
     if not s:
@@ -11681,16 +12107,29 @@ def is_printable(s: str) -> bool:
 
 
 def is_identifier(s: str) -> bool:
-    """Return True if the string is a valid Python identifier.
+    """Return True if *s* is a valid Python identifier.
 
     Args:
         s: The string to test.
 
     Returns:
-        True if *s* is a non-empty valid Python identifier.
+        True if *s* is non-empty and ``str.isidentifier()`` returns True for
+        it, False otherwise.
 
     Raises:
         TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_identifier("foo")
+        True
+        >>> is_identifier("_foo")
+        True
+        >>> is_identifier("123foo")
+        False
+        >>> is_identifier("foo-bar")
+        False
+        >>> is_identifier("")
+        False
     """
     _require_string(s, "s")
     if not s:
@@ -11860,6 +12299,8 @@ def removesuffix(s: str, suffix: str) -> str:
     """
     _require_string(s, "s")
     _require_string(suffix, "suffix")
+    if not suffix:
+        return s
     if s.endswith(suffix):
         return s[: -len(suffix)]
     return s
@@ -13725,10 +14166,10 @@ from strings import (
     remove_consonants,
     remove_digits,
     remove_punctuation,
-    removeprefix,
-    removesuffix,
     remove_vowels,
     remove_whitespace,
+    removeprefix,
+    removesuffix,
     replace_many,
     reverse_string,
     reverse_words,
@@ -13851,7 +14292,7 @@ class TestCountLowercase(unittest.TestCase):
         self.assertEqual(count_lowercase("HELLO"), 0)
 
     def test_count_mixed(self):
-        self.assertEqual(count_lowercase("PyThOn 3.10!"), 4)
+        self.assertEqual(count_lowercase("PyThOn 3.10!"), 3)
 
     def test_count_empty(self):
         self.assertEqual(count_lowercase(""), 0)
@@ -13880,7 +14321,7 @@ class TestCountUppercase(unittest.TestCase):
         self.assertEqual(count_uppercase("hello"), 0)
 
     def test_count_mixed(self):
-        self.assertEqual(count_uppercase("PyThOn 3.10!"), 2)
+        self.assertEqual(count_uppercase("PyThOn 3.10!"), 3)
 
     def test_count_empty(self):
         self.assertEqual(count_uppercase(""), 0)
