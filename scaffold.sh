@@ -41433,6 +41433,24 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added is_close to number_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6262 tests and passes, `make lint` is clean, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, and `make typecheck` is not available in this environment (mypy not installed).
+
+Completed in this session:
+
+- Added `is_close(a, b, *, rel_tol=1e-09, abs_tol=0.0)` to `number_utils.py` returning whether two numbers are within a relative and absolute tolerance of each other (wrapping `math.isclose`), with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation consistent with the rest of the module.
+- Added `TestIsClose` to `tests/test_number_utils.py` covering equal values, within/outside default tolerance, custom `abs_tol` and `rel_tol`, negative values, zeros, `TypeError` paths (non-number arguments, bool arguments, non-number tolerances), and negative-tolerance `ValueError` paths (9 new tests). Imported `is_close` in the test file's import block to match the `__all__` contract.
+- Updated the `number_utils` module tree entry and prose section of `README.md` to document `is_close`.
+- Verified the work: `make test` runs 6271 tests and passes, `make lint` is clean, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added round_half_up to number_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6224 tests and passes, `make lint` is clean, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, and `make typecheck` is not available in this environment (mypy not installed).
@@ -42236,7 +42254,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_finite, is_infinite, is_nan)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_close, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_finite, is_infinite, is_nan)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -43161,7 +43179,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -61455,6 +61473,7 @@ __all__: List[str] = [
     "is_non_negative",
     "is_non_positive",
     "is_between",
+    "is_close",
     "in_range",
     "is_finite",
     "is_infinite",
@@ -61844,6 +61863,50 @@ def is_between(value: Number, lower: Number, upper: Number, inclusive: bool = Tr
     return lower < value < upper
 
 
+def is_close(
+    a: Number,
+    b: Number,
+    *,
+    rel_tol: Number = 1e-09,
+    abs_tol: Number = 0.0,
+) -> bool:
+    """Return True if *a* and *b* are close to each other.
+
+    Two values are considered close when the absolute difference between them
+    is at most ``abs_tol + rel_tol * abs(b)``, matching :func:`math.isclose`.
+
+    Args:
+        a: The first number to compare.
+        b: The second number to compare.
+        rel_tol: The relative tolerance, must be non-negative.
+        abs_tol: The minimum absolute tolerance, must be non-negative.
+
+    Returns:
+        True if *a* and *b* are within the tolerances of each other.
+
+    Raises:
+        TypeError: If any argument is not a number.
+        ValueError: If *rel_tol* or *abs_tol* is negative.
+
+    Examples:
+        >>> is_close(1.0, 1.000000001)
+        True
+        >>> is_close(1.0, 2.0)
+        False
+        >>> is_close(1.0, 1.1, abs_tol=0.2)
+        True
+    """
+    _require_number(a, "a")
+    _require_number(b, "b")
+    _require_number(rel_tol, "rel_tol")
+    _require_number(abs_tol, "abs_tol")
+    if rel_tol < 0:
+        raise ValueError("rel_tol must be non-negative")
+    if abs_tol < 0:
+        raise ValueError("abs_tol must be non-negative")
+    return math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
+
+
 def is_finite(value: Number) -> bool:
     """Return True if *value* is finite (not infinite and not NaN).
 
@@ -62132,6 +62195,7 @@ from number_utils import (
     clamp,
     format_number,
     is_between,
+    is_close,
     is_even,
     is_finite,
     is_infinite,
@@ -62402,6 +62466,55 @@ class TestIsBetween(unittest.TestCase):
             is_between(5, 0, "x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_between(5, 0, 10, inclusive="yes")  # type: ignore[arg-type]
+
+
+class TestIsClose(unittest.TestCase):
+    def test_equal_values(self) -> None:
+        self.assertTrue(is_close(5, 5))
+        self.assertTrue(is_close(1.5, 1.5))
+
+    def test_within_default_tolerance(self) -> None:
+        self.assertTrue(is_close(1.0, 1.0000000001))
+        self.assertTrue(is_close(1.0, 1 + 1e-10))
+
+    def test_outside_default_tolerance(self) -> None:
+        self.assertFalse(is_close(1.0, 1.1))
+        self.assertFalse(is_close(100.0, 101.0))
+
+    def test_abs_tol(self) -> None:
+        self.assertTrue(is_close(1.0, 1.1, abs_tol=0.2))
+        self.assertFalse(is_close(1.0, 1.3, abs_tol=0.2))
+
+    def test_rel_tol(self) -> None:
+        self.assertTrue(is_close(100.0, 100.001, rel_tol=1e-4))
+        self.assertFalse(is_close(100.0, 100.1, rel_tol=1e-4))
+
+    def test_negative_values(self) -> None:
+        self.assertTrue(is_close(-5.0, -5.000000001))
+        self.assertFalse(is_close(-5.0, -5.1))
+
+    def test_zeros(self) -> None:
+        self.assertTrue(is_close(0.0, 0.0))
+        self.assertTrue(is_close(0.0, 1e-12, abs_tol=1e-9))
+        self.assertFalse(is_close(0.0, 1.0, abs_tol=0.5))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_close("x", 1.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_close(1.0, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_close(1.0, 1.0, rel_tol="x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_close(1.0, 1.0, abs_tol=None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_close(True, 1.0)  # type: ignore[arg-type]
+
+    def test_negative_tolerances_raise(self) -> None:
+        with self.assertRaises(ValueError):
+            is_close(1.0, 1.0, rel_tol=-0.1)
+        with self.assertRaises(ValueError):
+            is_close(1.0, 1.0, abs_tol=-0.1)
 
 
 if __name__ == "__main__":

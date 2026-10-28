@@ -25,6 +25,7 @@ __all__: List[str] = [
     "is_non_negative",
     "is_non_positive",
     "is_between",
+    "is_close",
     "in_range",
     "is_finite",
     "is_infinite",
@@ -412,6 +413,50 @@ def is_between(value: Number, lower: Number, upper: Number, inclusive: bool = Tr
     if inclusive:
         return lower <= value <= upper
     return lower < value < upper
+
+
+def is_close(
+    a: Number,
+    b: Number,
+    *,
+    rel_tol: Number = 1e-09,
+    abs_tol: Number = 0.0,
+) -> bool:
+    """Return True if *a* and *b* are close to each other.
+
+    Two values are considered close when the absolute difference between them
+    is at most ``abs_tol + rel_tol * abs(b)``, matching :func:`math.isclose`.
+
+    Args:
+        a: The first number to compare.
+        b: The second number to compare.
+        rel_tol: The relative tolerance, must be non-negative.
+        abs_tol: The minimum absolute tolerance, must be non-negative.
+
+    Returns:
+        True if *a* and *b* are within the tolerances of each other.
+
+    Raises:
+        TypeError: If any argument is not a number.
+        ValueError: If *rel_tol* or *abs_tol* is negative.
+
+    Examples:
+        >>> is_close(1.0, 1.000000001)
+        True
+        >>> is_close(1.0, 2.0)
+        False
+        >>> is_close(1.0, 1.1, abs_tol=0.2)
+        True
+    """
+    _require_number(a, "a")
+    _require_number(b, "b")
+    _require_number(rel_tol, "rel_tol")
+    _require_number(abs_tol, "abs_tol")
+    if rel_tol < 0:
+        raise ValueError("rel_tol must be non-negative")
+    if abs_tol < 0:
+        raise ValueError("abs_tol must be non-negative")
+    return math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
 
 
 def is_finite(value: Number) -> bool:

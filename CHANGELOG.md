@@ -1,3 +1,21 @@
+## Latest Session (2026-10-28) — added is_close to number_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6262 tests and passes, `make lint` is clean, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, and `make typecheck` is not available in this environment (mypy not installed).
+
+Completed in this session:
+
+- Added `is_close(a, b, *, rel_tol=1e-09, abs_tol=0.0)` to `number_utils.py` returning whether two numbers are within a relative and absolute tolerance of each other (wrapping `math.isclose`), with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation consistent with the rest of the module.
+- Added `TestIsClose` to `tests/test_number_utils.py` covering equal values, within/outside default tolerance, custom `abs_tol` and `rel_tol`, negative values, zeros, `TypeError` paths (non-number arguments, bool arguments, non-number tolerances), and negative-tolerance `ValueError` paths (9 new tests). Imported `is_close` in the test file's import block to match the `__all__` contract.
+- Updated the `number_utils` module tree entry and prose section of `README.md` to document `is_close`.
+- Verified the work: `make test` runs 6271 tests and passes, `make lint` is clean, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added round_half_up to number_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6224 tests and passes, `make lint` is clean, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, and `make typecheck` is not available in this environment (mypy not installed).

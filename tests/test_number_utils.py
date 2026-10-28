@@ -6,6 +6,7 @@ from number_utils import (
     clamp,
     format_number,
     is_between,
+    is_close,
     is_even,
     is_finite,
     is_infinite,
@@ -276,6 +277,55 @@ class TestIsBetween(unittest.TestCase):
             is_between(5, 0, "x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_between(5, 0, 10, inclusive="yes")  # type: ignore[arg-type]
+
+
+class TestIsClose(unittest.TestCase):
+    def test_equal_values(self) -> None:
+        self.assertTrue(is_close(5, 5))
+        self.assertTrue(is_close(1.5, 1.5))
+
+    def test_within_default_tolerance(self) -> None:
+        self.assertTrue(is_close(1.0, 1.0000000001))
+        self.assertTrue(is_close(1.0, 1 + 1e-10))
+
+    def test_outside_default_tolerance(self) -> None:
+        self.assertFalse(is_close(1.0, 1.1))
+        self.assertFalse(is_close(100.0, 101.0))
+
+    def test_abs_tol(self) -> None:
+        self.assertTrue(is_close(1.0, 1.1, abs_tol=0.2))
+        self.assertFalse(is_close(1.0, 1.3, abs_tol=0.2))
+
+    def test_rel_tol(self) -> None:
+        self.assertTrue(is_close(100.0, 100.001, rel_tol=1e-4))
+        self.assertFalse(is_close(100.0, 100.1, rel_tol=1e-4))
+
+    def test_negative_values(self) -> None:
+        self.assertTrue(is_close(-5.0, -5.000000001))
+        self.assertFalse(is_close(-5.0, -5.1))
+
+    def test_zeros(self) -> None:
+        self.assertTrue(is_close(0.0, 0.0))
+        self.assertTrue(is_close(0.0, 1e-12, abs_tol=1e-9))
+        self.assertFalse(is_close(0.0, 1.0, abs_tol=0.5))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_close("x", 1.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_close(1.0, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_close(1.0, 1.0, rel_tol="x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_close(1.0, 1.0, abs_tol=None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_close(True, 1.0)  # type: ignore[arg-type]
+
+    def test_negative_tolerances_raise(self) -> None:
+        with self.assertRaises(ValueError):
+            is_close(1.0, 1.0, rel_tol=-0.1)
+        with self.assertRaises(ValueError):
+            is_close(1.0, 1.0, abs_tol=-0.1)
 
 
 if __name__ == "__main__":
