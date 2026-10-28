@@ -42,6 +42,7 @@ __all__: List[str] = [
     "is_printable",
     "is_identifier",
     "is_pangram",
+    "is_rotation",
     "is_subsequence",
     "initials",
     "swap_case",
@@ -212,6 +213,41 @@ def is_subsequence(needle: str, haystack: str) -> bool:
             if i == len(needle):
                 return True
     return False
+
+
+def is_rotation(s1: str, s2: str) -> bool:
+    """Return True if *s2* is a rotation of *s1*.
+
+    A string *s2* is a rotation of *s1* when it can be formed by moving some
+    number of characters from the front of *s1* to its end (for example,
+    rotating ``"abcde"`` by two positions yields ``"cdeab"``). Two strings
+    are rotations of each other only when they have the same length and *s2*
+    appears as a substring of *s1* concatenated with itself.
+
+    Args:
+        s1: The string to rotate.
+        s2: The candidate rotation.
+
+    Returns:
+        True if *s2* is a rotation of *s1*, False otherwise. The empty string
+        is a rotation of itself.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> is_rotation("abcde", "cdeab")
+        True
+        >>> is_rotation("abcde", "abced")
+        False
+        >>> is_rotation("", "")
+        True
+    """
+    _require_string(s1, "s1")
+    _require_string(s2, "s2")
+    if len(s1) != len(s2):
+        return False
+    return s2 in s1 + s1
 
 
 def capitalize_words(s: str) -> str:

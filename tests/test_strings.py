@@ -34,6 +34,7 @@ from strings import (
     is_palindrome,
     is_pangram,
     is_printable,
+    is_rotation,
     is_space,
     is_subsequence,
     is_title,
@@ -758,6 +759,38 @@ class TestIsSubsequence(unittest.TestCase):
             is_subsequence("abc", 123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_subsequence(123, "abc")  # type: ignore[arg-type]
+
+
+class TestIsRotation(unittest.TestCase):
+    def test_rotation_true(self) -> None:
+        self.assertTrue(is_rotation("abcde", "cdeab"))
+        self.assertTrue(is_rotation("abcde", "deabc"))
+        self.assertTrue(is_rotation("abcde", "eabcd"))
+        self.assertTrue(is_rotation("abcde", "bcdea"))
+        self.assertTrue(is_rotation("abcde", "abcde"))
+
+    def test_rotation_false(self) -> None:
+        self.assertFalse(is_rotation("abcde", "abced"))
+        self.assertFalse(is_rotation("abcde", "abcda"))
+        self.assertFalse(is_rotation("abc", "abcd"))
+        self.assertFalse(is_rotation("abcd", "abc"))
+        self.assertFalse(is_rotation("hello", "world"))
+
+    def test_rotation_empty(self) -> None:
+        self.assertTrue(is_rotation("", ""))
+        self.assertTrue(is_rotation("a", "a"))
+        self.assertFalse(is_rotation("a", ""))
+        self.assertFalse(is_rotation("", "a"))
+
+    def test_rotation_case_sensitive(self) -> None:
+        self.assertFalse(is_rotation("Abcde", "abcde"))
+        self.assertFalse(is_rotation("abcde", "Abcde"))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_rotation(123, "abcde")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_rotation("abcde", 123)  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):

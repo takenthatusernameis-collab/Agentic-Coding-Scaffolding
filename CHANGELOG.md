@@ -1,3 +1,19 @@
+## Latest Session (2026-10-28) — added is_rotation to strings.py
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6111 tests and passes except 1 pre-existing failure in `tests/test_scaffold_sync.py` for `type_check_utils` (environment-related, unchanged by this work), `make lint` and `make typecheck` report only pre-existing errors outside the files touched, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_rotation(s1, s2)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *s2* is a rotation of *s1* (equal length and *s2* is a substring of *s1* + *s1*), `False` otherwise, treating the empty string as a rotation of itself. Added `TestIsRotation` to `tests/test_strings.py` covering rotation true/false, empty inputs, case sensitivity, and the `TypeError` paths (5 new tests; 6116 tests now run). Updated the `strings` module prose section of `README.md`. Recorded the change in this CHANGELOG entry. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6116 tests and passes except the 1 pre-existing `type_check_utils` scaffold-sync failure, `make lint` passes cleanly on `strings.py` and `tests/test_strings.py`, `make typecheck` reports no issues in `strings.py`, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added random_choices
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6062 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 518 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

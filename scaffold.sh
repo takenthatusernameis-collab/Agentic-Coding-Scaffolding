@@ -11036,6 +11036,7 @@ __all__: List[str] = [
     "is_printable",
     "is_identifier",
     "is_pangram",
+    "is_rotation",
     "is_subsequence",
     "initials",
     "swap_case",
@@ -11206,6 +11207,41 @@ def is_subsequence(needle: str, haystack: str) -> bool:
             if i == len(needle):
                 return True
     return False
+
+
+def is_rotation(s1: str, s2: str) -> bool:
+    """Return True if *s2* is a rotation of *s1*.
+
+    A string *s2* is a rotation of *s1* when it can be formed by moving some
+    number of characters from the front of *s1* to its end (for example,
+    rotating ``"abcde"`` by two positions yields ``"cdeab"``). Two strings
+    are rotations of each other only when they have the same length and *s2*
+    appears as a substring of *s1* concatenated with itself.
+
+    Args:
+        s1: The string to rotate.
+        s2: The candidate rotation.
+
+    Returns:
+        True if *s2* is a rotation of *s1*, False otherwise. The empty string
+        is a rotation of itself.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> is_rotation("abcde", "cdeab")
+        True
+        >>> is_rotation("abcde", "abced")
+        False
+        >>> is_rotation("", "")
+        True
+    """
+    _require_string(s1, "s1")
+    _require_string(s2, "s2")
+    if len(s1) != len(s2):
+        return False
+    return s2 in s1 + s1
 
 
 def capitalize_words(s: str) -> str:
@@ -13582,6 +13618,7 @@ from strings import (
     is_palindrome,
     is_pangram,
     is_printable,
+    is_rotation,
     is_space,
     is_subsequence,
     is_title,
@@ -14306,6 +14343,38 @@ class TestIsSubsequence(unittest.TestCase):
             is_subsequence("abc", 123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_subsequence(123, "abc")  # type: ignore[arg-type]
+
+
+class TestIsRotation(unittest.TestCase):
+    def test_rotation_true(self) -> None:
+        self.assertTrue(is_rotation("abcde", "cdeab"))
+        self.assertTrue(is_rotation("abcde", "deabc"))
+        self.assertTrue(is_rotation("abcde", "eabcd"))
+        self.assertTrue(is_rotation("abcde", "bcdea"))
+        self.assertTrue(is_rotation("abcde", "abcde"))
+
+    def test_rotation_false(self) -> None:
+        self.assertFalse(is_rotation("abcde", "abced"))
+        self.assertFalse(is_rotation("abcde", "abcda"))
+        self.assertFalse(is_rotation("abc", "abcd"))
+        self.assertFalse(is_rotation("abcd", "abc"))
+        self.assertFalse(is_rotation("hello", "world"))
+
+    def test_rotation_empty(self) -> None:
+        self.assertTrue(is_rotation("", ""))
+        self.assertTrue(is_rotation("a", "a"))
+        self.assertFalse(is_rotation("a", ""))
+        self.assertFalse(is_rotation("", "a"))
+
+    def test_rotation_case_sensitive(self) -> None:
+        self.assertFalse(is_rotation("Abcde", "abcde"))
+        self.assertFalse(is_rotation("abcde", "Abcde"))
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_rotation(123, "abcde")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_rotation("abcde", 123)  # type: ignore[arg-type]
 
 
 class TestSwapCase(unittest.TestCase):
@@ -40162,6 +40231,22 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added is_rotation to strings.py
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6111 tests and passes except 1 pre-existing failure in `tests/test_scaffold_sync.py` for `type_check_utils` (environment-related, unchanged by this work), `make lint` and `make typecheck` report only pre-existing errors outside the files touched, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_rotation(s1, s2)` to `strings.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *s2* is a rotation of *s1* (equal length and *s2* is a substring of *s1* + *s1*), `False` otherwise, treating the empty string as a rotation of itself. Added `TestIsRotation` to `tests/test_strings.py` covering rotation true/false, empty inputs, case sensitivity, and the `TypeError` paths (5 new tests; 6116 tests now run). Updated the `strings` module prose section of `README.md`. Recorded the change in this CHANGELOG entry. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6116 tests and passes except the 1 pre-existing `type_check_utils` scaffold-sync failure, `make lint` passes cleanly on `strings.py` and `tests/test_strings.py`, `make typecheck` reports no issues in `strings.py`, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added random_choices
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6062 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 518 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -41367,7 +41452,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
