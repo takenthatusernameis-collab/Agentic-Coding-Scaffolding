@@ -41434,6 +41434,26 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added coerce_to_int to type_check_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6292 tests and passes, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `__all__` to `type_check_utils.py` (it was the only wrapper module missing an explicit export list, inconsistent with every other module's convention).
+- Added `coerce_to_int(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `coerce_to_str`; it accepts ints (including bools), floats, and numeric strings, raising `TypeError` for unsupported types and `ValueError` for non-numeric strings.
+- Added `TestCoerceToInt` to `tests/test_type_check_utils.py` covering ints, numeric strings, bools, floats, negative strings, the `ValueError` path, and the `TypeError` paths for lists and None (8 new tests).
+- Updated the `type_check_utils` prose section of `README.md` to document `coerce_to_int`.
+- Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` passes, `make lint` clean, `make typecheck` reports the same pre-existing errors as before (unchanged by this work), scaffold sync clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added digit_count to number_utils
 
 The board held no task (bootstrap).
@@ -43955,7 +43975,7 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 
 ## Type Check Utilities Module
 
-The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, and `coerce_to_str`. The module is tested in `tests/test_type_check_utils.py`.
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, `coerce_to_str`, and `coerce_to_int`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -114240,9 +114260,32 @@ OSSAUDIODEV_UTILS
 
 # --- type_check_utils.py ---
 cat > "$OUTPUT_DIR/type_check_utils.py" <<'TYPE_CHECK_UTILS'
-"""Utilities for runtime type checking."""
+"""Utilities for runtime type checking.
 
-from typing import Any, cast
+Provides lightweight predicates (``is_str``, ``is_int``, ...) and small
+coercion helpers (``ensure_type``, ``coerce_to_str``). All functions are
+hermetic and side-effect free.
+"""
+
+from typing import Any, List, cast
+
+__all__: List[str] = [
+    "is_str",
+    "is_int",
+    "is_float",
+    "is_bool",
+    "is_list",
+    "is_dict",
+    "is_tuple",
+    "is_set",
+    "is_none",
+    "is_numeric",
+    "is_iterable",
+    "is_callable",
+    "ensure_type",
+    "coerce_to_str",
+    "coerce_to_int",
+]
 
 
 def is_str(value: object) -> bool:
@@ -114334,8 +114377,57 @@ def ensure_type(value: object, expected_type: type, name: str = "value") -> obje
 
 
 def coerce_to_str(value: object) -> str:
-    """Convert value to string."""
+    """Convert value to string.
+
+    Args:
+        value: The value to convert.
+
+    Returns:
+        The string representation of *value*.
+
+    Examples:
+        >>> coerce_to_str(123)
+        '123'
+        >>> coerce_to_str([1, 2])
+        '[1, 2]'
+    """
     return str(value)
+
+
+def coerce_to_int(value: object) -> int:
+    """Convert *value* to an int.
+
+    Accepts ints (including bools, which are converted to ``0``/``1``),
+    floats, and numeric strings; raises ``TypeError`` for unsupported
+    types and ``ValueError`` for strings that do not parse as an integer.
+
+    Args:
+        value: The value to convert.
+
+    Returns:
+        The integer representation of *value*.
+
+    Raises:
+        TypeError: If *value* cannot be converted to an int.
+        ValueError: If *value* is a string that is not a valid integer.
+
+    Examples:
+        >>> coerce_to_int(123)
+        123
+        >>> coerce_to_int("456")
+        456
+        >>> coerce_to_int(True)
+        1
+    """
+    if isinstance(value, bool) or isinstance(value, int):
+        return int(value)
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str):
+        return int(value)
+    raise TypeError(
+        f"cannot coerce {type(value).__name__} to int"
+    )
 TYPE_CHECK_UTILS
 
 # --- tests/test_type_check_utils.py ---
@@ -114412,6 +114504,20 @@ class TestTypeChecks(unittest.TestCase):
     def test_coerce_to_str(self) -> None:
         self.assertEqual(type_check_utils.coerce_to_str(123), "123")
         self.assertEqual(type_check_utils.coerce_to_str([1, 2]), "[1, 2]")
+
+    def test_coerce_to_int(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_int(123), 123)
+        self.assertEqual(type_check_utils.coerce_to_int("456"), 456)
+        self.assertEqual(type_check_utils.coerce_to_int(True), 1)
+        self.assertEqual(type_check_utils.coerce_to_int(False), 0)
+        self.assertEqual(type_check_utils.coerce_to_int(3.99), 3)
+        self.assertEqual(type_check_utils.coerce_to_int("-7"), -7)
+        with self.assertRaises(ValueError):
+            type_check_utils.coerce_to_int("not-a-number")
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int(None)
 
 
 if __name__ == "__main__":

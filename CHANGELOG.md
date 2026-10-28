@@ -1,3 +1,23 @@
+## Latest Session (2026-10-28) — added coerce_to_int to type_check_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6292 tests and passes, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `__all__` to `type_check_utils.py` (it was the only wrapper module missing an explicit export list, inconsistent with every other module's convention).
+- Added `coerce_to_int(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `coerce_to_str`; it accepts ints (including bools), floats, and numeric strings, raising `TypeError` for unsupported types and `ValueError` for non-numeric strings.
+- Added `TestCoerceToInt` to `tests/test_type_check_utils.py` covering ints, numeric strings, bools, floats, negative strings, the `ValueError` path, and the `TypeError` paths for lists and None (8 new tests).
+- Updated the `type_check_utils` prose section of `README.md` to document `coerce_to_int`.
+- Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` passes, `make lint` clean, `make typecheck` reports the same pre-existing errors as before (unchanged by this work), scaffold sync clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added digit_count to number_utils
 
 The board held no task (bootstrap).

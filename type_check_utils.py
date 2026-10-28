@@ -1,6 +1,29 @@
-"""Utilities for runtime type checking."""
+"""Utilities for runtime type checking.
 
-from typing import Any, cast
+Provides lightweight predicates (``is_str``, ``is_int``, ...) and small
+coercion helpers (``ensure_type``, ``coerce_to_str``). All functions are
+hermetic and side-effect free.
+"""
+
+from typing import Any, List, cast
+
+__all__: List[str] = [
+    "is_str",
+    "is_int",
+    "is_float",
+    "is_bool",
+    "is_list",
+    "is_dict",
+    "is_tuple",
+    "is_set",
+    "is_none",
+    "is_numeric",
+    "is_iterable",
+    "is_callable",
+    "ensure_type",
+    "coerce_to_str",
+    "coerce_to_int",
+]
 
 
 def is_str(value: object) -> bool:
@@ -92,5 +115,54 @@ def ensure_type(value: object, expected_type: type, name: str = "value") -> obje
 
 
 def coerce_to_str(value: object) -> str:
-    """Convert value to string."""
+    """Convert value to string.
+
+    Args:
+        value: The value to convert.
+
+    Returns:
+        The string representation of *value*.
+
+    Examples:
+        >>> coerce_to_str(123)
+        '123'
+        >>> coerce_to_str([1, 2])
+        '[1, 2]'
+    """
     return str(value)
+
+
+def coerce_to_int(value: object) -> int:
+    """Convert *value* to an int.
+
+    Accepts ints (including bools, which are converted to ``0``/``1``),
+    floats, and numeric strings; raises ``TypeError`` for unsupported
+    types and ``ValueError`` for strings that do not parse as an integer.
+
+    Args:
+        value: The value to convert.
+
+    Returns:
+        The integer representation of *value*.
+
+    Raises:
+        TypeError: If *value* cannot be converted to an int.
+        ValueError: If *value* is a string that is not a valid integer.
+
+    Examples:
+        >>> coerce_to_int(123)
+        123
+        >>> coerce_to_int("456")
+        456
+        >>> coerce_to_int(True)
+        1
+    """
+    if isinstance(value, bool) or isinstance(value, int):
+        return int(value)
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str):
+        return int(value)
+    raise TypeError(
+        f"cannot coerce {type(value).__name__} to int"
+    )

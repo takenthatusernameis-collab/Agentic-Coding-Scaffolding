@@ -71,6 +71,20 @@ class TestTypeChecks(unittest.TestCase):
         self.assertEqual(type_check_utils.coerce_to_str(123), "123")
         self.assertEqual(type_check_utils.coerce_to_str([1, 2]), "[1, 2]")
 
+    def test_coerce_to_int(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_int(123), 123)
+        self.assertEqual(type_check_utils.coerce_to_int("456"), 456)
+        self.assertEqual(type_check_utils.coerce_to_int(True), 1)
+        self.assertEqual(type_check_utils.coerce_to_int(False), 0)
+        self.assertEqual(type_check_utils.coerce_to_int(3.99), 3)
+        self.assertEqual(type_check_utils.coerce_to_int("-7"), -7)
+        with self.assertRaises(ValueError):
+            type_check_utils.coerce_to_int("not-a-number")
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int(None)
+
 
 if __name__ == "__main__":
     unittest.main()
