@@ -6,6 +6,7 @@ from prompt_utils import (
     clean_prompt,
     collapse_blank_lines,
     count_blank_lines,
+    count_characters,
     count_lines,
     count_non_blank_lines,
     count_placeholders,
@@ -567,6 +568,30 @@ class TestCountNonBlankLines(unittest.TestCase):
             count_non_blank_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_non_blank_lines(None)  # type: ignore[arg-type]
+
+
+class TestCountCharacters(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_characters(""), 0)
+
+    def test_ascii(self):
+        self.assertEqual(count_characters("Hello world"), 11)
+
+    def test_whitespace_counted(self):
+        self.assertEqual(count_characters("a b"), 3)
+
+    def test_unicode(self):
+        self.assertEqual(count_characters("héllo"), 5)
+        self.assertEqual(count_characters("🚀"), 1)
+
+    def test_single_character(self):
+        self.assertEqual(count_characters("x"), 1)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_characters(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_characters(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

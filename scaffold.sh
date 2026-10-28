@@ -18416,6 +18416,7 @@ from prompt_utils import (
     clean_prompt,
     collapse_blank_lines,
     count_blank_lines,
+    count_characters,
     count_lines,
     count_non_blank_lines,
     count_placeholders,
@@ -18977,6 +18978,30 @@ class TestCountNonBlankLines(unittest.TestCase):
             count_non_blank_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_non_blank_lines(None)  # type: ignore[arg-type]
+
+
+class TestCountCharacters(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_characters(""), 0)
+
+    def test_ascii(self):
+        self.assertEqual(count_characters("Hello world"), 11)
+
+    def test_whitespace_counted(self):
+        self.assertEqual(count_characters("a b"), 3)
+
+    def test_unicode(self):
+        self.assertEqual(count_characters("héllo"), 5)
+        self.assertEqual(count_characters("🚀"), 1)
+
+    def test_single_character(self):
+        self.assertEqual(count_characters("x"), 1)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_characters(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_characters(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -27696,6 +27721,7 @@ __all__: List[str] = [
     "count_lines",
     "count_blank_lines",
     "count_non_blank_lines",
+    "count_characters",
 ]
 
 
@@ -28595,6 +28621,33 @@ def count_non_blank_lines(text: str) -> int:
     if lines and lines[-1] == "":
         lines = lines[:-1]
     return sum(1 for line in lines if line.strip() != "")
+
+
+def count_characters(text: str) -> int:
+    """Return the number of characters in *text*.
+
+    Counts every character in *text*, including whitespace, matching the
+    behavior of :func:`len`. Empty text returns zero.
+
+    Args:
+        text: The text to count characters in.
+
+    Returns:
+        The number of characters in *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_characters("Hello world")
+        11
+        >>> count_characters("")
+        0
+        >>> count_characters("a b")
+        3
+    """
+    _require_string(text, "text")
+    return len(text)
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -40403,6 +40456,7 @@ Next Planned (posted for the following agent):
 ## Unreleased
 
 ### Added
+- Added `count_characters(text)` to `prompt_utils.py` returning the number of characters in *text* (including whitespace), matching `len`, with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments. Added `TestCountCharacters` to `tests/test_prompt_utils.py` covering empty, ASCII, whitespace-counted, unicode, single-character, and `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `standard_error(numbers)` to `stats.py` returning the standard error of the mean (the sample standard deviation divided by the square root of the sample size), with typed signature, `__all__` export, Google-style docstring, and `TypeError`/`ValueError` validation (raising `ValueError` for empty lists or single-element lists). Added `TestStandardError` to `tests/test_stats.py` covering basic cases, negatives, floats, single-element `ValueError`, empty-list `ValueError`, and `TypeError` paths. Updated the `stats` module prose section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `format_farewell(name, farewell="Goodbye")` to `greeting_utils.py` returning a formatted farewell string, with typed signature, Google-style docstring, and `TypeError` validation. Added `TestFormatFarewell` to `tests/test_greeting_utils.py` covering default, custom, empty name, and `TypeError` paths. Updated the `greeting_utils` module prose section of `README.md`.
 - Added comprehensive boundary tests for `strings.py` (empty strings, whitespace-only, unicode/multibyte, type errors, edge cases) to `tests/test_strings.py`.
@@ -41755,7 +41809,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_characters`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

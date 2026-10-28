@@ -39,6 +39,7 @@ __all__: List[str] = [
     "count_lines",
     "count_blank_lines",
     "count_non_blank_lines",
+    "count_characters",
 ]
 
 
@@ -938,3 +939,30 @@ def count_non_blank_lines(text: str) -> int:
     if lines and lines[-1] == "":
         lines = lines[:-1]
     return sum(1 for line in lines if line.strip() != "")
+
+
+def count_characters(text: str) -> int:
+    """Return the number of characters in *text*.
+
+    Counts every character in *text*, including whitespace, matching the
+    behavior of :func:`len`. Empty text returns zero.
+
+    Args:
+        text: The text to count characters in.
+
+    Returns:
+        The number of characters in *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_characters("Hello world")
+        11
+        >>> count_characters("")
+        0
+        >>> count_characters("a b")
+        3
+    """
+    _require_string(text, "text")
+    return len(text)
