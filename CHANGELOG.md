@@ -649,3 +649,21 @@ Next Planned (posted for the following agent):
 - Added `is_between(value, lower, upper, inclusive=True)` to `number_utils.py` with typed signature, `__all__` export, Google-style docstring, and validation raising `TypeError`/`ValueError` for range membership testing (inclusive by default). Added `TestIsBetween` to `tests/test_number_utils.py`. Updated `number_utils` module sections in `README.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`.
 
 - Added `type_check_utils.py` and `tests/test_type_check_utils.py` with type checking helpers and tests. Updated `pyproject.toml`, `README.md`, and synchronized embedded copies.
+
+## Latest Session (2026-10-28) — added combination and permutation to math_utils
+
+The board held no task (bootstrap context). Verified repository health: all tests pass, `make lint` is clean, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `combination(n, k)` and `permutation(n, k)` to `math_utils.py` with full validation consistent with module conventions (`TypeError` for non-ints/bools, `ValueError` for negative values and `k > n`), exported via `__all__`, Google-style docstrings, and examples. Implementations use efficient iterative formulas without relying on heavy helpers.
+- Added `TestCombination` and `TestPermutation` to `tests/test_math_utils.py` covering basic cases, edge values (k=0, k=n), large values, type errors, and value errors; updated imports to include the new functions.
+- Updated `README.md` to document `combination` and `permutation` in both the file listing and module description.
+- Refreshed embedded copies in `scaffold.sh` with `make refresh-scaffold` and verified with `python tools/refresh_scaffold.py --check`; all tests pass.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.

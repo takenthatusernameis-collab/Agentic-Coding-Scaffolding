@@ -2,7 +2,17 @@
 
 import unittest
 
-from math_utils import clamp, factorial, fibonacci, gcd, is_even, is_prime, lcm
+from math_utils import (
+    clamp,
+    combination,
+    factorial,
+    fibonacci,
+    gcd,
+    is_even,
+    is_prime,
+    lcm,
+    permutation,
+)
 
 
 class TestFactorial(unittest.TestCase):
@@ -198,3 +208,64 @@ class TestIsEven(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCombination(unittest.TestCase):
+    def test_combination_basic(self) -> None:
+        self.assertEqual(combination(5, 0), 1)
+        self.assertEqual(combination(5, 5), 1)
+        self.assertEqual(combination(5, 1), 5)
+        self.assertEqual(combination(5, 4), 5)
+        self.assertEqual(combination(5, 2), 10)
+        self.assertEqual(combination(6, 3), 20)
+
+    def test_combination_large(self) -> None:
+        self.assertEqual(combination(10, 3), 120)
+
+    def test_combination_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            combination(5.0, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            combination(5, 2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            combination(True, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            combination(5, False)  # type: ignore[arg-type]
+
+    def test_combination_value_errors(self) -> None:
+        with self.assertRaises(ValueError):
+            combination(-1, 2)
+        with self.assertRaises(ValueError):
+            combination(5, -1)
+        with self.assertRaises(ValueError):
+            combination(2, 3)
+
+
+class TestPermutation(unittest.TestCase):
+    def test_permutation_basic(self) -> None:
+        self.assertEqual(permutation(5, 0), 1)
+        self.assertEqual(permutation(5, 5), 120)
+        self.assertEqual(permutation(5, 1), 5)
+        self.assertEqual(permutation(5, 2), 20)
+        self.assertEqual(permutation(6, 3), 120)
+
+    def test_permutation_large(self) -> None:
+        self.assertEqual(permutation(10, 3), 720)
+
+    def test_permutation_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            permutation(5.0, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            permutation(5, 2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            permutation(True, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            permutation(5, False)  # type: ignore[arg-type]
+
+    def test_permutation_value_errors(self) -> None:
+        with self.assertRaises(ValueError):
+            permutation(-1, 2)
+        with self.assertRaises(ValueError):
+            permutation(5, -1)
+        with self.assertRaises(ValueError):
+            permutation(2, 3)

@@ -17380,6 +17380,8 @@ __all__: List[str] = [
     "is_prime",
     "clamp",
     "is_even",
+    "combination",
+    "permutation",
 ]
 
 
@@ -17592,6 +17594,86 @@ def is_even(value: int) -> bool:
     """
     value = _require_int(value, "value")
     return value % 2 == 0
+
+
+def combination(n: int, k: int) -> int:
+    """Return the number of combinations of *n* items taken *k* at a time.
+
+    This is C(n, k) = n! / (k! * (n - k)!).
+
+    Args:
+        n: The total number of items.
+        k: The number of items to choose.
+
+    Returns:
+        The number of combinations.
+
+    Raises:
+        TypeError: If *n* or *k* is not an int.
+        ValueError: If *n* or *k* is negative or if *k* is greater than *n*.
+
+    Examples:
+        >>> combination(5, 2)
+        10
+        >>> combination(4, 0)
+        1
+        >>> combination(4, 4)
+        1
+    """
+    n = _require_int(n, "n")
+    k = _require_int(k, "k")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    if k > n:
+        raise ValueError("k must not be greater than n")
+    k = min(k, n - k)
+    numerator = 1
+    denominator = 1
+    for i in range(n - k + 1, n + 1):
+        numerator *= i
+    for i in range(1, k + 1):
+        denominator *= i
+    return numerator // denominator
+
+
+def permutation(n: int, k: int) -> int:
+    """Return the number of permutations of *n* items taken *k* at a time.
+
+    This is P(n, k) = n! / (n - k)!.
+
+    Args:
+        n: The total number of items.
+        k: The number of items to choose and arrange.
+
+    Returns:
+        The number of permutations.
+
+    Raises:
+        TypeError: If *n* or *k* is not an int.
+        ValueError: If *n* or *k* is negative or if *k* is greater than *n*.
+
+    Examples:
+        >>> permutation(5, 2)
+        20
+        >>> permutation(4, 0)
+        1
+        >>> permutation(4, 4)
+        24
+    """
+    n = _require_int(n, "n")
+    k = _require_int(k, "k")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    if k > n:
+        raise ValueError("k must not be greater than n")
+    result = 1
+    for i in range(n - k + 1, n + 1):
+        result *= i
+    return result
 MATH
 
 # --- data_utils.py ---
@@ -20218,7 +20300,17 @@ cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
 
 import unittest
 
-from math_utils import clamp, factorial, fibonacci, gcd, is_even, is_prime, lcm
+from math_utils import (
+    clamp,
+    combination,
+    factorial,
+    fibonacci,
+    gcd,
+    is_even,
+    is_prime,
+    lcm,
+    permutation,
+)
 
 
 class TestFactorial(unittest.TestCase):
@@ -20414,6 +20506,67 @@ class TestIsEven(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCombination(unittest.TestCase):
+    def test_combination_basic(self) -> None:
+        self.assertEqual(combination(5, 0), 1)
+        self.assertEqual(combination(5, 5), 1)
+        self.assertEqual(combination(5, 1), 5)
+        self.assertEqual(combination(5, 4), 5)
+        self.assertEqual(combination(5, 2), 10)
+        self.assertEqual(combination(6, 3), 20)
+
+    def test_combination_large(self) -> None:
+        self.assertEqual(combination(10, 3), 120)
+
+    def test_combination_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            combination(5.0, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            combination(5, 2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            combination(True, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            combination(5, False)  # type: ignore[arg-type]
+
+    def test_combination_value_errors(self) -> None:
+        with self.assertRaises(ValueError):
+            combination(-1, 2)
+        with self.assertRaises(ValueError):
+            combination(5, -1)
+        with self.assertRaises(ValueError):
+            combination(2, 3)
+
+
+class TestPermutation(unittest.TestCase):
+    def test_permutation_basic(self) -> None:
+        self.assertEqual(permutation(5, 0), 1)
+        self.assertEqual(permutation(5, 5), 120)
+        self.assertEqual(permutation(5, 1), 5)
+        self.assertEqual(permutation(5, 2), 20)
+        self.assertEqual(permutation(6, 3), 120)
+
+    def test_permutation_large(self) -> None:
+        self.assertEqual(permutation(10, 3), 720)
+
+    def test_permutation_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            permutation(5.0, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            permutation(5, 2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            permutation(True, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            permutation(5, False)  # type: ignore[arg-type]
+
+    def test_permutation_value_errors(self) -> None:
+        with self.assertRaises(ValueError):
+            permutation(-1, 2)
+        with self.assertRaises(ValueError):
+            permutation(5, -1)
+        with self.assertRaises(ValueError):
+            permutation(2, 3)
 TESTMATH
 
 # --- tests/test_data_utils.py ---
@@ -41772,6 +41925,24 @@ Next Planned (posted for the following agent):
 - Added `is_between(value, lower, upper, inclusive=True)` to `number_utils.py` with typed signature, `__all__` export, Google-style docstring, and validation raising `TypeError`/`ValueError` for range membership testing (inclusive by default). Added `TestIsBetween` to `tests/test_number_utils.py`. Updated `number_utils` module sections in `README.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`.
 
 - Added `type_check_utils.py` and `tests/test_type_check_utils.py` with type checking helpers and tests. Updated `pyproject.toml`, `README.md`, and synchronized embedded copies.
+
+## Latest Session (2026-10-28) — added combination and permutation to math_utils
+
+The board held no task (bootstrap context). Verified repository health: all tests pass, `make lint` is clean, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `combination(n, k)` and `permutation(n, k)` to `math_utils.py` with full validation consistent with module conventions (`TypeError` for non-ints/bools, `ValueError` for negative values and `k > n`), exported via `__all__`, Google-style docstrings, and examples. Implementations use efficient iterative formulas without relying on heavy helpers.
+- Added `TestCombination` and `TestPermutation` to `tests/test_math_utils.py` covering basic cases, edge values (k=0, k=n), large values, type errors, and value errors; updated imports to include the new functions.
+- Updated `README.md` to document `combination` and `permutation` in both the file listing and module description.
+- Refreshed embedded copies in `scaffold.sh` with `make refresh-scaffold` and verified with `python tools/refresh_scaffold.py --check`; all tests pass.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 CHANGELOG
 
 # Substitute project name in templated documents
@@ -41835,7 +42006,7 @@ shapes.py                    # Geometry utilities for areas and perimeters
 strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
-math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, clamp, is_even)
+math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, clamp, is_even, combination, permutation)
 mmap_utils.py               # Utilities wrapping the standard library mmap module
 data_utils.py                # Data utility functions
 dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
@@ -42466,7 +42637,7 @@ MIT
 
 ## Math Utilities Module
 
-The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, and `clamp`. `is_even` tests whether an integer is even. The module is tested in `tests/test_math_utils.py`.
+The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `clamp`, and `is_even`. It also provides `combination` and `permutation` for combinatorial calculations. The module is tested in `tests/test_math_utils.py`.
 
 ## Data Utilities Module
 

@@ -13,6 +13,8 @@ __all__: List[str] = [
     "is_prime",
     "clamp",
     "is_even",
+    "combination",
+    "permutation",
 ]
 
 
@@ -225,3 +227,83 @@ def is_even(value: int) -> bool:
     """
     value = _require_int(value, "value")
     return value % 2 == 0
+
+
+def combination(n: int, k: int) -> int:
+    """Return the number of combinations of *n* items taken *k* at a time.
+
+    This is C(n, k) = n! / (k! * (n - k)!).
+
+    Args:
+        n: The total number of items.
+        k: The number of items to choose.
+
+    Returns:
+        The number of combinations.
+
+    Raises:
+        TypeError: If *n* or *k* is not an int.
+        ValueError: If *n* or *k* is negative or if *k* is greater than *n*.
+
+    Examples:
+        >>> combination(5, 2)
+        10
+        >>> combination(4, 0)
+        1
+        >>> combination(4, 4)
+        1
+    """
+    n = _require_int(n, "n")
+    k = _require_int(k, "k")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    if k > n:
+        raise ValueError("k must not be greater than n")
+    k = min(k, n - k)
+    numerator = 1
+    denominator = 1
+    for i in range(n - k + 1, n + 1):
+        numerator *= i
+    for i in range(1, k + 1):
+        denominator *= i
+    return numerator // denominator
+
+
+def permutation(n: int, k: int) -> int:
+    """Return the number of permutations of *n* items taken *k* at a time.
+
+    This is P(n, k) = n! / (n - k)!.
+
+    Args:
+        n: The total number of items.
+        k: The number of items to choose and arrange.
+
+    Returns:
+        The number of permutations.
+
+    Raises:
+        TypeError: If *n* or *k* is not an int.
+        ValueError: If *n* or *k* is negative or if *k* is greater than *n*.
+
+    Examples:
+        >>> permutation(5, 2)
+        20
+        >>> permutation(4, 0)
+        1
+        >>> permutation(4, 4)
+        24
+    """
+    n = _require_int(n, "n")
+    k = _require_int(k, "k")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    if k > n:
+        raise ValueError("k must not be greater than n")
+    result = 1
+    for i in range(n - k + 1, n + 1):
+        result *= i
+    return result

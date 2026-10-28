@@ -52,7 +52,7 @@ shapes.py                    # Geometry utilities for areas and perimeters
 strings.py                   # String utilities for text operations
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
-math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, clamp, is_even)
+math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, clamp, is_even, combination, permutation)
 mmap_utils.py               # Utilities wrapping the standard library mmap module
 data_utils.py                # Data utility functions
 dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
@@ -683,7 +683,7 @@ MIT
 
 ## Math Utilities Module
 
-The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, and `clamp`. `is_even` tests whether an integer is even. The module is tested in `tests/test_math_utils.py`.
+The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `clamp`, and `is_even`. It also provides `combination` and `permutation` for combinatorial calculations. The module is tested in `tests/test_math_utils.py`.
 
 ## Data Utilities Module
 
