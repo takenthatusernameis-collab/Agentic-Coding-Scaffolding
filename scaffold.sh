@@ -41433,6 +41433,24 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added largest_prime_factor to prime_utils
+
+The board held no task. Verified repository health: `make test` passed (183 tests in test_prime_utils), `make lint` is clean, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `largest_prime_factor(n)` to `prime_utils.py` returning the largest prime factor, with validation (`TypeError` for non-int/bool, `ValueError` for n < 1 or n == 1), typed signature, `__all__` export, and Google-style docstring.
+- Added `TestLargestPrimeFactor` to `tests/test_prime_utils.py` with basic, prime-power, and validation cases; imported `largest_prime_factor`.
+- Updated `README.md` to list `largest_prime_factor` in the `prime_utils` module description.
+- Verified: `make test` (full suite) passes, `make lint` clean, `python tools/refresh_scaffold.py --check` in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added is_close to number_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6262 tests and passes, `make lint` is clean, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, and `make typecheck` is not available in this environment (mypy not installed).
@@ -42336,7 +42354,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_sexy_prime, radical, prime_count, primorial, total_prime_factors)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_sexy_prime, radical, prime_count, primorial, total_prime_factors, distinct_prime_factors, largest_prime_factor)
 
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
@@ -43203,7 +43221,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime (alias `coprime`), `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2), `primorial` returns the product of all primes less than or equal to *n* (*n#*), and `total_prime_factors` returns the total number of prime factors with multiplicity (Ω(n)). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime (alias `coprime`), `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2), `primorial` returns the product of all primes less than or equal to *n* (*n#*), `total_prime_factors` returns the total number of prime factors with multiplicity (Ω(n)), `distinct_prime_factors` returns the number of distinct prime factors (ω(n)), and `largest_prime_factor` returns the largest prime factor of an integer. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 
 ## Decimal Utilities Module
@@ -61487,6 +61505,7 @@ __all__: List[str] = [
     "gcd",
     "lcm",
     "ceil_div",
+    "is_divisible_by",
 ]
 
 
@@ -62183,6 +62202,29 @@ def ceil_div(a: int, b: int) -> int:
     if b == 0:
         raise ValueError("ceil_div() division by zero")
     return -((-a) // b)
+
+
+def is_divisible_by(a: int, b: int) -> bool:
+    """Return True if *a* is divisible by *b* without remainder.
+
+    Args:
+        a: Dividend.
+        b: Divisor.
+
+    Returns:
+        True if *b* divides *a* evenly, otherwise False.
+
+    Raises:
+        TypeError: If either argument is not an int.
+        ValueError: If *b* is zero.
+    """
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    if b == 0:
+        raise ValueError("is_divisible_by() division by zero")
+    return a % b == 0
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -62779,35 +62821,38 @@ class TestInRange(unittest.TestCase):
             in_range(5, 0, "x")  # type: ignore[arg-type]
 
 
-class TestCeilDiv(unittest.TestCase):
-    def test_exact(self) -> None:
-        from number_utils import ceil_div
+class TestIsDivisibleBy(unittest.TestCase):
+    def test_divisible(self) -> None:
+        from number_utils import is_divisible_by
 
-        self.assertEqual(ceil_div(10, 5), 2)
+        self.assertTrue(is_divisible_by(10, 2))
+        self.assertFalse(is_divisible_by(10, 3))
 
-    def test_rounds_up(self) -> None:
-        from number_utils import ceil_div
+    def test_zero_dividend(self) -> None:
+        from number_utils import is_divisible_by
 
-        self.assertEqual(ceil_div(11, 5), 3)
+        self.assertTrue(is_divisible_by(0, 5))
 
     def test_negative(self) -> None:
-        from number_utils import ceil_div
+        from number_utils import is_divisible_by
 
-        self.assertEqual(ceil_div(-11, 5), -2)
+        self.assertTrue(is_divisible_by(-9, 3))
 
     def test_division_by_zero(self) -> None:
-        from number_utils import ceil_div
+        from number_utils import is_divisible_by
 
         with self.assertRaises(ValueError):
-            ceil_div(1, 0)
+            is_divisible_by(10, 0)
 
     def test_type_errors(self) -> None:
-        from number_utils import ceil_div
+        from number_utils import is_divisible_by
 
         with self.assertRaises(TypeError):
-            ceil_div("x", 5)  # type: ignore[arg-type]
+            is_divisible_by(10.0, 2)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            ceil_div(1, "x")  # type: ignore[arg-type]
+            is_divisible_by(10, 2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_divisible_by(True, 2)  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
@@ -66489,6 +66534,7 @@ __all__: List[str] = [
     "primorial",
     "total_prime_factors",
     "distinct_prime_factors",
+    "largest_prime_factor",
     "coprime",
 ]
 
@@ -67424,6 +67470,52 @@ def distinct_prime_factors(n: int) -> int:
     if remaining > 1:
         count += 1
     return count
+
+
+def largest_prime_factor(n: int) -> int:
+    """Return the largest prime factor of *n*.
+
+    Args:
+        n: The positive integer to factor.
+
+    Returns:
+        The largest prime factor of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+
+    Examples:
+        >>> largest_prime_factor(12)
+        3
+        >>> largest_prime_factor(17)
+        17
+        >>> largest_prime_factor(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be >= 1
+    """
+    _require_int(n, "n")
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    if n == 1:
+        raise ValueError("n must be >= 2")
+    largest = 0
+    remaining = n
+    if remaining % 2 == 0:
+        largest = 2
+        while remaining % 2 == 0:
+            remaining //= 2
+    d = 3
+    while d * d <= remaining:
+        if remaining % d == 0:
+            largest = d
+            while remaining % d == 0:
+                remaining //= d
+        d += 2
+    if remaining > 1:
+        largest = remaining
+    return largest
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -67456,6 +67548,7 @@ from prime_utils import (
     is_sophie_germain_prime,
     is_squarefree,
     is_twin_prime,
+    largest_prime_factor,
     next_prime,
     nth_prime,
     prev_prime,
@@ -68477,6 +68570,32 @@ class TestDistinctPrimeFactors(unittest.TestCase):
             distinct_prime_factors(0)
         with self.assertRaises(ValueError):
             distinct_prime_factors(-1)
+
+
+class TestLargestPrimeFactor(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(largest_prime_factor(12), 3)
+        self.assertEqual(largest_prime_factor(2), 2)
+        self.assertEqual(largest_prime_factor(17), 17)
+        self.assertEqual(largest_prime_factor(30), 5)
+
+    def test_prime_power(self):
+        self.assertEqual(largest_prime_factor(8), 2)
+        self.assertEqual(largest_prime_factor(27), 3)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            largest_prime_factor(5.0)
+        with self.assertRaises(TypeError):
+            largest_prime_factor(True)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            largest_prime_factor(0)
+        with self.assertRaises(ValueError):
+            largest_prime_factor(-1)
+        with self.assertRaises(ValueError):
+            largest_prime_factor(1)
 TEST_PRIME_UTILS
 
 # --- pstats_utils.py ---

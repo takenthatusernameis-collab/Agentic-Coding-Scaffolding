@@ -39,6 +39,7 @@ __all__: List[str] = [
     "gcd",
     "lcm",
     "ceil_div",
+    "is_divisible_by",
 ]
 
 
@@ -735,3 +736,26 @@ def ceil_div(a: int, b: int) -> int:
     if b == 0:
         raise ValueError("ceil_div() division by zero")
     return -((-a) // b)
+
+
+def is_divisible_by(a: int, b: int) -> bool:
+    """Return True if *a* is divisible by *b* without remainder.
+
+    Args:
+        a: Dividend.
+        b: Divisor.
+
+    Returns:
+        True if *b* divides *a* evenly, otherwise False.
+
+    Raises:
+        TypeError: If either argument is not an int.
+        ValueError: If *b* is zero.
+    """
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    if b == 0:
+        raise ValueError("is_divisible_by() division by zero")
+    return a % b == 0
