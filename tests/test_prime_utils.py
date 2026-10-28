@@ -3,6 +3,7 @@
 import unittest
 
 from prime_utils import (
+    coprime,
     is_abundant_number,
     is_circular_prime,
     is_composite,
@@ -36,6 +37,7 @@ from prime_utils import (
     sum_of_proper_divisors,
     total_prime_factors,
 )
+
 
 
 class TestPrimesUpTo(unittest.TestCase):
@@ -922,6 +924,17 @@ class TestIsPythagoreanPrime(unittest.TestCase):
             is_pythagorean_prime(5.0)
 
 
+class TestCoprimeAlias(unittest.TestCase):
+    def test_coprime_alias_equals_is_coprime(self):
+        self.assertEqual(coprime(8, 9), is_coprime(8, 9))
+        self.assertEqual(coprime(14, 15), True)
+        self.assertEqual(coprime(14, 21), False)
+
+    def test_coprime_alias_type_error(self):
+        with self.assertRaises(TypeError):
+            coprime(1.0, 2)
+
+
 class TestRadical(unittest.TestCase):
     def test_radical_one(self):
         self.assertEqual(radical(1), 1)
@@ -935,6 +948,8 @@ class TestRadical(unittest.TestCase):
         self.assertEqual(radical(16), 2)
 
     def test_radical_multiple_primes(self):
+
+
         self.assertEqual(radical(12), 6)
         self.assertEqual(radical(18), 6)
         self.assertEqual(radical(30), 30)

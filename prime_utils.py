@@ -39,6 +39,7 @@ __all__: List[str] = [
     "prime_gap",
     "primorial",
     "total_prime_factors",
+    "coprime",
 ]
 
 
@@ -243,6 +244,11 @@ def is_coprime(a: int, b: int) -> bool:
     _require_int(a, "a")
     _require_int(b, "b")
     return math.gcd(a, b) == 1
+
+
+# Alias
+coprime = is_coprime
+
 
 
 def is_circular_prime(n: int) -> bool:
