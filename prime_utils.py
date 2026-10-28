@@ -40,6 +40,7 @@ __all__: List[str] = [
     "primorial",
     "total_prime_factors",
     "distinct_prime_factors",
+    "largest_prime_factor",
     "coprime",
 ]
 
@@ -975,3 +976,49 @@ def distinct_prime_factors(n: int) -> int:
     if remaining > 1:
         count += 1
     return count
+
+
+def largest_prime_factor(n: int) -> int:
+    """Return the largest prime factor of *n*.
+
+    Args:
+        n: The positive integer to factor.
+
+    Returns:
+        The largest prime factor of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+
+    Examples:
+        >>> largest_prime_factor(12)
+        3
+        >>> largest_prime_factor(17)
+        17
+        >>> largest_prime_factor(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be >= 1
+    """
+    _require_int(n, "n")
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    if n == 1:
+        raise ValueError("n must be >= 2")
+    largest = 0
+    remaining = n
+    if remaining % 2 == 0:
+        largest = 2
+        while remaining % 2 == 0:
+            remaining //= 2
+    d = 3
+    while d * d <= remaining:
+        if remaining % d == 0:
+            largest = d
+            while remaining % d == 0:
+                remaining //= d
+        d += 2
+    if remaining > 1:
+        largest = remaining
+    return largest

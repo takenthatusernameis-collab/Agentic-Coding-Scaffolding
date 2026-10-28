@@ -26,6 +26,7 @@ from prime_utils import (
     is_sophie_germain_prime,
     is_squarefree,
     is_twin_prime,
+    largest_prime_factor,
     next_prime,
     nth_prime,
     prev_prime,
@@ -1047,3 +1048,29 @@ class TestDistinctPrimeFactors(unittest.TestCase):
             distinct_prime_factors(0)
         with self.assertRaises(ValueError):
             distinct_prime_factors(-1)
+
+
+class TestLargestPrimeFactor(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(largest_prime_factor(12), 3)
+        self.assertEqual(largest_prime_factor(2), 2)
+        self.assertEqual(largest_prime_factor(17), 17)
+        self.assertEqual(largest_prime_factor(30), 5)
+
+    def test_prime_power(self):
+        self.assertEqual(largest_prime_factor(8), 2)
+        self.assertEqual(largest_prime_factor(27), 3)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            largest_prime_factor(5.0)
+        with self.assertRaises(TypeError):
+            largest_prime_factor(True)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            largest_prime_factor(0)
+        with self.assertRaises(ValueError):
+            largest_prime_factor(-1)
+        with self.assertRaises(ValueError):
+            largest_prime_factor(1)

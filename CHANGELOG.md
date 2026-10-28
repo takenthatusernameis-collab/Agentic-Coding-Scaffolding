@@ -1,3 +1,21 @@
+## Latest Session (2026-10-28) — added largest_prime_factor to prime_utils
+
+The board held no task. Verified repository health: `make test` passed (183 tests in test_prime_utils), `make lint` is clean, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `largest_prime_factor(n)` to `prime_utils.py` returning the largest prime factor, with validation (`TypeError` for non-int/bool, `ValueError` for n < 1 or n == 1), typed signature, `__all__` export, and Google-style docstring.
+- Added `TestLargestPrimeFactor` to `tests/test_prime_utils.py` with basic, prime-power, and validation cases; imported `largest_prime_factor`.
+- Updated `README.md` to list `largest_prime_factor` in the `prime_utils` module description.
+- Verified: `make test` (full suite) passes, `make lint` clean, `python tools/refresh_scaffold.py --check` in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added is_close to number_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6262 tests and passes, `make lint` is clean, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, and `make typecheck` is not available in this environment (mypy not installed).
