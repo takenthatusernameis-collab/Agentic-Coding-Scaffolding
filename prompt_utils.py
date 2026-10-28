@@ -42,6 +42,7 @@ __all__: List[str] = [
     "count_paragraphs",
     "count_characters",
     "reverse_lines",
+    "strip_blank_lines",
 ]
 
 
@@ -1048,6 +1049,35 @@ def reverse_lines(text: str) -> str:
     _require_string(text, "text")
     if not text:
         return text
-    lines = text.split("\n")
+    lines = text.split("\\n")
     lines.reverse()
-    return "\n".join(lines)
+    return "\\n".join(lines)
+
+
+def strip_blank_lines(text: str) -> str:
+    """Remove leading and trailing blank (whitespace-only) lines.
+
+    Args:
+        text: The text whose outer blank lines should be removed.
+
+    Returns:
+        The text with leading and trailing blank lines removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_blank_lines("\\n\\nhello\\nworld\\n\\n")
+        'hello\\nworld'
+        >>> strip_blank_lines("hello")
+        'hello'
+        >>> strip_blank_lines("\\n\\n")
+        ''
+    """
+    _require_string(text, "text")
+    lines = text.split("\\n")
+    while lines and lines[0].strip() == "":
+        lines.pop(0)
+    while lines and lines[-1].strip() == "":
+        lines.pop()
+    return "\\n".join(lines)
