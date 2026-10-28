@@ -1,5 +1,7 @@
 """Utilities for runtime type checking."""
 
+from typing import Any, cast
+
 
 def is_str(value: object) -> bool:
     """Return True if value is a string."""
@@ -49,9 +51,6 @@ def is_none(value: object) -> bool:
 def is_numeric(value: object) -> bool:
     """Return True if value is int or float (excluding bool)."""
     return isinstance(value, (int, float)) and not isinstance(value, bool)
-
-
-from typing import Any, cast
 
 
 def is_iterable(value: object) -> bool:

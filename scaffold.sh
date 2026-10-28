@@ -8584,7 +8584,7 @@ def floor_divide(a: float, b: float) -> float:
 
 def power(a: float, b: float) -> float:
     """Return a raised to the power b."""
-    return a ** b
+    return float(a ** b)
 
 
 def sqrt(a: float) -> float:
@@ -8595,7 +8595,7 @@ def sqrt(a: float) -> float:
     """
     if a < 0:
         raise ValueError("Cannot take square root of negative number.")
-    return a ** 0.5
+    return float(a ** 0.5)
 
 
 def negate(a: float) -> float:
@@ -61596,8 +61596,8 @@ def round_half_up(value: Number, places: int = 0) -> float:
     factor = 10 ** places
     scaled = value * factor
     if scaled >= 0:
-        return math.floor(scaled + 0.5) / factor
-    return math.ceil(scaled - 0.5) / factor
+        return float(math.floor(scaled + 0.5) / factor)
+    return float(math.ceil(scaled - 0.5) / factor)
 
 
 def is_integer(value: Number) -> bool:
@@ -113818,6 +113818,8 @@ OSSAUDIODEV_UTILS
 cat > "$OUTPUT_DIR/type_check_utils.py" <<'TYPE_CHECK_UTILS'
 """Utilities for runtime type checking."""
 
+from typing import Any, cast
+
 
 def is_str(value: object) -> bool:
     """Return True if value is a string."""
@@ -113874,7 +113876,7 @@ def is_iterable(value: object) -> bool:
     if isinstance(value, str):
         return False
     try:
-        iter(value)
+        iter(cast(Any, value))
         return True
     except TypeError:
         return False
