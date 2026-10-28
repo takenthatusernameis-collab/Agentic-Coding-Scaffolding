@@ -1,14 +1,14 @@
 import unittest
 
 from greeting_utils import (
+    format_apology,
+    format_birthday_wish,
+    format_congrats,
     format_farewell,
     format_greeting,
     format_names,
     format_thanks,
     format_welcome,
-    format_congrats,
-    format_apology,
-    format_birthday_wish,
     multi_greet,
 )
 
@@ -117,7 +117,8 @@ class TestFormatBirthdayWish(unittest.TestCase):
         self.assertEqual(format_birthday_wish("Taylor"), "Happy Birthday, Taylor!")
 
     def test_custom(self):
-        self.assertEqual(format_birthday_wish("Taylor", "Many happy returns"), "Many happy returns, Taylor!")
+        expected = "Many happy returns, Taylor!"
+        self.assertEqual(format_birthday_wish("Taylor", "Many happy returns"), expected)
 
 
 class TestMultiGreet(unittest.TestCase):

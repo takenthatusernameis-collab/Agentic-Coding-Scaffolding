@@ -1,6 +1,17 @@
 import unittest
 
-from calculator import add, divide, multiply, subtract, modulo, floor_divide, power, sqrt, negate, absolute
+from calculator import (
+    absolute,
+    add,
+    divide,
+    floor_divide,
+    modulo,
+    multiply,
+    negate,
+    power,
+    sqrt,
+    subtract,
+)
 
 
 class TestCalculator(unittest.TestCase):

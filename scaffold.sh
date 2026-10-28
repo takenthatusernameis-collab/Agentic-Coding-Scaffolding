@@ -8612,7 +8612,18 @@ CALCULATOR
 cat > "$OUTPUT_DIR/tests/test_calculator.py" <<'TESTCALC'
 import unittest
 
-from calculator import add, divide, multiply, subtract, modulo, floor_divide, power, sqrt, negate, absolute
+from calculator import (
+    absolute,
+    add,
+    divide,
+    floor_divide,
+    modulo,
+    multiply,
+    negate,
+    power,
+    sqrt,
+    subtract,
+)
 
 
 class TestCalculator(unittest.TestCase):
@@ -34567,14 +34578,14 @@ cat > "$OUTPUT_DIR/tests/test_greeting_utils.py" <<'TESTGREETINGUTILS'
 import unittest
 
 from greeting_utils import (
+    format_apology,
+    format_birthday_wish,
+    format_congrats,
     format_farewell,
     format_greeting,
     format_names,
     format_thanks,
     format_welcome,
-    format_congrats,
-    format_apology,
-    format_birthday_wish,
     multi_greet,
 )
 
@@ -34683,7 +34694,8 @@ class TestFormatBirthdayWish(unittest.TestCase):
         self.assertEqual(format_birthday_wish("Taylor"), "Happy Birthday, Taylor!")
 
     def test_custom(self):
-        self.assertEqual(format_birthday_wish("Taylor", "Many happy returns"), "Many happy returns, Taylor!")
+        expected = "Many happy returns, Taylor!"
+        self.assertEqual(format_birthday_wish("Taylor", "Many happy returns"), expected)
 
 
 class TestMultiGreet(unittest.TestCase):
@@ -61548,52 +61560,6 @@ def safe_divide(numerator: Number, denominator: Number) -> float:
     return numerator / denominator
 
 
-def clamp(value: Number, min_value: Number, max_value: Number) -> Number:
-    """Clamp a value between min_value and max_value inclusive.
-
-    Args:
-        value: The value to clamp.
-        min_value: The minimum allowed value.
-        max_value: The maximum allowed value.
-
-    Returns:
-        The clamped value.
-
-    Raises:
-        TypeError: If any argument is not a number.
-        ValueError: If min_value > max_value.
-    """
-    _require_number(value, "value")
-    _require_number(min_value, "min_value")
-    _require_number(max_value, "max_value")
-    if min_value > max_value:
-        raise ValueError("min_value must be <= max_value")
-    if value < min_value:
-        return min_value
-    if value > max_value:
-        return max_value
-    return value
-
-
-def lerp(start: Number, end: Number, t: Number) -> float:
-    """Linearly interpolate between start and end by factor t.
-
-    Args:
-        start: The start value.
-        end: The end value.
-        t: Interpolation factor between 0.0 and 1.0.
-
-    Returns:
-        The interpolated value.
-
-    Raises:
-        TypeError: If any argument is not a number.
-    """
-    _require_number(start, "start")
-    _require_number(end, "end")
-    _require_number(t, "t")
-    return float(start + (end - start) * t)
-
 
 def in_range(value: Number, min_value: Number, max_value: Number, inclusive: bool = True) -> bool:
     """Check if a value is within a range.
@@ -66711,7 +66677,6 @@ from prime_utils import (
     sum_of_proper_divisors,
     total_prime_factors,
 )
-
 
 
 class TestPrimesUpTo(unittest.TestCase):
@@ -85858,20 +85823,13 @@ from version_utils import (
     decrement_minor,
     decrement_patch,
     decrement_version,
+    get_build,
+    get_build_metadata,
     get_major_version,
     get_minor_version,
     get_patch_version,
     get_prerelease,
     get_prerelease_tag,
-    get_build_metadata,
-    get_build,
-    strip_prerelease,
-    strip_prerelease_suffix,
-    remove_prerelease,
-    strip_build_metadata,
-    strip_build,
-    remove_build_metadata,
-    strip_metadata,
     is_compatible,
     is_equal,
     is_greater,
@@ -85889,7 +85847,14 @@ from version_utils import (
     min_version,
     normalize_version,
     parse_version,
+    remove_build_metadata,
+    remove_prerelease,
     sort_versions,
+    strip_build,
+    strip_build_metadata,
+    strip_metadata,
+    strip_prerelease,
+    strip_prerelease_suffix,
     tuple_to_version,
     version_to_tuple,
 )
@@ -112999,7 +112964,10 @@ def ensure_type(value: object, expected_type: type, name: str = "value") -> obje
         TypeError: If value is not an instance of expected_type.
     """
     if not isinstance(value, expected_type):
-        raise TypeError(f"{name} must be of type {expected_type.__name__}, got {type(value).__name__}")
+        raise TypeError(
+            f"{name} must be of type {expected_type.__name__}, "
+            f"got {type(value).__name__}"
+        )
     return value
 
 

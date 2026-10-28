@@ -82,7 +82,10 @@ def ensure_type(value: object, expected_type: type, name: str = "value") -> obje
         TypeError: If value is not an instance of expected_type.
     """
     if not isinstance(value, expected_type):
-        raise TypeError(f"{name} must be of type {expected_type.__name__}, got {type(value).__name__}")
+        raise TypeError(
+            f"{name} must be of type {expected_type.__name__}, "
+            f"got {type(value).__name__}"
+        )
     return value
 
 

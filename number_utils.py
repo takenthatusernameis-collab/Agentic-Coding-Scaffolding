@@ -512,52 +512,6 @@ def safe_divide(numerator: Number, denominator: Number) -> float:
     return numerator / denominator
 
 
-def clamp(value: Number, min_value: Number, max_value: Number) -> Number:
-    """Clamp a value between min_value and max_value inclusive.
-
-    Args:
-        value: The value to clamp.
-        min_value: The minimum allowed value.
-        max_value: The maximum allowed value.
-
-    Returns:
-        The clamped value.
-
-    Raises:
-        TypeError: If any argument is not a number.
-        ValueError: If min_value > max_value.
-    """
-    _require_number(value, "value")
-    _require_number(min_value, "min_value")
-    _require_number(max_value, "max_value")
-    if min_value > max_value:
-        raise ValueError("min_value must be <= max_value")
-    if value < min_value:
-        return min_value
-    if value > max_value:
-        return max_value
-    return value
-
-
-def lerp(start: Number, end: Number, t: Number) -> float:
-    """Linearly interpolate between start and end by factor t.
-
-    Args:
-        start: The start value.
-        end: The end value.
-        t: Interpolation factor between 0.0 and 1.0.
-
-    Returns:
-        The interpolated value.
-
-    Raises:
-        TypeError: If any argument is not a number.
-    """
-    _require_number(start, "start")
-    _require_number(end, "end")
-    _require_number(t, "t")
-    return float(start + (end - start) * t)
-
 
 def in_range(value: Number, min_value: Number, max_value: Number, inclusive: bool = True) -> bool:
     """Check if a value is within a range.

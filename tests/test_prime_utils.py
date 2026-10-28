@@ -39,7 +39,6 @@ from prime_utils import (
 )
 
 
-
 class TestPrimesUpTo(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(primes_up_to(10), [2, 3, 5, 7])
