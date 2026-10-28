@@ -40,6 +40,7 @@ __all__: List[str] = [
     "count_blank_lines",
     "count_non_blank_lines",
     "count_characters",
+    "reverse_lines",
 ]
 
 
@@ -966,3 +967,35 @@ def count_characters(text: str) -> int:
     """
     _require_string(text, "text")
     return len(text)
+
+
+def reverse_lines(text: str) -> str:
+    """Reverse the order of lines in *text*.
+
+    Splits *text* on newline characters, reverses the resulting sequence
+    of lines, and rejoins them with newlines. Empty text is returned
+    unchanged.
+
+    Args:
+        text: The text whose lines should be reversed.
+
+    Returns:
+        The text with its lines in reverse order.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> reverse_lines("a\\nb\\nc")
+        'c\\nb\\na'
+        >>> reverse_lines("single")
+        'single'
+        >>> reverse_lines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    lines.reverse()
+    return "\n".join(lines)

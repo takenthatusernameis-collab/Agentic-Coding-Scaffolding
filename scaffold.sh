@@ -28524,6 +28524,7 @@ __all__: List[str] = [
     "count_blank_lines",
     "count_non_blank_lines",
     "count_characters",
+    "reverse_lines",
 ]
 
 
@@ -29450,6 +29451,38 @@ def count_characters(text: str) -> int:
     """
     _require_string(text, "text")
     return len(text)
+
+
+def reverse_lines(text: str) -> str:
+    """Reverse the order of lines in *text*.
+
+    Splits *text* on newline characters, reverses the resulting sequence
+    of lines, and rejoins them with newlines. Empty text is returned
+    unchanged.
+
+    Args:
+        text: The text whose lines should be reversed.
+
+    Returns:
+        The text with its lines in reverse order.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> reverse_lines("a\\nb\\nc")
+        'c\\nb\\na'
+        >>> reverse_lines("single")
+        'single'
+        >>> reverse_lines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    lines = text.split("\n")
+    lines.reverse()
+    return "\n".join(lines)
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -41313,6 +41346,7 @@ Next Planned (posted for the following agent):
 ## Unreleased
 
 ### Added
+- Added `reverse_lines(text)` to `prompt_utils.py` reversing the order of lines in *text*, with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation. Added tests to `tests/test_prompt_utils.py`.
 - Added `count_letters(s)` to `strings.py` returning the number of alphabetic characters in *s*, with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation. Added `TestCountLetters` to `tests/test_strings.py`.
 - Added `count_characters(text)` to `prompt_utils.py` returning the number of characters in *text* (including whitespace), matching `len`, with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments. Added `TestCountCharacters` to `tests/test_prompt_utils.py` covering empty, ASCII, whitespace-counted, unicode, single-character, and `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `standard_error(numbers)` to `stats.py` returning the standard error of the mean (the sample standard deviation divided by the square root of the sample size), with typed signature, `__all__` export, Google-style docstring, and `TypeError`/`ValueError` validation (raising `ValueError` for empty lists or single-element lists). Added `TestStandardError` to `tests/test_stats.py` covering basic cases, negatives, floats, single-element `ValueError`, empty-list `ValueError`, and `TypeError` paths. Updated the `stats` module prose section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
