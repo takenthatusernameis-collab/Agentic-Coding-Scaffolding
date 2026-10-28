@@ -79,6 +79,7 @@ __all__: List[str] = [
     "chunk_string",
     "remove_vowels",
     "remove_consonants",
+    "count_digits",
 ]
 
 
@@ -1109,3 +1110,19 @@ def truncate_bytes(s: str, max_bytes: int, encoding: str = "utf-8") -> str:
         return s
     truncated = encoded[:max_bytes]
     return truncated.decode(encoding, errors="ignore")
+
+
+def count_digits(s: str) -> int:
+    """Return the number of digit characters in *s*.
+
+    Args:
+        s: The string to count digits in.
+
+    Returns:
+        The number of digit characters.
+
+    Raises:
+        TypeError: If *s* is not a string.
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isdigit())
