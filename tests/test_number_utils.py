@@ -5,6 +5,7 @@ import unittest
 from number_utils import (
     clamp,
     digit_count,
+    digit_product,
     digit_sum,
     format_number,
     is_between,
@@ -718,3 +719,27 @@ class TestIsCoprime(unittest.TestCase):
             is_coprime(8.0, 9)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_coprime(8, None)  # type: ignore[arg-type]
+
+
+class TestDigitProduct(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(digit_product(0), 0)
+        self.assertEqual(digit_product(5), 5)
+        self.assertEqual(digit_product(123), 6)
+        self.assertEqual(digit_product(999), 729)
+        self.assertEqual(digit_product(1001), 0)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(digit_product(-123), 6)
+        self.assertEqual(digit_product(-5), 5)
+        self.assertEqual(digit_product(-1001), 0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            digit_product("123")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_product(12.3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_product(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_product(None)  # type: ignore[arg-type]

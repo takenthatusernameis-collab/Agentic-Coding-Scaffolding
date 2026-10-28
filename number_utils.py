@@ -42,8 +42,9 @@ __all__: List[str] = [
     "is_divisible_by",
     "is_coprime",
     "digit_sum",
-    "digit_count",
-]
+     "digit_count",
+     "digit_product",
+ ]
 
 
 def _require_number(value: object, name: str) -> Number:
@@ -851,3 +852,36 @@ def digit_count(value: int) -> int:
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError(f"value must be an int, got {type(value).__name__}")
     return len(str(abs(value)))
+
+
+def digit_product(value: int) -> int:
+    """Return the product of the decimal digits of *value*.
+
+    The sign of *value* is ignored, so ``digit_product(-123)`` returns ``6``.
+    ``digit_product(0)`` returns ``0``.
+
+    Args:
+        value: The integer whose decimal digits are multiplied.
+
+    Returns:
+        The product of the decimal digits of *value*.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> digit_product(123)
+        6
+        >>> digit_product(-123)
+        6
+        >>> digit_product(0)
+        0
+        >>> digit_product(1001)
+        0
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    product = 1
+    for digit in str(abs(value)):
+        product *= int(digit)
+    return product
