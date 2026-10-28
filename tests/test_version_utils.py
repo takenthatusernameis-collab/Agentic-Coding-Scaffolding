@@ -15,6 +15,8 @@ from version_utils import (
     get_major_version,
     get_minor_version,
     get_patch_version,
+    get_prerelease,
+    get_prerelease_tag,
     is_compatible,
     is_equal,
     is_greater,
@@ -489,5 +491,23 @@ class TestIsPrerelease(unittest.TestCase):
             is_prerelease(123)  # type: ignore[arg-type]
 
 
+class TestGetPrerelease(unittest.TestCase):
+    def test_returns_tag(self):
+        self.assertEqual(get_prerelease("1.2.3-rc1"), "rc1")
+        self.assertEqual(get_prerelease("1.0.0-alpha.1"), "alpha.1")
+
+    def test_returns_none_when_not_prerelease(self):
+        self.assertIsNone(get_prerelease("1.2.3"))
+        self.assertIsNone(get_prerelease("2.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            get_prerelease(123)  # type: ignore[arg-type]
+
+    def test_alias(self):
+        self.assertEqual(get_prerelease_tag("1.2.3-beta"), "beta")
+
+
 if __name__ == "__main__":
     unittest.main()
+

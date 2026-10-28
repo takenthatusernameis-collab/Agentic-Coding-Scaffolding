@@ -39699,7 +39699,7 @@ Next Planned (posted for the following agent):
 - Added `format_farewell(name, farewell="Goodbye")` to `greeting_utils.py` returning a formatted farewell string, with typed signature, Google-style docstring, and `TypeError` validation. Added `TestFormatFarewell` to `tests/test_greeting_utils.py` covering default, custom, empty name, and `TypeError` paths. Updated the `greeting_utils` module prose section of `README.md`.
 - Added comprehensive boundary tests for `strings.py` (empty strings, whitespace-only, unicode/multibyte, type errors, edge cases) to `tests/test_strings.py`.
 
-- Refreshed the embedded copies of `prime_utils.py`, `tests/test_prime_utils.py`, `tests/test_prompt_utils.py`, and `tests/test_stats.py` inside `scaffold.sh` after the preceding checkpoint session edited those files without regenerating the generator. `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- Added `get_prerelease(version)` and `get_prerelease_tag(version)` to `version_utils.py` returning the prerelease tag after `-` or `None` if absent, with `TypeError` validation and exports in `__all__`. Added `TestGetPrerelease` to `tests/test_version_utils.py`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `is_title(s)` to `strings.py` returning `True` when *s* is titlecased (all cased characters follow title-case rules and at least one alphabetic character is present), `False` otherwise. It validates that *s* is a string, raising `TypeError` otherwise, and is exported in `__all__` with a Google-style docstring. Added `TestIsTitle` to `tests/test_strings.py` covering titlecased, mixed-case, no-alphabetic, and `TypeError` paths. Updated the `strings` module prose section of `README.md`.
 
@@ -83324,6 +83324,8 @@ __all__: List[str] = [
     "is_stable",
     "is_initial_release",
     "is_prerelease",
+    "get_prerelease",
+    "get_prerelease_tag",
     "is_compatible",
     "version_satisfies_major",
     "decrement_version",
@@ -83780,6 +83782,36 @@ def is_prerelease(version: str) -> bool:
     return "-" in version
 
 
+def get_prerelease(version: str) -> str | None:
+    """Return the pre-release tag from *version* if present.
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix
+            separated by a hyphen (e.g., ``"1.2.3-rc1"``).
+
+    Returns:
+        The pre-release string (everything after the first hyphen), or
+        ``None`` if there is no pre-release suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> get_prerelease("1.2.3-rc1")
+        'rc1'
+        >>> get_prerelease("1.2.3")
+        None
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if "-" not in version:
+        return None
+    return version.split("-", 1)[1]
+
+
+get_prerelease_tag = get_prerelease
+
+
 def is_compatible(a: str, b: str) -> bool:
     """Return True if versions *a* and *b* share the same major version.
 
@@ -83922,6 +83954,8 @@ from version_utils import (
     get_major_version,
     get_minor_version,
     get_patch_version,
+    get_prerelease,
+    get_prerelease_tag,
     is_compatible,
     is_equal,
     is_greater,
@@ -84394,6 +84428,23 @@ class TestIsPrerelease(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             is_prerelease(123)  # type: ignore[arg-type]
+
+
+class TestGetPrerelease(unittest.TestCase):
+    def test_returns_tag(self):
+        self.assertEqual(get_prerelease("1.2.3-rc1"), "rc1")
+        self.assertEqual(get_prerelease("1.0.0-alpha.1"), "alpha.1")
+
+    def test_returns_none_when_not_prerelease(self):
+        self.assertIsNone(get_prerelease("1.2.3"))
+        self.assertIsNone(get_prerelease("2.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            get_prerelease(123)  # type: ignore[arg-type]
+
+    def test_alias(self):
+        self.assertEqual(get_prerelease_tag("1.2.3-beta"), "beta")
 
 
 if __name__ == "__main__":

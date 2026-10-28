@@ -54,6 +54,8 @@ __all__: List[str] = [
     "is_stable",
     "is_initial_release",
     "is_prerelease",
+    "get_prerelease",
+    "get_prerelease_tag",
     "is_compatible",
     "version_satisfies_major",
     "decrement_version",
@@ -508,6 +510,36 @@ def is_prerelease(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     return "-" in version
+
+
+def get_prerelease(version: str) -> str | None:
+    """Return the pre-release tag from *version* if present.
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix
+            separated by a hyphen (e.g., ``"1.2.3-rc1"``).
+
+    Returns:
+        The pre-release string (everything after the first hyphen), or
+        ``None`` if there is no pre-release suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> get_prerelease("1.2.3-rc1")
+        'rc1'
+        >>> get_prerelease("1.2.3")
+        None
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if "-" not in version:
+        return None
+    return version.split("-", 1)[1]
+
+
+get_prerelease_tag = get_prerelease
 
 
 def is_compatible(a: str, b: str) -> bool:
