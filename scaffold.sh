@@ -13174,6 +13174,11 @@ __all__: List[str] = [
     "sum_of_cubes",
     "product",
     "percentile",
+    "quartile",
+    "first_quartile",
+    "q1",
+    "third_quartile",
+    "q3",
     "iqr",
     "interquartile_range",
     "coefficient_of_variation",
@@ -13676,6 +13681,55 @@ def percentile(numbers: List[T | float], p: float) -> float:
     return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)
 
 
+def quartile(numbers: List[T | float], q: int) -> float:
+    """Return the q-th quartile of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+        q: The quartile to compute, must be 0, 1, 2, 3, or 4.
+
+    Returns:
+        The q-th quartile value.
+
+    Raises:
+        ValueError: If the list is empty, or if q is outside [0, 4].
+        TypeError: If numbers is not a list, contains non-numeric values,
+                   or q is not an int.
+
+    Examples:
+        >>> quartile([1, 2, 3, 4, 5], 1)
+        2.0
+        >>> quartile([1, 2, 3, 4, 5], 2)
+        3.0
+        >>> quartile([1, 2, 3, 4, 5], 3)
+        4.0
+    """
+    _require_numbers(numbers, "numbers")
+    q_int = _require_int(q, "q")
+    if q_int < 0 or q_int > 4:
+        raise ValueError("q must be between 0 and 4")
+    if q_int == 0:
+        return min_value(numbers)
+    if q_int == 4:
+        return max_value(numbers)
+    return percentile(numbers, 25 * q_int)
+
+
+# Aliases for quartiles
+def first_quartile(numbers: List[T | float]) -> float:
+    return quartile(numbers, 1)
+
+
+q1 = first_quartile
+
+
+def third_quartile(numbers: List[T | float]) -> float:
+    return quartile(numbers, 3)
+
+
+q3 = third_quartile
+
+
 def trimean(numbers: List[T | float]) -> float:
     """Return the trimean of a list of numbers.
 
@@ -13700,9 +13754,9 @@ def trimean(numbers: List[T | float]) -> float:
         3.5
     """
     _require_numbers(numbers, "numbers")
-    q1 = percentile(numbers, 25)
+    q1 = quartile(numbers, 1)
     q2 = percentile(numbers, 50)
-    q3 = percentile(numbers, 75)
+    q3 = quartile(numbers, 3)
     return (q1 + 2.0 * q2 + q3) / 4.0
 
 
@@ -13730,16 +13784,16 @@ def midhinge(numbers: List[T | float]) -> float:
         3.5
     """
     _require_numbers(numbers, "numbers")
-    q1 = percentile(numbers, 25)
-    q3 = percentile(numbers, 75)
+    q1 = quartile(numbers, 1)
+    q3 = quartile(numbers, 3)
     return (q1 + q3) / 2.0
 
 
 def iqr(numbers: List[T | float]) -> float:
     """Return the interquartile range (Q3 - Q1)."""
     _require_numbers(numbers, "numbers")
-    q1 = percentile(numbers, 25)
-    q3 = percentile(numbers, 75)
+    q1 = quartile(numbers, 1)
+    q3 = quartile(numbers, 3)
     return float(q3 - q1)
 
 
@@ -17361,6 +17415,67 @@ class TestMidhinge(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             midhinge([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestQuartile(unittest.TestCase):
+    def test_basic(self) -> None:
+        from stats import first_quartile, q1, q3, quartile, third_quartile
+
+        data = [1, 2, 3, 4, 5]
+        self.assertAlmostEqual(quartile(data, 1), 2.0)
+        self.assertAlmostEqual(quartile(data, 2), 3.0)
+        self.assertAlmostEqual(quartile(data, 3), 4.0)
+        self.assertAlmostEqual(first_quartile(data), q1(data))
+        self.assertAlmostEqual(third_quartile(data), q3(data))
+
+    def test_edges(self) -> None:
+        from stats import quartile
+
+        data = [1, 2, 3, 4, 5, 6]
+        self.assertAlmostEqual(quartile(data, 0), 1.0)
+        self.assertAlmostEqual(quartile(data, 4), 6.0)
+        self.assertAlmostEqual(quartile(data, 1), 2.25)
+        self.assertAlmostEqual(quartile(data, 3), 4.75)
+
+    def test_empty_raises(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(ValueError):
+            quartile([], 1)
+
+    def test_rejects_bad_q(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(ValueError):
+            quartile([1, 2, 3], 5)
+        with self.assertRaises(ValueError):
+            quartile([1, 2, 3], -1)
+
+    def test_rejects_non_int_q(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(TypeError):
+            quartile([1, 2, 3], 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            quartile([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_rejects_non_list(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(TypeError):
+            quartile((1, 2, 3), 1)  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(TypeError):
+            quartile([1, 2, "a"], 1)  # type: ignore[type-var]
+
+    def test_rejects_bool_in_list(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(TypeError):
+            quartile([True, 1, 2], 1)  # type: ignore[type-var]
 TESTSTATS
 
 # --- math_utils.py ---
@@ -19886,6 +20001,7 @@ class TestCountCharacters(unittest.TestCase):
             count_characters(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_characters(None)  # type: ignore[arg-type]
+
 
 
 if __name__ == "__main__":

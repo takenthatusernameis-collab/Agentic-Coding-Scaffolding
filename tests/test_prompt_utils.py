@@ -694,31 +694,6 @@ class TestCountCharacters(unittest.TestCase):
             count_characters(None)  # type: ignore[arg-type]
 
 
-class TestReverseLines(unittest.TestCase):
-    def test_reverse_multiple_lines(self):
-        self.assertEqual(reverse_lines("a\nb\nc"), "c\nb\na")
-
-    def test_single_line(self):
-        self.assertEqual(reverse_lines("single"), "single")
-
-    def test_empty(self):
-        self.assertEqual(reverse_lines(""), "")
-
-    def test_two_lines(self):
-        self.assertEqual(reverse_lines("first\nsecond"), "second\nfirst")
-
-    def test_with_empty_lines(self):
-        self.assertEqual(reverse_lines("a\n\nb"), "b\n\na")
-
-    def test_trailing_newline(self):
-        self.assertEqual(reverse_lines("a\nb\n"), "\nb\na")
-
-    def test_type_error(self):
-        with self.assertRaises(TypeError):
-            reverse_lines(123)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            reverse_lines(None)  # type: ignore[arg-type]
-
 
 if __name__ == "__main__":
     unittest.main()

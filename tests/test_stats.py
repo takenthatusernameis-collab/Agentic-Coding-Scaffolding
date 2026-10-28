@@ -977,3 +977,64 @@ class TestMidhinge(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             midhinge([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestQuartile(unittest.TestCase):
+    def test_basic(self) -> None:
+        from stats import first_quartile, q1, q3, quartile, third_quartile
+
+        data = [1, 2, 3, 4, 5]
+        self.assertAlmostEqual(quartile(data, 1), 2.0)
+        self.assertAlmostEqual(quartile(data, 2), 3.0)
+        self.assertAlmostEqual(quartile(data, 3), 4.0)
+        self.assertAlmostEqual(first_quartile(data), q1(data))
+        self.assertAlmostEqual(third_quartile(data), q3(data))
+
+    def test_edges(self) -> None:
+        from stats import quartile
+
+        data = [1, 2, 3, 4, 5, 6]
+        self.assertAlmostEqual(quartile(data, 0), 1.0)
+        self.assertAlmostEqual(quartile(data, 4), 6.0)
+        self.assertAlmostEqual(quartile(data, 1), 2.25)
+        self.assertAlmostEqual(quartile(data, 3), 4.75)
+
+    def test_empty_raises(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(ValueError):
+            quartile([], 1)
+
+    def test_rejects_bad_q(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(ValueError):
+            quartile([1, 2, 3], 5)
+        with self.assertRaises(ValueError):
+            quartile([1, 2, 3], -1)
+
+    def test_rejects_non_int_q(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(TypeError):
+            quartile([1, 2, 3], 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            quartile([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_rejects_non_list(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(TypeError):
+            quartile((1, 2, 3), 1)  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(TypeError):
+            quartile([1, 2, "a"], 1)  # type: ignore[type-var]
+
+    def test_rejects_bool_in_list(self) -> None:
+        from stats import quartile
+
+        with self.assertRaises(TypeError):
+            quartile([True, 1, 2], 1)  # type: ignore[type-var]

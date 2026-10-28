@@ -23,6 +23,11 @@ __all__: List[str] = [
     "sum_of_cubes",
     "product",
     "percentile",
+    "quartile",
+    "first_quartile",
+    "q1",
+    "third_quartile",
+    "q3",
     "iqr",
     "interquartile_range",
     "coefficient_of_variation",
@@ -525,6 +530,55 @@ def percentile(numbers: List[T | float], p: float) -> float:
     return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)
 
 
+def quartile(numbers: List[T | float], q: int) -> float:
+    """Return the q-th quartile of a list of numbers.
+
+    Args:
+        numbers: A list of numeric values.
+        q: The quartile to compute, must be 0, 1, 2, 3, or 4.
+
+    Returns:
+        The q-th quartile value.
+
+    Raises:
+        ValueError: If the list is empty, or if q is outside [0, 4].
+        TypeError: If numbers is not a list, contains non-numeric values,
+                   or q is not an int.
+
+    Examples:
+        >>> quartile([1, 2, 3, 4, 5], 1)
+        2.0
+        >>> quartile([1, 2, 3, 4, 5], 2)
+        3.0
+        >>> quartile([1, 2, 3, 4, 5], 3)
+        4.0
+    """
+    _require_numbers(numbers, "numbers")
+    q_int = _require_int(q, "q")
+    if q_int < 0 or q_int > 4:
+        raise ValueError("q must be between 0 and 4")
+    if q_int == 0:
+        return min_value(numbers)
+    if q_int == 4:
+        return max_value(numbers)
+    return percentile(numbers, 25 * q_int)
+
+
+# Aliases for quartiles
+def first_quartile(numbers: List[T | float]) -> float:
+    return quartile(numbers, 1)
+
+
+q1 = first_quartile
+
+
+def third_quartile(numbers: List[T | float]) -> float:
+    return quartile(numbers, 3)
+
+
+q3 = third_quartile
+
+
 def trimean(numbers: List[T | float]) -> float:
     """Return the trimean of a list of numbers.
 
@@ -549,9 +603,9 @@ def trimean(numbers: List[T | float]) -> float:
         3.5
     """
     _require_numbers(numbers, "numbers")
-    q1 = percentile(numbers, 25)
+    q1 = quartile(numbers, 1)
     q2 = percentile(numbers, 50)
-    q3 = percentile(numbers, 75)
+    q3 = quartile(numbers, 3)
     return (q1 + 2.0 * q2 + q3) / 4.0
 
 
@@ -579,16 +633,16 @@ def midhinge(numbers: List[T | float]) -> float:
         3.5
     """
     _require_numbers(numbers, "numbers")
-    q1 = percentile(numbers, 25)
-    q3 = percentile(numbers, 75)
+    q1 = quartile(numbers, 1)
+    q3 = quartile(numbers, 3)
     return (q1 + q3) / 2.0
 
 
 def iqr(numbers: List[T | float]) -> float:
     """Return the interquartile range (Q3 - Q1)."""
     _require_numbers(numbers, "numbers")
-    q1 = percentile(numbers, 25)
-    q3 = percentile(numbers, 75)
+    q1 = quartile(numbers, 1)
+    q3 = quartile(numbers, 3)
     return float(q3 - q1)
 
 
