@@ -41,6 +41,7 @@ __all__: List[str] = [
     "total_prime_factors",
     "distinct_prime_factors",
     "largest_prime_factor",
+    "is_automorphic",
     "coprime",
 ]
 
@@ -1022,3 +1023,41 @@ def largest_prime_factor(n: int) -> int:
     if remaining > 1:
         largest = remaining
     return largest
+
+
+def is_automorphic(n: int) -> bool:
+    """Return True if *n* is an automorphic number.
+
+    An automorphic number is a non-negative integer whose square ends with
+    the decimal representation of the number itself (e.g. 5, because
+    ``5 * 5 = 25`` ends in 5; 25, because ``25 * 25 = 625`` ends in 25).
+    Zero is automorphic.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is automorphic, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_automorphic(0)
+        True
+        >>> is_automorphic(5)
+        True
+        >>> is_automorphic(6)
+        True
+        >>> is_automorphic(25)
+        True
+        >>> is_automorphic(7)
+        False
+        >>> is_automorphic(10)
+        False
+    """
+    _require_int(n, "n")
+    if n < 0:
+        return False
+    square = n * n
+    return square % (10 ** len(str(n))) == n

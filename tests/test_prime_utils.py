@@ -6,6 +6,7 @@ from prime_utils import (
     coprime,
     distinct_prime_factors,
     is_abundant_number,
+    is_automorphic,
     is_circular_prime,
     is_composite,
     is_coprime,
@@ -1074,3 +1075,37 @@ class TestLargestPrimeFactor(unittest.TestCase):
             largest_prime_factor(-1)
         with self.assertRaises(ValueError):
             largest_prime_factor(1)
+
+
+class TestIsAutomorphic(unittest.TestCase):
+    def test_small_automorphic(self):
+        self.assertTrue(is_automorphic(0))
+        self.assertTrue(is_automorphic(1))
+        self.assertTrue(is_automorphic(5))
+        self.assertTrue(is_automorphic(6))
+
+    def test_multi_digit_automorphic(self):
+        self.assertTrue(is_automorphic(25))
+        self.assertTrue(is_automorphic(76))
+        self.assertTrue(is_automorphic(376))
+        self.assertTrue(is_automorphic(625))
+        self.assertTrue(is_automorphic(9376))
+
+    def test_non_automorphic(self):
+        self.assertFalse(is_automorphic(2))
+        self.assertFalse(is_automorphic(7))
+        self.assertFalse(is_automorphic(10))
+        self.assertFalse(is_automorphic(100))
+        self.assertFalse(is_automorphic(123))
+
+    def test_negative(self):
+        self.assertFalse(is_automorphic(-5))
+        self.assertFalse(is_automorphic(-25))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_automorphic(5.0)
+        with self.assertRaises(TypeError):
+            is_automorphic("5")
+        with self.assertRaises(TypeError):
+            is_automorphic(True)
