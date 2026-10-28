@@ -37,6 +37,7 @@ __all__: List[str] = [
     "round_half_up",
     "gcd",
     "lcm",
+    "ceil_div",
 ]
 
 
@@ -666,3 +667,26 @@ def lcm(a: int, b: int) -> int:
     if a == 0 and b == 0:
         raise ValueError("lcm() is not defined for both arguments being zero")
     return abs((a * b) // gcd(a, b))
+
+
+def ceil_div(a: int, b: int) -> int:
+    """Return the ceiling of ``a / b`` for integers.
+
+    Args:
+        a: Dividend.
+        b: Divisor.
+
+    Returns:
+        The smallest integer greater than or equal to ``a / b``.
+
+    Raises:
+        TypeError: If either argument is not an int.
+        ValueError: If ``b`` is zero.
+    """
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    if b == 0:
+        raise ValueError("ceil_div() division by zero")
+    return -((-a) // b)

@@ -538,3 +538,34 @@ class TestInRange(unittest.TestCase):
             in_range(5, "x", 10)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             in_range(5, 0, "x")  # type: ignore[arg-type]
+
+
+class TestCeilDiv(unittest.TestCase):
+    def test_exact(self) -> None:
+        from number_utils import ceil_div
+
+        self.assertEqual(ceil_div(10, 5), 2)
+
+    def test_rounds_up(self) -> None:
+        from number_utils import ceil_div
+
+        self.assertEqual(ceil_div(11, 5), 3)
+
+    def test_negative(self) -> None:
+        from number_utils import ceil_div
+
+        self.assertEqual(ceil_div(-11, 5), -2)
+
+    def test_division_by_zero(self) -> None:
+        from number_utils import ceil_div
+
+        with self.assertRaises(ValueError):
+            ceil_div(1, 0)
+
+    def test_type_errors(self) -> None:
+        from number_utils import ceil_div
+
+        with self.assertRaises(TypeError):
+            ceil_div("x", 5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ceil_div(1, "x")  # type: ignore[arg-type]
