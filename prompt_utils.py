@@ -39,6 +39,7 @@ __all__: List[str] = [
     "count_lines",
     "count_blank_lines",
     "count_non_blank_lines",
+    "count_paragraphs",
     "count_characters",
     "reverse_lines",
 ]
@@ -940,6 +941,57 @@ def count_non_blank_lines(text: str) -> int:
     if lines and lines[-1] == "":
         lines = lines[:-1]
     return sum(1 for line in lines if line.strip() != "")
+
+
+def count_paragraphs(text: str) -> int:
+    """Return the number of paragraphs in *text*.
+
+    A paragraph is a run of one or more non-blank lines separated from other
+    paragraphs by one or more blank (whitespace-only) lines. Empty text
+    contains zero paragraphs, and leading or trailing blank lines do not
+    create paragraphs.
+
+    Args:
+        text: The text to count paragraphs in.
+
+    Returns:
+        The number of paragraphs.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_paragraphs("")
+        0
+        >>> count_paragraphs("hello")
+        1
+        >>> count_paragraphs("hello\nworld")
+        1
+        >>> count_paragraphs("hello\n\nworld")
+        2
+        >>> count_paragraphs("a\n\nb\n\nc")
+        3
+        >>> count_paragraphs("hello\n\n\nworld")
+        2
+        >>> count_paragraphs("\n\n")
+        0
+    """
+    _require_string(text, "text")
+    if not text:
+        return 0
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    if lines and lines[-1] == "":
+        lines = lines[:-1]
+    count = 0
+    in_paragraph = False
+    for line in lines:
+        if line.strip() == "":
+            in_paragraph = False
+        elif not in_paragraph:
+            in_paragraph = True
+            count += 1
+    return count
 
 
 def count_characters(text: str) -> int:

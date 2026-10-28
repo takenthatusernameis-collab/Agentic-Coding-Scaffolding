@@ -1060,4 +1060,4 @@ def is_automorphic(n: int) -> bool:
     if n < 0:
         return False
     square = n * n
-    return square % (10 ** len(str(n))) == n
+    return str(square).endswith(str(n))

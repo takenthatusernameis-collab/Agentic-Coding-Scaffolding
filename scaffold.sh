@@ -19341,6 +19341,7 @@ from prompt_utils import (
     count_characters,
     count_lines,
     count_non_blank_lines,
+    count_paragraphs,
     count_placeholders,
     count_sentences,
     count_words,
@@ -19903,6 +19904,45 @@ class TestCountNonBlankLines(unittest.TestCase):
             count_non_blank_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_non_blank_lines(None)  # type: ignore[arg-type]
+
+
+class TestCountParagraphs(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_paragraphs(""), 0)
+
+    def test_single_paragraph(self):
+        self.assertEqual(count_paragraphs("hello"), 1)
+
+    def test_multiple_lines_one_paragraph(self):
+        self.assertEqual(count_paragraphs("hello\nworld"), 1)
+
+    def test_two_paragraphs(self):
+        self.assertEqual(count_paragraphs("hello\n\nworld"), 2)
+
+    def test_three_paragraphs(self):
+        self.assertEqual(count_paragraphs("a\n\nb\n\nc"), 3)
+
+    def test_multiple_blank_lines_still_one_separator(self):
+        self.assertEqual(count_paragraphs("hello\n\n\nworld"), 2)
+
+    def test_trailing_blank_lines_ignored(self):
+        self.assertEqual(count_paragraphs("hello\n\n"), 1)
+        self.assertEqual(count_paragraphs("hello\n\n\n"), 1)
+
+    def test_all_blank(self):
+        self.assertEqual(count_paragraphs("\n\n"), 0)
+
+    def test_crlf(self):
+        self.assertEqual(count_paragraphs("a\r\n\r\nb"), 2)
+
+    def test_whitespace_only_separator(self):
+        self.assertEqual(count_paragraphs("hello\n   \n\t\nworld"), 2)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_paragraphs(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_paragraphs(None)  # type: ignore[arg-type]
 
 
 class TestCountWords(unittest.TestCase):
@@ -28836,6 +28876,7 @@ __all__: List[str] = [
     "count_lines",
     "count_blank_lines",
     "count_non_blank_lines",
+    "count_paragraphs",
     "count_characters",
     "reverse_lines",
 ]
@@ -29737,6 +29778,57 @@ def count_non_blank_lines(text: str) -> int:
     if lines and lines[-1] == "":
         lines = lines[:-1]
     return sum(1 for line in lines if line.strip() != "")
+
+
+def count_paragraphs(text: str) -> int:
+    """Return the number of paragraphs in *text*.
+
+    A paragraph is a run of one or more non-blank lines separated from other
+    paragraphs by one or more blank (whitespace-only) lines. Empty text
+    contains zero paragraphs, and leading or trailing blank lines do not
+    create paragraphs.
+
+    Args:
+        text: The text to count paragraphs in.
+
+    Returns:
+        The number of paragraphs.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_paragraphs("")
+        0
+        >>> count_paragraphs("hello")
+        1
+        >>> count_paragraphs("hello\nworld")
+        1
+        >>> count_paragraphs("hello\n\nworld")
+        2
+        >>> count_paragraphs("a\n\nb\n\nc")
+        3
+        >>> count_paragraphs("hello\n\n\nworld")
+        2
+        >>> count_paragraphs("\n\n")
+        0
+    """
+    _require_string(text, "text")
+    if not text:
+        return 0
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    if lines and lines[-1] == "":
+        lines = lines[:-1]
+    count = 0
+    in_paragraph = False
+    for line in lines:
+        if line.strip() == "":
+            in_paragraph = False
+        elif not in_paragraph:
+            in_paragraph = True
+            count += 1
+    return count
 
 
 def count_characters(text: str) -> int:
@@ -41434,6 +41526,27 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added count_paragraphs to prompt_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6298 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync (after fixing a stale `prime_utils.py`/`tests/test_prime_utils.py` copy and a mypy `no-any-return` error in `prime_utils.py`).
+
+Completed in this session:
+
+- Fixed a mypy `no-any-return` error in `prime_utils.py`'s `is_automorphic` by replacing `square % (10 ** len(str(n))) == n` with the equivalent `str(square).endswith(str(n))`; this mypy version types `literal ** variable_int` as `Any`, and the behavior is identical for all inputs.
+- Refreshed the embedded copies of `prime_utils.py` and `tests/test_prime_utils.py` in `scaffold.sh`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `count_paragraphs(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it counts runs of non-blank lines separated by blank lines, treating empty text as zero paragraphs.
+- Added `TestCountParagraphs` to `tests/test_prompt_utils.py` covering empty, single, multi-line, multiple paragraphs, multiple blank-line separators, trailing blank lines, all-blank, CRLF, whitespace-only separators, and the `TypeError` path (11 new tests).
+- Updated the `prompt_utils` module prose section of `README.md` to list `count_paragraphs`.
+- Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` runs 6309 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added coerce_to_int to type_check_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6292 tests and passes, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -43137,7 +43250,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_characters`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_paragraphs`, `count_characters`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 
@@ -66980,6 +67093,7 @@ __all__: List[str] = [
     "total_prime_factors",
     "distinct_prime_factors",
     "largest_prime_factor",
+    "is_automorphic",
     "coprime",
 ]
 
@@ -67961,6 +68075,44 @@ def largest_prime_factor(n: int) -> int:
     if remaining > 1:
         largest = remaining
     return largest
+
+
+def is_automorphic(n: int) -> bool:
+    """Return True if *n* is an automorphic number.
+
+    An automorphic number is a non-negative integer whose square ends with
+    the decimal representation of the number itself (e.g. 5, because
+    ``5 * 5 = 25`` ends in 5; 25, because ``25 * 25 = 625`` ends in 25).
+    Zero is automorphic.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is automorphic, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_automorphic(0)
+        True
+        >>> is_automorphic(5)
+        True
+        >>> is_automorphic(6)
+        True
+        >>> is_automorphic(25)
+        True
+        >>> is_automorphic(7)
+        False
+        >>> is_automorphic(10)
+        False
+    """
+    _require_int(n, "n")
+    if n < 0:
+        return False
+    square = n * n
+    return str(square).endswith(str(n))
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -67973,6 +68125,7 @@ from prime_utils import (
     coprime,
     distinct_prime_factors,
     is_abundant_number,
+    is_automorphic,
     is_circular_prime,
     is_composite,
     is_coprime,
@@ -69041,6 +69194,40 @@ class TestLargestPrimeFactor(unittest.TestCase):
             largest_prime_factor(-1)
         with self.assertRaises(ValueError):
             largest_prime_factor(1)
+
+
+class TestIsAutomorphic(unittest.TestCase):
+    def test_small_automorphic(self):
+        self.assertTrue(is_automorphic(0))
+        self.assertTrue(is_automorphic(1))
+        self.assertTrue(is_automorphic(5))
+        self.assertTrue(is_automorphic(6))
+
+    def test_multi_digit_automorphic(self):
+        self.assertTrue(is_automorphic(25))
+        self.assertTrue(is_automorphic(76))
+        self.assertTrue(is_automorphic(376))
+        self.assertTrue(is_automorphic(625))
+        self.assertTrue(is_automorphic(9376))
+
+    def test_non_automorphic(self):
+        self.assertFalse(is_automorphic(2))
+        self.assertFalse(is_automorphic(7))
+        self.assertFalse(is_automorphic(10))
+        self.assertFalse(is_automorphic(100))
+        self.assertFalse(is_automorphic(123))
+
+    def test_negative(self):
+        self.assertFalse(is_automorphic(-5))
+        self.assertFalse(is_automorphic(-25))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_automorphic(5.0)
+        with self.assertRaises(TypeError):
+            is_automorphic("5")
+        with self.assertRaises(TypeError):
+            is_automorphic(True)
 TEST_PRIME_UTILS
 
 # --- pstats_utils.py ---

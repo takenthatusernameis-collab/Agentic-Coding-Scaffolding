@@ -9,6 +9,7 @@ from prompt_utils import (
     count_characters,
     count_lines,
     count_non_blank_lines,
+    count_paragraphs,
     count_placeholders,
     count_sentences,
     count_words,
@@ -571,6 +572,45 @@ class TestCountNonBlankLines(unittest.TestCase):
             count_non_blank_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_non_blank_lines(None)  # type: ignore[arg-type]
+
+
+class TestCountParagraphs(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_paragraphs(""), 0)
+
+    def test_single_paragraph(self):
+        self.assertEqual(count_paragraphs("hello"), 1)
+
+    def test_multiple_lines_one_paragraph(self):
+        self.assertEqual(count_paragraphs("hello\nworld"), 1)
+
+    def test_two_paragraphs(self):
+        self.assertEqual(count_paragraphs("hello\n\nworld"), 2)
+
+    def test_three_paragraphs(self):
+        self.assertEqual(count_paragraphs("a\n\nb\n\nc"), 3)
+
+    def test_multiple_blank_lines_still_one_separator(self):
+        self.assertEqual(count_paragraphs("hello\n\n\nworld"), 2)
+
+    def test_trailing_blank_lines_ignored(self):
+        self.assertEqual(count_paragraphs("hello\n\n"), 1)
+        self.assertEqual(count_paragraphs("hello\n\n\n"), 1)
+
+    def test_all_blank(self):
+        self.assertEqual(count_paragraphs("\n\n"), 0)
+
+    def test_crlf(self):
+        self.assertEqual(count_paragraphs("a\r\n\r\nb"), 2)
+
+    def test_whitespace_only_separator(self):
+        self.assertEqual(count_paragraphs("hello\n   \n\t\nworld"), 2)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_paragraphs(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_paragraphs(None)  # type: ignore[arg-type]
 
 
 class TestCountWords(unittest.TestCase):
