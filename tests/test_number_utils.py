@@ -623,3 +623,48 @@ class TestIsDivisibleBy(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_divisible_by(True, 2)  # type: ignore[arg-type]
 
+
+
+class TestIsEven(unittest.TestCase):
+    def test_even(self) -> None:
+        from number_utils import is_even
+
+        self.assertTrue(is_even(0))
+        self.assertTrue(is_even(2))
+        self.assertTrue(is_even(-4))
+
+    def test_odd(self) -> None:
+        from number_utils import is_even
+
+        self.assertFalse(is_even(1))
+        self.assertFalse(is_even(-3))
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_even
+
+        with self.assertRaises(TypeError):
+            is_even(2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_even(True)  # type: ignore[arg-type]
+
+
+class TestIsOdd(unittest.TestCase):
+    def test_odd(self) -> None:
+        from number_utils import is_odd
+
+        self.assertTrue(is_odd(1))
+        self.assertTrue(is_odd(-3))
+
+    def test_even(self) -> None:
+        from number_utils import is_odd
+
+        self.assertFalse(is_odd(0))
+        self.assertFalse(is_odd(2))
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_odd
+
+        with self.assertRaises(TypeError):
+            is_odd(2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(True)  # type: ignore[arg-type]

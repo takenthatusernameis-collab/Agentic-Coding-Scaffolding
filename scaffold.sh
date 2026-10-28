@@ -62226,6 +62226,40 @@ def is_divisible_by(a: int, b: int) -> bool:
     if b == 0:
         raise ValueError("is_divisible_by() division by zero")
     return a % b == 0
+
+
+def is_even(value: int) -> bool:
+    """Return True if *value* is an even integer.
+
+    Args:
+        value: Integer to test.
+
+    Returns:
+        True if *value* is even, otherwise False.
+
+    Raises:
+        TypeError: If *value* is not an int.
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    return value % 2 == 0
+
+
+def is_odd(value: int) -> bool:
+    """Return True if *value* is an odd integer.
+
+    Args:
+        value: Integer to test.
+
+    Returns:
+        True if *value* is odd, otherwise False.
+
+    Raises:
+        TypeError: If *value* is not an int.
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    return value % 2 != 0
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -62854,6 +62888,52 @@ class TestIsDivisibleBy(unittest.TestCase):
             is_divisible_by(10, 2.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_divisible_by(True, 2)  # type: ignore[arg-type]
+
+
+
+class TestIsEven(unittest.TestCase):
+    def test_even(self) -> None:
+        from number_utils import is_even
+
+        self.assertTrue(is_even(0))
+        self.assertTrue(is_even(2))
+        self.assertTrue(is_even(-4))
+
+    def test_odd(self) -> None:
+        from number_utils import is_even
+
+        self.assertFalse(is_even(1))
+        self.assertFalse(is_even(-3))
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_even
+
+        with self.assertRaises(TypeError):
+            is_even(2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_even(True)  # type: ignore[arg-type]
+
+
+class TestIsOdd(unittest.TestCase):
+    def test_odd(self) -> None:
+        from number_utils import is_odd
+
+        self.assertTrue(is_odd(1))
+        self.assertTrue(is_odd(-3))
+
+    def test_even(self) -> None:
+        from number_utils import is_odd
+
+        self.assertFalse(is_odd(0))
+        self.assertFalse(is_odd(2))
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_odd
+
+        with self.assertRaises(TypeError):
+            is_odd(2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(True)  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---

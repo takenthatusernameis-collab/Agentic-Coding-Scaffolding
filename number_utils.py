@@ -759,3 +759,37 @@ def is_divisible_by(a: int, b: int) -> bool:
     if b == 0:
         raise ValueError("is_divisible_by() division by zero")
     return a % b == 0
+
+
+def is_even(value: int) -> bool:
+    """Return True if *value* is an even integer.
+
+    Args:
+        value: Integer to test.
+
+    Returns:
+        True if *value* is even, otherwise False.
+
+    Raises:
+        TypeError: If *value* is not an int.
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    return value % 2 == 0
+
+
+def is_odd(value: int) -> bool:
+    """Return True if *value* is an odd integer.
+
+    Args:
+        value: Integer to test.
+
+    Returns:
+        True if *value* is odd, otherwise False.
+
+    Raises:
+        TypeError: If *value* is not an int.
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    return value % 2 != 0
