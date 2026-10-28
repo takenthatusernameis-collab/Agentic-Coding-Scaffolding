@@ -440,9 +440,11 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `backoff_utils.py` — backoff and retry delay utilities (`constant_backoff`, `exponential_backoff`, `backoff_delay`) with input validation
 - `hostname_utils.py` — hostname validation and normalization utilities (`is_valid_hostname`, `normalize_hostname`, `get_local_hostname`, `is_fully_qualified`, `split_hostname`) with input validation
 - `slugify_utils.py` — slug utilities converting strings into URL-friendly slugs (`slugify`, `is_slug`) with input validation
+- `type_check_utils.py` — type checking utilities (`is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, `coerce_to_str`) with input validation
 - `tests/test_backoff_utils.py` — unit tests for `backoff_utils.py`
 - `tests/test_hostname_utils.py` — unit tests for `hostname_utils.py`
 - `tests/test_slugify_utils.py` — unit tests for `slugify_utils.py`
+- `tests/test_type_check_utils.py` — unit tests for `type_check_utils.py`
 - `tests/test_shlex_utils.py` — unit tests for `shlex_utils.py`
 - `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.
 - `sqlite3_utils.py` — SQLite database utilities (`connect`, `execute`, `executemany`, `fetch_all`, `fetch_one`, `fetch_many`, `create_table`, `insert_row`, `query`, `table_exists`) wrapping the standard library `sqlite3` module with input validation.

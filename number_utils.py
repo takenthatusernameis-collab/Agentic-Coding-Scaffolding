@@ -510,3 +510,122 @@ def safe_divide(numerator: Number, denominator: Number) -> float:
     if denominator == 0:
         return 0.0
     return numerator / denominator
+
+
+def clamp(value: Number, min_value: Number, max_value: Number) -> Number:
+    """Clamp a value between min_value and max_value inclusive.
+
+    Args:
+        value: The value to clamp.
+        min_value: The minimum allowed value.
+        max_value: The maximum allowed value.
+
+    Returns:
+        The clamped value.
+
+    Raises:
+        TypeError: If any argument is not a number.
+        ValueError: If min_value > max_value.
+    """
+    _require_number(value, "value")
+    _require_number(min_value, "min_value")
+    _require_number(max_value, "max_value")
+    if min_value > max_value:
+        raise ValueError("min_value must be <= max_value")
+    if value < min_value:
+        return min_value
+    if value > max_value:
+        return max_value
+    return value
+
+
+def lerp(start: Number, end: Number, t: Number) -> float:
+    """Linearly interpolate between start and end by factor t.
+
+    Args:
+        start: The start value.
+        end: The end value.
+        t: Interpolation factor between 0.0 and 1.0.
+
+    Returns:
+        The interpolated value.
+
+    Raises:
+        TypeError: If any argument is not a number.
+    """
+    _require_number(start, "start")
+    _require_number(end, "end")
+    _require_number(t, "t")
+    return float(start + (end - start) * t)
+
+
+def in_range(value: Number, min_value: Number, max_value: Number, inclusive: bool = True) -> bool:
+    """Check if a value is within a range.
+
+    Args:
+        value: The value to check.
+        min_value: The minimum of the range.
+        max_value: The maximum of the range.
+        inclusive: Whether the range is inclusive (default True).
+
+    Returns:
+        True if value is in range, False otherwise.
+
+    Raises:
+        TypeError: If any numeric argument is not a number.
+        ValueError: If min_value > max_value.
+    """
+    _require_number(value, "value")
+    _require_number(min_value, "min_value")
+    _require_number(max_value, "max_value")
+    if min_value > max_value:
+        raise ValueError("min_value must be <= max_value")
+    if inclusive:
+        return min_value <= value <= max_value
+    return min_value < value < max_value
+
+
+def gcd(a: int, b: int) -> int:
+    """Return the greatest common divisor of a and b.
+
+    Args:
+        a: First integer.
+        b: Second integer.
+
+    Returns:
+        The GCD of |a| and |b|.
+
+    Raises:
+        TypeError: If either argument is not an int.
+    """
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    a, b = abs(a), abs(b)
+    while b:
+        a, b = b, a % b
+    return a
+
+
+def lcm(a: int, b: int) -> int:
+    """Return the least common multiple of a and b.
+
+    Args:
+        a: First integer.
+        b: Second integer.
+
+    Returns:
+        The LCM of a and b.
+
+    Raises:
+        TypeError: If either argument is not an int.
+        ValueError: If both are zero.
+    """
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    if a == 0 and b == 0:
+        raise ValueError("lcm() is not defined for both arguments being zero")
+    return abs((a * b) // gcd(a, b))

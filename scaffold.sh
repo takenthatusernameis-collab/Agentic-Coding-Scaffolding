@@ -254,6 +254,8 @@
 
 #   - shlex_utils.py — # Utilities for simple lexical analysis (wrapping the standard library shlex module)
 #   - slugify_utils.py — # Utilities for converting strings into URL-friendly slugs
+#   - type_check_utils.py — # Type checking utilities
+#   - tests/test_type_check_utils.py — # Tests for type_check_utils.py
 
 #   - socketserver_utils.py — # Socketserver utilities wrapping the standard library socketserver module
 
@@ -4547,6 +4549,7 @@ py_modules = [
     "shutil_utils",
     "shlex_utils",
     "slugify_utils",
+    "type_check_utils",
     "runpy_utils",
     "keyword_utils",
     "linecache_utils",
@@ -8555,13 +8558,61 @@ def divide(a: float, b: float) -> float:
     if b == 0:
         raise ValueError("Cannot divide by zero.")
     return a / b
+
+
+def modulo(a: float, b: float) -> float:
+    """Return the remainder of a divided by b.
+
+    Raises:
+        ValueError: If b is zero.
+    """
+    if b == 0:
+        raise ValueError("Cannot divide by zero.")
+    return a % b
+
+
+def floor_divide(a: float, b: float) -> float:
+    """Return the floor division of a by b.
+
+    Raises:
+        ValueError: If b is zero.
+    """
+    if b == 0:
+        raise ValueError("Cannot divide by zero.")
+    return a // b
+
+
+def power(a: float, b: float) -> float:
+    """Return a raised to the power b."""
+    return a ** b
+
+
+def sqrt(a: float) -> float:
+    """Return the square root of a.
+
+    Raises:
+        ValueError: If a is negative.
+    """
+    if a < 0:
+        raise ValueError("Cannot take square root of negative number.")
+    return a ** 0.5
+
+
+def negate(a: float) -> float:
+    """Return the negation of a."""
+    return -a
+
+
+def absolute(a: float) -> float:
+    """Return the absolute value of a."""
+    return abs(a)
 CALCULATOR
 
 # --- tests/test_calculator.py ---
 cat > "$OUTPUT_DIR/tests/test_calculator.py" <<'TESTCALC'
 import unittest
 
-from calculator import add, divide, multiply, subtract
+from calculator import add, divide, multiply, subtract, modulo, floor_divide, power, sqrt, negate, absolute
 
 
 class TestCalculator(unittest.TestCase):
@@ -8588,6 +8639,39 @@ class TestCalculator(unittest.TestCase):
     def test_divide_by_zero(self):
         with self.assertRaises(ValueError):
             divide(5, 0)
+
+    def test_modulo(self):
+        self.assertEqual(modulo(10, 3), 1)
+        self.assertEqual(modulo(9, 3), 0)
+        with self.assertRaises(ValueError):
+            modulo(5, 0)
+
+    def test_floor_divide(self):
+        self.assertEqual(floor_divide(10, 3), 3)
+        self.assertEqual(floor_divide(9, 3), 3)
+        with self.assertRaises(ValueError):
+            floor_divide(5, 0)
+
+    def test_power(self):
+        self.assertEqual(power(2, 3), 8)
+        self.assertEqual(power(4, 0.5), 2)
+        self.assertEqual(power(5, 0), 1)
+
+    def test_sqrt(self):
+        self.assertEqual(sqrt(9), 3)
+        self.assertEqual(sqrt(4), 2)
+        with self.assertRaises(ValueError):
+            sqrt(-1)
+
+    def test_negate(self):
+        self.assertEqual(negate(5), -5)
+        self.assertEqual(negate(-3), 3)
+        self.assertEqual(negate(0), 0)
+
+    def test_absolute(self):
+        self.assertEqual(absolute(5), 5)
+        self.assertEqual(absolute(-3), 3)
+        self.assertEqual(absolute(0), 0)
 
 
 if __name__ == "__main__":
@@ -33479,6 +33563,90 @@ def format_thanks(name: str, thanks: str = "Thanks") -> str:
     if not isinstance(thanks, str):
         raise TypeError("thanks must be a str")
     return f"{thanks}, {name}!"
+
+
+def format_congrats(name: str, congrats: str = "Congratulations") -> str:
+    """Return a formatted congratulations string for the given name.
+
+    Args:
+        name: The name to congratulate.
+        congrats: The congratulations word to use. Defaults to "Congratulations".
+
+    Returns:
+        A string of the form "{congrats}, {name}!".
+
+    Raises:
+        TypeError: If ``name`` or ``congrats`` is not a str.
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    if not isinstance(congrats, str):
+        raise TypeError("congrats must be a str")
+    return f"{congrats}, {name}!"
+
+
+def format_apology(name: str, apology: str = "Sorry") -> str:
+    """Return a formatted apology string for the given name.
+
+    Args:
+        name: The name to apologize to.
+        apology: The apology word to use. Defaults to "Sorry".
+
+    Returns:
+        A string of the form "{apology}, {name}!".
+
+    Raises:
+        TypeError: If ``name`` or ``apology`` is not a str.
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    if not isinstance(apology, str):
+        raise TypeError("apology must be a str")
+    return f"{apology}, {name}!"
+
+
+def format_birthday_wish(name: str, wish: str = "Happy Birthday") -> str:
+    """Return a formatted birthday wish for the given name.
+
+    Args:
+        name: The name to wish.
+        wish: The wish phrase to use. Defaults to "Happy Birthday".
+
+    Returns:
+        A string of the form "{wish}, {name}!".
+
+    Raises:
+        TypeError: If ``name`` or ``wish`` is not a str.
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    if not isinstance(wish, str):
+        raise TypeError("wish must be a str")
+    return f"{wish}, {name}!"
+
+
+def multi_greet(names: list[str], greeting: str = "Hello") -> dict[str, str]:
+    """Return a dictionary mapping names to their greetings.
+
+    Args:
+        names: The names to greet.
+        greeting: The greeting word to use. Defaults to "Hello".
+
+    Returns:
+        A dict mapping each name to ``format_greeting(name, greeting)``.
+
+    Raises:
+        TypeError: If ``names`` is not a list or contains non-str elements,
+            or if ``greeting`` is not a str.
+    """
+    if not isinstance(names, list):
+        raise TypeError("names must be a list")
+    if not isinstance(greeting, str):
+        raise TypeError("greeting must be a str")
+    for name in names:
+        if not isinstance(name, str):
+            raise TypeError("names must contain only str elements")
+    return {name: format_greeting(name, greeting) for name in names}
 GREETING_UTILS
 
 # --- tests/test_greeting_utils.py ---
@@ -33491,6 +33659,10 @@ from greeting_utils import (
     format_names,
     format_thanks,
     format_welcome,
+    format_congrats,
+    format_apology,
+    format_birthday_wish,
+    multi_greet,
 )
 
 
@@ -33563,7 +33735,7 @@ class TestFormatThanks(unittest.TestCase):
         self.assertEqual(format_thanks("World"), "Thanks, World!")
 
     def test_custom(self):
-        self.assertEqual(format_thanks("Alice", "Cheers"), "Cheers, Alice!")
+        self.assertEqual(format_thanks("Alice", "Thank you"), "Thank you, Alice!")
 
     def test_empty_name(self):
         self.assertEqual(format_thanks(""), "Thanks, !")
@@ -33575,6 +33747,48 @@ class TestFormatThanks(unittest.TestCase):
     def test_type_error_thanks(self):
         with self.assertRaises(TypeError):
             format_thanks("Alice", 5)  # type: ignore[arg-type]
+
+
+class TestFormatCongrats(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_congrats("Alice"), "Congratulations, Alice!")
+
+    def test_custom(self):
+        self.assertEqual(format_congrats("Bob", "Well done"), "Well done, Bob!")
+
+
+class TestFormatApology(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_apology("Sam"), "Sorry, Sam!")
+
+    def test_custom(self):
+        self.assertEqual(format_apology("Sam", "My bad"), "My bad, Sam!")
+
+
+class TestFormatBirthdayWish(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_birthday_wish("Taylor"), "Happy Birthday, Taylor!")
+
+    def test_custom(self):
+        self.assertEqual(format_birthday_wish("Taylor", "Many happy returns"), "Many happy returns, Taylor!")
+
+
+class TestMultiGreet(unittest.TestCase):
+    def test_basic(self):
+        result = multi_greet(["Alice", "Bob"])
+        self.assertEqual(result["Alice"], "Hello, Alice!")
+        self.assertEqual(result["Bob"], "Hello, Bob!")
+
+    def test_custom_greeting(self):
+        result = multi_greet(["Carol"], "Hey")
+        self.assertEqual(result["Carol"], "Hey, Carol!")
+
+    def test_empty_list(self):
+        self.assertEqual(multi_greet([]), {})
+
+
+if __name__ == "__main__":
+    unittest.main()
 
 
 if __name__ == "__main__":
@@ -38212,9 +38426,11 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `backoff_utils.py` — backoff and retry delay utilities (`constant_backoff`, `exponential_backoff`, `backoff_delay`) with input validation
 - `hostname_utils.py` — hostname validation and normalization utilities (`is_valid_hostname`, `normalize_hostname`, `get_local_hostname`, `is_fully_qualified`, `split_hostname`) with input validation
 - `slugify_utils.py` — slug utilities converting strings into URL-friendly slugs (`slugify`, `is_slug`) with input validation
+- `type_check_utils.py` — type checking utilities (`is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, `coerce_to_str`) with input validation
 - `tests/test_backoff_utils.py` — unit tests for `backoff_utils.py`
 - `tests/test_hostname_utils.py` — unit tests for `hostname_utils.py`
 - `tests/test_slugify_utils.py` — unit tests for `slugify_utils.py`
+- `tests/test_type_check_utils.py` — unit tests for `type_check_utils.py`
 - `tests/test_shlex_utils.py` — unit tests for `shlex_utils.py`
 - `socketserver_utils.py` — Socketserver utilities wrapping the standard library `socketserver` module for building TCP/UDP servers (`create_tcp_server`, `create_udp_server`, `handle_one_request`, `serve_forever`, `shutdown_server`, `close_server`, `get_server_address`, `is_serving`) with input validation.
 - `sqlite3_utils.py` — SQLite database utilities (`connect`, `execute`, `executemany`, `fetch_all`, `fetch_one`, `fetch_many`, `create_table`, `insert_row`, `query`, `table_exists`) wrapping the standard library `sqlite3` module with input validation.
@@ -40470,6 +40686,8 @@ Next Planned (posted for the following agent):
 - Added `is_between(value, lower, upper, inclusive=True)` to `number_utils.py` with range membership testing and validation (raising `TypeError`/ValueError); updated `__all__`, README, and tests.
 
 - Added `is_between(value, lower, upper, inclusive=True)` to `number_utils.py` with typed signature, `__all__` export, Google-style docstring, and validation raising `TypeError`/`ValueError` for range membership testing (inclusive by default). Added `TestIsBetween` to `tests/test_number_utils.py`. Updated `number_utils` module sections in `README.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`.
+
+- Added `type_check_utils.py` and `tests/test_type_check_utils.py` with type checking helpers and tests. Updated `pyproject.toml`, `README.md`, and synchronized embedded copies.
 CHANGELOG
 
 # Substitute project name in templated documents
@@ -42233,6 +42451,10 @@ Deprecated-module wrappers: `cgitb_utils.py`, `nntplib_utils.py`, `sndhdr_utils.
 ## Slugify Utilities Module
 
 The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slug`. The module is tested in `tests/test_slugify_utils.py`.
+
+## Type Check Utilities Module
+
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, and `coerce_to_str`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -60302,6 +60524,125 @@ def safe_divide(numerator: Number, denominator: Number) -> float:
     if denominator == 0:
         return 0.0
     return numerator / denominator
+
+
+def clamp(value: Number, min_value: Number, max_value: Number) -> Number:
+    """Clamp a value between min_value and max_value inclusive.
+
+    Args:
+        value: The value to clamp.
+        min_value: The minimum allowed value.
+        max_value: The maximum allowed value.
+
+    Returns:
+        The clamped value.
+
+    Raises:
+        TypeError: If any argument is not a number.
+        ValueError: If min_value > max_value.
+    """
+    _require_number(value, "value")
+    _require_number(min_value, "min_value")
+    _require_number(max_value, "max_value")
+    if min_value > max_value:
+        raise ValueError("min_value must be <= max_value")
+    if value < min_value:
+        return min_value
+    if value > max_value:
+        return max_value
+    return value
+
+
+def lerp(start: Number, end: Number, t: Number) -> float:
+    """Linearly interpolate between start and end by factor t.
+
+    Args:
+        start: The start value.
+        end: The end value.
+        t: Interpolation factor between 0.0 and 1.0.
+
+    Returns:
+        The interpolated value.
+
+    Raises:
+        TypeError: If any argument is not a number.
+    """
+    _require_number(start, "start")
+    _require_number(end, "end")
+    _require_number(t, "t")
+    return float(start + (end - start) * t)
+
+
+def in_range(value: Number, min_value: Number, max_value: Number, inclusive: bool = True) -> bool:
+    """Check if a value is within a range.
+
+    Args:
+        value: The value to check.
+        min_value: The minimum of the range.
+        max_value: The maximum of the range.
+        inclusive: Whether the range is inclusive (default True).
+
+    Returns:
+        True if value is in range, False otherwise.
+
+    Raises:
+        TypeError: If any numeric argument is not a number.
+        ValueError: If min_value > max_value.
+    """
+    _require_number(value, "value")
+    _require_number(min_value, "min_value")
+    _require_number(max_value, "max_value")
+    if min_value > max_value:
+        raise ValueError("min_value must be <= max_value")
+    if inclusive:
+        return min_value <= value <= max_value
+    return min_value < value < max_value
+
+
+def gcd(a: int, b: int) -> int:
+    """Return the greatest common divisor of a and b.
+
+    Args:
+        a: First integer.
+        b: Second integer.
+
+    Returns:
+        The GCD of |a| and |b|.
+
+    Raises:
+        TypeError: If either argument is not an int.
+    """
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    a, b = abs(a), abs(b)
+    while b:
+        a, b = b, a % b
+    return a
+
+
+def lcm(a: int, b: int) -> int:
+    """Return the least common multiple of a and b.
+
+    Args:
+        a: First integer.
+        b: Second integer.
+
+    Returns:
+        The LCM of a and b.
+
+    Raises:
+        TypeError: If either argument is not an int.
+        ValueError: If both are zero.
+    """
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    if a == 0 and b == 0:
+        raise ValueError("lcm() is not defined for both arguments being zero")
+    return abs((a * b) // gcd(a, b))
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -111280,6 +111621,181 @@ else:  # pragma: no cover
     AFMT_S16_LE = 0x00000010  # common value as fallback
     SOUND_MIXER_PCM = 0
 OSSAUDIODEV_UTILS
+
+# --- type_check_utils.py ---
+cat > "$OUTPUT_DIR/type_check_utils.py" <<'TYPE_CHECK_UTILS'
+"""Utilities for runtime type checking."""
+
+
+def is_str(value: object) -> bool:
+    """Return True if value is a string."""
+    return isinstance(value, str)
+
+
+def is_int(value: object) -> bool:
+    """Return True if value is an int (excluding bool)."""
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def is_float(value: object) -> bool:
+    """Return True if value is a float."""
+    return isinstance(value, float)
+
+
+def is_bool(value: object) -> bool:
+    """Return True if value is a bool."""
+    return isinstance(value, bool)
+
+
+def is_list(value: object) -> bool:
+    """Return True if value is a list."""
+    return isinstance(value, list)
+
+
+def is_dict(value: object) -> bool:
+    """Return True if value is a dict."""
+    return isinstance(value, dict)
+
+
+def is_tuple(value: object) -> bool:
+    """Return True if value is a tuple."""
+    return isinstance(value, tuple)
+
+
+def is_set(value: object) -> bool:
+    """Return True if value is a set."""
+    return isinstance(value, set)
+
+
+def is_none(value: object) -> bool:
+    """Return True if value is None."""
+    return value is None
+
+
+def is_numeric(value: object) -> bool:
+    """Return True if value is int or float (excluding bool)."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def is_iterable(value: object) -> bool:
+    """Return True if value is iterable but not a string."""
+    if isinstance(value, str):
+        return False
+    try:
+        iter(value)
+        return True
+    except TypeError:
+        return False
+
+
+def is_callable(value: object) -> bool:
+    """Return True if value is callable."""
+    return callable(value)
+
+
+def ensure_type(value: object, expected_type: type, name: str = "value") -> object:
+    """Ensure value is of expected_type, raising TypeError otherwise.
+
+    Args:
+        value: The value to check.
+        expected_type: The expected type.
+        name: Name used in the error message.
+
+    Returns:
+        The value unchanged if type matches.
+
+    Raises:
+        TypeError: If value is not an instance of expected_type.
+    """
+    if not isinstance(value, expected_type):
+        raise TypeError(f"{name} must be of type {expected_type.__name__}, got {type(value).__name__}")
+    return value
+
+
+def coerce_to_str(value: object) -> str:
+    """Convert value to string."""
+    return str(value)
+TYPE_CHECK_UTILS
+
+# --- tests/test_type_check_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_type_check_utils.py" <<'TEST_TYPE_CHECK_UTILS'
+"""Tests for the :mod:`type_check_utils` wrapper."""
+
+from __future__ import annotations
+
+import unittest
+
+import type_check_utils
+
+
+class TestTypeChecks(unittest.TestCase):
+    def test_is_str(self) -> None:
+        self.assertTrue(type_check_utils.is_str("hello"))
+        self.assertFalse(type_check_utils.is_str(123))
+        self.assertFalse(type_check_utils.is_str(None))
+
+    def test_is_int(self) -> None:
+        self.assertTrue(type_check_utils.is_int(5))
+        self.assertFalse(type_check_utils.is_int(5.0))
+        self.assertFalse(type_check_utils.is_int(True))
+        self.assertFalse(type_check_utils.is_int("5"))
+
+    def test_is_float(self) -> None:
+        self.assertTrue(type_check_utils.is_float(3.14))
+        self.assertFalse(type_check_utils.is_float(3))
+
+    def test_is_bool(self) -> None:
+        self.assertTrue(type_check_utils.is_bool(True))
+        self.assertFalse(type_check_utils.is_bool(1))
+
+    def test_is_list(self) -> None:
+        self.assertTrue(type_check_utils.is_list([1, 2, 3]))
+        self.assertFalse(type_check_utils.is_list((1, 2)))
+
+    def test_is_dict(self) -> None:
+        self.assertTrue(type_check_utils.is_dict({"a": 1}))
+        self.assertFalse(type_check_utils.is_dict([1, 2]))
+
+    def test_is_tuple(self) -> None:
+        self.assertTrue(type_check_utils.is_tuple((1, 2)))
+        self.assertFalse(type_check_utils.is_tuple([1, 2]))
+
+    def test_is_set(self) -> None:
+        self.assertTrue(type_check_utils.is_set({1, 2}))
+        self.assertFalse(type_check_utils.is_set([1, 2]))
+
+    def test_is_none(self) -> None:
+        self.assertTrue(type_check_utils.is_none(None))
+        self.assertFalse(type_check_utils.is_none(0))
+
+    def test_is_numeric(self) -> None:
+        self.assertTrue(type_check_utils.is_numeric(5))
+        self.assertTrue(type_check_utils.is_numeric(3.14))
+        self.assertFalse(type_check_utils.is_numeric(True))
+        self.assertFalse(type_check_utils.is_numeric("5"))
+
+    def test_is_iterable(self) -> None:
+        self.assertTrue(type_check_utils.is_iterable([1, 2, 3]))
+        self.assertFalse(type_check_utils.is_iterable("hello"))
+        self.assertFalse(type_check_utils.is_iterable(123))
+
+    def test_is_callable(self) -> None:
+        self.assertTrue(type_check_utils.is_callable(len))
+        self.assertFalse(type_check_utils.is_callable(123))
+
+    def test_ensure_type(self) -> None:
+        self.assertEqual(type_check_utils.ensure_type("hi", str), "hi")
+        with self.assertRaises(TypeError):
+            type_check_utils.ensure_type(123, str)
+
+    def test_coerce_to_str(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_str(123), "123")
+        self.assertEqual(type_check_utils.coerce_to_str([1, 2]), "[1, 2]")
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_TYPE_CHECK_UTILS
 
 
 

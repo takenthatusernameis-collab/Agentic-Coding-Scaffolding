@@ -213,6 +213,7 @@ py_modules = [
     "shutil_utils",
     "shlex_utils",
     "slugify_utils",
+    "type_check_utils",
     "runpy_utils",
     "keyword_utils",
     "linecache_utils",

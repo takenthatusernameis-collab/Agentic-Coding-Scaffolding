@@ -6,6 +6,10 @@ from greeting_utils import (
     format_names,
     format_thanks,
     format_welcome,
+    format_congrats,
+    format_apology,
+    format_birthday_wish,
+    multi_greet,
 )
 
 
@@ -78,7 +82,7 @@ class TestFormatThanks(unittest.TestCase):
         self.assertEqual(format_thanks("World"), "Thanks, World!")
 
     def test_custom(self):
-        self.assertEqual(format_thanks("Alice", "Cheers"), "Cheers, Alice!")
+        self.assertEqual(format_thanks("Alice", "Thank you"), "Thank you, Alice!")
 
     def test_empty_name(self):
         self.assertEqual(format_thanks(""), "Thanks, !")
@@ -90,6 +94,48 @@ class TestFormatThanks(unittest.TestCase):
     def test_type_error_thanks(self):
         with self.assertRaises(TypeError):
             format_thanks("Alice", 5)  # type: ignore[arg-type]
+
+
+class TestFormatCongrats(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_congrats("Alice"), "Congratulations, Alice!")
+
+    def test_custom(self):
+        self.assertEqual(format_congrats("Bob", "Well done"), "Well done, Bob!")
+
+
+class TestFormatApology(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_apology("Sam"), "Sorry, Sam!")
+
+    def test_custom(self):
+        self.assertEqual(format_apology("Sam", "My bad"), "My bad, Sam!")
+
+
+class TestFormatBirthdayWish(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_birthday_wish("Taylor"), "Happy Birthday, Taylor!")
+
+    def test_custom(self):
+        self.assertEqual(format_birthday_wish("Taylor", "Many happy returns"), "Many happy returns, Taylor!")
+
+
+class TestMultiGreet(unittest.TestCase):
+    def test_basic(self):
+        result = multi_greet(["Alice", "Bob"])
+        self.assertEqual(result["Alice"], "Hello, Alice!")
+        self.assertEqual(result["Bob"], "Hello, Bob!")
+
+    def test_custom_greeting(self):
+        result = multi_greet(["Carol"], "Hey")
+        self.assertEqual(result["Carol"], "Hey, Carol!")
+
+    def test_empty_list(self):
+        self.assertEqual(multi_greet([]), {})
+
+
+if __name__ == "__main__":
+    unittest.main()
 
 
 if __name__ == "__main__":
