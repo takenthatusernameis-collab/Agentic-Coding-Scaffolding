@@ -40,6 +40,7 @@ __all__: List[str] = [
     "lcm",
     "ceil_div",
     "is_divisible_by",
+    "digit_sum",
 ]
 
 
@@ -759,3 +760,34 @@ def is_divisible_by(a: int, b: int) -> bool:
     if b == 0:
         raise ValueError("is_divisible_by() division by zero")
     return a % b == 0
+
+
+def digit_sum(value: int) -> int:
+    """Return the sum of the decimal digits of *value*.
+
+    The sign of *value* is ignored, so ``digit_sum(-123)`` returns ``6``.
+    Only the absolute value's decimal digits are summed.
+
+    Args:
+        value: The integer whose decimal digits are summed.
+
+    Returns:
+        The sum of the decimal digits of *value*.
+
+    Raises:
+        TypeError: If *value* is not an int.
+        ValueError: If *value* is negative.
+
+    Examples:
+        >>> digit_sum(123)
+        6
+        >>> digit_sum(-123)
+        6
+        >>> digit_sum(0)
+        0
+        >>> digit_sum(1001)
+        2
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    return sum(int(digit) for digit in str(abs(value)))

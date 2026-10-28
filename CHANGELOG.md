@@ -1,3 +1,22 @@
+## Latest Session (2026-10-28) — added digit_sum to number_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make lint` was failing on a pre-existing import regression in `tests/test_number_utils.py` (8 ruff errors), `make typecheck` was clean, and `python tools/refresh_scaffold.py --check` reported 2 stale embedded copies (`number_utils.py`, `tests/test_number_utils.py`) left by the previous checkpoint commit; all were resolved before adding new work.
+
+Completed in this session:
+
+- Fixed a pre-existing lint regression in `tests/test_number_utils.py`: the `is_even` and `is_odd` top-level imports were unused because `TestIsEven`/`TestIsOdd` use local imports, causing 8 ruff errors (F401/F811); removed the unused imports.
+- Added `digit_sum(value)` to `number_utils.py` returning the sum of the decimal digits of an integer (sign ignored), with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int/bool arguments.
+- Added `TestDigitSum` to `tests/test_number_utils.py` covering basic sums, sign handling, single digits, and the `TypeError` path; imported `digit_sum` at the top of the test file to match the module's `__all__` contract.
+- Updated the `number_utils` module tree entry and prose section of `README.md` to document `digit_sum`.
+- Verified: `make test` (full suite) passes, `make lint` clean, `make typecheck` clean, `python tools/refresh_scaffold.py --check` in sync after `make refresh-scaffold`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added largest_prime_factor to prime_utils
 
 The board held no task. Verified repository health: `make test` passed (183 tests in test_prime_utils), `make lint` is clean, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

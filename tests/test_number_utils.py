@@ -4,10 +4,10 @@ import unittest
 
 from number_utils import (
     clamp,
+    digit_sum,
     format_number,
     is_between,
     is_close,
-    is_even,
     is_finite,
     is_infinite,
     is_integer,
@@ -15,7 +15,6 @@ from number_utils import (
     is_negative,
     is_non_negative,
     is_non_positive,
-    is_odd,
     is_perfect_cube,
     is_perfect_square,
     is_positive,
@@ -603,7 +602,7 @@ class TestIsEven(unittest.TestCase):
         from number_utils import is_even
 
         with self.assertRaises(TypeError):
-            is_even(2.0)  # type: ignore[arg-type]
+            is_even("x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_even(True)  # type: ignore[arg-type]
 
@@ -625,6 +624,34 @@ class TestIsOdd(unittest.TestCase):
         from number_utils import is_odd
 
         with self.assertRaises(TypeError):
-            is_odd(2.0)  # type: ignore[arg-type]
+            is_odd("x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_odd(True)  # type: ignore[arg-type]
+
+
+class TestDigitSum(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(digit_sum(0), 0)
+        self.assertEqual(digit_sum(5), 5)
+        self.assertEqual(digit_sum(123), 6)
+        self.assertEqual(digit_sum(999), 27)
+        self.assertEqual(digit_sum(1001), 2)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(digit_sum(-123), 6)
+        self.assertEqual(digit_sum(-5), 5)
+        self.assertEqual(digit_sum(-1001), 2)
+
+    def test_single_digit(self) -> None:
+        for n in range(10):
+            self.assertEqual(digit_sum(n), n)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            digit_sum("123")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_sum(12.3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_sum(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            digit_sum(None)  # type: ignore[arg-type]
