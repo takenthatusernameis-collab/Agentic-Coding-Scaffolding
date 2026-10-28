@@ -14,8 +14,11 @@ from strings import (
     contains_all,
     contains_any,
     count_consonants,
+    count_digits,
     count_letters,
+    count_lowercase,
     count_occurrences,
+    count_uppercase,
     count_vowels,
     count_words,
     drop,
@@ -53,6 +56,8 @@ from strings import (
     remove_consonants,
     remove_digits,
     remove_punctuation,
+    removeprefix,
+    removesuffix,
     remove_vowels,
     remove_whitespace,
     replace_many,
@@ -164,6 +169,93 @@ class TestCountConsonants(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             count_consonants(None)  # type: ignore[arg-type]
+
+
+class TestCountLowercase(unittest.TestCase):
+    def test_count_basic(self):
+        self.assertEqual(count_lowercase("Hello World"), 8)
+
+    def test_count_all_lowercase(self):
+        self.assertEqual(count_lowercase("hello"), 5)
+
+    def test_count_no_lowercase(self):
+        self.assertEqual(count_lowercase("HELLO"), 0)
+
+    def test_count_mixed(self):
+        self.assertEqual(count_lowercase("PyThOn 3.10!"), 4)
+
+    def test_count_empty(self):
+        self.assertEqual(count_lowercase(""), 0)
+
+    def test_count_ignores_non_alpha(self):
+        self.assertEqual(count_lowercase("a b-c"), 3)
+
+    def test_count_unicode_lowercase(self):
+        self.assertEqual(count_lowercase("café"), 4)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_lowercase(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_lowercase(None)  # type: ignore[arg-type]
+
+
+class TestCountUppercase(unittest.TestCase):
+    def test_count_basic(self):
+        self.assertEqual(count_uppercase("Hello World"), 2)
+
+    def test_count_all_uppercase(self):
+        self.assertEqual(count_uppercase("HELLO"), 5)
+
+    def test_count_no_uppercase(self):
+        self.assertEqual(count_uppercase("hello"), 0)
+
+    def test_count_mixed(self):
+        self.assertEqual(count_uppercase("PyThOn 3.10!"), 2)
+
+    def test_count_empty(self):
+        self.assertEqual(count_uppercase(""), 0)
+
+    def test_count_ignores_non_alpha(self):
+        self.assertEqual(count_uppercase("A B-C"), 3)
+
+    def test_count_unicode_uppercase(self):
+        self.assertEqual(count_uppercase("ÉLF"), 3)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_uppercase(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_uppercase(None)  # type: ignore[arg-type]
+
+
+class TestCountDigits(unittest.TestCase):
+    def test_count_basic(self):
+        self.assertEqual(count_digits("abc123"), 3)
+
+    def test_count_all_digits(self):
+        self.assertEqual(count_digits("2024"), 4)
+
+    def test_count_no_digits(self):
+        self.assertEqual(count_digits("hello"), 0)
+
+    def test_count_mixed(self):
+        self.assertEqual(count_digits("Order #42: 3 items"), 3)
+
+    def test_count_empty(self):
+        self.assertEqual(count_digits(""), 0)
+
+    def test_count_ignores_non_digit(self):
+        self.assertEqual(count_digits("a1b2c3!"), 3)
+
+    def test_count_unicode_digits(self):
+        self.assertEqual(count_digits("①②③"), 3)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_digits(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_digits(None)  # type: ignore[arg-type]
 
 
 class TestIsAnagram(unittest.TestCase):
@@ -1143,6 +1235,67 @@ class TestRemoveBlankLines(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             remove_blank_lines(123)
+
+
+class TestRemovePrefix(unittest.TestCase):
+    def test_remove_prefix_present(self):
+        self.assertEqual(removeprefix("prefix-value", "prefix-"), "value")
+
+    def test_remove_prefix_absent(self):
+        self.assertEqual(removeprefix("value", "prefix-"), "value")
+
+    def test_remove_prefix_empty_prefix(self):
+        self.assertEqual(removeprefix("hello", ""), "hello")
+
+    def test_remove_prefix_full_match(self):
+        self.assertEqual(removeprefix("abc", "abc"), "")
+
+    def test_remove_prefix_partial_overlap_keeps_string(self):
+        # "abcX" starts with "ab" but not "abcX"; only strips when prefix matches
+        self.assertEqual(removeprefix("abcX", "abcX"), "")
+        self.assertEqual(removeprefix("abcX", "abcY"), "abcX")
+
+    def test_remove_prefix_case_sensitive(self):
+        self.assertEqual(removeprefix("Hello", "hello"), "Hello")
+
+    def test_remove_prefix_empty_string(self):
+        self.assertEqual(removeprefix("", "prefix"), "")
+
+    def test_remove_prefix_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            removeprefix(123, "p")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            removeprefix("abc", 123)  # type: ignore[arg-type]
+
+
+class TestRemoveSuffix(unittest.TestCase):
+    def test_remove_suffix_present(self):
+        self.assertEqual(removesuffix("value-suffix", "-suffix"), "value")
+
+    def test_remove_suffix_absent(self):
+        self.assertEqual(removesuffix("value", "-suffix"), "value")
+
+    def test_remove_suffix_empty_suffix(self):
+        self.assertEqual(removesuffix("hello", ""), "hello")
+
+    def test_remove_suffix_full_match(self):
+        self.assertEqual(removesuffix("abc", "abc"), "")
+
+    def test_remove_suffix_partial_overlap_keeps_string(self):
+        self.assertEqual(removesuffix("abcX", "abcX"), "")
+        self.assertEqual(removesuffix("abcX", "abcY"), "abcX")
+
+    def test_remove_suffix_case_sensitive(self):
+        self.assertEqual(removesuffix("Hello", "ello"), "H")
+
+    def test_remove_suffix_empty_string(self):
+        self.assertEqual(removesuffix("", "suffix"), "")
+
+    def test_remove_suffix_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            removesuffix(123, "s")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            removesuffix("abc", 123)  # type: ignore[arg-type]
 
 
 class TestPartition(unittest.TestCase):

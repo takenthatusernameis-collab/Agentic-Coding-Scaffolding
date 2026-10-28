@@ -1,3 +1,21 @@
+## Latest Session (2026-10-28) — added tests for count_lowercase, count_uppercase, count_digits, removeprefix, and removesuffix
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6145 tests and passes, `make lint` and `make typecheck` are clean on touched files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Audited the `strings` module against its test suite and found five public exports listed in `__all__` and the README that had no corresponding tests: `count_lowercase`, `count_uppercase`, `count_digits`, `removeprefix`, and `removesuffix` (`count_letters` was already covered). These were fully implemented with typed signatures and input validation but left a coverage gap.
+- Added `TestCountLowercase`, `TestCountUppercase`, `TestCountDigits`, `TestRemovePrefix`, and `TestRemoveSuffix` to `tests/test_strings.py`, each covering basic counts/removals, empty inputs, case sensitivity, boundary behavior (full match, absent prefix/suffix), and the `TypeError` paths for non-string arguments (28 new tests). Imported the five helpers in the test file's import block to match the `__all__` contract.
+- Added Google-style docstring `Examples` sections (with doctests) to `count_uppercase`, `count_lowercase`, `removeprefix`, `removesuffix`, and `count_digits` in `strings.py` to match the documentation style of the rest of the module.
+- Updated the `strings` module prose section of `README.md` to list `count_lowercase`, `count_uppercase`, `count_digits`, and `count_letters` alongside the existing exports.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — extended version_utils with prerelease/build metadata helpers
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` ran 6120 tests with all passing, `make lint` and `make typecheck` were clean on touched files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.

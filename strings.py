@@ -143,6 +143,16 @@ def count_uppercase(s: str) -> int:
 
     Raises:
         TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_uppercase("Hello World")
+        2
+        >>> count_uppercase("HELLO")
+        5
+        >>> count_uppercase("hello")
+        0
+        >>> count_uppercase("")
+        0
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isupper())
@@ -159,6 +169,16 @@ def count_lowercase(s: str) -> int:
 
     Raises:
         TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_lowercase("Hello World")
+        8
+        >>> count_lowercase("hello")
+        5
+        >>> count_lowercase("HELLO")
+        0
+        >>> count_lowercase("")
+        0
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.islower())
@@ -796,7 +816,26 @@ def strip_chars(s: str, chars: str) -> str:
 
 
 def removeprefix(s: str, prefix: str) -> str:
-    """Remove prefix if present."""
+    """Remove *prefix* from *s* if present, otherwise return *s* unchanged.
+
+    Args:
+        s: The string to strip the prefix from.
+        prefix: The prefix to remove.
+
+    Returns:
+        *s* with *prefix* removed when it starts with *prefix*; *s* otherwise.
+
+    Raises:
+        TypeError: If *s* or *prefix* is not a string.
+
+    Examples:
+        >>> removeprefix("prefix-value", "prefix-")
+        'value'
+        >>> removeprefix("value", "prefix-")
+        'value'
+        >>> removeprefix("abc", "")
+        'abc'
+    """
     _require_string(s, "s")
     _require_string(prefix, "prefix")
     if s.startswith(prefix):
@@ -805,7 +844,26 @@ def removeprefix(s: str, prefix: str) -> str:
 
 
 def removesuffix(s: str, suffix: str) -> str:
-    """Remove suffix if present."""
+    """Remove *suffix* from *s* if present, otherwise return *s* unchanged.
+
+    Args:
+        s: The string to strip the suffix from.
+        suffix: The suffix to remove.
+
+    Returns:
+        *s* with *suffix* removed when it ends with *suffix*; *s* otherwise.
+
+    Raises:
+        TypeError: If *s* or *suffix* is not a string.
+
+    Examples:
+        >>> removesuffix("value-suffix", "-suffix")
+        'value'
+        >>> removesuffix("value", "-suffix")
+        'value'
+        >>> removesuffix("abc", "")
+        'abc'
+    """
     _require_string(s, "s")
     _require_string(suffix, "suffix")
     if s.endswith(suffix):
@@ -1160,6 +1218,16 @@ def count_digits(s: str) -> int:
 
     Raises:
         TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_digits("abc123")
+        3
+        >>> count_digits("2024")
+        4
+        >>> count_digits("hello")
+        0
+        >>> count_digits("")
+        0
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isdigit())

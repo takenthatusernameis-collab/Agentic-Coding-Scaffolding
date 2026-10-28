@@ -11137,6 +11137,16 @@ def count_uppercase(s: str) -> int:
 
     Raises:
         TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_uppercase("Hello World")
+        2
+        >>> count_uppercase("HELLO")
+        5
+        >>> count_uppercase("hello")
+        0
+        >>> count_uppercase("")
+        0
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isupper())
@@ -11153,6 +11163,16 @@ def count_lowercase(s: str) -> int:
 
     Raises:
         TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_lowercase("Hello World")
+        8
+        >>> count_lowercase("hello")
+        5
+        >>> count_lowercase("HELLO")
+        0
+        >>> count_lowercase("")
+        0
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.islower())
@@ -11790,7 +11810,26 @@ def strip_chars(s: str, chars: str) -> str:
 
 
 def removeprefix(s: str, prefix: str) -> str:
-    """Remove prefix if present."""
+    """Remove *prefix* from *s* if present, otherwise return *s* unchanged.
+
+    Args:
+        s: The string to strip the prefix from.
+        prefix: The prefix to remove.
+
+    Returns:
+        *s* with *prefix* removed when it starts with *prefix*; *s* otherwise.
+
+    Raises:
+        TypeError: If *s* or *prefix* is not a string.
+
+    Examples:
+        >>> removeprefix("prefix-value", "prefix-")
+        'value'
+        >>> removeprefix("value", "prefix-")
+        'value'
+        >>> removeprefix("abc", "")
+        'abc'
+    """
     _require_string(s, "s")
     _require_string(prefix, "prefix")
     if s.startswith(prefix):
@@ -11799,7 +11838,26 @@ def removeprefix(s: str, prefix: str) -> str:
 
 
 def removesuffix(s: str, suffix: str) -> str:
-    """Remove suffix if present."""
+    """Remove *suffix* from *s* if present, otherwise return *s* unchanged.
+
+    Args:
+        s: The string to strip the suffix from.
+        suffix: The suffix to remove.
+
+    Returns:
+        *s* with *suffix* removed when it ends with *suffix*; *s* otherwise.
+
+    Raises:
+        TypeError: If *s* or *suffix* is not a string.
+
+    Examples:
+        >>> removesuffix("value-suffix", "-suffix")
+        'value'
+        >>> removesuffix("value", "-suffix")
+        'value'
+        >>> removesuffix("abc", "")
+        'abc'
+    """
     _require_string(s, "s")
     _require_string(suffix, "suffix")
     if s.endswith(suffix):
@@ -12154,6 +12212,16 @@ def count_digits(s: str) -> int:
 
     Raises:
         TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_digits("abc123")
+        3
+        >>> count_digits("2024")
+        4
+        >>> count_digits("hello")
+        0
+        >>> count_digits("")
+        0
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isdigit())
@@ -13615,8 +13683,11 @@ from strings import (
     contains_all,
     contains_any,
     count_consonants,
+    count_digits,
     count_letters,
+    count_lowercase,
     count_occurrences,
+    count_uppercase,
     count_vowels,
     count_words,
     drop,
@@ -13654,6 +13725,8 @@ from strings import (
     remove_consonants,
     remove_digits,
     remove_punctuation,
+    removeprefix,
+    removesuffix,
     remove_vowels,
     remove_whitespace,
     replace_many,
@@ -13765,6 +13838,93 @@ class TestCountConsonants(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             count_consonants(None)  # type: ignore[arg-type]
+
+
+class TestCountLowercase(unittest.TestCase):
+    def test_count_basic(self):
+        self.assertEqual(count_lowercase("Hello World"), 8)
+
+    def test_count_all_lowercase(self):
+        self.assertEqual(count_lowercase("hello"), 5)
+
+    def test_count_no_lowercase(self):
+        self.assertEqual(count_lowercase("HELLO"), 0)
+
+    def test_count_mixed(self):
+        self.assertEqual(count_lowercase("PyThOn 3.10!"), 4)
+
+    def test_count_empty(self):
+        self.assertEqual(count_lowercase(""), 0)
+
+    def test_count_ignores_non_alpha(self):
+        self.assertEqual(count_lowercase("a b-c"), 3)
+
+    def test_count_unicode_lowercase(self):
+        self.assertEqual(count_lowercase("café"), 4)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_lowercase(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_lowercase(None)  # type: ignore[arg-type]
+
+
+class TestCountUppercase(unittest.TestCase):
+    def test_count_basic(self):
+        self.assertEqual(count_uppercase("Hello World"), 2)
+
+    def test_count_all_uppercase(self):
+        self.assertEqual(count_uppercase("HELLO"), 5)
+
+    def test_count_no_uppercase(self):
+        self.assertEqual(count_uppercase("hello"), 0)
+
+    def test_count_mixed(self):
+        self.assertEqual(count_uppercase("PyThOn 3.10!"), 2)
+
+    def test_count_empty(self):
+        self.assertEqual(count_uppercase(""), 0)
+
+    def test_count_ignores_non_alpha(self):
+        self.assertEqual(count_uppercase("A B-C"), 3)
+
+    def test_count_unicode_uppercase(self):
+        self.assertEqual(count_uppercase("ÉLF"), 3)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_uppercase(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_uppercase(None)  # type: ignore[arg-type]
+
+
+class TestCountDigits(unittest.TestCase):
+    def test_count_basic(self):
+        self.assertEqual(count_digits("abc123"), 3)
+
+    def test_count_all_digits(self):
+        self.assertEqual(count_digits("2024"), 4)
+
+    def test_count_no_digits(self):
+        self.assertEqual(count_digits("hello"), 0)
+
+    def test_count_mixed(self):
+        self.assertEqual(count_digits("Order #42: 3 items"), 3)
+
+    def test_count_empty(self):
+        self.assertEqual(count_digits(""), 0)
+
+    def test_count_ignores_non_digit(self):
+        self.assertEqual(count_digits("a1b2c3!"), 3)
+
+    def test_count_unicode_digits(self):
+        self.assertEqual(count_digits("①②③"), 3)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_digits(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_digits(None)  # type: ignore[arg-type]
 
 
 class TestIsAnagram(unittest.TestCase):
@@ -14744,6 +14904,67 @@ class TestRemoveBlankLines(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             remove_blank_lines(123)
+
+
+class TestRemovePrefix(unittest.TestCase):
+    def test_remove_prefix_present(self):
+        self.assertEqual(removeprefix("prefix-value", "prefix-"), "value")
+
+    def test_remove_prefix_absent(self):
+        self.assertEqual(removeprefix("value", "prefix-"), "value")
+
+    def test_remove_prefix_empty_prefix(self):
+        self.assertEqual(removeprefix("hello", ""), "hello")
+
+    def test_remove_prefix_full_match(self):
+        self.assertEqual(removeprefix("abc", "abc"), "")
+
+    def test_remove_prefix_partial_overlap_keeps_string(self):
+        # "abcX" starts with "ab" but not "abcX"; only strips when prefix matches
+        self.assertEqual(removeprefix("abcX", "abcX"), "")
+        self.assertEqual(removeprefix("abcX", "abcY"), "abcX")
+
+    def test_remove_prefix_case_sensitive(self):
+        self.assertEqual(removeprefix("Hello", "hello"), "Hello")
+
+    def test_remove_prefix_empty_string(self):
+        self.assertEqual(removeprefix("", "prefix"), "")
+
+    def test_remove_prefix_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            removeprefix(123, "p")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            removeprefix("abc", 123)  # type: ignore[arg-type]
+
+
+class TestRemoveSuffix(unittest.TestCase):
+    def test_remove_suffix_present(self):
+        self.assertEqual(removesuffix("value-suffix", "-suffix"), "value")
+
+    def test_remove_suffix_absent(self):
+        self.assertEqual(removesuffix("value", "-suffix"), "value")
+
+    def test_remove_suffix_empty_suffix(self):
+        self.assertEqual(removesuffix("hello", ""), "hello")
+
+    def test_remove_suffix_full_match(self):
+        self.assertEqual(removesuffix("abc", "abc"), "")
+
+    def test_remove_suffix_partial_overlap_keeps_string(self):
+        self.assertEqual(removesuffix("abcX", "abcX"), "")
+        self.assertEqual(removesuffix("abcX", "abcY"), "abcX")
+
+    def test_remove_suffix_case_sensitive(self):
+        self.assertEqual(removesuffix("Hello", "ello"), "H")
+
+    def test_remove_suffix_empty_string(self):
+        self.assertEqual(removesuffix("", "suffix"), "")
+
+    def test_remove_suffix_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            removesuffix(123, "s")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            removesuffix("abc", 123)  # type: ignore[arg-type]
 
 
 class TestPartition(unittest.TestCase):
@@ -40313,6 +40534,24 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-28) — added tests for count_lowercase, count_uppercase, count_digits, removeprefix, and removesuffix
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6145 tests and passes, `make lint` and `make typecheck` are clean on touched files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Audited the `strings` module against its test suite and found five public exports listed in `__all__` and the README that had no corresponding tests: `count_lowercase`, `count_uppercase`, `count_digits`, `removeprefix`, and `removesuffix` (`count_letters` was already covered). These were fully implemented with typed signatures and input validation but left a coverage gap.
+- Added `TestCountLowercase`, `TestCountUppercase`, `TestCountDigits`, `TestRemovePrefix`, and `TestRemoveSuffix` to `tests/test_strings.py`, each covering basic counts/removals, empty inputs, case sensitivity, boundary behavior (full match, absent prefix/suffix), and the `TypeError` paths for non-string arguments (28 new tests). Imported the five helpers in the test file's import block to match the `__all__` contract.
+- Added Google-style docstring `Examples` sections (with doctests) to `count_uppercase`, `count_lowercase`, `removeprefix`, `removesuffix`, and `count_digits` in `strings.py` to match the documentation style of the rest of the module.
+- Updated the `strings` module prose section of `README.md` to list `count_lowercase`, `count_uppercase`, `count_digits`, and `count_letters` alongside the existing exports.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — extended version_utils with prerelease/build metadata helpers
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` ran 6120 tests with all passing, `make lint` and `make typecheck` were clean on touched files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
@@ -41589,7 +41828,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`, `count_letters`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
