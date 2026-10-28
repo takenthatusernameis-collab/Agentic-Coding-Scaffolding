@@ -191,8 +191,107 @@ def random_gaussian(mu: float = 0.0, sigma: float = 1.0, seed: Optional[int] = N
     return _seed_rng(seed).gauss(mu, sigma)
 
 
+def random_bool(probability: float = 0.5, seed: Optional[int] = None) -> bool:
+    """Return a random boolean with the given probability of being True.
+
+    Args:
+        probability: The probability of returning True in [0, 1].
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        True with probability ``probability``, False otherwise.
+
+    Raises:
+        TypeError: If ``probability`` is not a number.
+        ValueError: If ``probability`` is outside [0, 1].
+
+    Examples:
+        >>> isinstance(random_bool(seed=1), bool)
+        True
+        >>> random_bool(1.0, seed=0)
+        True
+        >>> random_bool(0.0, seed=0)
+        False
+    """
+    if isinstance(probability, bool) or not isinstance(probability, (int, float)):
+        raise TypeError("probability must be a number")
+    if probability < 0 or probability > 1:
+        raise ValueError("probability must be between 0 and 1")
+    return _seed_rng(seed).random() < probability
+
+
+def random_choices(
+    items: Sequence[T],
+    weights: Optional[Sequence[float]] = None,
+    k: int = 1,
+    seed: Optional[int] = None,
+) -> List[T]:
+    """Return ``k`` elements chosen with replacement.
+
+    Args:
+        items: A non-empty sequence to choose from.
+        weights: Optional sequence of non-negative weights, one per item.
+        k: The number of elements to sample with replacement.
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        A list of ``k`` randomly selected elements (with replacement).
+
+    Raises:
+        ValueError: If ``items`` is empty, if ``k`` is negative, if
+            ``weights`` length does not match ``items`` length, if any weight
+            is negative, or if weights sum to zero.
+        TypeError: If ``k`` is not an int.
+
+    Examples:
+        >>> len(random_choices([1, 2, 3], k=4, seed=1))
+        4
+        >>> random_choices(["x"], k=3, seed=0)
+        ['x', 'x', 'x']
+    """
+    if len(items) == 0:
+        raise ValueError("Cannot choose from an empty sequence")
+    if isinstance(k, bool) or not isinstance(k, int):
+        raise TypeError("k must be an int")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    if weights is not None:
+        if len(weights) != len(items):
+            raise ValueError("weights length must match items length")
+        if any(w < 0 for w in weights):
+            raise ValueError("weights must be non-negative")
+        if sum(weights) == 0:
+            raise ValueError("weights must sum to a positive value")
+        return _seed_rng(seed).choices(items, weights=weights, k=k)
+    return _seed_rng(seed).choices(items, k=k)
+
+
+def coin_flip(seed: Optional[int] = None) -> bool:
+    """Return a fair coin flip.
+
+    Args:
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        True or False with equal probability.
+
+    Examples:
+        >>> isinstance(coin_flip(seed=2), bool)
+        True
+    """
+    return random_bool(0.5, seed=seed)
+
+
+# aliases
+random_choice_with_replacement = random_choices
+
+
 __all__: List[str] = [
+    "coin_flip",
+    "random_bool",
     "random_choice",
+    "random_choice_with_replacement",
+    "random_choices",
     "random_gaussian",
     "random_int",
     "random_sample",

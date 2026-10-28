@@ -3,7 +3,11 @@
 import unittest
 
 from random_utils import (
+    coin_flip,
+    random_bool,
     random_choice,
+    random_choice_with_replacement,
+    random_choices,
     random_gaussian,
     random_int,
     random_sample,
@@ -168,6 +172,93 @@ class TestRandomGaussian(unittest.TestCase):
 
     def test_seeded_is_reproducible(self) -> None:
         self.assertAlmostEqual(random_gaussian(0, 1, seed=17), random_gaussian(0, 1, seed=17))
+
+
+class TestRandomBool(unittest.TestCase):
+    def test_returns_bool(self) -> None:
+        self.assertIsInstance(random_bool(seed=1), bool)
+
+    def test_probability_one(self) -> None:
+        self.assertTrue(random_bool(1.0, seed=5))
+        self.assertTrue(random_bool(1, seed=5))
+
+    def test_probability_zero(self) -> None:
+        self.assertFalse(random_bool(0.0, seed=5))
+        self.assertFalse(random_bool(0, seed=5))
+
+    def test_probabilities_in_range(self) -> None:
+        for _ in range(50):
+            value = random_bool(0.5)
+            self.assertIn(value, (True, False))
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertEqual(random_bool(0.3, seed=7), random_bool(0.3, seed=7))
+
+    def test_out_of_range_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_bool(-0.1)
+        with self.assertRaises(ValueError):
+            random_bool(1.1)
+
+    def test_non_numeric_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            random_bool("0.5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_bool(True)  # type: ignore[arg-type]
+
+
+class TestCoinFlip(unittest.TestCase):
+    def test_returns_bool(self) -> None:
+        self.assertIsInstance(coin_flip(seed=9), bool)
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertEqual(coin_flip(seed=11), coin_flip(seed=11))
+
+
+class TestRandomChoices(unittest.TestCase):
+    def test_basic_with_replacement(self) -> None:
+        result = random_choices([1, 2, 3], k=4, seed=1)
+        self.assertEqual(len(result), 4)
+        self.assertTrue(all(x in [1, 2, 3] for x in result))
+
+    def test_with_weights(self) -> None:
+        result = random_choices(["a", "b"], weights=[0, 1], k=3, seed=5)
+        self.assertEqual(result, ["b", "b", "b"])
+
+    def test_single_item(self) -> None:
+        self.assertEqual(random_choices(["x"], k=3, seed=0), ["x", "x", "x"])
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertEqual(random_choices([1, 2, 3], k=3, seed=42), random_choices([1, 2, 3], k=3, seed=42))
+
+    def test_alias(self) -> None:
+        self.assertEqual(random_choice_with_replacement([1, 2], k=2, seed=7), random_choices([1, 2], k=2, seed=7))
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_choices([], k=1)
+
+    def test_negative_k_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_choices([1, 2], k=-1)
+
+    def test_non_int_k_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            random_choices([1, 2], k=1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_choices([1, 2], k=True)  # type: ignore[arg-type]
+
+    def test_weights_length_mismatch_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_choices([1, 2], weights=[1], k=1)
+
+    def test_negative_weight_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_choices([1, 2], weights=[1, -0.5], k=1)
+
+    def test_all_zero_weights_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_choices([1, 2], weights=[0, 0], k=1)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,38 @@
-## Latest Session (2026-10-28) — completed standard_error task
+## Latest Session (2026-10-28) — added random_choices
 
-The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6044 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 518 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6062 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 518 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `random_choices(items, weights=None, k=1, seed=None)` to `random_utils.py` returning ``k`` elements with replacement, with typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError`/`ValueError` validation (rejecting bool/non-int `k`, negative `k`, length mismatches, negative weights, zero-sum weights, and empty sequences).
+- Added alias `random_choice_with_replacement` for `random_choices`.
+- Added `TestRandomChoices` to `tests/test_random_utils.py` covering basic with-replacement sampling, weighted sampling with replacement, single-item sequences, reproducibility, alias, and validation paths.
+- Updated the `random_utils` module prose section of `README.md` to list `random_choices` and its alias.
+- Synchronized `random_utils.py`, `tests/test_random_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs all tests passing, `make lint` is clean, `make typecheck` reports no issues in 518 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
+Completed in this session:
+
+- Added `random_bool(probability=0.5, seed=None)` to `random_utils.py` with typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError`/`ValueError` validation (rejecting bools and non-numbers, enforcing `0 <= probability <= 1`).
+- Added `coin_flip(seed=None)` to `random_utils.py` as a convenience wrapper for `random_bool(0.5, seed=seed)`.
+- Added `TestRandomBool` and `TestCoinFlip` to `tests/test_random_utils.py` covering default/reproducibility, probability bounds (0.0/1.0), out-of-range `ValueError`, non-numeric/bool `TypeError` paths, and basic behavior.
+- Updated the `random_utils` module prose section of `README.md` to list `random_bool` and `coin_flip`.
+- Synchronized `random_utils.py`, `tests/test_random_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6062+ tests (all passing), `make lint` is clean, `make typecheck` reports no issues in 518 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
 Completed in this session:
 

@@ -21125,8 +21125,107 @@ def random_gaussian(mu: float = 0.0, sigma: float = 1.0, seed: Optional[int] = N
     return _seed_rng(seed).gauss(mu, sigma)
 
 
+def random_bool(probability: float = 0.5, seed: Optional[int] = None) -> bool:
+    """Return a random boolean with the given probability of being True.
+
+    Args:
+        probability: The probability of returning True in [0, 1].
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        True with probability ``probability``, False otherwise.
+
+    Raises:
+        TypeError: If ``probability`` is not a number.
+        ValueError: If ``probability`` is outside [0, 1].
+
+    Examples:
+        >>> isinstance(random_bool(seed=1), bool)
+        True
+        >>> random_bool(1.0, seed=0)
+        True
+        >>> random_bool(0.0, seed=0)
+        False
+    """
+    if isinstance(probability, bool) or not isinstance(probability, (int, float)):
+        raise TypeError("probability must be a number")
+    if probability < 0 or probability > 1:
+        raise ValueError("probability must be between 0 and 1")
+    return _seed_rng(seed).random() < probability
+
+
+def random_choices(
+    items: Sequence[T],
+    weights: Optional[Sequence[float]] = None,
+    k: int = 1,
+    seed: Optional[int] = None,
+) -> List[T]:
+    """Return ``k`` elements chosen with replacement.
+
+    Args:
+        items: A non-empty sequence to choose from.
+        weights: Optional sequence of non-negative weights, one per item.
+        k: The number of elements to sample with replacement.
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        A list of ``k`` randomly selected elements (with replacement).
+
+    Raises:
+        ValueError: If ``items`` is empty, if ``k`` is negative, if
+            ``weights`` length does not match ``items`` length, if any weight
+            is negative, or if weights sum to zero.
+        TypeError: If ``k`` is not an int.
+
+    Examples:
+        >>> len(random_choices([1, 2, 3], k=4, seed=1))
+        4
+        >>> random_choices(["x"], k=3, seed=0)
+        ['x', 'x', 'x']
+    """
+    if len(items) == 0:
+        raise ValueError("Cannot choose from an empty sequence")
+    if isinstance(k, bool) or not isinstance(k, int):
+        raise TypeError("k must be an int")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    if weights is not None:
+        if len(weights) != len(items):
+            raise ValueError("weights length must match items length")
+        if any(w < 0 for w in weights):
+            raise ValueError("weights must be non-negative")
+        if sum(weights) == 0:
+            raise ValueError("weights must sum to a positive value")
+        return _seed_rng(seed).choices(items, weights=weights, k=k)
+    return _seed_rng(seed).choices(items, k=k)
+
+
+def coin_flip(seed: Optional[int] = None) -> bool:
+    """Return a fair coin flip.
+
+    Args:
+        seed: Optional seed for reproducible results.
+
+    Returns:
+        True or False with equal probability.
+
+    Examples:
+        >>> isinstance(coin_flip(seed=2), bool)
+        True
+    """
+    return random_bool(0.5, seed=seed)
+
+
+# aliases
+random_choice_with_replacement = random_choices
+
+
 __all__: List[str] = [
+    "coin_flip",
+    "random_bool",
     "random_choice",
+    "random_choice_with_replacement",
+    "random_choices",
     "random_gaussian",
     "random_int",
     "random_sample",
@@ -21378,7 +21477,11 @@ cat > "$OUTPUT_DIR/tests/test_random_utils.py" <<'TESTRANDUTILS'
 import unittest
 
 from random_utils import (
+    coin_flip,
+    random_bool,
     random_choice,
+    random_choice_with_replacement,
+    random_choices,
     random_gaussian,
     random_int,
     random_sample,
@@ -21543,6 +21646,93 @@ class TestRandomGaussian(unittest.TestCase):
 
     def test_seeded_is_reproducible(self) -> None:
         self.assertAlmostEqual(random_gaussian(0, 1, seed=17), random_gaussian(0, 1, seed=17))
+
+
+class TestRandomBool(unittest.TestCase):
+    def test_returns_bool(self) -> None:
+        self.assertIsInstance(random_bool(seed=1), bool)
+
+    def test_probability_one(self) -> None:
+        self.assertTrue(random_bool(1.0, seed=5))
+        self.assertTrue(random_bool(1, seed=5))
+
+    def test_probability_zero(self) -> None:
+        self.assertFalse(random_bool(0.0, seed=5))
+        self.assertFalse(random_bool(0, seed=5))
+
+    def test_probabilities_in_range(self) -> None:
+        for _ in range(50):
+            value = random_bool(0.5)
+            self.assertIn(value, (True, False))
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertEqual(random_bool(0.3, seed=7), random_bool(0.3, seed=7))
+
+    def test_out_of_range_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_bool(-0.1)
+        with self.assertRaises(ValueError):
+            random_bool(1.1)
+
+    def test_non_numeric_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            random_bool("0.5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_bool(True)  # type: ignore[arg-type]
+
+
+class TestCoinFlip(unittest.TestCase):
+    def test_returns_bool(self) -> None:
+        self.assertIsInstance(coin_flip(seed=9), bool)
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertEqual(coin_flip(seed=11), coin_flip(seed=11))
+
+
+class TestRandomChoices(unittest.TestCase):
+    def test_basic_with_replacement(self) -> None:
+        result = random_choices([1, 2, 3], k=4, seed=1)
+        self.assertEqual(len(result), 4)
+        self.assertTrue(all(x in [1, 2, 3] for x in result))
+
+    def test_with_weights(self) -> None:
+        result = random_choices(["a", "b"], weights=[0, 1], k=3, seed=5)
+        self.assertEqual(result, ["b", "b", "b"])
+
+    def test_single_item(self) -> None:
+        self.assertEqual(random_choices(["x"], k=3, seed=0), ["x", "x", "x"])
+
+    def test_seeded_is_reproducible(self) -> None:
+        self.assertEqual(random_choices([1, 2, 3], k=3, seed=42), random_choices([1, 2, 3], k=3, seed=42))
+
+    def test_alias(self) -> None:
+        self.assertEqual(random_choice_with_replacement([1, 2], k=2, seed=7), random_choices([1, 2], k=2, seed=7))
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_choices([], k=1)
+
+    def test_negative_k_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_choices([1, 2], k=-1)
+
+    def test_non_int_k_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            random_choices([1, 2], k=1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_choices([1, 2], k=True)  # type: ignore[arg-type]
+
+    def test_weights_length_mismatch_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_choices([1, 2], weights=[1], k=1)
+
+    def test_negative_weight_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_choices([1, 2], weights=[1, -0.5], k=1)
+
+    def test_all_zero_weights_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            random_choices([1, 2], weights=[0, 0], k=1)
 
 
 if __name__ == "__main__":
@@ -39750,9 +39940,41 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Latest Session (2026-10-28) — completed standard_error task
+## Latest Session (2026-10-28) — added random_choices
 
-The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6044 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 518 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6062 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 518 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `random_choices(items, weights=None, k=1, seed=None)` to `random_utils.py` returning ``k`` elements with replacement, with typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError`/`ValueError` validation (rejecting bool/non-int `k`, negative `k`, length mismatches, negative weights, zero-sum weights, and empty sequences).
+- Added alias `random_choice_with_replacement` for `random_choices`.
+- Added `TestRandomChoices` to `tests/test_random_utils.py` covering basic with-replacement sampling, weighted sampling with replacement, single-item sequences, reproducibility, alias, and validation paths.
+- Updated the `random_utils` module prose section of `README.md` to list `random_choices` and its alias.
+- Synchronized `random_utils.py`, `tests/test_random_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs all tests passing, `make lint` is clean, `make typecheck` reports no issues in 518 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
+Completed in this session:
+
+- Added `random_bool(probability=0.5, seed=None)` to `random_utils.py` with typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError`/`ValueError` validation (rejecting bools and non-numbers, enforcing `0 <= probability <= 1`).
+- Added `coin_flip(seed=None)` to `random_utils.py` as a convenience wrapper for `random_bool(0.5, seed=seed)`.
+- Added `TestRandomBool` and `TestCoinFlip` to `tests/test_random_utils.py` covering default/reproducibility, probability bounds (0.0/1.0), out-of-range `ValueError`, non-numeric/bool `TypeError` paths, and basic behavior.
+- Updated the `random_utils` module prose section of `README.md` to list `random_bool` and `coin_flip`.
+- Synchronized `random_utils.py`, `tests/test_random_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6062+ tests (all passing), `make lint` is clean, `make typecheck` reports no issues in 518 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
 Completed in this session:
 
@@ -40975,7 +41197,7 @@ The project includes a configuration utilities module in `config_utils.py` with 
 
 ## Random Utilities Module
 
-The project includes a random utilities module in `random_utils.py` with functions for random number generation and sampling: `random_int`, `random_choice`, `random_sample`, `random_shuffle`, `weighted_choice`, `random_uniform`, and `random_gaussian`. Every function accepts an optional `seed` argument for reproducible results and validates its inputs. The module is tested in `tests/test_random_utils.py`.
+The project includes a random utilities module in `random_utils.py` with functions for random number generation and sampling: `random_int`, `random_choice`, `random_sample`, `random_shuffle`, `weighted_choice`, `random_choices` (with replacement, alias `random_choice_with_replacement`), `random_uniform`, `random_gaussian`, `random_bool`, and `coin_flip`. Every function accepts an optional `seed` argument for reproducible results and validates its inputs. The module is tested in `tests/test_random_utils.py`.
 
 ## Validation Utilities Module
 

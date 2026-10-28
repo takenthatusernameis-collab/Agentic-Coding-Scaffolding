@@ -722,7 +722,7 @@ The project includes a configuration utilities module in `config_utils.py` with 
 
 ## Random Utilities Module
 
-The project includes a random utilities module in `random_utils.py` with functions for random number generation and sampling: `random_int`, `random_choice`, `random_sample`, `random_shuffle`, `weighted_choice`, `random_uniform`, and `random_gaussian`. Every function accepts an optional `seed` argument for reproducible results and validates its inputs. The module is tested in `tests/test_random_utils.py`.
+The project includes a random utilities module in `random_utils.py` with functions for random number generation and sampling: `random_int`, `random_choice`, `random_sample`, `random_shuffle`, `weighted_choice`, `random_choices` (with replacement, alias `random_choice_with_replacement`), `random_uniform`, `random_gaussian`, `random_bool`, and `coin_flip`. Every function accepts an optional `seed` argument for reproducible results and validates its inputs. The module is tested in `tests/test_random_utils.py`.
 
 ## Validation Utilities Module
 
