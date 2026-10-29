@@ -2918,4 +2918,10 @@ _EXTRA_ASSERTED_MODULES = [
     "tests/test_ensurepip_utils.py",
     "venv_utils.py",
     "tests/test_venv_utils.py",
+    "sunau_utils.py",
+    "tests/test_sunau_utils.py",
+    "uu_utils.py",
+    "tests/test_uu_utils.py",
+    "xdrlib_utils.py",
+    "tests/test_xdrlib_utils.py",
 ]
