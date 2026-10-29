@@ -1195,8 +1195,8 @@ def is_decimal(s: str) -> bool:
         return False
     if "." in s_stripped:
         int_part, _, frac_part = s_stripped.partition(".")
-        return int_part.isdigit() and frac_part.isdigit() and (
-            int_part or frac_part
+        return bool(
+            int_part.isdigit() and frac_part.isdigit() and (int_part or frac_part)
         )
     return s_stripped.isdigit()
 

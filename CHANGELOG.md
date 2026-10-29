@@ -1,3 +1,21 @@
+## Latest Session (2026-10-29) — fixed lint/typecheck regressions in strings
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6367 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Fixed a mypy `return-value` error in `strings.py`'s `is_decimal`: the previous `return int_part.isdigit() and frac_part.isdigit() and (int_part or frac_part)` expression returned a `str` (the last truthy operand) instead of a `bool`; wrapped the whole expression in `bool(...)` so the return type is `bool`.
+- Fixed an `I001` ruff error in `tests/test_strings.py` where the import block was un-sorted/un-formatted; ran `ruff check --fix` to sort it.
+- Refreshed the embedded copies of `strings.py` and `tests/test_strings.py` in `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` runs 6367 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-28) — added is_version_at_least/is_version_at_most to version_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6313 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
