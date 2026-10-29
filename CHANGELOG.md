@@ -1,3 +1,21 @@
+## Latest Session (2026-10-29) — fixed lint/typecheck regressions in typing_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6518 tests and passes, `make lint` reported 1 error, `make typecheck` reported 1 error in 528 source files, and `python tools/refresh_scaffold.py --check` reported 2 stale embedded copies.
+
+Completed in this session:
+
+- Fixed a ruff `F811` redefinition error in `tests/test_typing_utils.py`: the import block pulled `Literal` from `typing` on line 3 and then re-imported it from `typing_utils` on line 8, which ruff flagged as a redefinition of an unused name. Removed the redundant `Literal` from the `typing` import since the test file uses the `Literal` re-exported by `typing_utils`.
+- Fixed a mypy `attr-defined` error in `type_utils.py`'s `is_literal`: the fallback path imported `typing._LiteralGenericAlias` directly, but mypy does not recognize that private attribute. Replaced the direct import with `getattr(typing, "_LiteralGenericAlias", None)` guarded by a `None` check, preserving the isinstance-based detection for Python versions where the alias exists.
+- Refreshed the embedded copies of `type_utils.py` and `tests/test_typing_utils.py` in `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` runs 6518 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added is_awaitable to type_check_utils
 
 - Added `is_awaitable(value)` to `type_check_utils.py` with a typed signature, `__all__` export, and a Google-style docstring with doctests using `inspect.isawaitable` for a hermetic awaitability check; it returns `True` for coroutines and objects implementing `__await__`. Added `TestIsAwaitable` to `tests/test_type_check_utils.py` covering coroutines, awaitable objects, and non-awaitable values. Updated the `type_check_utils` module prose section of `README.md` to list `is_awaitable`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, and `README.md` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

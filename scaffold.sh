@@ -31029,6 +31029,7 @@ cat > "$OUTPUT_DIR/type_utils.py" <<'TYPEUTILS'
 from __future__ import annotations
 
 import sys
+import typing
 from typing import Any, List, Literal, Union, get_args, get_origin
 
 __all__: List[str] = [
@@ -31089,9 +31090,8 @@ def is_literal(tp: Any) -> bool:
             pass
     # Fallback for some Python versions
     try:
-        from typing import _LiteralGenericAlias
-
-        if isinstance(tp, _LiteralGenericAlias):
+        _LiteralGenericAlias = getattr(typing, "_LiteralGenericAlias", None)
+        if _LiteralGenericAlias is not None and isinstance(tp, _LiteralGenericAlias):
             return True
     except Exception:
         pass
@@ -42682,6 +42682,24 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — fixed lint/typecheck regressions in typing_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6518 tests and passes, `make lint` reported 1 error, `make typecheck` reported 1 error in 528 source files, and `python tools/refresh_scaffold.py --check` reported 2 stale embedded copies.
+
+Completed in this session:
+
+- Fixed a ruff `F811` redefinition error in `tests/test_typing_utils.py`: the import block pulled `Literal` from `typing` on line 3 and then re-imported it from `typing_utils` on line 8, which ruff flagged as a redefinition of an unused name. Removed the redundant `Literal` from the `typing` import since the test file uses the `Literal` re-exported by `typing_utils`.
+- Fixed a mypy `attr-defined` error in `type_utils.py`'s `is_literal`: the fallback path imported `typing._LiteralGenericAlias` directly, but mypy does not recognize that private attribute. Replaced the direct import with `getattr(typing, "_LiteralGenericAlias", None)` guarded by a `None` check, preserving the isinstance-based detection for Python versions where the alias exists.
+- Refreshed the embedded copies of `type_utils.py` and `tests/test_typing_utils.py` in `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` runs 6518 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added is_awaitable to type_check_utils
 
 - Added `is_awaitable(value)` to `type_check_utils.py` with a typed signature, `__all__` export, and a Google-style docstring with doctests using `inspect.isawaitable` for a hermetic awaitability check; it returns `True` for coroutines and objects implementing `__await__`. Added `TestIsAwaitable` to `tests/test_type_check_utils.py` covering coroutines, awaitable objects, and non-awaitable values. Updated the `type_check_utils` module prose section of `README.md` to list `is_awaitable`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, and `README.md` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -43843,7 +43861,7 @@ stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
-type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
+type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal)
 path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
 colorsys_utils.py          # Colorsys utilities wrapping the standard library colorsys module (RGB/HSL conversions, color math)
@@ -44541,7 +44559,7 @@ The project includes a string utilities module in `string_utils.py` with advance
 
 ## Type Utilities Module
 
-The project includes a type introspection utilities module in `type_utils.py` with functions for inspecting Python type objects: `is_optional` detects `Optional[T]` / `Union[T, None]`, `is_union` detects any `Union` type, `is_generic` detects generic aliases like `List[int]`, `get_type_args` returns the type arguments of a generic, `type_name` produces a human-readable name for a type, and `is_subclass_safe` checks subclass relationships without raising `TypeError`. The module is tested in `tests/test_type_utils.py`.
+The project includes a type introspection utilities module in `type_utils.py` with functions for inspecting Python type objects: `is_optional` detects `Optional[T]` / `Union[T, None]`, `is_union` detects any `Union` type, `is_generic` detects generic aliases like `List[int]`, `get_type_args` returns the type arguments of a generic, `type_name` produces a human-readable name for a type, `is_subclass_safe` checks subclass relationships without raising `TypeError`, and `is_literal` detects `Literal[...]` type aliases. The module is tested in `tests/test_type_utils.py`.
 
 ## Path Utilities Module
 
@@ -87909,7 +87927,7 @@ TYPING_UTILS
 cat > "$OUTPUT_DIR/tests/test_typing_utils.py" <<'TEST_TYPING_UTILS'
 import typing
 import unittest
-from typing import List, Literal, Optional, TypedDict
+from typing import List, Optional, TypedDict
 
 from typing_utils import (
     ClassVar,

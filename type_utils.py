@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import typing
 from typing import Any, List, Literal, Union, get_args, get_origin
 
 __all__: List[str] = [
@@ -63,9 +64,8 @@ def is_literal(tp: Any) -> bool:
             pass
     # Fallback for some Python versions
     try:
-        from typing import _LiteralGenericAlias
-
-        if isinstance(tp, _LiteralGenericAlias):
+        _LiteralGenericAlias = getattr(typing, "_LiteralGenericAlias", None)
+        if _LiteralGenericAlias is not None and isinstance(tp, _LiteralGenericAlias):
             return True
     except Exception:
         pass
