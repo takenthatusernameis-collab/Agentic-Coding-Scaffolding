@@ -1,3 +1,20 @@
+## Latest Session (2026-10-29) — added median_low to stats
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6424 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `median_low(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `median`: it returns the low median (the lower of the two middle values for even-length lists, the middle value for odd-length lists) and raises `ValueError` for an empty list and `TypeError` for non-lists or non-numeric elements. Added `TestMedianLow` to `tests/test_stats.py` covering odd/even lengths, single element, unsorted input, negatives, empty-list `ValueError`, and non-list/non-numeric/bool `TypeError` paths (9 new tests). Updated the `stats` module prose section of `README.md`. Recorded the change in this Unreleased section of `CHANGELOG.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6433 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+- Committed the work as `feat(stats): add median_low helper`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `seq_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — fixed pre-existing test/typecheck failures
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6409 tests with 1 pre-existing failure (the `aifc_utils.py` scaffold-sync assertion, identical on the clean tree), `make lint` is clean, `make typecheck` reports 2 pre-existing errors in 2 files (identical on the clean tree), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

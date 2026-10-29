@@ -13278,6 +13278,7 @@ T = TypeVar("T", int, float)
 __all__: List[str] = [
     "mean",
     "median",
+    "median_low",
     "mode",
     "multimode",
     "variance",
@@ -13386,6 +13387,40 @@ def median(numbers: List[T | float]) -> float:
     mid1 = sorted_nums[n // 2 - 1]
     mid2 = sorted_nums[n // 2]
     return (mid1 + mid2) / 2.0
+
+
+def median_low(numbers: List[T | float]) -> float:
+    """Return the low median of a list of numbers.
+
+    The low median is the middle value when the list is sorted. For an
+    odd-length list it equals the median; for an even-length list it returns
+    the lower of the two middle values.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The low median of the numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> median_low([1, 2, 3, 4, 5])
+        3.0
+        >>> median_low([1, 2, 3, 4])
+        2.0
+        >>> median_low([5])
+        5.0
+    """
+    _require_numbers(numbers, "numbers")
+    sorted_nums = sorted(numbers)
+    n = len(sorted_nums)
+    mid = n // 2
+    if n % 2 == 1:
+        return float(sorted_nums[mid])
+    return float(sorted_nums[mid - 1])
 
 
 def mode(numbers: List[T | float]) -> float:
@@ -16802,6 +16837,7 @@ from stats import (
     mean_absolute_deviation,
     median,
     median_absolute_deviation,
+    median_low,
     midhinge,
     midrange,
     min_value,
@@ -16952,6 +16988,39 @@ class TestMedian(unittest.TestCase):
     def test_median_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             median([])
+
+
+class TestMedianLow(unittest.TestCase):
+    def test_median_low_odd(self) -> None:
+        self.assertEqual(median_low([1, 2, 3, 4, 5]), 3.0)
+
+    def test_median_low_even(self) -> None:
+        self.assertEqual(median_low([1, 2, 3, 4]), 2.0)
+
+    def test_median_low_single(self) -> None:
+        self.assertEqual(median_low([5]), 5.0)
+
+    def test_median_low_unsorted(self) -> None:
+        self.assertEqual(median_low([5, 1, 3]), 3.0)
+
+    def test_median_low_negatives(self) -> None:
+        self.assertEqual(median_low([-3, -1, -2]), -2.0)
+
+    def test_median_low_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            median_low([])
+
+    def test_median_low_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_low((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_median_low_non_numeric_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_low([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_median_low_bool_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_low([True, 1, 2])  # type: ignore[type-var]
 
 
 class TestMode(unittest.TestCase):
@@ -42117,6 +42186,23 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — added median_low to stats
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6424 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `median_low(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `median`: it returns the low median (the lower of the two middle values for even-length lists, the middle value for odd-length lists) and raises `ValueError` for an empty list and `TypeError` for non-lists or non-numeric elements. Added `TestMedianLow` to `tests/test_stats.py` covering odd/even lengths, single element, unsorted input, negatives, empty-list `ValueError`, and non-list/non-numeric/bool `TypeError` paths (9 new tests). Updated the `stats` module prose section of `README.md`. Recorded the change in this Unreleased section of `CHANGELOG.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6433 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+- Committed the work as `feat(stats): add median_low helper`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `seq_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — fixed pre-existing test/typecheck failures
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6409 tests with 1 pre-existing failure (the `aifc_utils.py` scaffold-sync assertion, identical on the clean tree), `make lint` is clean, `make typecheck` reports 2 pre-existing errors in 2 files (identical on the clean tree), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -43706,7 +43792,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

@@ -15,6 +15,7 @@ from stats import (
     mean_absolute_deviation,
     median,
     median_absolute_deviation,
+    median_low,
     midhinge,
     midrange,
     min_value,
@@ -165,6 +166,39 @@ class TestMedian(unittest.TestCase):
     def test_median_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             median([])
+
+
+class TestMedianLow(unittest.TestCase):
+    def test_median_low_odd(self) -> None:
+        self.assertEqual(median_low([1, 2, 3, 4, 5]), 3.0)
+
+    def test_median_low_even(self) -> None:
+        self.assertEqual(median_low([1, 2, 3, 4]), 2.0)
+
+    def test_median_low_single(self) -> None:
+        self.assertEqual(median_low([5]), 5.0)
+
+    def test_median_low_unsorted(self) -> None:
+        self.assertEqual(median_low([5, 1, 3]), 3.0)
+
+    def test_median_low_negatives(self) -> None:
+        self.assertEqual(median_low([-3, -1, -2]), -2.0)
+
+    def test_median_low_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            median_low([])
+
+    def test_median_low_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_low((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_median_low_non_numeric_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_low([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_median_low_bool_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_low([True, 1, 2])  # type: ignore[type-var]
 
 
 class TestMode(unittest.TestCase):

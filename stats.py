@@ -8,6 +8,7 @@ T = TypeVar("T", int, float)
 __all__: List[str] = [
     "mean",
     "median",
+    "median_low",
     "mode",
     "multimode",
     "variance",
@@ -116,6 +117,40 @@ def median(numbers: List[T | float]) -> float:
     mid1 = sorted_nums[n // 2 - 1]
     mid2 = sorted_nums[n // 2]
     return (mid1 + mid2) / 2.0
+
+
+def median_low(numbers: List[T | float]) -> float:
+    """Return the low median of a list of numbers.
+
+    The low median is the middle value when the list is sorted. For an
+    odd-length list it equals the median; for an even-length list it returns
+    the lower of the two middle values.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The low median of the numbers.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> median_low([1, 2, 3, 4, 5])
+        3.0
+        >>> median_low([1, 2, 3, 4])
+        2.0
+        >>> median_low([5])
+        5.0
+    """
+    _require_numbers(numbers, "numbers")
+    sorted_nums = sorted(numbers)
+    n = len(sorted_nums)
+    mid = n // 2
+    if n % 2 == 1:
+        return float(sorted_nums[mid])
+    return float(sorted_nums[mid - 1])
 
 
 def mode(numbers: List[T | float]) -> float:
