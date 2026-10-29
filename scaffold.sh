@@ -42573,15 +42573,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Latest Session (2026-10-29) — completed map_or task; recorded next task for following agent
+## Latest Session (2026-10-29) — added map_or_else to maybe_utils
 
-The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6476 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6482 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 Completed in this session:
 
-- Found that the preceding `chore(kilo): checkpoint agent session` commit (56350c3) added `map_or(default, fn)` to `maybe_utils.py` (typed signature, Google-style docstring, safe Some/Nothing handling, swallowing exceptions and treating a `None` result as the default) but left the work incomplete: the docstring had no doctests, `tests/test_maybe_utils.py` had only two `map_or` assertions, the `maybe_utils` module prose section of `README.md` did not mention `map_or`, and no Unreleased `CHANGELOG.md` entry existed.
-- Completed the `map_or` feature: added doctests to its docstring, expanded `TestMapOr` in `tests/test_maybe_utils.py` to cover Some/Nothing, default-returned-on-Nothing, value passed through the function, default returned when the function returns `None`, default returned when the function raises, default returned on Nothing with a raising function, and float inputs (7 new assertions). Updated the `maybe_utils` module prose section of `README.md` (both the tree entry and the two prose paragraphs). Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `maybe_utils.py`, `tests/test_maybe_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-- Verified the work: `make test` runs 6482 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+- Added `map_or_else(default_fn, fn)` to `maybe_utils.Maybe` with typed signature, Google-style docstring including doctests, lazy default computation for `Nothing`, default fallback when the mapper returns `None` or raises an exception, and updated `__all__` unchanged. Added tests in `tests/test_maybe_utils.py` covering Some/Nothing cases, `None` mapper result, and mapper exception fallback (3 new tests). Updated the `maybe_utils` module prose section of `README.md` (tree entry and prose paragraphs). Recorded the change in `CHANGELOG.md`. Synchronized `maybe_utils.py`, `tests/test_maybe_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6485 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+- Committed the work as `feat(maybe_utils): add map_or_else helper`.
 
 Next Planned (posted for the following agent):
 
@@ -44279,7 +44279,7 @@ The project includes a caching utilities module in `cache_utils.py` with helpers
 
 ## Memoization Utilities Module
 
-The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. Maybe/Option type utilities are also provided in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, `or_else`, and `map_or`. All operations are safe and return `Maybe` types for composable error handling. Either/Result type utilities are also provided in `either_utils.py` for functional programming patterns: `Either` represents one of two values with `right`, `left`, `ok`, `err`, and `from_optional` constructors. It provides `is_right`, `is_left`, `is_ok`, `is_err`, `unwrap`, `unwrap_left`, `unwrap_or`, `unwrap_or_else`, `map`, `map_left`, `flat_map`, `and_then`, `or_else`, `fold`, and `swap`. All operations are safe and return `Either` types for composable error handling. The modules are tested in `tests/test_memoize_utils.py`, `tests/test_maybe_utils.py`, and `tests/test_either_utils.py`.
+The project includes a lightweight memoization utilities module in `memoize_utils.py` providing a single `memoize` decorator that caches a function's return values keyed by its positional and keyword arguments. Unlike `cache_utils.memoize`, this decorator takes the function directly (not as a factory) and exposes a `cache_clear` method on the wrapped callable to empty the cache. It validates that its argument is callable and raises `TypeError` otherwise. Maybe/Option type utilities are also provided in `maybe_utils.py` for functional programming patterns: `Maybe` represents an optional value with `some`, `nothing`, and `from_optional` constructors. It provides `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, `or_else`, `map_or`, and `map_or_else`. All operations are safe and return `Maybe` types for composable error handling. Either/Result type utilities are also provided in `either_utils.py` for functional programming patterns: `Either` represents one of two values with `right`, `left`, `ok`, `err`, and `from_optional` constructors. It provides `is_right`, `is_left`, `is_ok`, `is_err`, `unwrap`, `unwrap_left`, `unwrap_or`, `unwrap_or_else`, `map`, `map_left`, `flat_map`, `and_then`, `or_else`, `fold`, and `swap`. All operations are safe and return `Either` types for composable error handling. The modules are tested in `tests/test_memoize_utils.py`, `tests/test_maybe_utils.py`, and `tests/test_either_utils.py`.
 
 ## Timing Utilities Module
 
@@ -113401,6 +113401,30 @@ class Maybe(Generic[T]):
         except Exception:
             return default
 
+    def map_or_else(self, default_fn: Callable[[], U], fn: Callable[[T], U]) -> U:
+        """Apply a function to the contained value if Some, otherwise compute default.
+
+        >>> Maybe.some(2).map_or_else(lambda: 0, lambda x: x * 3)
+        6
+        >>> Maybe.nothing().map_or_else(lambda: 0, lambda x: x * 3)
+        0
+        """
+        if not self._is_some or self._value is None:
+            try:
+                return default_fn()
+            except Exception:
+                raise
+        try:
+            result = fn(self._value)
+            if result is None:
+                return default_fn()
+            return result
+        except Exception:
+            try:
+                return default_fn()
+            except Exception:
+                raise
+
     def unwrap_or(self, default: T) -> T:
         """Get the value or return a default if Nothing."""
         if self._is_some and self._value is not None:
@@ -113572,6 +113596,19 @@ class TestMaybe(unittest.TestCase):
     def test_map_or_floats(self) -> None:
         self.assertAlmostEqual(Maybe.some(2.5).map_or(0.0, lambda x: x * 2.0), 5.0)
         self.assertEqual(Maybe.nothing().map_or(1.5, lambda x: x * 2.0), 1.5)
+
+    def test_map_or_else(self) -> None:
+        self.assertEqual(Maybe.some(5).map_or_else(lambda: 0, lambda x: x * 2), 10)
+        self.assertEqual(Maybe.nothing().map_or_else(lambda: 7, lambda x: x * 2), 7)
+
+    def test_map_or_else_returns_default_when_fn_returns_none(self) -> None:
+        self.assertEqual(Maybe.some(5).map_or_else(lambda: 0, lambda x: None), 0)  # type: ignore[arg-type,return-value]
+
+    def test_map_or_else_calls_default_when_fn_raises(self) -> None:
+        def boom(x: int) -> int:
+            raise RuntimeError("boom")
+
+        self.assertEqual(Maybe.some(5).map_or_else(lambda: 42, boom), 42)
 
 
 if __name__ == "__main__":
