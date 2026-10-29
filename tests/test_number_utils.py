@@ -21,6 +21,7 @@ from number_utils import (
     is_integer,
     is_nan,
     is_negative,
+    is_neon_number,
     is_non_negative,
     is_non_positive,
     is_perfect_cube,
@@ -958,3 +959,21 @@ class TestIsAutomorphicNumber(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIsNeonNumber(unittest.TestCase):
+    def test_neon(self) -> None:
+        self.assertTrue(is_neon_number(0))
+        self.assertTrue(is_neon_number(1))
+        self.assertTrue(is_neon_number(9))
+
+    def test_not_neon(self) -> None:
+        self.assertFalse(is_neon_number(10))
+        self.assertFalse(is_neon_number(2))
+
+    def test_negative(self) -> None:
+        self.assertFalse(is_neon_number(-9))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_neon_number("9")  # type: ignore[arg-type]

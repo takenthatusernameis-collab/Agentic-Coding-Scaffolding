@@ -54,6 +54,7 @@ __all__: List[str] = [
     "is_harshad_number",
     "is_kaprekar_number",
     "is_armstrong_number",
+    "is_neon_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -1238,3 +1239,37 @@ def is_harshad_number(value: int) -> bool:
     if s == 0:
         return False
     return value % s == 0
+
+
+def is_neon_number(value: int) -> bool:
+    """Return True if *value* is a neon number.
+
+    A neon number is a non-negative integer whose square's digit sum equals
+    the number itself. For example, ``9`` is neon because ``9 * 9 = 81``
+    and ``8 + 1 = 9``.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is a neon number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_neon_number(0)
+        True
+        >>> is_neon_number(1)
+        True
+        >>> is_neon_number(9)
+        True
+        >>> is_neon_number(10)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    square = value * value
+    return sum(int(d) for d in str(square)) == value
