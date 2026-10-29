@@ -17,6 +17,7 @@ __all__: List[str] = [
     "is_tuple",
     "is_set",
     "is_none",
+    "is_bytes",
     "is_numeric",
     "is_iterable",
     "is_callable",
@@ -71,6 +72,11 @@ def is_set(value: object) -> bool:
 def is_none(value: object) -> bool:
     """Return True if value is None."""
     return value is None
+
+
+def is_bytes(value: object) -> bool:
+    """Return True if value is bytes."""
+    return isinstance(value, (bytes, bytearray))
 
 
 def is_numeric(value: object) -> bool:

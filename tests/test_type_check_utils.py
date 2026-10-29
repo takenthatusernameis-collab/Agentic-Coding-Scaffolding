@@ -47,6 +47,12 @@ class TestTypeChecks(unittest.TestCase):
         self.assertTrue(type_check_utils.is_none(None))
         self.assertFalse(type_check_utils.is_none(0))
 
+    def test_is_bytes(self) -> None:
+        self.assertTrue(type_check_utils.is_bytes(b"hello"))
+        self.assertTrue(type_check_utils.is_bytes(bytearray(b"hello")))
+        self.assertFalse(type_check_utils.is_bytes("hello"))
+        self.assertFalse(type_check_utils.is_bytes([]))
+
     def test_is_numeric(self) -> None:
         self.assertTrue(type_check_utils.is_numeric(5))
         self.assertTrue(type_check_utils.is_numeric(3.14))

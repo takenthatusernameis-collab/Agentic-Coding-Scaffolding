@@ -45304,7 +45304,7 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 
 ## Type Check Utilities Module
 
-The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, and `coerce_to_float`. The module is tested in `tests/test_type_check_utils.py`.
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -115562,6 +115562,7 @@ __all__: List[str] = [
     "is_tuple",
     "is_set",
     "is_none",
+    "is_bytes",
     "is_numeric",
     "is_iterable",
     "is_callable",
@@ -115616,6 +115617,11 @@ def is_set(value: object) -> bool:
 def is_none(value: object) -> bool:
     """Return True if value is None."""
     return value is None
+
+
+def is_bytes(value: object) -> bool:
+    """Return True if value is bytes."""
+    return isinstance(value, (bytes, bytearray))
 
 
 def is_numeric(value: object) -> bool:
@@ -115845,6 +115851,12 @@ class TestTypeChecks(unittest.TestCase):
     def test_is_none(self) -> None:
         self.assertTrue(type_check_utils.is_none(None))
         self.assertFalse(type_check_utils.is_none(0))
+
+    def test_is_bytes(self) -> None:
+        self.assertTrue(type_check_utils.is_bytes(b"hello"))
+        self.assertTrue(type_check_utils.is_bytes(bytearray(b"hello")))
+        self.assertFalse(type_check_utils.is_bytes("hello"))
+        self.assertFalse(type_check_utils.is_bytes([]))
 
     def test_is_numeric(self) -> None:
         self.assertTrue(type_check_utils.is_numeric(5))
