@@ -110,6 +110,16 @@ class TestTypeChecks(unittest.TestCase):
         self.assertTrue(type_check_utils.is_callable(len))
         self.assertFalse(type_check_utils.is_callable(123))
 
+    def test_is_module(self) -> None:
+        import sys
+
+        self.assertTrue(type_check_utils.is_module(sys))
+        self.assertTrue(type_check_utils.is_module(type_check_utils))
+        self.assertFalse(type_check_utils.is_module(42))
+        self.assertFalse(type_check_utils.is_module(len))
+        self.assertFalse(type_check_utils.is_module("sys"))
+        self.assertFalse(type_check_utils.is_module(None))
+
     def test_ensure_type(self) -> None:
         self.assertEqual(type_check_utils.ensure_type("hi", str), "hi")
         with self.assertRaises(TypeError):

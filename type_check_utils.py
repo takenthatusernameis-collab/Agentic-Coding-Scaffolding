@@ -39,6 +39,7 @@ __all__: List[str] = [
     "is_async_generator",
     "is_function",
     "is_method",
+    "is_module",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -233,6 +234,33 @@ def is_function(value: object) -> bool:
 def is_method(value: object) -> bool:
     """Return True if value is a method."""
     return inspect.ismethod(value)
+
+
+def is_module(value: object) -> bool:
+    """Return True if *value* is a module.
+
+    A module is any object whose type is :class:`types.ModuleType` (for
+    example the :mod:`sys` or :mod:`os` modules). This helper distinguishes
+    modules from classes, functions, and ordinary objects.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a module, False otherwise.
+
+    Examples:
+        >>> import sys
+        >>> is_module(sys)
+        True
+        >>> is_module(42)
+        False
+        >>> is_module(len)
+        False
+    """
+    import types
+
+    return isinstance(value, types.ModuleType)
 
 
 def ensure_type(value: object, expected_type: type, name: str = "value") -> object:

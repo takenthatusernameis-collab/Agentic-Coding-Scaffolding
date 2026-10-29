@@ -42650,6 +42650,22 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — added is_module to type_check_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6826 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_module(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and the inherent `isinstance`-based check consistent with the other `is_*` predicates; it returns `True` when *value* is a `types.ModuleType` (e.g. `sys`), `False` otherwise. Added `test_is_module` to `tests/test_type_check_utils.py` covering modules, non-modules, and `None`. Updated the `type_check_utils` module prose section of `README.md`. Recorded the change in this Unreleased section of `CHANGELOG.md`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6826 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `list_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added is_protocol to type_check_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6503 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -45432,7 +45448,7 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 
 ## Type Check Utilities Module
 
-The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -115801,6 +115817,7 @@ __all__: List[str] = [
     "is_async_generator",
     "is_function",
     "is_method",
+    "is_module",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -115995,6 +116012,33 @@ def is_function(value: object) -> bool:
 def is_method(value: object) -> bool:
     """Return True if value is a method."""
     return inspect.ismethod(value)
+
+
+def is_module(value: object) -> bool:
+    """Return True if *value* is a module.
+
+    A module is any object whose type is :class:`types.ModuleType` (for
+    example the :mod:`sys` or :mod:`os` modules). This helper distinguishes
+    modules from classes, functions, and ordinary objects.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a module, False otherwise.
+
+    Examples:
+        >>> import sys
+        >>> is_module(sys)
+        True
+        >>> is_module(42)
+        False
+        >>> is_module(len)
+        False
+    """
+    import types
+
+    return isinstance(value, types.ModuleType)
 
 
 def ensure_type(value: object, expected_type: type, name: str = "value") -> object:
@@ -116266,6 +116310,16 @@ class TestTypeChecks(unittest.TestCase):
     def test_is_callable(self) -> None:
         self.assertTrue(type_check_utils.is_callable(len))
         self.assertFalse(type_check_utils.is_callable(123))
+
+    def test_is_module(self) -> None:
+        import sys
+
+        self.assertTrue(type_check_utils.is_module(sys))
+        self.assertTrue(type_check_utils.is_module(type_check_utils))
+        self.assertFalse(type_check_utils.is_module(42))
+        self.assertFalse(type_check_utils.is_module(len))
+        self.assertFalse(type_check_utils.is_module("sys"))
+        self.assertFalse(type_check_utils.is_module(None))
 
     def test_ensure_type(self) -> None:
         self.assertEqual(type_check_utils.ensure_type("hi", str), "hi")
