@@ -32,6 +32,7 @@ from strings import (
     is_binary,
     is_blank,
     is_digit,
+    is_decimal,
     is_hex,
     is_identifier,
     is_integer,
@@ -772,9 +773,74 @@ class TestIsInteger(unittest.TestCase):
         self.assertFalse(is_integer("-"))
         self.assertFalse(is_integer("+"))
 
+    def test_trims_surrounding_whitespace(self):
+        self.assertTrue(is_integer(" 123 "))
+        self.assertTrue(is_integer("\t-5\n"))
+        self.assertTrue(is_integer(" +0 "))
+
+    def test_whitespace_only_returns_false(self):
+        self.assertFalse(is_integer("   "))
+        self.assertFalse(is_integer("\t\n"))
+
+    def test_sign_with_whitespace_only_returns_false(self):
+        self.assertFalse(is_integer(" - "))
+        self.assertFalse(is_integer(" + "))
+
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_integer(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_integer(None)  # type: ignore[arg-type]
+
+
+class TestIsDecimal(unittest.TestCase):
+    def test_integer_form(self):
+        self.assertTrue(is_decimal("123"))
+        self.assertTrue(is_decimal("0"))
+
+    def test_with_decimal_point(self):
+        self.assertTrue(is_decimal("12.5"))
+        self.assertTrue(is_decimal("-3.14"))
+        self.assertTrue(is_decimal("+0.5"))
+        self.assertTrue(is_decimal("0.0"))
+
+    def test_trims_surrounding_whitespace(self):
+        self.assertTrue(is_decimal(" 12.5 "))
+        self.assertTrue(is_decimal("\t-5\n"))
+        self.assertTrue(is_decimal(" +0.5 "))
+
+    def test_rejects_trailing_dot(self):
+        self.assertFalse(is_decimal("12."))
+        self.assertFalse(is_decimal("-3."))
+        self.assertFalse(is_decimal("+."))
+
+    def test_rejects_leading_dot(self):
+        self.assertFalse(is_decimal(".5"))
+        self.assertFalse(is_decimal("-.5"))
+
+    def test_rejects_multiple_decimal_points(self):
+        self.assertFalse(is_decimal("12.3.4"))
+        self.assertFalse(is_decimal("1.2.3.4"))
+
+    def test_rejects_letters(self):
+        self.assertFalse(is_decimal("12a"))
+        self.assertFalse(is_decimal("12.5x"))
+
+    def test_rejects_empty_and_whitespace(self):
+        self.assertFalse(is_decimal(""))
+        self.assertFalse(is_decimal("   "))
+        self.assertFalse(is_decimal("\t\n"))
+
+    def test_rejects_just_sign(self):
+        self.assertFalse(is_decimal("-"))
+        self.assertFalse(is_decimal("+"))
+        self.assertFalse(is_decimal(" - "))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_decimal(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_decimal(None)  # type: ignore[arg-type]
 
 
 class TestIsAscii(unittest.TestCase):

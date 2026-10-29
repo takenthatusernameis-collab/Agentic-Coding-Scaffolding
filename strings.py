@@ -41,6 +41,7 @@ __all__: List[str] = [
     "is_digit",
     "is_hex",
     "is_integer",
+    "is_decimal",
     "is_printable",
     "is_identifier",
     "is_pangram",
@@ -1135,6 +1136,68 @@ def is_integer(s: str) -> bool:
         if len(s_stripped) == 1:
             return False
         return s_stripped[1:].isdigit()
+    return s_stripped.isdigit()
+
+
+def is_decimal(s: str) -> bool:
+    """Return True if the string represents a decimal number.
+
+    A decimal number is a sequence of digits (0-9) with an optional leading
+    sign (``+`` or ``-``) and an optional decimal point. At least one digit
+    must appear on each side of the decimal point when present. Surrounding
+    whitespace is ignored, so ``" 12.5 "`` is accepted.
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if *s* is a decimal number, False otherwise. The empty string
+        and strings containing only whitespace return False.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_decimal("123")
+        True
+        >>> is_decimal("12.5")
+        True
+        >>> is_decimal("-3.14")
+        True
+        >>> is_decimal("+0.5")
+        True
+        >>> is_decimal("0.0")
+        True
+        >>> is_decimal("12.")
+        False
+        >>> is_decimal(".5")
+        False
+        >>> is_decimal("12.3.4")
+        False
+        >>> is_decimal("12a")
+        False
+        >>> is_decimal("")
+        False
+        >>> is_decimal(" 12.5 ")
+        True
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    s_stripped = s.strip()
+    if not s_stripped:
+        return False
+    if s_stripped[0] in ("+", "-"):
+        s_stripped = s_stripped[1:]
+    if not s_stripped:
+        return False
+    if s_stripped.count(".") > 1:
+        return False
+    if "." in s_stripped:
+        int_part, _, frac_part = s_stripped.partition(".")
+        return int_part.isdigit() and frac_part.isdigit() and (
+            int_part or frac_part
+        )
     return s_stripped.isdigit()
 
 
