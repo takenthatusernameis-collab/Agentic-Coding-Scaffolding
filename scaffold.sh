@@ -19586,6 +19586,7 @@ from prompt_utils import (
     count_paragraphs,
     count_placeholders,
     count_sentences,
+    count_unique_words,
     count_words,
     dedent_lines,
     ensure_trailing_newline,
@@ -20352,6 +20353,24 @@ class TestStripBlankLines(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCountUniqueWords(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_unique_words(""), 0)
+
+    def test_single_word(self):
+        self.assertEqual(count_unique_words("hello"), 1)
+
+    def test_duplicates(self):
+        self.assertEqual(count_unique_words("hello world hello"), 2)
+
+    def test_case_sensitive(self):
+        self.assertEqual(count_unique_words("Hello hello"), 2)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_unique_words(123)
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -29163,6 +29182,7 @@ __all__: List[str] = [
     "count_characters",
     "reverse_lines",
     "strip_blank_lines",
+    "count_unique_words",
 ]
 
 
@@ -30201,6 +30221,30 @@ def strip_blank_lines(text: str) -> str:
     while lines and lines[-1].strip() == "":
         lines.pop()
     return "\n".join(lines)
+
+
+def count_unique_words(text: str) -> int:
+    """Count the number of distinct whitespace-delimited words in *text*.
+
+    Comparison is case-sensitive.
+
+    Args:
+        text: The text to count unique words in.
+
+    Returns:
+        The number of distinct words.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_unique_words("hello world hello")
+        2
+        >>> count_unique_words("")
+        0
+    """
+    _require_string(text, "text")
+    return len(set(text.split()))
 PROMPTUTILS
 
 # --- type_utils.py ---

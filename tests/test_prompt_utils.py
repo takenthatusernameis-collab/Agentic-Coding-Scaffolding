@@ -12,6 +12,7 @@ from prompt_utils import (
     count_paragraphs,
     count_placeholders,
     count_sentences,
+    count_unique_words,
     count_words,
     dedent_lines,
     ensure_trailing_newline,
@@ -778,3 +779,21 @@ class TestStripBlankLines(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCountUniqueWords(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_unique_words(""), 0)
+
+    def test_single_word(self):
+        self.assertEqual(count_unique_words("hello"), 1)
+
+    def test_duplicates(self):
+        self.assertEqual(count_unique_words("hello world hello"), 2)
+
+    def test_case_sensitive(self):
+        self.assertEqual(count_unique_words("Hello hello"), 2)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_unique_words(123)

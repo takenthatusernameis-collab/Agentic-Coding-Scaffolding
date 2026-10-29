@@ -43,6 +43,7 @@ __all__: List[str] = [
     "count_characters",
     "reverse_lines",
     "strip_blank_lines",
+    "count_unique_words",
 ]
 
 
@@ -1081,3 +1082,27 @@ def strip_blank_lines(text: str) -> str:
     while lines and lines[-1].strip() == "":
         lines.pop()
     return "\n".join(lines)
+
+
+def count_unique_words(text: str) -> int:
+    """Count the number of distinct whitespace-delimited words in *text*.
+
+    Comparison is case-sensitive.
+
+    Args:
+        text: The text to count unique words in.
+
+    Returns:
+        The number of distinct words.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_unique_words("hello world hello")
+        2
+        >>> count_unique_words("")
+        0
+    """
+    _require_string(text, "text")
+    return len(set(text.split()))
