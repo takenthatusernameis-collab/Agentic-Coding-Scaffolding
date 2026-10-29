@@ -13315,6 +13315,7 @@ __all__: List[str] = [
     "root_mean_square",
     "standard_error",
     "moving_average",
+    "cumulative_sum",
 ]
 
 
@@ -14363,6 +14364,36 @@ def moving_average(
     for i in builtins.range(n - window + 1):
         window_values = numbers[i : i + window]
         result.append(mean(window_values))
+    return result
+
+
+def cumulative_sum(numbers: List[T | float]) -> List[float]:
+    """Return the running totals of *numbers*.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        A list whose i-th element is the sum of the first i+1 elements
+        of *numbers*. An empty input yields an empty list.
+
+    Raises:
+        TypeError: If *numbers* is not a list or contains non-numeric values.
+
+    Examples:
+        >>> cumulative_sum([1, 2, 3, 4])
+        [1.0, 3.0, 6.0, 10.0]
+    """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only numbers")
+    result: List[float] = []
+    running = 0.0
+    for x in numbers:
+        running += x
+        result.append(running)
     return result
 STATS
 
