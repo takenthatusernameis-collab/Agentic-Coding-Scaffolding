@@ -29,6 +29,7 @@ from strings import (
     is_alphanumeric,
     is_anagram,
     is_ascii,
+    is_binary,
     is_blank,
     is_digit,
     is_hex,
@@ -693,6 +694,34 @@ class TestIsHex(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_hex(123)  # type: ignore[arg-type]
+
+
+class TestIsBinary(unittest.TestCase):
+    def test_binary(self):
+        self.assertTrue(is_binary("1010"))
+        self.assertTrue(is_binary("0"))
+        self.assertTrue(is_binary("1"))
+        self.assertTrue(is_binary("11111111"))
+
+    def test_not_binary_with_other_digits(self):
+        self.assertFalse(is_binary("102"))
+        self.assertFalse(is_binary("123"))
+        self.assertFalse(is_binary("0123456789"))
+
+    def test_not_binary_with_letters(self):
+        self.assertFalse(is_binary("1a0"))
+        self.assertFalse(is_binary("hello"))
+
+    def test_not_binary_with_sign(self):
+        self.assertFalse(is_binary("-1"))
+        self.assertFalse(is_binary("+1"))
+
+    def test_not_binary_empty(self):
+        self.assertFalse(is_binary(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_binary(123)  # type: ignore[arg-type]
 
 
 class TestIsInteger(unittest.TestCase):

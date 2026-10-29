@@ -11041,6 +11041,7 @@ __all__: List[str] = [
     "is_space",
     "is_alpha",
     "is_alphanumeric",
+    "is_binary",
     "is_digit",
     "is_hex",
     "is_integer",
@@ -12051,6 +12052,33 @@ def is_hex(s: str) -> bool:
     if not s:
         return False
     return all(ch in "0123456789abcdefABCDEF" for ch in s)
+
+
+def is_binary(s: str) -> bool:
+    """Return True if all characters in the string are binary digits (0 or 1).
+
+    A binary digit is one of 0 or 1. The string must be non-empty.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_binary("1010")
+        True
+        >>> is_binary("0")
+        True
+        >>> is_binary("102")
+        False
+        >>> is_binary("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch in "01" for ch in s)
 
 
 def is_integer(s: str) -> bool:
@@ -14205,6 +14233,7 @@ from strings import (
     is_alphanumeric,
     is_anagram,
     is_ascii,
+    is_binary,
     is_blank,
     is_digit,
     is_hex,
@@ -14869,6 +14898,34 @@ class TestIsHex(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_hex(123)  # type: ignore[arg-type]
+
+
+class TestIsBinary(unittest.TestCase):
+    def test_binary(self):
+        self.assertTrue(is_binary("1010"))
+        self.assertTrue(is_binary("0"))
+        self.assertTrue(is_binary("1"))
+        self.assertTrue(is_binary("11111111"))
+
+    def test_not_binary_with_other_digits(self):
+        self.assertFalse(is_binary("102"))
+        self.assertFalse(is_binary("123"))
+        self.assertFalse(is_binary("0123456789"))
+
+    def test_not_binary_with_letters(self):
+        self.assertFalse(is_binary("1a0"))
+        self.assertFalse(is_binary("hello"))
+
+    def test_not_binary_with_sign(self):
+        self.assertFalse(is_binary("-1"))
+        self.assertFalse(is_binary("+1"))
+
+    def test_not_binary_empty(self):
+        self.assertFalse(is_binary(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_binary(123)  # type: ignore[arg-type]
 
 
 class TestIsInteger(unittest.TestCase):
@@ -41944,6 +42001,7 @@ Next Planned (posted for the following agent):
 ## Unreleased
 
 ### Added
+- Added `is_binary(s)` to `strings.py` returning `True` when *s* is non-empty and every character is a binary digit (`0` or `1`), `False` otherwise. It validates that *s* is a string, raising `TypeError` otherwise, and is exported in `__all__` with a Google-style docstring and doctests. Added `TestIsBinary` to `tests/test_strings.py`. Updated the `strings` module prose section of `README.md`.
 - Added `reverse_lines(text)` to `prompt_utils.py` reversing the order of lines in *text*, with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation. Added tests to `tests/test_prompt_utils.py`.
 - Added `count_letters(s)` to `strings.py` returning the number of alphabetic characters in *s*, with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation. Added `TestCountLetters` to `tests/test_strings.py`.
 - Added `count_characters(text)` to `prompt_utils.py` returning the number of characters in *text* (including whitespace), matching `len`, with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments. Added `TestCountCharacters` to `tests/test_prompt_utils.py` covering empty, ASCII, whitespace-counted, unicode, single-character, and `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -43070,7 +43128,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
@@ -87626,6 +87684,9 @@ cat > "$OUTPUT_DIR/tests/test_version_utils.py" <<'TEST_VERSION_UTILS'
 import unittest
 
 from version_utils import (
+    at_least,
+    at_most,
+    between,
     bump_major,
     bump_minor,
     bump_patch,
@@ -87642,6 +87703,7 @@ from version_utils import (
     get_patch_version,
     get_prerelease,
     get_prerelease_tag,
+    is_between,
     is_compatible,
     is_equal,
     is_greater,
@@ -87650,18 +87712,14 @@ from version_utils import (
     is_prerelease,
     is_stable,
     is_valid_version,
+    is_version_at_least,
+    is_version_at_most,
+    is_version_between,
     is_version_equal,
     is_version_greater,
     is_version_greater_equal,
     is_version_less,
     is_version_less_equal,
-    is_version_at_least,
-    is_version_at_most,
-    is_version_between,
-    at_least,
-    at_most,
-    between,
-    is_between,
     max_version,
     min_version,
     normalize_version,

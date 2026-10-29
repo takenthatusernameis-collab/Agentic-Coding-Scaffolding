@@ -36,6 +36,7 @@ __all__: List[str] = [
     "is_space",
     "is_alpha",
     "is_alphanumeric",
+    "is_binary",
     "is_digit",
     "is_hex",
     "is_integer",
@@ -1046,6 +1047,33 @@ def is_hex(s: str) -> bool:
     if not s:
         return False
     return all(ch in "0123456789abcdefABCDEF" for ch in s)
+
+
+def is_binary(s: str) -> bool:
+    """Return True if all characters in the string are binary digits (0 or 1).
+
+    A binary digit is one of 0 or 1. The string must be non-empty.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_binary("1010")
+        True
+        >>> is_binary("0")
+        True
+        >>> is_binary("102")
+        False
+        >>> is_binary("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch in "01" for ch in s)
 
 
 def is_integer(s: str) -> bool:
