@@ -46,10 +46,9 @@ __all__: List[str] = [
     "digit_sum",
     "digit_count",
     "digit_product",
-    "safe_divide",
-    "round_to",
     "digital_root",
     "is_triangular_number",
+    "is_perfect_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
