@@ -13314,6 +13314,7 @@ __all__: List[str] = [
     "z_scores",
     "root_mean_square",
     "standard_error",
+    "moving_average",
 ]
 
 
@@ -13547,7 +13548,7 @@ def skewness(numbers: List[T | float]) -> float:
     return float(sum(((x - m) / s) ** 3 for x in numbers) / n)
 
 
-def range(numbers: List[T | float]) -> float:
+def range_stat(numbers: List[T | float]) -> float:
     """Return the range (max - min) of a list of numbers.
 
     Args:
@@ -13561,15 +13562,19 @@ def range(numbers: List[T | float]) -> float:
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
-        >>> range([1, 2, 3, 4, 5])
+        >>> range_stat([1, 2, 3, 4, 5])
         4.0
-        >>> range([5])
+        >>> range_stat([5])
         0.0
-        >>> range([-2, 4])
+        >>> range_stat([-2, 4])
         6.0
     """
     _require_numbers(numbers, "numbers")
     return float(max(numbers) - min(numbers))
+
+
+# Backwards compatible alias
+range = range_stat
 
 
 def min_value(numbers: List[T | float]) -> float:
@@ -14289,6 +14294,76 @@ def standard_error(numbers: List[T | float]) -> float:
     if n < 2:
         raise ValueError("Cannot calculate standard error with fewer than 2 elements")
     return stddev(numbers, population=False) / math.sqrt(n)
+
+
+def moving_average(
+    numbers: List[T | float], window: int, *, weights: List[float] | None = None
+) -> List[float]:
+    """Return the weighted moving averages of *numbers* over a sliding *window*.
+
+    For each position ``i`` starting at ``window - 1``, the result contains the
+    average of the *window* values ending at *i* (i.e. ``numbers[i - window + 1:i + 1]``).
+    When *weights* is provided it must have length *window*; each window value is
+    multiplied by the corresponding weight and the result is divided by the sum
+    of the weights. When *weights* is omitted (the default) a simple arithmetic
+    moving average is computed.
+
+    Args:
+        numbers: A list of numeric values.
+        window: The number of values to include in each average. Must be a
+            positive integer no larger than ``len(numbers)``.
+        weights: Optional per-position weights of length *window*.
+
+    Returns:
+        A list of moving-average values, one for each valid window position. The
+        result has length ``len(numbers) - window + 1``.
+
+    Raises:
+        ValueError: If the list is empty, *window* is not positive, *window*
+            is larger than the list length, the weights do not sum to a positive
+            value, or the sample variance requested with fewer than 2 elements.
+        TypeError: If *numbers* is not a list, contains non-numeric values,
+            *window* is not an int, or *weights* is not a list of numbers.
+
+    Examples:
+        >>> moving_average([1, 2, 3, 4, 5], 3)
+        [2.0, 3.0, 4.0]
+        >>> moving_average([1, 2, 3, 4], 2)
+        [1.5, 2.5, 3.5]
+        >>> moving_average([10, 20, 30], 2, weights=[1, 2])
+        [16.666666666666668, 26.666666666666668]
+    """
+    import builtins
+
+    _require_numbers(numbers, "numbers")
+    _require_int(window, "window")
+    if window <= 0:
+        raise ValueError("window must be positive")
+    n = len(numbers)
+    if window > n:
+        raise ValueError(
+            f"window ({window}) cannot be larger than the list length ({n})"
+        )
+    if weights is not None:
+        _require_numbers(weights, "weights")
+        if len(weights) != window:
+            raise ValueError("weights must have the same length as window")
+        total_weight = sum(float(w) for w in weights)
+        if total_weight <= 0:
+            raise ValueError("weights must sum to a positive value")
+        result: List[float] = []
+        for i in builtins.range(n - window + 1):
+            window_values = numbers[i : i + window]
+            weighted_sum = sum(
+                float(v) * float(w) for v, w in zip(window_values, weights)
+            )
+            result.append(weighted_sum / total_weight)
+        return result
+    result = []
+    for i in builtins.range(n - window + 1):
+        window_values = numbers[i : i + window]
+        result.append(mean(window_values))
+    return result
 STATS
 
 # --- tests/test_strings.py ---
@@ -16701,6 +16776,7 @@ from stats import (
     min_value,
     mode,
     multimode,
+    moving_average,
     product,
     range,
     root_mean_square,
@@ -17719,6 +17795,111 @@ class TestQuartile(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             quartile([True, 1, 2], 1)  # type: ignore[type-var]
+
+
+class TestMovingAverage(unittest.TestCase):
+    def test_simple_average(self) -> None:
+        from stats import moving_average
+
+        self.assertEqual(moving_average([1, 2, 3, 4, 5], 3), [2.0, 3.0, 4.0])
+
+    def test_window_two(self) -> None:
+        from stats import moving_average
+
+        self.assertEqual(moving_average([1, 2, 3, 4], 2), [1.5, 2.5, 3.5])
+
+    def test_window_equals_length(self) -> None:
+        from stats import moving_average
+
+        self.assertEqual(moving_average([1, 2, 3], 3), [2.0])
+
+    def test_window_one(self) -> None:
+        from stats import moving_average
+
+        self.assertEqual(moving_average([1, 2, 3], 1), [1.0, 2.0, 3.0])
+
+    def test_weighted_average(self) -> None:
+        from stats import moving_average
+
+        result = moving_average([10, 20, 30], 2, weights=[1, 2])
+        self.assertAlmostEqual(result[0], 50 / 3)
+        self.assertAlmostEqual(result[1], 80 / 3)
+
+    def test_negative_values(self) -> None:
+        from stats import moving_average
+
+        self.assertEqual(moving_average([-1, 0, 1], 2), [-0.5, 0.5])
+
+    def test_floats(self) -> None:
+        from stats import moving_average
+
+        self.assertEqual(moving_average([1.5, 2.5, 3.5], 2), [2.0, 3.0])
+
+    def test_empty_raises(self) -> None:
+        from stats import moving_average
+
+        with self.assertRaises(ValueError):
+            moving_average([], 2)
+
+    def test_window_too_large_raises(self) -> None:
+        from stats import moving_average
+
+        with self.assertRaises(ValueError):
+            moving_average([1, 2, 3], 4)
+
+    def test_non_positive_window_raises(self) -> None:
+        from stats import moving_average
+
+        with self.assertRaises(ValueError):
+            moving_average([1, 2, 3], 0)
+        with self.assertRaises(ValueError):
+            moving_average([1, 2, 3], -1)
+
+    def test_non_int_window_raises(self) -> None:
+        from stats import moving_average
+
+        with self.assertRaises(TypeError):
+            moving_average([1, 2, 3], 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            moving_average([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_non_list_raises(self) -> None:
+        from stats import moving_average
+
+        with self.assertRaises(TypeError):
+            moving_average((1, 2, 3), 2)  # type: ignore[arg-type]
+
+    def test_non_numeric_raises(self) -> None:
+        from stats import moving_average
+
+        with self.assertRaises(TypeError):
+            moving_average([1, 2, "a"], 2)  # type: ignore[list-item]
+
+    def test_bool_in_list_raises(self) -> None:
+        from stats import moving_average
+
+        with self.assertRaises(TypeError):
+            moving_average([True, 1, 2], 2)  # type: ignore[type-var]
+
+    def test_weights_wrong_length_raises(self) -> None:
+        from stats import moving_average
+
+        with self.assertRaises(ValueError):
+            moving_average([1, 2, 3], 2, weights=[1, 2, 3])
+
+    def test_weights_non_list_raises(self) -> None:
+        from stats import moving_average
+
+        with self.assertRaises(TypeError):
+            moving_average([1, 2, 3], 2, weights="ab")  # type: ignore[arg-type]
+
+    def test_weights_non_positive_sum_raises(self) -> None:
+        from stats import moving_average
+
+        with self.assertRaises(ValueError):
+            moving_average([1, 2, 3], 2, weights=[0, 0])
+        with self.assertRaises(ValueError):
+            moving_average([1, 2, 3], 2, weights=[-1, 1])
 TESTSTATS
 
 # --- math_utils.py ---
