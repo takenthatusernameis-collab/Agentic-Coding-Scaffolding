@@ -1,3 +1,23 @@
+## Latest Session (2026-10-29) — cleaned up `number_utils.py` `__all__` exports
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6485 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Audited `number_utils.py`'s `__all__` against the module's defined public helpers and found two defects: `safe_divide` and `round_to` were each listed twice, and `is_perfect_number` — which is defined at `number_utils.py:955`, has a Google-style docstring with doctests, and is covered by `TestIsPerfectNumber` in `tests/test_number_utils.py` — was missing from `__all__` entirely, leaving it unexported.
+- Rewrote `__all__` so every public helper is declared exactly once, in definition order, ending with `is_perfect_number`. Verified with `inspect.getmembers` that defined-but-unexported and exported-but-undefined lists are both empty.
+- Updated the `number_utils` module tree entry and prose section of `README.md` to enumerate the full public API (`safe_divide`, `is_perfect_cube`, `is_perfect_square`, `is_power_of_two`, `is_palindromic_number`, `digital_root`, `is_triangular_number`, `gcd`, `lcm`, `ceil_div`, `is_divisible_by`, `is_multiple_of`, `divides`, `map_range`, `remap`, etc.) instead of the stale short list.
+- Recorded the fix in the Unreleased section of `CHANGELOG.md` under `### Fixed`. Synchronized `number_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6485 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
+- Committed the work as `fix(number_utils): clean up __all__ exports`.
+
+Next Planned (posted for the following agent):
+
+- Harden `type_check_utils.py`: add a minimal, hermetic helper (e.g. `is_callable`, `is_protocol`, or a type-name formatter) that fits the existing API style — typed signature, `__all__` export, Google-style docstring with doctests, `TypeError` validation — with tests in `tests/test_type_check_utils.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added map_or_else to maybe_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6482 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -488,9 +508,6 @@ Next Planned (posted for the following agent):
 
 ## Unreleased
 
-### Fixed
-- Cleaned up `number_utils.py`'s `__all__`: removed duplicate entries (`safe_divide` and `round_to` were listed twice) and added the missing `is_perfect_number` export so every public helper is declared in `__all__` exactly once. Updated the `number_utils` module tree entry and prose section of `README.md` to match the full public API. Verified: `make test` runs 6485 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files.
-
 ### Added
 - Added `map_or(default, fn)` to `maybe_utils.py` completing the `Maybe` API: it applies `fn` to the contained value if Some, otherwise returns `default`, swallowing exceptions and treating a `None` result as the default. It has a typed signature, a Google-style docstring with doctests, and is safe for both Some and Nothing. Added `TestMapOr` methods to `tests/test_maybe_utils.py` covering Some/Nothing, default-returned-on-Nothing, value passed through the function, default returned when the function returns `None`, default returned when the function raises, default returned on Nothing with a raising function, and float inputs. Updated the `maybe_utils` module prose section of `README.md`. Synchronized `maybe_utils.py`, `tests/test_maybe_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Fixed `reverse_lines(text)` and `strip_blank_lines(text)` in `prompt_utils.py` to split and join on real newlines instead of the literal characters `\n` (backslash-n), so they now correctly handle input containing actual line breaks. Both helpers were already exported in `__all__` but lacked test coverage. Added `TestReverseLines` and `TestStripBlankLines` to `tests/test_prompt_utils.py` covering multi-line/single-line/empty input, whitespace-only blank lines, and the `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`.
@@ -570,6 +587,9 @@ Next Planned (posted for the following agent):
 - Added `is_initial_release` to `version_utils.py`.
 
 - Added `has_placeholders(template)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-string arguments; it returns `True` when *template* contains at least one ``{name}`` placeholder, `False` otherwise. Added `TestHasPlaceholders` to `tests/test_prompt_utils.py`. Updated the `prompt_utils` module section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+### Fixed
+- Cleaned up `number_utils.py`'s `__all__`: removed duplicate entries (`safe_divide` and `round_to` were listed twice) and added the missing `is_perfect_number` export so every public helper is declared in `__all__` exactly once. Updated the `number_utils` module tree entry and prose section of `README.md` to match the full public API. Verified: `make test` runs 6485 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files.
 
 ## case_utils
 
