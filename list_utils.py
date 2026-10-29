@@ -13,6 +13,7 @@ __all__: List[str] = [
     "drop",
     "take",
     "intersperse",
+    "chunks",
 ]
 
 
@@ -224,4 +225,41 @@ def intersperse(lst: List[T], separator: T) -> List[T]:
     for item in lst[1:]:
         result.append(separator)
         result.append(item)
+    return result
+
+
+def chunks(lst: List[T], size: int) -> List[List[T]]:
+    """Split a list into consecutive chunks of a given size.
+
+    Args:
+        lst: The list to split into chunks.
+        size: The maximum size of each chunk (must be a positive integer).
+
+    Returns:
+        A list of chunks. The last chunk may be shorter than ``size`` if
+        the list length is not divisible by ``size``. Returns an empty list
+        if ``lst`` is empty.
+
+    Raises:
+        TypeError: If ``lst`` is not a list or ``size`` is not an integer
+            (bool is rejected).
+        ValueError: If ``size`` is not positive.
+
+    Examples:
+        >>> chunks([1, 2, 3, 4, 5], 2)
+        [[1, 2], [3, 4], [5]]
+        >>> chunks([1, 2, 3], 1)
+        [[1], [2], [3]]
+        >>> chunks([], 3)
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not isinstance(size, int) or isinstance(size, bool):
+        raise TypeError("size must be an integer")
+    if size < 1:
+        raise ValueError("size must be positive")
+    result: List[List[T]] = []
+    for i in range(0, len(lst), size):
+        result.append(lst[i : i + size])
     return result

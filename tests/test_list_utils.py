@@ -2,7 +2,7 @@
 
 import unittest
 
-from list_utils import drop, find, group_by, intersperse, partition, safe_get, take
+from list_utils import chunks, drop, find, group_by, intersperse, partition, safe_get, take
 
 
 class TestPartition(unittest.TestCase):
@@ -182,6 +182,45 @@ class TestIntersperse(unittest.TestCase):
     def test_intersperse_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             intersperse("not a list", "-")  # type: ignore[arg-type]
+
+
+class TestChunks(unittest.TestCase):
+    def test_chunks_basic(self) -> None:
+        self.assertEqual(chunks([1, 2, 3, 4, 5], 2), [[1, 2], [3, 4], [5]])
+
+    def test_chunks_equal_chunks(self) -> None:
+        self.assertEqual(chunks([1, 2, 3, 4], 2), [[1, 2], [3, 4]])
+
+    def test_chunks_size_one(self) -> None:
+        self.assertEqual(chunks([1, 2, 3], 1), [[1], [2], [3]])
+
+    def test_chunks_empty_list(self) -> None:
+        self.assertEqual(chunks([], 3), [])
+
+    def test_chunks_preserves_original(self) -> None:
+        original = [1, 2, 3, 4]
+        chunks(original, 2)
+        self.assertEqual(original, [1, 2, 3, 4])
+
+    def test_chunks_size_zero_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            chunks([1, 2, 3], 0)
+
+    def test_chunks_size_negative_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            chunks([1, 2, 3], -1)
+
+    def test_chunks_boolean_size_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            chunks([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_chunks_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            chunks("not a list", 2)  # type: ignore[arg-type]
+
+    def test_chunks_size_not_int_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            chunks([1, 2, 3], 2.0)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

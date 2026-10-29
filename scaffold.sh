@@ -24796,6 +24796,7 @@ __all__: List[str] = [
     "drop",
     "take",
     "intersperse",
+    "chunks",
 ]
 
 
@@ -25008,6 +25009,43 @@ def intersperse(lst: List[T], separator: T) -> List[T]:
         result.append(separator)
         result.append(item)
     return result
+
+
+def chunks(lst: List[T], size: int) -> List[List[T]]:
+    """Split a list into consecutive chunks of a given size.
+
+    Args:
+        lst: The list to split into chunks.
+        size: The maximum size of each chunk (must be a positive integer).
+
+    Returns:
+        A list of chunks. The last chunk may be shorter than ``size`` if
+        the list length is not divisible by ``size``. Returns an empty list
+        if ``lst`` is empty.
+
+    Raises:
+        TypeError: If ``lst`` is not a list or ``size`` is not an integer
+            (bool is rejected).
+        ValueError: If ``size`` is not positive.
+
+    Examples:
+        >>> chunks([1, 2, 3, 4, 5], 2)
+        [[1, 2], [3, 4], [5]]
+        >>> chunks([1, 2, 3], 1)
+        [[1], [2], [3]]
+        >>> chunks([], 3)
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not isinstance(size, int) or isinstance(size, bool):
+        raise TypeError("size must be an integer")
+    if size < 1:
+        raise ValueError("size must be positive")
+    result: List[List[T]] = []
+    for i in range(0, len(lst), size):
+        result.append(lst[i : i + size])
+    return result
 LISTUTILS
 # --- tests/test_list_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_list_utils.py" <<'TESTLISTUTILS'
@@ -25015,7 +25053,7 @@ cat > "$OUTPUT_DIR/tests/test_list_utils.py" <<'TESTLISTUTILS'
 
 import unittest
 
-from list_utils import drop, find, group_by, intersperse, partition, safe_get, take
+from list_utils import chunks, drop, find, group_by, intersperse, partition, safe_get, take
 
 
 class TestPartition(unittest.TestCase):
@@ -25195,6 +25233,45 @@ class TestIntersperse(unittest.TestCase):
     def test_intersperse_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             intersperse("not a list", "-")  # type: ignore[arg-type]
+
+
+class TestChunks(unittest.TestCase):
+    def test_chunks_basic(self) -> None:
+        self.assertEqual(chunks([1, 2, 3, 4, 5], 2), [[1, 2], [3, 4], [5]])
+
+    def test_chunks_equal_chunks(self) -> None:
+        self.assertEqual(chunks([1, 2, 3, 4], 2), [[1, 2], [3, 4]])
+
+    def test_chunks_size_one(self) -> None:
+        self.assertEqual(chunks([1, 2, 3], 1), [[1], [2], [3]])
+
+    def test_chunks_empty_list(self) -> None:
+        self.assertEqual(chunks([], 3), [])
+
+    def test_chunks_preserves_original(self) -> None:
+        original = [1, 2, 3, 4]
+        chunks(original, 2)
+        self.assertEqual(original, [1, 2, 3, 4])
+
+    def test_chunks_size_zero_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            chunks([1, 2, 3], 0)
+
+    def test_chunks_size_negative_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            chunks([1, 2, 3], -1)
+
+    def test_chunks_boolean_size_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            chunks([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_chunks_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            chunks("not a list", 2)  # type: ignore[arg-type]
+
+    def test_chunks_size_not_int_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            chunks([1, 2, 3], 2.0)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -42573,6 +42650,25 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — added chunks to list_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6486 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `chunks(lst, size)` to `list_utils.py` with a typed signature, `__all__` export, a Google-style docstring with examples, and validation raising `TypeError` for non-list/bool/non-int arguments and `ValueError` for non-positive sizes; it splits a list into consecutive chunks, returning the last chunk shorter if needed and preserving the original list. Added `TestChunks` to `tests/test_list_utils.py` covering basic, equal-sized, size-1, empty list, original preservation, and all TypeError/ValueError paths.
+- Updated the `list_utils` module description in `README.md` to list `chunks`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6496 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `list_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — cleaned up `number_utils.py` `__all__` exports
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6485 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -44282,7 +44378,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `drop`, `take`, and `intersperse`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `drop`, `take`, `intersperse`, and `chunks`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 

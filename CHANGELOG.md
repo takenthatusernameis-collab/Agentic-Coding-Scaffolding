@@ -1,3 +1,22 @@
+## Latest Session (2026-10-29) — added chunks to list_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6486 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `chunks(lst, size)` to `list_utils.py` with a typed signature, `__all__` export, a Google-style docstring with examples, and validation raising `TypeError` for non-list/bool/non-int arguments and `ValueError` for non-positive sizes; it splits a list into consecutive chunks, returning the last chunk shorter if needed and preserving the original list. Added `TestChunks` to `tests/test_list_utils.py` covering basic, equal-sized, size-1, empty list, original preservation, and all TypeError/ValueError paths.
+- Updated the `list_utils` module description in `README.md` to list `chunks`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6496 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `list_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — cleaned up `number_utils.py` `__all__` exports
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6485 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
