@@ -1,6 +1,6 @@
 import typing
 import unittest
-from typing import List, Optional, TypedDict, Literal
+from typing import List, Literal, Optional, TypedDict
 
 from typing_utils import (
     ClassVar,
