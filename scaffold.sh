@@ -43884,7 +43884,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -44809,7 +44809,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -63129,7 +63129,9 @@ __all__: List[str] = [
     "is_perfect_number",
     "is_automorphic_number",
     "is_happy_number",
+    "is_harshad_number",
     "is_kaprekar_number",
+    "is_armstrong_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -64240,6 +64242,80 @@ def is_kaprekar_number(value: int) -> bool:
     if right == 0:
         return False
     return left + right == value
+
+
+def is_armstrong_number(value: int) -> bool:
+    """Return True if *value* is an Armstrong (narcissistic) number.
+
+    An Armstrong number is a non-negative integer that equals the sum of its
+    own digits each raised to the power of the number of digits. For example,
+    ``153`` is an Armstrong number because ``1**3 + 5**3 + 3**3 == 153``.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is an Armstrong number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_armstrong_number(0)
+        True
+        >>> is_armstrong_number(1)
+        True
+        >>> is_armstrong_number(153)
+        True
+        >>> is_armstrong_number(9474)
+        True
+        >>> is_armstrong_number(10)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    digits = str(value)
+    n = len(digits)
+    return value == int(sum(int(d) ** n for d in digits))
+
+
+def is_harshad_number(value: int) -> bool:
+    """Return True if *value* is a Harshad (Niven) number.
+
+    A Harshad number is a positive integer divisible by the sum of its
+    decimal digits.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is Harshad, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+        ValueError: If *value* is 0.
+
+    Examples:
+        >>> is_harshad_number(18)
+        True
+        >>> is_harshad_number(19)
+        False
+        >>> is_harshad_number(21)
+        True
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value == 0:
+        raise ValueError("value must be a positive integer, got 0")
+    if value < 0:
+        return False
+    digits = str(abs(value))
+    s = sum(int(d) for d in digits)
+    if s == 0:
+        return False
+    return value % s == 0
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -64255,12 +64331,14 @@ from number_utils import (
     digit_sum,
     digital_root,
     format_number,
+    is_armstrong_number,
     is_automorphic_number,
     is_between,
     is_close,
     is_coprime,
     is_finite,
     is_happy_number,
+    is_harshad_number,
     is_infinite,
     is_integer,
     is_nan,
@@ -65108,6 +65186,90 @@ class TestIsTriangularNumber(unittest.TestCase):
             is_triangular_number("6")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_triangular_number(True)  # type: ignore[arg-type]
+
+
+class TestIsHappyNumber(unittest.TestCase):
+    def test_happy_numbers(self) -> None:
+        self.assertTrue(is_happy_number(1))
+        self.assertTrue(is_happy_number(7))
+        self.assertTrue(is_happy_number(10))
+        self.assertTrue(is_happy_number(19))
+
+    def test_unhappy_numbers(self) -> None:
+        self.assertFalse(is_happy_number(2))
+        self.assertFalse(is_happy_number(4))
+        self.assertFalse(is_happy_number(3))
+        self.assertFalse(is_happy_number(-1))
+        self.assertFalse(is_happy_number(0))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_happy_number("7")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(7.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(None)  # type: ignore[arg-type]
+
+
+class TestIsArmstrongNumber(unittest.TestCase):
+    def test_armstrong_numbers(self) -> None:
+        self.assertTrue(is_armstrong_number(0))
+        self.assertTrue(is_armstrong_number(1))
+        self.assertTrue(is_armstrong_number(153))
+        self.assertTrue(is_armstrong_number(370))
+        self.assertTrue(is_armstrong_number(371))
+        self.assertTrue(is_armstrong_number(407))
+        self.assertTrue(is_armstrong_number(9474))
+
+    def test_non_armstrong_numbers(self) -> None:
+        self.assertFalse(is_armstrong_number(10))
+        self.assertFalse(is_armstrong_number(123))
+        self.assertFalse(is_armstrong_number(100))
+        self.assertFalse(is_armstrong_number(-153))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_armstrong_number("153")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_armstrong_number(153.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_armstrong_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_armstrong_number(None)  # type: ignore[arg-type]
+
+
+class TestIsHarshadNumber(unittest.TestCase):
+    def test_harshad_numbers(self) -> None:
+        self.assertTrue(is_harshad_number(18))
+        self.assertTrue(is_harshad_number(21))
+        self.assertTrue(is_harshad_number(24))
+        self.assertTrue(is_harshad_number(36))
+        self.assertTrue(is_harshad_number(48))
+        self.assertTrue(is_harshad_number(1))
+        self.assertTrue(is_harshad_number(10))
+        self.assertTrue(is_harshad_number(12))
+
+    def test_non_harshad_numbers(self) -> None:
+        self.assertFalse(is_harshad_number(19))
+        self.assertFalse(is_harshad_number(23))
+        self.assertFalse(is_harshad_number(103))
+        self.assertFalse(is_harshad_number(-18))
+
+    def test_zero_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            is_harshad_number(0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_harshad_number("18")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_harshad_number(18.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_harshad_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_harshad_number(None)  # type: ignore[arg-type]
 
 
 class TestIsAutomorphicNumber(unittest.TestCase):

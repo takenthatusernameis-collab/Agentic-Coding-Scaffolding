@@ -9,12 +9,14 @@ from number_utils import (
     digit_sum,
     digital_root,
     format_number,
+    is_armstrong_number,
     is_automorphic_number,
     is_between,
     is_close,
     is_coprime,
     is_finite,
     is_happy_number,
+    is_harshad_number,
     is_infinite,
     is_integer,
     is_nan,
@@ -358,15 +360,7 @@ class TestIsHappyNumber(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_happy_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_happy_number(None)  # type: ignore[arg-type]
-
-
-
-if __name__ == "__main__":
-    unittest.main()
-
-
-class TestIsPalindromicNumber(unittest.TestCase):
+            is_happy_number(None)  # type: ignore[arg-type]class TestIsPalindromicNumber(unittest.TestCase):
     def test_palindromes(self) -> None:
         from number_utils import is_palindromic_number
 
@@ -862,6 +856,87 @@ class TestIsTriangularNumber(unittest.TestCase):
             is_triangular_number("6")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_triangular_number(True)  # type: ignore[arg-type]
+
+
+class TestIsHappyNumber(unittest.TestCase):
+    def test_happy_numbers(self) -> None:
+        self.assertTrue(is_happy_number(1))
+        self.assertTrue(is_happy_number(7))
+        self.assertTrue(is_happy_number(10))
+        self.assertTrue(is_happy_number(19))
+
+    def test_unhappy_numbers(self) -> None:
+        self.assertFalse(is_happy_number(2))
+        self.assertFalse(is_happy_number(4))
+        self.assertFalse(is_happy_number(3))
+        self.assertFalse(is_happy_number(-1))
+        self.assertFalse(is_happy_number(0))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_happy_number("7")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(7.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(None)  # type: ignore[arg-type]class TestIsArmstrongNumber(unittest.TestCase):
+    def test_armstrong_numbers(self) -> None:
+        self.assertTrue(is_armstrong_number(0))
+        self.assertTrue(is_armstrong_number(1))
+        self.assertTrue(is_armstrong_number(153))
+        self.assertTrue(is_armstrong_number(370))
+        self.assertTrue(is_armstrong_number(371))
+        self.assertTrue(is_armstrong_number(407))
+        self.assertTrue(is_armstrong_number(9474))
+
+    def test_non_armstrong_numbers(self) -> None:
+        self.assertFalse(is_armstrong_number(10))
+        self.assertFalse(is_armstrong_number(123))
+        self.assertFalse(is_armstrong_number(100))
+        self.assertFalse(is_armstrong_number(-153))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_armstrong_number("153")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_armstrong_number(153.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_armstrong_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_armstrong_number(None)  # type: ignore[arg-type]
+
+
+class TestIsHarshadNumber(unittest.TestCase):
+    def test_harshad_numbers(self) -> None:
+        self.assertTrue(is_harshad_number(18))
+        self.assertTrue(is_harshad_number(21))
+        self.assertTrue(is_harshad_number(24))
+        self.assertTrue(is_harshad_number(36))
+        self.assertTrue(is_harshad_number(48))
+        self.assertTrue(is_harshad_number(1))
+        self.assertTrue(is_harshad_number(10))
+        self.assertTrue(is_harshad_number(12))
+
+    def test_non_harshad_numbers(self) -> None:
+        self.assertFalse(is_harshad_number(19))
+        self.assertFalse(is_harshad_number(23))
+        self.assertFalse(is_harshad_number(103))
+        self.assertFalse(is_harshad_number(-18))
+
+    def test_zero_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            is_harshad_number(0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_harshad_number("18")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_harshad_number(18.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_harshad_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_harshad_number(None)  # type: ignore[arg-type]
 
 
 class TestIsAutomorphicNumber(unittest.TestCase):

@@ -51,6 +51,7 @@ __all__: List[str] = [
     "is_perfect_number",
     "is_automorphic_number",
     "is_happy_number",
+    "is_harshad_number",
     "is_kaprekar_number",
     "is_armstrong_number",
 ]
@@ -1200,3 +1201,40 @@ def is_armstrong_number(value: int) -> bool:
     digits = str(value)
     n = len(digits)
     return value == int(sum(int(d) ** n for d in digits))
+
+
+def is_harshad_number(value: int) -> bool:
+    """Return True if *value* is a Harshad (Niven) number.
+
+    A Harshad number is a positive integer divisible by the sum of its
+    decimal digits.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is Harshad, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+        ValueError: If *value* is 0.
+
+    Examples:
+        >>> is_harshad_number(18)
+        True
+        >>> is_harshad_number(19)
+        False
+        >>> is_harshad_number(21)
+        True
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value == 0:
+        raise ValueError("value must be a positive integer, got 0")
+    if value < 0:
+        return False
+    digits = str(abs(value))
+    s = sum(int(d) for d in digits)
+    if s == 0:
+        return False
+    return value % s == 0
