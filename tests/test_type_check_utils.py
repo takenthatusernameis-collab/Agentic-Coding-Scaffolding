@@ -74,6 +74,28 @@ class TestIsNamedtuple(unittest.TestCase):
         self.assertFalse(type_check_utils.is_namedtuple(None))
 
 
+class TestTypedDictChecks(unittest.TestCase):
+    def test_typed_dict_class(self) -> None:
+        from typing import TypedDict
+
+        class Point(TypedDict):
+            x: int
+            y: int
+
+        self.assertTrue(type_check_utils.is_typeddict(Point))
+
+    def test_plain_dict_is_not_typed_dict(self) -> None:
+        self.assertFalse(type_check_utils.is_typeddict({"x": 1}))
+        self.assertFalse(type_check_utils.is_typeddict({}))
+
+    def test_non_dict_is_not_typed_dict(self) -> None:
+        self.assertFalse(type_check_utils.is_typeddict([1, 2]))
+        self.assertFalse(type_check_utils.is_typeddict((1, 2)))
+        self.assertFalse(type_check_utils.is_typeddict(42))
+        self.assertFalse(type_check_utils.is_typeddict("hello"))
+        self.assertFalse(type_check_utils.is_typeddict(None))
+
+
 class TestTypeChecks(unittest.TestCase):
     def test_is_str(self) -> None:
         self.assertTrue(type_check_utils.is_str("hello"))

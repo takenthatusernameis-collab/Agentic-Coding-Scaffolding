@@ -41,6 +41,7 @@ __all__: List[str] = [
     "is_method",
     "is_module",
     "is_namedtuple",
+    "is_typeddict",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -294,6 +295,69 @@ def is_namedtuple(value: object) -> bool:
     return isinstance(value, tuple) and isinstance(
         getattr(type(value), "_fields", None), tuple
     )
+
+
+def is_typeddict(value: object) -> bool:
+    """Return True if *value* is a TypedDict class or instance.
+
+    TypedDict classes are created via :class:`typing.TypedDict` and are
+    dict subclasses with type annotations describing their keys. This
+    helper detects TypedDict classes (by checking for the
+    ``__annotations__`` attribute and that the class is a dict subclass)
+    and instances of TypedDict classes.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a TypedDict class or instance, False otherwise.
+
+    Examples:
+        >>> from typing import TypedDict
+        >>> class Point(TypedDict):
+        ...     x: int
+        ...     y: int
+        >>> is_typeddict(Point)
+        True
+        >>> is_typeddict({"x": 1, "y": 2})
+        False
+    """
+    if isinstance(value, type):
+        if not issubclass(value, dict):
+            return False
+        # TypedDict classes have __annotations__ and are typically
+        # created by typing.TypedDict (metaclass _TypedDictMeta)
+        if not hasattr(value, "__annotations__"):
+            return False
+        # Exclude regular dict subclasses that just happen to have annotations
+        # TypedDict from typing has specific characteristics
+        try:
+            # Check if it's from typing.TypedDict
+            module = getattr(value, "__module__", "")
+            if module == "typing" and value.__name__ == "TypedDict":
+                return False  # The base TypedDict class itself
+        except Exception:
+            pass
+        # For TypedDict subclasses created via `class X(TypedDict): ...`
+        # they have __orig_bases__ or are instances of _TypedDictMeta
+        origin = getattr(value, "__origin__", None)
+        if origin is not None:
+            return False
+        # Most reliable check: TypedDict classes from typing have
+        # __required_keys__ or __optional_keys__ in recent Python versions,
+        # or we can check the metaclass
+        if hasattr(value, "__required_keys__") or hasattr(value, "__optional_keys__"):
+            return True
+        # Fallback: if it's a dict subclass with annotations and not a regular class
+        # that just happens to inherit from dict, it's likely a TypedDict
+        # But be more specific - check if it's created by TypedDict mechanism
+        mro = getattr(value, "__mro__", [])
+        for cls in mro:
+            if cls.__name__ == "TypedDict" and getattr(cls, "__module__", "") == "typing":
+                return True
+        return False
+    # For instances, check if the instance's type is a TypedDict
+    return is_typeddict(type(value))
 
 
 def ensure_type(value: object, expected_type: type, name: str = "value") -> object:

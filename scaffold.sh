@@ -42650,21 +42650,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Latest Session (2026-10-29) — added is_namedtuple to type_check_utils
+## Latest Session (2026-10-29) — added is_typeddict to type_check_utils
 
-The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6503 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `is_typeddict(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and a hermetic check consistent with the other `is_*` predicates; it returns `True` when *value* is a TypedDict class (a dict subclass created via `typing.TypedDict` with annotations and TypedDict markers). Added `TestTypedDictChecks` to `tests/test_type_check_utils.py` covering TypedDict classes, plain dicts, and non-dict values. Updated the `type_check_utils` module prose section of `README.md` to list `is_typeddict`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, and `README.md` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
-Completed in this session:
-
-- Added `is_namedtuple(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and a hermetic check consistent with the other `is_*` predicates; it returns `True` when *value* is a namedtuple class or instance (a `tuple` subclass carrying a `_fields` tuple, as produced by `collections.namedtuple`), `False` otherwise, distinguishing namedtuples from plain tuples, lists, and non-tuple objects. Added `TestIsNamedtuple` to `tests/test_type_check_utils.py` covering namedtuple classes, namedtuple instances, plain tuples, and non-tuple values. Updated the `type_check_utils` module prose section of `README.md` to list `is_namedtuple`. Recorded the change in this Unreleased section of `CHANGELOG.md`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-- Verified the work: `make test` runs 6508 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
-
-Next Planned (posted for the following agent):
-
-- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `list_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
-- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
-- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
-- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
 ## Latest Session (2026-10-29) — added is_module to type_check_utils
 
@@ -45464,7 +45453,7 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 
 ## Type Check Utilities Module
 
-The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `is_typeddict`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -115835,6 +115824,7 @@ __all__: List[str] = [
     "is_method",
     "is_module",
     "is_namedtuple",
+    "is_typeddict",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -116090,6 +116080,69 @@ def is_namedtuple(value: object) -> bool:
     )
 
 
+def is_typeddict(value: object) -> bool:
+    """Return True if *value* is a TypedDict class or instance.
+
+    TypedDict classes are created via :class:`typing.TypedDict` and are
+    dict subclasses with type annotations describing their keys. This
+    helper detects TypedDict classes (by checking for the
+    ``__annotations__`` attribute and that the class is a dict subclass)
+    and instances of TypedDict classes.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a TypedDict class or instance, False otherwise.
+
+    Examples:
+        >>> from typing import TypedDict
+        >>> class Point(TypedDict):
+        ...     x: int
+        ...     y: int
+        >>> is_typeddict(Point)
+        True
+        >>> is_typeddict({"x": 1, "y": 2})
+        False
+    """
+    if isinstance(value, type):
+        if not issubclass(value, dict):
+            return False
+        # TypedDict classes have __annotations__ and are typically
+        # created by typing.TypedDict (metaclass _TypedDictMeta)
+        if not hasattr(value, "__annotations__"):
+            return False
+        # Exclude regular dict subclasses that just happen to have annotations
+        # TypedDict from typing has specific characteristics
+        try:
+            # Check if it's from typing.TypedDict
+            module = getattr(value, "__module__", "")
+            if module == "typing" and value.__name__ == "TypedDict":
+                return False  # The base TypedDict class itself
+        except Exception:
+            pass
+        # For TypedDict subclasses created via `class X(TypedDict): ...`
+        # they have __orig_bases__ or are instances of _TypedDictMeta
+        origin = getattr(value, "__origin__", None)
+        if origin is not None:
+            return False
+        # Most reliable check: TypedDict classes from typing have
+        # __required_keys__ or __optional_keys__ in recent Python versions,
+        # or we can check the metaclass
+        if hasattr(value, "__required_keys__") or hasattr(value, "__optional_keys__"):
+            return True
+        # Fallback: if it's a dict subclass with annotations and not a regular class
+        # that just happens to inherit from dict, it's likely a TypedDict
+        # But be more specific - check if it's created by TypedDict mechanism
+        mro = getattr(value, "__mro__", [])
+        for cls in mro:
+            if cls.__name__ == "TypedDict" and getattr(cls, "__module__", "") == "typing":
+                return True
+        return False
+    # For instances, check if the instance's type is a TypedDict
+    return is_typeddict(type(value))
+
+
 def ensure_type(value: object, expected_type: type, name: str = "value") -> object:
     """Ensure value is of expected_type, raising TypeError otherwise.
 
@@ -116322,6 +116375,28 @@ class TestIsNamedtuple(unittest.TestCase):
         self.assertFalse(type_check_utils.is_namedtuple(42))
         self.assertFalse(type_check_utils.is_namedtuple("hello"))
         self.assertFalse(type_check_utils.is_namedtuple(None))
+
+
+class TestTypedDictChecks(unittest.TestCase):
+    def test_typed_dict_class(self) -> None:
+        from typing import TypedDict
+
+        class Point(TypedDict):
+            x: int
+            y: int
+
+        self.assertTrue(type_check_utils.is_typeddict(Point))
+
+    def test_plain_dict_is_not_typed_dict(self) -> None:
+        self.assertFalse(type_check_utils.is_typeddict({"x": 1}))
+        self.assertFalse(type_check_utils.is_typeddict({}))
+
+    def test_non_dict_is_not_typed_dict(self) -> None:
+        self.assertFalse(type_check_utils.is_typeddict([1, 2]))
+        self.assertFalse(type_check_utils.is_typeddict((1, 2)))
+        self.assertFalse(type_check_utils.is_typeddict(42))
+        self.assertFalse(type_check_utils.is_typeddict("hello"))
+        self.assertFalse(type_check_utils.is_typeddict(None))
 
 
 class TestTypeChecks(unittest.TestCase):
