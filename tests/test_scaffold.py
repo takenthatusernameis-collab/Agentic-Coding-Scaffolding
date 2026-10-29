@@ -110,6 +110,7 @@ class TestScaffoldKiloJson(unittest.TestCase):
             ".kilo/skill/scaffolding-helper.md",
             ".github/workflows/main.yml",
             "tests/test_abc_utils.py",
+            "aifc_utils.py",
             "tests/test_aifc_utils.py",
             "tests/test_ast_utils.py",
             "tests/test_pickle_utils.py",

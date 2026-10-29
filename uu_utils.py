@@ -44,7 +44,7 @@ def decode(
     if mode is None:
         mode = 0o666
     try:
-        _uu.decode(in_file, out_file, mode, quiet)
+        _uu.decode(in_file, out_file, mode, bool(quiet))
     except Exception:
         _uu.decode(in_file, out_file, mode)
 

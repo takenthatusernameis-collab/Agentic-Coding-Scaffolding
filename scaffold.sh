@@ -17860,7 +17860,7 @@ class TestMovingAverage(unittest.TestCase):
     def test_non_numeric_raises(self) -> None:
 
         with self.assertRaises(TypeError):
-            moving_average([1, 2, "a"], 2)  # type: ignore[list-item]
+            moving_average([1, 2, "a"], 2)  # type: ignore[type-var]
 
     def test_bool_in_list_raises(self) -> None:
 
@@ -115202,7 +115202,7 @@ def decode(
     if mode is None:
         mode = 0o666
     try:
-        _uu.decode(in_file, out_file, mode, quiet)
+        _uu.decode(in_file, out_file, mode, bool(quiet))
     except Exception:
         _uu.decode(in_file, out_file, mode)
 
