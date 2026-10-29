@@ -10,6 +10,7 @@ __all__: List[str] = [
     "median",
     "median_low",
     "median_high",
+    "median_grouped",
     "mode",
     "multimode",
     "variance",
