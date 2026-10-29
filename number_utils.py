@@ -19,6 +19,7 @@ __all__: List[str] = [
     "sign",
     "is_even",
     "is_odd",
+    "is_pronic_number",
     "is_negative",
     "is_positive",
     "is_zero",
@@ -320,6 +321,28 @@ def is_odd(value: Number) -> bool:
     """
     _require_number(value, "value")
     return int(value) == value and int(value) % 2 != 0
+
+
+def is_pronic_number(value: Number) -> bool:
+    """Return True if *value* is a pronic number.
+
+    A pronic number is a product of two consecutive integers (n*(n+1)).
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is a pronic number.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if int(value) != value or value < 0:
+        return False
+    n = int(value)
+    root = int(n ** 0.5)
+    return root * (root + 1) == n or (root + 1) * (root + 2) == n
 
 
 def is_negative(value: Number) -> bool:
