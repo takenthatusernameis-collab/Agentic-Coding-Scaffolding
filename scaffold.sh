@@ -42047,6 +42047,25 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — fixed pre-existing test/typecheck failures
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6409 tests with 1 pre-existing failure (the `aifc_utils.py` scaffold-sync assertion, identical on the clean tree), `make lint` is clean, `make typecheck` reports 2 pre-existing errors in 2 files (identical on the clean tree), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Fixed the `aifc_utils.py` scaffold-sync assertion: `tests/test_scaffold.py`'s `test_required_files_generated` listed `tests/test_aifc_utils.py` but omitted the module entry `aifc_utils.py` itself, so `TestScaffoldSync.test_every_module_is_asserted_by_scaffold_tests` failed. Added `"aifc_utils.py"` to the expected list.
+- Fixed a mypy `arg-type` error in `uu_utils.py`'s `decode`: `_uu.decode`'s fourth parameter is typed `bool`, not `int`, so the `quiet` argument was wrapped with `bool(...)`.
+- Fixed a mypy `type-var` error in `tests/test_stats.py`: the `# type: ignore[list-item]` on the `moving_average([1, 2, "a"], 2)` line was the wrong code; changed it to `# type: ignore[type-var]`.
+- Refreshed the embedded copies of `uu_utils.py` and `tests/test_stats.py` in `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` runs 6409 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `seq_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added flatten to seq_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6404 tests with 1 pre-existing failure (the `aifc_utils.py` scaffold-sync assertion, identical on the clean tree), `make lint` is clean, `make typecheck` reports 2 pre-existing errors in 2 files (identical on the clean tree), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
