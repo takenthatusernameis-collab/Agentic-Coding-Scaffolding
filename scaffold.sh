@@ -115767,7 +115767,10 @@ coercion helpers (``ensure_type``, ``coerce_to_str``). All functions are
 hermetic and side-effect free.
 """
 
-from typing import Any, List, cast
+import dataclasses
+import inspect
+from collections.abc import Iterable, Mapping, Sequence
+from typing import List
 
 __all__: List[str] = [
     "is_str",
@@ -115784,6 +115787,20 @@ __all__: List[str] = [
     "is_iterable",
     "is_callable",
     "is_protocol",
+    "is_mapping",
+    "is_sequence",
+    "is_collection",
+    "is_number",
+    "is_object",
+    "is_class",
+    "is_dataclass",
+    "is_instance",
+    "is_type",
+    "is_generator",
+    "is_coroutine",
+    "is_async_generator",
+    "is_function",
+    "is_method",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -115851,11 +115868,7 @@ def is_iterable(value: object) -> bool:
     """Return True if value is iterable but not a string."""
     if isinstance(value, str):
         return False
-    try:
-        iter(cast(Any, value))
-        return True
-    except TypeError:
-        return False
+    return isinstance(value, Iterable)
 
 
 def is_callable(value: object) -> bool:
@@ -115896,6 +115909,92 @@ def is_protocol(value: object) -> bool:
     if not isinstance(value, type):
         raise TypeError(f"value must be a class, got {type(value).__name__}")
     return bool(getattr(value, "_is_protocol", False))
+
+
+def is_mapping(value: object) -> bool:
+    """Return True if value is a mapping (dict-like)."""
+    if isinstance(value, str):
+        return False
+    return isinstance(value, Mapping)
+
+
+def is_sequence(value: object) -> bool:
+    """Return True if value is a sequence but not a string."""
+    if isinstance(value, str):
+        return False
+    return isinstance(value, Sequence)
+
+
+def is_collection(value: object) -> bool:
+    """Return True if value is a collection (sized iterable) but not a string."""
+    if isinstance(value, str):
+        return False
+    from collections.abc import Collection
+
+    return isinstance(value, Collection)
+
+
+def is_number(value: object) -> bool:
+    """Return True if value is int or float (excluding bool)."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def is_object(value: object) -> bool:
+    """Return True if value is an instance of object (always true in normal cases)."""
+    return isinstance(value, object)
+
+
+def is_class(value: object) -> bool:
+    """Return True if value is a class."""
+    return isinstance(value, type)
+
+
+def is_dataclass(value: object) -> bool:
+    """Return True if value is a dataclass instance or class."""
+    if isinstance(value, type):
+        return dataclasses.is_dataclass(value)
+    return dataclasses.is_dataclass(value)
+
+
+def is_instance(value: object, cls: type) -> bool:
+    """Return True if value is an instance of cls."""
+    return isinstance(value, cls)
+
+
+def is_type(value: object) -> bool:
+    """Return True if value is a type."""
+    return isinstance(value, type)
+
+
+def is_generator(value: object) -> bool:
+    """Return True if value is a generator."""
+    import types
+
+    return isinstance(value, types.GeneratorType)
+
+
+def is_coroutine(value: object) -> bool:
+    """Return True if value is a coroutine."""
+    import types
+
+    return isinstance(value, types.CoroutineType)
+
+
+def is_async_generator(value: object) -> bool:
+    """Return True if value is an async generator."""
+    import types
+
+    return isinstance(value, types.AsyncGeneratorType)
+
+
+def is_function(value: object) -> bool:
+    """Return True if value is a function (not method)."""
+    return inspect.isfunction(value)
+
+
+def is_method(value: object) -> bool:
+    """Return True if value is a method."""
+    return inspect.ismethod(value)
 
 
 def ensure_type(value: object, expected_type: type, name: str = "value") -> object:
