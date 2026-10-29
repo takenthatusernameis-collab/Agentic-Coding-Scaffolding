@@ -5,10 +5,10 @@ coercion helpers (``ensure_type``, ``coerce_to_str``). All functions are
 hermetic and side-effect free.
 """
 
-from collections.abc import Callable, Iterable, Mapping, Sequence
-from typing import Any, List, cast
 import dataclasses
 import inspect
+from collections.abc import Iterable, Mapping, Sequence
+from typing import List
 
 __all__: List[str] = [
     "is_str",
