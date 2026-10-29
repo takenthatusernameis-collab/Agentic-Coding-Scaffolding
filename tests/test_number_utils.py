@@ -9,6 +9,7 @@ from number_utils import (
     digit_sum,
     digital_root,
     format_number,
+    is_automorphic_number,
     is_between,
     is_close,
     is_coprime,
@@ -833,3 +834,42 @@ class TestIsTriangularNumber(unittest.TestCase):
             is_triangular_number("6")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_triangular_number(True)  # type: ignore[arg-type]
+
+
+class TestIsAutomorphicNumber(unittest.TestCase):
+    def test_automorphic_numbers(self) -> None:
+        self.assertTrue(is_automorphic_number(0))
+        self.assertTrue(is_automorphic_number(1))
+        self.assertTrue(is_automorphic_number(5))
+        self.assertTrue(is_automorphic_number(6))
+        self.assertTrue(is_automorphic_number(25))
+        self.assertTrue(is_automorphic_number(76))
+        self.assertTrue(is_automorphic_number(376))
+        self.assertTrue(is_automorphic_number(625))
+        self.assertTrue(is_automorphic_number(9376))
+
+    def test_non_automorphic_numbers(self) -> None:
+        self.assertFalse(is_automorphic_number(2))
+        self.assertFalse(is_automorphic_number(7))
+        self.assertFalse(is_automorphic_number(10))
+        self.assertFalse(is_automorphic_number(12))
+        self.assertFalse(is_automorphic_number(100))
+        self.assertFalse(is_automorphic_number(-5))
+
+    def test_large_automorphic(self) -> None:
+        self.assertTrue(is_automorphic_number(90625))
+        self.assertTrue(is_automorphic_number(109376))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_automorphic_number("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_automorphic_number(5.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_automorphic_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_automorphic_number(None)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()

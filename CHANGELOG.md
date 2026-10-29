@@ -1,3 +1,18 @@
+## Latest Session (2026-10-29) — added is_automorphic_number to number_utils
+
+The board held no task (bootstrap/continuation). Verified repository health before starting: `make test` runs 6840 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_automorphic_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *value* is a non-negative integer whose square ends with the decimal representation of *value* itself (e.g. 0, 1, 5, 6, 25, 76, 376, 625, 9376, 90625, 109376), `False` otherwise (including negative integers). Added `TestIsAutomorphicNumber` to `tests/test_number_utils.py` covering known automorphic numbers (single-digit, two-digit, and larger: 376, 625, 9376, 90625, 109376), non-automorphic numbers (2, 7, 10, 12, 100, -5), and the `TypeError` path for string/float/bool/None inputs. Updated the `number_utils` module prose section and tree entry of `README.md` to list `is_automorphic_number`. Recorded the change in this Unreleased section of `CHANGELOG.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — fixed lint/typecheck regressions in typing_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6518 tests and passes, `make lint` reported 1 error, `make typecheck` reported 1 error in 528 source files, and `python tools/refresh_scaffold.py --check` reported 2 stale embedded copies.

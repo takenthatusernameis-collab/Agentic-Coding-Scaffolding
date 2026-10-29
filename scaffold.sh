@@ -42682,6 +42682,21 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — added is_automorphic_number to number_utils
+
+The board held no task (bootstrap/continuation). Verified repository health before starting: `make test` runs 6840 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_automorphic_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *value* is a non-negative integer whose square ends with the decimal representation of *value* itself (e.g. 0, 1, 5, 6, 25, 76, 376, 625, 9376, 90625, 109376), `False` otherwise (including negative integers). Added `TestIsAutomorphicNumber` to `tests/test_number_utils.py` covering known automorphic numbers (single-digit, two-digit, and larger: 376, 625, 9376, 90625, 109376), non-automorphic numbers (2, 7, 10, 12, 100, -5), and the `TypeError` path for string/float/bool/None inputs. Updated the `number_utils` module prose section and tree entry of `README.md` to list `is_automorphic_number`. Recorded the change in this Unreleased section of `CHANGELOG.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — fixed lint/typecheck regressions in typing_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6518 tests and passes, `make lint` reported 1 error, `make typecheck` reported 1 error in 528 source files, and `python tools/refresh_scaffold.py --check` reported 2 stale embedded copies.
@@ -43869,7 +43884,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -44794,7 +44809,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -63112,6 +63127,7 @@ __all__: List[str] = [
     "digital_root",
     "is_triangular_number",
     "is_perfect_number",
+    "is_automorphic_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -64094,6 +64110,45 @@ def is_triangular_number(value: int) -> bool:
     discriminant = 8 * value + 1
     root = math.isqrt(discriminant)
     return root * root == discriminant
+
+
+def is_automorphic_number(value: int) -> bool:
+    """Return True if *value* is an automorphic number.
+
+    An automorphic number is a non-negative integer whose square ends with
+    the decimal representation of the number itself. For example, ``5`` is
+    automorphic because ``5 * 5 = 25`` ends in ``5``, and ``25`` is automorphic
+    because ``25 * 25 = 625`` ends in ``25``. Zero is automorphic.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is automorphic, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_automorphic_number(0)
+        True
+        >>> is_automorphic_number(5)
+        True
+        >>> is_automorphic_number(6)
+        True
+        >>> is_automorphic_number(25)
+        True
+        >>> is_automorphic_number(7)
+        False
+        >>> is_automorphic_number(10)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    square = value * value
+    return str(square).endswith(str(value))
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -64109,6 +64164,7 @@ from number_utils import (
     digit_sum,
     digital_root,
     format_number,
+    is_automorphic_number,
     is_between,
     is_close,
     is_coprime,
@@ -64933,6 +64989,45 @@ class TestIsTriangularNumber(unittest.TestCase):
             is_triangular_number("6")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_triangular_number(True)  # type: ignore[arg-type]
+
+
+class TestIsAutomorphicNumber(unittest.TestCase):
+    def test_automorphic_numbers(self) -> None:
+        self.assertTrue(is_automorphic_number(0))
+        self.assertTrue(is_automorphic_number(1))
+        self.assertTrue(is_automorphic_number(5))
+        self.assertTrue(is_automorphic_number(6))
+        self.assertTrue(is_automorphic_number(25))
+        self.assertTrue(is_automorphic_number(76))
+        self.assertTrue(is_automorphic_number(376))
+        self.assertTrue(is_automorphic_number(625))
+        self.assertTrue(is_automorphic_number(9376))
+
+    def test_non_automorphic_numbers(self) -> None:
+        self.assertFalse(is_automorphic_number(2))
+        self.assertFalse(is_automorphic_number(7))
+        self.assertFalse(is_automorphic_number(10))
+        self.assertFalse(is_automorphic_number(12))
+        self.assertFalse(is_automorphic_number(100))
+        self.assertFalse(is_automorphic_number(-5))
+
+    def test_large_automorphic(self) -> None:
+        self.assertTrue(is_automorphic_number(90625))
+        self.assertTrue(is_automorphic_number(109376))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_automorphic_number("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_automorphic_number(5.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_automorphic_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_automorphic_number(None)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---

@@ -49,6 +49,7 @@ __all__: List[str] = [
     "digital_root",
     "is_triangular_number",
     "is_perfect_number",
+    "is_automorphic_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -1031,3 +1032,42 @@ def is_triangular_number(value: int) -> bool:
     discriminant = 8 * value + 1
     root = math.isqrt(discriminant)
     return root * root == discriminant
+
+
+def is_automorphic_number(value: int) -> bool:
+    """Return True if *value* is an automorphic number.
+
+    An automorphic number is a non-negative integer whose square ends with
+    the decimal representation of the number itself. For example, ``5`` is
+    automorphic because ``5 * 5 = 25`` ends in ``5``, and ``25`` is automorphic
+    because ``25 * 25 = 625`` ends in ``25``. Zero is automorphic.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is automorphic, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_automorphic_number(0)
+        True
+        >>> is_automorphic_number(5)
+        True
+        >>> is_automorphic_number(6)
+        True
+        >>> is_automorphic_number(25)
+        True
+        >>> is_automorphic_number(7)
+        False
+        >>> is_automorphic_number(10)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    square = value * value
+    return str(square).endswith(str(value))
