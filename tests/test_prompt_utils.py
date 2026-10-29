@@ -26,7 +26,9 @@ from prompt_utils import (
     lstrip_lines,
     normalize_line_endings,
     remove_blank_lines,
+    reverse_lines,
     rstrip_lines,
+    strip_blank_lines,
     strip_lines,
     truncate_lines,
     truncate_prompt,
@@ -733,6 +735,45 @@ class TestCountCharacters(unittest.TestCase):
         with self.assertRaises(TypeError):
             count_characters(None)  # type: ignore[arg-type]
 
+
+class TestReverseLines(unittest.TestCase):
+    def test_multiple_lines(self):
+        self.assertEqual(reverse_lines("a\nb\nc"), "c\nb\na")
+
+    def test_single_line(self):
+        self.assertEqual(reverse_lines("single"), "single")
+
+    def test_empty(self):
+        self.assertEqual(reverse_lines(""), "")
+
+    def test_preserves_content(self):
+        self.assertEqual(reverse_lines("first\nsecond\nthird"), "third\nsecond\nfirst")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            reverse_lines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            reverse_lines(None)  # type: ignore[arg-type]
+
+
+class TestStripBlankLines(unittest.TestCase):
+    def test_outer_blank_lines_removed(self):
+        self.assertEqual(strip_blank_lines("\n\nhello\nworld\n\n"), "hello\nworld")
+
+    def test_no_blank_lines(self):
+        self.assertEqual(strip_blank_lines("hello"), "hello")
+
+    def test_all_blank(self):
+        self.assertEqual(strip_blank_lines("\n\n"), "")
+
+    def test_whitespace_only_lines_are_blank(self):
+        self.assertEqual(strip_blank_lines("  \nhello\n\t\n"), "hello")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            strip_blank_lines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strip_blank_lines(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

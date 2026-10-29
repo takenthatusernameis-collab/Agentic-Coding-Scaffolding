@@ -1039,8 +1039,8 @@ def reverse_lines(text: str) -> str:
         TypeError: If *text* is not a string.
 
     Examples:
-        >>> reverse_lines("a\\nb\\nc")
-        'c\\nb\\na'
+        >>> reverse_lines("a\nb\nc")
+        'c\nb\na'
         >>> reverse_lines("single")
         'single'
         >>> reverse_lines("")
@@ -1049,9 +1049,9 @@ def reverse_lines(text: str) -> str:
     _require_string(text, "text")
     if not text:
         return text
-    lines = text.split("\\n")
+    lines = text.split("\n")
     lines.reverse()
-    return "\\n".join(lines)
+    return "\n".join(lines)
 
 
 def strip_blank_lines(text: str) -> str:
@@ -1075,9 +1075,9 @@ def strip_blank_lines(text: str) -> str:
         ''
     """
     _require_string(text, "text")
-    lines = text.split("\\n")
+    lines = text.split("\n")
     while lines and lines[0].strip() == "":
         lines.pop(0)
     while lines and lines[-1].strip() == "":
         lines.pop()
-    return "\\n".join(lines)
+    return "\n".join(lines)

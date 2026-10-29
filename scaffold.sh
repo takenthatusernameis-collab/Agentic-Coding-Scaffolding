@@ -11046,6 +11046,7 @@ __all__: List[str] = [
     "is_digit",
     "is_hex",
     "is_integer",
+    "is_decimal",
     "is_printable",
     "is_identifier",
     "is_pangram",
@@ -12140,6 +12141,68 @@ def is_integer(s: str) -> bool:
         if len(s_stripped) == 1:
             return False
         return s_stripped[1:].isdigit()
+    return s_stripped.isdigit()
+
+
+def is_decimal(s: str) -> bool:
+    """Return True if the string represents a decimal number.
+
+    A decimal number is a sequence of digits (0-9) with an optional leading
+    sign (``+`` or ``-``) and an optional decimal point. At least one digit
+    must appear on each side of the decimal point when present. Surrounding
+    whitespace is ignored, so ``" 12.5 "`` is accepted.
+
+    Args:
+        s: The string to test.
+
+    Returns:
+        True if *s* is a decimal number, False otherwise. The empty string
+        and strings containing only whitespace return False.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_decimal("123")
+        True
+        >>> is_decimal("12.5")
+        True
+        >>> is_decimal("-3.14")
+        True
+        >>> is_decimal("+0.5")
+        True
+        >>> is_decimal("0.0")
+        True
+        >>> is_decimal("12.")
+        False
+        >>> is_decimal(".5")
+        False
+        >>> is_decimal("12.3.4")
+        False
+        >>> is_decimal("12a")
+        False
+        >>> is_decimal("")
+        False
+        >>> is_decimal(" 12.5 ")
+        True
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    s_stripped = s.strip()
+    if not s_stripped:
+        return False
+    if s_stripped[0] in ("+", "-"):
+        s_stripped = s_stripped[1:]
+    if not s_stripped:
+        return False
+    if s_stripped.count(".") > 1:
+        return False
+    if "." in s_stripped:
+        int_part, _, frac_part = s_stripped.partition(".")
+        return int_part.isdigit() and frac_part.isdigit() and (
+            int_part or frac_part
+        )
     return s_stripped.isdigit()
 
 
@@ -14264,6 +14327,7 @@ from strings import (
     is_binary,
     is_blank,
     is_digit,
+    is_decimal,
     is_hex,
     is_identifier,
     is_integer,
@@ -15004,9 +15068,74 @@ class TestIsInteger(unittest.TestCase):
         self.assertFalse(is_integer("-"))
         self.assertFalse(is_integer("+"))
 
+    def test_trims_surrounding_whitespace(self):
+        self.assertTrue(is_integer(" 123 "))
+        self.assertTrue(is_integer("\t-5\n"))
+        self.assertTrue(is_integer(" +0 "))
+
+    def test_whitespace_only_returns_false(self):
+        self.assertFalse(is_integer("   "))
+        self.assertFalse(is_integer("\t\n"))
+
+    def test_sign_with_whitespace_only_returns_false(self):
+        self.assertFalse(is_integer(" - "))
+        self.assertFalse(is_integer(" + "))
+
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_integer(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_integer(None)  # type: ignore[arg-type]
+
+
+class TestIsDecimal(unittest.TestCase):
+    def test_integer_form(self):
+        self.assertTrue(is_decimal("123"))
+        self.assertTrue(is_decimal("0"))
+
+    def test_with_decimal_point(self):
+        self.assertTrue(is_decimal("12.5"))
+        self.assertTrue(is_decimal("-3.14"))
+        self.assertTrue(is_decimal("+0.5"))
+        self.assertTrue(is_decimal("0.0"))
+
+    def test_trims_surrounding_whitespace(self):
+        self.assertTrue(is_decimal(" 12.5 "))
+        self.assertTrue(is_decimal("\t-5\n"))
+        self.assertTrue(is_decimal(" +0.5 "))
+
+    def test_rejects_trailing_dot(self):
+        self.assertFalse(is_decimal("12."))
+        self.assertFalse(is_decimal("-3."))
+        self.assertFalse(is_decimal("+."))
+
+    def test_rejects_leading_dot(self):
+        self.assertFalse(is_decimal(".5"))
+        self.assertFalse(is_decimal("-.5"))
+
+    def test_rejects_multiple_decimal_points(self):
+        self.assertFalse(is_decimal("12.3.4"))
+        self.assertFalse(is_decimal("1.2.3.4"))
+
+    def test_rejects_letters(self):
+        self.assertFalse(is_decimal("12a"))
+        self.assertFalse(is_decimal("12.5x"))
+
+    def test_rejects_empty_and_whitespace(self):
+        self.assertFalse(is_decimal(""))
+        self.assertFalse(is_decimal("   "))
+        self.assertFalse(is_decimal("\t\n"))
+
+    def test_rejects_just_sign(self):
+        self.assertFalse(is_decimal("-"))
+        self.assertFalse(is_decimal("+"))
+        self.assertFalse(is_decimal(" - "))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_decimal(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_decimal(None)  # type: ignore[arg-type]
 
 
 class TestIsAscii(unittest.TestCase):
@@ -19471,7 +19600,9 @@ from prompt_utils import (
     lstrip_lines,
     normalize_line_endings,
     remove_blank_lines,
+    reverse_lines,
     rstrip_lines,
+    strip_blank_lines,
     strip_lines,
     truncate_lines,
     truncate_prompt,
@@ -20178,6 +20309,45 @@ class TestCountCharacters(unittest.TestCase):
         with self.assertRaises(TypeError):
             count_characters(None)  # type: ignore[arg-type]
 
+
+class TestReverseLines(unittest.TestCase):
+    def test_multiple_lines(self):
+        self.assertEqual(reverse_lines("a\nb\nc"), "c\nb\na")
+
+    def test_single_line(self):
+        self.assertEqual(reverse_lines("single"), "single")
+
+    def test_empty(self):
+        self.assertEqual(reverse_lines(""), "")
+
+    def test_preserves_content(self):
+        self.assertEqual(reverse_lines("first\nsecond\nthird"), "third\nsecond\nfirst")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            reverse_lines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            reverse_lines(None)  # type: ignore[arg-type]
+
+
+class TestStripBlankLines(unittest.TestCase):
+    def test_outer_blank_lines_removed(self):
+        self.assertEqual(strip_blank_lines("\n\nhello\nworld\n\n"), "hello\nworld")
+
+    def test_no_blank_lines(self):
+        self.assertEqual(strip_blank_lines("hello"), "hello")
+
+    def test_all_blank(self):
+        self.assertEqual(strip_blank_lines("\n\n"), "")
+
+    def test_whitespace_only_lines_are_blank(self):
+        self.assertEqual(strip_blank_lines("  \nhello\n\t\n"), "hello")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            strip_blank_lines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strip_blank_lines(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -29989,8 +30159,8 @@ def reverse_lines(text: str) -> str:
         TypeError: If *text* is not a string.
 
     Examples:
-        >>> reverse_lines("a\\nb\\nc")
-        'c\\nb\\na'
+        >>> reverse_lines("a\nb\nc")
+        'c\nb\na'
         >>> reverse_lines("single")
         'single'
         >>> reverse_lines("")
@@ -29999,9 +30169,9 @@ def reverse_lines(text: str) -> str:
     _require_string(text, "text")
     if not text:
         return text
-    lines = text.split("\\n")
+    lines = text.split("\n")
     lines.reverse()
-    return "\\n".join(lines)
+    return "\n".join(lines)
 
 
 def strip_blank_lines(text: str) -> str:
@@ -30025,12 +30195,12 @@ def strip_blank_lines(text: str) -> str:
         ''
     """
     _require_string(text, "text")
-    lines = text.split("\\n")
+    lines = text.split("\n")
     while lines and lines[0].strip() == "":
         lines.pop(0)
     while lines and lines[-1].strip() == "":
         lines.pop()
-    return "\\n".join(lines)
+    return "\n".join(lines)
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -42057,6 +42227,7 @@ Next Planned (posted for the following agent):
 ## Unreleased
 
 ### Added
+- Fixed `reverse_lines(text)` and `strip_blank_lines(text)` in `prompt_utils.py` to split and join on real newlines instead of the literal characters `\n` (backslash-n), so they now correctly handle input containing actual line breaks. Both helpers were already exported in `__all__` but lacked test coverage. Added `TestReverseLines` and `TestStripBlankLines` to `tests/test_prompt_utils.py` covering multi-line/single-line/empty input, whitespace-only blank lines, and the `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`.
 - Added `is_binary(s)` to `strings.py` returning `True` when *s* is non-empty and every character is a binary digit (`0` or `1`), `False` otherwise. It validates that *s* is a string, raising `TypeError` otherwise, and is exported in `__all__` with a Google-style docstring and doctests. Added `TestIsBinary` to `tests/test_strings.py`. Updated the `strings` module prose section of `README.md`.
 - Added `reverse_lines(text)` to `prompt_utils.py` reversing the order of lines in *text*, with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation. Added tests to `tests/test_prompt_utils.py`.
 - Added `count_letters(s)` to `strings.py` returning the number of alphabetic characters in *s*, with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation. Added `TestCountLetters` to `tests/test_strings.py`.
@@ -43434,7 +43605,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_paragraphs`, `count_characters`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_paragraphs`, `count_characters`, `reverse_lines`, `strip_blank_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

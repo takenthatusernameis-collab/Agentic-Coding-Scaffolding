@@ -386,6 +386,7 @@ Next Planned (posted for the following agent):
 ## Unreleased
 
 ### Added
+- Fixed `reverse_lines(text)` and `strip_blank_lines(text)` in `prompt_utils.py` to split and join on real newlines instead of the literal characters `\n` (backslash-n), so they now correctly handle input containing actual line breaks. Both helpers were already exported in `__all__` but lacked test coverage. Added `TestReverseLines` and `TestStripBlankLines` to `tests/test_prompt_utils.py` covering multi-line/single-line/empty input, whitespace-only blank lines, and the `TypeError` paths. Updated the `prompt_utils` module prose section of `README.md`.
 - Added `is_binary(s)` to `strings.py` returning `True` when *s* is non-empty and every character is a binary digit (`0` or `1`), `False` otherwise. It validates that *s* is a string, raising `TypeError` otherwise, and is exported in `__all__` with a Google-style docstring and doctests. Added `TestIsBinary` to `tests/test_strings.py`. Updated the `strings` module prose section of `README.md`.
 - Added `reverse_lines(text)` to `prompt_utils.py` reversing the order of lines in *text*, with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation. Added tests to `tests/test_prompt_utils.py`.
 - Added `count_letters(s)` to `strings.py` returning the number of alphabetic characters in *s*, with typed signature, `__all__` export, Google-style docstring, and `TypeError` validation. Added `TestCountLetters` to `tests/test_strings.py`.
