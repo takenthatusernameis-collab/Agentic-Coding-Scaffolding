@@ -583,7 +583,46 @@ class TestSlugifyCrossCheck(unittest.TestCase):
         self.assertNotIn("--", result)
 
 
-class TestWrapWordsCrossCheck(unittest.TestCase):
+class TestStringUtilsBoundary(unittest.TestCase):
+    def test_wrap_words_width_one_break(self):
+        self.assertEqual(wrap_words("abc", 1), "a\nb\nc")
+        self.assertEqual(wrap_words("a b c", 1), "a\nb\nc")
+
+    def test_wrap_words_width_one_no_break(self):
+        self.assertEqual(wrap_words("abc", 1, False), "abc")
+
+    def test_wrap_words_multiple_spaces(self):
+        self.assertEqual(wrap_words("hello   world", 5), "hello\nworld")
+
+    def test_wrap_words_tabs(self):
+        self.assertEqual(wrap_words("hello\tworld", 5), "hello\nworld")
+
+    def test_wrap_words_whitespace_only(self):
+        self.assertEqual(wrap_words("   \t\n  ", 10), "")
+
+    def test_wrap_words_very_long_string(self):
+        text = "word " * 2000
+        result = wrap_words(text.rstrip(), 10)
+        lines = result.split("\n")
+        self.assertTrue(all(len(line) <= 10 for line in lines))
+
+    def test_is_isogram_whitespace_only_all_blank(self):
+        self.assertTrue(is_isogram("   "))
+        self.assertTrue(is_isogram("\t\n\r"))
+
+    def test_is_isogram_unicode_mixed_case(self):
+        self.assertTrue(is_isogram("Subdermatoglyphic"))
+        self.assertTrue(is_isogram("uncopyrightable"))
+
+    def test_is_isogram_very_long_isogram(self):
+        text = "abcdefghijklmnopqrstuvwxyz"
+        self.assertTrue(is_isogram(text))
+        text2 = "abcdefghijklmnopqrstuvwxyz" * 2  # has repeats
+        self.assertFalse(is_isogram(text2))
+
+    def test_is_isogram_punctuation_heavy(self):
+        self.assertTrue(is_isogram("a.b,c!d?e;f:g"))
+        self.assertFalse(is_isogram("a.b,a!c?d;e:f"))
     def test_lines_respect_width(self):
         text = "The quick brown fox jumps over the lazy dog"
         for width in (1, 5, 10, 20, 70):
