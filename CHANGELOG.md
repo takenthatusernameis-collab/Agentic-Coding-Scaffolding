@@ -1,12 +1,12 @@
-## Latest Session (2026-10-29) — completed map_or task; recorded next task for following agent
+## Latest Session (2026-10-29) — added map_or_else to maybe_utils
 
-The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6476 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6482 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 Completed in this session:
 
-- Found that the preceding `chore(kilo): checkpoint agent session` commit (56350c3) added `map_or(default, fn)` to `maybe_utils.py` (typed signature, Google-style docstring, safe Some/Nothing handling, swallowing exceptions and treating a `None` result as the default) but left the work incomplete: the docstring had no doctests, `tests/test_maybe_utils.py` had only two `map_or` assertions, the `maybe_utils` module prose section of `README.md` did not mention `map_or`, and no Unreleased `CHANGELOG.md` entry existed.
-- Completed the `map_or` feature: added doctests to its docstring, expanded `TestMapOr` in `tests/test_maybe_utils.py` to cover Some/Nothing, default-returned-on-Nothing, value passed through the function, default returned when the function returns `None`, default returned when the function raises, default returned on Nothing with a raising function, and float inputs (7 new assertions). Updated the `maybe_utils` module prose section of `README.md` (both the tree entry and the two prose paragraphs). Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `maybe_utils.py`, `tests/test_maybe_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-- Verified the work: `make test` runs 6482 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+- Added `map_or_else(default_fn, fn)` to `maybe_utils.Maybe` with typed signature, Google-style docstring including doctests, lazy default computation for `Nothing`, default fallback when the mapper returns `None` or raises an exception, and updated `__all__` unchanged. Added tests in `tests/test_maybe_utils.py` covering Some/Nothing cases, `None` mapper result, and mapper exception fallback (3 new tests). Updated the `maybe_utils` module prose section of `README.md` (tree entry and prose paragraphs). Recorded the change in `CHANGELOG.md`. Synchronized `maybe_utils.py`, `tests/test_maybe_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6485 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and scaffold sync is clean.
+- Committed the work as `feat(maybe_utils): add map_or_else helper`.
 
 Next Planned (posted for the following agent):
 

@@ -72,6 +72,30 @@ class Maybe(Generic[T]):
         except Exception:
             return default
 
+    def map_or_else(self, default_fn: Callable[[], U], fn: Callable[[T], U]) -> U:
+        """Apply a function to the contained value if Some, otherwise compute default.
+
+        >>> Maybe.some(2).map_or_else(lambda: 0, lambda x: x * 3)
+        6
+        >>> Maybe.nothing().map_or_else(lambda: 0, lambda x: x * 3)
+        0
+        """
+        if not self._is_some or self._value is None:
+            try:
+                return default_fn()
+            except Exception:
+                raise
+        try:
+            result = fn(self._value)
+            if result is None:
+                return default_fn()
+            return result
+        except Exception:
+            try:
+                return default_fn()
+            except Exception:
+                raise
+
     def unwrap_or(self, default: T) -> T:
         """Get the value or return a default if Nothing."""
         if self._is_some and self._value is not None:
