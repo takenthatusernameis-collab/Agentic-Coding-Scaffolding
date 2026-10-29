@@ -7,6 +7,7 @@ from prompt_utils import (
     collapse_blank_lines,
     count_blank_lines,
     count_characters,
+    count_leading_newlines,
     count_lines,
     count_non_blank_lines,
     count_paragraphs,
@@ -608,6 +609,32 @@ class TestCountTrailingNewlines(unittest.TestCase):
             count_trailing_newlines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_trailing_newlines(None)  # type: ignore[arg-type]
+
+
+class TestCountLeadingNewlines(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_leading_newlines(""), 0)
+
+    def test_no_leading_newlines(self):
+        self.assertEqual(count_leading_newlines("hello"), 0)
+
+    def test_single_leading_newline(self):
+        self.assertEqual(count_leading_newlines("\nhello"), 1)
+
+    def test_multiple_leading_newlines(self):
+        self.assertEqual(count_leading_newlines("\n\nhello"), 2)
+
+    def test_leading_newlines_before_content(self):
+        self.assertEqual(count_leading_newlines("\n\n\na\nb"), 3)
+
+    def test_only_newlines(self):
+        self.assertEqual(count_leading_newlines("\n\n\n"), 3)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_leading_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_newlines(None)  # type: ignore[arg-type]
 
 
 class TestCountParagraphs(unittest.TestCase):

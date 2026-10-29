@@ -20273,6 +20273,7 @@ from prompt_utils import (
     collapse_blank_lines,
     count_blank_lines,
     count_characters,
+    count_leading_newlines,
     count_lines,
     count_non_blank_lines,
     count_paragraphs,
@@ -20874,6 +20875,32 @@ class TestCountTrailingNewlines(unittest.TestCase):
             count_trailing_newlines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_trailing_newlines(None)  # type: ignore[arg-type]
+
+
+class TestCountLeadingNewlines(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_leading_newlines(""), 0)
+
+    def test_no_leading_newlines(self):
+        self.assertEqual(count_leading_newlines("hello"), 0)
+
+    def test_single_leading_newline(self):
+        self.assertEqual(count_leading_newlines("\nhello"), 1)
+
+    def test_multiple_leading_newlines(self):
+        self.assertEqual(count_leading_newlines("\n\nhello"), 2)
+
+    def test_leading_newlines_before_content(self):
+        self.assertEqual(count_leading_newlines("\n\n\na\nb"), 3)
+
+    def test_only_newlines(self):
+        self.assertEqual(count_leading_newlines("\n\n\n"), 3)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_leading_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_newlines(None)  # type: ignore[arg-type]
 
 
 class TestCountParagraphs(unittest.TestCase):
@@ -29989,6 +30016,7 @@ __all__: List[str] = [
     "count_blank_lines",
     "count_non_blank_lines",
     "count_trailing_newlines",
+    "count_leading_newlines",
     "count_paragraphs",
     "count_characters",
     "reverse_lines",
@@ -30927,6 +30955,42 @@ def count_trailing_newlines(text: str) -> int:
     while i >= 0 and text[i] == "\n":
         count += 1
         i -= 1
+    return count
+
+
+def count_leading_newlines(text: str) -> int:
+    """Return the number of leading newline characters in *text*.
+
+    Counts consecutive ``\\n`` characters at the start of *text*. Other
+    leading whitespace (spaces, tabs, carriage returns) is not counted.
+    Empty text returns zero.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        The number of leading newline characters.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_leading_newlines("hello")
+        0
+        >>> count_leading_newlines("\\nhello")
+        1
+        >>> count_leading_newlines("\\n\\nhello")
+        2
+        >>> count_leading_newlines("")
+        0
+    """
+    _require_string(text, "text")
+    count = 0
+    i = 0
+    n = len(text)
+    while i < n and text[i] == "\n":
+        count += 1
+        i += 1
     return count
 
 
