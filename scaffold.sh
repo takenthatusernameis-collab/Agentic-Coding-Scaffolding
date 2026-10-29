@@ -42650,6 +42650,22 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — added is_protocol to type_check_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6503 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_protocol(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-class arguments; it returns `True` when *value* is a `typing.Protocol` class (detected via the `_is_protocol` marker attribute), `False` for ordinary classes and built-in types. Added `TestIsProtocol` to `tests/test_type_check_utils.py` covering a plain `Protocol`, a `runtime_checkable` `Protocol`, built-in types (`int`, `str`, `object`, `Exception`, ...), and the `TypeError` path for strings/ints/None/lists/dicts. Updated the `type_check_utils` module prose section of `README.md` to list `is_protocol`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6503 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `list_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added is_chen_prime to prime_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6496 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -45416,7 +45432,7 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 
 ## Type Check Utilities Module
 
-The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -115767,6 +115783,7 @@ __all__: List[str] = [
     "is_numeric",
     "is_iterable",
     "is_callable",
+    "is_protocol",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -115844,6 +115861,41 @@ def is_iterable(value: object) -> bool:
 def is_callable(value: object) -> bool:
     """Return True if value is callable."""
     return callable(value)
+
+
+def is_protocol(value: object) -> bool:
+    """Return True if *value* is a :class:`typing.Protocol` class.
+
+    A Protocol is a class created with :class:`typing.Protocol` (or
+    :func:`typing.runtime_checkable`) that defines a structural interface.
+    This helper reports whether *value* is such a class, distinguishing it
+    from ordinary classes and built-in types.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a Protocol class, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not a class.
+
+    Examples:
+        >>> from typing import Protocol, runtime_checkable
+        >>> class MyProtocol(Protocol):
+        ...     def do(self) -> None: ...
+        >>> is_protocol(MyProtocol)
+        True
+        >>> is_protocol(int)
+        False
+        >>> is_protocol("not a class")
+        Traceback (most recent call last):
+        ...
+        TypeError: value must be a class, got str
+    """
+    if not isinstance(value, type):
+        raise TypeError(f"value must be a class, got {type(value).__name__}")
+    return bool(getattr(value, "_is_protocol", False))
 
 
 def ensure_type(value: object, expected_type: type, name: str = "value") -> object:
@@ -116009,8 +116061,50 @@ cat > "$OUTPUT_DIR/tests/test_type_check_utils.py" <<'TEST_TYPE_CHECK_UTILS'
 from __future__ import annotations
 
 import unittest
+from typing import Protocol, runtime_checkable
 
 import type_check_utils
+
+
+class MyProtocol(Protocol):
+    def do(self) -> None: ...
+
+
+@runtime_checkable
+class RCProtocol(Protocol):
+    def do(self) -> None: ...
+
+
+class TestIsProtocol(unittest.TestCase):
+    def test_protocol_class(self) -> None:
+        self.assertTrue(type_check_utils.is_protocol(MyProtocol))
+
+    def test_runtime_checkable_protocol(self) -> None:
+        self.assertTrue(type_check_utils.is_protocol(RCProtocol))
+
+    def test_builtin_types_are_not_protocols(self) -> None:
+        self.assertFalse(type_check_utils.is_protocol(int))
+        self.assertFalse(type_check_utils.is_protocol(str))
+        self.assertFalse(type_check_utils.is_protocol(float))
+        self.assertFalse(type_check_utils.is_protocol(bool))
+        self.assertFalse(type_check_utils.is_protocol(list))
+        self.assertFalse(type_check_utils.is_protocol(dict))
+        self.assertFalse(type_check_utils.is_protocol(tuple))
+        self.assertFalse(type_check_utils.is_protocol(set))
+        self.assertFalse(type_check_utils.is_protocol(object))
+        self.assertFalse(type_check_utils.is_protocol(Exception))
+
+    def test_non_class_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            type_check_utils.is_protocol("not a class")
+        with self.assertRaises(TypeError):
+            type_check_utils.is_protocol(123)
+        with self.assertRaises(TypeError):
+            type_check_utils.is_protocol(None)
+        with self.assertRaises(TypeError):
+            type_check_utils.is_protocol([])
+        with self.assertRaises(TypeError):
+            type_check_utils.is_protocol({})
 
 
 class TestTypeChecks(unittest.TestCase):

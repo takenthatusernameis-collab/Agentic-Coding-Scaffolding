@@ -3,8 +3,50 @@
 from __future__ import annotations
 
 import unittest
+from typing import Protocol, runtime_checkable
 
 import type_check_utils
+
+
+class MyProtocol(Protocol):
+    def do(self) -> None: ...
+
+
+@runtime_checkable
+class RCProtocol(Protocol):
+    def do(self) -> None: ...
+
+
+class TestIsProtocol(unittest.TestCase):
+    def test_protocol_class(self) -> None:
+        self.assertTrue(type_check_utils.is_protocol(MyProtocol))
+
+    def test_runtime_checkable_protocol(self) -> None:
+        self.assertTrue(type_check_utils.is_protocol(RCProtocol))
+
+    def test_builtin_types_are_not_protocols(self) -> None:
+        self.assertFalse(type_check_utils.is_protocol(int))
+        self.assertFalse(type_check_utils.is_protocol(str))
+        self.assertFalse(type_check_utils.is_protocol(float))
+        self.assertFalse(type_check_utils.is_protocol(bool))
+        self.assertFalse(type_check_utils.is_protocol(list))
+        self.assertFalse(type_check_utils.is_protocol(dict))
+        self.assertFalse(type_check_utils.is_protocol(tuple))
+        self.assertFalse(type_check_utils.is_protocol(set))
+        self.assertFalse(type_check_utils.is_protocol(object))
+        self.assertFalse(type_check_utils.is_protocol(Exception))
+
+    def test_non_class_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            type_check_utils.is_protocol("not a class")
+        with self.assertRaises(TypeError):
+            type_check_utils.is_protocol(123)
+        with self.assertRaises(TypeError):
+            type_check_utils.is_protocol(None)
+        with self.assertRaises(TypeError):
+            type_check_utils.is_protocol([])
+        with self.assertRaises(TypeError):
+            type_check_utils.is_protocol({})
 
 
 class TestTypeChecks(unittest.TestCase):

@@ -1,3 +1,19 @@
+## Latest Session (2026-10-29) — added is_protocol to type_check_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6503 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_protocol(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-class arguments; it returns `True` when *value* is a `typing.Protocol` class (detected via the `_is_protocol` marker attribute), `False` for ordinary classes and built-in types. Added `TestIsProtocol` to `tests/test_type_check_utils.py` covering a plain `Protocol`, a `runtime_checkable` `Protocol`, built-in types (`int`, `str`, `object`, `Exception`, ...), and the `TypeError` path for strings/ints/None/lists/dicts. Updated the `type_check_utils` module prose section of `README.md` to list `is_protocol`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6503 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `list_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added is_chen_prime to prime_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6496 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

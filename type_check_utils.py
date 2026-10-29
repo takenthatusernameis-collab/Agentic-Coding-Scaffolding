@@ -21,6 +21,7 @@ __all__: List[str] = [
     "is_numeric",
     "is_iterable",
     "is_callable",
+    "is_protocol",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -98,6 +99,41 @@ def is_iterable(value: object) -> bool:
 def is_callable(value: object) -> bool:
     """Return True if value is callable."""
     return callable(value)
+
+
+def is_protocol(value: object) -> bool:
+    """Return True if *value* is a :class:`typing.Protocol` class.
+
+    A Protocol is a class created with :class:`typing.Protocol` (or
+    :func:`typing.runtime_checkable`) that defines a structural interface.
+    This helper reports whether *value* is such a class, distinguishing it
+    from ordinary classes and built-in types.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a Protocol class, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not a class.
+
+    Examples:
+        >>> from typing import Protocol, runtime_checkable
+        >>> class MyProtocol(Protocol):
+        ...     def do(self) -> None: ...
+        >>> is_protocol(MyProtocol)
+        True
+        >>> is_protocol(int)
+        False
+        >>> is_protocol("not a class")
+        Traceback (most recent call last):
+        ...
+        TypeError: value must be a class, got str
+    """
+    if not isinstance(value, type):
+        raise TypeError(f"value must be a class, got {type(value).__name__}")
+    return bool(getattr(value, "_is_protocol", False))
 
 
 def ensure_type(value: object, expected_type: type, name: str = "value") -> object:
