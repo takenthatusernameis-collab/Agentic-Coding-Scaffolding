@@ -63,6 +63,31 @@ class TestMaybe(unittest.TestCase):
         self.assertEqual(Maybe.some(5).map_or(0, lambda x: x * 2), 10)
         self.assertEqual(Maybe.nothing().map_or(0, lambda x: x * 2), 0)
 
+    def test_map_or_default_returned_on_nothing(self) -> None:
+        self.assertEqual(Maybe.nothing().map_or(-1, lambda x: x + 1), -1)
+
+    def test_map_or_passes_value_through_fn(self) -> None:
+        self.assertEqual(Maybe.some(3).map_or(0, lambda x: x - 1), 2)
+
+    def test_map_or_returns_default_when_fn_returns_none(self) -> None:
+        self.assertEqual(Maybe.some(5).map_or(0, lambda x: None), 0)  # type: ignore[arg-type,return-value]
+
+    def test_map_or_returns_default_when_fn_raises(self) -> None:
+        def boom(x: int) -> int:
+            raise RuntimeError("boom")
+
+        self.assertEqual(Maybe.some(5).map_or(0, boom), 0)
+
+    def test_map_or_default_returned_on_nothing_with_raising_fn(self) -> None:
+        def boom(x: int) -> int:
+            raise RuntimeError("boom")
+
+        self.assertEqual(Maybe.nothing().map_or(7, boom), 7)
+
+    def test_map_or_floats(self) -> None:
+        self.assertAlmostEqual(Maybe.some(2.5).map_or(0.0, lambda x: x * 2.0), 5.0)
+        self.assertEqual(Maybe.nothing().map_or(1.5, lambda x: x * 2.0), 1.5)
+
 
 if __name__ == "__main__":
     unittest.main()

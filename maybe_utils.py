@@ -57,7 +57,13 @@ class Maybe(Generic[T]):
         return self._value
 
     def map_or(self, default: U, fn: Callable[[T], U]) -> U:
-        """Apply a function if Some, otherwise return default."""
+        """Apply a function to the contained value if Some, otherwise return default.
+
+        >>> Maybe.some(2).map_or(0, lambda x: x * 3)
+        6
+        >>> Maybe.nothing().map_or(0, lambda x: x * 3)
+        0
+        """
         if not self._is_some or self._value is None:
             return default
         try:
