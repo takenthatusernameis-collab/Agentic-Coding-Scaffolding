@@ -1,3 +1,19 @@
+## Latest Session (2026-10-29) — added is_chen_prime to prime_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6496 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_chen_prime(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *n* is a prime such that *n + 2* is either prime or semiprime (a Chen prime), `False` otherwise, reusing the existing `is_prime` and `is_semiprime` helpers. Added `TestIsChenPrime` to `tests/test_prime_utils.py` covering true cases (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41), false cases (43, 4, 6, 0, 1, -3), and the `TypeError` path for float/string/bool inputs. Updated the `prime_utils` module tree entry and prose section of `README.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6499 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `list_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added chunks to list_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6486 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

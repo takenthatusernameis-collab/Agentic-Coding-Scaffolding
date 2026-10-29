@@ -7,6 +7,7 @@ from prime_utils import (
     distinct_prime_factors,
     is_abundant_number,
     is_automorphic,
+    is_chen_prime,
     is_circular_prime,
     is_composite,
     is_coprime,
@@ -555,6 +556,24 @@ class TestIsSafePrime(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_safe_prime(5.0)
+
+
+class TestIsChenPrime(unittest.TestCase):
+    def test_true_cases(self):
+        for p in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]:
+            self.assertTrue(is_chen_prime(p))
+
+    def test_false_cases(self):
+        for n in [43, 4, 6, 0, 1, -3]:
+            self.assertFalse(is_chen_prime(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_chen_prime(5.0)
+        with self.assertRaises(TypeError):
+            is_chen_prime("5")
+        with self.assertRaises(TypeError):
+            is_chen_prime(True)
 
 
 class TestSumOfProperDivisors(unittest.TestCase):

@@ -13,6 +13,7 @@ __all__: List[str] = [
     "primes_up_to",
     "is_coprime",
     "is_circular_prime",
+    "is_chen_prime",
     "next_prime",
     "prev_prime",
     "is_perfect_square",
@@ -623,6 +624,41 @@ def is_safe_prime(n: int) -> bool:
     if n < 5:
         return False
     return is_prime((n - 1) // 2)
+
+
+def is_chen_prime(n: int) -> bool:
+    """Return True if *n* is a Chen prime.
+
+    A Chen prime is a prime number *p* such that *p + 2* is either a prime
+    or a semiprime (a product of exactly two prime numbers, counting
+    multiplicity). This is connected to Chen's theorem, which states that
+    every sufficiently large even integer is the sum of a prime and a
+    semiprime.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a Chen prime, False otherwise. Non-prime integers
+        are never Chen primes.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_chen_prime(2)
+        True
+        >>> is_chen_prime(3)
+        True
+        >>> is_chen_prime(7)
+        True
+        >>> is_chen_prime(43)
+        False
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    return is_prime(n + 2) or is_semiprime(n + 2)
 
 
 def sum_of_proper_divisors(n: int) -> int:
