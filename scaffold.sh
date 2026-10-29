@@ -13322,7 +13322,9 @@ __all__: List[str] = [
     "mode",
     "multimode",
     "variance",
+    "pvariance",
     "stddev",
+    "pstdev",
     "skewness",
     "range",
     "min_value",
@@ -13669,12 +13671,66 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
                     with fewer than 2 elements.
         TypeError: If numbers is not a list, contains non-numeric values,
                    or population is not a bool.
+
+    Examples:
+        >>> stddev([1, 2, 3, 4, 5])
+        1.4142135623730951
+        >>> stddev([1, 2, 3, 4, 5], population=False)
+        1.5811388300841898
     """
     _require_numbers(numbers, "numbers")
     if not isinstance(population, bool):
         raise TypeError("population must be a bool")
+    if not population and len(numbers) < 2:
+        raise ValueError(
+            "Cannot calculate sample standard deviation with fewer than 2 elements"
+        )
     var = variance(numbers, population=population)
     return math.sqrt(var)
+
+
+def pvariance(numbers: List[T | float]) -> float:
+    """Return the population variance of a list of numbers.
+
+    This is equivalent to :func:`variance` with ``population=True``.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The population variance.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> pvariance([1, 2, 3, 4, 5])
+        2.0
+    """
+    return variance(numbers, population=True)
+
+
+def pstdev(numbers: List[T | float]) -> float:
+    """Return the population standard deviation of a list of numbers.
+
+    This is equivalent to :func:`stddev` with ``population=True``.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The population standard deviation.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> pstdev([1, 2, 3, 4, 5])
+        1.4142135623730951
+    """
+    return stddev(numbers, population=True)
 
 
 def skewness(numbers: List[T | float]) -> float:
@@ -17045,7 +17101,14 @@ from stats import (
     mode,
     moving_average,
     multimode,
+    percentile,
     product,
+    pstdev,
+    pvariance,
+    q1,
+    q3,
+    quantile,
+    quartile,
     range,
     root_mean_square,
     skewness,
@@ -17054,8 +17117,11 @@ from stats import (
     sum_of_cubes,
     sum_of_squares,
     sum_values,
+    third_quartile,
+    trimean,
     trimmed_mean,
     variance,
+    weighted_mean,
     z_scores,
 )
 
@@ -17339,6 +17405,13 @@ class TestVariance(unittest.TestCase):
         with self.assertRaises(ValueError):
             variance([])
 
+    def test_pvariance_alias(self) -> None:
+        self.assertAlmostEqual(pvariance([1, 2, 3, 4, 5]), 2.0, places=5)
+
+    def test_pvariance_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            pvariance([])
+
 
 class TestStddev(unittest.TestCase):
     def test_stddev_population_basic(self) -> None:
@@ -17355,6 +17428,13 @@ class TestStddev(unittest.TestCase):
     def test_stddev_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             stddev([])
+
+    def test_pstdev_alias(self) -> None:
+        self.assertAlmostEqual(pstdev([1, 2, 3, 4, 5]), 1.4142135623730951, places=5)
+
+    def test_pstdev_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            pstdev([])
 
 
 class TestSkewness(unittest.TestCase):
@@ -17467,31 +17547,26 @@ class TestInterquartileRange(unittest.TestCase):
 
 class TestTrimean(unittest.TestCase):
     def test_basic(self) -> None:
-        from stats import trimean
 
         self.assertAlmostEqual(trimean([1, 2, 3, 4, 5]), 3.0)
         self.assertAlmostEqual(trimean([1, 2, 3, 4, 5, 6]), 3.5)
 
     def test_empty_raises(self) -> None:
-        from stats import trimean
 
         with self.assertRaises(ValueError):
             trimean([])
 
     def test_rejects_non_list(self) -> None:
-        from stats import trimean
 
         with self.assertRaises(TypeError):
             trimean((1, 2, 3))  # type: ignore[arg-type]
 
     def test_rejects_non_numeric(self) -> None:
-        from stats import trimean
 
         with self.assertRaises(TypeError):
             trimean([1, 2, "a"])  # type: ignore[type-var]
 
     def test_rejects_bool(self) -> None:
-        from stats import trimean
 
         with self.assertRaises(TypeError):
             trimean([True, 1, 2])  # type: ignore[type-var]
@@ -17499,25 +17574,21 @@ class TestTrimean(unittest.TestCase):
 
 class TestWeightedMean(unittest.TestCase):
     def test_basic(self) -> None:
-        from stats import weighted_mean
 
         self.assertAlmostEqual(weighted_mean([1, 2, 3], [1, 1, 1]), 2.0)
         self.assertAlmostEqual(weighted_mean([10, 20], [1, 3]), 17.5)
 
     def test_empty_raises(self) -> None:
-        from stats import weighted_mean
 
         with self.assertRaises(ValueError):
             weighted_mean([], [])
 
     def test_length_mismatch_raises(self) -> None:
-        from stats import weighted_mean
 
         with self.assertRaises(ValueError):
             weighted_mean([1, 2], [1])
 
     def test_non_positive_weight_raises(self) -> None:
-        from stats import weighted_mean
 
         with self.assertRaises(ValueError):
             weighted_mean([1, 2], [0, 1])
@@ -17525,7 +17596,6 @@ class TestWeightedMean(unittest.TestCase):
             weighted_mean([1, 2], [-1, 1])
 
     def test_rejects_non_numeric(self) -> None:
-        from stats import weighted_mean
 
         with self.assertRaises(TypeError):
             weighted_mean([1, "a"], [1, 1])  # type: ignore[type-var,misc]
@@ -17533,7 +17603,6 @@ class TestWeightedMean(unittest.TestCase):
             weighted_mean([1, 2], [1, "a"])  # type: ignore[type-var,misc]
 
     def test_rejects_bool(self) -> None:
-        from stats import weighted_mean
 
         with self.assertRaises(TypeError):
             weighted_mean([True, 1], [1, 1])  # type: ignore[type-var]
@@ -18078,7 +18147,6 @@ class TestMidhinge(unittest.TestCase):
         self.assertAlmostEqual(midhinge([6, 2, 9, 1]), 4.25)
 
     def test_matches_quartile_mean(self) -> None:
-        from stats import percentile
 
         data: list[int | float] = [1, 2, 3, 4, 5, 6, 7, 8]
         expected = (percentile(data, 25) + percentile(data, 75)) / 2.0
@@ -18116,7 +18184,7 @@ class TestMidhinge(unittest.TestCase):
 
 class TestQuartile(unittest.TestCase):
     def test_basic(self) -> None:
-        from stats import first_quartile, q1, q3, quartile, third_quartile
+        from stats import first_quartile
 
         data = [1, 2, 3, 4, 5]
         self.assertAlmostEqual(quartile(data, 1), 2.0)
@@ -18126,7 +18194,6 @@ class TestQuartile(unittest.TestCase):
         self.assertAlmostEqual(third_quartile(data), q3(data))
 
     def test_edges(self) -> None:
-        from stats import quartile
 
         data = [1, 2, 3, 4, 5, 6]
         self.assertAlmostEqual(quartile(data, 0), 1.0)
@@ -18135,13 +18202,11 @@ class TestQuartile(unittest.TestCase):
         self.assertAlmostEqual(quartile(data, 3), 4.75)
 
     def test_empty_raises(self) -> None:
-        from stats import quartile
 
         with self.assertRaises(ValueError):
             quartile([], 1)
 
     def test_rejects_bad_q(self) -> None:
-        from stats import quartile
 
         with self.assertRaises(ValueError):
             quartile([1, 2, 3], 5)
@@ -18149,7 +18214,6 @@ class TestQuartile(unittest.TestCase):
             quartile([1, 2, 3], -1)
 
     def test_rejects_non_int_q(self) -> None:
-        from stats import quartile
 
         with self.assertRaises(TypeError):
             quartile([1, 2, 3], 1.5)  # type: ignore[arg-type]
@@ -18157,19 +18221,16 @@ class TestQuartile(unittest.TestCase):
             quartile([1, 2, 3], True)  # type: ignore[arg-type]
 
     def test_rejects_non_list(self) -> None:
-        from stats import quartile
 
         with self.assertRaises(TypeError):
             quartile((1, 2, 3), 1)  # type: ignore[arg-type]
 
     def test_rejects_non_numeric(self) -> None:
-        from stats import quartile
 
         with self.assertRaises(TypeError):
             quartile([1, 2, "a"], 1)  # type: ignore[list-item]
 
     def test_rejects_bool_in_list(self) -> None:
-        from stats import quartile
 
         with self.assertRaises(TypeError):
             quartile([True, 1, 2], 1)  # type: ignore[type-var]
@@ -18177,7 +18238,6 @@ class TestQuartile(unittest.TestCase):
 
 class TestQuantile(unittest.TestCase):
     def test_basic(self) -> None:
-        from stats import quantile
 
         data = [1, 2, 3, 4, 5]
         self.assertAlmostEqual(quantile(data, 0.0), 1.0)  # type: ignore[arg-type]
@@ -18185,19 +18245,16 @@ class TestQuantile(unittest.TestCase):
         self.assertAlmostEqual(quantile(data, 1.0), 5.0)  # type: ignore[arg-type]
 
     def test_edges(self) -> None:
-        from stats import quantile
 
         data = [1, 2, 3, 4]
         self.assertAlmostEqual(quantile(data, 0.5), 2.5)  # type: ignore[arg-type]
 
     def test_empty_raises(self) -> None:
-        from stats import quantile
 
         with self.assertRaises(ValueError):
             quantile([], 0.5)
 
     def test_rejects_bad_q(self) -> None:
-        from stats import quantile
 
         with self.assertRaises(ValueError):
             quantile([1, 2, 3], 1.5)
@@ -18205,7 +18262,6 @@ class TestQuantile(unittest.TestCase):
             quantile([1, 2, 3], -0.1)
 
     def test_rejects_non_number_q(self) -> None:
-        from stats import quantile
 
         with self.assertRaises(TypeError):
             quantile([1, 2, 3], "a")  # type: ignore[arg-type]
@@ -18213,19 +18269,16 @@ class TestQuantile(unittest.TestCase):
             quantile([1, 2, 3], True)  # type: ignore[arg-type]
 
     def test_rejects_non_list(self) -> None:
-        from stats import quantile
 
         with self.assertRaises(TypeError):
             quantile((1, 2, 3), 0.5)  # type: ignore[arg-type]
 
     def test_rejects_non_numeric(self) -> None:
-        from stats import quantile
 
         with self.assertRaises(TypeError):
             quantile([1, 2, "a"], 0.5)  # type: ignore[list-item, type-var]
 
     def test_rejects_bool_in_list(self) -> None:
-        from stats import quantile
 
         with self.assertRaises(TypeError):
             quantile([True, 1, 2], 0.5)  # type: ignore[type-var]
@@ -44126,7 +44179,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

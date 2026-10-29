@@ -14,7 +14,9 @@ __all__: List[str] = [
     "mode",
     "multimode",
     "variance",
+    "pvariance",
     "stddev",
+    "pstdev",
     "skewness",
     "range",
     "min_value",
@@ -361,12 +363,66 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
                     with fewer than 2 elements.
         TypeError: If numbers is not a list, contains non-numeric values,
                    or population is not a bool.
+
+    Examples:
+        >>> stddev([1, 2, 3, 4, 5])
+        1.4142135623730951
+        >>> stddev([1, 2, 3, 4, 5], population=False)
+        1.5811388300841898
     """
     _require_numbers(numbers, "numbers")
     if not isinstance(population, bool):
         raise TypeError("population must be a bool")
+    if not population and len(numbers) < 2:
+        raise ValueError(
+            "Cannot calculate sample standard deviation with fewer than 2 elements"
+        )
     var = variance(numbers, population=population)
     return math.sqrt(var)
+
+
+def pvariance(numbers: List[T | float]) -> float:
+    """Return the population variance of a list of numbers.
+
+    This is equivalent to :func:`variance` with ``population=True``.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The population variance.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> pvariance([1, 2, 3, 4, 5])
+        2.0
+    """
+    return variance(numbers, population=True)
+
+
+def pstdev(numbers: List[T | float]) -> float:
+    """Return the population standard deviation of a list of numbers.
+
+    This is equivalent to :func:`stddev` with ``population=True``.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The population standard deviation.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> pstdev([1, 2, 3, 4, 5])
+        1.4142135623730951
+    """
+    return stddev(numbers, population=True)
 
 
 def skewness(numbers: List[T | float]) -> float:
