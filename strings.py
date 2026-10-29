@@ -16,6 +16,7 @@ __all__: List[str] = [
     "count_lowercase",
     "count_uppercase",
     "is_anagram",
+    "is_isogram",
     "capitalize_words",
     "truncate",
     "levenshtein_distance",
@@ -297,7 +298,41 @@ def is_anagram(s1: str, s2: str) -> bool:
     return sorted(cleaned1) == sorted(cleaned2)
 
 
-def is_subsequence(needle: str, haystack: str) -> bool:
+def is_isogram(s: str) -> bool:
+    """Return True if *s* is an isogram (no repeating letters).
+
+    An isogram is a word or phrase in which no letter appears more than
+    once. The check is case-insensitive and ignores non-letter characters.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        True if *s* is an isogram, False otherwise. The empty string
+        and strings containing only whitespace/non-letter characters are
+        considered isograms.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_isogram("abc")
+        True
+        >>> is_isogram("hello")
+        False
+        >>> is_isogram("")
+        True
+        >>> is_isogram("Emily Jung Schwartzkopf")
+        True
+    """
+    _require_string(s, "s")
+    seen: set[str] = set()
+    for ch in s.lower():
+        if ch.isalpha():
+            if ch in seen:
+                return False
+            seen.add(ch)
+    return True
     """Return True if *needle* is a subsequence of *haystack*.
 
     A subsequence is formed by deleting zero or more characters from
@@ -1807,3 +1842,43 @@ def count_letters(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isalpha())
+
+
+def is_subsequence(needle: str, haystack: str) -> bool:
+    """Return True if *needle* is a subsequence of *haystack*.
+
+    A subsequence is formed by deleting zero or more characters from
+    *haystack* without changing the order of the remaining characters, so
+    every character of *needle* must appear in *haystack* in the same
+    relative order (not necessarily consecutively). The empty string is a
+    subsequence of any string.
+
+    Args:
+        needle: The subsequence to search for.
+        haystack: The string to search within.
+
+    Returns:
+        True if *needle* is a subsequence of *haystack*.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> is_subsequence("abc", "aebdc")
+        True
+        >>> is_subsequence("abc", "acb")
+        False
+        >>> is_subsequence("", "anything")
+        True
+    """
+    _require_string(needle, "needle")
+    _require_string(haystack, "haystack")
+    if not needle:
+        return True
+    i = 0
+    for ch in haystack:
+        if ch == needle[i]:
+            i += 1
+            if i == len(needle):
+                return True
+    return False
