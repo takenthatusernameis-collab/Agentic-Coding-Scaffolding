@@ -73925,7 +73925,8 @@ cat > "$OUTPUT_DIR/seq_utils.py" <<'SEQ_UTILS'
 This module provides helpers for working with sequences, including
 retrieving elements by position, slicing into head/tail portions,
 splitting at an index, taking or dropping elements while a predicate
-holds, interleaving multiple sequences, and forming adjacent pairs.
+holds, interleaving multiple sequences, forming adjacent pairs,
+chunking, flattening, and removing duplicates while preserving order.
 """
 
 from __future__ import annotations
@@ -73944,6 +73945,8 @@ __all__: list[str] = [
     "split_at",
     "take_while",
     "drop_while",
+    "unique",
+    "distinct",
     "flatten",
     "interleave",
     "adjacent_pairs",
@@ -74264,6 +74267,42 @@ def chunk(sequence: Sequence[T], size: int) -> List[List[T]]:
     return [list(sequence[i : i + size]) for i in range(0, len(sequence), size)]
 
 
+def unique(sequence: Sequence[T]) -> List[T]:
+    """Return a list of unique elements from ``sequence`` preserving order.
+
+    Args:
+        sequence: The sequence to deduplicate.
+
+    Returns:
+        A new list containing only the first occurrence of each element.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> unique([1, 2, 2, 3])
+        [1, 2, 3]
+        >>> unique([3, 1, 2, 1])
+        [3, 1, 2]
+        >>> unique([])
+        []
+        >>> unique("aba")
+        ['a', 'b']
+    """
+    _require_sequence(sequence)
+    seen: set = set()
+    result: List[T] = []
+    for item in sequence:
+        if item in seen:
+            continue
+        seen.add(item)
+        result.append(item)
+    return result
+
+
+distinct = unique
+
+
 def flatten(sequence: Sequence[Any]) -> List[Any]:
     """Flatten one level of nesting in ``sequence``.
 
@@ -74352,6 +74391,7 @@ import unittest
 from seq_utils import (
     adjacent_pairs,
     chunk,
+    distinct,
     drop_while,
     first,
     flatten,
@@ -74363,6 +74403,7 @@ from seq_utils import (
     split_at,
     tail,
     take_while,
+    unique,
 )
 
 
@@ -74550,6 +74591,26 @@ class TestChunk(unittest.TestCase):
             chunk([1, 2], 0)
         with self.assertRaises(ValueError):
             chunk([1, 2], -1)
+
+
+class TestUnique(unittest.TestCase):
+    def test_unique_preserves_order(self):
+        self.assertEqual(unique([1, 2, 2, 3, 1]), [1, 2, 3])
+
+    def test_unique_empty(self):
+        self.assertEqual(unique([]), [])
+        self.assertEqual(unique(()), [])
+
+    def test_unique_strings(self):
+        self.assertEqual(unique("aba"), ["a", "b"])
+        self.assertEqual(unique("abcb"), ["a", "b", "c"])
+
+    def test_distinct_alias(self):
+        self.assertEqual(distinct([1, 1, 2]), [1, 2])
+
+    def test_unique_type_error(self):
+        with self.assertRaises(TypeError):
+            unique(123)  # type: ignore[arg-type]
 
 
 class TestFlatten(unittest.TestCase):

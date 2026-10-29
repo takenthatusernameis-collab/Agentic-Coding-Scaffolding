@@ -10,7 +10,7 @@ chunking, flattening, and removing duplicates while preserving order.
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import Any, List, Optional, Tuple, TypeVar
+from typing import Any, Iterator, List, Optional, Tuple, TypeVar
 
 T = TypeVar("T")
 
