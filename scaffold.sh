@@ -40932,7 +40932,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
 - `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `flatten`, `interleave`, `adjacent_pairs`, `chunk`, `is_sorted`)
 - `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
-- `number_utils.py` — number utility functions (`clamp`, `round_to`, `is_integer`, `format_number`, `percentage`, `lerp`, `sign`, `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`)
+- `number_utils.py` — number utility functions (`clamp`, `round_to`, `round_half_up`, `is_integer`, `format_number`, `percentage`, `lerp`, `map_range`, `remap`, `sign`, `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `in_range`, `is_finite`, `is_infinite`, `is_nan`, `safe_divide`, `is_perfect_cube`, `is_perfect_square`, `is_power_of_two`, `is_palindromic_number`, `gcd`, `lcm`, `ceil_div`, `is_divisible_by`, `is_multiple_of`, `divides`, `is_coprime`, `digit_sum`, `digit_count`, `digit_product`, `digital_root`, `is_triangular_number`, `is_perfect_number`, `is_automorphic_number`, `is_happy_number`, `is_armstrong_number`, `is_harshad_number`, `is_neon_number`)
 - `tests/test_number_utils.py` — unit tests for `number_utils.py`
 - `os_utils.py` — operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 - `gzip_utils.py` — gzip compression/decompression utilities
@@ -43731,7 +43731,7 @@ Next Planned (posted for the following agent):
 - Added `.kilo/.gitignore`.
 - Added `is_between(value, lower, upper, inclusive=True)` to `number_utils.py` with range membership testing and validation (raising `TypeError`/ValueError); updated `__all__`, README, and tests.
 
-- Added `is_between(value, lower, upper, inclusive=True)` to `number_utils.py` with typed signature, `__all__` export, Google-style docstring, and validation raising `TypeError`/`ValueError` for range membership testing (inclusive by default). Added `TestIsBetween` to `tests/test_number_utils.py`. Updated `number_utils` module sections in `README.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`.
+- Added `is_neon_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments (rejecting `bool`); a neon number is a non-negative integer whose square's digit sum equals the number itself (returns `False` for negative values). Added `TestIsNeonNumber` to `tests/test_number_utils.py` covering true cases (0, 1, 9), false cases (2, 10), negative numbers, and the `TypeError` path. Updated the `number_utils` module tree entry and prose section of `README.md` and the `number_utils` line of `.kilo/command/scaffold-project.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `type_check_utils.py` and `tests/test_type_check_utils.py` with type checking helpers and tests. Updated `pyproject.toml`, `README.md`, and synchronized embedded copies.
 
@@ -43888,7 +43888,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_neon_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -44813,7 +44813,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -63101,6 +63101,7 @@ __all__: List[str] = [
     "sign",
     "is_even",
     "is_odd",
+    "is_pronic_number",
     "is_negative",
     "is_positive",
     "is_zero",
@@ -63402,6 +63403,28 @@ def is_odd(value: Number) -> bool:
     """
     _require_number(value, "value")
     return int(value) == value and int(value) % 2 != 0
+
+
+def is_pronic_number(value: Number) -> bool:
+    """Return True if *value* is a pronic number.
+
+    A pronic number is a product of two consecutive integers (n*(n+1)).
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is a pronic number.
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    if int(value) != value or value < 0:
+        return False
+    n = int(value)
+    root = int(n ** 0.5)
+    return root * (root + 1) == n or (root + 1) * (root + 2) == n
 
 
 def is_negative(value: Number) -> bool:

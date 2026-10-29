@@ -425,7 +425,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
 - `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `flatten`, `interleave`, `adjacent_pairs`, `chunk`, `is_sorted`)
 - `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
-- `number_utils.py` — number utility functions (`clamp`, `round_to`, `is_integer`, `format_number`, `percentage`, `lerp`, `sign`, `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`)
+- `number_utils.py` — number utility functions (`clamp`, `round_to`, `round_half_up`, `is_integer`, `format_number`, `percentage`, `lerp`, `map_range`, `remap`, `sign`, `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `in_range`, `is_finite`, `is_infinite`, `is_nan`, `safe_divide`, `is_perfect_cube`, `is_perfect_square`, `is_power_of_two`, `is_palindromic_number`, `gcd`, `lcm`, `ceil_div`, `is_divisible_by`, `is_multiple_of`, `divides`, `is_coprime`, `digit_sum`, `digit_count`, `digit_product`, `digital_root`, `is_triangular_number`, `is_perfect_number`, `is_automorphic_number`, `is_happy_number`, `is_armstrong_number`, `is_harshad_number`, `is_neon_number`)
 - `tests/test_number_utils.py` — unit tests for `number_utils.py`
 - `os_utils.py` — operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 - `gzip_utils.py` — gzip compression/decompression utilities
