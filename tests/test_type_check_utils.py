@@ -49,6 +49,31 @@ class TestIsProtocol(unittest.TestCase):
             type_check_utils.is_protocol({})
 
 
+class TestIsNamedtuple(unittest.TestCase):
+    def test_namedtuple_class(self) -> None:
+        from collections import namedtuple
+
+        Point = namedtuple("Point", ["x", "y"])
+        self.assertTrue(type_check_utils.is_namedtuple(Point))
+
+    def test_namedtuple_instance(self) -> None:
+        from collections import namedtuple
+
+        Point = namedtuple("Point", ["x", "y"])
+        self.assertTrue(type_check_utils.is_namedtuple(Point(1, 2)))
+
+    def test_plain_tuple_is_not_namedtuple(self) -> None:
+        self.assertFalse(type_check_utils.is_namedtuple((1, 2)))
+        self.assertFalse(type_check_utils.is_namedtuple(()))
+
+    def test_non_tuple_is_not_namedtuple(self) -> None:
+        self.assertFalse(type_check_utils.is_namedtuple([1, 2]))
+        self.assertFalse(type_check_utils.is_namedtuple({"a": 1}))
+        self.assertFalse(type_check_utils.is_namedtuple(42))
+        self.assertFalse(type_check_utils.is_namedtuple("hello"))
+        self.assertFalse(type_check_utils.is_namedtuple(None))
+
+
 class TestTypeChecks(unittest.TestCase):
     def test_is_str(self) -> None:
         self.assertTrue(type_check_utils.is_str("hello"))

@@ -42650,6 +42650,22 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — added is_namedtuple to type_check_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6503 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_namedtuple(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and a hermetic check consistent with the other `is_*` predicates; it returns `True` when *value* is a namedtuple class or instance (a `tuple` subclass carrying a `_fields` tuple, as produced by `collections.namedtuple`), `False` otherwise, distinguishing namedtuples from plain tuples, lists, and non-tuple objects. Added `TestIsNamedtuple` to `tests/test_type_check_utils.py` covering namedtuple classes, namedtuple instances, plain tuples, and non-tuple values. Updated the `type_check_utils` module prose section of `README.md` to list `is_namedtuple`. Recorded the change in this Unreleased section of `CHANGELOG.md`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6508 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `list_utils.py`, `type_check_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added is_module to type_check_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6826 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -45448,7 +45464,7 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 
 ## Type Check Utilities Module
 
-The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -115818,6 +115834,7 @@ __all__: List[str] = [
     "is_function",
     "is_method",
     "is_module",
+    "is_namedtuple",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -116041,6 +116058,38 @@ def is_module(value: object) -> bool:
     return isinstance(value, types.ModuleType)
 
 
+def is_namedtuple(value: object) -> bool:
+    """Return True if *value* is a namedtuple class or instance.
+
+    A namedtuple is a subclass of :class:`tuple` produced by
+    :func:`collections.namedtuple` that exposes named fields. This helper
+    detects both the class itself and instances of such a class by checking
+    for the ``_fields`` attribute (a tuple of field names) that
+    :func:`collections.namedtuple` attaches.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a namedtuple class or instance, False otherwise.
+
+    Examples:
+        >>> from collections import namedtuple
+        >>> Point = namedtuple("Point", ["x", "y"])
+        >>> is_namedtuple(Point)
+        True
+        >>> is_namedtuple(Point(1, 2))
+        True
+        >>> is_namedtuple((1, 2))
+        False
+    """
+    if isinstance(value, type):
+        return issubclass(value, tuple) and isinstance(getattr(value, "_fields", None), tuple)
+    return isinstance(value, tuple) and isinstance(
+        getattr(type(value), "_fields", None), tuple
+    )
+
+
 def ensure_type(value: object, expected_type: type, name: str = "value") -> object:
     """Ensure value is of expected_type, raising TypeError otherwise.
 
@@ -116248,6 +116297,31 @@ class TestIsProtocol(unittest.TestCase):
             type_check_utils.is_protocol([])
         with self.assertRaises(TypeError):
             type_check_utils.is_protocol({})
+
+
+class TestIsNamedtuple(unittest.TestCase):
+    def test_namedtuple_class(self) -> None:
+        from collections import namedtuple
+
+        Point = namedtuple("Point", ["x", "y"])
+        self.assertTrue(type_check_utils.is_namedtuple(Point))
+
+    def test_namedtuple_instance(self) -> None:
+        from collections import namedtuple
+
+        Point = namedtuple("Point", ["x", "y"])
+        self.assertTrue(type_check_utils.is_namedtuple(Point(1, 2)))
+
+    def test_plain_tuple_is_not_namedtuple(self) -> None:
+        self.assertFalse(type_check_utils.is_namedtuple((1, 2)))
+        self.assertFalse(type_check_utils.is_namedtuple(()))
+
+    def test_non_tuple_is_not_namedtuple(self) -> None:
+        self.assertFalse(type_check_utils.is_namedtuple([1, 2]))
+        self.assertFalse(type_check_utils.is_namedtuple({"a": 1}))
+        self.assertFalse(type_check_utils.is_namedtuple(42))
+        self.assertFalse(type_check_utils.is_namedtuple("hello"))
+        self.assertFalse(type_check_utils.is_namedtuple(None))
 
 
 class TestTypeChecks(unittest.TestCase):

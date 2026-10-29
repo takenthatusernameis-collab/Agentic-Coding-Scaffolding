@@ -40,6 +40,7 @@ __all__: List[str] = [
     "is_function",
     "is_method",
     "is_module",
+    "is_namedtuple",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -261,6 +262,38 @@ def is_module(value: object) -> bool:
     import types
 
     return isinstance(value, types.ModuleType)
+
+
+def is_namedtuple(value: object) -> bool:
+    """Return True if *value* is a namedtuple class or instance.
+
+    A namedtuple is a subclass of :class:`tuple` produced by
+    :func:`collections.namedtuple` that exposes named fields. This helper
+    detects both the class itself and instances of such a class by checking
+    for the ``_fields`` attribute (a tuple of field names) that
+    :func:`collections.namedtuple` attaches.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a namedtuple class or instance, False otherwise.
+
+    Examples:
+        >>> from collections import namedtuple
+        >>> Point = namedtuple("Point", ["x", "y"])
+        >>> is_namedtuple(Point)
+        True
+        >>> is_namedtuple(Point(1, 2))
+        True
+        >>> is_namedtuple((1, 2))
+        False
+    """
+    if isinstance(value, type):
+        return issubclass(value, tuple) and isinstance(getattr(value, "_fields", None), tuple)
+    return isinstance(value, tuple) and isinstance(
+        getattr(type(value), "_fields", None), tuple
+    )
 
 
 def ensure_type(value: object, expected_type: type, name: str = "value") -> object:
