@@ -333,43 +333,6 @@ def is_isogram(s: str) -> bool:
                 return False
             seen.add(ch)
     return True
-    """Return True if *needle* is a subsequence of *haystack*.
-
-    A subsequence is formed by deleting zero or more characters from
-    *haystack* without changing the order of the remaining characters, so
-    every character of *needle* must appear in *haystack* in the same
-    relative order (not necessarily consecutively). The empty string is a
-    subsequence of any string.
-
-    Args:
-        needle: The subsequence to search for.
-        haystack: The string to search within.
-
-    Returns:
-        True if *needle* is a subsequence of *haystack*.
-
-    Raises:
-        TypeError: If either argument is not a string.
-
-    Examples:
-        >>> is_subsequence("abc", "aebdc")
-        True
-        >>> is_subsequence("abc", "acb")
-        False
-        >>> is_subsequence("", "anything")
-        True
-    """
-    _require_string(needle, "needle")
-    _require_string(haystack, "haystack")
-    if not needle:
-        return True
-    i = 0
-    for ch in haystack:
-        if ch == needle[i]:
-            i += 1
-            if i == len(needle):
-                return True
-    return False
 
 
 def is_rotation(s1: str, s2: str) -> bool:

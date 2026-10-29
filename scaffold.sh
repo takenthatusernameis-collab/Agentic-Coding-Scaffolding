@@ -11338,43 +11338,6 @@ def is_isogram(s: str) -> bool:
                 return False
             seen.add(ch)
     return True
-    """Return True if *needle* is a subsequence of *haystack*.
-
-    A subsequence is formed by deleting zero or more characters from
-    *haystack* without changing the order of the remaining characters, so
-    every character of *needle* must appear in *haystack* in the same
-    relative order (not necessarily consecutively). The empty string is a
-    subsequence of any string.
-
-    Args:
-        needle: The subsequence to search for.
-        haystack: The string to search within.
-
-    Returns:
-        True if *needle* is a subsequence of *haystack*.
-
-    Raises:
-        TypeError: If either argument is not a string.
-
-    Examples:
-        >>> is_subsequence("abc", "aebdc")
-        True
-        >>> is_subsequence("abc", "acb")
-        False
-        >>> is_subsequence("", "anything")
-        True
-    """
-    _require_string(needle, "needle")
-    _require_string(haystack, "haystack")
-    if not needle:
-        return True
-    i = 0
-    for ch in haystack:
-        if ch == needle[i]:
-            i += 1
-            if i == len(needle):
-                return True
-    return False
 
 
 def is_rotation(s1: str, s2: str) -> bool:
@@ -14667,11 +14630,11 @@ from strings import (
     is_hex,
     is_identifier,
     is_integer,
+    is_isogram,
     is_lower,
     is_octal,
     is_palindrome,
     is_pangram,
-    is_isogram,
     is_printable,
     is_rotation,
     is_space,
@@ -18217,15 +18180,15 @@ class TestQuantile(unittest.TestCase):
         from stats import quantile
 
         data = [1, 2, 3, 4, 5]
-        self.assertAlmostEqual(quantile(data, 0.0), 1.0)
-        self.assertAlmostEqual(quantile(data, 0.5), 3.0)
-        self.assertAlmostEqual(quantile(data, 1.0), 5.0)
+        self.assertAlmostEqual(quantile(data, 0.0), 1.0)  # type: ignore[arg-type]
+        self.assertAlmostEqual(quantile(data, 0.5), 3.0)  # type: ignore[arg-type]
+        self.assertAlmostEqual(quantile(data, 1.0), 5.0)  # type: ignore[arg-type]
 
     def test_edges(self) -> None:
         from stats import quantile
 
         data = [1, 2, 3, 4]
-        self.assertAlmostEqual(quantile(data, 0.5), 2.5)
+        self.assertAlmostEqual(quantile(data, 0.5), 2.5)  # type: ignore[arg-type]
 
     def test_empty_raises(self) -> None:
         from stats import quantile
@@ -18259,7 +18222,7 @@ class TestQuantile(unittest.TestCase):
         from stats import quantile
 
         with self.assertRaises(TypeError):
-            quantile([1, 2, "a"], 0.5)  # type: ignore[list-item]
+            quantile([1, 2, "a"], 0.5)  # type: ignore[list-item, type-var]
 
     def test_rejects_bool_in_list(self) -> None:
         from stats import quantile

@@ -1159,15 +1159,15 @@ class TestQuantile(unittest.TestCase):
         from stats import quantile
 
         data = [1, 2, 3, 4, 5]
-        self.assertAlmostEqual(quantile(data, 0.0), 1.0)
-        self.assertAlmostEqual(quantile(data, 0.5), 3.0)
-        self.assertAlmostEqual(quantile(data, 1.0), 5.0)
+        self.assertAlmostEqual(quantile(data, 0.0), 1.0)  # type: ignore[arg-type]
+        self.assertAlmostEqual(quantile(data, 0.5), 3.0)  # type: ignore[arg-type]
+        self.assertAlmostEqual(quantile(data, 1.0), 5.0)  # type: ignore[arg-type]
 
     def test_edges(self) -> None:
         from stats import quantile
 
         data = [1, 2, 3, 4]
-        self.assertAlmostEqual(quantile(data, 0.5), 2.5)
+        self.assertAlmostEqual(quantile(data, 0.5), 2.5)  # type: ignore[arg-type]
 
     def test_empty_raises(self) -> None:
         from stats import quantile
@@ -1201,7 +1201,7 @@ class TestQuantile(unittest.TestCase):
         from stats import quantile
 
         with self.assertRaises(TypeError):
-            quantile([1, 2, "a"], 0.5)  # type: ignore[list-item]
+            quantile([1, 2, "a"], 0.5)  # type: ignore[list-item, type-var]
 
     def test_rejects_bool_in_list(self) -> None:
         from stats import quantile
