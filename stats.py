@@ -188,6 +188,60 @@ def median_high(numbers: List[T | float]) -> float:
     return float(sorted_nums[mid])
 
 
+def median_grouped(numbers: List[T | float], interval: float = 1.0) -> float:
+    """Estimate the median of grouped continuous data.
+
+    This function estimates the median for numeric data treated as grouped
+    in equal-width intervals, following the approach used by
+    :func:`statistics.median_grouped`.
+
+    Args:
+        numbers: A list of numeric values (typically midpoints of bins).
+        interval: The class interval width (defaults to 1.0).
+
+    Returns:
+        An estimate of the median.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values,
+            or if interval is not a number.
+    """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only numbers")
+    if isinstance(interval, bool) or not isinstance(interval, (int, float)):
+        raise TypeError("interval must be a number")
+    if interval <= 0:
+        raise ValueError("interval must be a positive number")
+
+    data = sorted(numbers)
+    n = len(data)
+    if n == 0:
+        raise ValueError("numbers is empty")
+
+    x = data[n // 2]
+    # Find cumulative frequency counts at x (using bisect logic conceptually)
+    # For a simple list where each element represents a midpoint/count occurrence
+    # count how many elements equal to x
+    import bisect
+
+    i = bisect.bisect_left(data, x)  # count of elements < x
+    j = bisect.bisect_right(data, x)  # count of elements <= x
+    cf = i
+    f = j - i
+    try:
+        interval_f = float(interval)
+        x_f = float(x)
+    except Exception:
+        raise TypeError("Value cannot be converted to a float")
+    L = x_f - interval_f / 2.0
+    return L + interval_f * (n / 2 - cf) / f
+
+
+
 def mode(numbers: List[T | float]) -> float:
     """Return the mode (most frequent value) of a list of numbers.
 

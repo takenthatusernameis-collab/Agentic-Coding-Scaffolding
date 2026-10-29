@@ -15,6 +15,8 @@ from stats import (
     mean_absolute_deviation,
     median,
     median_absolute_deviation,
+    median_grouped,
+    median_high,
     median_low,
     midhinge,
     midrange,
@@ -201,7 +203,84 @@ class TestMedianLow(unittest.TestCase):
             median_low([True, 1, 2])  # type: ignore[type-var]
 
 
-class TestMode(unittest.TestCase):
+class TestMedianHigh(unittest.TestCase):
+    def test_median_high_odd(self) -> None:
+        self.assertEqual(median_high([1, 2, 3, 4, 5]), 3.0)
+
+    def test_median_high_even(self) -> None:
+        self.assertEqual(median_high([1, 2, 3, 4]), 3.0)
+
+    def test_median_high_single(self) -> None:
+        self.assertEqual(median_high([5]), 5.0)
+
+    def test_median_high_unsorted(self) -> None:
+        self.assertEqual(median_high([5, 1, 3]), 3.0)
+
+    def test_median_high_negatives(self) -> None:
+        self.assertEqual(median_high([-3, -1, -2]), -2.0)
+
+    def test_median_high_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            median_high([])
+
+    def test_median_high_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_high((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_median_high_non_numeric_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_high([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_median_high_bool_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_high([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestMedianGrouped(unittest.TestCase):
+    def test_median_grouped_odd(self) -> None:
+        self.assertAlmostEqual(median_grouped([1, 2, 3, 4, 5]), 3.0)
+
+    def test_median_grouped_even(self) -> None:
+        self.assertAlmostEqual(median_grouped([1, 2, 3, 4]), 2.5)
+
+    def test_median_grouped_with_interval(self) -> None:
+        self.assertAlmostEqual(median_grouped([1, 3, 3, 5, 7], interval=2), 3.5)
+
+    def test_median_grouped_single(self) -> None:
+        self.assertAlmostEqual(median_grouped([5]), 5.0)
+
+    def test_median_grouped_unsorted(self) -> None:
+        self.assertAlmostEqual(median_grouped([5, 1, 3]), 3.0)
+
+    def test_median_grouped_negatives(self) -> None:
+        self.assertAlmostEqual(median_grouped([-3, -1, -2]), -2.0)
+
+    def test_median_grouped_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            median_grouped([])
+
+    def test_median_grouped_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_grouped((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_median_grouped_non_numeric_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_grouped([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_median_grouped_bool_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_grouped([True, 1, 2])  # type: ignore[type-var]
+
+    def test_median_grouped_bad_interval_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_grouped([1, 2, 3], interval="1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            median_grouped([1, 2, 3], interval=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            median_grouped([1, 2, 3], interval=0)
+        with self.assertRaises(ValueError):
+            median_grouped([1, 2, 3], interval=-1)
+
     def test_mode_basic(self) -> None:
         self.assertEqual(mode([1, 2, 2, 3, 4]), 2)
 
