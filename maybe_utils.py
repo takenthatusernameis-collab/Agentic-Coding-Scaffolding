@@ -56,6 +56,16 @@ class Maybe(Generic[T]):
         assert self._value is not None
         return self._value
 
+    def map_or(self, default: U, fn: Callable[[T], U]) -> U:
+        """Apply a function if Some, otherwise return default."""
+        if not self._is_some or self._value is None:
+            return default
+        try:
+            result = fn(self._value)
+            return default if result is None else result
+        except Exception:
+            return default
+
     def unwrap_or(self, default: T) -> T:
         """Get the value or return a default if Nothing."""
         if self._is_some and self._value is not None:

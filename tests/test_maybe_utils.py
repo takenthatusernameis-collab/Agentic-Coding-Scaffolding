@@ -59,6 +59,10 @@ class TestMaybe(unittest.TestCase):
         self.assertNotEqual(Maybe.some(1), Maybe.some(2))
         self.assertEqual(Maybe.nothing(), Maybe.nothing())
 
+    def test_map_or(self) -> None:
+        self.assertEqual(Maybe.some(5).map_or(0, lambda x: x * 2), 10)
+        self.assertEqual(Maybe.nothing().map_or(0, lambda x: x * 2), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
