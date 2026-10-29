@@ -7,6 +7,7 @@ from seq_utils import (
     chunk,
     drop_while,
     first,
+    flatten,
     head,
     interleave,
     is_sorted,
@@ -202,6 +203,32 @@ class TestChunk(unittest.TestCase):
             chunk([1, 2], 0)
         with self.assertRaises(ValueError):
             chunk([1, 2], -1)
+
+
+class TestFlatten(unittest.TestCase):
+    def test_flatten_basic(self):
+        self.assertEqual(flatten([[1, 2], [3, 4], [5]]), [1, 2, 3, 4, 5])
+        self.assertEqual(flatten([[1], [2], [3]]), [1, 2, 3])
+
+    def test_flatten_mixed(self):
+        self.assertEqual(flatten([1, [2, 3], "ab", [4]]), [1, 2, 3, "ab", 4])
+        self.assertEqual(flatten(["ab", ["c"]]), ["ab", "c"])
+        self.assertEqual(flatten([(1, 2), [3]]), [1, 2, 3])
+
+    def test_flatten_empty(self):
+        self.assertEqual(flatten([]), [])
+        self.assertEqual(flatten([[]]), [])
+        self.assertEqual(flatten([[], []]), [])
+
+    def test_flatten_already_flat(self):
+        self.assertEqual(flatten([1, 2, 3]), [1, 2, 3])
+        self.assertEqual(flatten("abc"), ["a", "b", "c"])
+
+    def test_flatten_type_error(self):
+        with self.assertRaises(TypeError):
+            flatten(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            flatten(None)  # type: ignore[arg-type]
 
 
 class TestIsSorted(unittest.TestCase):

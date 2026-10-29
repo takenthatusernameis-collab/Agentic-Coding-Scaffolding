@@ -40293,7 +40293,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_temp_utils.py` — unit tests for `temp_utils.py`
 - `xml_utils.py` — XML parsing and generation utilities (`parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, `validate_well_formed`)
 - `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
-- `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `interleave`, `adjacent_pairs`, `is_sorted`)
+- `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `flatten`, `interleave`, `adjacent_pairs`, `chunk`, `is_sorted`)
 - `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
 - `number_utils.py` — number utility functions (`clamp`, `round_to`, `is_integer`, `format_number`, `percentage`, `lerp`, `sign`, `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`)
 - `tests/test_number_utils.py` — unit tests for `number_utils.py`
@@ -42047,6 +42047,22 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — added flatten to seq_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6404 tests with 1 pre-existing failure (the `aifc_utils.py` scaffold-sync assertion, identical on the clean tree), `make lint` is clean, `make typecheck` reports 2 pre-existing errors in 2 files (identical on the clean tree), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `flatten(sequence)` to `seq_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation: it removes one level of nesting from a sequence, treating strings and bytes as atomic and preserving element order. Added `TestFlatten` to `tests/test_seq_utils.py` covering basic flattening, mixed atomic/nested elements, empty input, already-flat input, strings-as-atomic, and the `TypeError` path (7 new tests). Updated the `seq_utils` tree entry and prose section of `README.md` and the `seq_utils` line of `.kilo/command/scaffold-project.md`. Recorded the change in this Unreleased section of `CHANGELOG.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `.kilo/command/scaffold-project.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs all `seq_utils` tests passing with no new failures, `make lint` is clean, `make typecheck` reports no new errors in `seq_utils.py`, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `seq_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added chunk to seq_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6396 tests with 1 pre-existing failure (the `aifc_utils.py` scaffold-sync assertion, identical on the clean tree), `make lint` is clean, `make typecheck` reports 2 pre-existing errors in 2 files (identical on the clean tree), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -43050,7 +43066,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, chunk, is_sorted)
+seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
 number_utils.py            # Number utility functions (clamp, digit_sum, digit_count, round_to, round_half_up, is_close, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_finite, is_infinite, is_nan, is_coprime)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
@@ -43972,7 +43988,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, and `nth` retrieve elements by position (returning `None` when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `chunk` splits a sequence into fixed-size chunks; and `is_sorted` checks ascending or descending order with an optional key. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, and `nth` retrieve elements by position (returning `None` when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; and `is_sorted` checks ascending or descending order with an optional key. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -73909,6 +73925,7 @@ __all__: list[str] = [
     "split_at",
     "take_while",
     "drop_while",
+    "flatten",
     "interleave",
     "adjacent_pairs",
     "chunk",
@@ -74228,6 +74245,41 @@ def chunk(sequence: Sequence[T], size: int) -> List[List[T]]:
     return [list(sequence[i : i + size]) for i in range(0, len(sequence), size)]
 
 
+def flatten(sequence: Sequence[Any]) -> List[Any]:
+    """Flatten one level of nesting in ``sequence``.
+
+    Each element that is itself a sequence (other than a string or bytes
+    object, which are treated as atomic) is expanded into its elements;
+    all other elements are kept as-is. The relative order of elements is
+    preserved.
+
+    Args:
+        sequence: The sequence to flatten.
+
+    Returns:
+        A list with one level of nesting removed.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> flatten([[1, 2], [3, 4], [5]])
+        [1, 2, 3, 4, 5]
+        >>> flatten([1, [2, 3], "ab"])
+        [1, 2, 3, "ab"]
+        >>> flatten([])
+        []
+    """
+    _require_sequence(sequence)
+    result: List[Any] = []
+    for item in sequence:
+        if isinstance(item, Sequence) and not isinstance(item, (str, bytes)):
+            result.extend(item)
+        else:
+            result.append(item)
+    return result
+
+
 def is_sorted(
     sequence: Sequence[T],
     *,
@@ -74283,6 +74335,7 @@ from seq_utils import (
     chunk,
     drop_while,
     first,
+    flatten,
     head,
     interleave,
     is_sorted,
@@ -74478,6 +74531,32 @@ class TestChunk(unittest.TestCase):
             chunk([1, 2], 0)
         with self.assertRaises(ValueError):
             chunk([1, 2], -1)
+
+
+class TestFlatten(unittest.TestCase):
+    def test_flatten_basic(self):
+        self.assertEqual(flatten([[1, 2], [3, 4], [5]]), [1, 2, 3, 4, 5])
+        self.assertEqual(flatten([[1], [2], [3]]), [1, 2, 3])
+
+    def test_flatten_mixed(self):
+        self.assertEqual(flatten([1, [2, 3], "ab", [4]]), [1, 2, 3, "ab", 4])
+        self.assertEqual(flatten(["ab", ["c"]]), ["ab", "c"])
+        self.assertEqual(flatten([(1, 2), [3]]), [1, 2, 3])
+
+    def test_flatten_empty(self):
+        self.assertEqual(flatten([]), [])
+        self.assertEqual(flatten([[]]), [])
+        self.assertEqual(flatten([[], []]), [])
+
+    def test_flatten_already_flat(self):
+        self.assertEqual(flatten([1, 2, 3]), [1, 2, 3])
+        self.assertEqual(flatten("abc"), ["a", "b", "c"])
+
+    def test_flatten_type_error(self):
+        with self.assertRaises(TypeError):
+            flatten(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            flatten(None)  # type: ignore[arg-type]
 
 
 class TestIsSorted(unittest.TestCase):

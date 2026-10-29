@@ -423,7 +423,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_temp_utils.py` — unit tests for `temp_utils.py`
 - `xml_utils.py` — XML parsing and generation utilities (`parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, `validate_well_formed`)
 - `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
-- `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `interleave`, `adjacent_pairs`, `is_sorted`)
+- `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `flatten`, `interleave`, `adjacent_pairs`, `chunk`, `is_sorted`)
 - `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
 - `number_utils.py` — number utility functions (`clamp`, `round_to`, `is_integer`, `format_number`, `percentage`, `lerp`, `sign`, `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`)
 - `tests/test_number_utils.py` — unit tests for `number_utils.py`

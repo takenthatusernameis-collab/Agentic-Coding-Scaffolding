@@ -22,6 +22,7 @@ __all__: list[str] = [
     "split_at",
     "take_while",
     "drop_while",
+    "flatten",
     "interleave",
     "adjacent_pairs",
     "chunk",
@@ -339,6 +340,41 @@ def chunk(sequence: Sequence[T], size: int) -> List[List[T]]:
     if size <= 0:
         raise ValueError("size must be positive")
     return [list(sequence[i : i + size]) for i in range(0, len(sequence), size)]
+
+
+def flatten(sequence: Sequence[Any]) -> List[Any]:
+    """Flatten one level of nesting in ``sequence``.
+
+    Each element that is itself a sequence (other than a string or bytes
+    object, which are treated as atomic) is expanded into its elements;
+    all other elements are kept as-is. The relative order of elements is
+    preserved.
+
+    Args:
+        sequence: The sequence to flatten.
+
+    Returns:
+        A list with one level of nesting removed.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> flatten([[1, 2], [3, 4], [5]])
+        [1, 2, 3, 4, 5]
+        >>> flatten([1, [2, 3], "ab"])
+        [1, 2, 3, "ab"]
+        >>> flatten([])
+        []
+    """
+    _require_sequence(sequence)
+    result: List[Any] = []
+    for item in sequence:
+        if isinstance(item, Sequence) and not isinstance(item, (str, bytes)):
+            result.extend(item)
+        else:
+            result.append(item)
+    return result
 
 
 def is_sorted(
