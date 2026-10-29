@@ -1179,3 +1179,35 @@ def count_unique_words(text: str) -> int:
     """
     _require_string(text, "text")
     return len(set(text.split()))
+
+
+def strip_trailing_newlines(text: str) -> str:
+    """Remove all trailing newline characters from *text*.
+
+    Strips consecutive ``\\n`` characters from the end of *text*. Other
+    trailing whitespace is preserved. Empty text is returned unchanged.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with trailing newlines removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_trailing_newlines("hello\\n\\n")
+        'hello'
+        >>> strip_trailing_newlines("hello")
+        'hello'
+        >>> strip_trailing_newlines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    i = len(text)
+    while i > 0 and text[i - 1] == "\n":
+        i -= 1
+    return text[:i]

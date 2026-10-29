@@ -20298,6 +20298,7 @@ from prompt_utils import (
     reverse_lines,
     rstrip_lines,
     strip_blank_lines,
+    strip_trailing_newlines,
     strip_lines,
     truncate_lines,
     truncate_prompt,
@@ -21123,6 +21124,27 @@ class TestCountUniqueWords(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_unique_words(123)
+
+
+class TestStripTrailingNewlines(unittest.TestCase):
+    def test_removes_trailing_newlines(self):
+        self.assertEqual(strip_trailing_newlines("hello\n\n"), "hello")
+
+    def test_no_trailing_newlines(self):
+        self.assertEqual(strip_trailing_newlines("hello"), "hello")
+
+    def test_empty(self):
+        self.assertEqual(strip_trailing_newlines(""), "")
+
+    def test_only_newlines(self):
+        self.assertEqual(strip_trailing_newlines("\n\n\n"), "")
+
+    def test_preserves_other_trailing_whitespace(self):
+        self.assertEqual(strip_trailing_newlines("hello \t\n"), "hello \t")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            strip_trailing_newlines(123)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -31155,6 +31177,38 @@ def count_unique_words(text: str) -> int:
     """
     _require_string(text, "text")
     return len(set(text.split()))
+
+
+def strip_trailing_newlines(text: str) -> str:
+    """Remove all trailing newline characters from *text*.
+
+    Strips consecutive ``\\n`` characters from the end of *text*. Other
+    trailing whitespace is preserved. Empty text is returned unchanged.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with trailing newlines removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_trailing_newlines("hello\\n\\n")
+        'hello'
+        >>> strip_trailing_newlines("hello")
+        'hello'
+        >>> strip_trailing_newlines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    i = len(text)
+    while i > 0 and text[i - 1] == "\n":
+        i -= 1
+    return text[:i]
 PROMPTUTILS
 
 # --- type_utils.py ---

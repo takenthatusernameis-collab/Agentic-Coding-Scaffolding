@@ -33,6 +33,7 @@ from prompt_utils import (
     rstrip_lines,
     strip_blank_lines,
     strip_lines,
+    strip_trailing_newlines,
     truncate_lines,
     truncate_prompt,
     truncate_words,
@@ -857,3 +858,24 @@ class TestCountUniqueWords(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_unique_words(123)
+
+
+class TestStripTrailingNewlines(unittest.TestCase):
+    def test_removes_trailing_newlines(self):
+        self.assertEqual(strip_trailing_newlines("hello\n\n"), "hello")
+
+    def test_no_trailing_newlines(self):
+        self.assertEqual(strip_trailing_newlines("hello"), "hello")
+
+    def test_empty(self):
+        self.assertEqual(strip_trailing_newlines(""), "")
+
+    def test_only_newlines(self):
+        self.assertEqual(strip_trailing_newlines("\n\n\n"), "")
+
+    def test_preserves_other_trailing_whitespace(self):
+        self.assertEqual(strip_trailing_newlines("hello \t\n"), "hello \t")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            strip_trailing_newlines(123)  # type: ignore[arg-type]
