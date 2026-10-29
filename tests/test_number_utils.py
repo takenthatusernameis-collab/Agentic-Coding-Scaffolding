@@ -586,6 +586,31 @@ class TestIsDivisibleBy(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_divisible_by(10, 2.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
+            is_divisible_by(True, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_divisible_by(1, False)  # type: ignore[arg-type]
+
+
+class TestIsMultipleOfDivides(unittest.TestCase):
+    def test_aliases(self) -> None:
+        from number_utils import is_multiple_of, divides
+
+        self.assertTrue(is_multiple_of(10, 2))
+        self.assertTrue(divides(2, 10))
+        self.assertTrue(is_multiple_of(0, 3))
+        self.assertFalse(is_multiple_of(10, 3))
+        self.assertFalse(divides(3, 10))
+        with self.assertRaises(ValueError):
+            is_multiple_of(10, 0)
+        with self.assertRaises(ValueError):
+            divides(0, 10)
+        with self.assertRaises(TypeError):
+            is_multiple_of(1.5, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            divides(1, 2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_divisible_by(10, 2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
             is_divisible_by(True, 2)  # type: ignore[arg-type]
 
 

@@ -40,6 +40,8 @@ __all__: List[str] = [
     "lcm",
     "ceil_div",
     "is_divisible_by",
+    "is_multiple_of",
+    "divides",
     "is_coprime",
     "digit_sum",
     "digit_count",
@@ -746,11 +748,11 @@ def ceil_div(a: int, b: int) -> int:
 
 
 def is_divisible_by(a: int, b: int) -> bool:
-    """Return True if *a* is divisible by *b* without remainder.
+    """Return True if *a* is divisible by *b* (i.e. *b* divides *a* evenly).
 
     Args:
-        a: Dividend.
-        b: Divisor.
+        a: The number to test for divisibility.
+        b: The divisor.
 
     Returns:
         True if *b* divides *a* evenly, otherwise False.
@@ -760,12 +762,28 @@ def is_divisible_by(a: int, b: int) -> bool:
         ValueError: If *b* is zero.
     """
     if not isinstance(a, int) or isinstance(a, bool):
-        raise TypeError(f"a must be an int, got {type(a).__name__}")
+        raise TypeError("a must be an int")
     if not isinstance(b, int) or isinstance(b, bool):
-        raise TypeError(f"b must be an int, got {type(b).__name__}")
+        raise TypeError("b must be an int")
     if b == 0:
         raise ValueError("is_divisible_by() division by zero")
     return a % b == 0
+
+
+def is_multiple_of(a: int, b: int) -> bool:
+    """Return True if *a* is a multiple of *b* (i.e. *b* divides *a* evenly)."""
+    return is_divisible_by(a, b)
+
+
+def divides(a: int, b: int) -> bool:
+    """Return True if *a* divides *b* (i.e. *a* divides *b* evenly)."""
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError("a must be an int")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError("b must be an int")
+    if a == 0:
+        raise ValueError("divides() division by zero")
+    return b % a == 0
 
 
 def is_coprime(a: int, b: int) -> bool:
