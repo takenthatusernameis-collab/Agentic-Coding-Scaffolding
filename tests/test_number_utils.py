@@ -14,6 +14,7 @@ from number_utils import (
     is_between,
     is_close,
     is_coprime,
+    is_fibonacci_number,
     is_finite,
     is_happy_number,
     is_harshad_number,
@@ -1000,3 +1001,32 @@ class TestIsStrongNumber(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_strong_number("145")  # type: ignore[arg-type]
+
+
+class TestIsFibonacciNumber(unittest.TestCase):
+    def test_known_fibonacci(self) -> None:
+        for n in (0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987):
+            self.assertTrue(is_fibonacci_number(n), n)
+
+    def test_not_fibonacci(self) -> None:
+        for n in (4, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20):
+            self.assertFalse(is_fibonacci_number(n), n)
+
+    def test_negative(self) -> None:
+        self.assertFalse(is_fibonacci_number(-1))
+        self.assertFalse(is_fibonacci_number(-8))
+
+    def test_large_fibonacci(self) -> None:
+        # 1597 is F(17); 2000 is not a Fibonacci number.
+        self.assertTrue(is_fibonacci_number(1597))
+        self.assertFalse(is_fibonacci_number(2000))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_fibonacci_number("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_fibonacci_number(5.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_fibonacci_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_fibonacci_number(None)  # type: ignore[arg-type]

@@ -57,6 +57,7 @@ __all__: List[str] = [
     "is_armstrong_number",
     "is_neon_number",
     "is_strong_number",
+    "is_fibonacci_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -1340,3 +1341,54 @@ def is_strong_number(value: int) -> bool:
         return result
 
     return sum(_factorial(int(d)) for d in str(value)) == value
+
+
+def is_fibonacci_number(value: int) -> bool:
+    """Return True if *value* is a Fibonacci number.
+
+    A Fibonacci number is a non-negative integer that appears in the
+    Fibonacci sequence defined by ``F(0) = 0``, ``F(1) = 1``, and
+    ``F(n) = F(n-1) + F(n-2)`` for ``n >= 2``. This helper uses the
+    closed-form identity that ``5 * value**2 + 4`` or ``5 * value**2 - 4``
+    must be a perfect square, which is hermetic and avoids generating the
+    whole sequence.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is a Fibonacci number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_fibonacci_number(0)
+        True
+        >>> is_fibonacci_number(1)
+        True
+        >>> is_fibonacci_number(2)
+        True
+        >>> is_fibonacci_number(3)
+        True
+        >>> is_fibonacci_number(5)
+        True
+        >>> is_fibonacci_number(8)
+        True
+        >>> is_fibonacci_number(13)
+        True
+        >>> is_fibonacci_number(4)
+        False
+        >>> is_fibonacci_number(6)
+        False
+        >>> is_fibonacci_number(-5)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    if value == 0:
+        return True
+    x = value * value
+    return is_perfect_square(5 * x + 4) or is_perfect_square(5 * x - 4)
