@@ -86,6 +86,8 @@ __all__: List[str] = [
     "remove_consonants",
     "count_digits",
     "count_letters",
+    "strip_non_ascii",
+    "truncate_bytes",
 ]
 
 

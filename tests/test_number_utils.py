@@ -360,7 +360,10 @@ class TestIsHappyNumber(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_happy_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_happy_number(None)  # type: ignore[arg-type]class TestIsPalindromicNumber(unittest.TestCase):
+            is_happy_number(None)  # type: ignore[arg-type]
+
+
+class TestIsPalindromicNumber(unittest.TestCase):
     def test_palindromes(self) -> None:
         from number_utils import is_palindromic_number
 
@@ -858,29 +861,8 @@ class TestIsTriangularNumber(unittest.TestCase):
             is_triangular_number(True)  # type: ignore[arg-type]
 
 
-class TestIsHappyNumber(unittest.TestCase):
-    def test_happy_numbers(self) -> None:
-        self.assertTrue(is_happy_number(1))
-        self.assertTrue(is_happy_number(7))
-        self.assertTrue(is_happy_number(10))
-        self.assertTrue(is_happy_number(19))
 
-    def test_unhappy_numbers(self) -> None:
-        self.assertFalse(is_happy_number(2))
-        self.assertFalse(is_happy_number(4))
-        self.assertFalse(is_happy_number(3))
-        self.assertFalse(is_happy_number(-1))
-        self.assertFalse(is_happy_number(0))
-
-    def test_type_errors(self) -> None:
-        with self.assertRaises(TypeError):
-            is_happy_number("7")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            is_happy_number(7.0)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            is_happy_number(True)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            is_happy_number(None)  # type: ignore[arg-type]class TestIsArmstrongNumber(unittest.TestCase):
+class TestIsArmstrongNumber(unittest.TestCase):
     def test_armstrong_numbers(self) -> None:
         self.assertTrue(is_armstrong_number(0))
         self.assertTrue(is_armstrong_number(1))

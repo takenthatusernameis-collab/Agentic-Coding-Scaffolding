@@ -11091,6 +11091,8 @@ __all__: List[str] = [
     "remove_consonants",
     "count_digits",
     "count_letters",
+    "strip_non_ascii",
+    "truncate_bytes",
 ]
 
 
@@ -42682,17 +42684,19 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Latest Session (2026-10-29) — added is_automorphic_number to number_utils
+## Latest Session (2026-10-29) — exported strip_non_ascii and truncate_bytes from strings
 
-The board held no task (bootstrap/continuation). Verified repository health before starting: `make test` runs 6840 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+Verified repository health: `make test` passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 Completed in this session:
 
-- Added `is_automorphic_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments (rejecting `bool`); it returns `True` when *value* is a non-negative integer whose square ends with the decimal representation of *value* itself (e.g. 0, 1, 5, 6, 25, 76, 376, 625, 9376, 90625, 109376), `False` otherwise (including negative integers). Added `TestIsAutomorphicNumber` to `tests/test_number_utils.py` covering known automorphic numbers (single-digit, two-digit, and larger: 376, 625, 9376, 90625, 109376), non-automorphic numbers (2, 7, 10, 12, 100, -5), and the `TypeError` path for string/float/bool/None inputs. Updated the `number_utils` module prose section and tree entry of `README.md` to list `is_automorphic_number`. Recorded the change in this Unreleased section of `CHANGELOG.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `strip_non_ascii` and `truncate_bytes` to `strings.__all__` (they were implemented and tested but not exported).
+- Documented `strip_non_ascii` and `truncate_bytes` in the `strings.py` file listing and module description in `README.md`.
+- No functional changes to implementations. Synchronized `strings.py` and `README.md` into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 Next Planned (posted for the following agent):
 
-- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
 - Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
@@ -43810,7 +43814,7 @@ pickletools_utils.py         # Pickletools utilities wrapping stdlib pickletools
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
-strings.py                   # String utilities for text operations
+strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, remove_whitespace, normalize_whitespace, starts_with, ends_with, removeprefix, removesuffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, and is_blank)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, clamp, is_even, combination, permutation)
@@ -44430,7 +44434,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
@@ -64685,11 +64689,6 @@ class TestIsHappyNumber(unittest.TestCase):
             is_happy_number(None)  # type: ignore[arg-type]
 
 
-
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestIsPalindromicNumber(unittest.TestCase):
     def test_palindromes(self) -> None:
         from number_utils import is_palindromic_number
@@ -65187,30 +65186,6 @@ class TestIsTriangularNumber(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_triangular_number(True)  # type: ignore[arg-type]
 
-
-class TestIsHappyNumber(unittest.TestCase):
-    def test_happy_numbers(self) -> None:
-        self.assertTrue(is_happy_number(1))
-        self.assertTrue(is_happy_number(7))
-        self.assertTrue(is_happy_number(10))
-        self.assertTrue(is_happy_number(19))
-
-    def test_unhappy_numbers(self) -> None:
-        self.assertFalse(is_happy_number(2))
-        self.assertFalse(is_happy_number(4))
-        self.assertFalse(is_happy_number(3))
-        self.assertFalse(is_happy_number(-1))
-        self.assertFalse(is_happy_number(0))
-
-    def test_type_errors(self) -> None:
-        with self.assertRaises(TypeError):
-            is_happy_number("7")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            is_happy_number(7.0)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            is_happy_number(True)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            is_happy_number(None)  # type: ignore[arg-type]
 
 
 class TestIsArmstrongNumber(unittest.TestCase):
