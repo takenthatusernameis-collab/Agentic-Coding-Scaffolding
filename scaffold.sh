@@ -68530,6 +68530,7 @@ __all__: List[str] = [
     "distinct_prime_factors",
     "largest_prime_factor",
     "is_automorphic",
+    "is_truncatable_prime",
     "coprime",
 ]
 
@@ -69584,6 +69585,39 @@ def is_automorphic(n: int) -> bool:
         return False
     square = n * n
     return str(square).endswith(str(n))
+
+
+def is_truncatable_prime(n: int) -> bool:
+    """Return True if *n* is a (two-sided) truncatable prime.
+
+    A truncatable prime is a prime that remains prime when digits are removed
+    one at a time from either the left or the right (e.g. 3797).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a truncatable prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_truncatable_prime(3797)
+        True
+        >>> is_truncatable_prime(13)
+        False
+        >>> is_truncatable_prime(7)
+        True
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    s = str(n)
+    for i in range(1, len(s)):
+        if not is_prime(int(s[i:])) or not is_prime(int(s[:-i])):
+            return False
+    return True
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
