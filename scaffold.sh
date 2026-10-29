@@ -43884,7 +43884,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -44809,7 +44809,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -63128,6 +63128,7 @@ __all__: List[str] = [
     "is_triangular_number",
     "is_perfect_number",
     "is_automorphic_number",
+    "is_happy_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -64149,6 +64150,44 @@ def is_automorphic_number(value: int) -> bool:
         return False
     square = value * value
     return str(square).endswith(str(value))
+
+
+def is_happy_number(value: int) -> bool:
+    """Return True if *value* is a happy number.
+
+    A happy number is a positive integer that, when replaced by the sum of
+    the squares of its decimal digits repeatedly, eventually reaches 1. A
+    number that enters a cycle not containing 1 is unhappy. Zero is happy.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is happy, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_happy_number(1)
+        True
+        >>> is_happy_number(7)
+        True
+        >>> is_happy_number(19)
+        True
+        >>> is_happy_number(2)
+        False
+        """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    seen: set[int] = set()
+    n = value
+    while n != 1 and n not in seen:
+        seen.add(n)
+        n = sum(int(d) * int(d) for d in str(n))
+    return n == 1
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -64169,6 +64208,7 @@ from number_utils import (
     is_close,
     is_coprime,
     is_finite,
+    is_happy_number,
     is_infinite,
     is_integer,
     is_nan,
@@ -64487,6 +64527,33 @@ class TestIsClose(unittest.TestCase):
             is_close(1.0, 1.0, rel_tol=-0.1)
         with self.assertRaises(ValueError):
             is_close(1.0, 1.0, abs_tol=-0.1)
+
+
+
+class TestIsHappyNumber(unittest.TestCase):
+    def test_happy_numbers(self) -> None:
+        self.assertTrue(is_happy_number(1))
+        self.assertTrue(is_happy_number(7))
+        self.assertTrue(is_happy_number(10))
+        self.assertTrue(is_happy_number(19))
+
+    def test_unhappy_numbers(self) -> None:
+        self.assertFalse(is_happy_number(2))
+        self.assertFalse(is_happy_number(4))
+        self.assertFalse(is_happy_number(3))
+        self.assertFalse(is_happy_number(-1))
+        self.assertFalse(is_happy_number(0))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_happy_number("7")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(7.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(None)  # type: ignore[arg-type]
+
 
 
 if __name__ == "__main__":

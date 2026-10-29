@@ -14,6 +14,7 @@ from number_utils import (
     is_close,
     is_coprime,
     is_finite,
+    is_happy_number,
     is_infinite,
     is_integer,
     is_nan,
@@ -332,6 +333,33 @@ class TestIsClose(unittest.TestCase):
             is_close(1.0, 1.0, rel_tol=-0.1)
         with self.assertRaises(ValueError):
             is_close(1.0, 1.0, abs_tol=-0.1)
+
+
+
+class TestIsHappyNumber(unittest.TestCase):
+    def test_happy_numbers(self) -> None:
+        self.assertTrue(is_happy_number(1))
+        self.assertTrue(is_happy_number(7))
+        self.assertTrue(is_happy_number(10))
+        self.assertTrue(is_happy_number(19))
+
+    def test_unhappy_numbers(self) -> None:
+        self.assertFalse(is_happy_number(2))
+        self.assertFalse(is_happy_number(4))
+        self.assertFalse(is_happy_number(3))
+        self.assertFalse(is_happy_number(-1))
+        self.assertFalse(is_happy_number(0))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_happy_number("7")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(7.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_happy_number(None)  # type: ignore[arg-type]
+
 
 
 if __name__ == "__main__":

@@ -50,6 +50,7 @@ __all__: List[str] = [
     "is_triangular_number",
     "is_perfect_number",
     "is_automorphic_number",
+    "is_happy_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -1071,3 +1072,41 @@ def is_automorphic_number(value: int) -> bool:
         return False
     square = value * value
     return str(square).endswith(str(value))
+
+
+def is_happy_number(value: int) -> bool:
+    """Return True if *value* is a happy number.
+
+    A happy number is a positive integer that, when replaced by the sum of
+    the squares of its decimal digits repeatedly, eventually reaches 1. A
+    number that enters a cycle not containing 1 is unhappy. Zero is happy.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is happy, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_happy_number(1)
+        True
+        >>> is_happy_number(7)
+        True
+        >>> is_happy_number(19)
+        True
+        >>> is_happy_number(2)
+        False
+        """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    seen: set[int] = set()
+    n = value
+    while n != 1 and n not in seen:
+        seen.add(n)
+        n = sum(int(d) * int(d) for d in str(n))
+    return n == 1
