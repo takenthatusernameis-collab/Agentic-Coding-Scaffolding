@@ -1154,6 +1154,62 @@ class TestQuartile(unittest.TestCase):
             quartile([True, 1, 2], 1)  # type: ignore[type-var]
 
 
+class TestQuantile(unittest.TestCase):
+    def test_basic(self) -> None:
+        from stats import quantile
+
+        data = [1, 2, 3, 4, 5]
+        self.assertAlmostEqual(quantile(data, 0.0), 1.0)
+        self.assertAlmostEqual(quantile(data, 0.5), 3.0)
+        self.assertAlmostEqual(quantile(data, 1.0), 5.0)
+
+    def test_edges(self) -> None:
+        from stats import quantile
+
+        data = [1, 2, 3, 4]
+        self.assertAlmostEqual(quantile(data, 0.5), 2.5)
+
+    def test_empty_raises(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(ValueError):
+            quantile([], 0.5)
+
+    def test_rejects_bad_q(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(ValueError):
+            quantile([1, 2, 3], 1.5)
+        with self.assertRaises(ValueError):
+            quantile([1, 2, 3], -0.1)
+
+    def test_rejects_non_number_q(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(TypeError):
+            quantile([1, 2, 3], "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            quantile([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_rejects_non_list(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(TypeError):
+            quantile((1, 2, 3), 0.5)  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(TypeError):
+            quantile([1, 2, "a"], 0.5)  # type: ignore[list-item]
+
+    def test_rejects_bool_in_list(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(TypeError):
+            quantile([True, 1, 2], 0.5)  # type: ignore[type-var]
+
+
 class TestMovingAverage(unittest.TestCase):
     def test_simple_average(self) -> None:
 

@@ -25,6 +25,7 @@ __all__: List[str] = [
     "sum_of_cubes",
     "product",
     "percentile",
+    "quantile",
     "quartile",
     "first_quartile",
     "q1",
@@ -658,6 +659,35 @@ def percentile(numbers: List[T | float], p: float) -> float:
     if f == c:
         return sorted_nums[int(k)]
     return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)
+
+
+def quantile(numbers: List[T | float], q: float) -> float:
+    """Return the q-th quantile of a list of numbers (linear interpolation).
+
+    Args:
+        numbers: A list of numeric values.
+        q: The quantile to compute, between 0 and 1 inclusive.
+
+    Returns:
+        The q-th quantile value.
+
+    Raises:
+        ValueError: If the list is empty, or if q is outside [0, 1].
+        TypeError: If numbers is not a list, contains non-numeric values,
+                   or q is not a number.
+
+    Examples:
+        >>> quantile([1, 2, 3, 4, 5], 0.5)
+        3.0
+        >>> quantile([1, 2, 3, 4], 0.5)
+        2.5
+    """
+    _require_numbers(numbers, "numbers")
+    if not isinstance(q, (int, float)) or isinstance(q, bool):
+        raise TypeError("q must be a number")
+    if q < 0 or q > 1:
+        raise ValueError("q must be between 0 and 1")
+    return percentile(numbers, q * 100.0)
 
 
 def quartile(numbers: Sequence[int | float], q: int) -> float:

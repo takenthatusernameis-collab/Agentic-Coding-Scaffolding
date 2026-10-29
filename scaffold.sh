@@ -13370,6 +13370,7 @@ __all__: List[str] = [
     "sum_of_cubes",
     "product",
     "percentile",
+    "quantile",
     "quartile",
     "first_quartile",
     "q1",
@@ -14003,6 +14004,35 @@ def percentile(numbers: List[T | float], p: float) -> float:
     if f == c:
         return sorted_nums[int(k)]
     return sorted_nums[f] * (c - k) + sorted_nums[c] * (k - f)
+
+
+def quantile(numbers: List[T | float], q: float) -> float:
+    """Return the q-th quantile of a list of numbers (linear interpolation).
+
+    Args:
+        numbers: A list of numeric values.
+        q: The quantile to compute, between 0 and 1 inclusive.
+
+    Returns:
+        The q-th quantile value.
+
+    Raises:
+        ValueError: If the list is empty, or if q is outside [0, 1].
+        TypeError: If numbers is not a list, contains non-numeric values,
+                   or q is not a number.
+
+    Examples:
+        >>> quantile([1, 2, 3, 4, 5], 0.5)
+        3.0
+        >>> quantile([1, 2, 3, 4], 0.5)
+        2.5
+    """
+    _require_numbers(numbers, "numbers")
+    if not isinstance(q, (int, float)) or isinstance(q, bool):
+        raise TypeError("q must be a number")
+    if q < 0 or q > 1:
+        raise ValueError("q must be between 0 and 1")
+    return percentile(numbers, q * 100.0)
 
 
 def quartile(numbers: Sequence[int | float], q: int) -> float:
@@ -18179,6 +18209,62 @@ class TestQuartile(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             quartile([True, 1, 2], 1)  # type: ignore[type-var]
+
+
+class TestQuantile(unittest.TestCase):
+    def test_basic(self) -> None:
+        from stats import quantile
+
+        data = [1, 2, 3, 4, 5]
+        self.assertAlmostEqual(quantile(data, 0.0), 1.0)
+        self.assertAlmostEqual(quantile(data, 0.5), 3.0)
+        self.assertAlmostEqual(quantile(data, 1.0), 5.0)
+
+    def test_edges(self) -> None:
+        from stats import quantile
+
+        data = [1, 2, 3, 4]
+        self.assertAlmostEqual(quantile(data, 0.5), 2.5)
+
+    def test_empty_raises(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(ValueError):
+            quantile([], 0.5)
+
+    def test_rejects_bad_q(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(ValueError):
+            quantile([1, 2, 3], 1.5)
+        with self.assertRaises(ValueError):
+            quantile([1, 2, 3], -0.1)
+
+    def test_rejects_non_number_q(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(TypeError):
+            quantile([1, 2, 3], "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            quantile([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_rejects_non_list(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(TypeError):
+            quantile((1, 2, 3), 0.5)  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(TypeError):
+            quantile([1, 2, "a"], 0.5)  # type: ignore[list-item]
+
+    def test_rejects_bool_in_list(self) -> None:
+        from stats import quantile
+
+        with self.assertRaises(TypeError):
+            quantile([True, 1, 2], 0.5)  # type: ignore[type-var]
 
 
 class TestMovingAverage(unittest.TestCase):
@@ -44076,7 +44162,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `stddev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 
