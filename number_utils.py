@@ -52,6 +52,7 @@ __all__: List[str] = [
     "is_automorphic_number",
     "is_happy_number",
     "is_kaprekar_number",
+    "is_armstrong_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -1162,3 +1163,40 @@ def is_kaprekar_number(value: int) -> bool:
     if right == 0:
         return False
     return left + right == value
+
+
+def is_armstrong_number(value: int) -> bool:
+    """Return True if *value* is an Armstrong (narcissistic) number.
+
+    An Armstrong number is a non-negative integer that equals the sum of its
+    own digits each raised to the power of the number of digits. For example,
+    ``153`` is an Armstrong number because ``1**3 + 5**3 + 3**3 == 153``.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is an Armstrong number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_armstrong_number(0)
+        True
+        >>> is_armstrong_number(1)
+        True
+        >>> is_armstrong_number(153)
+        True
+        >>> is_armstrong_number(9474)
+        True
+        >>> is_armstrong_number(10)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    digits = str(value)
+    n = len(digits)
+    return value == int(sum(int(d) ** n for d in digits))
