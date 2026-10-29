@@ -42047,6 +42047,22 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — added chunk to seq_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6396 tests with 1 pre-existing failure (the `aifc_utils.py` scaffold-sync assertion, identical on the clean tree), `make lint` is clean, `make typecheck` reports 2 pre-existing errors in 2 files (identical on the clean tree), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `chunk(sequence, size)` to `seq_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation: it splits a sequence into fixed-size chunks, with a possibly-shorter final chunk and an empty list for empty input. Added `TestChunk` to `tests/test_seq_utils.py` covering basic chunking, oversized chunks, empty input, strings, tuples, size-one chunks, and the `TypeError`/`ValueError` paths (9 new tests). Updated the `seq_utils` tree entry and prose section of `README.md`. Recorded the change in this Unreleased section of `CHANGELOG.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs all `seq_utils` tests passing with no new failures, `make lint` is clean, `make typecheck` reports no new errors in `seq_utils.py`, and scaffold sync is clean.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `seq_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — fixed lint/typecheck regressions in strings
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6367 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -43034,7 +43050,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, is_sorted)
+seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, interleave, adjacent_pairs, chunk, is_sorted)
 number_utils.py            # Number utility functions (clamp, digit_sum, digit_count, round_to, round_half_up, is_close, is_integer, format_number, percentage, lerp, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_finite, is_infinite, is_nan, is_coprime)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
@@ -43956,7 +43972,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, and `nth` retrieve elements by position (returning `None` when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; and `is_sorted` checks ascending or descending order with an optional key. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, and `nth` retrieve elements by position (returning `None` when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `chunk` splits a sequence into fixed-size chunks; and `is_sorted` checks ascending or descending order with an optional key. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -73895,6 +73911,7 @@ __all__: list[str] = [
     "drop_while",
     "interleave",
     "adjacent_pairs",
+    "chunk",
     "is_sorted",
 ]
 
@@ -74180,6 +74197,37 @@ def adjacent_pairs(sequence: Sequence[T]) -> List[Tuple[T, T]]:
     return [(sequence[i], sequence[i + 1]) for i in range(len(sequence) - 1)]
 
 
+def chunk(sequence: Sequence[T], size: int) -> List[List[T]]:
+    """Split ``sequence`` into chunks of ``size`` elements each.
+
+    The final chunk may be shorter than ``size`` when the sequence length is
+    not evenly divisible. An empty sequence yields an empty list.
+
+    Args:
+        sequence: The sequence to chunk.
+        size: The number of elements per chunk (must be positive).
+
+    Returns:
+        A list of chunks, each a list of up to ``size`` elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``size`` is not an int.
+        ValueError: If ``size`` is not positive.
+
+    Examples:
+        >>> chunk([1, 2, 3, 4, 5], 2)
+        [[1, 2], [3, 4], [5]]
+        >>> chunk("abcdef", 3)
+        [['a', 'b', 'c'], ['d', 'e', 'f']]
+    """
+    _require_sequence(sequence)
+    if not isinstance(size, int) or isinstance(size, bool):
+        raise TypeError("size must be an integer")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    return [list(sequence[i : i + size]) for i in range(0, len(sequence), size)]
+
+
 def is_sorted(
     sequence: Sequence[T],
     *,
@@ -74232,6 +74280,7 @@ import unittest
 
 from seq_utils import (
     adjacent_pairs,
+    chunk,
     drop_while,
     first,
     head,
@@ -74393,6 +74442,42 @@ class TestAdjacentPairs(unittest.TestCase):
     def test_adjacent_pairs_type_error(self):
         with self.assertRaises(TypeError):
             adjacent_pairs(123)  # type: ignore[arg-type]
+
+
+class TestChunk(unittest.TestCase):
+    def test_chunk_basic(self):
+        self.assertEqual(chunk([1, 2, 3, 4, 5], 2), [[1, 2], [3, 4], [5]])
+        self.assertEqual(chunk([1, 2, 3, 4], 2), [[1, 2], [3, 4]])
+        self.assertEqual(chunk([1], 1), [[1]])
+
+    def test_chunk_larger_than_sequence(self):
+        self.assertEqual(chunk([1, 2], 5), [[1, 2]])
+
+    def test_chunk_empty(self):
+        self.assertEqual(chunk([], 3), [])
+
+    def test_chunk_string(self):
+        self.assertEqual(chunk("abcdef", 3), [["a", "b", "c"], ["d", "e", "f"]])
+
+    def test_chunk_tuple(self):
+        self.assertEqual(chunk((1, 2, 3, 4), 2), [[1, 2], [3, 4]])
+
+    def test_chunk_size_one(self):
+        self.assertEqual(chunk([1, 2, 3], 1), [[1], [2], [3]])
+
+    def test_chunk_type_error(self):
+        with self.assertRaises(TypeError):
+            chunk(123, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            chunk([1, 2], True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            chunk([1, 2], "2")  # type: ignore[arg-type]
+
+    def test_chunk_value_error(self):
+        with self.assertRaises(ValueError):
+            chunk([1, 2], 0)
+        with self.assertRaises(ValueError):
+            chunk([1, 2], -1)
 
 
 class TestIsSorted(unittest.TestCase):

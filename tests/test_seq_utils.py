@@ -4,6 +4,7 @@ import unittest
 
 from seq_utils import (
     adjacent_pairs,
+    chunk,
     drop_while,
     first,
     head,
@@ -165,6 +166,42 @@ class TestAdjacentPairs(unittest.TestCase):
     def test_adjacent_pairs_type_error(self):
         with self.assertRaises(TypeError):
             adjacent_pairs(123)  # type: ignore[arg-type]
+
+
+class TestChunk(unittest.TestCase):
+    def test_chunk_basic(self):
+        self.assertEqual(chunk([1, 2, 3, 4, 5], 2), [[1, 2], [3, 4], [5]])
+        self.assertEqual(chunk([1, 2, 3, 4], 2), [[1, 2], [3, 4]])
+        self.assertEqual(chunk([1], 1), [[1]])
+
+    def test_chunk_larger_than_sequence(self):
+        self.assertEqual(chunk([1, 2], 5), [[1, 2]])
+
+    def test_chunk_empty(self):
+        self.assertEqual(chunk([], 3), [])
+
+    def test_chunk_string(self):
+        self.assertEqual(chunk("abcdef", 3), [["a", "b", "c"], ["d", "e", "f"]])
+
+    def test_chunk_tuple(self):
+        self.assertEqual(chunk((1, 2, 3, 4), 2), [[1, 2], [3, 4]])
+
+    def test_chunk_size_one(self):
+        self.assertEqual(chunk([1, 2, 3], 1), [[1], [2], [3]])
+
+    def test_chunk_type_error(self):
+        with self.assertRaises(TypeError):
+            chunk(123, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            chunk([1, 2], True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            chunk([1, 2], "2")  # type: ignore[arg-type]
+
+    def test_chunk_value_error(self):
+        with self.assertRaises(ValueError):
+            chunk([1, 2], 0)
+        with self.assertRaises(ValueError):
+            chunk([1, 2], -1)
 
 
 class TestIsSorted(unittest.TestCase):

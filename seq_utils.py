@@ -24,6 +24,7 @@ __all__: list[str] = [
     "drop_while",
     "interleave",
     "adjacent_pairs",
+    "chunk",
     "is_sorted",
 ]
 
@@ -307,6 +308,37 @@ def adjacent_pairs(sequence: Sequence[T]) -> List[Tuple[T, T]]:
     """
     _require_sequence(sequence)
     return [(sequence[i], sequence[i + 1]) for i in range(len(sequence) - 1)]
+
+
+def chunk(sequence: Sequence[T], size: int) -> List[List[T]]:
+    """Split ``sequence`` into chunks of ``size`` elements each.
+
+    The final chunk may be shorter than ``size`` when the sequence length is
+    not evenly divisible. An empty sequence yields an empty list.
+
+    Args:
+        sequence: The sequence to chunk.
+        size: The number of elements per chunk (must be positive).
+
+    Returns:
+        A list of chunks, each a list of up to ``size`` elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``size`` is not an int.
+        ValueError: If ``size`` is not positive.
+
+    Examples:
+        >>> chunk([1, 2, 3, 4, 5], 2)
+        [[1, 2], [3, 4], [5]]
+        >>> chunk("abcdef", 3)
+        [['a', 'b', 'c'], ['d', 'e', 'f']]
+    """
+    _require_sequence(sequence)
+    if not isinstance(size, int) or isinstance(size, bool):
+        raise TypeError("size must be an integer")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    return [list(sequence[i : i + size]) for i in range(0, len(sequence), size)]
 
 
 def is_sorted(
