@@ -1067,7 +1067,7 @@ class TestMovingAverage(unittest.TestCase):
 
         result = moving_average([10, 20, 30], 2, weights=[1, 2])
         self.assertAlmostEqual(result[0], 50 / 3)
-        self.assertAlmostEqual(result[1], 70 / 3)
+        self.assertAlmostEqual(result[1], 80 / 3)
 
     def test_negative_values(self) -> None:
         from stats import moving_average

@@ -278,7 +278,7 @@ def skewness(numbers: List[T | float]) -> float:
     return float(sum(((x - m) / s) ** 3 for x in numbers) / n)
 
 
-def range(numbers: List[T | float]) -> float:
+def range_stat(numbers: List[T | float]) -> float:
     """Return the range (max - min) of a list of numbers.
 
     Args:
@@ -292,15 +292,19 @@ def range(numbers: List[T | float]) -> float:
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
-        >>> range([1, 2, 3, 4, 5])
+        >>> range_stat([1, 2, 3, 4, 5])
         4.0
-        >>> range([5])
+        >>> range_stat([5])
         0.0
-        >>> range([-2, 4])
+        >>> range_stat([-2, 4])
         6.0
     """
     _require_numbers(numbers, "numbers")
     return float(max(numbers) - min(numbers))
+
+
+# Backwards compatible alias
+range = range_stat
 
 
 def min_value(numbers: List[T | float]) -> float:
@@ -1059,6 +1063,8 @@ def moving_average(
         >>> moving_average([10, 20, 30], 2, weights=[1, 2])
         [16.666666666666668, 26.666666666666668]
     """
+    import builtins
+
     _require_numbers(numbers, "numbers")
     _require_int(window, "window")
     if window <= 0:
@@ -1076,7 +1082,7 @@ def moving_average(
         if total_weight <= 0:
             raise ValueError("weights must sum to a positive value")
         result: List[float] = []
-        for i in range(n - window + 1):
+        for i in builtins.range(n - window + 1):
             window_values = numbers[i : i + window]
             weighted_sum = sum(
                 float(v) * float(w) for v, w in zip(window_values, weights)
@@ -1084,7 +1090,7 @@ def moving_average(
             result.append(weighted_sum / total_weight)
         return result
     result = []
-    for i in range(n - window + 1):
+    for i in builtins.range(n - window + 1):
         window_values = numbers[i : i + window]
         result.append(mean(window_values))
     return result
