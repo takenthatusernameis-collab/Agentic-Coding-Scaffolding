@@ -593,7 +593,9 @@ class TestIsDivisibleBy(unittest.TestCase):
 
 class TestIsMultipleOfDivides(unittest.TestCase):
     def test_aliases(self) -> None:
-        from number_utils import is_multiple_of, divides
+        from number_utils import divides, is_divisible_by, is_multiple_of
+
+
 
         self.assertTrue(is_multiple_of(10, 2))
         self.assertTrue(divides(2, 10))

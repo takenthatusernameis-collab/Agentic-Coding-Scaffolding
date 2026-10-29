@@ -62810,6 +62810,8 @@ __all__: List[str] = [
     "lcm",
     "ceil_div",
     "is_divisible_by",
+    "is_multiple_of",
+    "divides",
     "is_coprime",
     "digit_sum",
     "digit_count",
@@ -63516,11 +63518,11 @@ def ceil_div(a: int, b: int) -> int:
 
 
 def is_divisible_by(a: int, b: int) -> bool:
-    """Return True if *a* is divisible by *b* without remainder.
+    """Return True if *a* is divisible by *b* (i.e. *b* divides *a* evenly).
 
     Args:
-        a: Dividend.
-        b: Divisor.
+        a: The number to test for divisibility.
+        b: The divisor.
 
     Returns:
         True if *b* divides *a* evenly, otherwise False.
@@ -63530,12 +63532,28 @@ def is_divisible_by(a: int, b: int) -> bool:
         ValueError: If *b* is zero.
     """
     if not isinstance(a, int) or isinstance(a, bool):
-        raise TypeError(f"a must be an int, got {type(a).__name__}")
+        raise TypeError("a must be an int")
     if not isinstance(b, int) or isinstance(b, bool):
-        raise TypeError(f"b must be an int, got {type(b).__name__}")
+        raise TypeError("b must be an int")
     if b == 0:
         raise ValueError("is_divisible_by() division by zero")
     return a % b == 0
+
+
+def is_multiple_of(a: int, b: int) -> bool:
+    """Return True if *a* is a multiple of *b* (i.e. *b* divides *a* evenly)."""
+    return is_divisible_by(a, b)
+
+
+def divides(a: int, b: int) -> bool:
+    """Return True if *a* divides *b* (i.e. *a* divides *b* evenly)."""
+    if not isinstance(a, int) or isinstance(a, bool):
+        raise TypeError("a must be an int")
+    if not isinstance(b, int) or isinstance(b, bool):
+        raise TypeError("b must be an int")
+    if a == 0:
+        raise ValueError("divides() division by zero")
+    return b % a == 0
 
 
 def is_coprime(a: int, b: int) -> bool:
@@ -64373,6 +64391,33 @@ class TestIsDivisibleBy(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             is_divisible_by(10.0, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_divisible_by(10, 2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_divisible_by(True, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_divisible_by(1, False)  # type: ignore[arg-type]
+
+
+class TestIsMultipleOfDivides(unittest.TestCase):
+    def test_aliases(self) -> None:
+        from number_utils import divides, is_divisible_by, is_multiple_of
+
+
+
+        self.assertTrue(is_multiple_of(10, 2))
+        self.assertTrue(divides(2, 10))
+        self.assertTrue(is_multiple_of(0, 3))
+        self.assertFalse(is_multiple_of(10, 3))
+        self.assertFalse(divides(3, 10))
+        with self.assertRaises(ValueError):
+            is_multiple_of(10, 0)
+        with self.assertRaises(ValueError):
+            divides(0, 10)
+        with self.assertRaises(TypeError):
+            is_multiple_of(1.5, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            divides(1, 2.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_divisible_by(10, 2.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
