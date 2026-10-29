@@ -36,6 +36,7 @@ from strings import (
     is_identifier,
     is_integer,
     is_lower,
+    is_octal,
     is_palindrome,
     is_pangram,
     is_printable,
@@ -722,6 +723,33 @@ class TestIsBinary(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_binary(123)  # type: ignore[arg-type]
+
+
+class TestIsOctal(unittest.TestCase):
+    def test_octal(self):
+        self.assertTrue(is_octal("755"))
+        self.assertTrue(is_octal("0"))
+        self.assertTrue(is_octal("7"))
+        self.assertTrue(is_octal("01234567"))
+
+    def test_not_octal_with_other_digits(self):
+        self.assertFalse(is_octal("89"))
+        self.assertFalse(is_octal("12389"))
+
+    def test_not_octal_with_letters(self):
+        self.assertFalse(is_octal("1a0"))
+        self.assertFalse(is_octal("hello"))
+
+    def test_not_octal_with_sign(self):
+        self.assertFalse(is_octal("-1"))
+        self.assertFalse(is_octal("+1"))
+
+    def test_not_octal_empty(self):
+        self.assertFalse(is_octal(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_octal(123)  # type: ignore[arg-type]
 
 
 class TestIsInteger(unittest.TestCase):

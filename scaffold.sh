@@ -11042,6 +11042,7 @@ __all__: List[str] = [
     "is_alpha",
     "is_alphanumeric",
     "is_binary",
+    "is_octal",
     "is_digit",
     "is_hex",
     "is_integer",
@@ -12079,6 +12080,33 @@ def is_binary(s: str) -> bool:
     if not s:
         return False
     return all(ch in "01" for ch in s)
+
+
+def is_octal(s: str) -> bool:
+    """Return True if all characters in the string are octal digits (0-7).
+
+    An octal digit is one of 0, 1, 2, 3, 4, 5, 6, 7. The string must be non-empty.
+
+    Args:
+        s: The string to test.
+
+    Raises:
+        TypeError: If s is not a string.
+
+    Examples:
+        >>> is_octal("755")
+        True
+        >>> is_octal("0")
+        True
+        >>> is_octal("89")
+        False
+        >>> is_octal("")
+        False
+    """
+    _require_string(s, "s")
+    if not s:
+        return False
+    return all(ch in "01234567" for ch in s)
 
 
 def is_integer(s: str) -> bool:
@@ -14240,6 +14268,7 @@ from strings import (
     is_identifier,
     is_integer,
     is_lower,
+    is_octal,
     is_palindrome,
     is_pangram,
     is_printable,
@@ -14926,6 +14955,33 @@ class TestIsBinary(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_binary(123)  # type: ignore[arg-type]
+
+
+class TestIsOctal(unittest.TestCase):
+    def test_octal(self):
+        self.assertTrue(is_octal("755"))
+        self.assertTrue(is_octal("0"))
+        self.assertTrue(is_octal("7"))
+        self.assertTrue(is_octal("01234567"))
+
+    def test_not_octal_with_other_digits(self):
+        self.assertFalse(is_octal("89"))
+        self.assertFalse(is_octal("12389"))
+
+    def test_not_octal_with_letters(self):
+        self.assertFalse(is_octal("1a0"))
+        self.assertFalse(is_octal("hello"))
+
+    def test_not_octal_with_sign(self):
+        self.assertFalse(is_octal("-1"))
+        self.assertFalse(is_octal("+1"))
+
+    def test_not_octal_empty(self):
+        self.assertFalse(is_octal(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_octal(123)  # type: ignore[arg-type]
 
 
 class TestIsInteger(unittest.TestCase):
