@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import sunau as _sunau
-from typing import Any
 
 __all__: list[str] = [
     "Error",

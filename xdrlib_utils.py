@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import xdrlib as _xdrlib
-from typing import Any
 
 __all__: list[str] = [
     "Error",

@@ -19,8 +19,8 @@ from stats import (
     midrange,
     min_value,
     mode,
-    multimode,
     moving_average,
+    multimode,
     product,
     range,
     root_mean_square,
@@ -1043,56 +1043,46 @@ class TestQuartile(unittest.TestCase):
 
 class TestMovingAverage(unittest.TestCase):
     def test_simple_average(self) -> None:
-        from stats import moving_average
 
         self.assertEqual(moving_average([1, 2, 3, 4, 5], 3), [2.0, 3.0, 4.0])
 
     def test_window_two(self) -> None:
-        from stats import moving_average
 
         self.assertEqual(moving_average([1, 2, 3, 4], 2), [1.5, 2.5, 3.5])
 
     def test_window_equals_length(self) -> None:
-        from stats import moving_average
 
         self.assertEqual(moving_average([1, 2, 3], 3), [2.0])
 
     def test_window_one(self) -> None:
-        from stats import moving_average
 
         self.assertEqual(moving_average([1, 2, 3], 1), [1.0, 2.0, 3.0])
 
     def test_weighted_average(self) -> None:
-        from stats import moving_average
 
         result = moving_average([10, 20, 30], 2, weights=[1, 2])
         self.assertAlmostEqual(result[0], 50 / 3)
         self.assertAlmostEqual(result[1], 80 / 3)
 
     def test_negative_values(self) -> None:
-        from stats import moving_average
 
         self.assertEqual(moving_average([-1, 0, 1], 2), [-0.5, 0.5])
 
     def test_floats(self) -> None:
-        from stats import moving_average
 
         self.assertEqual(moving_average([1.5, 2.5, 3.5], 2), [2.0, 3.0])
 
     def test_empty_raises(self) -> None:
-        from stats import moving_average
 
         with self.assertRaises(ValueError):
             moving_average([], 2)
 
     def test_window_too_large_raises(self) -> None:
-        from stats import moving_average
 
         with self.assertRaises(ValueError):
             moving_average([1, 2, 3], 4)
 
     def test_non_positive_window_raises(self) -> None:
-        from stats import moving_average
 
         with self.assertRaises(ValueError):
             moving_average([1, 2, 3], 0)
@@ -1100,7 +1090,6 @@ class TestMovingAverage(unittest.TestCase):
             moving_average([1, 2, 3], -1)
 
     def test_non_int_window_raises(self) -> None:
-        from stats import moving_average
 
         with self.assertRaises(TypeError):
             moving_average([1, 2, 3], 1.5)  # type: ignore[arg-type]
@@ -1108,37 +1097,31 @@ class TestMovingAverage(unittest.TestCase):
             moving_average([1, 2, 3], True)  # type: ignore[arg-type]
 
     def test_non_list_raises(self) -> None:
-        from stats import moving_average
 
         with self.assertRaises(TypeError):
             moving_average((1, 2, 3), 2)  # type: ignore[arg-type]
 
     def test_non_numeric_raises(self) -> None:
-        from stats import moving_average
 
         with self.assertRaises(TypeError):
             moving_average([1, 2, "a"], 2)  # type: ignore[list-item]
 
     def test_bool_in_list_raises(self) -> None:
-        from stats import moving_average
 
         with self.assertRaises(TypeError):
             moving_average([True, 1, 2], 2)  # type: ignore[type-var]
 
     def test_weights_wrong_length_raises(self) -> None:
-        from stats import moving_average
 
         with self.assertRaises(ValueError):
             moving_average([1, 2, 3], 2, weights=[1, 2, 3])
 
     def test_weights_non_list_raises(self) -> None:
-        from stats import moving_average
 
         with self.assertRaises(TypeError):
             moving_average([1, 2, 3], 2, weights="ab")  # type: ignore[arg-type]
 
     def test_weights_non_positive_sum_raises(self) -> None:
-        from stats import moving_average
 
         with self.assertRaises(ValueError):
             moving_average([1, 2, 3], 2, weights=[0, 0])
