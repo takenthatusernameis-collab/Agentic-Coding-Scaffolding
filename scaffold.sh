@@ -11021,6 +11021,7 @@ __all__: List[str] = [
     "count_lowercase",
     "count_uppercase",
     "is_anagram",
+    "is_isogram",
     "capitalize_words",
     "truncate",
     "levenshtein_distance",
@@ -11302,7 +11303,41 @@ def is_anagram(s1: str, s2: str) -> bool:
     return sorted(cleaned1) == sorted(cleaned2)
 
 
-def is_subsequence(needle: str, haystack: str) -> bool:
+def is_isogram(s: str) -> bool:
+    """Return True if *s* is an isogram (no repeating letters).
+
+    An isogram is a word or phrase in which no letter appears more than
+    once. The check is case-insensitive and ignores non-letter characters.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        True if *s* is an isogram, False otherwise. The empty string
+        and strings containing only whitespace/non-letter characters are
+        considered isograms.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> is_isogram("abc")
+        True
+        >>> is_isogram("hello")
+        False
+        >>> is_isogram("")
+        True
+        >>> is_isogram("Emily Jung Schwartzkopf")
+        True
+    """
+    _require_string(s, "s")
+    seen: set[str] = set()
+    for ch in s.lower():
+        if ch.isalpha():
+            if ch in seen:
+                return False
+            seen.add(ch)
+    return True
     """Return True if *needle* is a subsequence of *haystack*.
 
     A subsequence is formed by deleting zero or more characters from
@@ -12812,6 +12847,46 @@ def count_letters(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isalpha())
+
+
+def is_subsequence(needle: str, haystack: str) -> bool:
+    """Return True if *needle* is a subsequence of *haystack*.
+
+    A subsequence is formed by deleting zero or more characters from
+    *haystack* without changing the order of the remaining characters, so
+    every character of *needle* must appear in *haystack* in the same
+    relative order (not necessarily consecutively). The empty string is a
+    subsequence of any string.
+
+    Args:
+        needle: The subsequence to search for.
+        haystack: The string to search within.
+
+    Returns:
+        True if *needle* is a subsequence of *haystack*.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> is_subsequence("abc", "aebdc")
+        True
+        >>> is_subsequence("abc", "acb")
+        False
+        >>> is_subsequence("", "anything")
+        True
+    """
+    _require_string(needle, "needle")
+    _require_string(haystack, "haystack")
+    if not needle:
+        return True
+    i = 0
+    for ch in haystack:
+        if ch == needle[i]:
+            i += 1
+            if i == len(needle):
+                return True
+    return False
 STRINGS
 
 # --- utils.py ---
@@ -13456,6 +13531,60 @@ def median_high(numbers: List[T | float]) -> float:
     if n % 2 == 1:
         return float(sorted_nums[mid])
     return float(sorted_nums[mid])
+
+
+def median_grouped(numbers: List[T | float], interval: float = 1.0) -> float:
+    """Estimate the median of grouped continuous data.
+
+    This function estimates the median for numeric data treated as grouped
+    in equal-width intervals, following the approach used by
+    :func:`statistics.median_grouped`.
+
+    Args:
+        numbers: A list of numeric values (typically midpoints of bins).
+        interval: The class interval width (defaults to 1.0).
+
+    Returns:
+        An estimate of the median.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values,
+            or if interval is not a number.
+    """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only numbers")
+    if isinstance(interval, bool) or not isinstance(interval, (int, float)):
+        raise TypeError("interval must be a number")
+    if interval <= 0:
+        raise ValueError("interval must be a positive number")
+
+    data = sorted(numbers)
+    n = len(data)
+    if n == 0:
+        raise ValueError("numbers is empty")
+
+    x = data[n // 2]
+    # Find cumulative frequency counts at x (using bisect logic conceptually)
+    # For a simple list where each element represents a midpoint/count occurrence
+    # count how many elements equal to x
+    import bisect
+
+    i = bisect.bisect_left(data, x)  # count of elements < x
+    j = bisect.bisect_right(data, x)  # count of elements <= x
+    cf = i
+    f = j - i
+    try:
+        interval_f = float(interval)
+        x_f = float(x)
+    except Exception:
+        raise TypeError("Value cannot be converted to a float")
+    L = x_f - interval_f / 2.0
+    return L + interval_f * (n / 2 - cf) / f
+
 
 
 def mode(numbers: List[T | float]) -> float:
@@ -14511,6 +14640,7 @@ from strings import (
     is_octal,
     is_palindrome,
     is_pangram,
+    is_isogram,
     is_printable,
     is_rotation,
     is_space,
@@ -14732,7 +14862,47 @@ class TestCountDigits(unittest.TestCase):
             count_digits(None)  # type: ignore[arg-type]
 
 
-class TestIsAnagram(unittest.TestCase):
+class TestIsIsogram(unittest.TestCase):
+    def test_isogram(self):
+        self.assertTrue(is_isogram("abc"))
+        self.assertTrue(is_isogram("abcdefghijklmnopqrstuvwxyz"))
+        self.assertTrue(is_isogram("Emily Jung Schwartzkopf"))
+
+    def test_not_isogram(self):
+        self.assertFalse(is_isogram("hello"))
+        self.assertFalse(is_isogram("bookkeeper"))
+        self.assertFalse(is_isogram("aabbcc"))
+
+    def test_case_insensitive(self):
+        self.assertFalse(is_isogram("Hh"))
+        self.assertFalse(is_isogram("Aa"))
+        self.assertTrue(is_isogram("AbC"))
+
+    def test_empty_string(self):
+        self.assertTrue(is_isogram(""))
+
+    def test_single_char(self):
+        self.assertTrue(is_isogram("a"))
+        self.assertTrue(is_isogram("Z"))
+
+    def test_ignores_non_letters(self):
+        self.assertTrue(is_isogram("a-b-c"))
+        self.assertTrue(is_isogram("a1b2c3"))
+        self.assertTrue(is_isogram("a b c"))
+
+    def test_unicode_letters(self):
+        self.assertTrue(is_isogram("café"))
+        self.assertFalse(is_isogram("caféfé"))
+
+    def test_whitespace_only(self):
+        self.assertTrue(is_isogram("   "))
+        self.assertTrue(is_isogram("\t\n\r"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_isogram(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_isogram(123)  # type: ignore[arg-type]
     def test_anagram_basic(self):
         self.assertTrue(is_anagram("listen", "silent"))
 
@@ -16872,6 +17042,8 @@ from stats import (
     mean_absolute_deviation,
     median,
     median_absolute_deviation,
+    median_grouped,
+    median_high,
     median_low,
     midhinge,
     midrange,
@@ -17058,7 +17230,84 @@ class TestMedianLow(unittest.TestCase):
             median_low([True, 1, 2])  # type: ignore[type-var]
 
 
-class TestMode(unittest.TestCase):
+class TestMedianHigh(unittest.TestCase):
+    def test_median_high_odd(self) -> None:
+        self.assertEqual(median_high([1, 2, 3, 4, 5]), 3.0)
+
+    def test_median_high_even(self) -> None:
+        self.assertEqual(median_high([1, 2, 3, 4]), 3.0)
+
+    def test_median_high_single(self) -> None:
+        self.assertEqual(median_high([5]), 5.0)
+
+    def test_median_high_unsorted(self) -> None:
+        self.assertEqual(median_high([5, 1, 3]), 3.0)
+
+    def test_median_high_negatives(self) -> None:
+        self.assertEqual(median_high([-3, -1, -2]), -2.0)
+
+    def test_median_high_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            median_high([])
+
+    def test_median_high_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_high((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_median_high_non_numeric_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_high([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_median_high_bool_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_high([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestMedianGrouped(unittest.TestCase):
+    def test_median_grouped_odd(self) -> None:
+        self.assertAlmostEqual(median_grouped([1, 2, 3, 4, 5]), 3.0)
+
+    def test_median_grouped_even(self) -> None:
+        self.assertAlmostEqual(median_grouped([1, 2, 3, 4]), 2.5)
+
+    def test_median_grouped_with_interval(self) -> None:
+        self.assertAlmostEqual(median_grouped([1, 3, 3, 5, 7], interval=2), 3.5)
+
+    def test_median_grouped_single(self) -> None:
+        self.assertAlmostEqual(median_grouped([5]), 5.0)
+
+    def test_median_grouped_unsorted(self) -> None:
+        self.assertAlmostEqual(median_grouped([5, 1, 3]), 3.0)
+
+    def test_median_grouped_negatives(self) -> None:
+        self.assertAlmostEqual(median_grouped([-3, -1, -2]), -2.0)
+
+    def test_median_grouped_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            median_grouped([])
+
+    def test_median_grouped_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_grouped((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_median_grouped_non_numeric_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_grouped([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_median_grouped_bool_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_grouped([True, 1, 2])  # type: ignore[type-var]
+
+    def test_median_grouped_bad_interval_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            median_grouped([1, 2, 3], interval="1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            median_grouped([1, 2, 3], interval=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            median_grouped([1, 2, 3], interval=0)
+        with self.assertRaises(ValueError):
+            median_grouped([1, 2, 3], interval=-1)
+
     def test_mode_basic(self) -> None:
         self.assertEqual(mode([1, 2, 2, 3, 4]), 2)
 
