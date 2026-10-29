@@ -5,6 +5,7 @@ import unittest
 from seq_utils import (
     adjacent_pairs,
     chunk,
+    distinct,
     drop_while,
     first,
     flatten,
@@ -16,6 +17,7 @@ from seq_utils import (
     split_at,
     tail,
     take_while,
+    unique,
 )
 
 
@@ -203,6 +205,26 @@ class TestChunk(unittest.TestCase):
             chunk([1, 2], 0)
         with self.assertRaises(ValueError):
             chunk([1, 2], -1)
+
+
+class TestUnique(unittest.TestCase):
+    def test_unique_preserves_order(self):
+        self.assertEqual(unique([1, 2, 2, 3, 1]), [1, 2, 3])
+
+    def test_unique_empty(self):
+        self.assertEqual(unique([]), [])
+        self.assertEqual(unique(()), [])
+
+    def test_unique_strings(self):
+        self.assertEqual(unique("aba"), ["a", "b"])
+        self.assertEqual(unique("abcb"), ["a", "b", "c"])
+
+    def test_distinct_alias(self):
+        self.assertEqual(distinct([1, 1, 2]), [1, 2])
+
+    def test_unique_type_error(self):
+        with self.assertRaises(TypeError):
+            unique(123)  # type: ignore[arg-type]
 
 
 class TestFlatten(unittest.TestCase):

@@ -3,13 +3,14 @@
 This module provides helpers for working with sequences, including
 retrieving elements by position, slicing into head/tail portions,
 splitting at an index, taking or dropping elements while a predicate
-holds, interleaving multiple sequences, and forming adjacent pairs.
+holds, interleaving multiple sequences, forming adjacent pairs,
+chunking, flattening, and removing duplicates while preserving order.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import Any, Iterator, List, Optional, Tuple, TypeVar
+from typing import Any, List, Optional, Tuple, TypeVar
 
 T = TypeVar("T")
 
@@ -22,6 +23,8 @@ __all__: list[str] = [
     "split_at",
     "take_while",
     "drop_while",
+    "unique",
+    "distinct",
     "flatten",
     "interleave",
     "adjacent_pairs",
@@ -340,6 +343,42 @@ def chunk(sequence: Sequence[T], size: int) -> List[List[T]]:
     if size <= 0:
         raise ValueError("size must be positive")
     return [list(sequence[i : i + size]) for i in range(0, len(sequence), size)]
+
+
+def unique(sequence: Sequence[T]) -> List[T]:
+    """Return a list of unique elements from ``sequence`` preserving order.
+
+    Args:
+        sequence: The sequence to deduplicate.
+
+    Returns:
+        A new list containing only the first occurrence of each element.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> unique([1, 2, 2, 3])
+        [1, 2, 3]
+        >>> unique([3, 1, 2, 1])
+        [3, 1, 2]
+        >>> unique([])
+        []
+        >>> unique("aba")
+        ['a', 'b']
+    """
+    _require_sequence(sequence)
+    seen: set = set()
+    result: List[T] = []
+    for item in sequence:
+        if item in seen:
+            continue
+        seen.add(item)
+        result.append(item)
+    return result
+
+
+distinct = unique
 
 
 def flatten(sequence: Sequence[Any]) -> List[Any]:
