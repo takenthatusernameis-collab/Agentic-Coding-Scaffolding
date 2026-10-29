@@ -63138,6 +63138,7 @@ __all__: List[str] = [
     "is_kaprekar_number",
     "is_armstrong_number",
     "is_neon_number",
+    "is_strong_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -64373,11 +64374,54 @@ def is_neon_number(value: int) -> bool:
         False
     """
     if not isinstance(value, int) or isinstance(value, bool):
-        raise TypeError(f"value must be an int, got {type(value).__name__}")
+        raise TypeError(f"value must an int, got {type(value).__name__}")
     if value < 0:
         return False
     square = value * value
     return sum(int(d) for d in str(square)) == value
+
+
+def is_strong_number(value: int) -> bool:
+    """Return True if *value* is a strong number.
+
+    A strong number is a positive integer whose sum of the factorial of its
+    decimal digits equals the number itself. For example, ``145`` is strong
+    because ``1! + 4! + 5! = 1 + 24 + 120 = 145``. Zero is not considered
+    a strong number by this definition.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is a strong number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_strong_number(145)
+        True
+        >>> is_strong_number(1)
+        True
+        >>> is_strong_number(2)
+        True
+        >>> is_strong_number(40585)
+        True
+        >>> is_strong_number(123)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 1:
+        return False
+
+    def _factorial(n: int) -> int:
+        result = 1
+        for i in range(2, n + 1):
+            result *= i
+        return result
+
+    return sum(_factorial(int(d)) for d in str(value)) == value
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -64406,6 +64450,7 @@ from number_utils import (
     is_nan,
     is_negative,
     is_neon_number,
+    is_strong_number,
     is_non_negative,
     is_non_positive,
     is_perfect_cube,
@@ -65361,6 +65406,28 @@ class TestIsNeonNumber(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_neon_number("9")  # type: ignore[arg-type]
+
+
+class TestIsStrongNumber(unittest.TestCase):
+    def test_strong(self) -> None:
+        self.assertTrue(is_strong_number(1))
+        self.assertTrue(is_strong_number(2))
+        self.assertTrue(is_strong_number(145))
+        self.assertTrue(is_strong_number(40585))
+
+    def test_not_strong(self) -> None:
+        self.assertFalse(is_strong_number(123))
+        self.assertFalse(is_strong_number(4))
+
+    def test_negative(self) -> None:
+        self.assertFalse(is_strong_number(-145))
+
+    def test_zero(self) -> None:
+        self.assertFalse(is_strong_number(0))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_strong_number("145")  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---

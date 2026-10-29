@@ -22,6 +22,7 @@ from number_utils import (
     is_nan,
     is_negative,
     is_neon_number,
+    is_strong_number,
     is_non_negative,
     is_non_positive,
     is_perfect_cube,
@@ -977,3 +978,25 @@ class TestIsNeonNumber(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_neon_number("9")  # type: ignore[arg-type]
+
+
+class TestIsStrongNumber(unittest.TestCase):
+    def test_strong(self) -> None:
+        self.assertTrue(is_strong_number(1))
+        self.assertTrue(is_strong_number(2))
+        self.assertTrue(is_strong_number(145))
+        self.assertTrue(is_strong_number(40585))
+
+    def test_not_strong(self) -> None:
+        self.assertFalse(is_strong_number(123))
+        self.assertFalse(is_strong_number(4))
+
+    def test_negative(self) -> None:
+        self.assertFalse(is_strong_number(-145))
+
+    def test_zero(self) -> None:
+        self.assertFalse(is_strong_number(0))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_strong_number("145")  # type: ignore[arg-type]
