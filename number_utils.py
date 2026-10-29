@@ -51,6 +51,7 @@ __all__: List[str] = [
     "is_perfect_number",
     "is_automorphic_number",
     "is_happy_number",
+    "is_kaprekar_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -1110,3 +1111,54 @@ def is_happy_number(value: int) -> bool:
         seen.add(n)
         n = sum(int(d) * int(d) for d in str(n))
     return n == 1
+
+
+
+def is_kaprekar_number(value: int) -> bool:
+    """Return True if *value* is a Kaprekar number.
+
+    A Kaprekar number is a non-negative integer whose square can be split into
+    two parts that sum to the original number. The right part has the same number
+    of digits as the original number (leading zeros in the right part are
+    allowed). Zero and one are Kaprekar numbers.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is Kaprekar, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_kaprekar_number(1)
+        True
+        >>> is_kaprekar_number(9)
+        True
+        >>> is_kaprekar_number(45)
+        True
+        >>> is_kaprekar_number(297)
+        True
+        >>> is_kaprekar_number(7)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    if value == 0:
+        return True
+    square = value * value
+    s = str(square)
+    n = len(str(value))
+    # right part must have n digits; left part may be empty
+    if len(s) < n:
+        return False
+    right_str = s[-n:]
+    left_str = s[:-n]
+    left = int(left_str) if left_str else 0
+    right = int(right_str)
+    if right == 0:
+        return False
+    return left + right == value
