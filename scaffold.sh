@@ -20278,6 +20278,7 @@ from prompt_utils import (
     count_paragraphs,
     count_placeholders,
     count_sentences,
+    count_trailing_newlines,
     count_unique_words,
     count_words,
     dedent_lines,
@@ -20841,6 +20842,38 @@ class TestCountNonBlankLines(unittest.TestCase):
             count_non_blank_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_non_blank_lines(None)  # type: ignore[arg-type]
+
+
+class TestCountTrailingNewlines(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_trailing_newlines(""), 0)
+
+    def test_no_trailing_newlines(self):
+        self.assertEqual(count_trailing_newlines("hello"), 0)
+
+    def test_single_trailing_newline(self):
+        self.assertEqual(count_trailing_newlines("hello\n"), 1)
+
+    def test_multiple_trailing_newlines(self):
+        self.assertEqual(count_trailing_newlines("hello\n\n"), 2)
+
+    def test_trailing_newlines_after_content(self):
+        self.assertEqual(count_trailing_newlines("a\nb\n\n\n"), 3)
+
+    def test_crlf_counts_one_newline(self):
+        self.assertEqual(count_trailing_newlines("hello\r\n"), 1)
+
+    def test_trailing_spaces_not_counted(self):
+        self.assertEqual(count_trailing_newlines("hello   \n"), 1)
+
+    def test_only_newlines(self):
+        self.assertEqual(count_trailing_newlines("\n\n\n"), 3)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_trailing_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_trailing_newlines(None)  # type: ignore[arg-type]
 
 
 class TestCountParagraphs(unittest.TestCase):
@@ -29955,6 +29988,7 @@ __all__: List[str] = [
     "count_lines",
     "count_blank_lines",
     "count_non_blank_lines",
+    "count_trailing_newlines",
     "count_paragraphs",
     "count_characters",
     "reverse_lines",
@@ -30859,6 +30893,41 @@ def count_non_blank_lines(text: str) -> int:
     if lines and lines[-1] == "":
         lines = lines[:-1]
     return sum(1 for line in lines if line.strip() != "")
+
+
+def count_trailing_newlines(text: str) -> int:
+    """Return the number of trailing newline characters in *text*.
+
+    Counts consecutive ``\\n`` characters at the end of *text*. Other
+    trailing whitespace (spaces, tabs, carriage returns) is not counted.
+    Empty text returns zero.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        The number of trailing newline characters.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_trailing_newlines("hello")
+        0
+        >>> count_trailing_newlines("hello\\n")
+        1
+        >>> count_trailing_newlines("hello\\n\\n")
+        2
+        >>> count_trailing_newlines("")
+        0
+    """
+    _require_string(text, "text")
+    count = 0
+    i = len(text) - 1
+    while i >= 0 and text[i] == "\n":
+        count += 1
+        i -= 1
+    return count
 
 
 def count_paragraphs(text: str) -> int:
@@ -42684,6 +42753,21 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — added count_trailing_newlines to prompt_utils
+
+Verified repository health: `make test` passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `count_trailing_newlines(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns the number of trailing ``\\n`` characters in *text*. Added `TestCountTrailingNewlines` to `tests/test_prompt_utils.py` covering empty input, no trailing newlines, single and multiple trailing newlines, CRLF, trailing spaces, only-newlines input, and the `TypeError` path. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — exported strip_non_ascii and truncate_bytes from strings
 
 Verified repository health: `make test` passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -44684,7 +44768,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_paragraphs`, `count_characters`, `reverse_lines`, `strip_blank_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `reverse_lines`, `strip_blank_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 
@@ -64450,7 +64534,6 @@ from number_utils import (
     is_nan,
     is_negative,
     is_neon_number,
-    is_strong_number,
     is_non_negative,
     is_non_positive,
     is_perfect_cube,
@@ -64458,6 +64541,7 @@ from number_utils import (
     is_perfect_square,
     is_positive,
     is_power_of_two,
+    is_strong_number,
     is_triangular_number,
     is_zero,
     lerp,

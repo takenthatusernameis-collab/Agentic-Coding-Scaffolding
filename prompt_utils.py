@@ -39,6 +39,7 @@ __all__: List[str] = [
     "count_lines",
     "count_blank_lines",
     "count_non_blank_lines",
+    "count_trailing_newlines",
     "count_paragraphs",
     "count_characters",
     "reverse_lines",
@@ -943,6 +944,41 @@ def count_non_blank_lines(text: str) -> int:
     if lines and lines[-1] == "":
         lines = lines[:-1]
     return sum(1 for line in lines if line.strip() != "")
+
+
+def count_trailing_newlines(text: str) -> int:
+    """Return the number of trailing newline characters in *text*.
+
+    Counts consecutive ``\\n`` characters at the end of *text*. Other
+    trailing whitespace (spaces, tabs, carriage returns) is not counted.
+    Empty text returns zero.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        The number of trailing newline characters.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_trailing_newlines("hello")
+        0
+        >>> count_trailing_newlines("hello\\n")
+        1
+        >>> count_trailing_newlines("hello\\n\\n")
+        2
+        >>> count_trailing_newlines("")
+        0
+    """
+    _require_string(text, "text")
+    count = 0
+    i = len(text) - 1
+    while i >= 0 and text[i] == "\n":
+        count += 1
+        i -= 1
+    return count
 
 
 def count_paragraphs(text: str) -> int:

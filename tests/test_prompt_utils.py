@@ -12,6 +12,7 @@ from prompt_utils import (
     count_paragraphs,
     count_placeholders,
     count_sentences,
+    count_trailing_newlines,
     count_unique_words,
     count_words,
     dedent_lines,
@@ -575,6 +576,38 @@ class TestCountNonBlankLines(unittest.TestCase):
             count_non_blank_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_non_blank_lines(None)  # type: ignore[arg-type]
+
+
+class TestCountTrailingNewlines(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_trailing_newlines(""), 0)
+
+    def test_no_trailing_newlines(self):
+        self.assertEqual(count_trailing_newlines("hello"), 0)
+
+    def test_single_trailing_newline(self):
+        self.assertEqual(count_trailing_newlines("hello\n"), 1)
+
+    def test_multiple_trailing_newlines(self):
+        self.assertEqual(count_trailing_newlines("hello\n\n"), 2)
+
+    def test_trailing_newlines_after_content(self):
+        self.assertEqual(count_trailing_newlines("a\nb\n\n\n"), 3)
+
+    def test_crlf_counts_one_newline(self):
+        self.assertEqual(count_trailing_newlines("hello\r\n"), 1)
+
+    def test_trailing_spaces_not_counted(self):
+        self.assertEqual(count_trailing_newlines("hello   \n"), 1)
+
+    def test_only_newlines(self):
+        self.assertEqual(count_trailing_newlines("\n\n\n"), 3)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_trailing_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_trailing_newlines(None)  # type: ignore[arg-type]
 
 
 class TestCountParagraphs(unittest.TestCase):
