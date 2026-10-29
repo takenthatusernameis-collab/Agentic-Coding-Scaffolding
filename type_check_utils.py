@@ -42,6 +42,7 @@ __all__: List[str] = [
     "is_module",
     "is_namedtuple",
     "is_typeddict",
+    "is_literal",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -335,16 +336,10 @@ def is_typeddict(value: object) -> bool:
             # Check if it's from typing.TypedDict
             module = getattr(value, "__module__", "")
             if module == "typing" and value.__name__ == "TypedDict":
-                return False  # The base TypedDict class itself
+                pass  # This shouldn't happen as TypedDict is a function/class in typing
         except Exception:
             pass
-        # For TypedDict subclasses created via `class X(TypedDict): ...`
-        # they have __orig_bases__ or are instances of _TypedDictMeta
-        origin = getattr(value, "__origin__", None)
-        if origin is not None:
-            return False
-        # Most reliable check: TypedDict classes from typing have
-        # __required_keys__ or __optional_keys__ in recent Python versions,
+        # Check for TypedDict markers
         # or we can check the metaclass
         if hasattr(value, "__required_keys__") or hasattr(value, "__optional_keys__"):
             return True
@@ -355,9 +350,49 @@ def is_typeddict(value: object) -> bool:
         for cls in mro:
             if cls.__name__ == "TypedDict" and getattr(cls, "__module__", "") == "typing":
                 return True
+        # Also check using typing.is_typeddict if available
+        try:
+            import typing
+
+            if hasattr(typing, "is_typeddict"):
+                return typing.is_typeddict(value)
+        except Exception:
+            pass
         return False
     # For instances, check if the instance's type is a TypedDict
     return is_typeddict(type(value))
+
+
+def is_literal(value: object) -> bool:
+    """Return True if *value* is a Literal type."""
+    try:
+        import typing
+        from typing import get_origin
+
+        origin = get_origin(value)
+        if origin is getattr(typing, "Literal", None):
+            return True
+    except Exception:
+        pass
+    try:
+        from typing import _LiteralGenericAlias
+
+        if isinstance(value, _LiteralGenericAlias):
+            return True
+    except Exception:
+        pass
+    # In some Python versions
+    try:
+        import typing_extensions
+
+        from typing import get_origin
+
+        origin = get_origin(value)
+        if origin is getattr(typing_extensions, "Literal", None):
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def ensure_type(value: object, expected_type: type, name: str = "value") -> object:

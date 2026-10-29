@@ -6,6 +6,7 @@ import unittest
 from type_utils import (
     get_type_args,
     is_generic,
+    is_literal,
     is_optional,
     is_subclass_safe,
     is_union,
@@ -27,6 +28,13 @@ class TestTypeUtils(unittest.TestCase):
         self.assertTrue(is_union(t.Union[int, str, None]))
         self.assertFalse(is_union(int))
         self.assertFalse(is_union(t.List[int]))
+
+    def test_is_literal(self):
+        self.assertTrue(is_literal(t.Literal["a", "b"]))
+        self.assertTrue(is_literal(t.Literal[1, 2, 3]))
+        self.assertFalse(is_literal(int))
+        self.assertFalse(is_literal(str))
+        self.assertFalse(is_literal(t.Union[int, str]))
 
     def test_is_generic(self):
         self.assertTrue(is_generic(t.List[int]))

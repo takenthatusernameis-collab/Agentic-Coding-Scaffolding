@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import sys
-from typing import Any, List, Union, get_args, get_origin
+from typing import Any, List, Literal, Union, get_args, get_origin
 
 __all__: List[str] = [
     "is_optional",
     "is_union",
+    "is_literal",
     "is_generic",
     "get_type_args",
     "type_name",
@@ -45,6 +46,29 @@ def is_union(tp: Any) -> bool:
 
         if isinstance(tp, UnionType):
             return True
+    return False
+
+
+def is_literal(tp: Any) -> bool:
+    """Return True if the type is a Literal."""
+    origin = get_origin(tp)
+    if origin is Literal:
+        return True
+    if sys.version_info >= (3, 8):
+        try:
+            # In Python 3.8+, Literal is from typing
+            if getattr(tp, "__origin__", None) is Literal:
+                return True
+        except Exception:
+            pass
+    # Fallback for some Python versions
+    try:
+        from typing import _LiteralGenericAlias
+
+        if isinstance(tp, _LiteralGenericAlias):
+            return True
+    except Exception:
+        pass
     return False
 
 

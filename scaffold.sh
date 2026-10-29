@@ -21215,6 +21215,7 @@ import unittest
 from type_utils import (
     get_type_args,
     is_generic,
+    is_literal,
     is_optional,
     is_subclass_safe,
     is_union,
@@ -21236,6 +21237,13 @@ class TestTypeUtils(unittest.TestCase):
         self.assertTrue(is_union(t.Union[int, str, None]))
         self.assertFalse(is_union(int))
         self.assertFalse(is_union(t.List[int]))
+
+    def test_is_literal(self):
+        self.assertTrue(is_literal(t.Literal["a", "b"]))
+        self.assertTrue(is_literal(t.Literal[1, 2, 3]))
+        self.assertFalse(is_literal(int))
+        self.assertFalse(is_literal(str))
+        self.assertFalse(is_literal(t.Union[int, str]))
 
     def test_is_generic(self):
         self.assertTrue(is_generic(t.List[int]))
@@ -31021,11 +31029,12 @@ cat > "$OUTPUT_DIR/type_utils.py" <<'TYPEUTILS'
 from __future__ import annotations
 
 import sys
-from typing import Any, List, Union, get_args, get_origin
+from typing import Any, List, Literal, Union, get_args, get_origin
 
 __all__: List[str] = [
     "is_optional",
     "is_union",
+    "is_literal",
     "is_generic",
     "get_type_args",
     "type_name",
@@ -31063,6 +31072,29 @@ def is_union(tp: Any) -> bool:
 
         if isinstance(tp, UnionType):
             return True
+    return False
+
+
+def is_literal(tp: Any) -> bool:
+    """Return True if the type is a Literal."""
+    origin = get_origin(tp)
+    if origin is Literal:
+        return True
+    if sys.version_info >= (3, 8):
+        try:
+            # In Python 3.8+, Literal is from typing
+            if getattr(tp, "__origin__", None) is Literal:
+                return True
+        except Exception:
+            pass
+    # Fallback for some Python versions
+    try:
+        from typing import _LiteralGenericAlias
+
+        if isinstance(tp, _LiteralGenericAlias):
+            return True
+    except Exception:
+        pass
     return False
 
 
@@ -87830,6 +87862,43 @@ def is_typeddict(tp):
     return _typing.is_typeddict(tp)
 
 
+def is_literal(tp):
+    """Return ``True`` if ``tp`` is a :class:`typing.Literal` type."""
+    try:
+        from typing import Literal, get_origin
+
+        origin = get_origin(tp)
+        if origin is Literal:
+            return True
+    except Exception:
+        pass
+    # Python 3.8+
+    try:
+        import typing
+
+        origin = getattr(tp, "__origin__", None)
+        if origin is getattr(typing, "Literal", None):
+            return True
+    except Exception:
+        pass
+    # Python 3.9+ uses typing._LiteralGenericAlias
+    try:
+        from typing import _LiteralGenericAlias
+
+        if isinstance(tp, _LiteralGenericAlias):
+            return True
+    except Exception:
+        pass
+    # Python 3.8 uses typing.LiteralMeta
+    try:
+        if isinstance(tp, type) and tp.__name__ == "Literal" and tp.__module__ == "typing":
+            # This is the Literal class itself in some forms
+            pass
+    except Exception:
+        pass
+    return False
+
+
 overload = _typing.overload
 Final = _typing.Final
 Literal = _typing.Literal
@@ -87840,7 +87909,7 @@ TYPING_UTILS
 cat > "$OUTPUT_DIR/tests/test_typing_utils.py" <<'TEST_TYPING_UTILS'
 import typing
 import unittest
-from typing import List, Optional, TypedDict
+from typing import List, Optional, TypedDict, Literal
 
 from typing_utils import (
     ClassVar,
@@ -87849,6 +87918,7 @@ from typing_utils import (
     get_args,
     get_origin,
     get_type_hints,
+    is_literal,
     is_typeddict,
     overload,
 )
@@ -87879,6 +87949,12 @@ class TestTypingUtils(unittest.TestCase):
 
         self.assertTrue(is_typeddict(Point))
         self.assertFalse(is_typeddict(int))
+
+    def test_is_literal(self):
+        self.assertTrue(is_literal(Literal["a", "b"]))
+        self.assertTrue(is_literal(Literal[1, 2]))
+        self.assertFalse(is_literal(int))
+        self.assertFalse(is_literal(str))
 
     def test_reexports_match_typing(self):
         self.assertIs(overload, typing.overload)
@@ -115825,6 +115901,7 @@ __all__: List[str] = [
     "is_module",
     "is_namedtuple",
     "is_typeddict",
+    "is_literal",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -116118,16 +116195,10 @@ def is_typeddict(value: object) -> bool:
             # Check if it's from typing.TypedDict
             module = getattr(value, "__module__", "")
             if module == "typing" and value.__name__ == "TypedDict":
-                return False  # The base TypedDict class itself
+                pass  # This shouldn't happen as TypedDict is a function/class in typing
         except Exception:
             pass
-        # For TypedDict subclasses created via `class X(TypedDict): ...`
-        # they have __orig_bases__ or are instances of _TypedDictMeta
-        origin = getattr(value, "__origin__", None)
-        if origin is not None:
-            return False
-        # Most reliable check: TypedDict classes from typing have
-        # __required_keys__ or __optional_keys__ in recent Python versions,
+        # Check for TypedDict markers
         # or we can check the metaclass
         if hasattr(value, "__required_keys__") or hasattr(value, "__optional_keys__"):
             return True
@@ -116138,9 +116209,49 @@ def is_typeddict(value: object) -> bool:
         for cls in mro:
             if cls.__name__ == "TypedDict" and getattr(cls, "__module__", "") == "typing":
                 return True
+        # Also check using typing.is_typeddict if available
+        try:
+            import typing
+
+            if hasattr(typing, "is_typeddict"):
+                return typing.is_typeddict(value)
+        except Exception:
+            pass
         return False
     # For instances, check if the instance's type is a TypedDict
     return is_typeddict(type(value))
+
+
+def is_literal(value: object) -> bool:
+    """Return True if *value* is a Literal type."""
+    try:
+        import typing
+        from typing import get_origin
+
+        origin = get_origin(value)
+        if origin is getattr(typing, "Literal", None):
+            return True
+    except Exception:
+        pass
+    try:
+        from typing import _LiteralGenericAlias
+
+        if isinstance(value, _LiteralGenericAlias):
+            return True
+    except Exception:
+        pass
+    # In some Python versions
+    try:
+        import typing_extensions
+
+        from typing import get_origin
+
+        origin = get_origin(value)
+        if origin is getattr(typing_extensions, "Literal", None):
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def ensure_type(value: object, expected_type: type, name: str = "value") -> object:
@@ -116306,7 +116417,7 @@ cat > "$OUTPUT_DIR/tests/test_type_check_utils.py" <<'TEST_TYPE_CHECK_UTILS'
 from __future__ import annotations
 
 import unittest
-from typing import Protocol, runtime_checkable
+from typing import Literal, Protocol, TypedDict, runtime_checkable
 
 import type_check_utils
 
@@ -116375,6 +116486,18 @@ class TestIsNamedtuple(unittest.TestCase):
         self.assertFalse(type_check_utils.is_namedtuple(42))
         self.assertFalse(type_check_utils.is_namedtuple("hello"))
         self.assertFalse(type_check_utils.is_namedtuple(None))
+
+
+class TestIsLiteral(unittest.TestCase):
+    def test_literal_type(self) -> None:
+        self.assertTrue(type_check_utils.is_literal(Literal["a", "b"]))
+        self.assertTrue(type_check_utils.is_literal(Literal[1, 2, 3]))
+
+    def test_non_literal_is_not_literal(self) -> None:
+        self.assertFalse(type_check_utils.is_literal(str))
+        self.assertFalse(type_check_utils.is_literal(int))
+        self.assertFalse(type_check_utils.is_literal(list))
+        self.assertFalse(type_check_utils.is_literal({"a": 1}))
 
 
 class TestTypedDictChecks(unittest.TestCase):

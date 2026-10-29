@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import unittest
-from typing import Protocol, runtime_checkable
+from typing import Literal, Protocol, TypedDict, runtime_checkable
 
 import type_check_utils
 
@@ -72,6 +72,18 @@ class TestIsNamedtuple(unittest.TestCase):
         self.assertFalse(type_check_utils.is_namedtuple(42))
         self.assertFalse(type_check_utils.is_namedtuple("hello"))
         self.assertFalse(type_check_utils.is_namedtuple(None))
+
+
+class TestIsLiteral(unittest.TestCase):
+    def test_literal_type(self) -> None:
+        self.assertTrue(type_check_utils.is_literal(Literal["a", "b"]))
+        self.assertTrue(type_check_utils.is_literal(Literal[1, 2, 3]))
+
+    def test_non_literal_is_not_literal(self) -> None:
+        self.assertFalse(type_check_utils.is_literal(str))
+        self.assertFalse(type_check_utils.is_literal(int))
+        self.assertFalse(type_check_utils.is_literal(list))
+        self.assertFalse(type_check_utils.is_literal({"a": 1}))
 
 
 class TestTypedDictChecks(unittest.TestCase):

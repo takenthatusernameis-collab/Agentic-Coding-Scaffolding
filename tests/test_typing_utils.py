@@ -1,6 +1,6 @@
 import typing
 import unittest
-from typing import List, Optional, TypedDict
+from typing import List, Optional, TypedDict, Literal
 
 from typing_utils import (
     ClassVar,
@@ -9,6 +9,7 @@ from typing_utils import (
     get_args,
     get_origin,
     get_type_hints,
+    is_literal,
     is_typeddict,
     overload,
 )
@@ -39,6 +40,12 @@ class TestTypingUtils(unittest.TestCase):
 
         self.assertTrue(is_typeddict(Point))
         self.assertFalse(is_typeddict(int))
+
+    def test_is_literal(self):
+        self.assertTrue(is_literal(Literal["a", "b"]))
+        self.assertTrue(is_literal(Literal[1, 2]))
+        self.assertFalse(is_literal(int))
+        self.assertFalse(is_literal(str))
 
     def test_reexports_match_typing(self):
         self.assertIs(overload, typing.overload)

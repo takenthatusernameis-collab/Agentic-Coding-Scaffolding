@@ -37,6 +37,43 @@ def is_typeddict(tp):
     return _typing.is_typeddict(tp)
 
 
+def is_literal(tp):
+    """Return ``True`` if ``tp`` is a :class:`typing.Literal` type."""
+    try:
+        from typing import Literal, get_origin
+
+        origin = get_origin(tp)
+        if origin is Literal:
+            return True
+    except Exception:
+        pass
+    # Python 3.8+
+    try:
+        import typing
+
+        origin = getattr(tp, "__origin__", None)
+        if origin is getattr(typing, "Literal", None):
+            return True
+    except Exception:
+        pass
+    # Python 3.9+ uses typing._LiteralGenericAlias
+    try:
+        from typing import _LiteralGenericAlias
+
+        if isinstance(tp, _LiteralGenericAlias):
+            return True
+    except Exception:
+        pass
+    # Python 3.8 uses typing.LiteralMeta
+    try:
+        if isinstance(tp, type) and tp.__name__ == "Literal" and tp.__module__ == "typing":
+            # This is the Literal class itself in some forms
+            pass
+    except Exception:
+        pass
+    return False
+
+
 overload = _typing.overload
 Final = _typing.Final
 Literal = _typing.Literal
