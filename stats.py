@@ -44,6 +44,7 @@ __all__: List[str] = [
     "z_scores",
     "root_mean_square",
     "standard_error",
+    "moving_average",
 ]
 
 
@@ -1019,3 +1020,71 @@ def standard_error(numbers: List[T | float]) -> float:
     if n < 2:
         raise ValueError("Cannot calculate standard error with fewer than 2 elements")
     return stddev(numbers, population=False) / math.sqrt(n)
+
+
+def moving_average(
+    numbers: List[T | float], window: int, *, weights: List[float] | None = None
+) -> List[float]:
+    """Return the weighted moving averages of *numbers* over a sliding *window*.
+
+    For each position ``i`` starting at ``window - 1``, the result contains the
+    average of the *window* values ending at *i* (i.e. ``numbers[i - window + 1:i + 1]``).
+    When *weights* is provided it must have length *window*; each window value is
+    multiplied by the corresponding weight and the result is divided by the sum
+    of the weights. When *weights* is omitted (the default) a simple arithmetic
+    moving average is computed.
+
+    Args:
+        numbers: A list of numeric values.
+        window: The number of values to include in each average. Must be a
+            positive integer no larger than ``len(numbers)``.
+        weights: Optional per-position weights of length *window*.
+
+    Returns:
+        A list of moving-average values, one for each valid window position. The
+        result has length ``len(numbers) - window + 1``.
+
+    Raises:
+        ValueError: If the list is empty, *window* is not positive, *window*
+            is larger than the list length, the weights do not sum to a positive
+            value, or the sample variance requested with fewer than 2 elements.
+        TypeError: If *numbers* is not a list, contains non-numeric values,
+            *window* is not an int, or *weights* is not a list of numbers.
+
+    Examples:
+        >>> moving_average([1, 2, 3, 4, 5], 3)
+        [2.0, 3.0, 4.0]
+        >>> moving_average([1, 2, 3, 4], 2)
+        [1.5, 2.5, 3.5]
+        >>> moving_average([10, 20, 30], 2, weights=[1, 2])
+        [16.666666666666668, 26.666666666666668]
+    """
+    _require_numbers(numbers, "numbers")
+    _require_int(window, "window")
+    if window <= 0:
+        raise ValueError("window must be positive")
+    n = len(numbers)
+    if window > n:
+        raise ValueError(
+            f"window ({window}) cannot be larger than the list length ({n})"
+        )
+    if weights is not None:
+        _require_numbers(weights, "weights")
+        if len(weights) != window:
+            raise ValueError("weights must have the same length as window")
+        total_weight = sum(float(w) for w in weights)
+        if total_weight <= 0:
+            raise ValueError("weights must sum to a positive value")
+        result: List[float] = []
+        for i in range(n - window + 1):
+            window_values = numbers[i : i + window]
+            weighted_sum = sum(
+                float(v) * float(w) for v, w in zip(window_values, weights)
+            )
+            result.append(weighted_sum / total_weight)
+        return result
+    result = []
+    for i in range(n - window + 1):
+        window_values = numbers[i : i + window]
+        result.append(mean(window_values))
+    return result
