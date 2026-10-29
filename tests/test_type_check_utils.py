@@ -88,7 +88,6 @@ class TestIsLiteral(unittest.TestCase):
 
 class TestTypedDictChecks(unittest.TestCase):
     def test_typed_dict_class(self) -> None:
-        from typing import TypedDict
 
         class Point(TypedDict):
             x: int
@@ -179,6 +178,35 @@ class TestTypeChecks(unittest.TestCase):
         self.assertFalse(type_check_utils.is_module("sys"))
         self.assertFalse(type_check_utils.is_module(None))
 
+
+class TestIsAwaitable(unittest.TestCase):
+    def test_coroutine_is_awaitable(self) -> None:
+        async def foo() -> int:
+            return 1
+
+        coro = foo()
+        try:
+            self.assertTrue(type_check_utils.is_awaitable(coro))
+        finally:
+            coro.close()
+
+    def test_non_awaitable_values(self) -> None:
+        self.assertFalse(type_check_utils.is_awaitable(42))
+        self.assertFalse(type_check_utils.is_awaitable("hello"))
+        self.assertFalse(type_check_utils.is_awaitable([]))
+        self.assertFalse(type_check_utils.is_awaitable(None))
+
+    def test_awaitable_object(self) -> None:
+        class AwaitableObj:
+            def __await__(self):
+                if False:
+                    yield
+                return 1
+
+        self.assertTrue(type_check_utils.is_awaitable(AwaitableObj()))
+
+
+class TestEnsureType(unittest.TestCase):
     def test_ensure_type(self) -> None:
         self.assertEqual(type_check_utils.ensure_type("hi", str), "hi")
         with self.assertRaises(TypeError):

@@ -42682,12 +42682,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — added is_awaitable to type_check_utils
+
+- Added `is_awaitable(value)` to `type_check_utils.py` with a typed signature, `__all__` export, and a Google-style docstring with doctests using `inspect.isawaitable` for a hermetic awaitability check; it returns `True` for coroutines and objects implementing `__await__`. Added `TestIsAwaitable` to `tests/test_type_check_utils.py` covering coroutines, awaitable objects, and non-awaitable values. Updated the `type_check_utils` module prose section of `README.md` to list `is_awaitable`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, and `README.md` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+
 ## Latest Session (2026-10-29) — added is_typeddict to type_check_utils
-
-- Added `is_typeddict(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and a hermetic check consistent with the other `is_*` predicates; it returns `True` when *value* is a TypedDict class (a dict subclass created via `typing.TypedDict` with annotations and TypedDict markers). Added `TestTypedDictChecks` to `tests/test_type_check_utils.py` covering TypedDict classes, plain dicts, and non-dict values. Updated the `type_check_utils` module prose section of `README.md` to list `is_typeddict`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, and `README.md` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-
-
-## Latest Session (2026-10-29) — added is_module to type_check_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6826 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -45485,7 +45485,7 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 
 ## Type Check Utilities Module
 
-The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `is_typeddict`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `is_typeddict`, `is_awaitable`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -87909,7 +87909,7 @@ TYPING_UTILS
 cat > "$OUTPUT_DIR/tests/test_typing_utils.py" <<'TEST_TYPING_UTILS'
 import typing
 import unittest
-from typing import List, Optional, TypedDict, Literal
+from typing import List, Literal, Optional, TypedDict
 
 from typing_utils import (
     ClassVar,
@@ -115896,6 +115896,7 @@ __all__: List[str] = [
     "is_generator",
     "is_coroutine",
     "is_async_generator",
+    "is_awaitable",
     "is_function",
     "is_method",
     "is_module",
@@ -116088,6 +116089,32 @@ def is_async_generator(value: object) -> bool:
     return isinstance(value, types.AsyncGeneratorType)
 
 
+def is_awaitable(value: object) -> bool:
+    """Return True if *value* is awaitable.
+
+    An awaitable is an object that can be used in an ``await`` expression.
+    This includes coroutines, objects with an ``__await__`` method,
+    and certain futures in some contexts. The check is consistent with
+    :func:`inspect.isawaitable`.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is awaitable, False otherwise.
+
+    Examples:
+        >>> import asyncio
+        >>> async def f():
+        ...     return 1
+        >>> is_awaitable(f())
+        True
+        >>> is_awaitable(42)
+        False
+    """
+    return inspect.isawaitable(value)
+
+
 def is_function(value: object) -> bool:
     """Return True if value is a function (not method)."""
     return inspect.isfunction(value)
@@ -116234,17 +116261,18 @@ def is_literal(value: object) -> bool:
     except Exception:
         pass
     try:
-        from typing import _LiteralGenericAlias
+        import typing as _typing
 
-        if isinstance(value, _LiteralGenericAlias):
+        _lit_alias = getattr(_typing, "_LiteralGenericAlias", None)
+        if _lit_alias is not None and isinstance(value, _lit_alias):
             return True
     except Exception:
         pass
     # In some Python versions
     try:
-        import typing_extensions
-
         from typing import get_origin
+
+        import typing_extensions
 
         origin = get_origin(value)
         if origin is getattr(typing_extensions, "Literal", None):
@@ -116502,7 +116530,6 @@ class TestIsLiteral(unittest.TestCase):
 
 class TestTypedDictChecks(unittest.TestCase):
     def test_typed_dict_class(self) -> None:
-        from typing import TypedDict
 
         class Point(TypedDict):
             x: int
@@ -116593,6 +116620,35 @@ class TestTypeChecks(unittest.TestCase):
         self.assertFalse(type_check_utils.is_module("sys"))
         self.assertFalse(type_check_utils.is_module(None))
 
+
+class TestIsAwaitable(unittest.TestCase):
+    def test_coroutine_is_awaitable(self) -> None:
+        async def foo() -> int:
+            return 1
+
+        coro = foo()
+        try:
+            self.assertTrue(type_check_utils.is_awaitable(coro))
+        finally:
+            coro.close()
+
+    def test_non_awaitable_values(self) -> None:
+        self.assertFalse(type_check_utils.is_awaitable(42))
+        self.assertFalse(type_check_utils.is_awaitable("hello"))
+        self.assertFalse(type_check_utils.is_awaitable([]))
+        self.assertFalse(type_check_utils.is_awaitable(None))
+
+    def test_awaitable_object(self) -> None:
+        class AwaitableObj:
+            def __await__(self):
+                if False:
+                    yield
+                return 1
+
+        self.assertTrue(type_check_utils.is_awaitable(AwaitableObj()))
+
+
+class TestEnsureType(unittest.TestCase):
     def test_ensure_type(self) -> None:
         self.assertEqual(type_check_utils.ensure_type("hi", str), "hi")
         with self.assertRaises(TypeError):

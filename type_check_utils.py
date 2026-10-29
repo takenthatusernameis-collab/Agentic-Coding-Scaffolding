@@ -37,6 +37,7 @@ __all__: List[str] = [
     "is_generator",
     "is_coroutine",
     "is_async_generator",
+    "is_awaitable",
     "is_function",
     "is_method",
     "is_module",
@@ -229,6 +230,32 @@ def is_async_generator(value: object) -> bool:
     return isinstance(value, types.AsyncGeneratorType)
 
 
+def is_awaitable(value: object) -> bool:
+    """Return True if *value* is awaitable.
+
+    An awaitable is an object that can be used in an ``await`` expression.
+    This includes coroutines, objects with an ``__await__`` method,
+    and certain futures in some contexts. The check is consistent with
+    :func:`inspect.isawaitable`.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is awaitable, False otherwise.
+
+    Examples:
+        >>> import asyncio
+        >>> async def f():
+        ...     return 1
+        >>> is_awaitable(f())
+        True
+        >>> is_awaitable(42)
+        False
+    """
+    return inspect.isawaitable(value)
+
+
 def is_function(value: object) -> bool:
     """Return True if value is a function (not method)."""
     return inspect.isfunction(value)
@@ -375,17 +402,18 @@ def is_literal(value: object) -> bool:
     except Exception:
         pass
     try:
-        from typing import _LiteralGenericAlias
+        import typing as _typing
 
-        if isinstance(value, _LiteralGenericAlias):
+        _lit_alias = getattr(_typing, "_LiteralGenericAlias", None)
+        if _lit_alias is not None and isinstance(value, _lit_alias):
             return True
     except Exception:
         pass
     # In some Python versions
     try:
-        import typing_extensions
-
         from typing import get_origin
+
+        import typing_extensions
 
         origin = get_origin(value)
         if origin is getattr(typing_extensions, "Literal", None):

@@ -1,9 +1,9 @@
+## Latest Session (2026-10-29) — added is_awaitable to type_check_utils
+
+- Added `is_awaitable(value)` to `type_check_utils.py` with a typed signature, `__all__` export, and a Google-style docstring with doctests using `inspect.isawaitable` for a hermetic awaitability check; it returns `True` for coroutines and objects implementing `__await__`. Added `TestIsAwaitable` to `tests/test_type_check_utils.py` covering coroutines, awaitable objects, and non-awaitable values. Updated the `type_check_utils` module prose section of `README.md` to list `is_awaitable`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, and `README.md` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+
 ## Latest Session (2026-10-29) — added is_typeddict to type_check_utils
-
-- Added `is_typeddict(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and a hermetic check consistent with the other `is_*` predicates; it returns `True` when *value* is a TypedDict class (a dict subclass created via `typing.TypedDict` with annotations and TypedDict markers). Added `TestTypedDictChecks` to `tests/test_type_check_utils.py` covering TypedDict classes, plain dicts, and non-dict values. Updated the `type_check_utils` module prose section of `README.md` to list `is_typeddict`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, and `README.md` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-
-
-## Latest Session (2026-10-29) — added is_module to type_check_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6826 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
