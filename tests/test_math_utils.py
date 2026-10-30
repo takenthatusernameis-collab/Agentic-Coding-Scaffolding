@@ -8,6 +8,7 @@ from math_utils import (
     factorial,
     fibonacci,
     gcd,
+    is_composite,
     is_even,
     is_odd,
     is_prime,
@@ -151,6 +152,47 @@ class TestIsPrime(unittest.TestCase):
             is_prime("5")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_prime(True)  # type: ignore[arg-type]
+
+
+class TestIsComposite(unittest.TestCase):
+    def test_composite_numbers(self) -> None:
+        self.assertTrue(is_composite(4))
+        self.assertTrue(is_composite(6))
+        self.assertTrue(is_composite(8))
+        self.assertTrue(is_composite(9))
+        self.assertTrue(is_composite(10))
+        self.assertTrue(is_composite(12))
+        self.assertTrue(is_composite(15))
+        self.assertTrue(is_composite(100))
+
+    def test_non_composite_numbers(self) -> None:
+        self.assertFalse(is_composite(2))
+        self.assertFalse(is_composite(3))
+        self.assertFalse(is_composite(5))
+        self.assertFalse(is_composite(7))
+        self.assertFalse(is_composite(11))
+        self.assertFalse(is_composite(17))
+        self.assertFalse(is_composite(97))
+
+    def test_composite_edge_cases(self) -> None:
+        with self.assertRaises(ValueError):
+            is_composite(1)
+        with self.assertRaises(ValueError):
+            is_composite(0)
+        with self.assertRaises(ValueError):
+            is_composite(-7)
+
+    def test_composite_large(self) -> None:
+        self.assertTrue(is_composite(999999))
+        self.assertFalse(is_composite(9999991))
+
+    def test_composite_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_composite(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite(True)  # type: ignore[arg-type]
 
 
 class TestClamp(unittest.TestCase):

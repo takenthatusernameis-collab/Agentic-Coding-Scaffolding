@@ -11,6 +11,7 @@ __all__: List[str] = [
     "gcd",
     "lcm",
     "is_prime",
+    "is_composite",
     "clamp",
     "is_even",
     "is_odd",
@@ -172,6 +173,39 @@ def is_prime(n: int) -> bool:
             return False
         i += 6
     return True
+
+
+def is_composite(n: int) -> bool:
+    """Return True if *n* is a composite number.
+
+    A composite number is a positive integer greater than 1 that is not
+    prime (i.e. it has a divisor other than 1 and itself). The number 1 is
+    neither prime nor composite; 0 and negative integers are neither.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is composite, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 2.
+
+    Examples:
+        >>> is_composite(4)
+        True
+        >>> is_composite(6)
+        True
+        >>> is_composite(2)
+        False
+        >>> is_composite(17)
+        False
+    """
+    n = _require_int(n, "n")
+    if n < 2:
+        raise ValueError("Composite check is only defined for integers >= 2")
+    return not is_prime(n)
 
 
 def clamp(value: float, min_val: float, max_val: float) -> float:

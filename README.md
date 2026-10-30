@@ -52,7 +52,7 @@ shapes.py                    # Geometry utilities for areas and perimeters
 strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, remove_whitespace, normalize_whitespace, starts_with, ends_with, removeprefix, removesuffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, and is_blank)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
-math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, clamp, is_even, combination, permutation)
+math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, is_composite, clamp, is_even, combination, permutation)
 mmap_utils.py               # Utilities wrapping the standard library mmap module
 data_utils.py                # Data utility functions
 dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
@@ -683,7 +683,7 @@ MIT
 
 ## Math Utilities Module
 
-The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `clamp`, and `is_even`. It also provides `combination` and `permutation` for combinatorial calculations. The module is tested in `tests/test_math_utils.py`.
+The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `is_composite`, `clamp`, and `is_even`. It also provides `combination` and `permutation` for combinatorial calculations. The module is tested in `tests/test_math_utils.py`.
 
 ## Data Utilities Module
 

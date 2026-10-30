@@ -18389,6 +18389,7 @@ __all__: List[str] = [
     "gcd",
     "lcm",
     "is_prime",
+    "is_composite",
     "clamp",
     "is_even",
     "is_odd",
@@ -18550,6 +18551,39 @@ def is_prime(n: int) -> bool:
             return False
         i += 6
     return True
+
+
+def is_composite(n: int) -> bool:
+    """Return True if *n* is a composite number.
+
+    A composite number is a positive integer greater than 1 that is not
+    prime (i.e. it has a divisor other than 1 and itself). The number 1 is
+    neither prime nor composite; 0 and negative integers are neither.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is composite, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 2.
+
+    Examples:
+        >>> is_composite(4)
+        True
+        >>> is_composite(6)
+        True
+        >>> is_composite(2)
+        False
+        >>> is_composite(17)
+        False
+    """
+    n = _require_int(n, "n")
+    if n < 2:
+        raise ValueError("Composite check is only defined for integers >= 2")
+    return not is_prime(n)
 
 
 def clamp(value: float, min_val: float, max_val: float) -> float:
@@ -21717,6 +21751,7 @@ from math_utils import (
     is_even,
     is_odd,
     is_prime,
+    is_composite,
     lcm,
     permutation,
 )
@@ -21857,6 +21892,47 @@ class TestIsPrime(unittest.TestCase):
             is_prime("5")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_prime(True)  # type: ignore[arg-type]
+
+
+class TestIsComposite(unittest.TestCase):
+    def test_composite_numbers(self) -> None:
+        self.assertTrue(is_composite(4))
+        self.assertTrue(is_composite(6))
+        self.assertTrue(is_composite(8))
+        self.assertTrue(is_composite(9))
+        self.assertTrue(is_composite(10))
+        self.assertTrue(is_composite(12))
+        self.assertTrue(is_composite(15))
+        self.assertTrue(is_composite(100))
+
+    def test_non_composite_numbers(self) -> None:
+        self.assertFalse(is_composite(2))
+        self.assertFalse(is_composite(3))
+        self.assertFalse(is_composite(5))
+        self.assertFalse(is_composite(7))
+        self.assertFalse(is_composite(11))
+        self.assertFalse(is_composite(17))
+        self.assertFalse(is_composite(97))
+
+    def test_composite_edge_cases(self) -> None:
+        with self.assertRaises(ValueError):
+            is_composite(1)
+        with self.assertRaises(ValueError):
+            is_composite(0)
+        with self.assertRaises(ValueError):
+            is_composite(-7)
+
+    def test_composite_large(self) -> None:
+        self.assertTrue(is_composite(999999))
+        self.assertFalse(is_composite(9999991))
+
+    def test_composite_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_composite(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite(True)  # type: ignore[arg-type]
 
 
 class TestClamp(unittest.TestCase):
@@ -43207,6 +43283,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_composite to math_utils
+
+- Added `is_composite(n)` to `math_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation matching `is_prime`; it returns `True` when *n* is a composite number (a positive integer greater than 1 that is not prime), `False` for primes, and raises `ValueError` for integers less than 2. Added `TestIsComposite` to `tests/test_math_utils.py` covering composite numbers, primes, edge cases (1, 0, negatives), large values, and the `TypeError` path. Updated the `math_utils` module tree entry and prose section of `README.md`. Synchronized `math_utils.py`, `tests/test_math_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — fixed is_callable regression and added type_utils test coverage
 
 - Fixed `is_callable(tp)` in `type_utils.py`: the parameterized form `Callable[[int], str]` returned `False` because `get_origin` yields `collections.abc.Callable` rather than `typing.Callable`. The check now compares the origin against `typing.Callable` and `collections.abc.Callable`, so both bare `Callable` and parameterized `Callable[[...], ...]` forms are detected.
@@ -44413,7 +44493,7 @@ shapes.py                    # Geometry utilities for areas and perimeters
 strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, remove_whitespace, normalize_whitespace, starts_with, ends_with, removeprefix, removesuffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, and is_blank)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
-math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, clamp, is_even, combination, permutation)
+math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, is_composite, clamp, is_even, combination, permutation)
 mmap_utils.py               # Utilities wrapping the standard library mmap module
 data_utils.py                # Data utility functions
 dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
@@ -45044,7 +45124,7 @@ MIT
 
 ## Math Utilities Module
 
-The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `clamp`, and `is_even`. It also provides `combination` and `permutation` for combinatorial calculations. The module is tested in `tests/test_math_utils.py`.
+The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `is_composite`, `clamp`, and `is_even`. It also provides `combination` and `permutation` for combinatorial calculations. The module is tested in `tests/test_math_utils.py`.
 
 ## Data Utilities Module
 

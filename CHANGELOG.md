@@ -1,3 +1,7 @@
+## Unreleased — added is_composite to math_utils
+
+- Added `is_composite(n)` to `math_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation matching `is_prime`; it returns `True` when *n* is a composite number (a positive integer greater than 1 that is not prime), `False` for primes, and raises `ValueError` for integers less than 2. Added `TestIsComposite` to `tests/test_math_utils.py` covering composite numbers, primes, edge cases (1, 0, negatives), large values, and the `TypeError` path. Updated the `math_utils` module tree entry and prose section of `README.md`. Synchronized `math_utils.py`, `tests/test_math_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — fixed is_callable regression and added type_utils test coverage
 
 - Fixed `is_callable(tp)` in `type_utils.py`: the parameterized form `Callable[[int], str]` returned `False` because `get_origin` yields `collections.abc.Callable` rather than `typing.Callable`. The check now compares the origin against `typing.Callable` and `collections.abc.Callable`, so both bare `Callable` and parameterized `Callable[[...], ...]` forms are detected.
