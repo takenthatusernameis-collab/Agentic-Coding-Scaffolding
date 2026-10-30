@@ -37413,12 +37413,17 @@ cat > "$OUTPUT_DIR/tests/test_itertools_utils.py" <<'TESTITERTOOLSUTILS'
 import unittest
 
 from itertools_utils import (
+    accumulate_values,
     chain_iterables,
     chunk_iterable,
     combinations_of,
+    cycle_take,
+    flatten_once,
     group_by_key,
     permutations_of,
     product_of,
+    repeat_value,
+    take_while_pred,
 )
 
 
@@ -37450,6 +37455,111 @@ class TestIterToolsUtils(unittest.TestCase):
             chunk_iterable([1, 2, 3], -1)
         with self.assertRaises(TypeError):
             chunk_iterable([1, 2, 3], "x")
+
+
+class TestFlattenOnce(unittest.TestCase):
+    def test_flatten_once(self):
+        self.assertEqual(flatten_once([[1, 2], [3, 4], [5]]), [1, 2, 3, 4, 5])
+
+    def test_empty(self):
+        self.assertEqual(flatten_once([]), [])
+
+    def test_nested_iterables(self):
+        self.assertEqual(flatten_once([(1, 2), {3, 4}]), [1, 2, 3, 4])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            flatten_once(42)
+
+    def test_non_iterable_inner_element_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            flatten_once([1, 2, 3])
+
+
+class TestTakeWhilePred(unittest.TestCase):
+    def test_take_while_pred(self):
+        self.assertEqual(take_while_pred([1, 2, 3, 4, 5], lambda x: x < 4), [1, 2, 3])
+
+    def test_empty(self):
+        self.assertEqual(take_while_pred([], lambda x: True), [])
+
+    def test_all_taken(self):
+        self.assertEqual(take_while_pred([1, 2, 3], lambda x: x < 10), [1, 2, 3])
+
+    def test_none_taken(self):
+        self.assertEqual(take_while_pred([1, 2, 3], lambda x: x > 10), [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            take_while_pred(42, lambda x: True)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            take_while_pred([1, 2, 3], "not callable")
+
+
+class TestAccumulateValues(unittest.TestCase):
+    def test_default_sum(self):
+        self.assertEqual(accumulate_values([1, 2, 3, 4]), [1, 3, 6, 10])
+
+    def test_empty(self):
+        self.assertEqual(accumulate_values([]), [])
+
+    def test_single(self):
+        self.assertEqual(accumulate_values([5]), [5])
+
+    def test_with_func(self):
+        self.assertEqual(accumulate_values([1, 2, 3, 4], lambda a, b: a * b), [1, 2, 6, 24])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            accumulate_values(42)
+
+    def test_non_callable_func_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            accumulate_values([1, 2, 3], "not callable")
+
+
+class TestRepeatValue(unittest.TestCase):
+    def test_default_times(self):
+        self.assertEqual(repeat_value("x"), ["x", "x", "x"])
+
+    def test_explicit_times(self):
+        self.assertEqual(repeat_value(0, 4), [0, 0, 0, 0])
+
+    def test_zero_times(self):
+        self.assertEqual(repeat_value("x", 0), [])
+
+    def test_non_int_times_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            repeat_value("x", "three")
+
+    def test_negative_times_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            repeat_value("x", -1)
+
+
+class TestCycleTake(unittest.TestCase):
+    def test_cycle_take(self):
+        self.assertEqual(cycle_take([1, 2, 3], 7), [1, 2, 3, 1, 2, 3, 1])
+
+    def test_empty(self):
+        self.assertEqual(cycle_take([], 5), [])
+
+    def test_zero(self):
+        self.assertEqual(cycle_take([1, 2, 3], 0), [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            cycle_take(42, 5)
+
+    def test_non_int_n_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            cycle_take([1, 2, 3], "5")
+
+    def test_negative_n_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            cycle_take([1, 2, 3], -1)
 
 
 if __name__ == "__main__":
@@ -43280,6 +43390,29 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added test coverage for flatten_once, take_while_pred, accumulate_values, repeat_value, and cycle_take in itertools_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6719 tests and passes (6 pre-existing environment-related errors in `test_atexit_utils`, `test_importlib_utils`, `test_multiprocessing_utils`, `test_sre_compile_utils`, `test_sre_constants_utils`, and `test_sre_parse_utils` — confirmed identical with the change stashed), `make lint` is clean, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `itertools_utils.py` exports 11 functions in `__all__`, but `flatten_once`, `take_while_pred`, `accumulate_values`, `repeat_value`, and `cycle_take` were imported nowhere in `tests/test_itertools_utils.py`, leaving a coverage gap in an otherwise fully-tested module.
+- Added `TestFlattenOnce` to `tests/test_itertools_utils.py` covering one-level flattening, empty input, nested iterables, non-iterable outer argument, and non-iterable inner element (5 new tests).
+- Added `TestTakeWhilePred` to `tests/test_itertools_utils.py` covering normal take-while, empty input, all-taken, none-taken, non-iterable argument, and non-callable predicate (6 new tests).
+- Added `TestAccumulateValues` to `tests/test_itertools_utils.py` covering default sum, empty input, single element, custom function, non-iterable argument, and non-callable function (6 new tests).
+- Added `TestRepeatValue` to `tests/test_itertools_utils.py` covering default times, explicit times, zero times, non-int times, and negative times (5 new tests).
+- Added `TestCycleTake` to `tests/test_itertools_utils.py` covering cycling, empty input, zero count, non-iterable argument, non-int n, and negative n (6 new tests). Imported `flatten_once`, `take_while_pred`, `accumulate_values`, `repeat_value`, and `cycle_take` at the top of the test file to match the module's `__all__` contract.
+- Updated the `itertools_utils` module prose section of `README.md` to list the newly covered helpers.
+- Verified the work: `make test` runs 6719 tests and passes with no new failures, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `tests/test_itertools_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `itertools_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added test coverage for gcd, lcm, ceil_div, and is_kaprekar_number in number_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6657 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
@@ -45609,7 +45742,7 @@ The project includes bytes and binary utilities in `bytes_utils.py` for working 
 
 ## Itertools Utilities Module
 
-The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, and more. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
+The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, and `cycle_take`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
 
 ## Base64 Utilities Module
 

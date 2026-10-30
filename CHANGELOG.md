@@ -1,3 +1,26 @@
+## Unreleased — added test coverage for flatten_once, take_while_pred, accumulate_values, repeat_value, and cycle_take in itertools_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6719 tests and passes (6 pre-existing environment-related errors in `test_atexit_utils`, `test_importlib_utils`, `test_multiprocessing_utils`, `test_sre_compile_utils`, `test_sre_constants_utils`, and `test_sre_parse_utils` — confirmed identical with the change stashed), `make lint` is clean, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `itertools_utils.py` exports 11 functions in `__all__`, but `flatten_once`, `take_while_pred`, `accumulate_values`, `repeat_value`, and `cycle_take` were imported nowhere in `tests/test_itertools_utils.py`, leaving a coverage gap in an otherwise fully-tested module.
+- Added `TestFlattenOnce` to `tests/test_itertools_utils.py` covering one-level flattening, empty input, nested iterables, non-iterable outer argument, and non-iterable inner element (5 new tests).
+- Added `TestTakeWhilePred` to `tests/test_itertools_utils.py` covering normal take-while, empty input, all-taken, none-taken, non-iterable argument, and non-callable predicate (6 new tests).
+- Added `TestAccumulateValues` to `tests/test_itertools_utils.py` covering default sum, empty input, single element, custom function, non-iterable argument, and non-callable function (6 new tests).
+- Added `TestRepeatValue` to `tests/test_itertools_utils.py` covering default times, explicit times, zero times, non-int times, and negative times (5 new tests).
+- Added `TestCycleTake` to `tests/test_itertools_utils.py` covering cycling, empty input, zero count, non-iterable argument, non-int n, and negative n (6 new tests). Imported `flatten_once`, `take_while_pred`, `accumulate_values`, `repeat_value`, and `cycle_take` at the top of the test file to match the module's `__all__` contract.
+- Updated the `itertools_utils` module prose section of `README.md` to list the newly covered helpers.
+- Verified the work: `make test` runs 6719 tests and passes with no new failures, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `tests/test_itertools_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `itertools_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added test coverage for gcd, lcm, ceil_div, and is_kaprekar_number in number_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6657 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
