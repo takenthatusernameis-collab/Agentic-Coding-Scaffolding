@@ -435,6 +435,25 @@ class TestEnsureTypeBoundary(unittest.TestCase):
             type_check_utils.ensure_type(42, "int")
 
 
+class TestIsTypeVar(unittest.TestCase):
+    def test_type_var(self) -> None:
+        from typing import TypeVar
+
+        T = TypeVar("T")
+        U = TypeVar("U")
+        self.assertTrue(type_check_utils.is_type_var(T))
+        self.assertTrue(type_check_utils.is_type_var(U))
+
+    def test_non_type_var_is_not_type_var(self) -> None:
+        self.assertFalse(type_check_utils.is_type_var(int))
+        self.assertFalse(type_check_utils.is_type_var(str))
+        self.assertFalse(type_check_utils.is_type_var(list))
+        self.assertFalse(type_check_utils.is_type_var({"a": 1}))
+        self.assertFalse(type_check_utils.is_type_var(42))
+        self.assertFalse(type_check_utils.is_type_var("T"))
+        self.assertFalse(type_check_utils.is_type_var(None))
+
+
 class TestCoerceToBytes(unittest.TestCase):
     def test_str(self) -> None:
         self.assertEqual(type_check_utils.coerce_to_bytes("hello"), b"hello")

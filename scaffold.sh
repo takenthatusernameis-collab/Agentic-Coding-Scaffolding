@@ -42902,6 +42902,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_type_var to type_check_utils
+
+- Added `is_type_var(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and a `bool` return; it returns `True` when *value* is a `typing.TypeVar` instance, `False` otherwise. Added `TestIsTypeVar` to `tests/test_type_check_utils.py` covering TypeVar instances and the `False` paths for classes, instances, strings, ints, None, and dicts. Updated the `type_check_utils` module prose section of `README.md`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added is_frozenset to type_check_utils
 
 - Added `is_frozenset(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and a `bool` return; it returns `True` when *value* is a `frozenset` instance, `False` otherwise (a mutable `set` is not a `frozenset`, and vice versa). Added `TestTypeChecks.test_is_frozenset` to `tests/test_type_check_utils.py` covering frozenset instances, the empty frozenset, and the `False` paths for mutable sets, lists, tuples, strings, ints, None, and dicts (10 new assertions). Updated the `type_check_utils` module prose section of `README.md` and the `type_check_utils` line of `.kilo/command/scaffold-project.md`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -45821,7 +45825,7 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 
 ## Type Check Utilities Module
 
-The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_frozenset`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `is_typeddict`, `is_awaitable`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_frozenset`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `is_typeddict`, `is_awaitable`, `is_type_var`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -116618,6 +116622,7 @@ __all__: List[str] = [
     "is_namedtuple",
     "is_typeddict",
     "is_literal",
+    "is_type_var",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -117027,6 +117032,37 @@ def is_literal(value: object) -> bool:
     except Exception:
         pass
     return False
+
+
+def is_type_var(value: object) -> bool:
+    """Return True if *value* is a :class:`typing.TypeVar`.
+
+    A :class:`typing.TypeVar` is a type variable created with
+    :func:`typing.TypeVar` (for example ``T = TypeVar("T")``). This helper
+    reports whether *value* is such a type variable, distinguishing it from
+    ordinary classes, instances, and other objects.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a TypeVar, False otherwise.
+
+    Examples:
+        >>> from typing import TypeVar
+        >>> T = TypeVar("T")
+        >>> is_type_var(T)
+        True
+        >>> is_type_var(int)
+        False
+        >>> is_type_var("T")
+        False
+        >>> is_type_var(None)
+        False
+    """
+    import typing
+
+    return isinstance(value, typing.TypeVar)
 
 
 def ensure_type(value: object, expected_type: object, name: str = "value") -> object:
@@ -117666,6 +117702,25 @@ class TestEnsureTypeBoundary(unittest.TestCase):
     def test_invalid_expected_type_raises_type_error(self) -> None:
         with self.assertRaises(TypeError):
             type_check_utils.ensure_type(42, "int")
+
+
+class TestIsTypeVar(unittest.TestCase):
+    def test_type_var(self) -> None:
+        from typing import TypeVar
+
+        T = TypeVar("T")
+        U = TypeVar("U")
+        self.assertTrue(type_check_utils.is_type_var(T))
+        self.assertTrue(type_check_utils.is_type_var(U))
+
+    def test_non_type_var_is_not_type_var(self) -> None:
+        self.assertFalse(type_check_utils.is_type_var(int))
+        self.assertFalse(type_check_utils.is_type_var(str))
+        self.assertFalse(type_check_utils.is_type_var(list))
+        self.assertFalse(type_check_utils.is_type_var({"a": 1}))
+        self.assertFalse(type_check_utils.is_type_var(42))
+        self.assertFalse(type_check_utils.is_type_var("T"))
+        self.assertFalse(type_check_utils.is_type_var(None))
 
 
 class TestCoerceToBytes(unittest.TestCase):

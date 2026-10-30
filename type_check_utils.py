@@ -46,6 +46,7 @@ __all__: List[str] = [
     "is_namedtuple",
     "is_typeddict",
     "is_literal",
+    "is_type_var",
     "ensure_type",
     "coerce_to_str",
     "coerce_to_int",
@@ -455,6 +456,37 @@ def is_literal(value: object) -> bool:
     except Exception:
         pass
     return False
+
+
+def is_type_var(value: object) -> bool:
+    """Return True if *value* is a :class:`typing.TypeVar`.
+
+    A :class:`typing.TypeVar` is a type variable created with
+    :func:`typing.TypeVar` (for example ``T = TypeVar("T")``). This helper
+    reports whether *value* is such a type variable, distinguishing it from
+    ordinary classes, instances, and other objects.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a TypeVar, False otherwise.
+
+    Examples:
+        >>> from typing import TypeVar
+        >>> T = TypeVar("T")
+        >>> is_type_var(T)
+        True
+        >>> is_type_var(int)
+        False
+        >>> is_type_var("T")
+        False
+        >>> is_type_var(None)
+        False
+    """
+    import typing
+
+    return isinstance(value, typing.TypeVar)
 
 
 def ensure_type(value: object, expected_type: object, name: str = "value") -> object:
