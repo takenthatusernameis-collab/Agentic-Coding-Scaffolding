@@ -1,13 +1,11 @@
-## Unreleased — added is_truncatable_prime test coverage to prime_utils
+## Unreleased — added is_abundant_number and is_deficient_number to number_utils
 
-The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6621 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6627 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
 
 Completed in this session:
 
-- Found that `prime_utils.py` exports `is_truncatable_prime(n)` in `__all__` and the README lists it, but `tests/test_prime_utils.py` had no test class for it (it was imported nowhere and untested), leaving a coverage gap in an otherwise fully-tested module.
-- Added `TestIsTruncatablePrime` to `tests/test_prime_utils.py` covering known two-sided truncatable primes (single-digit, 23, 37, 53, 73, 313, 317, 373, 797, 3137, 3797, 739397), primes that fail left- or right-truncation, single-digit primes, composites, non-prime inputs (0, 1, negatives), and the `TypeError` path (6 new tests, 224 total). Imported `is_truncatable_prime` at the top of the test file to match the module's `__all__` contract.
-- Verified the work: `make test` runs 6627 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-- Synchronized `tests/test_prime_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `is_abundant_number` and `is_deficient_number` to `number_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation; `is_abundant_number` returns True when the sum of proper divisors exceeds the number, `is_deficient_number` returns True when the sum of proper divisors is less than the number (with 1 classified as deficient). Added `TestIsAbundantNumber` and `TestIsDeficientNumber` to `tests/test_number_utils.py` covering known values, perfect numbers, zeros/negatives, and type errors (adds ~30 tests). Updated `README.md` to list the new helpers. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6657 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 Next Planned (posted for the following agent):
 

@@ -61,6 +61,8 @@ __all__: List[str] = [
     "is_lucas_number",
     "is_pronic_number",
     "is_spy_number",
+    "is_abundant_number",
+    "is_deficient_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -1529,3 +1531,52 @@ def is_abundant_number(value: int) -> bool:
                 total += other
         i += 1
     return total > value
+
+
+def is_deficient_number(value: int) -> bool:
+    """Return True if *value* is a deficient number.
+
+    A deficient number is a positive integer for which the sum of its
+    proper divisors is less than the number itself (aliquot sum < *value*).
+    Perfect numbers have aliquot sum == *value* and abundant numbers have
+    aliquot sum > *value*.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is a deficient number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_deficient_number(1)
+        True
+        >>> is_deficient_number(2)
+        True
+        >>> is_deficient_number(4)
+        True
+        >>> is_deficient_number(6)
+        False
+        >>> is_deficient_number(12)
+        False
+        >>> is_deficient_number(0)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value <= 0:
+        return False
+    if value == 1:
+        return True
+    total = 1
+    i = 2
+    while i * i <= value:
+        if value % i == 0:
+            total += i
+            other = value // i
+            if other != i:
+                total += other
+        i += 1
+    return total < value

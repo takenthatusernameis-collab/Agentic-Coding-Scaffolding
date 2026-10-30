@@ -33,6 +33,8 @@ from number_utils import (
     is_power_of_two,
     is_pronic_number,
     is_spy_number,
+    is_abundant_number,
+    is_deficient_number,
     is_strong_number,
     is_triangular_number,
     is_zero,
@@ -1110,6 +1112,54 @@ class TestIsSpyNumber(unittest.TestCase):
             is_spy_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_spy_number(None)  # type: ignore[arg-type]
+
+
+class TestIsAbundantNumber(unittest.TestCase):
+    def test_known_abundant(self) -> None:
+        for n in (12, 18, 20, 24, 30, 36, 40, 42, 48, 56):
+            self.assertTrue(is_abundant_number(n), n)
+
+    def test_perfect_and_deficient_are_false(self) -> None:
+        for n in (1, 2, 3, 4, 6, 8, 10, 16, 28):
+            self.assertFalse(is_abundant_number(n), n)
+
+    def test_zero_and_negative(self) -> None:
+        for n in (0, -12, -18):
+            self.assertFalse(is_abundant_number(n), n)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_abundant_number(12.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_abundant_number("12")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_abundant_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_abundant_number(None)  # type: ignore[arg-type]
+
+
+class TestIsDeficientNumber(unittest.TestCase):
+    def test_known_deficient(self) -> None:
+        for n in (1, 2, 3, 4, 8, 10, 14, 16, 17):
+            self.assertTrue(is_deficient_number(n), n)
+
+    def test_perfect_and_abundant_are_false(self) -> None:
+        for n in (6, 12, 18, 20, 28):
+            self.assertFalse(is_deficient_number(n), n)
+
+    def test_zero_and_negative(self) -> None:
+        for n in (0, -1, -12):
+            self.assertFalse(is_deficient_number(n), n)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_deficient_number(12.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_deficient_number("12")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_deficient_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_deficient_number(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
