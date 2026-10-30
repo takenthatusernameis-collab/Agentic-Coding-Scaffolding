@@ -89479,6 +89479,7 @@ __all__: List[str] = [
     "is_stable",
     "is_initial_release",
     "is_prerelease",
+    "is_dev_version",
     "get_prerelease",
     "get_prerelease_tag",
     "get_build_metadata",
@@ -89951,6 +89952,32 @@ def is_prerelease(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     return "-" in version
+
+
+def is_dev_version(version: str) -> bool:
+    """Return True if *version* is a development pre-release.
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if the pre-release tag starts with ``dev`` (case-insensitive).
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> is_dev_version("1.2.3-dev0")
+        True
+        >>> is_dev_version("1.2.3-rc1")
+        False
+        >>> is_dev_version("1.2.3")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    tag = get_prerelease(version)
+    return bool(tag) and tag.lower().startswith("dev")
 
 
 def get_prerelease(version: str) -> str | None:
