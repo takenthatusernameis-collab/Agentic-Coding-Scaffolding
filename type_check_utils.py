@@ -49,6 +49,7 @@ __all__: List[str] = [
     "coerce_to_int",
     "coerce_to_float",
     "coerce_to_bool",
+    "coerce_to_bytes",
 ]
 
 
@@ -576,4 +577,36 @@ def coerce_to_bool(value: object) -> bool:
         raise ValueError(f"cannot coerce {value!r} to bool")
     raise TypeError(
         f"cannot coerce {type(value).__name__} to bool"
+    )
+
+
+def coerce_to_bytes(value: object) -> bytes:
+    """Convert *value* to bytes.
+
+    Accepts :class:`str` (encoded as UTF-8), :class:`bytes`, and
+    :class:`bytearray`; raises :exc:`TypeError` for unsupported types.
+
+    Args:
+        value: The value to convert.
+
+    Returns:
+        The bytes representation of *value*.
+
+    Raises:
+        TypeError: If *value* cannot be converted to bytes.
+
+    Examples:
+        >>> coerce_to_bytes("hello")
+        b'hello'
+        >>> coerce_to_bytes(b"world")
+        b'world'
+        >>> coerce_to_bytes(bytearray(b"!"))
+        b'!'
+    """
+    if isinstance(value, str):
+        return value.encode("utf-8")
+    if isinstance(value, (bytes, bytearray)):
+        return bytes(value)
+    raise TypeError(
+        f"cannot coerce {type(value).__name__} to bytes"
     )

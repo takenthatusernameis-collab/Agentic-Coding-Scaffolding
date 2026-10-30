@@ -294,5 +294,151 @@ class TestEnsureType(unittest.TestCase):
             type_check_utils.coerce_to_bool(None)
 
 
+class TestCoerceToStrBoundary(unittest.TestCase):
+    def test_none(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_str(None), "None")
+
+    def test_bytes(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_str(b"hi"), "b'hi'")
+
+    def test_float(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_str(3.14), "3.14")
+        self.assertEqual(type_check_utils.coerce_to_str(0.0), "0.0")
+
+    def test_bool(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_str(True), "True")
+        self.assertEqual(type_check_utils.coerce_to_str(False), "False")
+
+    def test_list_dict_tuple_set(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_str([1, 2]), "[1, 2]")
+        self.assertEqual(type_check_utils.coerce_to_str({"a": 1}), "{'a': 1}")
+        self.assertEqual(type_check_utils.coerce_to_str((1, 2)), "(1, 2)")
+        self.assertEqual(type_check_utils.coerce_to_str({1, 2}), "{1, 2}")
+
+
+class TestCoerceToFloatBoundary(unittest.TestCase):
+    def test_whitespace_strings(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_float(" 3.14 "), 3.14)
+        self.assertEqual(type_check_utils.coerce_to_float("\t1.5\n"), 1.5)
+
+    def test_sign_strings(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_float("+3.14"), 3.14)
+        self.assertEqual(type_check_utils.coerce_to_float("-2.5"), -2.5)
+
+    def test_special_values(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_float("inf"), float("inf"))
+        self.assertEqual(type_check_utils.coerce_to_float("-inf"), float("-inf"))
+        self.assertTrue(type_check_utils.coerce_to_float("nan") != type_check_utils.coerce_to_float("nan"))
+
+    def test_scientific_notation(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_float("1e3"), 1000.0)
+        self.assertEqual(type_check_utils.coerce_to_float("1.5e-2"), 0.015)
+
+    def test_hex_string_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            type_check_utils.coerce_to_float("0x1a")
+
+    def test_unsupported_types_raise_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float({1: 2})
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float(b"3.14")
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float(None)
+
+
+class TestCoerceToBoolBoundary(unittest.TestCase):
+    def test_on_off_y_n(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bool("on"), True)
+        self.assertEqual(type_check_utils.coerce_to_bool("off"), False)
+        self.assertEqual(type_check_utils.coerce_to_bool("y"), True)
+        self.assertEqual(type_check_utils.coerce_to_bool("n"), False)
+
+    def test_whitespace_and_case(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bool(" true "), True)
+        self.assertEqual(type_check_utils.coerce_to_bool(" FALSE "), False)
+        self.assertEqual(type_check_utils.coerce_to_bool("TRUE"), True)
+        self.assertEqual(type_check_utils.coerce_to_bool("False"), False)
+        self.assertEqual(type_check_utils.coerce_to_bool("TrUe"), True)
+
+    def test_int_values(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bool(-1), True)
+        self.assertEqual(type_check_utils.coerce_to_bool(0), False)
+        self.assertEqual(type_check_utils.coerce_to_bool(42), True)
+
+    def test_float_values(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bool(-0.0), False)
+        self.assertEqual(type_check_utils.coerce_to_bool(3.14), True)
+        self.assertEqual(type_check_utils.coerce_to_bool(0.0), False)
+
+    def test_unsupported_types_raise_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bool([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bool({1: 2})
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bool(b"true")
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bool(None)
+
+
+class TestEnsureTypeBoundary(unittest.TestCase):
+    def test_returns_value_unchanged(self) -> None:
+        value = [1, 2, 3]
+        self.assertIs(type_check_utils.ensure_type(value, list), value)
+
+    def test_multiple_types(self) -> None:
+        self.assertEqual(type_check_utils.ensure_type(42, int), 42)
+        self.assertEqual(type_check_utils.ensure_type("hi", str), "hi")
+        self.assertEqual(type_check_utils.ensure_type(3.14, float), 3.14)
+        self.assertEqual(type_check_utils.ensure_type(True, bool), True)
+        self.assertEqual(type_check_utils.ensure_type([1, 2], list), [1, 2])
+        self.assertEqual(type_check_utils.ensure_type({"a": 1}, dict), {"a": 1})
+
+    def test_bool_is_int(self) -> None:
+        # bool is a subclass of int, so True passes an int check
+        self.assertEqual(type_check_utils.ensure_type(True, int), True)
+
+    def test_name_in_error_message(self) -> None:
+        with self.assertRaises(TypeError) as ctx:
+            type_check_utils.ensure_type(123, str, name="username")
+        self.assertIn("username", str(ctx.exception))
+
+    def test_mismatch_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            type_check_utils.ensure_type(123, str)
+        with self.assertRaises(TypeError):
+            type_check_utils.ensure_type("hi", int)
+        with self.assertRaises(TypeError):
+            type_check_utils.ensure_type(None, list)
+
+
+class TestCoerceToBytes(unittest.TestCase):
+    def test_str(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bytes("hello"), b"hello")
+        self.assertEqual(type_check_utils.coerce_to_bytes(""), b"")
+        self.assertEqual(type_check_utils.coerce_to_bytes("héllo"), "héllo".encode("utf-8"))
+
+    def test_bytes(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bytes(b"world"), b"world")
+
+    def test_bytearray(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bytes(bytearray(b"!")), b"!")
+
+    def test_unsupported_types_raise_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bytes(123)
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bytes(3.14)
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bytes(True)
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bytes([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bytes(None)
+
+
 if __name__ == "__main__":
     unittest.main()
