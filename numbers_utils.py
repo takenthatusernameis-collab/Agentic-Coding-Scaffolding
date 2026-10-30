@@ -20,6 +20,7 @@ __all__: list[str] = [
     "is_number",
     "is_integral",
     "is_perfect_number",
+    "is_abundant_number",
 ]
 
 #: The abstract base class for all numbers.
@@ -134,3 +135,46 @@ def is_perfect_number(n: int) -> bool:
                 total += other
         candidate += 1
     return total == n
+
+
+def is_abundant_number(n: int) -> bool:
+    """Return ``True`` when *n* is an abundant number.
+
+    An abundant number is a positive integer whose sum of proper divisors
+    (the divisors excluding the number itself) is greater than the number.
+    The smallest abundant number is 12 (= 1 + 2 + 3 + 4 + 6).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is an abundant number, ``False`` otherwise. Numbers
+        below 2 are never abundant.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_abundant_number(12)
+        True
+        >>> is_abundant_number(24)
+        True
+        >>> is_abundant_number(6)
+        False
+        >>> is_abundant_number(1)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 2:
+        return False
+    total = 1
+    candidate = 2
+    while candidate * candidate <= n:
+        if n % candidate == 0:
+            total += candidate
+            other = n // candidate
+            if other != candidate:
+                total += other
+        candidate += 1
+    return total > n

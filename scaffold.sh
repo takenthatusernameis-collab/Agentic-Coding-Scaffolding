@@ -66131,6 +66131,7 @@ __all__: list[str] = [
     "is_number",
     "is_integral",
     "is_perfect_number",
+    "is_abundant_number",
 ]
 
 #: The abstract base class for all numbers.
@@ -66245,6 +66246,49 @@ def is_perfect_number(n: int) -> bool:
                 total += other
         candidate += 1
     return total == n
+
+
+def is_abundant_number(n: int) -> bool:
+    """Return ``True`` when *n* is an abundant number.
+
+    An abundant number is a positive integer whose sum of proper divisors
+    (the divisors excluding the number itself) is greater than the number.
+    The smallest abundant number is 12 (= 1 + 2 + 3 + 4 + 6).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is an abundant number, ``False`` otherwise. Numbers
+        below 2 are never abundant.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_abundant_number(12)
+        True
+        >>> is_abundant_number(24)
+        True
+        >>> is_abundant_number(6)
+        False
+        >>> is_abundant_number(1)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 2:
+        return False
+    total = 1
+    candidate = 2
+    while candidate * candidate <= n:
+        if n % candidate == 0:
+            total += candidate
+            other = n // candidate
+            if other != candidate:
+                total += other
+        candidate += 1
+    return total > n
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -66257,6 +66301,7 @@ from numbers_utils import (
     Number,
     Rational,
     Real,
+    is_abundant_number,
     is_integral,
     is_number,
     is_perfect_number,
@@ -66309,6 +66354,32 @@ class TestIsPerfectNumber(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIsAbundantNumber(unittest.TestCase):
+    def test_known_abundant_numbers(self):
+        for value in (
+            12, 18, 20, 24, 30, 36, 40, 42, 48, 54, 56, 60, 66, 70, 72,
+            78, 80, 84, 88, 90, 96, 100,
+        ):
+            self.assertTrue(is_abundant_number(value), value)
+
+    def test_non_abundant_numbers(self):
+        for value in (
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 19,
+            21, 22, 23, 25, 26, 27, 28, 29,
+        ):
+            self.assertFalse(is_abundant_number(value), value)
+
+    def test_below_two(self):
+        self.assertFalse(is_abundant_number(1))
+        self.assertFalse(is_abundant_number(0))
+        self.assertFalse(is_abundant_number(-12))
+
+    def test_type_error(self):
+        for value in (1.5, "12", None, True, [12]):
+            with self.assertRaises(TypeError):
+                is_abundant_number(value)
 TEST_NUMBERS_UTILS
 
 # --- opcode_utils.py ---
