@@ -46,6 +46,7 @@ __all__: List[str] = [
     "count_non_whitespace_characters",
     "count_whitespace_characters",
     "count_digits",
+    "count_letters",
     "reverse_lines",
     "strip_blank_lines",
     "count_unique_words",
@@ -1306,3 +1307,29 @@ def count_digits(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if "0" <= ch <= "9")
+
+def count_letters(text: str) -> int:
+    """Return the number of ASCII letter characters (a-z, A-Z) in *text*.
+
+    Counts every character in *text* that is an ASCII letter. Unicode
+    letters are not counted. Empty text returns zero.
+
+    Args:
+        text: The text to count letter characters in.
+
+    Returns:
+        The number of ASCII letter characters in *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_letters("abc123")
+        3
+        >>> count_letters("no digits here")
+        11
+        >>> count_letters("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ("a" <= ch <= "z") or ("A" <= ch <= "Z"))

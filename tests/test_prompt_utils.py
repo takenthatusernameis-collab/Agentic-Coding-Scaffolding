@@ -9,6 +9,7 @@ from prompt_utils import (
     count_characters,
     count_digits,
     count_leading_newlines,
+    count_letters,
     count_lines,
     count_non_blank_lines,
     count_non_whitespace_characters,
@@ -970,3 +971,27 @@ class TestCountDigits(unittest.TestCase):
             count_digits(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_digits(None)  # type: ignore[arg-type]
+class TestCountLetters(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_letters(""), 0)
+
+    def test_no_letters(self):
+        self.assertEqual(count_letters("123 !"), 0)
+
+    def test_only_letters(self):
+        self.assertEqual(count_letters("abc"), 3)
+
+    def test_mixed(self):
+        self.assertEqual(count_letters("a1b2c3"), 3)
+
+    def test_upper_and_lower(self):
+        self.assertEqual(count_letters("AbC"), 3)
+
+    def test_unicode_letters_not_counted(self):
+        self.assertEqual(count_letters("αβγ"), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_letters(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_letters(None)  # type: ignore[arg-type]

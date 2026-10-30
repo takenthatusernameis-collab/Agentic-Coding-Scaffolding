@@ -19928,6 +19928,7 @@ from prompt_utils import (
     count_characters,
     count_digits,
     count_leading_newlines,
+    count_letters,
     count_lines,
     count_non_blank_lines,
     count_non_whitespace_characters,
@@ -20889,6 +20890,30 @@ class TestCountDigits(unittest.TestCase):
             count_digits(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_digits(None)  # type: ignore[arg-type]
+class TestCountLetters(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_letters(""), 0)
+
+    def test_no_letters(self):
+        self.assertEqual(count_letters("123 !"), 0)
+
+    def test_only_letters(self):
+        self.assertEqual(count_letters("abc"), 3)
+
+    def test_mixed(self):
+        self.assertEqual(count_letters("a1b2c3"), 3)
+
+    def test_upper_and_lower(self):
+        self.assertEqual(count_letters("AbC"), 3)
+
+    def test_unicode_letters_not_counted(self):
+        self.assertEqual(count_letters("αβγ"), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_letters(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_letters(None)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -29914,6 +29939,7 @@ __all__: List[str] = [
     "count_non_whitespace_characters",
     "count_whitespace_characters",
     "count_digits",
+    "count_letters",
     "reverse_lines",
     "strip_blank_lines",
     "count_unique_words",
@@ -31174,6 +31200,32 @@ def count_digits(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if "0" <= ch <= "9")
+
+def count_letters(text: str) -> int:
+    """Return the number of ASCII letter characters (a-z, A-Z) in *text*.
+
+    Counts every character in *text* that is an ASCII letter. Unicode
+    letters are not counted. Empty text returns zero.
+
+    Args:
+        text: The text to count letter characters in.
+
+    Returns:
+        The number of ASCII letter characters in *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_letters("abc123")
+        3
+        >>> count_letters("no digits here")
+        11
+        >>> count_letters("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ("a" <= ch <= "z") or ("A" <= ch <= "Z"))
 PROMPTUTILS
 
 # --- type_utils.py ---
