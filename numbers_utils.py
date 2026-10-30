@@ -227,3 +227,45 @@ def is_deficient_number(n: int) -> bool:
         candidate += 1
     return total < n
 
+
+
+def proper_divisors(n: int) -> list[int]:
+    """Return the proper divisors of *n* (divisors excluding *n* itself).
+
+    Args:
+        n: The positive integer whose proper divisors are returned.
+
+    Returns:
+        A sorted list of the proper divisors of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+
+    Examples:
+        >>> proper_divisors(1)
+        []
+        >>> proper_divisors(6)
+        [1, 2, 3]
+        >>> proper_divisors(28)
+        [1, 2, 4, 7, 14]
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        raise ValueError(f"n must be a positive integer, got {n}")
+    if n == 1:
+        return []
+    result = [1]
+    candidate = 2
+    while candidate * candidate <= n:
+        if n % candidate == 0:
+            result.append(candidate)
+            other = n // candidate
+            if other != candidate and other != n:
+                result.append(other)
+        candidate += 1
+    result = sorted(set(result))
+    if n in result:
+        result.remove(n)
+    return result

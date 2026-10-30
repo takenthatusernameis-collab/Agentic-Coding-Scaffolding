@@ -66337,6 +66337,49 @@ def is_deficient_number(n: int) -> bool:
                 total += other
         candidate += 1
     return total < n
+
+
+
+def proper_divisors(n: int) -> list[int]:
+    """Return the proper divisors of *n* (divisors excluding *n* itself).
+
+    Args:
+        n: The positive integer whose proper divisors are returned.
+
+    Returns:
+        A sorted list of the proper divisors of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+
+    Examples:
+        >>> proper_divisors(1)
+        []
+        >>> proper_divisors(6)
+        [1, 2, 3]
+        >>> proper_divisors(28)
+        [1, 2, 4, 7, 14]
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        raise ValueError(f"n must be a positive integer, got {n}")
+    if n == 1:
+        return []
+    result = [1]
+    candidate = 2
+    while candidate * candidate <= n:
+        if n % candidate == 0:
+            result.append(candidate)
+            other = n // candidate
+            if other != candidate and other != n:
+                result.append(other)
+        candidate += 1
+    result = sorted(set(result))
+    if n in result:
+        result.remove(n)
+    return result
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -66354,6 +66397,7 @@ from numbers_utils import (
     is_integral,
     is_number,
     is_perfect_number,
+    proper_divisors,
 )
 
 
@@ -66449,6 +66493,24 @@ class TestIsDeficientNumber(unittest.TestCase):
         for value in (1.5, "1", None, True, [1]):
             with self.assertRaises(TypeError):
                 is_deficient_number(value)
+
+
+class TestProperDivisors(unittest.TestCase):
+    def test_known_values(self):
+        self.assertEqual(proper_divisors(1), [])
+        self.assertEqual(proper_divisors(6), [1, 2, 3])
+        self.assertEqual(proper_divisors(28), [1, 2, 4, 7, 14])
+        self.assertEqual(proper_divisors(12), [1, 2, 3, 4, 6])
+
+    def test_type_error(self):
+        for value in (1.5, "6", None, True, [6]):
+            with self.assertRaises(TypeError):
+                proper_divisors(value)
+
+    def test_value_error(self):
+        for value in (0, -1, -6):
+            with self.assertRaises(ValueError):
+                proper_divisors(value)
 TEST_NUMBERS_UTILS
 
 # --- opcode_utils.py ---
