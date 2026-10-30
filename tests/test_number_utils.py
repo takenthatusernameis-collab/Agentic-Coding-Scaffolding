@@ -3,12 +3,14 @@
 import unittest
 
 from number_utils import (
+    ceil_div,
     clamp,
     digit_count,
     digit_product,
     digit_sum,
     digital_root,
     format_number,
+    gcd,
     is_abundant_number,
     is_armstrong_number,
     is_automorphic_number,
@@ -22,6 +24,7 @@ from number_utils import (
     is_harshad_number,
     is_infinite,
     is_integer,
+    is_kaprekar_number,
     is_lucas_number,
     is_nan,
     is_negative,
@@ -38,6 +41,7 @@ from number_utils import (
     is_strong_number,
     is_triangular_number,
     is_zero,
+    lcm,
     lerp,
     map_range,
     percentage,
@@ -1160,6 +1164,129 @@ class TestIsDeficientNumber(unittest.TestCase):
             is_deficient_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_deficient_number(None)  # type: ignore[arg-type]
+
+
+class TestGcd(unittest.TestCase):
+    def test_known_pairs(self) -> None:
+        self.assertEqual(gcd(48, 18), 6)
+        self.assertEqual(gcd(54, 24), 6)
+        self.assertEqual(gcd(17, 19), 1)
+        self.assertEqual(gcd(100, 10), 10)
+
+    def test_one_argument_is_zero(self) -> None:
+        self.assertEqual(gcd(0, 5), 5)
+        self.assertEqual(gcd(7, 0), 7)
+        self.assertEqual(gcd(0, 0), 0)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(gcd(-48, 18), 6)
+        self.assertEqual(gcd(48, -18), 6)
+        self.assertEqual(gcd(-48, -18), 6)
+
+    def test_large_values(self) -> None:
+        self.assertEqual(gcd(1071, 462), 21)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            gcd("48", 18)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd(48, 18.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd(True, 18)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd(48, None)  # type: ignore[arg-type]
+
+
+class TestLcm(unittest.TestCase):
+    def test_known_pairs(self) -> None:
+        self.assertEqual(lcm(4, 6), 12)
+        self.assertEqual(lcm(12, 18), 36)
+        self.assertEqual(lcm(7, 13), 91)
+        self.assertEqual(lcm(1, 100), 100)
+
+    def test_one_argument_is_zero(self) -> None:
+        self.assertEqual(lcm(0, 5), 0)
+        self.assertEqual(lcm(7, 0), 0)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(lcm(-4, 6), 12)
+        self.assertEqual(lcm(4, -6), 12)
+        self.assertEqual(lcm(-4, -6), 12)
+
+    def test_both_zero_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            lcm(0, 0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            lcm("4", 6)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm(4, 6.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm(True, 6)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm(4, None)  # type: ignore[arg-type]
+
+
+class TestCeilDiv(unittest.TestCase):
+    def test_exact_division(self) -> None:
+        self.assertEqual(ceil_div(6, 3), 2)
+        self.assertEqual(ceil_div(9, 3), 3)
+
+    def test_rounds_up(self) -> None:
+        self.assertEqual(ceil_div(7, 3), 3)
+        self.assertEqual(ceil_div(10, 4), 3)
+
+    def test_zero_numerator(self) -> None:
+        self.assertEqual(ceil_div(0, 5), 0)
+
+    def test_negative_numerator(self) -> None:
+        self.assertEqual(ceil_div(-7, 3), -2)
+        self.assertEqual(ceil_div(-6, 3), -2)
+
+    def test_negative_divisor(self) -> None:
+        self.assertEqual(ceil_div(7, -3), -2)
+
+    def test_division_by_zero_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            ceil_div(7, 0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            ceil_div("7", 3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ceil_div(7, 3.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ceil_div(True, 3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ceil_div(7, None)  # type: ignore[arg-type]
+
+
+class TestIsKaprekarNumber(unittest.TestCase):
+    def test_known_kaprekar_numbers(self) -> None:
+        for n in (1, 9, 45, 55, 99, 297, 703, 2223, 2728, 7777):
+            self.assertTrue(is_kaprekar_number(n), n)
+
+    def test_zero_is_kaprekar(self) -> None:
+        self.assertTrue(is_kaprekar_number(0))
+
+    def test_non_kaprekar_numbers(self) -> None:
+        for n in (2, 7, 10, 22, 28, 36, 42, 100):
+            self.assertFalse(is_kaprekar_number(n), n)
+
+    def test_negative(self) -> None:
+        self.assertFalse(is_kaprekar_number(-1))
+        self.assertFalse(is_kaprekar_number(-45))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_kaprekar_number("45")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_kaprekar_number(45.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_kaprekar_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_kaprekar_number(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

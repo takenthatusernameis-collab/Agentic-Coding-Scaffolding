@@ -1,3 +1,25 @@
+## Unreleased — added test coverage for gcd, lcm, ceil_div, and is_kaprekar_number in number_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6657 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `number_utils.py` exports 66 functions in `__all__`, but `gcd`, `lcm`, `ceil_div`, and `is_kaprekar_number` were imported nowhere in `tests/test_number_utils.py`, leaving a coverage gap in an otherwise fully-tested module.
+- Added `TestGcd` to `tests/test_number_utils.py` covering known pairs, zero arguments, sign handling, large values, and the `TypeError` path for non-ints and bools (12 new tests).
+- Added `TestLcm` to `tests/test_number_utils.py` covering known pairs, zero arguments, sign handling, the `ValueError` path when both arguments are zero, and the `TypeError` path (11 new tests).
+- Added `TestCeilDiv` to `tests/test_number_utils.py` covering exact division, rounding up, zero numerator, negative numerator and divisor, division-by-zero, and the `TypeError` path (14 new tests).
+- Added `TestIsKaprekarNumber` to `tests/test_number_utils.py` covering known Kaprekar numbers (1, 9, 45, 55, 99, 297, 703, 2223, 2728, 7777), zero, non-Kaprekar numbers, negatives, and the `TypeError` path (11 new tests). Imported `gcd`, `lcm`, `ceil_div`, and `is_kaprekar_number` at the top of the test file to match the module's `__all__` contract.
+- Documented `is_kaprekar_number` in the `number_utils` module prose section and file listing of `README.md`.
+- Verified the work: `make test` runs 6695 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_vowels to prompt_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6996 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

@@ -43248,6 +43248,28 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added test coverage for gcd, lcm, ceil_div, and is_kaprekar_number in number_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6657 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `number_utils.py` exports 66 functions in `__all__`, but `gcd`, `lcm`, `ceil_div`, and `is_kaprekar_number` were imported nowhere in `tests/test_number_utils.py`, leaving a coverage gap in an otherwise fully-tested module.
+- Added `TestGcd` to `tests/test_number_utils.py` covering known pairs, zero arguments, sign handling, large values, and the `TypeError` path for non-ints and bools (12 new tests).
+- Added `TestLcm` to `tests/test_number_utils.py` covering known pairs, zero arguments, sign handling, the `ValueError` path when both arguments are zero, and the `TypeError` path (11 new tests).
+- Added `TestCeilDiv` to `tests/test_number_utils.py` covering exact division, rounding up, zero numerator, negative numerator and divisor, division-by-zero, and the `TypeError` path (14 new tests).
+- Added `TestIsKaprekarNumber` to `tests/test_number_utils.py` covering known Kaprekar numbers (1, 9, 45, 55, 99, 297, 703, 2223, 2728, 7777), zero, non-Kaprekar numbers, negatives, and the `TypeError` path (11 new tests). Imported `gcd`, `lcm`, `ceil_div`, and `is_kaprekar_number` at the top of the test file to match the module's `__all__` contract.
+- Documented `is_kaprekar_number` in the `number_utils` module prose section and file listing of `README.md`.
+- Verified the work: `make test` runs 6695 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_vowels to prompt_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6996 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -44679,7 +44701,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_spy_number)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_spy_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -45604,7 +45626,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -65462,12 +65484,14 @@ cat > "$OUTPUT_DIR/tests/test_number_utils.py" <<'TEST_NUMBER_UTILS'
 import unittest
 
 from number_utils import (
+    ceil_div,
     clamp,
     digit_count,
     digit_product,
     digit_sum,
     digital_root,
     format_number,
+    gcd,
     is_abundant_number,
     is_armstrong_number,
     is_automorphic_number,
@@ -65481,6 +65505,7 @@ from number_utils import (
     is_harshad_number,
     is_infinite,
     is_integer,
+    is_kaprekar_number,
     is_lucas_number,
     is_nan,
     is_negative,
@@ -65497,6 +65522,7 @@ from number_utils import (
     is_strong_number,
     is_triangular_number,
     is_zero,
+    lcm,
     lerp,
     map_range,
     percentage,
@@ -66619,6 +66645,129 @@ class TestIsDeficientNumber(unittest.TestCase):
             is_deficient_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_deficient_number(None)  # type: ignore[arg-type]
+
+
+class TestGcd(unittest.TestCase):
+    def test_known_pairs(self) -> None:
+        self.assertEqual(gcd(48, 18), 6)
+        self.assertEqual(gcd(54, 24), 6)
+        self.assertEqual(gcd(17, 19), 1)
+        self.assertEqual(gcd(100, 10), 10)
+
+    def test_one_argument_is_zero(self) -> None:
+        self.assertEqual(gcd(0, 5), 5)
+        self.assertEqual(gcd(7, 0), 7)
+        self.assertEqual(gcd(0, 0), 0)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(gcd(-48, 18), 6)
+        self.assertEqual(gcd(48, -18), 6)
+        self.assertEqual(gcd(-48, -18), 6)
+
+    def test_large_values(self) -> None:
+        self.assertEqual(gcd(1071, 462), 21)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            gcd("48", 18)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd(48, 18.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd(True, 18)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd(48, None)  # type: ignore[arg-type]
+
+
+class TestLcm(unittest.TestCase):
+    def test_known_pairs(self) -> None:
+        self.assertEqual(lcm(4, 6), 12)
+        self.assertEqual(lcm(12, 18), 36)
+        self.assertEqual(lcm(7, 13), 91)
+        self.assertEqual(lcm(1, 100), 100)
+
+    def test_one_argument_is_zero(self) -> None:
+        self.assertEqual(lcm(0, 5), 0)
+        self.assertEqual(lcm(7, 0), 0)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(lcm(-4, 6), 12)
+        self.assertEqual(lcm(4, -6), 12)
+        self.assertEqual(lcm(-4, -6), 12)
+
+    def test_both_zero_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            lcm(0, 0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            lcm("4", 6)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm(4, 6.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm(True, 6)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm(4, None)  # type: ignore[arg-type]
+
+
+class TestCeilDiv(unittest.TestCase):
+    def test_exact_division(self) -> None:
+        self.assertEqual(ceil_div(6, 3), 2)
+        self.assertEqual(ceil_div(9, 3), 3)
+
+    def test_rounds_up(self) -> None:
+        self.assertEqual(ceil_div(7, 3), 3)
+        self.assertEqual(ceil_div(10, 4), 3)
+
+    def test_zero_numerator(self) -> None:
+        self.assertEqual(ceil_div(0, 5), 0)
+
+    def test_negative_numerator(self) -> None:
+        self.assertEqual(ceil_div(-7, 3), -2)
+        self.assertEqual(ceil_div(-6, 3), -2)
+
+    def test_negative_divisor(self) -> None:
+        self.assertEqual(ceil_div(7, -3), -2)
+
+    def test_division_by_zero_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            ceil_div(7, 0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            ceil_div("7", 3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ceil_div(7, 3.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ceil_div(True, 3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ceil_div(7, None)  # type: ignore[arg-type]
+
+
+class TestIsKaprekarNumber(unittest.TestCase):
+    def test_known_kaprekar_numbers(self) -> None:
+        for n in (1, 9, 45, 55, 99, 297, 703, 2223, 2728, 7777):
+            self.assertTrue(is_kaprekar_number(n), n)
+
+    def test_zero_is_kaprekar(self) -> None:
+        self.assertTrue(is_kaprekar_number(0))
+
+    def test_non_kaprekar_numbers(self) -> None:
+        for n in (2, 7, 10, 22, 28, 36, 42, 100):
+            self.assertFalse(is_kaprekar_number(n), n)
+
+    def test_negative(self) -> None:
+        self.assertFalse(is_kaprekar_number(-1))
+        self.assertFalse(is_kaprekar_number(-45))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_kaprekar_number("45")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_kaprekar_number(45.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_kaprekar_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_kaprekar_number(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
