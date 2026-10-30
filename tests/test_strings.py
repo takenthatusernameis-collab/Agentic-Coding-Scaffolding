@@ -2291,3 +2291,158 @@ class TestCountLetters(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_letters(123)  # type: ignore[arg-type]
+
+
+class TestStringsBoundaryCases(unittest.TestCase):
+    """Comprehensive boundary case tests for strings module."""
+
+    def test_empty_string_edges(self):
+        self.assertEqual(reverse_string(""), "")
+        self.assertEqual(reverse_words(""), "")
+        self.assertEqual(capitalize_words(""), "")
+        self.assertEqual(title_case(""), "")
+        self.assertEqual(snake_to_camel(""), "")
+        self.assertEqual(camel_to_snake(""), "")
+        self.assertEqual(slugify(""), "")
+        self.assertEqual(remove_whitespace(""), "")
+        self.assertEqual(normalize_whitespace(""), "")
+        self.assertEqual(remove_punctuation(""), "")
+        self.assertEqual(remove_digits(""), "")
+        self.assertEqual(remove_vowels(""), "")
+        self.assertEqual(remove_consonants(""), "")
+        self.assertEqual(strip_html(""), "")
+        self.assertEqual(swap_case(""), "")
+        self.assertEqual(join_lines([]), "")
+        self.assertEqual(split_lines(""), [])
+        self.assertEqual(chunk_string("", 5), [])
+        self.assertTrue(is_blank(""))
+        self.assertTrue(is_blank("   "))
+        self.assertTrue(is_blank("\t\n"))
+        self.assertTrue(is_palindrome(""))
+        self.assertTrue(is_anagram("", ""))
+        self.assertTrue(is_rotation("", ""))
+        self.assertTrue(is_isogram(""))
+        self.assertTrue(is_subsequence("", "anything"))
+        self.assertTrue(is_subsequence("", ""))
+        self.assertFalse(is_subsequence("a", ""))
+        self.assertEqual(count_vowels(""), 0)
+        self.assertEqual(count_consonants(""), 0)
+        self.assertEqual(count_uppercase(""), 0)
+        self.assertEqual(count_lowercase(""), 0)
+        self.assertEqual(count_digits(""), 0)
+        self.assertEqual(count_letters(""), 0)
+        self.assertEqual(word_count(""), 0)
+        self.assertEqual(char_count(""), 0)
+        self.assertEqual(count_words(""), 0)
+        self.assertEqual(levenshtein_distance("", ""), 0)
+        self.assertEqual(levenshtein_distance("abc", ""), 3)
+        self.assertEqual(levenshtein_distance("", "abc"), 3)
+        self.assertEqual(common_prefix("", "abc"), "")
+        self.assertEqual(common_suffix("", "abc"), "")
+        self.assertEqual(char_frequency(""), {})
+
+    def test_single_char_edges(self):
+        self.assertEqual(reverse_string("a"), "a")
+        self.assertTrue(is_palindrome("a"))
+        self.assertTrue(is_anagram("a", "a"))
+        self.assertTrue(is_rotation("a", "a"))
+        self.assertTrue(is_isogram("a"))
+        self.assertTrue(is_subsequence("a", "a"))
+        self.assertTrue(is_alpha("a"))
+        self.assertTrue(is_digit("5"))
+        self.assertEqual(count_vowels("a"), 1)
+        self.assertEqual(truncate("a", 1), "a")
+        self.assertEqual(truncate("a", 0), "")
+
+    def test_whitespace_only(self):
+        self.assertTrue(is_blank(" "))
+        self.assertTrue(is_blank("\t"))
+        self.assertTrue(is_blank("\n"))
+        self.assertTrue(is_blank(" \t\n "))
+        self.assertEqual(normalize_whitespace("  hello   world  "), "hello world")
+        self.assertEqual(remove_whitespace("a b\tc\nd"), "abcd")
+        self.assertEqual(split_lines("a\nb\nc"), ["a", "b", "c"])
+        self.assertEqual(strip_chars("  hello  ", " "), "hello")
+
+    def test_unicode_edges(self):
+        self.assertEqual(reverse_string("你好世界"), "界世好你")
+        self.assertEqual(reverse_string("café"), "éfac")
+        self.assertEqual(levenshtein_distance("你好", "你坏"), 1)
+        self.assertEqual(strip_non_ascii("héllo世界"), "hllo")
+        self.assertTrue(is_ascii("hello"))
+        self.assertFalse(is_ascii("café"))
+        self.assertFalse(is_ascii("你好"))
+        self.assertEqual(truncate_bytes("你好", 2, encoding="utf-8"), "")
+        self.assertEqual(truncate_bytes("你好", 6, encoding="utf-8"), "你好")
+
+    def test_non_string_type_errors_comprehensive(self):
+        funcs = [
+            reverse_string,
+            reverse_words,
+            count_vowels,
+            count_consonants,
+            count_lowercase,
+            count_uppercase,
+            count_digits,
+            count_letters,
+            capitalize_words,
+            title_case,
+            camel_to_snake,
+            snake_to_camel,
+            slugify,
+            remove_whitespace,
+            normalize_whitespace,
+            is_alpha,
+            is_alphanumeric,
+            is_binary,
+            is_octal,
+            is_digit,
+            is_hex,
+            is_integer,
+            is_decimal,
+            is_printable,
+            is_identifier,
+            is_pangram,
+            is_upper,
+            is_lower,
+            is_title,
+            is_ascii,
+            is_whitespace,
+            is_space,
+            is_blank,
+            swap_case,
+            remove_punctuation,
+            remove_digits,
+            remove_vowels,
+            remove_consonants,
+            strip_non_ascii,
+            remove_blank_lines,
+            strip_html,
+            initials,
+            char_frequency,
+            is_rotation,
+            is_palindrome,
+            is_isogram,
+            capitalize_words,
+        ]
+        for fn in funcs:
+            with self.subTest(func=fn.__name__):
+                try:
+                    # Most take 1 arg
+                    if fn == is_rotation:
+                        fn(123, "a")  # type: ignore[arg-type]
+                        self.fail(f"{fn.__name__} should raise")
+                    elif fn == is_palindrome:
+                        fn(123)  # type: ignore[arg-type]
+                        self.fail(f"{fn.__name__} should raise")
+                    else:
+                        fn(123)  # type: ignore[arg-type]
+                        self.fail(f"{fn.__name__} should raise")
+                except TypeError:
+                    pass
+
+    def test_long_strings(self):
+        long_s = "a" * 10000
+        self.assertEqual(reverse_string(long_s), long_s)
+        self.assertEqual(len(chunk_string(long_s, 100)), 100)
+        self.assertTrue(is_palindrome(long_s))
