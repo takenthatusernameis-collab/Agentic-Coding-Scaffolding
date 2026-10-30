@@ -11092,6 +11092,7 @@ __all__: List[str] = [
     "count_digits",
     "count_letters",
     "count_punctuation",
+    "count_whitespace",
     "strip_non_ascii",
     "truncate_bytes",
 ]
@@ -12840,6 +12841,36 @@ def count_punctuation(s: str) -> int:
     import string
 
     return sum(1 for ch in s if ch in string.punctuation)
+
+
+def count_whitespace(s: str) -> int:
+    """Return the number of whitespace characters in *s*.
+
+    Whitespace characters are those for which ``str.isspace()`` returns True
+    (spaces, tabs, newlines, carriage returns, form feeds, vertical tabs, and
+    any other Unicode whitespace).
+
+    Args:
+        s: The string to count whitespace characters in.
+
+    Returns:
+        The number of whitespace characters.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_whitespace("hello world")
+        1
+        >>> count_whitespace("a  b\tc")
+        3
+        >>> count_whitespace("no spaces")
+        0
+        >>> count_whitespace("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isspace())
 
 
 def is_subsequence(needle: str, haystack: str) -> bool:
@@ -14732,6 +14763,7 @@ from strings import (
     count_punctuation,
     count_uppercase,
     count_vowels,
+    count_whitespace,
     count_words,
     drop,
     ends_with,
@@ -46461,6 +46493,23 @@ Use the following Makefile targets during development:
 - Sessions have an idle timeout of 900 seconds
 - The overall CI job has a 355-minute safety cutoff
 - All tests, ruff, and mypy pass as of the latest bootstrap session
+
+
+## Portfolio delay-bottleneck elimination
+
+Treat every activation as an opportunity to remove a real bottleneck, not as a quota to create a commit.
+
+Before work, compare the durable task/board state, current branch/HEAD, and changed paths with the last verified checkpoint. Classify each wait as avoidable process delay, external constraint, integrity/safety gate, or unknown. Remove only avoidable delay; preserve required permissions, maintainer workflow boundaries, data provenance, security controls, research embargoes, and explicit user authorization.
+
+- Prefer state-delta checks over full repeated discovery or full test-suite runs when no relevant file/state changed.
+- Use targeted tests after local changes; run broad tests at coherent milestones and before release/merge.
+- Parallelize independent tasks only when they do not share mutable state or compete for bounded resources.
+- Use bounded timeouts and clear progress/error output for subprocesses; do not leave indefinite waits.
+- Resume from durable checkpoints and skip verified completed work.
+- Do not post duplicate board tasks, create timestamp-only handoffs, or commit empty/no-op cycles. Preserve the auto-commit rule for genuine repository changes.
+- When an external gate is real, record the exact release condition and do independent permitted work; never bypass the gate.
+
+Use the optimize-delays command in .kilo/command/optimize-delays.md for a structured delay-removal pass. Do not modify .github/workflows/**; workflow schedule/permissions remain maintainer-managed.
 __AGENTS__
 
 # --- argparse_utils.py ---
@@ -91951,6 +92000,7 @@ from version_utils import (
     strip_prerelease_suffix,
     tuple_to_version,
     version_to_tuple,
+    version_satisfies_major,
 )
 
 
@@ -92278,6 +92328,30 @@ class TestIsCompatible(unittest.TestCase):
     def test_invalid_raises(self):
         with self.assertRaises(ValueError):
             is_compatible("1.2.a", "1.0.0")
+
+
+class TestVersionSatisfiesMajor(unittest.TestCase):
+    def test_same_major(self):
+        self.assertTrue(version_satisfies_major("1.2.3", 1))
+
+    def test_different_major(self):
+        self.assertFalse(version_satisfies_major("2.0.0", 1))
+
+    def test_zero_major(self):
+        self.assertTrue(version_satisfies_major("0.1.0", 0))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            version_satisfies_major(1, 1)  # type: ignore[arg-type]
+
+    def test_non_int_raises(self):
+        with self.assertRaises(TypeError):
+            version_satisfies_major("1.0.0", 1.0)  # type: ignore[arg-type]
+
+    def test_bool_raises(self):
+        with self.assertRaises(TypeError):
+            version_satisfies_major("1.0.0", True)  # type: ignore[arg-type]
+
 
 
 class TestDecrementMajor(unittest.TestCase):

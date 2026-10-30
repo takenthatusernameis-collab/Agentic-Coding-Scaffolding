@@ -63,6 +63,7 @@ from version_utils import (
     strip_prerelease_suffix,
     tuple_to_version,
     version_to_tuple,
+    version_satisfies_major,
 )
 
 
@@ -390,6 +391,30 @@ class TestIsCompatible(unittest.TestCase):
     def test_invalid_raises(self):
         with self.assertRaises(ValueError):
             is_compatible("1.2.a", "1.0.0")
+
+
+class TestVersionSatisfiesMajor(unittest.TestCase):
+    def test_same_major(self):
+        self.assertTrue(version_satisfies_major("1.2.3", 1))
+
+    def test_different_major(self):
+        self.assertFalse(version_satisfies_major("2.0.0", 1))
+
+    def test_zero_major(self):
+        self.assertTrue(version_satisfies_major("0.1.0", 0))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            version_satisfies_major(1, 1)  # type: ignore[arg-type]
+
+    def test_non_int_raises(self):
+        with self.assertRaises(TypeError):
+            version_satisfies_major("1.0.0", 1.0)  # type: ignore[arg-type]
+
+    def test_bool_raises(self):
+        with self.assertRaises(TypeError):
+            version_satisfies_major("1.0.0", True)  # type: ignore[arg-type]
+
 
 
 class TestDecrementMajor(unittest.TestCase):
