@@ -39,6 +39,7 @@ from prompt_utils import (
     rstrip_lines,
     strip_blank_lines,
     strip_lines,
+    strip_leading_newlines,
     strip_trailing_newlines,
     truncate_lines,
     truncate_prompt,
@@ -905,6 +906,32 @@ class TestStripTrailingNewlines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             strip_trailing_newlines(123)  # type: ignore[arg-type]
+
+
+class TestStripLeadingNewlines(unittest.TestCase):
+    def test_removes_leading_newlines(self):
+        self.assertEqual(strip_leading_newlines("\n\nhello"), "hello")
+
+    def test_removes_single_leading_newline(self):
+        self.assertEqual(strip_leading_newlines("\nhello"), "hello")
+
+    def test_no_leading_newlines(self):
+        self.assertEqual(strip_leading_newlines("hello"), "hello")
+
+    def test_empty_string(self):
+        self.assertEqual(strip_leading_newlines(""), "")
+
+    def test_only_newlines(self):
+        self.assertEqual(strip_leading_newlines("\n\n\n"), "")
+
+    def test_preserves_other_leading_whitespace(self):
+        self.assertEqual(strip_leading_newlines("  \thello"), "  \thello")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            strip_leading_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strip_leading_newlines(None)  # type: ignore[arg-type]
 
 
 class TestCountNonWhitespaceCharacters(unittest.TestCase):

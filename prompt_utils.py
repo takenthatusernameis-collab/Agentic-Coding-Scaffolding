@@ -51,8 +51,9 @@ __all__: List[str] = [
     "count_vowels",
     "reverse_lines",
     "strip_blank_lines",
+    "strip_leading_newlines",
+    "strip_trailing_newlines",
     "count_unique_words",
-"strip_trailing_newlines",
 ]
 
 
@@ -1249,6 +1250,39 @@ def strip_trailing_newlines(text: str) -> str:
     while i > 0 and text[i - 1] == "\n":
         i -= 1
     return text[:i]
+
+
+def strip_leading_newlines(text: str) -> str:
+    """Remove all leading newline characters from *text*.
+
+    Strips consecutive ``\\n`` characters from the start of *text*. Other
+    leading whitespace is preserved. Empty text is returned unchanged.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with leading newlines removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_leading_newlines("\\n\\nhello")
+        'hello'
+        >>> strip_leading_newlines("hello")
+        'hello'
+        >>> strip_leading_newlines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    i = 0
+    n = len(text)
+    while i < n and text[i] == "\n":
+        i += 1
+    return text[i:]
 
 
 def count_non_whitespace_characters(text: str) -> int:
