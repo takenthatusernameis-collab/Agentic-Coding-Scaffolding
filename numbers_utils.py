@@ -21,6 +21,7 @@ __all__: list[str] = [
     "is_integral",
     "is_perfect_number",
     "is_abundant_number",
+    "is_deficient_number",
 ]
 
 #: The abstract base class for all numbers.
@@ -178,3 +179,51 @@ def is_abundant_number(n: int) -> bool:
                 total += other
         candidate += 1
     return total > n
+
+
+def is_deficient_number(n: int) -> bool:
+    """Return ``True`` when *n* is a deficient number.
+
+    A deficient number is a positive integer whose sum of proper divisors
+    (the divisors excluding the number itself) is less than the number.
+    The smallest deficient number is 1 (sum is 0) and most numbers are
+    deficient; primes p have sum of proper divisors 1 < p for p > 1.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a deficient number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_deficient_number(1)
+        True
+        >>> is_deficient_number(2)
+        True
+        >>> is_deficient_number(4)
+        True
+        >>> is_deficient_number(6)
+        False
+        >>> is_deficient_number(12)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+    if n == 1:
+        return True
+    total = 1
+    candidate = 2
+    while candidate * candidate <= n:
+        if n % candidate == 0:
+            total += candidate
+            other = n // candidate
+            if other != candidate:
+                total += other
+        candidate += 1
+    return total < n
+
