@@ -32,6 +32,7 @@ __all__: List[str] = [
     "rstrip_lines",
     "lstrip_lines",
     "strip_lines",
+    "ensure_leading_newline",
     "ensure_trailing_newline",
     "normalize_line_endings",
     "first_line",
@@ -793,6 +794,37 @@ def ensure_trailing_newline(text: str) -> str:
     if text.endswith("\n"):
         return text
     return text + "\n"
+
+
+def ensure_leading_newline(text: str) -> str:
+    """Ensure *text* starts with a newline character.
+
+    If *text* is empty, it is returned unchanged. If it already starts with a
+    newline, it is returned unchanged. Otherwise a single ``\\n`` is prepended.
+
+    Args:
+        text: The text to normalize.
+
+    Returns:
+        *text* with a leading newline when appropriate.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> ensure_leading_newline("hello")
+        '\\nhello'
+        >>> ensure_leading_newline("\\nhello")
+        '\\nhello'
+        >>> ensure_leading_newline("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    if text.startswith("\n"):
+        return text
+    return "\n" + text
 
 
 def normalize_line_endings(text: str) -> str:

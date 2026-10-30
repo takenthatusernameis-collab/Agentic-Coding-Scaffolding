@@ -1,3 +1,16 @@
+## Unreleased — added ensure_leading_newline helper to prompt_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6753 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `prompt_utils.py` exports `ensure_trailing_newline(text)` but had no companion to guarantee a leading newline, leaving a small gap in the line-normalization helpers.
+- Added `ensure_leading_newline(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctest examples, and `TypeError` validation for non-string arguments; it prepends a single newline when *text* is non-empty and does not already start with one, returning empty text unchanged.
+- Added `TestEnsureLeadingNewline` to `tests/test_prompt_utils.py` covering the add/already-present cases, empty string, multiple leading newlines, and the `TypeError` paths for non-string arguments (5 new tests; 6758 tests now pass). Imported `ensure_leading_newline` at the top of the test file to match the module's `__all__` contract.
+- Updated the `prompt_utils` module prose section of `README.md` to list the new helper.
+- Verified the work: `make test` runs 6758 tests and passes with no new failures, `make lint` is clean, and `make typecheck` reports no issues in 530 source files.
+- Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added test coverage for ensure_prefix and ensure_suffix in strings.py
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6735 tests and passes, `make lint` is clean, `make typecheck` reports 11 pre-existing errors in 10 files (identical with the change stashed), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

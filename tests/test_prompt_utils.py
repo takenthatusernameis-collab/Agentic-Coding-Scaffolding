@@ -22,6 +22,7 @@ from prompt_utils import (
     count_whitespace_characters,
     count_words,
     dedent_lines,
+    ensure_leading_newline,
     ensure_trailing_newline,
     estimate_token_count,
     extract_keywords,
@@ -427,6 +428,26 @@ class TestStripLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             strip_lines(123)  # type: ignore[arg-type]
+
+
+class TestEnsureLeadingNewline(unittest.TestCase):
+    def test_adds_newline(self):
+        self.assertEqual(ensure_leading_newline("hello"), "\nhello")
+
+    def test_keeps_existing_newline(self):
+        self.assertEqual(ensure_leading_newline("\nhello"), "\nhello")
+
+    def test_empty_string(self):
+        self.assertEqual(ensure_leading_newline(""), "")
+
+    def test_multiple_newlines(self):
+        self.assertEqual(ensure_leading_newline("\n\nhello"), "\n\nhello")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ensure_leading_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_leading_newline(None)  # type: ignore[arg-type]
 
 
 class TestEnsureTrailingNewline(unittest.TestCase):
