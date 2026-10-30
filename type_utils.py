@@ -16,6 +16,14 @@ __all__: List[str] = [
     "is_subclass_safe",
     "is_type_var",
     "is_class_var",
+    "is_none_type",
+    "is_any",
+    "unwrap_optional",
+    "is_callable",
+    "is_tuple",
+    "is_list_type",
+    "is_dict_type",
+    "get_origin_name",
 ]
 
 
@@ -128,3 +136,80 @@ def is_class_var(tp: Any) -> bool:
     if origin is typing.ClassVar:
         return True
     return tp is typing.ClassVar
+
+
+def is_none_type(tp: Any) -> bool:
+    """Return True if *tp* is NoneType."""
+    return tp is type(None) or tp is None
+
+
+def is_any(tp: Any) -> bool:
+    """Return True if *tp* is typing.Any."""
+    return tp is Any
+
+
+def unwrap_optional(tp: Any) -> Any:
+    """Return the inner type of Optional[...], else return tp unchanged."""
+    if not is_optional(tp):
+        return tp
+    args = get_args(tp)
+    # Filter out None
+    non_none = [a for a in args if a is not type(None)]
+    if len(non_none) == 1:
+        return non_none[0]
+    # If multiple non-None (shouldn't happen for Optional), return Union of them
+    if len(non_none) > 1:
+        return Union[tuple(non_none)]  # type: ignore[misc]
+    return tp
+
+
+def is_callable(tp: Any) -> bool:
+    """Return True if *tp* is a Callable type."""
+    origin = get_origin(tp)
+    if origin is Callable:
+        return True
+    if tp is Callable:
+        return True
+    return False
+
+
+def is_tuple(tp: Any) -> bool:
+    """Return True if *tp* is a Tuple type."""
+    origin = get_origin(tp)
+    if origin is tuple or origin is Tuple:
+        return True
+    if tp is tuple or tp is Tuple:
+        return True
+    return False
+
+
+def is_list_type(tp: Any) -> bool:
+    """Return True if *tp* is a List type."""
+    origin = get_origin(tp)
+    if origin is list or origin is List:
+        return True
+    if tp is list or tp is List:
+        return True
+    return False
+
+
+def is_dict_type(tp: Any) -> bool:
+    """Return True if *tp* is a Dict type."""
+    origin = get_origin(tp)
+    if origin is dict or origin is Dict:
+        return True
+    if tp is dict or tp is Dict:
+        return True
+    return False
+
+
+def get_origin_name(tp: Any) -> str:
+    """Return the name of the origin of a generic type."""
+    origin = get_origin(tp)
+    if origin is None:
+        if hasattr(tp, "__name__"):
+            return str(getattr(tp, "__name__"))
+        return str(tp)
+    if hasattr(origin, "__name__"):
+        return str(getattr(origin, "__name__"))
+    return str(origin)
