@@ -16705,6 +16705,7 @@ from stats import (
     coefficient_of_variation,
     correlation,
     covariance,
+    cumulative_sum,
     geometric_mean,
     harmonic_mean,
     kurtosis,
@@ -17991,6 +17992,49 @@ class TestMovingAverage(unittest.TestCase):
             moving_average([1, 2, 3], 2, weights=[0, 0])
         with self.assertRaises(ValueError):
             moving_average([1, 2, 3], 2, weights=[-1, 1])
+
+
+class TestCumulativeSum(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(cumulative_sum([1, 2, 3, 4]), [1.0, 3.0, 6.0, 10.0])
+
+    def test_empty(self) -> None:
+        self.assertEqual(cumulative_sum([]), [])
+
+    def test_single(self) -> None:
+        self.assertEqual(cumulative_sum([5]), [5.0])
+
+    def test_negatives(self) -> None:
+        self.assertEqual(cumulative_sum([-1, 0, 1]), [-1.0, -1.0, 0.0])
+
+    def test_floats(self) -> None:
+        self.assertEqual(cumulative_sum([1.5, 2.5]), [1.5, 4.0])
+
+    def test_zeros(self) -> None:
+        self.assertEqual(cumulative_sum([0, 0, 0]), [0.0, 0.0, 0.0])
+
+    def test_preserves_order(self) -> None:
+        self.assertEqual(cumulative_sum([3, 1, 2]), [3.0, 4.0, 6.0])
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            cumulative_sum((1, 2, 3))  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cumulative_sum("123")  # type: ignore[arg-type]
+
+    def test_non_numeric_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            cumulative_sum([1, 2, "a"])  # type: ignore[type-var]
+        with self.assertRaises(TypeError):
+            cumulative_sum([1, None])  # type: ignore[type-var]
+
+    def test_bool_in_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            cumulative_sum([True, 1, 2])  # type: ignore[type-var]
+
+
+if __name__ == "__main__":
+    unittest.main()
 TESTSTATS
 
 # --- math_utils.py ---
@@ -43015,6 +43059,25 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added cumulative_sum test coverage to stats
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `stats.py` exports `cumulative_sum(numbers)` in `__all__` and the README lists it, but `tests/test_stats.py` had no test class for it (it was imported nowhere and untested), leaving a coverage gap in an otherwise fully-tested module.
+- Added `TestCumulativeSum` to `tests/test_stats.py` covering basic running totals, empty input, single element, negatives, floats, zeros, order preservation, and the `TypeError` paths for non-lists, non-numeric values, and bools (10 new tests). Imported `cumulative_sum` at the top of the test file to match the module's `__all__` contract.
+- Documented `cumulative_sum` in the `stats` module prose section of `README.md`.
+- Verified the work: `make test` passes with no new failures, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_digits to prompt_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
@@ -44944,7 +45007,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

@@ -1,3 +1,22 @@
+## Unreleased — added cumulative_sum test coverage to stats
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `stats.py` exports `cumulative_sum(numbers)` in `__all__` and the README lists it, but `tests/test_stats.py` had no test class for it (it was imported nowhere and untested), leaving a coverage gap in an otherwise fully-tested module.
+- Added `TestCumulativeSum` to `tests/test_stats.py` covering basic running totals, empty input, single element, negatives, floats, zeros, order preservation, and the `TypeError` paths for non-lists, non-numeric values, and bools (10 new tests). Imported `cumulative_sum` at the top of the test file to match the module's `__all__` contract.
+- Documented `cumulative_sum` in the `stats` module prose section of `README.md`.
+- Verified the work: `make test` passes with no new failures, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_digits to prompt_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.

@@ -7,6 +7,7 @@ from stats import (
     coefficient_of_variation,
     correlation,
     covariance,
+    cumulative_sum,
     geometric_mean,
     harmonic_mean,
     kurtosis,
@@ -1293,3 +1294,46 @@ class TestMovingAverage(unittest.TestCase):
             moving_average([1, 2, 3], 2, weights=[0, 0])
         with self.assertRaises(ValueError):
             moving_average([1, 2, 3], 2, weights=[-1, 1])
+
+
+class TestCumulativeSum(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(cumulative_sum([1, 2, 3, 4]), [1.0, 3.0, 6.0, 10.0])
+
+    def test_empty(self) -> None:
+        self.assertEqual(cumulative_sum([]), [])
+
+    def test_single(self) -> None:
+        self.assertEqual(cumulative_sum([5]), [5.0])
+
+    def test_negatives(self) -> None:
+        self.assertEqual(cumulative_sum([-1, 0, 1]), [-1.0, -1.0, 0.0])
+
+    def test_floats(self) -> None:
+        self.assertEqual(cumulative_sum([1.5, 2.5]), [1.5, 4.0])
+
+    def test_zeros(self) -> None:
+        self.assertEqual(cumulative_sum([0, 0, 0]), [0.0, 0.0, 0.0])
+
+    def test_preserves_order(self) -> None:
+        self.assertEqual(cumulative_sum([3, 1, 2]), [3.0, 4.0, 6.0])
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            cumulative_sum((1, 2, 3))  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cumulative_sum("123")  # type: ignore[arg-type]
+
+    def test_non_numeric_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            cumulative_sum([1, 2, "a"])  # type: ignore[type-var]
+        with self.assertRaises(TypeError):
+            cumulative_sum([1, None])  # type: ignore[type-var]
+
+    def test_bool_in_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            cumulative_sum([True, 1, 2])  # type: ignore[type-var]
+
+
+if __name__ == "__main__":
+    unittest.main()
