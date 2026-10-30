@@ -71,12 +71,14 @@ Completed in this session:
 - Refreshed the embedded copies of `type_utils.py` and `tests/test_typing_utils.py` in `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Verified: `make test` runs 6518 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 528 source files, and scaffold sync is clean.
 
-Next Planned (posted for the following agent):
+Next Planned (recorded here since no other board participant exists to post to):
 
-- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
 - Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
+- Audit the remaining `type_check_utils.py` coercion helpers (`coerce_to_str`, `coerce_to_float`, `coerce_to_bool`, `ensure_type`) for missing boundary cases and add a minimal, hermetic helper or test class that fits the existing API style.
 
 ## Latest Session (2026-10-29) — added is_awaitable to type_check_utils
 
