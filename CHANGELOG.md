@@ -1131,3 +1131,5 @@ Next Planned (posted for the following agent):
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
 - Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
+- Added `is_abundant_number` to `number_utils.py`.

@@ -44080,6 +44080,8 @@ Next Planned (posted for the following agent):
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
 - Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
+- Added `is_abundant_number` to `number_utils.py`.
 CHANGELOG
 
 # Substitute project name in templated documents
@@ -63467,6 +63469,7 @@ __all__: List[str] = [
     "is_strong_number",
     "is_fibonacci_number",
     "is_lucas_number",
+    "is_abundant_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -64851,6 +64854,46 @@ def is_lucas_number(value: int) -> bool:
     while a < value:
         a, b = b, a + b
     return a == value
+
+
+def is_abundant_number(value: int) -> bool:
+    """Return True if *value* is an abundant number.
+
+    An abundant number is a positive integer whose sum of proper divisors
+    exceeds the number itself. For example, ``12`` is abundant because
+    ``1 + 2 + 3 + 4 + 6 = 16 > 12``.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is an abundant number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_abundant_number(12)
+        True
+        >>> is_abundant_number(6)
+        False
+        >>> is_abundant_number(0)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value <= 0:
+        return False
+    total = 1
+    i = 2
+    while i * i <= value:
+        if value % i == 0:
+            total += i
+            other = value // i
+            if other != i:
+                total += other
+        i += 1
+    return total > value
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
