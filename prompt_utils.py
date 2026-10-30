@@ -50,8 +50,7 @@ __all__: List[str] = [
     "reverse_lines",
     "strip_blank_lines",
     "count_unique_words",
-    "strip_trailing_newlines",
-    "extract_numbers",
+"strip_trailing_newlines",
 ]
 
 

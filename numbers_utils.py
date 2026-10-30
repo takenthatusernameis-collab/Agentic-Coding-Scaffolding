@@ -97,52 +97,6 @@ def is_integral(obj: object) -> bool:
     """
     return isinstance(obj, Integral)
 
-
-def is_perfect_number(n: int) -> bool:
-    """Return ``True`` when *n* is a perfect number.
-
-    A perfect number is a positive integer that equals the sum of its proper
-    divisors (the divisors excluding the number itself). The smallest perfect
-    number is 6 (= 1 + 2 + 3); the next are 28, 496, and 8128.
-
-    Args:
-        n: The integer to test.
-
-    Returns:
-        ``True`` if *n* is a perfect number, ``False`` otherwise. Numbers
-        below 2 are never perfect.
-
-    Raises:
-        TypeError: If *n* is not an int.
-
-    Examples:
-        >>> is_perfect_number(6)
-        True
-        >>> is_perfect_number(28)
-        True
-        >>> is_perfect_number(496)
-        True
-        >>> is_perfect_number(12)
-        False
-        >>> is_perfect_number(1)
-        False
-    """
-    if isinstance(n, bool) or not isinstance(n, int):
-        raise TypeError(f"n must be an int, got {type(n).__name__}")
-    if n < 2:
-        return False
-    total = 0
-    candidate = 1
-    while candidate * candidate <= n:
-        if n % candidate == 0:
-            total += candidate
-            other = n // candidate
-            if other != candidate and other != n:
-                total += other
-        candidate += 1
-    return total == n
-
-
 def is_abundant_number(n: int) -> bool:
     """Return ``True`` when *n* is an abundant number.
 
