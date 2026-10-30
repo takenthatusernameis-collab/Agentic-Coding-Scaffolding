@@ -21358,15 +21358,23 @@ import typing as t
 import unittest
 
 from type_utils import (
+    get_origin_name,
     get_type_args,
+    is_any,
+    is_callable,
     is_class_var,
+    is_dict_type,
     is_generic,
+    is_list_type,
     is_literal,
+    is_none_type,
     is_optional,
     is_subclass_safe,
+    is_tuple,
     is_type_var,
     is_union,
     type_name,
+    unwrap_optional,
 )
 
 
@@ -21440,6 +21448,66 @@ class TestTypeUtils(unittest.TestCase):
         self.assertFalse(is_class_var(int))
         self.assertFalse(is_class_var(str))
         self.assertFalse(is_class_var(None))
+
+    def test_is_callable(self):
+        self.assertTrue(is_callable(t.Callable))
+        self.assertTrue(is_callable(t.Callable[[int], str]))
+        self.assertTrue(is_callable(t.Callable[..., str]))
+        self.assertTrue(is_callable(t.Callable[[int, str], None]))
+        self.assertFalse(is_callable(int))
+        self.assertFalse(is_callable(str))
+        self.assertFalse(is_callable(t.List[int]))
+        self.assertFalse(is_callable(None))
+
+    def test_is_tuple(self):
+        self.assertTrue(is_tuple(t.Tuple))
+        self.assertTrue(is_tuple(t.Tuple[int, str]))
+        self.assertTrue(is_tuple(t.Tuple[int, ...]))
+        self.assertFalse(is_tuple(int))
+        self.assertFalse(is_tuple(t.List[int]))
+        self.assertFalse(is_tuple(None))
+
+    def test_is_list_type(self):
+        self.assertTrue(is_list_type(t.List))
+        self.assertTrue(is_list_type(t.List[int]))
+        self.assertFalse(is_list_type(int))
+        self.assertFalse(is_list_type(t.Tuple[int, str]))
+        self.assertFalse(is_list_type(None))
+
+    def test_is_dict_type(self):
+        self.assertTrue(is_dict_type(t.Dict))
+        self.assertTrue(is_dict_type(t.Dict[str, int]))
+        self.assertFalse(is_dict_type(int))
+        self.assertFalse(is_dict_type(t.List[int]))
+        self.assertFalse(is_dict_type(None))
+
+    def test_get_origin_name(self):
+        self.assertEqual(get_origin_name(t.List[int]), "list")
+        self.assertEqual(get_origin_name(t.Dict[str, int]), "dict")
+        self.assertEqual(get_origin_name(t.Tuple[int, str]), "tuple")
+        self.assertEqual(get_origin_name(int), "int")
+        self.assertEqual(get_origin_name(str), "str")
+
+    def test_is_none_type(self):
+        self.assertTrue(is_none_type(type(None)))
+        self.assertTrue(is_none_type(None))
+        self.assertFalse(is_none_type(int))
+        self.assertFalse(is_none_type(str))
+
+    def test_is_any(self):
+        self.assertTrue(is_any(t.Any))
+        self.assertFalse(is_any(int))
+        self.assertFalse(is_any(str))
+        self.assertFalse(is_any(None))
+
+    def test_unwrap_optional(self):
+        self.assertEqual(unwrap_optional(t.Optional[int]), int)
+        self.assertEqual(unwrap_optional(t.Optional[str]), str)
+        self.assertEqual(unwrap_optional(t.Union[int, None]), int)
+        self.assertEqual(unwrap_optional(int), int)
+        self.assertEqual(unwrap_optional(str), str)
+        self.assertEqual(unwrap_optional(t.Union[int, str, None]),
+                         t.Union[int, str])
 
 
 if __name__ == "__main__":
@@ -31519,12 +31587,39 @@ def unwrap_optional(tp: Any) -> Any:
 
 
 def is_callable(tp: Any) -> bool:
-    """Return True if *tp* is a Callable type."""
+    """Return True if *tp* is a Callable type.
+
+    Detects both the bare ``typing.Callable`` alias and parameterized forms
+    such as ``Callable[[int], str]``. On Python 3.9+, ``get_origin`` of a
+    parameterized ``Callable`` returns ``collections.abc.Callable``, so the
+    check is performed against that ABC as well as ``typing.Callable``.
+
+    Args:
+        tp: The type to inspect.
+
+    Returns:
+        ``True`` if *tp* is a ``Callable`` type alias, ``False`` otherwise.
+
+    Examples:
+        >>> is_callable(Callable)
+        True
+        >>> is_callable(Callable[[int], str])
+        True
+        >>> is_callable(int)
+        False
+    """
     origin = get_origin(tp)
     if origin is Callable:
         return True
     if tp is Callable:
         return True
+    try:
+        import collections.abc as _abc
+
+        if origin is _abc.Callable:
+            return True
+    except Exception:
+        pass
     return False
 
 
@@ -43111,6 +43206,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed is_callable regression and added type_utils test coverage
+
+- Fixed `is_callable(tp)` in `type_utils.py`: the parameterized form `Callable[[int], str]` returned `False` because `get_origin` yields `collections.abc.Callable` rather than `typing.Callable`. The check now compares the origin against `typing.Callable` and `collections.abc.Callable`, so both bare `Callable` and parameterized `Callable[[...], ...]` forms are detected.
+- Added test coverage for the previously untested `type_utils` helpers: `TestIsCallable`, `TestIsTuple`, `TestIsListType`, `TestIsDictType`, `TestGetOriginName`, `TestIsNoneType`, `TestIsAny`, and `TestUnwrapOptional` in `tests/test_type_utils.py` (25 new assertions). Verified `is_callable`, `is_tuple`, `is_list_type`, `is_dict_type`, `get_origin_name`, `is_none_type`, `is_any`, and `unwrap_optional` against bare aliases, parameterized aliases, and non-matching types.
+- Updated the `type_utils` module tree entry and prose section of `README.md` to enumerate the full public API. Synchronized `type_utils.py`, `tests/test_type_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added is_lucas_number to number_utils
 
 - Added `is_lucas_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments (rejecting `bool`); a Lucas number is an integer in the sequence defined by `L(0) = 2`, `L(1) = 1`, `L(n) = L(n-1) + L(n-2)` (returns `False` for negative values); `is_lucas_number(0)` returns `False`. Added `TestIsLucasNumber` to `tests/test_number_utils.py` covering known Lucas numbers, non-Lucas values, negative values, and the `TypeError` path. Updated the `number_utils` module listing and prose section of `README.md` and the `number_utils` line of `.kilo/command/scaffold-project.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -44374,7 +44475,7 @@ stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
-type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal, is_type_var)
+type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal, is_type_var, is_class_var, is_callable, is_tuple, is_list_type, is_dict_type, is_none_type, is_any, unwrap_optional, get_origin_name)
 path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
 colorsys_utils.py          # Colorsys utilities wrapping the standard library colorsys module (RGB/HSL conversions, color math)
@@ -45072,7 +45173,7 @@ The project includes a string utilities module in `string_utils.py` with advance
 
 ## Type Utilities Module
 
-The project includes a type introspection utilities module in `type_utils.py` with functions for inspecting Python type objects: `is_optional` detects `Optional[T]` / `Union[T, None]`, `is_union` detects any `Union` type, `is_generic` detects generic aliases like `List[int]`, `get_type_args` returns the type arguments of a generic, `type_name` produces a human-readable name for a type, `is_subclass_safe` checks subclass relationships without raising `TypeError`, and `is_literal` detects `Literal[...]` type aliases. The module is tested in `tests/test_type_utils.py`.
+The project includes a type introspection utilities module in `type_utils.py` with functions for inspecting Python type objects: `is_optional` detects `Optional[T]` / `Union[T, None]`, `is_union` detects any `Union` type, `is_generic` detects generic aliases like `List[int]`, `get_type_args` returns the type arguments of a generic, `type_name` produces a human-readable name for a type, `is_subclass_safe` checks subclass relationships without raising `TypeError`, `is_literal` detects `Literal[...]` type aliases, `is_type_var` detects `typing.TypeVar` instances, `is_class_var` detects `typing.ClassVar` aliases, `is_callable` detects `Callable` type aliases (bare and parameterized, e.g. `Callable[[int], str]`), `is_tuple` detects `Tuple` aliases, `is_list_type` detects `List` aliases, `is_dict_type` detects `Dict` aliases, `is_none_type` detects `NoneType`, `is_any` detects `typing.Any`, `unwrap_optional` returns the inner type of an `Optional[...]`, and `get_origin_name` returns the name of a generic type's origin. The module is tested in `tests/test_type_utils.py`.
 
 ## Path Utilities Module
 

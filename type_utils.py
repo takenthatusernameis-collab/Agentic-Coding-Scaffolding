@@ -164,12 +164,39 @@ def unwrap_optional(tp: Any) -> Any:
 
 
 def is_callable(tp: Any) -> bool:
-    """Return True if *tp* is a Callable type."""
+    """Return True if *tp* is a Callable type.
+
+    Detects both the bare ``typing.Callable`` alias and parameterized forms
+    such as ``Callable[[int], str]``. On Python 3.9+, ``get_origin`` of a
+    parameterized ``Callable`` returns ``collections.abc.Callable``, so the
+    check is performed against that ABC as well as ``typing.Callable``.
+
+    Args:
+        tp: The type to inspect.
+
+    Returns:
+        ``True`` if *tp* is a ``Callable`` type alias, ``False`` otherwise.
+
+    Examples:
+        >>> is_callable(Callable)
+        True
+        >>> is_callable(Callable[[int], str])
+        True
+        >>> is_callable(int)
+        False
+    """
     origin = get_origin(tp)
     if origin is Callable:
         return True
     if tp is Callable:
         return True
+    try:
+        import collections.abc as _abc
+
+        if origin is _abc.Callable:
+            return True
+    except Exception:
+        pass
     return False
 
 

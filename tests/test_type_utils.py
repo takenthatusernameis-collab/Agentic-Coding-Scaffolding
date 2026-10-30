@@ -4,15 +4,23 @@ import typing as t
 import unittest
 
 from type_utils import (
+    get_origin_name,
     get_type_args,
+    is_any,
+    is_callable,
     is_class_var,
+    is_dict_type,
     is_generic,
+    is_list_type,
     is_literal,
+    is_none_type,
     is_optional,
     is_subclass_safe,
+    is_tuple,
     is_type_var,
     is_union,
     type_name,
+    unwrap_optional,
 )
 
 
@@ -86,6 +94,66 @@ class TestTypeUtils(unittest.TestCase):
         self.assertFalse(is_class_var(int))
         self.assertFalse(is_class_var(str))
         self.assertFalse(is_class_var(None))
+
+    def test_is_callable(self):
+        self.assertTrue(is_callable(t.Callable))
+        self.assertTrue(is_callable(t.Callable[[int], str]))
+        self.assertTrue(is_callable(t.Callable[..., str]))
+        self.assertTrue(is_callable(t.Callable[[int, str], None]))
+        self.assertFalse(is_callable(int))
+        self.assertFalse(is_callable(str))
+        self.assertFalse(is_callable(t.List[int]))
+        self.assertFalse(is_callable(None))
+
+    def test_is_tuple(self):
+        self.assertTrue(is_tuple(t.Tuple))
+        self.assertTrue(is_tuple(t.Tuple[int, str]))
+        self.assertTrue(is_tuple(t.Tuple[int, ...]))
+        self.assertFalse(is_tuple(int))
+        self.assertFalse(is_tuple(t.List[int]))
+        self.assertFalse(is_tuple(None))
+
+    def test_is_list_type(self):
+        self.assertTrue(is_list_type(t.List))
+        self.assertTrue(is_list_type(t.List[int]))
+        self.assertFalse(is_list_type(int))
+        self.assertFalse(is_list_type(t.Tuple[int, str]))
+        self.assertFalse(is_list_type(None))
+
+    def test_is_dict_type(self):
+        self.assertTrue(is_dict_type(t.Dict))
+        self.assertTrue(is_dict_type(t.Dict[str, int]))
+        self.assertFalse(is_dict_type(int))
+        self.assertFalse(is_dict_type(t.List[int]))
+        self.assertFalse(is_dict_type(None))
+
+    def test_get_origin_name(self):
+        self.assertEqual(get_origin_name(t.List[int]), "list")
+        self.assertEqual(get_origin_name(t.Dict[str, int]), "dict")
+        self.assertEqual(get_origin_name(t.Tuple[int, str]), "tuple")
+        self.assertEqual(get_origin_name(int), "int")
+        self.assertEqual(get_origin_name(str), "str")
+
+    def test_is_none_type(self):
+        self.assertTrue(is_none_type(type(None)))
+        self.assertTrue(is_none_type(None))
+        self.assertFalse(is_none_type(int))
+        self.assertFalse(is_none_type(str))
+
+    def test_is_any(self):
+        self.assertTrue(is_any(t.Any))
+        self.assertFalse(is_any(int))
+        self.assertFalse(is_any(str))
+        self.assertFalse(is_any(None))
+
+    def test_unwrap_optional(self):
+        self.assertEqual(unwrap_optional(t.Optional[int]), int)
+        self.assertEqual(unwrap_optional(t.Optional[str]), str)
+        self.assertEqual(unwrap_optional(t.Union[int, None]), int)
+        self.assertEqual(unwrap_optional(int), int)
+        self.assertEqual(unwrap_optional(str), str)
+        self.assertEqual(unwrap_optional(t.Union[int, str, None]),
+                         t.Union[int, str])
 
 
 if __name__ == "__main__":
