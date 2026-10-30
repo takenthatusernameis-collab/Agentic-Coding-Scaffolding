@@ -1,3 +1,24 @@
+## Unreleased — added is_dev_version test coverage and version_utils alias coverage
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6570 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported 1 embedded copy out of sync (a stale `version_utils.py` snapshot left by the preceding checkpoint commit).
+
+Completed in this session:
+
+- Refreshed the embedded copy of `version_utils.py` inside `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- Found that `version_utils.py` exports 75 functions but `is_dev_version` had no test coverage and the comparison/parse aliases (`cmp_versions`, `cmp`, `compare`, `is_semver`, `is_newer`, `is_older`, `from_tuple`, `increment_version`, `increment`) were imported nowhere in `tests/test_version_utils.py`, leaving a coverage gap in an otherwise fully-tested module.
+- Added `TestIsDevVersion` to `tests/test_version_utils.py` covering dev-tagged versions (including case-insensitive `DEV` and dotted prereleases), non-dev prereleases (`rc`, `alpha`), versions with no prerelease, and the `TypeError` path (4 new tests).
+- Added `TestVersionComparisonAliases` to `tests/test_version_utils.py` asserting the comparison aliases (`cmp_versions`, `cmp`, `compare`) return -1/0/1 like `compare_versions`, that `is_semver` mirrors `is_valid_version` (including rejecting non-strings), that `is_newer`/`is_older` mirror `is_greater`/`is_less`, that `from_tuple` mirrors `tuple_to_version`, and that `increment_version`/`increment` mirror `bump_version` (14 new assertions). Imported the newly covered names at the top of the test file to match the module's `__all__` contract.
+- Documented `is_dev_version` in the `version_utils` file listing and prose section of `README.md`.
+- Verified the work: `make test` runs 6580 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — repaired prime_utils.py and added is_giuga_number helper
 
 The preceding `chore(kilo): checkpoint agent session` commit (b14fcaf) edited `prime_utils.py` but left it with a `SyntaxError` (it added `"is_giuga_number"` to `__all__` without closing the list and without defining the function), which broke the module import and caused `make test` to report 3 new failures. Verified repository health before starting: `make test` runs 6576 tests and passes with 6 pre-existing errors (identical with the change stashed), `make lint` is clean, `make typecheck` reports 9 pre-existing errors (identical with the change stashed), and `python tools/refresh_scaffold.py --check` reported 2 embedded copies out of sync.

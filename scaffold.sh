@@ -42902,6 +42902,27 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_dev_version test coverage and version_utils alias coverage
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6570 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported 1 embedded copy out of sync (a stale `version_utils.py` snapshot left by the preceding checkpoint commit).
+
+Completed in this session:
+
+- Refreshed the embedded copy of `version_utils.py` inside `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- Found that `version_utils.py` exports 75 functions but `is_dev_version` had no test coverage and the comparison/parse aliases (`cmp_versions`, `cmp`, `compare`, `is_semver`, `is_newer`, `is_older`, `from_tuple`, `increment_version`, `increment`) were imported nowhere in `tests/test_version_utils.py`, leaving a coverage gap in an otherwise fully-tested module.
+- Added `TestIsDevVersion` to `tests/test_version_utils.py` covering dev-tagged versions (including case-insensitive `DEV` and dotted prereleases), non-dev prereleases (`rc`, `alpha`), versions with no prerelease, and the `TypeError` path (4 new tests).
+- Added `TestVersionComparisonAliases` to `tests/test_version_utils.py` asserting the comparison aliases (`cmp_versions`, `cmp`, `compare`) return -1/0/1 like `compare_versions`, that `is_semver` mirrors `is_valid_version` (including rejecting non-strings), that `is_newer`/`is_older` mirror `is_greater`/`is_less`, that `from_tuple` mirrors `tuple_to_version`, and that `increment_version`/`increment` mirror `bump_version` (14 new assertions). Imported the newly covered names at the top of the test file to match the module's `__all__` contract.
+- Documented `is_dev_version` in the `version_utils` file listing and prose section of `README.md`.
+- Verified the work: `make test` runs 6580 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — repaired prime_utils.py and added is_giuga_number helper
 
 The preceding `chore(kilo): checkpoint agent session` commit (b14fcaf) edited `prime_utils.py` but left it with a `SyntaxError` (it added `"is_giuga_number"` to `__all__` without closing the list and without defining the function), which broke the module import and caused `make test` to report 3 new failures. Verified repository health before starting: `make test` runs 6576 tests and passes with 6 pre-existing errors (identical with the change stashed), `make lint` is clean, `make typecheck` reports 9 pre-existing errors (identical with the change stashed), and `python tools/refresh_scaffold.py --check` reported 2 embedded copies out of sync.
@@ -44245,7 +44266,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
-version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between)
+version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
@@ -45163,7 +45184,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`), and `is_dev_version` returns `True` when the prerelease tag starts with `dev` (case-insensitive). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -90204,7 +90225,7 @@ def is_dev_version(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     tag = get_prerelease(version)
-    return bool(tag) and tag.lower().startswith("dev")
+    return tag is not None and tag.lower().startswith("dev")
 
 
 def get_prerelease(version: str) -> str | None:
@@ -90601,11 +90622,15 @@ from version_utils import (
     bump_minor,
     bump_patch,
     bump_version,
+    cmp,
+    cmp_versions,
+    compare,
     compare_versions,
     decrement_major,
     decrement_minor,
     decrement_patch,
     decrement_version,
+    from_tuple,
     get_build,
     get_build_metadata,
     get_major_version,
@@ -90613,13 +90638,19 @@ from version_utils import (
     get_patch_version,
     get_prerelease,
     get_prerelease_tag,
+    increment,
+    increment_version,
     is_between,
     is_compatible,
+    is_dev_version,
     is_equal,
     is_greater,
     is_initial_release,
     is_less,
+    is_newer,
+    is_older,
     is_prerelease,
+    is_semver,
     is_stable,
     is_valid_version,
     is_version_at_least,
@@ -91113,6 +91144,57 @@ class TestGetPrerelease(unittest.TestCase):
 
     def test_alias(self):
         self.assertEqual(get_prerelease_tag("1.2.3-beta"), "beta")
+
+
+class TestIsDevVersion(unittest.TestCase):
+    def test_dev_tags(self):
+        self.assertTrue(is_dev_version("1.2.3-dev0"))
+        self.assertTrue(is_dev_version("2.0.0-dev.1"))
+        self.assertTrue(is_dev_version("1.0.0-DEV5"))
+
+    def test_non_dev_prerelease(self):
+        self.assertFalse(is_dev_version("1.2.3-rc1"))
+        self.assertFalse(is_dev_version("1.0.0-alpha"))
+
+    def test_no_prerelease(self):
+        self.assertFalse(is_dev_version("1.2.3"))
+        self.assertFalse(is_dev_version("2.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_dev_version(123)  # type: ignore[arg-type]
+
+
+class TestVersionComparisonAliases(unittest.TestCase):
+    def test_cmp_versions_alias(self):
+        self.assertEqual(cmp_versions("1.2.3", "1.2.3"), 0)
+        self.assertEqual(cmp_versions("2.0.0", "1.0.0"), 1)
+        self.assertEqual(cmp_versions("1.0.0", "2.0.0"), -1)
+
+    def test_cmp_and_compare_aliases(self):
+        self.assertEqual(cmp("1.2.3", "1.2.3"), 0)
+        self.assertEqual(compare("2.0.0", "1.0.0"), 1)
+
+    def test_is_semver_alias(self):
+        self.assertTrue(is_semver("1.2.3"))
+        self.assertFalse(is_semver("1.2.3-rc1"))
+        self.assertFalse(is_semver("a.b.c"))
+        self.assertFalse(is_semver(123))  # type: ignore[arg-type]
+
+    def test_is_newer_is_older_aliases(self):
+        self.assertTrue(is_newer("2.0.0", "1.0.0"))
+        self.assertFalse(is_newer("1.0.0", "2.0.0"))
+        self.assertTrue(is_older("1.0.0", "2.0.0"))
+        self.assertFalse(is_older("2.0.0", "1.0.0"))
+
+    def test_from_tuple_alias(self):
+        self.assertEqual(from_tuple((1, 2, 3)), "1.2.3")
+        self.assertEqual(from_tuple((5,)), "5")
+
+    def test_increment_aliases(self):
+        self.assertEqual(increment_version("1.2.3"), "1.2.4")
+        self.assertEqual(increment("1.2.3", "major"), "2.0.0")
+        self.assertEqual(increment("1.2.3", "minor"), "1.3.0")
 
 
 if __name__ == "__main__":

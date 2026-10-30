@@ -10,11 +10,15 @@ from version_utils import (
     bump_minor,
     bump_patch,
     bump_version,
+    cmp,
+    cmp_versions,
+    compare,
     compare_versions,
     decrement_major,
     decrement_minor,
     decrement_patch,
     decrement_version,
+    from_tuple,
     get_build,
     get_build_metadata,
     get_major_version,
@@ -22,13 +26,19 @@ from version_utils import (
     get_patch_version,
     get_prerelease,
     get_prerelease_tag,
+    increment,
+    increment_version,
     is_between,
     is_compatible,
+    is_dev_version,
     is_equal,
     is_greater,
     is_initial_release,
     is_less,
+    is_newer,
+    is_older,
     is_prerelease,
+    is_semver,
     is_stable,
     is_valid_version,
     is_version_at_least,
@@ -522,6 +532,57 @@ class TestGetPrerelease(unittest.TestCase):
 
     def test_alias(self):
         self.assertEqual(get_prerelease_tag("1.2.3-beta"), "beta")
+
+
+class TestIsDevVersion(unittest.TestCase):
+    def test_dev_tags(self):
+        self.assertTrue(is_dev_version("1.2.3-dev0"))
+        self.assertTrue(is_dev_version("2.0.0-dev.1"))
+        self.assertTrue(is_dev_version("1.0.0-DEV5"))
+
+    def test_non_dev_prerelease(self):
+        self.assertFalse(is_dev_version("1.2.3-rc1"))
+        self.assertFalse(is_dev_version("1.0.0-alpha"))
+
+    def test_no_prerelease(self):
+        self.assertFalse(is_dev_version("1.2.3"))
+        self.assertFalse(is_dev_version("2.0.0"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_dev_version(123)  # type: ignore[arg-type]
+
+
+class TestVersionComparisonAliases(unittest.TestCase):
+    def test_cmp_versions_alias(self):
+        self.assertEqual(cmp_versions("1.2.3", "1.2.3"), 0)
+        self.assertEqual(cmp_versions("2.0.0", "1.0.0"), 1)
+        self.assertEqual(cmp_versions("1.0.0", "2.0.0"), -1)
+
+    def test_cmp_and_compare_aliases(self):
+        self.assertEqual(cmp("1.2.3", "1.2.3"), 0)
+        self.assertEqual(compare("2.0.0", "1.0.0"), 1)
+
+    def test_is_semver_alias(self):
+        self.assertTrue(is_semver("1.2.3"))
+        self.assertFalse(is_semver("1.2.3-rc1"))
+        self.assertFalse(is_semver("a.b.c"))
+        self.assertFalse(is_semver(123))  # type: ignore[arg-type]
+
+    def test_is_newer_is_older_aliases(self):
+        self.assertTrue(is_newer("2.0.0", "1.0.0"))
+        self.assertFalse(is_newer("1.0.0", "2.0.0"))
+        self.assertTrue(is_older("1.0.0", "2.0.0"))
+        self.assertFalse(is_older("2.0.0", "1.0.0"))
+
+    def test_from_tuple_alias(self):
+        self.assertEqual(from_tuple((1, 2, 3)), "1.2.3")
+        self.assertEqual(from_tuple((5,)), "5")
+
+    def test_increment_aliases(self):
+        self.assertEqual(increment_version("1.2.3"), "1.2.4")
+        self.assertEqual(increment("1.2.3", "major"), "2.0.0")
+        self.assertEqual(increment("1.2.3", "minor"), "1.3.0")
 
 
 if __name__ == "__main__":
