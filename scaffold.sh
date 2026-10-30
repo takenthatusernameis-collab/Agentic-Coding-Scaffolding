@@ -21748,10 +21748,10 @@ from math_utils import (
     factorial,
     fibonacci,
     gcd,
+    is_composite,
     is_even,
     is_odd,
     is_prime,
-    is_composite,
     lcm,
     permutation,
 )
@@ -41546,7 +41546,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `backoff_utils.py` — backoff and retry delay utilities (`constant_backoff`, `exponential_backoff`, `backoff_delay`) with input validation
 - `hostname_utils.py` — hostname validation and normalization utilities (`is_valid_hostname`, `normalize_hostname`, `get_local_hostname`, `is_fully_qualified`, `split_hostname`) with input validation
 - `slugify_utils.py` — slug utilities converting strings into URL-friendly slugs (`slugify`, `is_slug`) with input validation
-- `type_check_utils.py` — type checking utilities (`is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, `coerce_to_str`) with input validation
+- `type_check_utils.py` — type checking utilities (`is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_frozenset`, `is_none`, `is_numeric`, `is_iterable`, `is_callable`, `ensure_type`, `coerce_to_str`) with input validation
 - `tests/test_backoff_utils.py` — unit tests for `backoff_utils.py`
 - `tests/test_hostname_utils.py` — unit tests for `hostname_utils.py`
 - `tests/test_slugify_utils.py` — unit tests for `slugify_utils.py`
@@ -43283,6 +43283,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_frozenset to type_check_utils
+
+- Added `is_frozenset(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and a `bool` return; it returns `True` when *value* is a `frozenset` instance, `False` otherwise (a mutable `set` is not a `frozenset`, and vice versa). Added `TestTypeChecks.test_is_frozenset` to `tests/test_type_check_utils.py` covering frozenset instances, the empty frozenset, and the `False` paths for mutable sets, lists, tuples, strings, ints, None, and dicts (10 new assertions). Updated the `type_check_utils` module prose section of `README.md` and the `type_check_utils` line of `.kilo/command/scaffold-project.md`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added is_composite to math_utils
 
 - Added `is_composite(n)` to `math_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation matching `is_prime`; it returns `True` when *n* is a composite number (a positive integer greater than 1 that is not prime), `False` for primes, and raises `ValueError` for integers less than 2. Added `TestIsComposite` to `tests/test_math_utils.py` covering composite numbers, primes, edge cases (1, 0, negatives), large values, and the `TypeError` path. Updated the `math_utils` module tree entry and prose section of `README.md`. Synchronized `math_utils.py`, `tests/test_math_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -46198,7 +46202,7 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 
 ## Type Check Utilities Module
 
-The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `is_typeddict`, `is_awaitable`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_frozenset`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `is_typeddict`, `is_awaitable`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -117305,6 +117309,7 @@ __all__: List[str] = [
     "is_dict",
     "is_tuple",
     "is_set",
+    "is_frozenset",
     "is_none",
     "is_bytes",
     "is_numeric",
@@ -117377,6 +117382,32 @@ def is_tuple(value: object) -> bool:
 def is_set(value: object) -> bool:
     """Return True if value is a set."""
     return isinstance(value, set)
+
+
+def is_frozenset(value: object) -> bool:
+    """Return True if *value* is a :class:`frozenset`.
+
+    A frozenset is an immutable hashable collection, distinct from the
+    mutable :class:`set`. This helper reports whether *value* is a
+    frozenset instance (a mutable set is not a frozenset, and vice versa).
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a frozenset, False otherwise.
+
+    Examples:
+        >>> is_frozenset(frozenset({1, 2, 3}))
+        True
+        >>> is_frozenset({1, 2, 3})
+        False
+        >>> is_frozenset([1, 2, 3])
+        False
+        >>> is_frozenset(42)
+        False
+    """
+    return isinstance(value, frozenset)
 
 
 def is_none(value: object) -> bool:
@@ -118056,6 +118087,17 @@ class TestTypeChecks(unittest.TestCase):
     def test_is_set(self) -> None:
         self.assertTrue(type_check_utils.is_set({1, 2}))
         self.assertFalse(type_check_utils.is_set([1, 2]))
+
+    def test_is_frozenset(self) -> None:
+        self.assertTrue(type_check_utils.is_frozenset(frozenset({1, 2, 3})))
+        self.assertTrue(type_check_utils.is_frozenset(frozenset()))
+        self.assertFalse(type_check_utils.is_frozenset({1, 2, 3}))
+        self.assertFalse(type_check_utils.is_frozenset([1, 2, 3]))
+        self.assertFalse(type_check_utils.is_frozenset((1, 2, 3)))
+        self.assertFalse(type_check_utils.is_frozenset("hello"))
+        self.assertFalse(type_check_utils.is_frozenset(42))
+        self.assertFalse(type_check_utils.is_frozenset(None))
+        self.assertFalse(type_check_utils.is_frozenset({"a": 1}))
 
     def test_is_none(self) -> None:
         self.assertTrue(type_check_utils.is_none(None))

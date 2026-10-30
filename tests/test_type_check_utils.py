@@ -143,6 +143,17 @@ class TestTypeChecks(unittest.TestCase):
         self.assertTrue(type_check_utils.is_set({1, 2}))
         self.assertFalse(type_check_utils.is_set([1, 2]))
 
+    def test_is_frozenset(self) -> None:
+        self.assertTrue(type_check_utils.is_frozenset(frozenset({1, 2, 3})))
+        self.assertTrue(type_check_utils.is_frozenset(frozenset()))
+        self.assertFalse(type_check_utils.is_frozenset({1, 2, 3}))
+        self.assertFalse(type_check_utils.is_frozenset([1, 2, 3]))
+        self.assertFalse(type_check_utils.is_frozenset((1, 2, 3)))
+        self.assertFalse(type_check_utils.is_frozenset("hello"))
+        self.assertFalse(type_check_utils.is_frozenset(42))
+        self.assertFalse(type_check_utils.is_frozenset(None))
+        self.assertFalse(type_check_utils.is_frozenset({"a": 1}))
+
     def test_is_none(self) -> None:
         self.assertTrue(type_check_utils.is_none(None))
         self.assertFalse(type_check_utils.is_none(0))

@@ -19,6 +19,7 @@ __all__: List[str] = [
     "is_dict",
     "is_tuple",
     "is_set",
+    "is_frozenset",
     "is_none",
     "is_bytes",
     "is_numeric",
@@ -91,6 +92,32 @@ def is_tuple(value: object) -> bool:
 def is_set(value: object) -> bool:
     """Return True if value is a set."""
     return isinstance(value, set)
+
+
+def is_frozenset(value: object) -> bool:
+    """Return True if *value* is a :class:`frozenset`.
+
+    A frozenset is an immutable hashable collection, distinct from the
+    mutable :class:`set`. This helper reports whether *value* is a
+    frozenset instance (a mutable set is not a frozenset, and vice versa).
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a frozenset, False otherwise.
+
+    Examples:
+        >>> is_frozenset(frozenset({1, 2, 3}))
+        True
+        >>> is_frozenset({1, 2, 3})
+        False
+        >>> is_frozenset([1, 2, 3])
+        False
+        >>> is_frozenset(42)
+        False
+    """
+    return isinstance(value, frozenset)
 
 
 def is_none(value: object) -> bool:
