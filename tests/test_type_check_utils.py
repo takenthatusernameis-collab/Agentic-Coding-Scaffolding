@@ -328,7 +328,9 @@ class TestCoerceToFloatBoundary(unittest.TestCase):
     def test_special_values(self) -> None:
         self.assertEqual(type_check_utils.coerce_to_float("inf"), float("inf"))
         self.assertEqual(type_check_utils.coerce_to_float("-inf"), float("-inf"))
-        self.assertTrue(type_check_utils.coerce_to_float("nan") != type_check_utils.coerce_to_float("nan"))
+        nan_a = type_check_utils.coerce_to_float("nan")
+        nan_b = type_check_utils.coerce_to_float("nan")
+        self.assertTrue(nan_a != nan_b)
 
     def test_scientific_notation(self) -> None:
         self.assertEqual(type_check_utils.coerce_to_float("1e3"), 1000.0)

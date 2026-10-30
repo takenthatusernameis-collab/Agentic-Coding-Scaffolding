@@ -1,3 +1,13 @@
+## Latest Session (2026-10-30) — added is_type_var to type_utils
+
+Completed in this session:
+
+- Added `is_type_var(tp)` to `type_utils.py` returning True if *tp* is a `typing.TypeVar`. Added `TestTypeUtils.test_is_type_var`. Updated README. Synchronized copies into `scaffold.sh`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+
 ## Latest Session (2026-10-29) — added coerce_to_int boundary tests to type_check_utils
 
 Verified repository health: `make test` passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

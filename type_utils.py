@@ -14,6 +14,7 @@ __all__: List[str] = [
     "get_type_args",
     "type_name",
     "is_subclass_safe",
+    "is_type_var",
 ]
 
 
@@ -113,3 +114,8 @@ def is_subclass_safe(cls: Any, base: Any) -> bool:
         return issubclass(cls, base)
     except Exception:
         return False
+
+
+def is_type_var(tp: Any) -> bool:
+    """Return True if *tp* is a typing.TypeVar."""
+    return isinstance(tp, typing.TypeVar)

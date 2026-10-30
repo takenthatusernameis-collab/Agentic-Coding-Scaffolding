@@ -21302,6 +21302,7 @@ from type_utils import (
     is_literal,
     is_optional,
     is_subclass_safe,
+    is_type_var,
     is_union,
     type_name,
 )
@@ -21363,6 +21364,13 @@ class TestTypeUtils(unittest.TestCase):
         self.assertTrue(is_subclass_safe(bool, (int, str)))
         self.assertFalse(is_subclass_safe(is_subclass_safe, object))
         self.assertFalse(is_subclass_safe(42, int))
+
+    def test_is_type_var(self):
+        T = t.TypeVar("T")
+        self.assertTrue(is_type_var(T))
+        self.assertFalse(is_type_var(int))
+        self.assertFalse(is_type_var(str))
+        self.assertFalse(is_type_var(None))
 
 
 if __name__ == "__main__":
@@ -31229,6 +31237,7 @@ __all__: List[str] = [
     "get_type_args",
     "type_name",
     "is_subclass_safe",
+    "is_type_var",
 ]
 
 
@@ -31328,6 +31337,11 @@ def is_subclass_safe(cls: Any, base: Any) -> bool:
         return issubclass(cls, base)
     except Exception:
         return False
+
+
+def is_type_var(tp: Any) -> bool:
+    """Return True if *tp* is a typing.TypeVar."""
+    return isinstance(tp, typing.TypeVar)
 TYPEUTILS
 # --- path_utils.py ---
 cat > "$OUTPUT_DIR/path_utils.py" <<'PATHUTILS'
@@ -42871,6 +42885,16 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-30) — added is_type_var to type_utils
+
+Completed in this session:
+
+- Added `is_type_var(tp)` to `type_utils.py` returning True if *tp* is a `typing.TypeVar`. Added `TestTypeUtils.test_is_type_var`. Updated README. Synchronized copies into `scaffold.sh`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+
 ## Latest Session (2026-10-29) — added coerce_to_int boundary tests to type_check_utils
 
 Verified repository health: `make test` passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -44114,7 +44138,7 @@ stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
-type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal)
+type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal, is_type_var)
 path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
 colorsys_utils.py          # Colorsys utilities wrapping the standard library colorsys module (RGB/HSL conversions, color math)
@@ -116737,6 +116761,7 @@ __all__: List[str] = [
     "coerce_to_int",
     "coerce_to_float",
     "coerce_to_bool",
+    "coerce_to_bytes",
 ]
 
 
@@ -117265,6 +117290,38 @@ def coerce_to_bool(value: object) -> bool:
     raise TypeError(
         f"cannot coerce {type(value).__name__} to bool"
     )
+
+
+def coerce_to_bytes(value: object) -> bytes:
+    """Convert *value* to bytes.
+
+    Accepts :class:`str` (encoded as UTF-8), :class:`bytes`, and
+    :class:`bytearray`; raises :exc:`TypeError` for unsupported types.
+
+    Args:
+        value: The value to convert.
+
+    Returns:
+        The bytes representation of *value*.
+
+    Raises:
+        TypeError: If *value* cannot be converted to bytes.
+
+    Examples:
+        >>> coerce_to_bytes("hello")
+        b'hello'
+        >>> coerce_to_bytes(b"world")
+        b'world'
+        >>> coerce_to_bytes(bytearray(b"!"))
+        b'!'
+    """
+    if isinstance(value, str):
+        return value.encode("utf-8")
+    if isinstance(value, (bytes, bytearray)):
+        return bytes(value)
+    raise TypeError(
+        f"cannot coerce {type(value).__name__} to bytes"
+    )
 TYPE_CHECK_UTILS
 
 # --- tests/test_type_check_utils.py ---
@@ -117563,6 +117620,154 @@ class TestEnsureType(unittest.TestCase):
             type_check_utils.coerce_to_bool([1, 2])
         with self.assertRaises(TypeError):
             type_check_utils.coerce_to_bool(None)
+
+
+class TestCoerceToStrBoundary(unittest.TestCase):
+    def test_none(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_str(None), "None")
+
+    def test_bytes(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_str(b"hi"), "b'hi'")
+
+    def test_float(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_str(3.14), "3.14")
+        self.assertEqual(type_check_utils.coerce_to_str(0.0), "0.0")
+
+    def test_bool(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_str(True), "True")
+        self.assertEqual(type_check_utils.coerce_to_str(False), "False")
+
+    def test_list_dict_tuple_set(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_str([1, 2]), "[1, 2]")
+        self.assertEqual(type_check_utils.coerce_to_str({"a": 1}), "{'a': 1}")
+        self.assertEqual(type_check_utils.coerce_to_str((1, 2)), "(1, 2)")
+        self.assertEqual(type_check_utils.coerce_to_str({1, 2}), "{1, 2}")
+
+
+class TestCoerceToFloatBoundary(unittest.TestCase):
+    def test_whitespace_strings(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_float(" 3.14 "), 3.14)
+        self.assertEqual(type_check_utils.coerce_to_float("\t1.5\n"), 1.5)
+
+    def test_sign_strings(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_float("+3.14"), 3.14)
+        self.assertEqual(type_check_utils.coerce_to_float("-2.5"), -2.5)
+
+    def test_special_values(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_float("inf"), float("inf"))
+        self.assertEqual(type_check_utils.coerce_to_float("-inf"), float("-inf"))
+        nan_a = type_check_utils.coerce_to_float("nan")
+        nan_b = type_check_utils.coerce_to_float("nan")
+        self.assertTrue(nan_a != nan_b)
+
+    def test_scientific_notation(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_float("1e3"), 1000.0)
+        self.assertEqual(type_check_utils.coerce_to_float("1.5e-2"), 0.015)
+
+    def test_hex_string_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            type_check_utils.coerce_to_float("0x1a")
+
+    def test_unsupported_types_raise_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float({1: 2})
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float(b"3.14")
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_float(None)
+
+
+class TestCoerceToBoolBoundary(unittest.TestCase):
+    def test_on_off_y_n(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bool("on"), True)
+        self.assertEqual(type_check_utils.coerce_to_bool("off"), False)
+        self.assertEqual(type_check_utils.coerce_to_bool("y"), True)
+        self.assertEqual(type_check_utils.coerce_to_bool("n"), False)
+
+    def test_whitespace_and_case(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bool(" true "), True)
+        self.assertEqual(type_check_utils.coerce_to_bool(" FALSE "), False)
+        self.assertEqual(type_check_utils.coerce_to_bool("TRUE"), True)
+        self.assertEqual(type_check_utils.coerce_to_bool("False"), False)
+        self.assertEqual(type_check_utils.coerce_to_bool("TrUe"), True)
+
+    def test_int_values(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bool(-1), True)
+        self.assertEqual(type_check_utils.coerce_to_bool(0), False)
+        self.assertEqual(type_check_utils.coerce_to_bool(42), True)
+
+    def test_float_values(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bool(-0.0), False)
+        self.assertEqual(type_check_utils.coerce_to_bool(3.14), True)
+        self.assertEqual(type_check_utils.coerce_to_bool(0.0), False)
+
+    def test_unsupported_types_raise_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bool([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bool({1: 2})
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bool(b"true")
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bool(None)
+
+
+class TestEnsureTypeBoundary(unittest.TestCase):
+    def test_returns_value_unchanged(self) -> None:
+        value = [1, 2, 3]
+        self.assertIs(type_check_utils.ensure_type(value, list), value)
+
+    def test_multiple_types(self) -> None:
+        self.assertEqual(type_check_utils.ensure_type(42, int), 42)
+        self.assertEqual(type_check_utils.ensure_type("hi", str), "hi")
+        self.assertEqual(type_check_utils.ensure_type(3.14, float), 3.14)
+        self.assertEqual(type_check_utils.ensure_type(True, bool), True)
+        self.assertEqual(type_check_utils.ensure_type([1, 2], list), [1, 2])
+        self.assertEqual(type_check_utils.ensure_type({"a": 1}, dict), {"a": 1})
+
+    def test_bool_is_int(self) -> None:
+        # bool is a subclass of int, so True passes an int check
+        self.assertEqual(type_check_utils.ensure_type(True, int), True)
+
+    def test_name_in_error_message(self) -> None:
+        with self.assertRaises(TypeError) as ctx:
+            type_check_utils.ensure_type(123, str, name="username")
+        self.assertIn("username", str(ctx.exception))
+
+    def test_mismatch_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            type_check_utils.ensure_type(123, str)
+        with self.assertRaises(TypeError):
+            type_check_utils.ensure_type("hi", int)
+        with self.assertRaises(TypeError):
+            type_check_utils.ensure_type(None, list)
+
+
+class TestCoerceToBytes(unittest.TestCase):
+    def test_str(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bytes("hello"), b"hello")
+        self.assertEqual(type_check_utils.coerce_to_bytes(""), b"")
+        self.assertEqual(type_check_utils.coerce_to_bytes("héllo"), "héllo".encode("utf-8"))
+
+    def test_bytes(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bytes(b"world"), b"world")
+
+    def test_bytearray(self) -> None:
+        self.assertEqual(type_check_utils.coerce_to_bytes(bytearray(b"!")), b"!")
+
+    def test_unsupported_types_raise_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bytes(123)
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bytes(3.14)
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bytes(True)
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bytes([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_bytes(None)
 
 
 if __name__ == "__main__":

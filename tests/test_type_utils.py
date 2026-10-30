@@ -9,6 +9,7 @@ from type_utils import (
     is_literal,
     is_optional,
     is_subclass_safe,
+    is_type_var,
     is_union,
     type_name,
 )
@@ -70,6 +71,13 @@ class TestTypeUtils(unittest.TestCase):
         self.assertTrue(is_subclass_safe(bool, (int, str)))
         self.assertFalse(is_subclass_safe(is_subclass_safe, object))
         self.assertFalse(is_subclass_safe(42, int))
+
+    def test_is_type_var(self):
+        T = t.TypeVar("T")
+        self.assertTrue(is_type_var(T))
+        self.assertFalse(is_type_var(int))
+        self.assertFalse(is_type_var(str))
+        self.assertFalse(is_type_var(None))
 
 
 if __name__ == "__main__":

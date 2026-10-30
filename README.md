@@ -115,7 +115,7 @@ stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
-type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal)
+type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal, is_type_var)
 path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
 colorsys_utils.py          # Colorsys utilities wrapping the standard library colorsys module (RGB/HSL conversions, color math)
