@@ -1,6 +1,6 @@
 """Tests for chunk_utils."""
 
-from chunk_utils import chunk, chunked, chunks, ichunk, iter_chunked
+from chunk_utils import chunk, chunk_count, chunked, chunks, ichunk, iter_chunked
 
 
 def test_chunk_basic():
@@ -56,6 +56,38 @@ def test_chunk_invalid_size_value():
 def test_chunk_negative_size():
     try:
         chunk([1, 2], -1)
+        assert False
+    except ValueError:
+        pass
+
+
+def test_chunk_count_basic():
+    assert chunk_count([1, 2, 3, 4, 5], 2) == 3
+
+
+def test_chunk_count_exact():
+    assert chunk_count([1, 2, 3, 4], 2) == 2
+
+
+def test_chunk_count_single():
+    assert chunk_count([1, 2, 3], 10) == 1
+
+
+def test_chunk_count_empty():
+    assert chunk_count([], 3) == 0
+
+
+def test_chunk_count_invalid_type():
+    try:
+        chunk_count([1, 2], "2")
+        assert False
+    except TypeError:
+        pass
+
+
+def test_chunk_count_invalid_value():
+    try:
+        chunk_count([1, 2], 0)
         assert False
     except ValueError:
         pass

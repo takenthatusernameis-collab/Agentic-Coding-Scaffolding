@@ -113302,7 +113302,7 @@ TEST_POSIX_UTILS
 cat > "$OUTPUT_DIR/tests/test_chunk_utils.py" <<'TEST_CHUNK_UTILS'
 """Tests for chunk_utils."""
 
-from chunk_utils import chunk, chunked, chunks, ichunk, iter_chunked
+from chunk_utils import chunk, chunk_count, chunked, chunks, ichunk, iter_chunked
 
 
 def test_chunk_basic():
@@ -113358,6 +113358,38 @@ def test_chunk_invalid_size_value():
 def test_chunk_negative_size():
     try:
         chunk([1, 2], -1)
+        assert False
+    except ValueError:
+        pass
+
+
+def test_chunk_count_basic():
+    assert chunk_count([1, 2, 3, 4, 5], 2) == 3
+
+
+def test_chunk_count_exact():
+    assert chunk_count([1, 2, 3, 4], 2) == 2
+
+
+def test_chunk_count_single():
+    assert chunk_count([1, 2, 3], 10) == 1
+
+
+def test_chunk_count_empty():
+    assert chunk_count([], 3) == 0
+
+
+def test_chunk_count_invalid_type():
+    try:
+        chunk_count([1, 2], "2")
+        assert False
+    except TypeError:
+        pass
+
+
+def test_chunk_count_invalid_value():
+    try:
+        chunk_count([1, 2], 0)
         assert False
     except ValueError:
         pass
@@ -119364,6 +119396,7 @@ from typing import Any, Iterable, Iterator, List
 
 __all__: list[str] = [
     "chunk",
+    "chunk_count",
     "chunked",
     "chunks",
     "ichunk",
@@ -119413,6 +119446,36 @@ def ichunk(iterable: Iterable[Any], size: int) -> Iterator[List[Any]]:
             current = []
     if current:
         yield current
+
+
+def chunk_count(iterable: Iterable[Any], size: int) -> int:
+    """Return the number of chunks of ``size`` produced from ``iterable``.
+
+    Args:
+        iterable: The iterable to count chunks for.
+        size: The chunk size.
+
+    Returns:
+        The number of chunks (including a trailing partial chunk).
+
+    Raises:
+        TypeError: If ``size`` is not an int.
+        ValueError: If ``size`` is not positive.
+    """
+    if not isinstance(size, int):
+        raise TypeError("size must be int")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    count = 0
+    current = 0
+    for _ in iterable:
+        current += 1
+        if current == size:
+            count += 1
+            current = 0
+    if current:
+        count += 1
+    return count
 
 
 def iter_chunked(iterable: Iterable[Any], size: int) -> Iterator[List[Any]]:

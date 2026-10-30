@@ -6,6 +6,7 @@ from typing import Any, Iterable, Iterator, List
 
 __all__: list[str] = [
     "chunk",
+    "chunk_count",
     "chunked",
     "chunks",
     "ichunk",
@@ -55,6 +56,36 @@ def ichunk(iterable: Iterable[Any], size: int) -> Iterator[List[Any]]:
             current = []
     if current:
         yield current
+
+
+def chunk_count(iterable: Iterable[Any], size: int) -> int:
+    """Return the number of chunks of ``size`` produced from ``iterable``.
+
+    Args:
+        iterable: The iterable to count chunks for.
+        size: The chunk size.
+
+    Returns:
+        The number of chunks (including a trailing partial chunk).
+
+    Raises:
+        TypeError: If ``size`` is not an int.
+        ValueError: If ``size`` is not positive.
+    """
+    if not isinstance(size, int):
+        raise TypeError("size must be int")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    count = 0
+    current = 0
+    for _ in iterable:
+        current += 1
+        if current == size:
+            count += 1
+            current = 0
+    if current:
+        count += 1
+    return count
 
 
 def iter_chunked(iterable: Iterable[Any], size: int) -> Iterator[List[Any]]:
