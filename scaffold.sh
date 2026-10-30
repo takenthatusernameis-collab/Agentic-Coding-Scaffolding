@@ -41198,7 +41198,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
 - `textwrap_utils.py` — text wrapping utilities (`wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, `fill_text`)
 - `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
-- `prime_utils.py` — prime number utilities (`is_prime`, `is_composite`, `prime_factors`, `nth_prime`, `primes_up_to`, `is_coprime`, `coprime`, `is_circular_prime`, `next_prime`, `prev_prime`, `is_perfect_square`, `is_power_of_two`, `is_semiprime`, `is_squarefree`, `is_prime_power`, `is_emirp`, `is_twin_prime`, `is_palindromic_prime`, `is_mersenne_prime`, `is_sophie_germain_prime`, `is_safe_prime`, `sum_of_proper_divisors`, `aliquot_sum`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_cousin_prime`, `is_pythagorean_prime`, `is_sexy_prime`, `is_automorphic`, `is_truncatable_prime`, `is_wilson_prime`, `radical`, `prime_count`, `prime_gap`, `primorial`, `total_prime_factors`)
+- `prime_utils.py` — prime number utilities (`is_prime`, `is_composite`, `prime_factors`, `nth_prime`, `primes_up_to`, `is_coprime`, `coprime`, `is_circular_prime`, `next_prime`, `prev_prime`, `is_perfect_square`, `is_power_of_two`, `is_semiprime`, `is_squarefree`, `is_prime_power`, `is_emirp`, `is_twin_prime`, `is_palindromic_prime`, `is_mersenne_prime`, `is_sophie_germain_prime`, `is_safe_prime`, `sum_of_proper_divisors`, `aliquot_sum`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_cousin_prime`, `is_pythagorean_prime`, `is_sexy_prime`, `is_automorphic`, `is_truncatable_prime`, `is_wilson_prime`, `is_carmichael_number`, `is_korselt_number`, `is_giuga_number`, `radical`, `prime_count`, `prime_gap`, `primorial`, `total_prime_factors`)
 
 - `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
 - `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`)
@@ -42902,6 +42902,26 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — repaired prime_utils.py and added is_giuga_number helper
+
+The preceding `chore(kilo): checkpoint agent session` commit (b14fcaf) edited `prime_utils.py` but left it with a `SyntaxError` (it added `"is_giuga_number"` to `__all__` without closing the list and without defining the function), which broke the module import and caused `make test` to report 3 new failures. Verified repository health before starting: `make test` runs 6576 tests and passes with 6 pre-existing errors (identical with the change stashed), `make lint` is clean, `make typecheck` reports 9 pre-existing errors (identical with the change stashed), and `python tools/refresh_scaffold.py --check` reported 2 embedded copies out of sync.
+
+Completed in this session:
+
+- Restored the closing `]` of `__all__` in `prime_utils.py` so the module imports again.
+- Implemented `is_giuga_number(n)` in `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns `True` when *n* is a Giuga number (a composite, squarefree integer such that for every prime factor *p* of *n*, *p* divides *n // p - 1*), `False` otherwise, treating primes and numbers below 2 as non-Giuga. Verified against the known Giuga numbers (30, 858, 1722, 66198, 2214408306, 24423128562).
+- Added `TestIsGiugaNumber` to `tests/test_prime_utils.py` covering known Giuga numbers, non-Giuga composites, primes, small/non-composite inputs, prime powers, and the `TypeError` path (float, str, bool, None) — 26 new assertions (212 tests now pass for the module).
+- Documented `is_carmichael_number`, `is_korselt_number`, and `is_giuga_number` in the `prime_utils` file listing and prose section of `README.md`.
+- Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6576 tests and passes with the same 6 pre-existing errors, `make lint` is clean, and `make typecheck` reports the same 9 pre-existing errors (unchanged by this work).
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_wilson_prime test coverage to prime_utils
 
 - Added `TestIsWilsonPrime` to `tests/test_prime_utils.py` covering known Wilson primes (5, 13, 563), non-Wilson primes, composites, negatives, and the `TypeError` path (float, str, bool, None) — 20 new assertions. The `is_wilson_prime` helper itself was already present in `prime_utils.py` and exported via `__all__`; this session added the missing test coverage and documented the previously undocumented prime helpers (`is_automorphic`, `is_truncatable_prime`, `is_pythagorean_prime`, `is_wilson_prime`) in the `prime_utils` file listing and prose section of `README.md` and in `.kilo/command/scaffold-project.md`. Synchronized `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -44284,7 +44304,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_chen_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_pythagorean_prime, is_sexy_prime, is_automorphic, is_truncatable_prime, is_wilson_prime, radical, prime_count, prime_gap, primorial, total_prime_factors, distinct_prime_factors, largest_prime_factor)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_chen_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_pythagorean_prime, is_sexy_prime, is_automorphic, is_truncatable_prime, is_wilson_prime, is_carmichael_number, is_korselt_number, is_giuga_number, radical, prime_count, prime_gap, primorial, total_prime_factors, distinct_prime_factors, largest_prime_factor)
 
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
@@ -45151,7 +45171,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime (alias `coprime`), `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `is_chen_prime` tests whether a prime is a Chen prime (a prime *p* such that *p + 2 is either prime or semiprime), `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2), `primorial` returns the product of all primes less than or equal to *n* (*n#*), `total_prime_factors` returns the total number of prime factors with multiplicity (Ω(n)), `distinct_prime_factors` returns the number of distinct prime factors (ω(n)), and `largest_prime_factor` returns the largest prime factor of an integer, `is_automorphic` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625), `is_truncatable_prime` tests whether a prime remains prime when digits are removed one at a time from either the left or the right (a two-sided truncatable prime, e.g. 3797), `is_pythagorean_prime` tests whether a prime is a Pythagorean prime (a prime of the form 4k + 1), and `is_wilson_prime` tests whether a prime *p* satisfies the Wilson congruence modulo *p*² ((p - 1)! ≡ -1 (mod p**2)); the only known Wilson primes are 5, 13, and 563. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime (alias `coprime`), `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `is_chen_prime` tests whether a prime is a Chen prime (a prime *p* such that *p + 2 is either prime or semiprime), `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2), `primorial` returns the product of all primes less than or equal to *n* (*n#*), `total_prime_factors` returns the total number of prime factors with multiplicity (Ω(n)), `distinct_prime_factors` returns the number of distinct prime factors (ω(n)), and `largest_prime_factor` returns the largest prime factor of an integer, `is_automorphic` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625), `is_truncatable_prime` tests whether a prime remains prime when digits are removed one at a time from either the left or the right (a two-sided truncatable prime, e.g. 3797), `is_pythagorean_prime` tests whether a prime is a Pythagorean prime (a prime of the form 4k + 1), `is_wilson_prime` tests whether a prime *p* satisfies the Wilson congruence modulo *p*² ((p - 1)! ≡ -1 (mod p**2)); the only known Wilson primes are 5, 13, and 563, `is_carmichael_number` tests whether a composite squarefree integer with at least three prime factors satisfies Korselt's criterion (a Fermat pseudoprime to every base coprime to *n*; the smallest is 561), `is_korselt_number` tests whether a composite squarefree integer *n* satisfies Korselt's criterion (for every prime factor *p* of *n*, *p - 1* divides *n - 1*), and `is_giuga_number` tests whether a composite squarefree integer *n* is a Giuga number (for every prime factor *p* of *n*, *p* divides *n // p - 1*; the smallest is 30). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 
 ## Decimal Utilities Module
@@ -69734,6 +69754,7 @@ __all__: List[str] = [
     "is_wilson_prime",
     "is_carmichael_number",
     "is_korselt_number",
+    "is_giuga_number",
 ]
 
 
@@ -70926,6 +70947,51 @@ def is_carmichael_number(n: int) -> bool:
         if (nm1) % (p - 1) != 0:
             return False
     return True
+
+
+def is_giuga_number(n: int) -> bool:
+    """Return True if *n* is a Giuga number.
+
+    A Giuga number is a composite, squarefree integer *n* such that for
+    every prime factor *p* of *n*, ``p`` divides ``n // p - 1`` (equivalently,
+    ``n // p ≡ 1 (mod p)``). They are the non-prime composite numbers for
+    which a certain sum-of-reciprocals characterization of primes fails;
+    the smallest is 30 (= 2 * 3 * 5).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a Giuga number, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_giuga_number(30)
+        True
+        >>> is_giuga_number(858)
+        True
+        >>> is_giuga_number(1722)
+        True
+        >>> is_giuga_number(6)
+        False
+        >>> is_giuga_number(7)
+        False
+        >>> is_giuga_number(561)
+        False
+    """
+    _require_int(n, "n")
+    if n < 2 or is_prime(n):
+        return False
+    pf = prime_factors(n)
+    if len(pf) != len(set(pf)):
+        return False
+    factors = set(pf)
+    for p in factors:
+        if (n // p - 1) % p != 0:
+            return False
+    return True
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -70939,6 +71005,7 @@ from prime_utils import (
     distinct_prime_factors,
     is_abundant_number,
     is_automorphic,
+    is_carmichael_number,
     is_chen_prime,
     is_circular_prime,
     is_composite,
@@ -70946,6 +71013,8 @@ from prime_utils import (
     is_cousin_prime,
     is_deficient_number,
     is_emirp,
+    is_giuga_number,
+    is_korselt_number,
     is_mersenne_prime,
     is_palindromic_prime,
     is_perfect_number,
@@ -72089,6 +72158,94 @@ class TestIsWilsonPrime(unittest.TestCase):
             is_wilson_prime(True)
         with self.assertRaises(TypeError):
             is_wilson_prime(None)
+
+
+class TestIsKorseltNumber(unittest.TestCase):
+    def test_korselt_numbers(self):
+        for n in [561, 1105, 1729, 2465]:
+            self.assertTrue(is_korselt_number(n), n)
+
+    def test_prime_not_korselt(self):
+        self.assertFalse(is_korselt_number(7))
+        self.assertFalse(is_korselt_number(13))
+
+    def test_prime_power_not_squarefree_not_korselt(self):
+        self.assertFalse(is_korselt_number(4))
+        self.assertFalse(is_korselt_number(8))
+        self.assertFalse(is_korselt_number(9))
+
+    def test_not_composite_or_small(self):
+        self.assertFalse(is_korselt_number(1))
+        self.assertFalse(is_korselt_number(2))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_korselt_number(561.0)
+        with self.assertRaises(TypeError):
+            is_korselt_number("561")
+        with self.assertRaises(TypeError):
+            is_korselt_number(True)
+        with self.assertRaises(TypeError):
+            is_korselt_number(None)
+
+
+class TestIsCarmichaelNumber(unittest.TestCase):
+    def test_carmichael_numbers(self):
+        for n in [561, 1105, 1729, 2465, 2821]:
+            self.assertTrue(is_carmichael_number(n), n)
+
+    def test_prime_not_carmichael(self):
+        self.assertFalse(is_carmichael_number(7))
+        self.assertFalse(is_carmichael_number(13))
+
+    def test_needs_three_factors(self):
+        self.assertFalse(is_carmichael_number(341))
+
+    def test_not_composite(self):
+        self.assertFalse(is_carmichael_number(1))
+        self.assertFalse(is_carmichael_number(2))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_carmichael_number(561.0)
+        with self.assertRaises(TypeError):
+            is_carmichael_number("561")
+        with self.assertRaises(TypeError):
+            is_carmichael_number(True)
+        with self.assertRaises(TypeError):
+            is_carmichael_number(None)
+
+
+class TestIsGiugaNumber(unittest.TestCase):
+    def test_giuga_numbers(self):
+        for n in [30, 858, 1722, 66198, 2214408306, 24423128562]:
+            self.assertTrue(is_giuga_number(n), n)
+
+    def test_not_giuga_composites(self):
+        for n in [6, 12, 15, 18, 20, 24, 36, 42, 60, 90, 105, 120, 561, 1105, 1729, 341]:
+            self.assertFalse(is_giuga_number(n), n)
+
+    def test_prime_not_giuga(self):
+        for n in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]:
+            self.assertFalse(is_giuga_number(n), n)
+
+    def test_small_and_non_composite(self):
+        for n in [0, 1, -1, -30]:
+            self.assertFalse(is_giuga_number(n), n)
+
+    def test_prime_power_not_squarefree(self):
+        for n in [4, 8, 9, 16, 25, 27, 49]:
+            self.assertFalse(is_giuga_number(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_giuga_number(30.0)
+        with self.assertRaises(TypeError):
+            is_giuga_number("30")
+        with self.assertRaises(TypeError):
+            is_giuga_number(True)
+        with self.assertRaises(TypeError):
+            is_giuga_number(None)
 
 
 if __name__ == "__main__":

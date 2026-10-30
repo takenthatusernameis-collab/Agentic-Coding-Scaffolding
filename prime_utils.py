@@ -49,6 +49,7 @@ __all__: List[str] = [
     "is_carmichael_number",
     "is_korselt_number",
     "is_giuga_number",
+]
 
 
 def _require_int(value: object, name: str) -> int:
@@ -1238,5 +1239,50 @@ def is_carmichael_number(n: int) -> bool:
     nm1 = n - 1
     for p in factors:
         if (nm1) % (p - 1) != 0:
+            return False
+    return True
+
+
+def is_giuga_number(n: int) -> bool:
+    """Return True if *n* is a Giuga number.
+
+    A Giuga number is a composite, squarefree integer *n* such that for
+    every prime factor *p* of *n*, ``p`` divides ``n // p - 1`` (equivalently,
+    ``n // p ≡ 1 (mod p)``). They are the non-prime composite numbers for
+    which a certain sum-of-reciprocals characterization of primes fails;
+    the smallest is 30 (= 2 * 3 * 5).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a Giuga number, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_giuga_number(30)
+        True
+        >>> is_giuga_number(858)
+        True
+        >>> is_giuga_number(1722)
+        True
+        >>> is_giuga_number(6)
+        False
+        >>> is_giuga_number(7)
+        False
+        >>> is_giuga_number(561)
+        False
+    """
+    _require_int(n, "n")
+    if n < 2 or is_prime(n):
+        return False
+    pf = prime_factors(n)
+    if len(pf) != len(set(pf)):
+        return False
+    factors = set(pf)
+    for p in factors:
+        if (n // p - 1) % p != 0:
             return False
     return True

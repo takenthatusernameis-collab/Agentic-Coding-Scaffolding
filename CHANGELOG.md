@@ -1,3 +1,23 @@
+## Unreleased — repaired prime_utils.py and added is_giuga_number helper
+
+The preceding `chore(kilo): checkpoint agent session` commit (b14fcaf) edited `prime_utils.py` but left it with a `SyntaxError` (it added `"is_giuga_number"` to `__all__` without closing the list and without defining the function), which broke the module import and caused `make test` to report 3 new failures. Verified repository health before starting: `make test` runs 6576 tests and passes with 6 pre-existing errors (identical with the change stashed), `make lint` is clean, `make typecheck` reports 9 pre-existing errors (identical with the change stashed), and `python tools/refresh_scaffold.py --check` reported 2 embedded copies out of sync.
+
+Completed in this session:
+
+- Restored the closing `]` of `__all__` in `prime_utils.py` so the module imports again.
+- Implemented `is_giuga_number(n)` in `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns `True` when *n* is a Giuga number (a composite, squarefree integer such that for every prime factor *p* of *n*, *p* divides *n // p - 1*), `False` otherwise, treating primes and numbers below 2 as non-Giuga. Verified against the known Giuga numbers (30, 858, 1722, 66198, 2214408306, 24423128562).
+- Added `TestIsGiugaNumber` to `tests/test_prime_utils.py` covering known Giuga numbers, non-Giuga composites, primes, small/non-composite inputs, prime powers, and the `TypeError` path (float, str, bool, None) — 26 new assertions (212 tests now pass for the module).
+- Documented `is_carmichael_number`, `is_korselt_number`, and `is_giuga_number` in the `prime_utils` file listing and prose section of `README.md`.
+- Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6576 tests and passes with the same 6 pre-existing errors, `make lint` is clean, and `make typecheck` reports the same 9 pre-existing errors (unchanged by this work).
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_wilson_prime test coverage to prime_utils
 
 - Added `TestIsWilsonPrime` to `tests/test_prime_utils.py` covering known Wilson primes (5, 13, 563), non-Wilson primes, composites, negatives, and the `TypeError` path (float, str, bool, None) — 20 new assertions. The `is_wilson_prime` helper itself was already present in `prime_utils.py` and exported via `__all__`; this session added the missing test coverage and documented the previously undocumented prime helpers (`is_automorphic`, `is_truncatable_prime`, `is_pythagorean_prime`, `is_wilson_prime`) in the `prime_utils` file listing and prose section of `README.md` and in `.kilo/command/scaffold-project.md`. Synchronized `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

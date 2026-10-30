@@ -7,6 +7,7 @@ from prime_utils import (
     distinct_prime_factors,
     is_abundant_number,
     is_automorphic,
+    is_carmichael_number,
     is_chen_prime,
     is_circular_prime,
     is_composite,
@@ -14,6 +15,8 @@ from prime_utils import (
     is_cousin_prime,
     is_deficient_number,
     is_emirp,
+    is_giuga_number,
+    is_korselt_number,
     is_mersenne_prime,
     is_palindromic_prime,
     is_perfect_number,
@@ -29,8 +32,6 @@ from prime_utils import (
     is_squarefree,
     is_twin_prime,
     is_wilson_prime,
-    is_carmichael_number,
-    is_korselt_number,
     largest_prime_factor,
     next_prime,
     nth_prime,
@@ -1215,6 +1216,38 @@ class TestIsCarmichaelNumber(unittest.TestCase):
             is_carmichael_number(True)
         with self.assertRaises(TypeError):
             is_carmichael_number(None)
+
+
+class TestIsGiugaNumber(unittest.TestCase):
+    def test_giuga_numbers(self):
+        for n in [30, 858, 1722, 66198, 2214408306, 24423128562]:
+            self.assertTrue(is_giuga_number(n), n)
+
+    def test_not_giuga_composites(self):
+        for n in [6, 12, 15, 18, 20, 24, 36, 42, 60, 90, 105, 120, 561, 1105, 1729, 341]:
+            self.assertFalse(is_giuga_number(n), n)
+
+    def test_prime_not_giuga(self):
+        for n in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]:
+            self.assertFalse(is_giuga_number(n), n)
+
+    def test_small_and_non_composite(self):
+        for n in [0, 1, -1, -30]:
+            self.assertFalse(is_giuga_number(n), n)
+
+    def test_prime_power_not_squarefree(self):
+        for n in [4, 8, 9, 16, 25, 27, 49]:
+            self.assertFalse(is_giuga_number(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_giuga_number(30.0)
+        with self.assertRaises(TypeError):
+            is_giuga_number("30")
+        with self.assertRaises(TypeError):
+            is_giuga_number(True)
+        with self.assertRaises(TypeError):
+            is_giuga_number(None)
 
 
 if __name__ == "__main__":
