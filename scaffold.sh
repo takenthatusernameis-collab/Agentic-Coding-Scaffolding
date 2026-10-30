@@ -14790,6 +14790,8 @@ from strings import (
     count_words,
     drop,
     ends_with,
+    ensure_prefix,
+    ensure_suffix,
     first_n,
     initials,
     is_alpha,
@@ -16788,6 +16790,78 @@ class TestCountPunctuation(unittest.TestCase):
             count_punctuation(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_punctuation([])  # type: ignore[arg-type]
+
+
+class TestEnsurePrefix(unittest.TestCase):
+    """Tests for ensure_prefix function."""
+
+    def test_adds_prefix(self):
+        self.assertEqual(ensure_prefix("world", "hello "), "hello world")
+
+    def test_already_has_prefix(self):
+        self.assertEqual(ensure_prefix("hello world", "hello "), "hello world")
+
+    def test_empty_text(self):
+        self.assertEqual(ensure_prefix("", "hello"), "hello")
+
+    def test_empty_prefix(self):
+        self.assertEqual(ensure_prefix("hello", ""), "hello")
+
+    def test_both_empty(self):
+        self.assertEqual(ensure_prefix("", ""), "")
+
+    def test_prefix_longer_than_text(self):
+        self.assertEqual(ensure_prefix("hi", "hello world"), "hello worldhi")
+
+    def test_overlapping_prefix(self):
+        self.assertEqual(ensure_prefix("world", "hello world"), "hello worldworld")
+
+    def test_unicode(self):
+        self.assertEqual(ensure_prefix("世界", "你好"), "你好世界")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            ensure_prefix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_prefix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_prefix("x", None)  # type: ignore[arg-type]
+
+
+class TestEnsureSuffix(unittest.TestCase):
+    """Tests for ensure_suffix function."""
+
+    def test_adds_suffix(self):
+        self.assertEqual(ensure_suffix("hello", " world"), "hello world")
+
+    def test_already_has_suffix(self):
+        self.assertEqual(ensure_suffix("hello world", " world"), "hello world")
+
+    def test_empty_text(self):
+        self.assertEqual(ensure_suffix("", "world"), "world")
+
+    def test_empty_suffix(self):
+        self.assertEqual(ensure_suffix("hello", ""), "hello")
+
+    def test_both_empty(self):
+        self.assertEqual(ensure_suffix("", ""), "")
+
+    def test_suffix_longer_than_text(self):
+        self.assertEqual(ensure_suffix("hi", "hello world"), "hihello world")
+
+    def test_overlapping_suffix(self):
+        self.assertEqual(ensure_suffix("hello", "hello world"), "hellohello world")
+
+    def test_unicode(self):
+        self.assertEqual(ensure_suffix("你好", "世界"), "你好世界")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            ensure_suffix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_suffix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_suffix("x", None)  # type: ignore[arg-type]
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -43494,6 +43568,25 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added test coverage for ensure_prefix and ensure_suffix in strings.py
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6735 tests and passes, `make lint` is clean, `make typecheck` reports 11 pre-existing errors in 10 files (identical with the change stashed), and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Found that the preceding `chore(kilo): checkpoint agent session` commit (1a8f3c4) added `ensure_prefix(text, prefix)` and `ensure_suffix(text, suffix)` to `strings.py` with `__all__` exports and README entries, but `tests/test_strings.py` imported neither function and had no test classes for them — a coverage gap in a module otherwise fully tested.
+- Added `TestEnsurePrefix` and `TestEnsureSuffix` to `tests/test_strings.py` covering the add/already-present cases, empty text, empty prefix/suffix, both-empty, prefix/suffix longer than text, overlapping prefix/suffix, unicode inputs, and the `TypeError` paths for non-string arguments (18 new tests; 6753 tests now pass). Imported `ensure_prefix` and `ensure_suffix` at the top of the test file to match the module's `__all__` contract.
+- Updated the `strings` module prose section of `README.md` to describe the two new helpers.
+- Verified the work: `make test` runs 6753 tests and passes with no new failures, `make lint` is clean, and `make typecheck` reports the same 11 pre-existing errors in 10 files (unchanged by this work).
+- Synchronized `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `strings.py`, `prompt_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `itertools_utils.py`, `numbers_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — fixed is_neon_number bug and added test coverage for strong/harshad/neon/armstrong/automorphic predicates in numbers_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6719 tests and passes (6 pre-existing environment-related errors in `test_atexit_utils`, `test_importlib_utils`, `test_multiprocessing_utils`, `test_sre_compile_utils`, `test_sre_constants_utils`, and `test_sre_parse_utils` — confirmed identical with the change stashed), and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
@@ -45537,7 +45630,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `count_punctuation`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `count_punctuation`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`, `ensure_prefix`, and `ensure_suffix`. Added `chunk_string` for splitting strings into fixed-size chunks. `ensure_prefix` guarantees that *text* begins with *prefix* (returning *text* unchanged when it already does), and `ensure_suffix` guarantees that *text* ends with *suffix*; both raise `TypeError` for non-string arguments. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

@@ -24,6 +24,8 @@ from strings import (
     count_words,
     drop,
     ends_with,
+    ensure_prefix,
+    ensure_suffix,
     first_n,
     initials,
     is_alpha,
@@ -2022,3 +2024,75 @@ class TestCountPunctuation(unittest.TestCase):
             count_punctuation(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_punctuation([])  # type: ignore[arg-type]
+
+
+class TestEnsurePrefix(unittest.TestCase):
+    """Tests for ensure_prefix function."""
+
+    def test_adds_prefix(self):
+        self.assertEqual(ensure_prefix("world", "hello "), "hello world")
+
+    def test_already_has_prefix(self):
+        self.assertEqual(ensure_prefix("hello world", "hello "), "hello world")
+
+    def test_empty_text(self):
+        self.assertEqual(ensure_prefix("", "hello"), "hello")
+
+    def test_empty_prefix(self):
+        self.assertEqual(ensure_prefix("hello", ""), "hello")
+
+    def test_both_empty(self):
+        self.assertEqual(ensure_prefix("", ""), "")
+
+    def test_prefix_longer_than_text(self):
+        self.assertEqual(ensure_prefix("hi", "hello world"), "hello worldhi")
+
+    def test_overlapping_prefix(self):
+        self.assertEqual(ensure_prefix("world", "hello world"), "hello worldworld")
+
+    def test_unicode(self):
+        self.assertEqual(ensure_prefix("世界", "你好"), "你好世界")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            ensure_prefix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_prefix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_prefix("x", None)  # type: ignore[arg-type]
+
+
+class TestEnsureSuffix(unittest.TestCase):
+    """Tests for ensure_suffix function."""
+
+    def test_adds_suffix(self):
+        self.assertEqual(ensure_suffix("hello", " world"), "hello world")
+
+    def test_already_has_suffix(self):
+        self.assertEqual(ensure_suffix("hello world", " world"), "hello world")
+
+    def test_empty_text(self):
+        self.assertEqual(ensure_suffix("", "world"), "world")
+
+    def test_empty_suffix(self):
+        self.assertEqual(ensure_suffix("hello", ""), "hello")
+
+    def test_both_empty(self):
+        self.assertEqual(ensure_suffix("", ""), "")
+
+    def test_suffix_longer_than_text(self):
+        self.assertEqual(ensure_suffix("hi", "hello world"), "hihello world")
+
+    def test_overlapping_suffix(self):
+        self.assertEqual(ensure_suffix("hello", "hello world"), "hellohello world")
+
+    def test_unicode(self):
+        self.assertEqual(ensure_suffix("你好", "世界"), "你好世界")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            ensure_suffix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_suffix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_suffix("x", None)  # type: ignore[arg-type]
