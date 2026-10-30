@@ -29,6 +29,8 @@ from prime_utils import (
     is_squarefree,
     is_twin_prime,
     is_wilson_prime,
+    is_carmichael_number,
+    is_korselt_number,
     largest_prime_factor,
     next_prime,
     nth_prime,
@@ -1157,6 +1159,62 @@ class TestIsWilsonPrime(unittest.TestCase):
             is_wilson_prime(True)
         with self.assertRaises(TypeError):
             is_wilson_prime(None)
+
+
+class TestIsKorseltNumber(unittest.TestCase):
+    def test_korselt_numbers(self):
+        for n in [561, 1105, 1729, 2465]:
+            self.assertTrue(is_korselt_number(n), n)
+
+    def test_prime_not_korselt(self):
+        self.assertFalse(is_korselt_number(7))
+        self.assertFalse(is_korselt_number(13))
+
+    def test_prime_power_not_squarefree_not_korselt(self):
+        self.assertFalse(is_korselt_number(4))
+        self.assertFalse(is_korselt_number(8))
+        self.assertFalse(is_korselt_number(9))
+
+    def test_not_composite_or_small(self):
+        self.assertFalse(is_korselt_number(1))
+        self.assertFalse(is_korselt_number(2))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_korselt_number(561.0)
+        with self.assertRaises(TypeError):
+            is_korselt_number("561")
+        with self.assertRaises(TypeError):
+            is_korselt_number(True)
+        with self.assertRaises(TypeError):
+            is_korselt_number(None)
+
+
+class TestIsCarmichaelNumber(unittest.TestCase):
+    def test_carmichael_numbers(self):
+        for n in [561, 1105, 1729, 2465, 2821]:
+            self.assertTrue(is_carmichael_number(n), n)
+
+    def test_prime_not_carmichael(self):
+        self.assertFalse(is_carmichael_number(7))
+        self.assertFalse(is_carmichael_number(13))
+
+    def test_needs_three_factors(self):
+        self.assertFalse(is_carmichael_number(341))
+
+    def test_not_composite(self):
+        self.assertFalse(is_carmichael_number(1))
+        self.assertFalse(is_carmichael_number(2))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_carmichael_number(561.0)
+        with self.assertRaises(TypeError):
+            is_carmichael_number("561")
+        with self.assertRaises(TypeError):
+            is_carmichael_number(True)
+        with self.assertRaises(TypeError):
+            is_carmichael_number(None)
 
 
 if __name__ == "__main__":

@@ -48,7 +48,7 @@ __all__: List[str] = [
     "is_wilson_prime",
     "is_carmichael_number",
     "is_korselt_number",
-]
+    "is_giuga_number",
 
 
 def _require_int(value: object, name: str) -> int:
