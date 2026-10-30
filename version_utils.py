@@ -552,7 +552,7 @@ def is_dev_version(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     tag = get_prerelease(version)
-    return bool(tag) and tag.lower().startswith("dev")
+    return tag is not None and tag.lower().startswith("dev")
 
 
 def get_prerelease(version: str) -> str | None:
