@@ -14,6 +14,7 @@ __all__: List[str] = [
     "is_str",
     "is_int",
     "is_float",
+    "is_complex",
     "is_bool",
     "is_list",
     "is_dict",
@@ -67,6 +68,11 @@ def is_int(value: object) -> bool:
 def is_float(value: object) -> bool:
     """Return True if value is a float."""
     return isinstance(value, float)
+
+
+def is_complex(value: object) -> bool:
+    """Return True if value is a complex number."""
+    return isinstance(value, complex)
 
 
 def is_bool(value: object) -> bool:

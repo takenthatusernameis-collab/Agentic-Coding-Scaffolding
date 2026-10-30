@@ -123,6 +123,11 @@ class TestTypeChecks(unittest.TestCase):
         self.assertTrue(type_check_utils.is_float(3.14))
         self.assertFalse(type_check_utils.is_float(3))
 
+    def test_is_complex(self) -> None:
+        self.assertTrue(type_check_utils.is_complex(1 + 2j))
+        self.assertFalse(type_check_utils.is_complex(3.14))
+        self.assertFalse(type_check_utils.is_complex(3))
+
     def test_is_bool(self) -> None:
         self.assertTrue(type_check_utils.is_bool(True))
         self.assertFalse(type_check_utils.is_bool(1))

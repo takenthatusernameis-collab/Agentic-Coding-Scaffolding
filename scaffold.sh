@@ -117363,6 +117363,7 @@ __all__: List[str] = [
     "is_str",
     "is_int",
     "is_float",
+    "is_complex",
     "is_bool",
     "is_list",
     "is_dict",
@@ -117416,6 +117417,11 @@ def is_int(value: object) -> bool:
 def is_float(value: object) -> bool:
     """Return True if value is a float."""
     return isinstance(value, float)
+
+
+def is_complex(value: object) -> bool:
+    """Return True if value is a complex number."""
+    return isinstance(value, complex)
 
 
 def is_bool(value: object) -> bool:
@@ -118126,6 +118132,11 @@ class TestTypeChecks(unittest.TestCase):
     def test_is_float(self) -> None:
         self.assertTrue(type_check_utils.is_float(3.14))
         self.assertFalse(type_check_utils.is_float(3))
+
+    def test_is_complex(self) -> None:
+        self.assertTrue(type_check_utils.is_complex(1 + 2j))
+        self.assertFalse(type_check_utils.is_complex(3.14))
+        self.assertFalse(type_check_utils.is_complex(3))
 
     def test_is_bool(self) -> None:
         self.assertTrue(type_check_utils.is_bool(True))
