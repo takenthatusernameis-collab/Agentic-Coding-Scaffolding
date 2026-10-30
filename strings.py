@@ -87,6 +87,7 @@ __all__: List[str] = [
     "count_digits",
     "count_letters",
     "count_punctuation",
+    "count_whitespace",
     "strip_non_ascii",
     "truncate_bytes",
 ]
@@ -1835,6 +1836,36 @@ def count_punctuation(s: str) -> int:
     import string
 
     return sum(1 for ch in s if ch in string.punctuation)
+
+
+def count_whitespace(s: str) -> int:
+    """Return the number of whitespace characters in *s*.
+
+    Whitespace characters are those for which ``str.isspace()`` returns True
+    (spaces, tabs, newlines, carriage returns, form feeds, vertical tabs, and
+    any other Unicode whitespace).
+
+    Args:
+        s: The string to count whitespace characters in.
+
+    Returns:
+        The number of whitespace characters.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_whitespace("hello world")
+        1
+        >>> count_whitespace("a  b\tc")
+        3
+        >>> count_whitespace("no spaces")
+        0
+        >>> count_whitespace("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isspace())
 
 
 def is_subsequence(needle: str, haystack: str) -> bool:
