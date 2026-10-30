@@ -31,6 +31,7 @@ from prime_utils import (
     is_sophie_germain_prime,
     is_squarefree,
     is_twin_prime,
+    is_truncatable_prime,
     is_wilson_prime,
     largest_prime_factor,
     next_prime,
@@ -1248,6 +1249,40 @@ class TestIsGiugaNumber(unittest.TestCase):
             is_giuga_number(True)
         with self.assertRaises(TypeError):
             is_giuga_number(None)
+
+
+class TestIsTruncatablePrime(unittest.TestCase):
+    def test_truncatable_primes(self):
+        # Known two-sided truncatable primes
+        for n in [2, 3, 5, 7, 23, 37, 53, 73, 313, 317, 373, 797, 3137, 3797, 739397]:
+            self.assertTrue(is_truncatable_prime(n), n)
+
+    def test_non_truncatable_primes(self):
+        # Primes that fail left- or right-truncation
+        for n in [11, 13, 17, 19, 29, 31, 41, 43, 47, 59, 61, 67, 71, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131]:
+            self.assertFalse(is_truncatable_prime(n), n)
+
+    def test_single_digit_primes_are_truncatable(self):
+        for n in [2, 3, 5, 7]:
+            self.assertTrue(is_truncatable_prime(n), n)
+
+    def test_composite_not_truncatable(self):
+        for n in [4, 6, 8, 9, 10, 12, 14, 15, 21, 27, 39, 49, 77, 91, 93, 99]:
+            self.assertFalse(is_truncatable_prime(n), n)
+
+    def test_non_prime_rejected(self):
+        for n in [0, 1, -1, -7, -23]:
+            self.assertFalse(is_truncatable_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_truncatable_prime(3797.0)
+        with self.assertRaises(TypeError):
+            is_truncatable_prime("3797")
+        with self.assertRaises(TypeError):
+            is_truncatable_prime(True)
+        with self.assertRaises(TypeError):
+            is_truncatable_prime(None)
 
 
 if __name__ == "__main__":

@@ -43059,6 +43059,24 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_truncatable_prime test coverage to prime_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6621 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `prime_utils.py` exports `is_truncatable_prime(n)` in `__all__` and the README lists it, but `tests/test_prime_utils.py` had no test class for it (it was imported nowhere and untested), leaving a coverage gap in an otherwise fully-tested module.
+- Added `TestIsTruncatablePrime` to `tests/test_prime_utils.py` covering known two-sided truncatable primes (single-digit, 23, 37, 53, 73, 313, 317, 373, 797, 3137, 3797, 739397), primes that fail left- or right-truncation, single-digit primes, composites, non-prime inputs (0, 1, negatives), and the `TypeError` path (6 new tests, 224 total). Imported `is_truncatable_prime` at the top of the test file to match the module's `__all__` contract.
+- Verified the work: `make test` runs 6627 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `tests/test_prime_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added cumulative_sum test coverage to stats
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
@@ -71815,6 +71833,7 @@ from prime_utils import (
     is_sophie_germain_prime,
     is_squarefree,
     is_twin_prime,
+    is_truncatable_prime,
     is_wilson_prime,
     largest_prime_factor,
     next_prime,
@@ -73032,6 +73051,40 @@ class TestIsGiugaNumber(unittest.TestCase):
             is_giuga_number(True)
         with self.assertRaises(TypeError):
             is_giuga_number(None)
+
+
+class TestIsTruncatablePrime(unittest.TestCase):
+    def test_truncatable_primes(self):
+        # Known two-sided truncatable primes
+        for n in [2, 3, 5, 7, 23, 37, 53, 73, 313, 317, 373, 797, 3137, 3797, 739397]:
+            self.assertTrue(is_truncatable_prime(n), n)
+
+    def test_non_truncatable_primes(self):
+        # Primes that fail left- or right-truncation
+        for n in [11, 13, 17, 19, 29, 31, 41, 43, 47, 59, 61, 67, 71, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131]:
+            self.assertFalse(is_truncatable_prime(n), n)
+
+    def test_single_digit_primes_are_truncatable(self):
+        for n in [2, 3, 5, 7]:
+            self.assertTrue(is_truncatable_prime(n), n)
+
+    def test_composite_not_truncatable(self):
+        for n in [4, 6, 8, 9, 10, 12, 14, 15, 21, 27, 39, 49, 77, 91, 93, 99]:
+            self.assertFalse(is_truncatable_prime(n), n)
+
+    def test_non_prime_rejected(self):
+        for n in [0, 1, -1, -7, -23]:
+            self.assertFalse(is_truncatable_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_truncatable_prime(3797.0)
+        with self.assertRaises(TypeError):
+            is_truncatable_prime("3797")
+        with self.assertRaises(TypeError):
+            is_truncatable_prime(True)
+        with self.assertRaises(TypeError):
+            is_truncatable_prime(None)
 
 
 if __name__ == "__main__":

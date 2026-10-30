@@ -1,3 +1,21 @@
+## Unreleased — added is_truncatable_prime test coverage to prime_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6621 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `prime_utils.py` exports `is_truncatable_prime(n)` in `__all__` and the README lists it, but `tests/test_prime_utils.py` had no test class for it (it was imported nowhere and untested), leaving a coverage gap in an otherwise fully-tested module.
+- Added `TestIsTruncatablePrime` to `tests/test_prime_utils.py` covering known two-sided truncatable primes (single-digit, 23, 37, 53, 73, 313, 317, 373, 797, 3137, 3797, 739397), primes that fail left- or right-truncation, single-digit primes, composites, non-prime inputs (0, 1, negatives), and the `TypeError` path (6 new tests, 224 total). Imported `is_truncatable_prime` at the top of the test file to match the module's `__all__` contract.
+- Verified the work: `make test` runs 6627 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `tests/test_prime_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added cumulative_sum test coverage to stats
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
