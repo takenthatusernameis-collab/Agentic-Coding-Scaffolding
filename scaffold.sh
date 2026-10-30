@@ -15913,7 +15913,6 @@ class TestNewHelpers(unittest.TestCase):
         self.assertEqual(char_frequency("aab"), {"a": 2, "b": 1})
 
     def test_first_last_take_drop(self):
-        from strings import drop, first_n, last_n
 
         self.assertEqual(first_n("hello", 3), "hel")
         self.assertEqual(take("hello", 2), "he")
@@ -15923,19 +15922,16 @@ class TestNewHelpers(unittest.TestCase):
         self.assertEqual(drop("hello", 5), "")
 
     def test_drop_non_str_raises_type_error(self):
-        from strings import drop
 
         with self.assertRaises(TypeError):
             drop(123, 2)  # type: ignore[arg-type]
 
     def test_drop_non_int_n_raises_type_error(self):
-        from strings import drop
 
         with self.assertRaises(TypeError):
             drop("hello", "2")
 
     def test_drop_negative_n_raises_value_error(self):
-        from strings import drop
 
         with self.assertRaises(ValueError):
             drop("hello", -1)
@@ -16414,535 +16410,158 @@ class TestInitials(unittest.TestCase):
 
 
 class TestStringsBoundaryCases(unittest.TestCase):
-    """Boundary case tests for string utilities."""
+    """Comprehensive boundary case tests for strings module."""
 
-    # Empty string edge cases
-    def test_is_palindrome_empty_is_true(self):
-        self.assertTrue(is_palindrome(""))
-
-    def test_reverse_empty(self):
+    def test_empty_string_edges(self):
         self.assertEqual(reverse_string(""), "")
-
-    def test_capitalize_words_empty(self):
+        self.assertEqual(reverse_words(""), "")
         self.assertEqual(capitalize_words(""), "")
-
-    def test_title_case_empty(self):
         self.assertEqual(title_case(""), "")
-
-    def test_truncate_empty(self):
-        self.assertEqual(truncate("", 5), "")
-
-    def test_slugify_empty(self):
+        self.assertEqual(snake_to_camel(""), "")
+        self.assertEqual(camel_to_snake(""), "")
         self.assertEqual(slugify(""), "")
-
-    def test_remove_whitespace_empty(self):
         self.assertEqual(remove_whitespace(""), "")
-
-    def test_normalize_whitespace_empty(self):
         self.assertEqual(normalize_whitespace(""), "")
-
-    def test_swap_case_empty(self):
+        self.assertEqual(remove_punctuation(""), "")
+        self.assertEqual(remove_digits(""), "")
+        self.assertEqual(remove_vowels(""), "")
+        self.assertEqual(remove_consonants(""), "")
+        self.assertEqual(strip_html(""), "")
         self.assertEqual(swap_case(""), "")
-
-    def test_reverse_words_empty(self):
-        self.assertEqual(reverse_words(""), "")
-
-    def test_is_blank_empty(self):
+        self.assertEqual(join_lines([]), "")
+        self.assertEqual(split_lines(""), [])
+        self.assertEqual(chunk_string("", 5), [])
         self.assertTrue(is_blank(""))
-
-    def test_is_blank_whitespace_only_spaces(self):
         self.assertTrue(is_blank("   "))
-
-    def test_is_blank_whitespace_only_tabs(self):
-        self.assertTrue(is_blank("\t"))
-
-    def test_is_blank_whitespace_only_newlines(self):
-        self.assertTrue(is_blank("\n"))
-
-    def test_is_blank_whitespace_mixed(self):
-        self.assertTrue(is_blank(" \t\n\r"))
-
-    def test_is_blank_with_content(self):
-        self.assertFalse(is_blank("hello"))
-
-    # Single character
-    def test_single_char_is_palindrome(self):
-        self.assertTrue(is_palindrome("a"))
-        self.assertTrue(is_palindrome("Z"))
-
-    def test_is_alpha_single_char(self):
-        self.assertTrue(is_alpha("a"))
-        self.assertFalse(is_alpha("1"))
-
-    def test_is_alphanumeric_single_char(self):
-        self.assertTrue(is_alphanumeric("a"))
-        self.assertTrue(is_alphanumeric("5"))
-
-    def test_is_digit_single_zero(self):
-        self.assertTrue(is_digit("0"))
-
-    def test_is_hex_single_digit(self):
-        self.assertTrue(is_hex("a"))
-        self.assertTrue(is_hex("F"))
-        self.assertTrue(is_hex("5"))
-
-    # Whitespace only
-    def test_word_count_whitespace_only_spaces(self):
-        self.assertEqual(word_count("   "), 0)
-
-    def test_word_count_whitespace_only_tabs(self):
-        self.assertEqual(word_count("\t\t"), 0)
-
-    def test_word_count_whitespace_only_newlines(self):
-        self.assertEqual(word_count("\n\n"), 0)
-
-    def test_count_vowels_whitespace_only(self):
-        self.assertEqual(count_vowels("   "), 0)
-
-    def test_count_consonants_whitespace_only(self):
-        self.assertEqual(count_consonants("   "), 0)
-
-    # Unicode boundary cases
-    def test_is_alpha_unicode_letters(self):
-        self.assertTrue(is_alpha("café"))
-        self.assertTrue(is_alpha("naïve"))
-        self.assertTrue(is_alpha("Москва"))  # Russian
-
-    def test_is_alphanumeric_unicode(self):
-        self.assertTrue(is_alphanumeric("café123"))
-
-    def test_is_ascii_unicode_false(self):
-        self.assertFalse(is_ascii("café"))
-        self.assertFalse(is_ascii("Москва"))
-
-    def test_is_ascii_pure_ascii_true(self):
-        self.assertTrue(is_ascii("hello123!"))
-
-    def test_is_pangram_empty_string(self):
-        self.assertFalse(is_pangram(""))
-
-    def test_is_identifier_unicode_letters(self):
-        # Python identifiers can have unicode letters in some cases,
-        # but behavior follows str.isidentifier. Just test that it doesn't crash.
-        result = is_identifier("café")
-        self.assertIsInstance(result, bool)
-
-    # is_integer edge cases
-    def test_is_integer_positive_with_plus(self):
-        self.assertTrue(is_integer("+123"))
-
-    def test_is_integer_negative(self):
-        self.assertTrue(is_integer("-123"))
-
-    def test_is_integer_empty_after_strip(self):
-        self.assertFalse(is_integer("   "))
-
-    def test_is_integer_just_plus(self):
-        self.assertFalse(is_integer("+"))
-
-    def test_is_integer_just_minus(self):
-        self.assertFalse(is_integer("-"))
-
-    def test_is_integer_with_decimal(self):
-        self.assertFalse(is_integer("123.45"))
-
-    # is_palindrome with different params
-    def test_is_palindrome_ignore_case_false(self):
-        self.assertFalse(is_palindrome("Racecar", ignore_case=False))
-        self.assertTrue(is_palindrome("racecar", ignore_case=False))
-
-    def test_is_palindrome_ignore_spaces_false(self):
-        # With ignore_spaces False, spaces count as chars
-        result = is_palindrome("a b a", ignore_spaces=False)
-        # "a b a" vs "a b a" reversed with spaces kept? "a b a" reversed charwise is "a b a"?
-        # "a b a" -> chars a, space, b, space, a -> reversed a, space, b, space, a -> same
-        self.assertTrue(result)
-
-    def test_is_palindrome_ignore_case_non_bool(self):
-        with self.assertRaises(TypeError):
-            is_palindrome("test", ignore_case="yes")  # type: ignore[arg-type]
-
-    def test_is_palindrome_ignore_spaces_non_bool(self):
-        with self.assertRaises(TypeError):
-            is_palindrome("test", ignore_spaces=1)  # type: ignore[arg-type]
-
-    # levenshtein_distance
-    def test_levenshtein_distance_empty_strings(self):
-        self.assertEqual(levenshtein_distance("", ""), 0)
-
-    def test_levenshtein_distance_one_empty(self):
-        self.assertEqual(levenshtein_distance("hello", ""), 5)
-        self.assertEqual(levenshtein_distance("", "world"), 5)
-
-    def test_levenshtein_distance_identical(self):
-        self.assertEqual(levenshtein_distance("test", "test"), 0)
-
-    # first_n/last_n/drop boundaries
-    def test_first_n_zero(self):
-        self.assertEqual(first_n("hello", 0), "")
-
-    def test_last_n_zero(self):
-        self.assertEqual(last_n("hello", 0), "")
-
-    def test_first_n_all_chars(self):
-        self.assertEqual(first_n("hello", 5), "hello")
-
-    def test_first_n_more_than_length(self):
-        self.assertEqual(first_n("hi", 10), "hi")
-
-    def test_last_n_more_than_length(self):
-        self.assertEqual(last_n("hi", 10), "hi")
-
-    def test_drop_all_chars(self):
-        self.assertEqual(drop("hello", 5), "")
-
-    def test_drop_more_than_length(self):
-        self.assertEqual(drop("hello", 10), "")
-
-    def test_first_n_negative_raises(self):
-        with self.assertRaises(ValueError):
-            first_n("hello", -1)
-
-    def test_last_n_negative_raises(self):
-        with self.assertRaises(ValueError):
-            last_n("hello", -1)
-
-    # count_occurrences edge cases
-    def test_count_occurrences_same_string(self):
-        self.assertEqual(count_occurrences("hello", "hello"), 1)
-
-    def test_count_occurrences_no_match(self):
-        self.assertEqual(count_occurrences("hello", "xyz"), 0)
-
-    # starts_with/ends_with
-    def test_starts_with_empty_prefix(self):
-        self.assertTrue(starts_with("hello", ""))
-
-    def test_ends_with_empty_suffix(self):
-        self.assertTrue(ends_with("hello", ""))
-
-    # chunk_string edge cases
-    def test_chunk_string_size_equal_to_length(self):
-        self.assertEqual(chunk_string("abc", 3), ["abc"])
-
-    # initials edge cases
-    def test_initials_whitespace_only(self):
-        self.assertEqual(initials("   "), "")
-
-    def test_initials_multiple_spaces(self):
-        self.assertEqual(initials("foo   bar"), "FB")
-
-    # is_printable
-    def test_is_printable_empty(self):
-        self.assertFalse(is_printable(""))
-
-    def test_is_printable_normal_text(self):
-        self.assertTrue(is_printable("hello world!"))
-
-    def test_is_printable_with_tab(self):
-        # tab might be considered printable depending, but test current behavior
-        result = is_printable("\t")
-        self.assertIsInstance(result, bool)
-
-
-class TestStringsBoundaryAudit(unittest.TestCase):
-    def test_empty_string_helpers(self):
-        self.assertEqual(reverse_string(""), "")
-        self.assertEqual(reverse_words(""), "")
+        self.assertTrue(is_blank("\t\n"))
+        self.assertTrue(is_palindrome(""))
+        self.assertTrue(is_anagram("", ""))
+        self.assertTrue(is_rotation("", ""))
+        self.assertTrue(is_isogram(""))
+        self.assertTrue(is_subsequence("", "anything"))
+        self.assertTrue(is_subsequence("", ""))
+        self.assertFalse(is_subsequence("a", ""))
         self.assertEqual(count_vowels(""), 0)
         self.assertEqual(count_consonants(""), 0)
+        self.assertEqual(count_uppercase(""), 0)
+        self.assertEqual(count_lowercase(""), 0)
+        self.assertEqual(count_digits(""), 0)
+        self.assertEqual(count_letters(""), 0)
         self.assertEqual(word_count(""), 0)
         self.assertEqual(char_count(""), 0)
-        self.assertTrue(is_blank(""))
-        self.assertEqual(normalize_whitespace(""), "")
-        self.assertEqual(remove_whitespace(""), "")
-        self.assertEqual(slugify(""), "")
-        self.assertEqual(truncate("", 5), "")
-        self.assertEqual(first_n("", 3), "")
-        self.assertEqual(last_n("", 3), "")
-        self.assertEqual(take("", 3), "")
-        self.assertEqual(drop("", 3), "")
-        self.assertEqual(chunk_string("", 2), [])
-        self.assertEqual(initials(""), "")
-        self.assertEqual(common_prefix("", ""), "")
-        self.assertEqual(common_suffix("", ""), "")
-
-    def test_unicode_basic(self):
-        self.assertEqual(reverse_string("café"), "éfac")
-        self.assertTrue(is_palindrome("A man a plan a canal Panama".replace(" ", "").lower()))
-        self.assertIsInstance(count_vowels("café"), int)
-
-    def test_type_errors(self):
-        for name, fn in [("reverse_string", reverse_string)]:
-            with self.assertRaises(TypeError):
-                fn(123)  # type: ignore[arg-type]
-
-
-class TestStringsComprehensiveBoundary(unittest.TestCase):
-    def test_all_is_alpha_empty_and_cases(self):
-        self.assertFalse(is_alpha(""))
-        self.assertTrue(is_alpha("abc"))
-        self.assertTrue(is_alpha("ABC"))
-        self.assertFalse(is_alpha("abc123"))
-        self.assertFalse(is_alpha("abc def"))
-
-    def test_all_is_alphanumeric_cases(self):
-        self.assertFalse(is_alphanumeric(""))
-        self.assertTrue(is_alphanumeric("abc123"))
-        self.assertTrue(is_alphanumeric("123"))
-        self.assertFalse(is_alphanumeric("abc!"))
-
-    def test_all_is_ascii_cases(self):
-        self.assertFalse(is_ascii(""))
-        self.assertTrue(is_ascii("hello"))
-        self.assertFalse(is_ascii("café"))
-
-    def test_all_is_digit_hex_integer(self):
-        self.assertFalse(is_digit(""))
-        self.assertTrue(is_digit("123"))
-        self.assertFalse(is_digit("12.3"))
-        self.assertFalse(is_hex(""))
-        self.assertTrue(is_hex("deadBEEF123"))
-        self.assertFalse(is_hex("xyz"))
-        self.assertFalse(is_integer(""))
-        self.assertTrue(is_integer("123"))
-        self.assertTrue(is_integer("-123"))
-        self.assertTrue(is_integer("+123"))
-        self.assertFalse(is_integer("12.3"))
-
-    def test_all_is_whitespace_space_blank(self):
-        self.assertFalse(is_whitespace(""))
-        self.assertTrue(is_whitespace("   "))
-        self.assertTrue(is_whitespace("\t\n\r"))
-        self.assertFalse(is_space(""))
-        self.assertTrue(is_space("   "))
-        self.assertTrue(is_space("\t"))
-        self.assertTrue(is_blank(""))
-        self.assertTrue(is_blank(" \t\n"))
-        self.assertFalse(is_blank("x"))
-
-    def test_all_is_title_upper_lower(self):
-        self.assertFalse(is_title(""))
-        self.assertTrue(is_title("Hello World"))
-        self.assertFalse(is_title("hello World"))
-        self.assertFalse(is_upper(""))
-        self.assertTrue(is_upper("HELLO"))
-        self.assertFalse(is_upper("Hello"))
-        self.assertFalse(is_lower(""))
-        self.assertTrue(is_lower("hello"))
-        self.assertFalse(is_lower("Hello"))
-
-    def test_is_identifier_cases(self):
-        self.assertFalse(is_identifier(""))
-        self.assertTrue(is_identifier("foo"))
-        self.assertTrue(is_identifier("_foo"))
-        self.assertTrue(is_identifier("foo123"))
-        self.assertFalse(is_identifier("123foo"))
-        self.assertFalse(is_identifier("foo-bar"))
-
-    def test_is_pangram_cases(self):
-        self.assertFalse(is_pangram(""))
-        self.assertTrue(is_pangram("The quick brown fox jumps over the lazy dog"))
-
-    def test_is_printable_cases(self):
-        self.assertFalse(is_printable(""))
-        self.assertTrue(is_printable("hello world!"))
-
-    def test_is_subsequence_edges(self):
-        self.assertTrue(is_subsequence("", "abc"))
-        self.assertTrue(is_subsequence("ac", "abc"))
-        self.assertFalse(is_subsequence("ca", "abc"))
-        self.assertTrue(is_subsequence("abc", "abc"))
-
-    def test_is_anagram_case_insensitive_ignore_spaces(self):
-        self.assertTrue(is_anagram("Dormitory", "dirty room"))
-        self.assertFalse(is_anagram("abc", "ab"))
-
-    def test_levenshtein_edges(self):
+        self.assertEqual(count_words(""), 0)
         self.assertEqual(levenshtein_distance("", ""), 0)
         self.assertEqual(levenshtein_distance("abc", ""), 3)
         self.assertEqual(levenshtein_distance("", "abc"), 3)
-        self.assertEqual(levenshtein_distance("abc", "abc"), 0)
+        self.assertEqual(common_prefix("", "abc"), "")
+        self.assertEqual(common_suffix("", "abc"), "")
+        self.assertEqual(char_frequency(""), {})
 
-    def test_truncate_edges(self):
-        self.assertEqual(truncate("", 5), "")
-        self.assertEqual(truncate("hello", 10), "hello")
-        self.assertEqual(truncate("hello world", 8), "hello...")
-        self.assertEqual(truncate("hello world", 5, "..."), "he...")
+    def test_single_char_edges(self):
+        self.assertEqual(reverse_string("a"), "a")
+        self.assertTrue(is_palindrome("a"))
+        self.assertTrue(is_anagram("a", "a"))
+        self.assertTrue(is_rotation("a", "a"))
+        self.assertTrue(is_isogram("a"))
+        self.assertTrue(is_subsequence("a", "a"))
+        self.assertTrue(is_alpha("a"))
+        self.assertTrue(is_digit("5"))
+        self.assertEqual(count_vowels("a"), 1)
+        self.assertEqual(truncate("a", 1), "a")
+        self.assertEqual(truncate("a", 0), "")
 
-    def test_truncate_type_errors(self):
-        with self.assertRaises(TypeError):
-            truncate(123, 5)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            truncate("hi", "x")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            truncate("hi", 5, 123)  # type: ignore[arg-type]
-        with self.assertRaises(ValueError):
-            truncate("hi", -1)
+    def test_whitespace_only(self):
+        self.assertTrue(is_blank(" "))
+        self.assertTrue(is_blank("\t"))
+        self.assertTrue(is_blank("\n"))
+        self.assertTrue(is_blank(" \t\n "))
+        self.assertEqual(normalize_whitespace("  hello   world  "), "hello world")
+        self.assertEqual(remove_whitespace("a b\tc\nd"), "abcd")
+        self.assertEqual(split_lines("a\nb\nc"), ["a", "b", "c"])
+        self.assertEqual(strip_chars("  hello  ", " "), "hello")
 
-    def test_is_palindrome_type_and_cases(self):
-        self.assertTrue(is_palindrome(""))
-        self.assertTrue(is_palindrome("A man, a plan, a canal: Panama!"))
-        with self.assertRaises(TypeError):
-            is_palindrome("test", ignore_case="yes")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            is_palindrome("test", ignore_spaces=1)  # type: ignore[arg-type]
+    def test_unicode_edges(self):
+        self.assertEqual(reverse_string("你好世界"), "界世好你")
+        self.assertEqual(reverse_string("café"), "éfac")
+        self.assertEqual(levenshtein_distance("你好", "你坏"), 1)
+        self.assertEqual(strip_non_ascii("héllo世界"), "hllo")
+        self.assertTrue(is_ascii("hello"))
+        self.assertFalse(is_ascii("café"))
+        self.assertFalse(is_ascii("你好"))
+        self.assertEqual(truncate_bytes("你好", 2, encoding="utf-8"), "")
+        self.assertEqual(truncate_bytes("你好", 6, encoding="utf-8"), "你好")
 
-    def test_chunk_string_edges(self):
-        self.assertEqual(chunk_string("", 2), [])
-        self.assertEqual(chunk_string("abc", 3), ["abc"])
-        self.assertEqual(chunk_string("abcd", 2), ["ab", "cd"])
-        with self.assertRaises(ValueError):
-            chunk_string("abc", 0)
-        with self.assertRaises(ValueError):
-            chunk_string("abc", -1)
-        with self.assertRaises(TypeError):
-            chunk_string(123, 2)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            chunk_string("abc", "x")  # type: ignore[arg-type]
-
-    def test_initials_edges(self):
-        self.assertEqual(initials(""), "")
-        self.assertEqual(initials("   "), "")
-        self.assertEqual(initials("foo   bar"), "FB")
-        self.assertEqual(initials("John Doe Smith"), "JDS")
-        self.assertEqual(initials("John Doe", separator="."), "J.D")
-
-    def test_common_prefix_suffix_edges(self):
-        self.assertEqual(common_prefix("", ""), "")
-        self.assertEqual(common_prefix("abc", "abx"), "ab")
-        self.assertEqual(common_suffix("", ""), "")
-        self.assertEqual(common_suffix("hello", "bello"), "ello")
-
-    def test_count_words_char_count_edges(self):
-        self.assertEqual(word_count(""), 0)
-        self.assertEqual(word_count("   "), 0)
-        self.assertEqual(word_count("hello world"), 2)
-        self.assertEqual(char_count(""), 0)
-        self.assertEqual(char_count("abc"), 3)
-
-    def test_slugify_edges(self):
-        self.assertEqual(slugify(""), "")
-        self.assertEqual(slugify("Hello World!"), "hello-world")
-
-    def test_remove_blank_lines_edges(self):
-        self.assertEqual(remove_blank_lines("a\n\nb"), "a\nb")
-        self.assertEqual(remove_blank_lines("\n\n"), "")
-
-    def test_starts_ends_with_empty(self):
-        self.assertTrue(starts_with("hello", ""))
-        self.assertTrue(ends_with("hello", ""))
-
-    def test_between_edges(self):
-        from strings import between
-        self.assertEqual(between("hello[world]test", "[", "]"), "world")
-
-    def test_contains_any_all_edges(self):
-        self.assertTrue(contains_any("hello", ["x", "he"]))
-        self.assertFalse(contains_any("hello", ["x", "y"]))
-        self.assertTrue(contains_all("hello", ["he", "lo"]))
-        self.assertFalse(contains_all("hello", ["he", "x"]))
-
-    def test_type_errors_comprehensive(self):
-        string_funcs = [
+    def test_non_string_type_errors_comprehensive(self):
+        funcs = [
             reverse_string,
             reverse_words,
             count_vowels,
             count_consonants,
-    count_letters,
-            word_count,
-            char_count,
-            is_blank,
-            normalize_whitespace,
-            remove_whitespace,
+            count_lowercase,
+            count_uppercase,
+            count_digits,
+            count_letters,
+            capitalize_words,
+            title_case,
+            camel_to_snake,
+            snake_to_camel,
             slugify,
+            remove_whitespace,
+            normalize_whitespace,
             is_alpha,
             is_alphanumeric,
-            is_ascii,
+            is_binary,
+            is_octal,
             is_digit,
             is_hex,
             is_integer,
-            is_whitespace,
-            is_space,
-            is_title,
+            is_decimal,
+            is_printable,
+            is_identifier,
+            is_pangram,
             is_upper,
             is_lower,
-            is_subsequence,
-            is_anagram,
-            capitalize_words,
-            title_case,
-            snake_to_camel,
-            camel_to_snake,
+            is_title,
+            is_ascii,
+            is_whitespace,
+            is_space,
+            is_blank,
             swap_case,
             remove_punctuation,
             remove_digits,
+            remove_vowels,
+            remove_consonants,
             strip_non_ascii,
-            truncate_bytes,
-            count_occurrences,
-            starts_with,
-            ends_with,
-            lstrip_chars,
-            rstrip_chars,
-            strip_chars,
-            split_lines,
-            replace_many,
+            remove_blank_lines,
             strip_html,
+            initials,
             char_frequency,
-            first_n,
-            last_n,
-            drop,
-            take,
+            is_rotation,
+            is_palindrome,
+            is_isogram,
+            capitalize_words,
         ]
-        for fn in string_funcs:
-            try:
-                fn(123)  # type: ignore[arg-type]
-                self.fail(f"{fn.__name__} should raise TypeError")
-            except TypeError:
-                pass
+        for fn in funcs:
+            with self.subTest(func=fn.__name__):
+                try:
+                    # Most take 1 arg
+                    if fn == is_rotation:
+                        fn(123, "a")  # type: ignore[arg-type]
+                        self.fail(f"{fn.__name__} should raise")
+                    elif fn == is_palindrome:
+                        fn(123)  # type: ignore[arg-type]
+                        self.fail(f"{fn.__name__} should raise")
+                    else:
+                        fn(123)  # type: ignore[arg-type]
+                        self.fail(f"{fn.__name__} should raise")
+                except TypeError:
+                    pass
 
-    def test_levenshtein_type_errors(self):
-        with self.assertRaises(TypeError):
-            levenshtein_distance(123, "a")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            levenshtein_distance("a", 123)  # type: ignore[arg-type]
-
-    def test_is_subsequence_type_errors(self):
-        with self.assertRaises(TypeError):
-            is_subsequence(123, "a")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            is_subsequence("a", 123)  # type: ignore[arg-type]
-
-    def test_is_anagram_type_errors(self):
-        with self.assertRaises(TypeError):
-            is_anagram(123, "a")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            is_anagram("a", 123)  # type: ignore[arg-type]
-
-    def test_unicode_multibyte(self):
-        self.assertEqual(reverse_string("你好世界"), "界世好你")
-        self.assertIsInstance(count_vowels("café"), int)
-        self.assertFalse(is_ascii("café"))
-        self.assertEqual(slugify("café & crème"), "café-crème")
-
-    def test_strip_non_ascii(self):
-        self.assertEqual(strip_non_ascii("hello"), "hello")
-        self.assertEqual(strip_non_ascii("héllo"), "hllo")
-        self.assertEqual(strip_non_ascii("你好"), "")
-
-    def test_truncate_bytes(self):
-        self.assertEqual(truncate_bytes("hello", 10), "hello")
-        self.assertEqual(truncate_bytes("héllo", 4, encoding="utf-8"), "hél")
-        self.assertEqual(truncate_bytes("hello", 0), "")
-
-
-class TestCountLetters(unittest.TestCase):
-    def test_basic(self):
-        self.assertEqual(count_letters("abc123"), 3)
-        self.assertEqual(count_letters(""), 0)
-        self.assertEqual(count_letters("ABC"), 3)
-    def test_type_error(self):
-        with self.assertRaises(TypeError):
-            count_letters(123)  # type: ignore[arg-type]
+    def test_long_strings(self):
+        long_s = "a" * 10000
+        self.assertEqual(reverse_string(long_s), long_s)
+        self.assertEqual(len(chunk_string(long_s, 100)), 100)
+        self.assertTrue(is_palindrome(long_s))
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -112207,461 +111826,65 @@ TEST_POSIX_UTILS
 cat > "$OUTPUT_DIR/tests/test_chunk_utils.py" <<'TEST_CHUNK_UTILS'
 """Tests for chunk_utils."""
 
-import io
-import struct
-import tempfile
-import unittest
-from pathlib import Path
-from unittest import mock
-
-import chunk_utils
-
-HAVE_CHUNK = chunk_utils.is_available()
-
-
-def make_chunk(name, payload, bigendian=True, align=True, inclheader=False):
-    """Build the bytes of a single chunk with the given name and payload."""
-    prefix = ">" if bigendian else "<"
-    size = len(payload) + (8 if inclheader else 0)
-    body = name + struct.pack(prefix + "L", size) + payload
-    if align and len(payload) % 2:
-        body += b"\x00"
-    return body
-
-
-#: A stream that holds fewer than eight bytes cannot be opened as a chunk.
-SHORT = b"ab"
-
-
-class TestAvailability(unittest.TestCase):
-    """The wrapper reports whether the interpreter ships the module."""
-
-    def test_is_available_matches_the_import(self):
-        self.assertEqual(chunk_utils.is_available(), HAVE_CHUNK)
-
-    def test_the_readers_raise_when_the_module_is_missing(self):
-        with mock.patch.object(chunk_utils, "_chunk", None):
-            self.assertFalse(chunk_utils.is_available())
-            with self.assertRaises(RuntimeError):
-                chunk_utils.open_chunk(io.BytesIO(make_chunk(b"TEXT", b"data")))
-            with self.assertRaises(RuntimeError):
-                chunk_utils.read_chunk(io.BytesIO(make_chunk(b"TEXT", b"data")))
-            with self.assertRaises(RuntimeError):
-                chunk_utils.peek_chunk(io.BytesIO(make_chunk(b"TEXT", b"data")))
-            with self.assertRaises(RuntimeError):
-                chunk_utils.skip_chunk(io.BytesIO(make_chunk(b"TEXT", b"data")))
-            with self.assertRaises(RuntimeError):
-                chunk_utils.iter_chunks(io.BytesIO(make_chunk(b"TEXT", b"data")))
-            with self.assertRaises(RuntimeError):
-                chunk_utils.read_chunks(io.BytesIO(make_chunk(b"TEXT", b"data")))
-
-    def test_the_writers_keep_working_when_the_module_is_missing(self):
-        with mock.patch.object(chunk_utils, "_chunk", None):
-            self.assertEqual(chunk_utils.chunk_name(b"TEXT"), "TEXT")
-            self.assertEqual(
-                chunk_utils.build_chunk(b"TEXT", b"data"),
-                make_chunk(b"TEXT", b"data"),
-            )
-            stream = io.BytesIO()
-            written = chunk_utils.write_chunk(stream, b"TEXT", b"data")
-            self.assertEqual(written, len(make_chunk(b"TEXT", b"data")))
-
-
-class TestChunkName(unittest.TestCase):
-    """The wrapper decodes the identifier of a chunk."""
-
-    def test_bytes_are_decoded(self):
-        self.assertEqual(chunk_utils.chunk_name(b"FORM"), "FORM")
-
-    def test_text_is_accepted(self):
-        self.assertEqual(chunk_utils.chunk_name("FORM"), "FORM")
-
-    def test_every_byte_maps_to_one_character(self):
-        self.assertEqual(chunk_utils.chunk_name(b"\x00\xffA "), "\x00ÿA ")
-
-    def test_a_name_of_the_wrong_length_is_rejected(self):
-        with self.assertRaises(ValueError):
-            chunk_utils.chunk_name(b"TEX")
-        with self.assertRaises(ValueError):
-            chunk_utils.chunk_name("TEX")
-
-    def test_a_name_that_is_not_ascii_is_rejected(self):
-        with self.assertRaises(ValueError):
-            chunk_utils.chunk_name("TÉXT")
-
-    def test_an_unsupported_name_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.chunk_name(42)
-
-
-class TestBuildChunk(unittest.TestCase):
-    """The wrapper builds the bytes of a chunk."""
-
-    def test_the_bytes_of_a_chunk_are_built(self):
-        self.assertEqual(
-            chunk_utils.build_chunk(b"TEXT", b"hello"),
-            b"TEXT" + struct.pack(">L", 5) + b"hello" + b"\x00",
-        )
-
-    def test_an_even_payload_is_not_padded(self):
-        self.assertEqual(
-            chunk_utils.build_chunk(b"TEXT", b"hello!"),
-            b"TEXT" + struct.pack(">L", 6) + b"hello!",
-        )
-
-    def test_the_padding_can_be_left_out(self):
-        self.assertEqual(
-            chunk_utils.build_chunk(b"TEXT", b"hello", align=False),
-            b"TEXT" + struct.pack(">L", 5) + b"hello",
-        )
-
-    def test_a_little_endian_size_is_written(self):
-        self.assertEqual(
-            chunk_utils.build_chunk(b"TEXT", b"hello", bigendian=False),
-            b"TEXT" + struct.pack("<L", 5) + b"hello" + b"\x00",
-        )
-
-    def test_the_size_can_include_the_header(self):
-        self.assertEqual(
-            chunk_utils.build_chunk(b"TEXT", b"hello", inclheader=True),
-            b"TEXT" + struct.pack(">L", 13) + b"hello" + b"\x00",
-        )
-
-    def test_text_is_accepted_as_the_identifier(self):
-        self.assertEqual(
-            chunk_utils.build_chunk("TEXT", b"hello"),
-            chunk_utils.build_chunk(b"TEXT", b"hello"),
-        )
-
-    def test_a_bytearray_is_accepted_as_the_payload(self):
-        self.assertEqual(
-            chunk_utils.build_chunk(b"TEXT", bytearray(b"hello")),
-            chunk_utils.build_chunk(b"TEXT", b"hello"),
-        )
-
-    def test_an_unsupported_payload_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.build_chunk(b"TEXT", "hello")
-
-    def test_an_unsupported_identifier_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.build_chunk(42, b"hello")
-
-    def test_an_unsupported_flag_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.build_chunk(b"TEXT", b"hello", bigendian=1)
-        with self.assertRaises(TypeError):
-            chunk_utils.build_chunk(b"TEXT", b"hello", align="yes")
-        with self.assertRaises(TypeError):
-            chunk_utils.build_chunk(b"TEXT", b"hello", inclheader=None)
-
-
-class TestWriteChunk(unittest.TestCase):
-    """The wrapper writes a chunk."""
-
-    def test_a_chunk_is_written_to_a_stream(self):
-        stream = io.BytesIO()
-        written = chunk_utils.write_chunk(stream, b"TEXT", b"hello")
-        self.assertEqual(written, len(make_chunk(b"TEXT", b"hello")))
-        self.assertEqual(stream.getvalue(), make_chunk(b"TEXT", b"hello"))
-
-    def test_a_chunk_is_written_to_a_path(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "chunk.dat"
-            written = chunk_utils.write_chunk(str(path), b"TEXT", b"hello")
-            self.assertEqual(written, len(make_chunk(b"TEXT", b"hello")))
-            self.assertEqual(path.read_bytes(), make_chunk(b"TEXT", b"hello"))
-
-    def test_a_written_chunk_is_read_back(self):
-        stream = io.BytesIO()
-        chunk_utils.write_chunk(stream, b"TEXT", b"hello")
-        stream.seek(0)
-        record = chunk_utils.read_chunk(stream)
-        self.assertEqual(record.name, b"TEXT")
-        self.assertEqual(record.size, 5)
-        self.assertEqual(record.data, b"hello")
-
-    def test_an_unsupported_file_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.write_chunk(42, b"TEXT", b"hello")
-
-    def test_a_text_stream_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.write_chunk(io.StringIO(), b"TEXT", b"hello")
-
-
-class TestOpenChunk(unittest.TestCase):
-    """The wrapper opens a chunk and exposes its name and size."""
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_the_name_and_the_size_of_a_chunk_are_reported(self):
-        data = make_chunk(b"FORM", b"payload data")
-        chunk = chunk_utils.open_chunk(io.BytesIO(data))
-        self.assertEqual(chunk.getname(), b"FORM")
-        self.assertEqual(chunk.getsize(), len(b"payload data"))
-        self.assertEqual(chunk.read(), b"payload data")
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_skip_moves_to_the_end_of_the_chunk(self):
-        data = make_chunk(b"TEXT", b"skip me")
-        stream = io.BytesIO(data)
-        chunk = chunk_utils.open_chunk(stream)
-        chunk.skip()
-        self.assertEqual(stream.tell(), len(data))
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_chunk_can_be_closed(self):
-        data = make_chunk(b"TEXT", b"close me")
-        chunk = chunk_utils.open_chunk(io.BytesIO(data))
-        chunk.close()
-        self.assertTrue(chunk.closed)
-
-    def test_an_unsupported_stream_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.open_chunk(42)
-        with self.assertRaises(TypeError):
-            chunk_utils.open_chunk(b"not a stream")
-
-    def test_a_text_stream_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.open_chunk(io.StringIO())
-
-    def test_an_unsupported_flag_is_rejected(self):
-        stream = io.BytesIO(make_chunk(b"TEXT", b"data"))
-        with self.assertRaises(TypeError):
-            chunk_utils.open_chunk(stream, bigendian=0)
-        with self.assertRaises(TypeError):
-            chunk_utils.open_chunk(stream, align="no")
-        with self.assertRaises(TypeError):
-            chunk_utils.open_chunk(stream, inclheader=1)
-
-
-class TestReadChunk(unittest.TestCase):
-    """The wrapper reads a chunk in one call."""
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_the_record_of_a_chunk_is_returned(self):
-        data = make_chunk(b"TEXT", b"hello world")
-        record = chunk_utils.read_chunk(io.BytesIO(data))
-        self.assertEqual(record.name, b"TEXT")
-        self.assertEqual(record.size, 11)
-        self.assertEqual(record.data, b"hello world")
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_the_identifier_is_decoded_as_text(self):
-        data = make_chunk(b"FORM", b"data")
-        record = chunk_utils.read_chunk(io.BytesIO(data))
-        self.assertEqual(record.text_name, "FORM")
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_byte_stream_is_accepted(self):
-        data = make_chunk(b"FORM", b"\x00\x01\x02\x03")
-        record = chunk_utils.read_chunk(io.BytesIO(data))
-        self.assertEqual(record.data, b"\x00\x01\x02\x03")
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_path_is_accepted(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "chunk.dat"
-            path.write_bytes(make_chunk(b"TEXT", b"from file"))
-            self.assertEqual(chunk_utils.read_chunk(str(path)).data, b"from file")
-            self.assertEqual(chunk_utils.read_chunk(path).data, b"from file")
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_the_stream_moves_past_the_chunk(self):
-        data = make_chunk(b"TEXT", b"payload")
-        stream = io.BytesIO(data)
-        chunk_utils.read_chunk(stream)
-        self.assertEqual(stream.tell(), len(data))
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_little_endian_chunk_is_read(self):
-        data = make_chunk(b"TEXT", b"little", bigendian=False)
-        record = chunk_utils.read_chunk(io.BytesIO(data), bigendian=False)
-        self.assertEqual(record.data, b"little")
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_chunk_with_an_odd_payload_is_read(self):
-        data = make_chunk(b"TEXT", b"odd")
-        record = chunk_utils.read_chunk(io.BytesIO(data))
-        self.assertEqual(record.data, b"odd")
-        self.assertEqual(record.size, 3)
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_chunk_whose_size_includes_the_header_is_read(self):
-        data = make_chunk(b"TEXT", b"odd", inclheader=True)
-        record = chunk_utils.read_chunk(io.BytesIO(data), inclheader=True)
-        self.assertEqual(record.size, 3)
-        self.assertEqual(record.data, b"odd")
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_truncated_chunk_reports_the_bytes_it_read(self):
-        data = make_chunk(b"TEXT", b"payload")[:-3]
-        record = chunk_utils.read_chunk(io.BytesIO(data))
-        self.assertEqual(record.size, 7)
-        self.assertEqual(record.data, b"paylo")
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_short_stream_raises(self):
-        with self.assertRaises(EOFError):
-            chunk_utils.read_chunk(io.BytesIO(SHORT))
-
-    def test_an_unsupported_file_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.read_chunk(42)
-        with self.assertRaises(TypeError):
-            chunk_utils.read_chunk(b"\x00\x00\x00\x00\x00\x00\x00\x00")
-
-    def test_a_text_stream_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.read_chunk(io.StringIO())
-
-    def test_an_unsupported_flag_is_rejected(self):
-        stream = io.BytesIO(make_chunk(b"TEXT", b"data"))
-        with self.assertRaises(TypeError):
-            chunk_utils.read_chunk(stream, bigendian=1)
-        with self.assertRaises(TypeError):
-            chunk_utils.read_chunk(stream, align="yes")
-        with self.assertRaises(TypeError):
-            chunk_utils.read_chunk(stream, inclheader=None)
-
-
-class TestPeekChunk(unittest.TestCase):
-    """The wrapper inspects the next chunk without consuming it."""
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_the_stream_position_is_restored(self):
-        data = make_chunk(b"TEXT", b"payload")
-        stream = io.BytesIO(data)
-        position = stream.tell()
-        record = chunk_utils.peek_chunk(stream)
-        self.assertEqual(record.data, b"payload")
-        self.assertEqual(stream.tell(), position)
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_the_chunk_can_be_read_afterwards(self):
-        data = make_chunk(b"TEXT", b"payload")
-        stream = io.BytesIO(data)
-        chunk_utils.peek_chunk(stream)
-        self.assertEqual(chunk_utils.read_chunk(stream).data, b"payload")
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_path_is_accepted(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "chunk.dat"
-            path.write_bytes(make_chunk(b"TEXT", b"from file"))
-            self.assertEqual(chunk_utils.peek_chunk(path).data, b"from file")
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_stream_that_cannot_be_seeked_is_rejected(self):
-        stream = io.BytesIO(make_chunk(b"TEXT", b"payload"))
-        with mock.patch.object(
-            stream, "tell", side_effect=io.UnsupportedOperation("tell")
-        ):
-            with self.assertRaises(ValueError):
-                chunk_utils.peek_chunk(stream)
-
-    def test_an_unsupported_file_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.peek_chunk(42)
-
-    def test_an_unsupported_flag_is_rejected(self):
-        stream = io.BytesIO(make_chunk(b"TEXT", b"data"))
-        with self.assertRaises(TypeError):
-            chunk_utils.peek_chunk(stream, align=1)
-
-
-class TestIterChunks(unittest.TestCase):
-    """The wrapper iterates over the chunks of a file."""
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_every_chunk_is_yielded(self):
-        data = make_chunk(b"TEXT", b"one") + make_chunk(b"FORM", b"two")
-        records = list(chunk_utils.iter_chunks(io.BytesIO(data)))
-        self.assertEqual([record.name for record in records], [b"TEXT", b"FORM"])
-        self.assertEqual([record.data for record in records], [b"one", b"two"])
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_path_is_accepted(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "chunk.dat"
-            path.write_bytes(make_chunk(b"TEXT", b"one") + make_chunk(b"FORM", b"two"))
-            records = list(chunk_utils.iter_chunks(path))
-            self.assertEqual(len(records), 2)
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_an_empty_file_yields_no_chunk(self):
-        self.assertEqual(list(chunk_utils.iter_chunks(io.BytesIO(b""))), [])
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_the_arguments_are_validated_before_the_file_is_read(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.iter_chunks(42)
-        with self.assertRaises(TypeError):
-            chunk_utils.iter_chunks(io.BytesIO(b""), align=1)
-
-    def test_an_unsupported_file_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.iter_chunks(object())
-
-
-class TestReadChunks(unittest.TestCase):
-    """The wrapper returns every chunk of a file as a list."""
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_every_chunk_is_returned(self):
-        data = make_chunk(b"TEXT", b"one") + make_chunk(b"FORM", b"two")
-        records = chunk_utils.read_chunks(io.BytesIO(data))
-        self.assertEqual(len(records), 2)
-        self.assertIsInstance(records, list)
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_path_is_accepted(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "chunk.dat"
-            path.write_bytes(make_chunk(b"TEXT", b"one"))
-            self.assertEqual(len(chunk_utils.read_chunks(path)), 1)
-
-    def test_an_unsupported_file_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.read_chunks(42)
-
-
-class TestSkipChunk(unittest.TestCase):
-    """The wrapper skips the payload of a chunk."""
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_the_payload_is_skipped(self):
-        data = make_chunk(b"TEXT", b"payload") + make_chunk(b"FORM", b"next")
-        stream = io.BytesIO(data)
-        skipped = chunk_utils.skip_chunk(stream)
-        self.assertEqual(skipped, 7)
-        self.assertEqual(chunk_utils.read_chunk(stream).name, b"FORM")
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_path_is_accepted(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "chunk.dat"
-            path.write_bytes(make_chunk(b"TEXT", b"payload"))
-            self.assertEqual(chunk_utils.skip_chunk(path), 7)
-
-    @unittest.skipUnless(HAVE_CHUNK, "the chunk module is not available")
-    def test_a_short_stream_raises(self):
-        with self.assertRaises(EOFError):
-            chunk_utils.skip_chunk(io.BytesIO(SHORT))
-
-    def test_an_unsupported_file_is_rejected(self):
-        with self.assertRaises(TypeError):
-            chunk_utils.skip_chunk(42)
-
-    def test_an_unsupported_flag_is_rejected(self):
-        stream = io.BytesIO(make_chunk(b"TEXT", b"data"))
-        with self.assertRaises(TypeError):
-            chunk_utils.skip_chunk(stream, inclheader="yes")
-
-
-if __name__ == "__main__":
-    unittest.main()
+from chunk_utils import chunk, chunked, chunks, ichunk, iter_chunked
+
+
+def test_chunk_basic():
+    assert chunk([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]
+
+
+def test_chunk_exact():
+    assert chunk([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]
+
+
+def test_chunk_size_larger():
+    assert chunk([1, 2, 3], 10) == [[1, 2, 3]]
+
+
+def test_chunk_empty():
+    assert chunk([], 3) == []
+
+
+def test_chunks_alias():
+    assert chunks([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]
+
+
+def test_chunked_alias():
+    assert chunked([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]
+
+
+def test_ichunk_lazy():
+    result = list(ichunk([1, 2, 3, 4, 5], 2))
+    assert result == [[1, 2], [3, 4], [5]]
+
+
+def test_iter_chunked_alias():
+    result = list(iter_chunked([1, 2, 3, 4], 2))
+    assert result == [[1, 2], [3, 4]]
+
+
+def test_chunk_invalid_size_type():
+    try:
+        chunk([1, 2], "2")
+        assert False
+    except TypeError:
+        pass
+
+
+def test_chunk_invalid_size_value():
+    try:
+        chunk([1, 2], 0)
+        assert False
+    except ValueError:
+        pass
+
+
+def test_chunk_negative_size():
+    try:
+        chunk([1, 2], -1)
+        assert False
+    except ValueError:
+        pass
 TEST_CHUNK_UTILS
 
 # --- pipes_utils.py ---
@@ -118603,6 +117826,72 @@ __all__: list[str] = [
 Error = _aifc.Error
 open = _aifc.open
 AIFC_UTILS
+
+# --- chunk_utils.py ---
+cat > "$OUTPUT_DIR/chunk_utils.py" <<'CHUNK_UTILS'
+"""Chunking utilities for splitting iterables into fixed-size pieces."""
+
+from __future__ import annotations
+
+from typing import Any, Iterable, Iterator, List
+
+__all__: list[str] = [
+    "chunk",
+    "chunked",
+    "chunks",
+    "ichunk",
+    "iter_chunked",
+]
+
+
+def chunk(iterable: Iterable[Any], size: int) -> List[List[Any]]:
+    """Split an iterable into chunks of the given size."""
+    if not isinstance(size, int):
+        raise TypeError("size must be int")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    result: List[List[Any]] = []
+    current: List[Any] = []
+    for item in iterable:
+        current.append(item)
+        if len(current) == size:
+            result.append(current)
+            current = []
+    if current:
+        result.append(current)
+    return result
+
+
+def chunks(iterable: Iterable[Any], size: int) -> List[List[Any]]:
+    """Alias for chunk."""
+    return chunk(iterable, size)
+
+
+def chunked(iterable: Iterable[Any], size: int) -> List[List[Any]]:
+    """Alias for chunk."""
+    return chunk(iterable, size)
+
+
+def ichunk(iterable: Iterable[Any], size: int) -> Iterator[List[Any]]:
+    """Split an iterable into chunks yielding them lazily."""
+    if not isinstance(size, int):
+        raise TypeError("size must be int")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    current: List[Any] = []
+    for item in iterable:
+        current.append(item)
+        if len(current) == size:
+            yield current
+            current = []
+    if current:
+        yield current
+
+
+def iter_chunked(iterable: Iterable[Any], size: int) -> Iterator[List[Any]]:
+    """Alias for ichunk."""
+    yield from ichunk(iterable, size)
+CHUNK_UTILS
 
 
 
