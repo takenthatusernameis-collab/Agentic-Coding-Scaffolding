@@ -358,14 +358,16 @@ def is_harshad_number(n: int) -> bool:
 def is_neon_number(n: int) -> bool:
     """Return ``True`` when *n* is a neon number.
 
-    A neon number is a number where the sum of the squares of its digits
-    is equal to the number itself. The only neon numbers are 0, 1, 9.
+    A neon number is a number where the sum of the digits of its square is
+    equal to the number itself (e.g. 9 is neon because 9^2 = 81 and 8 + 1 = 9).
+    The only neon numbers are 0, 1, and 9.
 
     Args:
         n: The integer to test.
 
     Returns:
-        ``True`` if *n* is a neon number, ``False`` otherwise.
+        ``True`` if *n* is a neon number, ``False`` otherwise. Numbers below 0
+        are never neon.
 
     Raises:
         TypeError: If *n* is not an int.
@@ -384,7 +386,7 @@ def is_neon_number(n: int) -> bool:
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 0:
         return False
-    total = sum(int(d) ** 2 for d in str(n))
+    total = sum(int(d) for d in str(n * n))
     return bool(total == n)
 
 

@@ -1,3 +1,24 @@
+## Unreleased — fixed is_neon_number bug and added test coverage for strong/harshad/neon/armstrong/automorphic predicates in numbers_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6719 tests and passes (6 pre-existing environment-related errors in `test_atexit_utils`, `test_importlib_utils`, `test_multiprocessing_utils`, `test_sre_compile_utils`, `test_sre_constants_utils`, and `test_sre_parse_utils` — confirmed identical with the change stashed), and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `numbers_utils.py` exports 14 names in `__all__`, but `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, and `is_automorphic_number` were imported nowhere in `tests/test_numbers_utils.py`, leaving a coverage gap in an otherwise well-tested module.
+- Cross-checked all five predicates against brute-force references over the range -5..99999. Four matched exactly; `is_neon_number` had exactly one mismatch: `is_neon_number(9)` returned `False` even though 9 is a neon number (9^2 = 81, 8 + 1 = 9). The implementation summed the squares of the digits of *n* instead of the digits of *n^2*.
+- Fixed `is_neon_number` in `numbers_utils.py` to sum the digits of `n * n`; the docstring now correctly describes the neon-number definition and the examples still hold.
+- Added `TestIsStrongNumber`, `TestIsHarshadNumber`, `TestIsNeonNumber`, `TestIsArmstrongNumber`, and `TestIsAutomorphicNumber` to `tests/test_numbers_utils.py` covering known values, non-matching values, boundary/negative inputs, and the `TypeError` paths (40 new tests; 6759 tests now pass). Imported the five predicates at the top of the test file to match the module's `__all__` contract.
+- Updated the `numbers_utils` module prose section and file listing of `README.md` to list the newly covered helpers.
+- Verified the work: `make test` runs 6759 tests and passes with no new failures, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `itertools_utils.py`, `numbers_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added test coverage for flatten_once, take_while_pred, accumulate_values, repeat_value, and cycle_take in itertools_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6719 tests and passes (6 pre-existing environment-related errors in `test_atexit_utils`, `test_importlib_utils`, `test_multiprocessing_utils`, `test_sre_compile_utils`, `test_sre_constants_utils`, and `test_sre_parse_utils` — confirmed identical with the change stashed), `make lint` is clean, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.

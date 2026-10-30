@@ -43390,6 +43390,27 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed is_neon_number bug and added test coverage for strong/harshad/neon/armstrong/automorphic predicates in numbers_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6719 tests and passes (6 pre-existing environment-related errors in `test_atexit_utils`, `test_importlib_utils`, `test_multiprocessing_utils`, `test_sre_compile_utils`, `test_sre_constants_utils`, and `test_sre_parse_utils` — confirmed identical with the change stashed), and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `numbers_utils.py` exports 14 names in `__all__`, but `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, and `is_automorphic_number` were imported nowhere in `tests/test_numbers_utils.py`, leaving a coverage gap in an otherwise well-tested module.
+- Cross-checked all five predicates against brute-force references over the range -5..99999. Four matched exactly; `is_neon_number` had exactly one mismatch: `is_neon_number(9)` returned `False` even though 9 is a neon number (9^2 = 81, 8 + 1 = 9). The implementation summed the squares of the digits of *n* instead of the digits of *n^2*.
+- Fixed `is_neon_number` in `numbers_utils.py` to sum the digits of `n * n`; the docstring now correctly describes the neon-number definition and the examples still hold.
+- Added `TestIsStrongNumber`, `TestIsHarshadNumber`, `TestIsNeonNumber`, `TestIsArmstrongNumber`, and `TestIsAutomorphicNumber` to `tests/test_numbers_utils.py` covering known values, non-matching values, boundary/negative inputs, and the `TypeError` paths (40 new tests; 6759 tests now pass). Imported the five predicates at the top of the test file to match the module's `__all__` contract.
+- Updated the `numbers_utils` module prose section and file listing of `README.md` to list the newly covered helpers.
+- Verified the work: `make test` runs 6759 tests and passes with no new failures, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `itertools_utils.py`, `numbers_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added test coverage for flatten_once, take_while_pred, accumulate_values, repeat_value, and cycle_take in itertools_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6719 tests and passes (6 pre-existing environment-related errors in `test_atexit_utils`, `test_importlib_utils`, `test_multiprocessing_utils`, `test_sre_compile_utils`, `test_sre_constants_utils`, and `test_sre_parse_utils` — confirmed identical with the change stashed), `make lint` is clean, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
@@ -44902,7 +44923,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_perfect_number)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, proper_divisors)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -46008,7 +46029,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, and `is_perfect_number` predicates. The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, and `proper_divisors` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -67318,14 +67339,16 @@ def is_harshad_number(n: int) -> bool:
 def is_neon_number(n: int) -> bool:
     """Return ``True`` when *n* is a neon number.
 
-    A neon number is a number where the sum of the squares of its digits
-    is equal to the number itself. The only neon numbers are 0, 1, 9.
+    A neon number is a number where the sum of the digits of its square is
+    equal to the number itself (e.g. 9 is neon because 9^2 = 81 and 8 + 1 = 9).
+    The only neon numbers are 0, 1, and 9.
 
     Args:
         n: The integer to test.
 
     Returns:
-        ``True`` if *n* is a neon number, ``False`` otherwise.
+        ``True`` if *n* is a neon number, ``False`` otherwise. Numbers below 0
+        are never neon.
 
     Raises:
         TypeError: If *n* is not an int.
@@ -67344,7 +67367,7 @@ def is_neon_number(n: int) -> bool:
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 0:
         return False
-    total = sum(int(d) ** 2 for d in str(n))
+    total = sum(int(d) for d in str(n * n))
     return bool(total == n)
 
 
@@ -67435,10 +67458,15 @@ from numbers_utils import (
     Rational,
     Real,
     is_abundant_number,
+    is_armstrong_number,
+    is_automorphic_number,
     is_deficient_number,
+    is_harshad_number,
     is_integral,
+    is_neon_number,
     is_number,
     is_perfect_number,
+    is_strong_number,
     proper_divisors,
 )
 
@@ -67553,6 +67581,109 @@ class TestProperDivisors(unittest.TestCase):
         for value in (0, -1, -6):
             with self.assertRaises(ValueError):
                 proper_divisors(value)
+
+
+class TestIsStrongNumber(unittest.TestCase):
+    def test_known_strong_numbers(self):
+        for value in (1, 2, 145, 40585):
+            self.assertTrue(is_strong_number(value), value)
+
+    def test_non_strong_numbers(self):
+        for value in (0, 3, 4, 5, 6, 7, 8, 10, 123, 144):
+            self.assertFalse(is_strong_number(value), value)
+
+    def test_below_one(self):
+        self.assertFalse(is_strong_number(0))
+        self.assertFalse(is_strong_number(-1))
+        self.assertFalse(is_strong_number(-145))
+
+    def test_type_error(self):
+        for value in (1.5, "1", None, True, [1]):
+            with self.assertRaises(TypeError):
+                is_strong_number(value)
+
+
+class TestIsHarshadNumber(unittest.TestCase):
+    def test_known_harshad_numbers(self):
+        for value in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 18, 20, 21, 24, 27, 30, 36, 40, 42, 45, 48, 50, 54, 60, 63, 70, 72, 80, 81, 84, 90, 100):
+            self.assertTrue(is_harshad_number(value), value)
+
+    def test_non_harshad_numbers(self):
+        for value in (11, 13, 14, 15, 16, 17, 19, 22, 23, 25, 26, 28, 29, 31, 32, 33, 34, 35, 37, 38, 39, 41, 43, 44, 46, 47, 49, 51, 52, 53, 55, 56, 57, 58, 59, 61, 62, 64, 65, 66, 67, 68, 69, 71, 73, 74, 75, 76, 77, 78, 79, 82, 83, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99):
+            self.assertFalse(is_harshad_number(value), value)
+
+    def test_zero(self):
+        self.assertTrue(is_harshad_number(0))
+
+    def test_negative_harshad(self):
+        self.assertTrue(is_harshad_number(-18))
+        self.assertTrue(is_harshad_number(-21))
+
+    def test_type_error(self):
+        for value in (1.5, "18", None, True, [18]):
+            with self.assertRaises(TypeError):
+                is_harshad_number(value)
+
+
+class TestIsNeonNumber(unittest.TestCase):
+    def test_known_neon_numbers(self):
+        for value in (0, 1, 9):
+            self.assertTrue(is_neon_number(value), value)
+
+    def test_non_neon_numbers(self):
+        for value in (2, 3, 4, 5, 6, 7, 8, 10, 45, 100, 123):
+            self.assertFalse(is_neon_number(value), value)
+
+    def test_below_zero(self):
+        self.assertFalse(is_neon_number(-1))
+        self.assertFalse(is_neon_number(-9))
+
+    def test_type_error(self):
+        for value in (1.5, "9", None, True, [9]):
+            with self.assertRaises(TypeError):
+                is_neon_number(value)
+
+
+class TestIsArmstrongNumber(unittest.TestCase):
+    def test_known_armstrong_numbers(self):
+        for value in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 153, 370, 371, 407, 1634, 8208, 9474, 54748, 92727, 93084):
+            self.assertTrue(is_armstrong_number(value), value)
+
+    def test_non_armstrong_numbers(self):
+        for value in (10, 12, 123, 145, 200, 300, 1000):
+            self.assertFalse(is_armstrong_number(value), value)
+
+    def test_below_zero(self):
+        self.assertFalse(is_armstrong_number(-153))
+        self.assertFalse(is_armstrong_number(-1))
+
+    def test_type_error(self):
+        for value in (1.5, "153", None, True, [153]):
+            with self.assertRaises(TypeError):
+                is_armstrong_number(value)
+
+
+class TestIsAutomorphicNumber(unittest.TestCase):
+    def test_known_automorphic_numbers(self):
+        for value in (0, 1, 5, 6, 25, 76, 376, 625, 9376, 90625, 109376):
+            self.assertTrue(is_automorphic_number(value), value)
+
+    def test_non_automorphic_numbers(self):
+        for value in (2, 3, 4, 7, 8, 9, 10, 11, 12, 24, 26, 75, 77, 375, 377, 624, 626):
+            self.assertFalse(is_automorphic_number(value), value)
+
+    def test_below_zero(self):
+        self.assertFalse(is_automorphic_number(-5))
+        self.assertFalse(is_automorphic_number(-1))
+
+    def test_type_error(self):
+        for value in (1.5, "5", None, True, [5]):
+            with self.assertRaises(TypeError):
+                is_automorphic_number(value)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_NUMBERS_UTILS
 
 # --- opcode_utils.py ---
