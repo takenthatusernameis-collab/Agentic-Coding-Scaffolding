@@ -16,6 +16,7 @@ from strings import (
     count_consonants,
     count_digits,
     count_letters,
+    count_punctuation,
     count_lowercase,
     count_occurrences,
     count_uppercase,
@@ -1910,3 +1911,33 @@ class TestStringsBoundaryCases(unittest.TestCase):
         self.assertEqual(reverse_string(long_s), long_s)
         self.assertEqual(len(chunk_string(long_s, 100)), 100)
         self.assertTrue(is_palindrome(long_s))
+
+
+class TestCountPunctuation(unittest.TestCase):
+    """Tests for count_punctuation function."""
+
+    def test_basic_count(self):
+        self.assertEqual(count_punctuation("Hello, world!"), 2)
+        self.assertEqual(count_punctuation("No punctuation here"), 0)
+        self.assertEqual(count_punctuation("..."), 3)
+        self.assertEqual(count_punctuation("Wow!!! Really???"), 6)
+
+    def test_empty_string(self):
+        self.assertEqual(count_punctuation(""), 0)
+
+    def test_mixed_punctuation(self):
+        self.assertEqual(count_punctuation("a.b,c!d?e;f:g"), 6)
+
+    def test_only_punctuation(self):
+        self.assertEqual(count_punctuation(".,;:!?" * 2), 12)
+
+    def test_punctuation_with_digits_and_letters(self):
+        self.assertEqual(count_punctuation("Price: $19.99!"), 4)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_punctuation(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_punctuation(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_punctuation([])  # type: ignore[arg-type]

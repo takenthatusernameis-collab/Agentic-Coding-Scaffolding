@@ -86,6 +86,7 @@ __all__: List[str] = [
     "remove_consonants",
     "count_digits",
     "count_letters",
+    "count_punctuation",
     "strip_non_ascii",
     "truncate_bytes",
 ]
@@ -1807,6 +1808,33 @@ def count_letters(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isalpha())
+
+
+
+def count_punctuation(s: str) -> int:
+    """Return the number of punctuation characters in *s*.
+
+    Args:
+        s: The string to count punctuation in.
+
+    Returns:
+        The number of punctuation characters.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_punctuation("Hello, world!")
+        2
+        >>> count_punctuation("No punctuation here")
+        0
+        >>> count_punctuation("...")
+        3
+    """
+    _require_string(s, "s")
+    import string
+
+    return sum(1 for ch in s if ch in string.punctuation)
 
 
 def is_subsequence(needle: str, haystack: str) -> bool:

@@ -11091,6 +11091,7 @@ __all__: List[str] = [
     "remove_consonants",
     "count_digits",
     "count_letters",
+    "count_punctuation",
     "strip_non_ascii",
     "truncate_bytes",
 ]
@@ -12812,6 +12813,33 @@ def count_letters(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isalpha())
+
+
+
+def count_punctuation(s: str) -> int:
+    """Return the number of punctuation characters in *s*.
+
+    Args:
+        s: The string to count punctuation in.
+
+    Returns:
+        The number of punctuation characters.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_punctuation("Hello, world!")
+        2
+        >>> count_punctuation("No punctuation here")
+        0
+        >>> count_punctuation("...")
+        3
+    """
+    _require_string(s, "s")
+    import string
+
+    return sum(1 for ch in s if ch in string.punctuation)
 
 
 def is_subsequence(needle: str, haystack: str) -> bool:
@@ -14699,6 +14727,7 @@ from strings import (
     count_consonants,
     count_digits,
     count_letters,
+    count_punctuation,
     count_lowercase,
     count_occurrences,
     count_uppercase,
@@ -16593,6 +16622,36 @@ class TestStringsBoundaryCases(unittest.TestCase):
         self.assertEqual(reverse_string(long_s), long_s)
         self.assertEqual(len(chunk_string(long_s, 100)), 100)
         self.assertTrue(is_palindrome(long_s))
+
+
+class TestCountPunctuation(unittest.TestCase):
+    """Tests for count_punctuation function."""
+
+    def test_basic_count(self):
+        self.assertEqual(count_punctuation("Hello, world!"), 2)
+        self.assertEqual(count_punctuation("No punctuation here"), 0)
+        self.assertEqual(count_punctuation("..."), 3)
+        self.assertEqual(count_punctuation("Wow!!! Really???"), 6)
+
+    def test_empty_string(self):
+        self.assertEqual(count_punctuation(""), 0)
+
+    def test_mixed_punctuation(self):
+        self.assertEqual(count_punctuation("a.b,c!d?e;f:g"), 6)
+
+    def test_only_punctuation(self):
+        self.assertEqual(count_punctuation(".,;:!?" * 2), 12)
+
+    def test_punctuation_with_digits_and_letters(self):
+        self.assertEqual(count_punctuation("Price: $19.99!"), 4)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_punctuation(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_punctuation(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_punctuation([])  # type: ignore[arg-type]
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -44470,7 +44529,7 @@ pickletools_utils.py         # Pickletools utilities wrapping stdlib pickletools
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
-strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, remove_whitespace, normalize_whitespace, starts_with, ends_with, removeprefix, removesuffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, and is_blank)
+strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, count_punctuation, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, remove_whitespace, normalize_whitespace, starts_with, ends_with, removeprefix, removesuffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, and is_blank)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, is_composite, clamp, is_even, combination, permutation)
@@ -45090,7 +45149,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `count_punctuation`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`. Added `chunk_string` for splitting strings into fixed-size chunks. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
