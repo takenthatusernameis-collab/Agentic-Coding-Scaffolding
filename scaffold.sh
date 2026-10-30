@@ -21329,6 +21329,7 @@ import unittest
 
 from type_utils import (
     get_type_args,
+    is_class_var,
     is_generic,
     is_literal,
     is_optional,
@@ -21402,6 +21403,13 @@ class TestTypeUtils(unittest.TestCase):
         self.assertFalse(is_type_var(int))
         self.assertFalse(is_type_var(str))
         self.assertFalse(is_type_var(None))
+
+    def test_is_class_var(self):
+        self.assertTrue(is_class_var(t.ClassVar[int]))
+        self.assertTrue(is_class_var(t.ClassVar))
+        self.assertFalse(is_class_var(int))
+        self.assertFalse(is_class_var(str))
+        self.assertFalse(is_class_var(None))
 
 
 if __name__ == "__main__":
@@ -31300,6 +31308,7 @@ __all__: List[str] = [
     "type_name",
     "is_subclass_safe",
     "is_type_var",
+    "is_class_var",
 ]
 
 
@@ -31404,6 +31413,14 @@ def is_subclass_safe(cls: Any, base: Any) -> bool:
 def is_type_var(tp: Any) -> bool:
     """Return True if *tp* is a typing.TypeVar."""
     return isinstance(tp, typing.TypeVar)
+
+
+def is_class_var(tp: Any) -> bool:
+    """Return True if *tp* is a typing.ClassVar."""
+    origin = get_origin(tp)
+    if origin is typing.ClassVar:
+        return True
+    return tp is typing.ClassVar
 TYPEUTILS
 # --- path_utils.py ---
 cat > "$OUTPUT_DIR/path_utils.py" <<'PATHUTILS'

@@ -15,6 +15,7 @@ __all__: List[str] = [
     "type_name",
     "is_subclass_safe",
     "is_type_var",
+    "is_class_var",
 ]
 
 
@@ -119,3 +120,11 @@ def is_subclass_safe(cls: Any, base: Any) -> bool:
 def is_type_var(tp: Any) -> bool:
     """Return True if *tp* is a typing.TypeVar."""
     return isinstance(tp, typing.TypeVar)
+
+
+def is_class_var(tp: Any) -> bool:
+    """Return True if *tp* is a typing.ClassVar."""
+    origin = get_origin(tp)
+    if origin is typing.ClassVar:
+        return True
+    return tp is typing.ClassVar

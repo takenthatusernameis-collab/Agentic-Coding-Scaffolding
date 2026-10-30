@@ -5,6 +5,7 @@ import unittest
 
 from type_utils import (
     get_type_args,
+    is_class_var,
     is_generic,
     is_literal,
     is_optional,
@@ -78,6 +79,13 @@ class TestTypeUtils(unittest.TestCase):
         self.assertFalse(is_type_var(int))
         self.assertFalse(is_type_var(str))
         self.assertFalse(is_type_var(None))
+
+    def test_is_class_var(self):
+        self.assertTrue(is_class_var(t.ClassVar[int]))
+        self.assertTrue(is_class_var(t.ClassVar))
+        self.assertFalse(is_class_var(int))
+        self.assertFalse(is_class_var(str))
+        self.assertFalse(is_class_var(None))
 
 
 if __name__ == "__main__":
