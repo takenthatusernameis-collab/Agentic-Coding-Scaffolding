@@ -69732,6 +69732,8 @@ __all__: List[str] = [
     "is_truncatable_prime",
     "coprime",
     "is_wilson_prime",
+    "is_carmichael_number",
+    "is_korselt_number",
 ]
 
 
@@ -70856,6 +70858,74 @@ def is_wilson_prime(n: int) -> bool:
     p2 = n * n
     factorial = math.factorial(n - 1)
     return factorial % p2 == p2 - 1
+
+
+def is_korselt_number(n: int) -> bool:
+    """Return True if *n* satisfies Korselt's criterion.
+
+    A composite squarefree integer *n* > 1 satisfies Korselt's criterion if
+    for every prime factor *p* of *n*, ``p - 1`` divides ``n - 1``.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* satisfies Korselt's criterion, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n < 2 or is_prime(n):
+        return False
+    pf = prime_factors(n)
+    if len(pf) != len(set(pf)):
+        return False
+    factors = set(pf)
+    nm1 = n - 1
+    for p in factors:
+        if (nm1) % (p - 1) != 0:
+            return False
+    return True
+
+
+def is_carmichael_number(n: int) -> bool:
+    """Return True if *n* is a Carmichael number.
+
+    A Carmichael number is a composite number *n* which satisfies
+    Fermat's Little Theorem for all integers *b* coprime to *n*
+    (a Poulet number of the second kind). Equivalently, Korselt's
+    criterion plus being a Fermat pseudoprime to all bases coprime to *n*;
+    Korselt's criterion plus squarefree product of at least three odd
+    prime factors each to the first power and *p-1 | n-1* characterizes
+    them. For practical purposes, Korselt's criterion combined with
+    being squarefree composite and *b^(n-1) ≡ 1 (mod n)* for bases coprime
+    to *n* holds; the standard equivalent is Korselt + composite + squarefree
+    with at least three prime factors.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a Carmichael number, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    _require_int(n, "n")
+    if n < 2 or is_prime(n):
+        return False
+    pf = prime_factors(n)
+    if len(pf) != len(set(pf)):
+        return False
+    if len(set(pf)) < 3:
+        return False
+    factors = set(pf)
+    nm1 = n - 1
+    for p in factors:
+        if (nm1) % (p - 1) != 0:
+            return False
+    return True
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
