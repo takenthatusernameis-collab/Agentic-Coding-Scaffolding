@@ -1,3 +1,22 @@
+## Unreleased — added is_perfect_number to numbers_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6580 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_perfect_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments (including `bool`); it returns `True` when *n* is a perfect number (a positive integer equal to the sum of its proper divisors), `False` otherwise, treating numbers below 2 as non-perfect. Verified against the known perfect numbers (6, 28, 496, 8128, 33550336, 8589869056).
+- Added `TestIsPerfectNumber` to `tests/test_numbers_utils.py` covering known perfect numbers, non-perfect numbers, a large perfect number, numbers below 2 (including 0 and negatives), and the `TypeError` path for float, str, None, bool, and list (11 new tests). Imported `is_perfect_number` at the top of the test file to match the module's `__all__` contract.
+- Documented `is_perfect_number` in the `numbers_utils` file listing and prose section of `README.md`.
+- Verified the work: `make test` runs 6591 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_dev_version test coverage and version_utils alias coverage
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6570 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported 1 embedded copy out of sync (a stale `version_utils.py` snapshot left by the preceding checkpoint commit).

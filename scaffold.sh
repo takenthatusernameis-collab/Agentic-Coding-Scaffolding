@@ -42902,6 +42902,25 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_perfect_number to numbers_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6580 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Added `is_perfect_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments (including `bool`); it returns `True` when *n* is a perfect number (a positive integer equal to the sum of its proper divisors), `False` otherwise, treating numbers below 2 as non-perfect. Verified against the known perfect numbers (6, 28, 496, 8128, 33550336, 8589869056).
+- Added `TestIsPerfectNumber` to `tests/test_numbers_utils.py` covering known perfect numbers, non-perfect numbers, a large perfect number, numbers below 2 (including 0 and negatives), and the `TypeError` path for float, str, None, bool, and list (11 new tests). Imported `is_perfect_number` at the top of the test file to match the module's `__all__` contract.
+- Documented `is_perfect_number` in the `numbers_utils` file listing and prose section of `README.md`.
+- Verified the work: `make test` runs 6591 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_dev_version test coverage and version_utils alias coverage
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6570 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported 1 embedded copy out of sync (a stale `version_utils.py` snapshot left by the preceding checkpoint commit).
@@ -44279,7 +44298,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_perfect_number)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -45385,7 +45404,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number` and `is_integral` predicates. The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, and `is_perfect_number` predicates. The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -66090,46 +66109,202 @@ TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
 cat > "$OUTPUT_DIR/numbers_utils.py" <<'NUMBERS_UTILS'
-"""Utilities for numeric abstract base classes (wrapping :mod:`numbers`)."""
+"""Utilities for numeric abstract base classes (wrapping :mod:`numbers`).
+
+This module re-exports the numeric abstract base classes of the standard
+library :mod:`numbers` module and adds small, hermetic predicates that work
+for any object, regardless of whether it is registered with the ABC system.
+Every helper validates its arguments before the computation starts, so a
+caller gets a clear :class:`TypeError` instead of an opaque failure.
+"""
+
+from __future__ import annotations
 
 import numbers as _numbers
 
+__all__: list[str] = [
+    "Number",
+    "Complex",
+    "Real",
+    "Rational",
+    "Integral",
+    "is_number",
+    "is_integral",
+    "is_perfect_number",
+]
+
+#: The abstract base class for all numbers.
 Number = _numbers.Number
+
+#: The abstract base class for complex numbers.
 Complex = _numbers.Complex
+
+#: The abstract base class for real numbers.
 Real = _numbers.Real
+
+#: The abstract base class for rational numbers.
 Rational = _numbers.Rational
+
+#: The abstract base class for integral numbers.
 Integral = _numbers.Integral
 
 
-def is_number(obj):
+def is_number(obj: object) -> bool:
+    """Return ``True`` when *obj* is a number.
+
+    A number is any object registered with (or subclass of) the
+    :class:`numbers.Number` abstract base class, which covers ``int``,
+    ``float``, ``complex``, ``Fraction``, ``Decimal``, and similar types.
+
+    Args:
+        obj: The value to test.
+
+    Returns:
+        ``True`` if *obj* is a number, ``False`` otherwise.
+
+    Examples:
+        >>> is_number(5)
+        True
+        >>> is_number(1.5)
+        True
+        >>> is_number(2 + 3j)
+        True
+        >>> is_number("x")
+        False
+    """
     return isinstance(obj, Number)
 
 
-def is_integral(obj):
+def is_integral(obj: object) -> bool:
+    """Return ``True`` when *obj* is an integral number.
+
+    An integral number is any object registered with (or subclass of) the
+    :class:`numbers.Integral` abstract base class, which covers ``int``,
+    ``bool``, and other exact integer-like types, but not ``float`` or
+    ``complex``.
+
+    Args:
+        obj: The value to test.
+
+    Returns:
+        ``True`` if *obj* is an integral number, ``False`` otherwise.
+
+    Examples:
+        >>> is_integral(5)
+        True
+        >>> is_integral(True)
+        True
+        >>> is_integral(1.5)
+        False
+        >>> is_integral("x")
+        False
+    """
     return isinstance(obj, Integral)
+
+
+def is_perfect_number(n: int) -> bool:
+    """Return ``True`` when *n* is a perfect number.
+
+    A perfect number is a positive integer that equals the sum of its proper
+    divisors (the divisors excluding the number itself). The smallest perfect
+    number is 6 (= 1 + 2 + 3); the next are 28, 496, and 8128.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a perfect number, ``False`` otherwise. Numbers
+        below 2 are never perfect.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_perfect_number(6)
+        True
+        >>> is_perfect_number(28)
+        True
+        >>> is_perfect_number(496)
+        True
+        >>> is_perfect_number(12)
+        False
+        >>> is_perfect_number(1)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 2:
+        return False
+    total = 0
+    candidate = 1
+    while candidate * candidate <= n:
+        if n % candidate == 0:
+            total += candidate
+            other = n // candidate
+            if other != candidate and other != n:
+                total += other
+        candidate += 1
+    return total == n
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_numbers_utils.py" <<'TEST_NUMBERS_UTILS'
 import unittest
 
-from numbers_utils import Integral, Number, Real, is_integral, is_number
+from numbers_utils import (
+    Complex,
+    Integral,
+    Number,
+    Rational,
+    Real,
+    is_integral,
+    is_number,
+    is_perfect_number,
+)
 
 
 class TestNumbersUtils(unittest.TestCase):
     def test_is_number(self):
         self.assertTrue(is_number(5))
         self.assertTrue(is_number(1.5))
+        self.assertTrue(is_number(2 + 3j))
         self.assertFalse(is_number("x"))
 
     def test_is_integral(self):
         self.assertTrue(is_integral(5))
+        self.assertTrue(is_integral(True))
         self.assertFalse(is_integral(1.5))
+        self.assertFalse(is_integral("x"))
 
     def test_classes(self):
         self.assertTrue(issubclass(int, Integral))
         self.assertTrue(issubclass(float, Real))
         self.assertTrue(issubclass(complex, Number))
+        self.assertTrue(issubclass(int, Rational))
+        self.assertTrue(issubclass(complex, Complex))
+
+
+class TestIsPerfectNumber(unittest.TestCase):
+    def test_known_perfect_numbers(self):
+        for value in (6, 28, 496, 8128, 33550336):
+            self.assertTrue(is_perfect_number(value), value)
+
+    def test_non_perfect_numbers(self):
+        for value in (1, 2, 3, 4, 5, 7, 8, 9, 10, 12, 27, 29):
+            self.assertFalse(is_perfect_number(value), value)
+
+    def test_large_perfect_number(self):
+        self.assertTrue(is_perfect_number(8589869056))
+
+    def test_below_two(self):
+        self.assertFalse(is_perfect_number(1))
+        self.assertFalse(is_perfect_number(0))
+        self.assertFalse(is_perfect_number(-6))
+
+    def test_type_error(self):
+        for value in (1.5, "6", None, True, [6]):
+            with self.assertRaises(TypeError):
+                is_perfect_number(value)
 
 
 if __name__ == "__main__":
