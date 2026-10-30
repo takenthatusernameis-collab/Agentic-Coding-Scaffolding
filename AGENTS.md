@@ -79,3 +79,20 @@ Use the following Makefile targets during development:
 - Sessions have an idle timeout of 900 seconds
 - The overall CI job has a 355-minute safety cutoff
 - All tests, ruff, and mypy pass as of the latest bootstrap session
+
+
+## Portfolio delay-bottleneck elimination
+
+Treat every activation as an opportunity to remove a real bottleneck, not as a quota to create a commit.
+
+Before work, compare the durable task/board state, current branch/HEAD, and changed paths with the last verified checkpoint. Classify each wait as avoidable process delay, external constraint, integrity/safety gate, or unknown. Remove only avoidable delay; preserve required permissions, maintainer workflow boundaries, data provenance, security controls, research embargoes, and explicit user authorization.
+
+- Prefer state-delta checks over full repeated discovery or full test-suite runs when no relevant file/state changed.
+- Use targeted tests after local changes; run broad tests at coherent milestones and before release/merge.
+- Parallelize independent tasks only when they do not share mutable state or compete for bounded resources.
+- Use bounded timeouts and clear progress/error output for subprocesses; do not leave indefinite waits.
+- Resume from durable checkpoints and skip verified completed work.
+- Do not post duplicate board tasks, create timestamp-only handoffs, or commit empty/no-op cycles. Preserve the auto-commit rule for genuine repository changes.
+- When an external gate is real, record the exact release condition and do independent permitted work; never bypass the gate.
+
+Use the optimize-delays command in .kilo/command/optimize-delays.md for a structured delay-removal pass. Do not modify .github/workflows/**; workflow schedule/permissions remain maintainer-managed.
