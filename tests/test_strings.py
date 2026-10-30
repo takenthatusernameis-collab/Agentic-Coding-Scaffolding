@@ -1761,6 +1761,87 @@ class TestInitials(unittest.TestCase):
 class TestStringsBoundaryCases(unittest.TestCase):
     """Comprehensive boundary case tests for strings module."""
 
+    def test_additional_boundary_edges(self):
+        from strings import (
+            between,
+            contains_all,
+            contains_any,
+            count_occurrences,
+            drop,
+            ends_with,
+            is_rotation,
+            partition,
+            removeprefix,
+            removesuffix,
+            replace_many,
+            rpartition,
+            split_lines,
+            starts_with,
+            strip_chars,
+            take,
+            truncate_bytes,
+        )
+
+        # between edge cases
+        self.assertEqual(between("abc", "x", "y"), "")
+        self.assertEqual(between("hello", "", "x"), "")
+        self.assertEqual(between("hello", "h", ""), "")
+        self.assertEqual(between("abXYcd", "ab", "cd"), "XY")
+
+        # contains_any/all
+        self.assertFalse(contains_any("hello", []))
+        self.assertTrue(contains_all("hello", []))
+        self.assertTrue(contains_any("hello", ["hello"]))
+        self.assertFalse(contains_any("hello", ["z"]))
+
+        # partition/rpartition
+        self.assertEqual(partition("abc", "b"), ("a", "b", "c"))
+        self.assertEqual(partition("abc", "x"), ("abc", "", ""))
+        self.assertEqual(rpartition("abc", "b"), ("a", "b", "c"))
+        self.assertEqual(rpartition("abc", "x"), ("", "", "abc"))
+
+        # starts_with/ends_with
+        self.assertTrue(starts_with("hello", ""))
+        self.assertTrue(ends_with("hello", ""))
+        self.assertTrue(starts_with("", ""))
+        self.assertTrue(ends_with("", ""))
+
+        # removeprefix/removesuffix
+        self.assertEqual(removeprefix("hello", ""), "hello")
+        self.assertEqual(removesuffix("hello", ""), "hello")
+        self.assertEqual(removeprefix("hello", "he"), "llo")
+        self.assertEqual(removesuffix("hello", "lo"), "hel")
+
+        # replace_many
+        self.assertEqual(replace_many("aaa", {"a": "b"}), "bbb")
+        self.assertEqual(replace_many("hello", {}), "hello")
+
+        # split_lines
+        self.assertEqual(split_lines("a\r\nb"), ["a", "b"])
+        self.assertEqual(split_lines("a\nb", keepends=True), ["a\n", "b"])
+
+        # strip_chars
+        self.assertEqual(strip_chars("abcbac", "abc"), "")
+        self.assertEqual(strip_chars("hello", ""), "hello")
+
+        # take/drop
+        self.assertEqual(take("hello", 0), "")
+        self.assertEqual(take("hello", 10), "hello")
+        self.assertEqual(drop("hello", 0), "hello")
+        self.assertEqual(drop("hello", 10), "")
+
+        # truncate_bytes
+        self.assertEqual(truncate_bytes("", 0), "")
+        self.assertEqual(truncate_bytes("abc", 0), "")
+
+        # count_occurrences
+        self.assertEqual(count_occurrences("aaa", "a"), 3)
+        self.assertEqual(count_occurrences("abcb", "b"), 2)
+
+        # is_rotation
+        self.assertTrue(is_rotation("ab", "ba"))
+        self.assertFalse(is_rotation("ab", "aa"))
+
     def test_empty_string_edges(self):
         self.assertEqual(reverse_string(""), "")
         self.assertEqual(reverse_words(""), "")
