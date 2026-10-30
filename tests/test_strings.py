@@ -21,7 +21,6 @@ from strings import (
     count_punctuation,
     count_uppercase,
     count_vowels,
-    count_whitespace,
     count_words,
     drop,
     ends_with,

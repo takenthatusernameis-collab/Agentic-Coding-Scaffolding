@@ -154,11 +154,19 @@ class TestIsStrongNumber(unittest.TestCase):
 
 class TestIsHarshadNumber(unittest.TestCase):
     def test_known_harshad_numbers(self):
-        for value in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 18, 20, 21, 24, 27, 30, 36, 40, 42, 45, 48, 50, 54, 60, 63, 70, 72, 80, 81, 84, 90, 100):
+        for value in (
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 18, 20, 21, 24, 27, 30, 36, 40, 42, 45, 48, 50, 54,
+            60, 63, 70, 72, 80, 81, 84, 90, 100,
+        ):
             self.assertTrue(is_harshad_number(value), value)
 
     def test_non_harshad_numbers(self):
-        for value in (11, 13, 14, 15, 16, 17, 19, 22, 23, 25, 26, 28, 29, 31, 32, 33, 34, 35, 37, 38, 39, 41, 43, 44, 46, 47, 49, 51, 52, 53, 55, 56, 57, 58, 59, 61, 62, 64, 65, 66, 67, 68, 69, 71, 73, 74, 75, 76, 77, 78, 79, 82, 83, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99):
+        for value in (
+            11, 13, 14, 15, 16, 17, 19, 22, 23, 25, 26, 28, 29, 31, 32, 33, 34, 35, 37, 38, 39, 41,
+            43, 44, 46, 47, 49, 51, 52, 53, 55, 56, 57, 58, 59, 61, 62, 64, 65, 66, 67, 68, 69, 71,
+            73, 74, 75, 76, 77, 78, 79, 82, 83, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98,
+            99,
+        ):
             self.assertFalse(is_harshad_number(value), value)
 
     def test_zero(self):
@@ -195,7 +203,8 @@ class TestIsNeonNumber(unittest.TestCase):
 
 class TestIsArmstrongNumber(unittest.TestCase):
     def test_known_armstrong_numbers(self):
-        for value in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 153, 370, 371, 407, 1634, 8208, 9474, 54748, 92727, 93084):
+        for value in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 153, 370, 371, 407, 1634, 8208, 9474, 54748,
+                     92727, 93084):
             self.assertTrue(is_armstrong_number(value), value)
 
     def test_non_armstrong_numbers(self):

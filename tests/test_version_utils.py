@@ -62,8 +62,8 @@ from version_utils import (
     strip_prerelease,
     strip_prerelease_suffix,
     tuple_to_version,
-    version_to_tuple,
     version_satisfies_major,
+    version_to_tuple,
 )
 
 
