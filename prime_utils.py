@@ -45,6 +45,7 @@ __all__: List[str] = [
     "is_automorphic",
     "is_truncatable_prime",
     "coprime",
+    "is_wilson_prime",
 ]
 
 
@@ -1131,3 +1132,59 @@ def is_truncatable_prime(n: int) -> bool:
         if not is_prime(int(s[i:])) or not is_prime(int(s[:-i])):
             return False
     return True
+
+
+def coprime(a: int, b: int) -> bool:
+    """Return True if *a* and *b* are coprime (gcd is 1).
+
+    Args:
+        a: The first integer.
+        b: The second integer.
+
+    Returns:
+        True if gcd(a, b) == 1, False otherwise.
+
+    Raises:
+        TypeError: If either argument is not an int.
+    """
+    _require_int(a, "a")
+    _require_int(b, "b")
+    return math.gcd(a, b) == 1
+
+
+def is_wilson_prime(n: int) -> bool:
+    """Return True if *n* is a Wilson prime.
+
+    A Wilson prime is a prime number *p* such that
+    ``(p - 1)! ≡ -1 (mod p**2)`` (Wilson's Theorem congruence holds
+    for ``p**2`` as well). Known Wilson primes are 5, 13, and 563.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a Wilson prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_wilson_prime(5)
+        True
+        >>> is_wilson_prime(13)
+        True
+        >>> is_wilson_prime(563)
+        True
+        >>> is_wilson_prime(7)
+        False
+        >>> is_wilson_prime(2)
+        False
+        >>> is_wilson_prime(1)
+        False
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    p2 = n * n
+    factorial = math.factorial(n - 1)
+    return factorial % p2 == p2 - 1
