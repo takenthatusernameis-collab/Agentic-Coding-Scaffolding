@@ -22,6 +22,11 @@ __all__: list[str] = [
     "is_perfect_number",
     "is_abundant_number",
     "is_deficient_number",
+    "is_strong_number",
+    "is_harshad_number",
+    "is_neon_number",
+    "is_armstrong_number",
+    "is_automorphic_number",
 ]
 
 #: The abstract base class for all numbers.
@@ -269,3 +274,192 @@ def proper_divisors(n: int) -> list[int]:
     if n in result:
         result.remove(n)
     return result
+
+
+def is_strong_number(n: int) -> bool:
+    """Return ``True`` when *n* is a strong number.
+
+    A strong number (also called a factorial number) is a positive integer
+    whose sum of the factorial of its digits is equal to the number itself.
+    The first few strong numbers are 1, 2, 145, 40585, 40585, ...
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a strong number, ``False`` otherwise. Numbers
+        below 1 are never strong.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_strong_number(1)
+        True
+        >>> is_strong_number(2)
+        True
+        >>> is_strong_number(145)
+        True
+        >>> is_strong_number(40585)
+        True
+        >>> is_strong_number(123)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+
+    def _factorial(x: int) -> int:
+        result = 1
+        for i in range(2, x + 1):
+            result *= i
+        return result
+
+    total = 0
+    for digit in str(n):
+        total += _factorial(int(digit))
+    return total == n
+
+
+def is_harshad_number(n: int) -> bool:
+    """Return ``True`` when *n* is a harshad (Niven) number.
+
+    A harshad number is an integer divisible by the sum of its decimal
+    digits. Also known as a Niven number.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is divisible by the sum of its digits,
+        ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_harshad_number(18)
+        True
+        >>> is_harshad_number(19)
+        False
+        >>> is_harshad_number(1)
+        True
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n == 0:
+        return True
+    digit_sum = sum(int(d) for d in str(abs(n)))
+    if digit_sum == 0:
+        return False
+    return n % digit_sum == 0
+
+
+def is_neon_number(n: int) -> bool:
+    """Return ``True`` when *n* is a neon number.
+
+    A neon number is a number where the sum of the squares of its digits
+    is equal to the number itself. The only neon numbers are 0, 1, 9.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a neon number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_neon_number(9)
+        True
+        >>> is_neon_number(1)
+        True
+        >>> is_neon_number(0)
+        True
+        >>> is_neon_number(45)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    total = sum(int(d) ** 2 for d in str(n))
+    return total == n
+
+
+def is_armstrong_number(n: int) -> bool:
+    """Return ``True`` when *n* is an Armstrong (narcissistic) number.
+
+    An Armstrong number is a number that is equal to the sum of its own
+    digits each raised to the power of the number of digits.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is an Armstrong number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_armstrong_number(153)
+        True
+        >>> is_armstrong_number(370)
+        True
+        >>> is_armstrong_number(371)
+        True
+        >>> is_armstrong_number(407)
+        True
+        >>> is_armstrong_number(123)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n == 0:
+        return True
+    digits = str(n)
+    power = len(digits)
+    total = sum(int(d) ** power for d in digits)
+    return total == n
+
+
+def is_automorphic_number(n: int) -> bool:
+    """Return ``True`` when *n* is an automorphic number.
+
+    An automorphic number is a number whose square ends with the same
+    digits as the number itself. For example, 5^2 = 25 ends with 5,
+    25^2 = 625 ends with 25.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is an automorphic number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_automorphic_number(5)
+        True
+        >>> is_automorphic_number(6)
+        True
+        >>> is_automorphic_number(25)
+        True
+        >>> is_automorphic_number(76)
+        True
+        >>> is_automorphic_number(2)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    square = str(n * n)
+    num_str = str(n)
+    return square.endswith(num_str)
