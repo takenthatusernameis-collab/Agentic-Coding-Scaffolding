@@ -7,6 +7,7 @@ from prompt_utils import (
     collapse_blank_lines,
     count_blank_lines,
     count_characters,
+    count_digits,
     count_leading_newlines,
     count_lines,
     count_non_blank_lines,
@@ -940,3 +941,32 @@ class TestCountWhitespaceCharacters(unittest.TestCase):
             count_whitespace_characters(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_whitespace_characters(None)  # type: ignore[arg-type]
+
+
+class TestCountDigits(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_digits(""), 0)
+
+    def test_no_digits(self):
+        self.assertEqual(count_digits("abc def"), 0)
+
+    def test_only_digits(self):
+        self.assertEqual(count_digits("123"), 3)
+
+    def test_mixed(self):
+        self.assertEqual(count_digits("a1b2c3"), 3)
+
+    def test_leading_zeros(self):
+        self.assertEqual(count_digits("007"), 3)
+
+    def test_digits_with_spaces(self):
+        self.assertEqual(count_digits("1 2 3"), 3)
+
+    def test_unicode_digits_not_counted(self):
+        self.assertEqual(count_digits("٣٤٥"), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_digits(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_digits(None)  # type: ignore[arg-type]

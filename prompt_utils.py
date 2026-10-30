@@ -45,6 +45,7 @@ __all__: List[str] = [
     "count_characters",
     "count_non_whitespace_characters",
     "count_whitespace_characters",
+    "count_digits",
     "reverse_lines",
     "strip_blank_lines",
     "count_unique_words",
@@ -1275,3 +1276,33 @@ def count_whitespace_characters(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ch.isspace())
+
+
+def count_digits(text: str) -> int:
+    """Return the number of ASCII digit characters (0-9) in *text_.
+
+    Counts every character in *text_ that is an ASCII decimal digit
+    (``0`` through ``9``). Unicode numerals (e.g. Arabic-Indic digits) are
+    not counted. Empty text returns zero.
+
+    Args:
+        text: The text to count digit characters in.
+
+    Returns:
+        The number of ASCII digit characters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_digits("abc123")
+        3
+        >>> count_digits("no digits here")
+        0
+        >>> count_digits("a1b2c3")
+        3
+        >>> count_digits("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if "0" <= ch <= "9")
