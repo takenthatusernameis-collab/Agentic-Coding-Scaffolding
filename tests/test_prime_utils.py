@@ -1259,7 +1259,11 @@ class TestIsTruncatablePrime(unittest.TestCase):
 
     def test_non_truncatable_primes(self):
         # Primes that fail left- or right-truncation
-        for n in [11, 13, 17, 19, 29, 31, 41, 43, 47, 59, 61, 67, 71, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131]:
+        for n in [
+            11, 13, 17, 19, 29, 31, 41, 43, 47, 59,
+            61, 67, 71, 79, 83, 89, 97, 101, 103,
+            107, 109, 113, 127, 131,
+        ]:
             self.assertFalse(is_truncatable_prime(n), n)
 
     def test_single_digit_primes_are_truncatable(self):

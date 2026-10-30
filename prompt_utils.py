@@ -47,6 +47,7 @@ __all__: List[str] = [
     "count_whitespace_characters",
     "count_digits",
     "count_letters",
+    "count_vowels",
     "reverse_lines",
     "strip_blank_lines",
     "count_unique_words",
@@ -1333,3 +1334,33 @@ def count_letters(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ("a" <= ch <= "z") or ("A" <= ch <= "Z"))
+
+
+def count_vowels(text: str) -> int:
+    """Return the number of ASCII vowel characters (a, e, i, o, u) in *text_.
+
+    Counts every character in *text_ that is an ASCII vowel, case-insensitive
+    (both ``a``-``e``-``i``-``o``-``u`` and ``A``-``E``-``I``-``O``-``U``).
+    Empty text returns zero.
+
+    Args:
+        text: The text to count vowel characters in.
+
+    Returns:
+        The number of ASCII vowel characters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_vowels("hello")
+        2
+        >>> count_vowels("HELLO WORLD")
+        3
+        >>> count_vowels("xyz")
+        0
+        >>> count_vowels("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ch in "aeiouAEIOU")

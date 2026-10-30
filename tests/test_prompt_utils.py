@@ -18,6 +18,7 @@ from prompt_utils import (
     count_sentences,
     count_trailing_newlines,
     count_unique_words,
+    count_vowels,
     count_whitespace_characters,
     count_words,
     dedent_lines,
@@ -995,3 +996,30 @@ class TestCountLetters(unittest.TestCase):
             count_letters(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_letters(None)  # type: ignore[arg-type]
+
+
+class TestCountVowels(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_vowels(""), 0)
+
+    def test_no_vowels(self):
+        self.assertEqual(count_vowels("xyz"), 0)
+        self.assertEqual(count_vowels("bcdfg"), 0)
+
+    def test_only_vowels(self):
+        self.assertEqual(count_vowels("aeiou"), 5)
+        self.assertEqual(count_vowels("AEIOU"), 5)
+
+    def test_mixed(self):
+        self.assertEqual(count_vowels("hello"), 2)
+        self.assertEqual(count_vowels("HELLO WORLD"), 3)
+        self.assertEqual(count_vowels("a1b2c3"), 1)
+
+    def test_case_insensitive(self):
+        self.assertEqual(count_vowels("AeIoU"), 5)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_vowels(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_vowels(None)  # type: ignore[arg-type]
