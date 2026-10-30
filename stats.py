@@ -52,6 +52,7 @@ __all__: List[str] = [
     "standard_error",
     "moving_average",
     "cumulative_sum",
+    "cumulative_product",
 ]
 
 
@@ -1334,5 +1335,35 @@ def cumulative_sum(numbers: List[T | float]) -> List[float]:
     running = 0.0
     for x in numbers:
         running += x
+        result.append(running)
+    return result
+
+
+def cumulative_product(numbers: List[T | float]) -> List[float]:
+    """Return the running products of *numbers*.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        A list whose i-th element is the product of the first i+1 elements
+        of *numbers*. An empty input yields an empty list.
+
+    Raises:
+        TypeError: If *numbers* is not a list or contains non-numeric values.
+
+    Examples:
+        >>> cumulative_product([1, 2, 3, 4])
+        [1.0, 2.0, 6.0, 24.0]
+    """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only numbers")
+    result: List[float] = []
+    running = 1.0
+    for x in numbers:
+        running *= x
         result.append(running)
     return result

@@ -13362,6 +13362,7 @@ __all__: List[str] = [
     "standard_error",
     "moving_average",
     "cumulative_sum",
+    "cumulative_product",
 ]
 
 
@@ -14644,6 +14645,36 @@ def cumulative_sum(numbers: List[T | float]) -> List[float]:
     running = 0.0
     for x in numbers:
         running += x
+        result.append(running)
+    return result
+
+
+def cumulative_product(numbers: List[T | float]) -> List[float]:
+    """Return the running products of *numbers*.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        A list whose i-th element is the product of the first i+1 elements
+        of *numbers*. An empty input yields an empty list.
+
+    Raises:
+        TypeError: If *numbers* is not a list or contains non-numeric values.
+
+    Examples:
+        >>> cumulative_product([1, 2, 3, 4])
+        [1.0, 2.0, 6.0, 24.0]
+    """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only numbers")
+    result: List[float] = []
+    running = 1.0
+    for x in numbers:
+        running *= x
         result.append(running)
     return result
 STATS
@@ -16705,6 +16736,7 @@ from stats import (
     coefficient_of_variation,
     correlation,
     covariance,
+    cumulative_product,
     cumulative_sum,
     geometric_mean,
     harmonic_mean,
@@ -18035,6 +18067,45 @@ class TestCumulativeSum(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCumulativeProduct(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(cumulative_product([1, 2, 3, 4]), [1.0, 2.0, 6.0, 24.0])
+
+    def test_empty(self) -> None:
+        self.assertEqual(cumulative_product([]), [])
+
+    def test_single(self) -> None:
+        self.assertEqual(cumulative_product([5]), [5.0])
+
+    def test_negatives(self) -> None:
+        self.assertEqual(cumulative_product([-1, 0, 1]), [-1.0, 0.0, 0.0])
+
+    def test_floats(self) -> None:
+        self.assertEqual(cumulative_product([1.5, 2.5]), [1.5, 3.75])
+
+    def test_zeros(self) -> None:
+        self.assertEqual(cumulative_product([0, 0, 0]), [0.0, 0.0, 0.0])
+
+    def test_preserves_order(self) -> None:
+        self.assertEqual(cumulative_product([3, 1, 2]), [3.0, 3.0, 6.0])
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            cumulative_product((1, 2, 3))  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cumulative_product("123")  # type: ignore[arg-type]
+
+    def test_non_numeric_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            cumulative_product([1, 2, "a"])  # type: ignore[type-var]
+        with self.assertRaises(TypeError):
+            cumulative_product([1, None])  # type: ignore[type-var]
+
+    def test_bool_in_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            cumulative_product([True, 1, 2])  # type: ignore[type-var]
 TESTSTATS
 
 # --- math_utils.py ---
