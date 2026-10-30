@@ -9,6 +9,7 @@ from number_utils import (
     digit_sum,
     digital_root,
     format_number,
+    is_abundant_number,
     is_armstrong_number,
     is_automorphic_number,
     is_between,
@@ -31,6 +32,7 @@ from number_utils import (
     is_perfect_square,
     is_positive,
     is_power_of_two,
+    is_pronic_number,
     is_strong_number,
     is_triangular_number,
     is_zero,
@@ -1055,3 +1057,60 @@ class TestIsLucasNumber(unittest.TestCase):
             is_lucas_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_lucas_number(None)  # type: ignore[arg-type]
+
+
+class TestIsPronicNumber(unittest.TestCase):
+    def test_known_pronic_numbers(self) -> None:
+        # n*(n+1) for n in 0..12: 0, 2, 6, 12, 20, 30, 42, 56, 72, 90, 110, 132, 156
+        for n in (0, 2, 6, 12, 20, 30, 42, 56, 72, 90, 110, 132, 156):
+            self.assertTrue(is_pronic_number(n), n)
+
+    def test_non_pronic_numbers(self) -> None:
+        for n in (1, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 21):
+            self.assertFalse(is_pronic_number(n), n)
+
+    def test_negative(self) -> None:
+        for n in (-1, -2, -6, -12, -20):
+            self.assertFalse(is_pronic_number(n), n)
+
+    def test_non_integer(self) -> None:
+        self.assertFalse(is_pronic_number(2.5))
+        self.assertTrue(is_pronic_number(6.0))  # integral float accepted
+        self.assertFalse(is_pronic_number(12.5))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_pronic_number("2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_pronic_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_pronic_number(None)  # type: ignore[arg-type]
+
+
+class TestIsAbundantNumber(unittest.TestCase):
+    def test_known_abundant_numbers(self) -> None:
+        # sum of proper divisors exceeds the number
+        for n in (12, 18, 20, 24, 30, 36, 40, 42, 48, 54, 56, 60, 66, 70, 72):
+            self.assertTrue(is_abundant_number(n), n)
+
+    def test_perfect_numbers_are_not_abundant(self) -> None:
+        for n in (6, 28, 496):
+            self.assertFalse(is_abundant_number(n), n)
+
+    def test_deficient_numbers_are_not_abundant(self) -> None:
+        for n in (1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 19, 21, 22, 23):
+            self.assertFalse(is_abundant_number(n), n)
+
+    def test_non_positive(self) -> None:
+        for n in (0, -1, -12, -20):
+            self.assertFalse(is_abundant_number(n), n)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_abundant_number("12")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_abundant_number(12.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_abundant_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_abundant_number(None)  # type: ignore[arg-type]
