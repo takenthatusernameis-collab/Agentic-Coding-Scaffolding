@@ -58,6 +58,7 @@ __all__: List[str] = [
     "is_neon_number",
     "is_strong_number",
     "is_fibonacci_number",
+    "is_lucas_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -1392,3 +1393,53 @@ def is_fibonacci_number(value: int) -> bool:
         return True
     x = value * value
     return is_perfect_square(5 * x + 4) or is_perfect_square(5 * x - 4)
+
+
+def is_lucas_number(value: int) -> bool:
+    """Return True if *value* is a Lucas number.
+
+    A Lucas number is an integer in the Lucas sequence defined by
+    ``L(0) = 2``, ``L(1) = 1``, and ``L(n) = L(n-1) + L(n-2)`` for ``n >= 2``.
+    The sequence begins 2, 1, 3, 4, 7, 11, 18, 29, 47, 76, 123, ... This
+    helper generates the sequence iteratively up to *value*, which is
+    hermetic and avoids storing the whole sequence.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is a Lucas number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_lucas_number(2)
+        True
+        >>> is_lucas_number(1)
+        True
+        >>> is_lucas_number(3)
+        True
+        >>> is_lucas_number(4)
+        True
+        >>> is_lucas_number(7)
+        True
+        >>> is_lucas_number(11)
+        True
+        >>> is_lucas_number(5)
+        False
+        >>> is_lucas_number(0)
+        False
+        >>> is_lucas_number(-1)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    if value in (1, 2):
+        return True
+    a, b = 1, 3
+    while a < value:
+        a, b = b, a + b
+    return a == value

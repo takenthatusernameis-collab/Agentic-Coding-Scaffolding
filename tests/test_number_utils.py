@@ -20,6 +20,7 @@ from number_utils import (
     is_harshad_number,
     is_infinite,
     is_integer,
+    is_lucas_number,
     is_nan,
     is_negative,
     is_neon_number,
@@ -1030,3 +1031,27 @@ class TestIsFibonacciNumber(unittest.TestCase):
             is_fibonacci_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_fibonacci_number(None)  # type: ignore[arg-type]
+
+
+class TestIsLucasNumber(unittest.TestCase):
+    def test_known_lucas(self) -> None:
+        for n in (2, 1, 3, 4, 7, 11, 18, 29, 47, 76, 123, 199, 322):
+            self.assertTrue(is_lucas_number(n), n)
+
+    def test_not_lucas(self) -> None:
+        for n in (0, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 19, 20, 1000):
+            self.assertFalse(is_lucas_number(n), n)
+
+    def test_negative(self) -> None:
+        self.assertFalse(is_lucas_number(-1))
+        self.assertFalse(is_lucas_number(-7))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_lucas_number("7")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_lucas_number(7.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_lucas_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_lucas_number(None)  # type: ignore[arg-type]
