@@ -1,3 +1,7 @@
+## Unreleased — added is_wilson_prime test coverage to prime_utils
+
+- Added `TestIsWilsonPrime` to `tests/test_prime_utils.py` covering known Wilson primes (5, 13, 563), non-Wilson primes, composites, negatives, and the `TypeError` path (float, str, bool, None) — 20 new assertions. The `is_wilson_prime` helper itself was already present in `prime_utils.py` and exported via `__all__`; this session added the missing test coverage and documented the previously undocumented prime helpers (`is_automorphic`, `is_truncatable_prime`, `is_pythagorean_prime`, `is_wilson_prime`) in the `prime_utils` file listing and prose section of `README.md` and in `.kilo/command/scaffold-project.md`. Synchronized `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added is_type_var to type_check_utils
 
 - Added `is_type_var(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and a `bool` return; it returns `True` when *value* is a `typing.TypeVar` instance, `False` otherwise. Added `TestIsTypeVar` to `tests/test_type_check_utils.py` covering TypeVar instances and the `False` paths for classes, instances, strings, ints, None, and dicts. Updated the `type_check_utils` module prose section of `README.md`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -24,15 +28,22 @@
 
 - Added `count_whitespace_characters(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns the number of whitespace characters in *text_, treating empty text as zero, complementing `count_non_whitespace_characters`. Added `TestCountWhitespaceCharacters` to `tests/test_prompt_utils.py` covering empty, whitespace-only, no-whitespace, mixed, newline/tab, unicode, single-whitespace, and `TypeError` paths (9 new tests). Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
-## Latest Session (2026-10-30) — added is_type_var to type_utils
+## Latest Session (2026-10-30) — added is_wilson_prime test coverage to prime_utils
+
+Verified repository health: `make test` passes (6555 tests), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 Completed in this session:
 
-- Added `is_type_var(tp)` to `type_utils.py` returning True if *tp* is a `typing.TypeVar`. Added `TestTypeUtils.test_is_type_var`. Updated README. Synchronized copies into `scaffold.sh`.
+- Added `TestIsWilsonPrime` to `tests/test_prime_utils.py` covering known Wilson primes (5, 13, 563), non-Wilson primes, composites, negatives, and the `TypeError` path (float, str, bool, None) — 20 new assertions. The `is_wilson_prime` helper itself was already present in `prime_utils.py` and exported via `__all__`; this session added the missing test coverage.
+- Documented the previously undocumented prime helpers (`is_automorphic`, `is_truncatable_prime`, `is_pythagorean_prime`, `is_wilson_prime`) in the `prime_utils` file listing and prose section of `README.md` and in `.kilo/command/scaffold-project.md`.
+- Synchronized `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 Next Planned (posted for the following agent):
 
 - Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
 ## Latest Session (2026-10-29) — added coerce_to_int boundary tests to type_check_utils
 

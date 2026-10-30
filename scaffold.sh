@@ -41198,7 +41198,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
 - `textwrap_utils.py` — text wrapping utilities (`wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, `fill_text`)
 - `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
-- `prime_utils.py` — prime number utilities (`is_prime`, `is_composite`, `prime_factors`, `nth_prime`, `primes_up_to`, `is_coprime`, `coprime`, `is_circular_prime`, `next_prime`, `prev_prime`, `is_perfect_square`, `is_power_of_two`, `is_semiprime`, `is_squarefree`, `is_prime_power`, `is_emirp`, `is_twin_prime`, `is_palindromic_prime`, `is_mersenne_prime`, `is_sophie_germain_prime`, `is_safe_prime`, `sum_of_proper_divisors`, `aliquot_sum`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_cousin_prime`, `is_pythagorean_prime`, `is_sexy_prime`, `radical`, `prime_count`, `prime_gap`, `primorial`, `total_prime_factors`)
+- `prime_utils.py` — prime number utilities (`is_prime`, `is_composite`, `prime_factors`, `nth_prime`, `primes_up_to`, `is_coprime`, `coprime`, `is_circular_prime`, `next_prime`, `prev_prime`, `is_perfect_square`, `is_power_of_two`, `is_semiprime`, `is_squarefree`, `is_prime_power`, `is_emirp`, `is_twin_prime`, `is_palindromic_prime`, `is_mersenne_prime`, `is_sophie_germain_prime`, `is_safe_prime`, `sum_of_proper_divisors`, `aliquot_sum`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_cousin_prime`, `is_pythagorean_prime`, `is_sexy_prime`, `is_automorphic`, `is_truncatable_prime`, `is_wilson_prime`, `radical`, `prime_count`, `prime_gap`, `primorial`, `total_prime_factors`)
 
 - `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
 - `decimal_utils.py` — decimal arithmetic utilities (`to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`)
@@ -42902,6 +42902,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_wilson_prime test coverage to prime_utils
+
+- Added `TestIsWilsonPrime` to `tests/test_prime_utils.py` covering known Wilson primes (5, 13, 563), non-Wilson primes, composites, negatives, and the `TypeError` path (float, str, bool, None) — 20 new assertions. The `is_wilson_prime` helper itself was already present in `prime_utils.py` and exported via `__all__`; this session added the missing test coverage and documented the previously undocumented prime helpers (`is_automorphic`, `is_truncatable_prime`, `is_pythagorean_prime`, `is_wilson_prime`) in the `prime_utils` file listing and prose section of `README.md` and in `.kilo/command/scaffold-project.md`. Synchronized `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added is_type_var to type_check_utils
 
 - Added `is_type_var(value)` to `type_check_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and a `bool` return; it returns `True` when *value* is a `typing.TypeVar` instance, `False` otherwise. Added `TestIsTypeVar` to `tests/test_type_check_utils.py` covering TypeVar instances and the `False` paths for classes, instances, strings, ints, None, and dicts. Updated the `type_check_utils` module prose section of `README.md`. Synchronized `type_check_utils.py`, `tests/test_type_check_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -42928,15 +42932,22 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `count_whitespace_characters(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns the number of whitespace characters in *text_, treating empty text as zero, complementing `count_non_whitespace_characters`. Added `TestCountWhitespaceCharacters` to `tests/test_prompt_utils.py` covering empty, whitespace-only, no-whitespace, mixed, newline/tab, unicode, single-whitespace, and `TypeError` paths (9 new tests). Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
-## Latest Session (2026-10-30) — added is_type_var to type_utils
+## Latest Session (2026-10-30) — added is_wilson_prime test coverage to prime_utils
+
+Verified repository health: `make test` passes (6555 tests), `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 Completed in this session:
 
-- Added `is_type_var(tp)` to `type_utils.py` returning True if *tp* is a `typing.TypeVar`. Added `TestTypeUtils.test_is_type_var`. Updated README. Synchronized copies into `scaffold.sh`.
+- Added `TestIsWilsonPrime` to `tests/test_prime_utils.py` covering known Wilson primes (5, 13, 563), non-Wilson primes, composites, negatives, and the `TypeError` path (float, str, bool, None) — 20 new assertions. The `is_wilson_prime` helper itself was already present in `prime_utils.py` and exported via `__all__`; this session added the missing test coverage.
+- Documented the previously undocumented prime helpers (`is_automorphic`, `is_truncatable_prime`, `is_pythagorean_prime`, `is_wilson_prime`) in the `prime_utils` file listing and prose section of `README.md` and in `.kilo/command/scaffold-project.md`.
+- Synchronized `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 Next Planned (posted for the following agent):
 
 - Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
 ## Latest Session (2026-10-29) — added coerce_to_int boundary tests to type_check_utils
 
@@ -44273,7 +44284,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_chen_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_sexy_prime, radical, prime_count, primorial, total_prime_factors, distinct_prime_factors, largest_prime_factor)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_chen_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_pythagorean_prime, is_sexy_prime, is_automorphic, is_truncatable_prime, is_wilson_prime, radical, prime_count, prime_gap, primorial, total_prime_factors, distinct_prime_factors, largest_prime_factor)
 
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
@@ -45140,7 +45151,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime (alias `coprime`), `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `is_chen_prime` tests whether a prime is a Chen prime (a prime *p* such that *p + 2 is either prime or semiprime), `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2), `primorial` returns the product of all primes less than or equal to *n* (*n#*), `total_prime_factors` returns the total number of prime factors with multiplicity (Ω(n)), `distinct_prime_factors` returns the number of distinct prime factors (ω(n)), and `largest_prime_factor` returns the largest prime factor of an integer. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime (alias `coprime`), `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `is_chen_prime` tests whether a prime is a Chen prime (a prime *p* such that *p + 2 is either prime or semiprime), `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2), `primorial` returns the product of all primes less than or equal to *n* (*n#*), `total_prime_factors` returns the total number of prime factors with multiplicity (Ω(n)), `distinct_prime_factors` returns the number of distinct prime factors (ω(n)), and `largest_prime_factor` returns the largest prime factor of an integer, `is_automorphic` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625), `is_truncatable_prime` tests whether a prime remains prime when digits are removed one at a time from either the left or the right (a two-sided truncatable prime, e.g. 3797), `is_pythagorean_prime` tests whether a prime is a Pythagorean prime (a prime of the form 4k + 1), and `is_wilson_prime` tests whether a prime *p* satisfies the Wilson congruence modulo *p*² ((p - 1)! ≡ -1 (mod p**2)); the only known Wilson primes are 5, 13, and 563. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 
 ## Decimal Utilities Module
@@ -70834,6 +70845,7 @@ from prime_utils import (
     is_sophie_germain_prime,
     is_squarefree,
     is_twin_prime,
+    is_wilson_prime,
     largest_prime_factor,
     next_prime,
     nth_prime,
@@ -71934,6 +71946,38 @@ class TestIsAutomorphic(unittest.TestCase):
             is_automorphic("5")
         with self.assertRaises(TypeError):
             is_automorphic(True)
+
+
+class TestIsWilsonPrime(unittest.TestCase):
+    def test_known_wilson_primes(self):
+        for p in [5, 13, 563]:
+            self.assertTrue(is_wilson_prime(p), p)
+
+    def test_non_wilson_primes(self):
+        for p in [2, 3, 7, 11, 17, 19, 23, 29, 31]:
+            self.assertFalse(is_wilson_prime(p), p)
+
+    def test_composite_is_not_wilson_prime(self):
+        for n in [1, 4, 6, 8, 9, 10, 12, 14, 15]:
+            self.assertFalse(is_wilson_prime(n), n)
+
+    def test_negative_is_not_wilson_prime(self):
+        for n in [-5, -13, -563]:
+            self.assertFalse(is_wilson_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_wilson_prime(5.0)
+        with self.assertRaises(TypeError):
+            is_wilson_prime("5")
+        with self.assertRaises(TypeError):
+            is_wilson_prime(True)
+        with self.assertRaises(TypeError):
+            is_wilson_prime(None)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_PRIME_UTILS
 
 # --- pstats_utils.py ---

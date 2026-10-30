@@ -28,6 +28,7 @@ from prime_utils import (
     is_sophie_germain_prime,
     is_squarefree,
     is_twin_prime,
+    is_wilson_prime,
     largest_prime_factor,
     next_prime,
     nth_prime,
@@ -1128,3 +1129,35 @@ class TestIsAutomorphic(unittest.TestCase):
             is_automorphic("5")
         with self.assertRaises(TypeError):
             is_automorphic(True)
+
+
+class TestIsWilsonPrime(unittest.TestCase):
+    def test_known_wilson_primes(self):
+        for p in [5, 13, 563]:
+            self.assertTrue(is_wilson_prime(p), p)
+
+    def test_non_wilson_primes(self):
+        for p in [2, 3, 7, 11, 17, 19, 23, 29, 31]:
+            self.assertFalse(is_wilson_prime(p), p)
+
+    def test_composite_is_not_wilson_prime(self):
+        for n in [1, 4, 6, 8, 9, 10, 12, 14, 15]:
+            self.assertFalse(is_wilson_prime(n), n)
+
+    def test_negative_is_not_wilson_prime(self):
+        for n in [-5, -13, -563]:
+            self.assertFalse(is_wilson_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_wilson_prime(5.0)
+        with self.assertRaises(TypeError):
+            is_wilson_prime("5")
+        with self.assertRaises(TypeError):
+            is_wilson_prime(True)
+        with self.assertRaises(TypeError):
+            is_wilson_prime(None)
+
+
+if __name__ == "__main__":
+    unittest.main()
