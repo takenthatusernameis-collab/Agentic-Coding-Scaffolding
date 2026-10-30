@@ -28,6 +28,8 @@ __all__: List[str] = [
     "word_count",
     "char_count",
     "is_blank",
+    "ensure_prefix",
+    "ensure_suffix",
     "normalize_whitespace",
     "is_upper",
     "is_lower",
@@ -1906,3 +1908,25 @@ def is_subsequence(needle: str, haystack: str) -> bool:
             if i == len(needle):
                 return True
     return False
+
+
+def ensure_prefix(text: str, prefix: str) -> str:
+    """Return *text* guaranteed to start with *prefix*."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not isinstance(prefix, str):
+        raise TypeError("prefix must be a str")
+    if text.startswith(prefix):
+        return text
+    return prefix + text
+
+
+def ensure_suffix(text: str, suffix: str) -> str:
+    """Return *text* guaranteed to end with *suffix*."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not isinstance(suffix, str):
+        raise TypeError("suffix must be a str")
+    if text.endswith(suffix):
+        return text
+    return text + suffix
