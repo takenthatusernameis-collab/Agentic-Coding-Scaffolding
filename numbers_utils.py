@@ -183,7 +183,7 @@ def is_abundant_number(n: int) -> bool:
             if other != candidate:
                 total += other
         candidate += 1
-    return total > n
+    return bool(total > n)
 
 
 def is_deficient_number(n: int) -> bool:
@@ -230,8 +230,53 @@ def is_deficient_number(n: int) -> bool:
             if other != candidate:
                 total += other
         candidate += 1
-    return total < n
+    return bool(total < n)
 
+
+def is_perfect_number(n: int) -> bool:
+    """Return ``True`` when *n* is a perfect number.
+
+    A perfect number is a positive integer that is equal to the sum of its
+    proper positive divisors (the divisors excluding the number itself).
+    The first few perfect numbers are 6, 28, 496, 8128, ...
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a perfect number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_perfect_number(6)
+        True
+        >>> is_perfect_number(28)
+        True
+        >>> is_perfect_number(496)
+        True
+        >>> is_perfect_number(12)
+        False
+        >>> is_perfect_number(1)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+    if n == 1:
+        return False
+    total = 1
+    candidate = 2
+    while candidate * candidate <= n:
+        if n % candidate == 0:
+            total += candidate
+            other = n // candidate
+            if other != candidate:
+                total += other
+        candidate += 1
+    return bool(total == n)
 
 
 def proper_divisors(n: int) -> list[int]:
@@ -319,7 +364,7 @@ def is_strong_number(n: int) -> bool:
     total = 0
     for digit in str(n):
         total += _factorial(int(digit))
-    return total == n
+    return bool(total == n)
 
 
 def is_harshad_number(n: int) -> bool:
@@ -386,7 +431,7 @@ def is_neon_number(n: int) -> bool:
     if n < 0:
         return False
     total = sum(int(d) ** 2 for d in str(n))
-    return total == n
+    return bool(total == n)
 
 
 def is_armstrong_number(n: int) -> bool:
@@ -425,7 +470,7 @@ def is_armstrong_number(n: int) -> bool:
     digits = str(n)
     power = len(digits)
     total = sum(int(d) ** power for d in digits)
-    return total == n
+    return bool(total == n)
 
 
 def is_automorphic_number(n: int) -> bool:
