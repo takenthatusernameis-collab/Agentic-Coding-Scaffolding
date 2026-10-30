@@ -1134,24 +1134,6 @@ def is_truncatable_prime(n: int) -> bool:
     return True
 
 
-def coprime(a: int, b: int) -> bool:
-    """Return True if *a* and *b* are coprime (gcd is 1).
-
-    Args:
-        a: The first integer.
-        b: The second integer.
-
-    Returns:
-        True if gcd(a, b) == 1, False otherwise.
-
-    Raises:
-        TypeError: If either argument is not an int.
-    """
-    _require_int(a, "a")
-    _require_int(b, "b")
-    return math.gcd(a, b) == 1
-
-
 def is_wilson_prime(n: int) -> bool:
     """Return True if *n* is a Wilson prime.
 

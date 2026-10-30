@@ -20276,6 +20276,7 @@ from prompt_utils import (
     count_leading_newlines,
     count_lines,
     count_non_blank_lines,
+    count_non_whitespace_characters,
     count_paragraphs,
     count_placeholders,
     count_sentences,
@@ -21145,6 +21146,36 @@ class TestStripTrailingNewlines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             strip_trailing_newlines(123)  # type: ignore[arg-type]
+
+
+class TestCountNonWhitespaceCharacters(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_non_whitespace_characters(""), 0)
+
+    def test_only_whitespace(self):
+        self.assertEqual(count_non_whitespace_characters("   \t\n\r"), 0)
+
+    def test_no_whitespace(self):
+        self.assertEqual(count_non_whitespace_characters("abc"), 3)
+
+    def test_mixed(self):
+        self.assertEqual(count_non_whitespace_characters("Hello world"), 10)
+
+    def test_with_newlines_and_tabs(self):
+        self.assertEqual(count_non_whitespace_characters("a b\nc\td"), 4)
+
+    def test_unicode(self):
+        self.assertEqual(count_non_whitespace_characters("héllo"), 5)
+        self.assertEqual(count_non_whitespace_characters("🚀"), 1)
+
+    def test_single_character(self):
+        self.assertEqual(count_non_whitespace_characters("x"), 1)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_non_whitespace_characters(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_non_whitespace_characters(None)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -30049,6 +30080,7 @@ __all__: List[str] = [
     "count_leading_newlines",
     "count_paragraphs",
     "count_characters",
+    "count_non_whitespace_characters",
     "reverse_lines",
     "strip_blank_lines",
     "count_unique_words",
@@ -31217,6 +31249,36 @@ def strip_trailing_newlines(text: str) -> str:
     while i > 0 and text[i - 1] == "\n":
         i -= 1
     return text[:i]
+
+
+def count_non_whitespace_characters(text: str) -> int:
+    """Return the number of non-whitespace characters in *text_.
+
+    Counts every character in *text_ that is not whitespace (as defined by
+    :meth:`str.isspace`). Whitespace includes spaces, tabs, newlines, and
+    other Unicode whitespace. Empty text returns zero.
+
+    Args:
+        text: The text to count non-whitespace characters in.
+
+    Returns:
+        The number of non-whitespace characters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_non_whitespace_characters("Hello world")
+        10
+        >>> count_non_whitespace_characters("a b\\nc")
+        3
+        >>> count_non_whitespace_characters("   ")
+        0
+        >>> count_non_whitespace_characters("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if not ch.isspace())
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -42889,6 +42951,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `is_lucas_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments (rejecting `bool`); a Lucas number is an integer in the sequence defined by `L(0) = 2`, `L(1) = 1`, `L(n) = L(n-1) + L(n-2)` (returns `False` for negative values); `is_lucas_number(0)` returns `False`. Added `TestIsLucasNumber` to `tests/test_number_utils.py` covering known Lucas numbers, non-Lucas values, negative values, and the `TypeError` path. Updated the `number_utils` module listing and prose section of `README.md` and the `number_utils` line of `.kilo/command/scaffold-project.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
+- Added `count_non_whitespace_characters(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns the number of non-whitespace characters in *text_, treating empty text as zero. Added `TestCountNonWhitespaceCharacters` to `tests/test_prompt_utils.py` covering empty, whitespace-only, no-whitespace, mixed, newline/tab, unicode, single-character, and `TypeError` paths (9 new tests). Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Latest Session (2026-10-30) — added is_type_var to type_utils
 
 Completed in this session:
@@ -44946,7 +45010,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `reverse_lines`, `strip_blank_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `reverse_lines`, `strip_blank_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 
@@ -70621,24 +70685,6 @@ def is_truncatable_prime(n: int) -> bool:
         if not is_prime(int(s[i:])) or not is_prime(int(s[:-i])):
             return False
     return True
-
-
-def coprime(a: int, b: int) -> bool:
-    """Return True if *a* and *b* are coprime (gcd is 1).
-
-    Args:
-        a: The first integer.
-        b: The second integer.
-
-    Returns:
-        True if gcd(a, b) == 1, False otherwise.
-
-    Raises:
-        TypeError: If either argument is not an int.
-    """
-    _require_int(a, "a")
-    _require_int(b, "b")
-    return math.gcd(a, b) == 1
 
 
 def is_wilson_prime(n: int) -> bool:

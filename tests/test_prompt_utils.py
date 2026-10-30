@@ -10,6 +10,7 @@ from prompt_utils import (
     count_leading_newlines,
     count_lines,
     count_non_blank_lines,
+    count_non_whitespace_characters,
     count_paragraphs,
     count_placeholders,
     count_sentences,
@@ -879,3 +880,33 @@ class TestStripTrailingNewlines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             strip_trailing_newlines(123)  # type: ignore[arg-type]
+
+
+class TestCountNonWhitespaceCharacters(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_non_whitespace_characters(""), 0)
+
+    def test_only_whitespace(self):
+        self.assertEqual(count_non_whitespace_characters("   \t\n\r"), 0)
+
+    def test_no_whitespace(self):
+        self.assertEqual(count_non_whitespace_characters("abc"), 3)
+
+    def test_mixed(self):
+        self.assertEqual(count_non_whitespace_characters("Hello world"), 10)
+
+    def test_with_newlines_and_tabs(self):
+        self.assertEqual(count_non_whitespace_characters("a b\nc\td"), 4)
+
+    def test_unicode(self):
+        self.assertEqual(count_non_whitespace_characters("héllo"), 5)
+        self.assertEqual(count_non_whitespace_characters("🚀"), 1)
+
+    def test_single_character(self):
+        self.assertEqual(count_non_whitespace_characters("x"), 1)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_non_whitespace_characters(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_non_whitespace_characters(None)  # type: ignore[arg-type]
