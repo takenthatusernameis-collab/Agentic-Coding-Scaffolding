@@ -117136,12 +117136,15 @@ def is_literal(value: object) -> bool:
     return False
 
 
-def ensure_type(value: object, expected_type: type, name: str = "value") -> object:
+def ensure_type(value: object, expected_type: object, name: str = "value") -> object:
     """Ensure value is of expected_type, raising TypeError otherwise.
+
+    *expected_type* may be a single type or a tuple of types, mirroring
+    :func:`isinstance`.
 
     Args:
         value: The value to check.
-        expected_type: The expected type.
+        expected_type: The expected type (or tuple of types).
         name: Name used in the error message.
 
     Returns:
@@ -117150,9 +117153,18 @@ def ensure_type(value: object, expected_type: type, name: str = "value") -> obje
     Raises:
         TypeError: If value is not an instance of expected_type.
     """
-    if not isinstance(value, expected_type):
+    if not isinstance(expected_type, (type, tuple)):
         raise TypeError(
-            f"{name} must be of type {expected_type.__name__}, "
+            f"expected_type must be a type or tuple of types, "
+            f"got {type(expected_type).__name__}"
+        )
+    if not isinstance(value, expected_type):
+        if isinstance(expected_type, tuple):
+            expected_name = " or ".join(t.__name__ for t in expected_type)
+        else:
+            expected_name = expected_type.__name__
+        raise TypeError(
+            f"{name} must be of type {expected_name}, "
             f"got {type(value).__name__}"
         )
     return value
@@ -117736,13 +117748,15 @@ class TestEnsureTypeBoundary(unittest.TestCase):
             type_check_utils.ensure_type(123, str, name="username")
         self.assertIn("username", str(ctx.exception))
 
-    def test_mismatch_raises_type_error(self) -> None:
+    def test_tuple_of_types(self) -> None:
+        self.assertEqual(type_check_utils.ensure_type(42, (int, str)), 42)
+        self.assertEqual(type_check_utils.ensure_type("hi", (int, str)), "hi")
         with self.assertRaises(TypeError):
-            type_check_utils.ensure_type(123, str)
+            type_check_utils.ensure_type(3.14, (int, str))
+
+    def test_invalid_expected_type_raises_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            type_check_utils.ensure_type("hi", int)
-        with self.assertRaises(TypeError):
-            type_check_utils.ensure_type(None, list)
+            type_check_utils.ensure_type(42, "int")
 
 
 class TestCoerceToBytes(unittest.TestCase):

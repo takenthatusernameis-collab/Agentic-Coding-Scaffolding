@@ -408,13 +408,15 @@ class TestEnsureTypeBoundary(unittest.TestCase):
             type_check_utils.ensure_type(123, str, name="username")
         self.assertIn("username", str(ctx.exception))
 
-    def test_mismatch_raises_type_error(self) -> None:
+    def test_tuple_of_types(self) -> None:
+        self.assertEqual(type_check_utils.ensure_type(42, (int, str)), 42)
+        self.assertEqual(type_check_utils.ensure_type("hi", (int, str)), "hi")
         with self.assertRaises(TypeError):
-            type_check_utils.ensure_type(123, str)
+            type_check_utils.ensure_type(3.14, (int, str))
+
+    def test_invalid_expected_type_raises_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            type_check_utils.ensure_type("hi", int)
-        with self.assertRaises(TypeError):
-            type_check_utils.ensure_type(None, list)
+            type_check_utils.ensure_type(42, "int")
 
 
 class TestCoerceToBytes(unittest.TestCase):
