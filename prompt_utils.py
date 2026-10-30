@@ -51,6 +51,7 @@ __all__: List[str] = [
     "strip_blank_lines",
     "count_unique_words",
     "strip_trailing_newlines",
+    "extract_numbers",
 ]
 
 
