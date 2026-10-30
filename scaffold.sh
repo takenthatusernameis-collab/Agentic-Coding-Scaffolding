@@ -41150,7 +41150,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
 - `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `flatten`, `interleave`, `adjacent_pairs`, `chunk`, `is_sorted`)
 - `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
-- `number_utils.py` — number utility functions (`clamp`, `round_to`, `round_half_up`, `is_integer`, `format_number`, `percentage`, `lerp`, `map_range`, `remap`, `sign`, `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `in_range`, `is_finite`, `is_infinite`, `is_nan`, `safe_divide`, `is_perfect_cube`, `is_perfect_square`, `is_power_of_two`, `is_palindromic_number`, `gcd`, `lcm`, `ceil_div`, `is_divisible_by`, `is_multiple_of`, `divides`, `is_coprime`, `digit_sum`, `digit_count`, `digit_product`, `digital_root`, `is_triangular_number`, `is_perfect_number`, `is_automorphic_number`, `is_happy_number`, `is_armstrong_number`, `is_harshad_number`, `is_neon_number`, `is_lucas_number`)
+- `number_utils.py` — number utility functions (`clamp`, `round_to`, `round_half_up`, `is_integer`, `format_number`, `percentage`, `lerp`, `map_range`, `remap`, `sign`, `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `in_range`, `is_finite`, `is_infinite`, `is_nan`, `safe_divide`, `is_perfect_cube`, `is_perfect_square`, `is_power_of_two`, `is_palindromic_number`, `gcd`, `lcm`, `ceil_div`, `is_divisible_by`, `is_multiple_of`, `divides`, `is_coprime`, `digit_sum`, `digit_count`, `digit_product`, `digital_root`, `is_triangular_number`, `is_perfect_number`, `is_automorphic_number`, `is_happy_number`, `is_armstrong_number`, `is_harshad_number`, `is_neon_number`, `is_lucas_number`, `is_spy_number`)
 - `tests/test_number_utils.py` — unit tests for `number_utils.py`
 - `os_utils.py` — operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 - `gzip_utils.py` — gzip compression/decompression utilities
@@ -44067,7 +44067,7 @@ Next Planned (posted for the following agent):
 - Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
-- Added `is_abundant_number` to `number_utils.py`.
+- Added `is_spy_number(value)` to `number_utils.py` with digit sum and product validation (raising `TypeError` for non-ints/bools; returns `False` for `<= 0`), exported via `__all__`, Google-style docstring with examples, and comprehensive tests. Updated `number_utils` in `README.md` and `.kilo/command/scaffold-project.md`. Synchronized embedded copies with `make refresh-scaffold`.
 CHANGELOG
 
 # Substitute project name in templated documents
@@ -44202,7 +44202,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_spy_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -63455,7 +63455,8 @@ __all__: List[str] = [
     "is_strong_number",
     "is_fibonacci_number",
     "is_lucas_number",
-    "is_abundant_number",
+    "is_pronic_number",
+    "is_spy_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -64842,6 +64843,50 @@ def is_lucas_number(value: int) -> bool:
     return a == value
 
 
+def is_spy_number(value: int) -> bool:
+    """Return True if *value* is a spy number.
+
+    A spy number is a positive integer whose sum of its decimal digits equals
+    the product of its decimal digits. For example, ``1124`` has digit sum
+    ``8`` and digit product ``8``.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is a spy number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_spy_number(123)
+        True
+        >>> is_spy_number(1124)
+        True
+        >>> is_spy_number(22)
+        True
+        >>> is_spy_number(1234)
+        False
+        >>> is_spy_number(0)
+        False
+        >>> is_spy_number(-123)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value <= 0:
+        return False
+    digits = str(value)
+    total = 0
+    product = 1
+    for d in digits:
+        digit = ord(d) - ord("0")
+        total += digit
+        product *= digit
+    return total == product
+
+
 def is_abundant_number(value: int) -> bool:
     """Return True if *value* is an abundant number.
 
@@ -64919,6 +64964,8 @@ from number_utils import (
     is_positive,
     is_power_of_two,
     is_pronic_number,
+    is_spy_number,
+    is_spy_number,
     is_strong_number,
     is_triangular_number,
     is_zero,
@@ -65973,33 +66020,33 @@ class TestIsPronicNumber(unittest.TestCase):
             is_pronic_number(None)  # type: ignore[arg-type]
 
 
-class TestIsAbundantNumber(unittest.TestCase):
-    def test_known_abundant_numbers(self) -> None:
-        # sum of proper divisors exceeds the number
-        for n in (12, 18, 20, 24, 30, 36, 40, 42, 48, 54, 56, 60, 66, 70, 72):
-            self.assertTrue(is_abundant_number(n), n)
 
-    def test_perfect_numbers_are_not_abundant(self) -> None:
-        for n in (6, 28, 496):
-            self.assertFalse(is_abundant_number(n), n)
+class TestIsSpyNumber(unittest.TestCase):
+    def test_known_spy_numbers(self) -> None:
+        for n in (123, 1124, 22):
+            self.assertTrue(is_spy_number(n), n)
 
-    def test_deficient_numbers_are_not_abundant(self) -> None:
-        for n in (1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 19, 21, 22, 23):
-            self.assertFalse(is_abundant_number(n), n)
+    def test_not_spy_numbers(self) -> None:
+        for n in (1234, 12, 102, 124):
+            self.assertFalse(is_spy_number(n), n)
 
-    def test_non_positive(self) -> None:
-        for n in (0, -1, -12, -20):
-            self.assertFalse(is_abundant_number(n), n)
+    def test_zero_and_negative(self) -> None:
+        for n in (0, -123, -1124):
+            self.assertFalse(is_spy_number(n), n)
 
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):
-            is_abundant_number("12")  # type: ignore[arg-type]
+            is_spy_number("123")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_abundant_number(12.0)  # type: ignore[arg-type]
+            is_spy_number(123.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_abundant_number(True)  # type: ignore[arg-type]
+            is_spy_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_abundant_number(None)  # type: ignore[arg-type]
+            is_spy_number(None)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---

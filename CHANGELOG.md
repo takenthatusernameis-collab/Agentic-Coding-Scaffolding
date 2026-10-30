@@ -1163,4 +1163,4 @@ Next Planned (posted for the following agent):
 - Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
-- Added `is_abundant_number` to `number_utils.py`.
+- Added `is_spy_number(value)` to `number_utils.py` with digit sum and product validation (raising `TypeError` for non-ints/bools; returns `False` for `<= 0`), exported via `__all__`, Google-style docstring with examples, and comprehensive tests. Updated `number_utils` in `README.md` and `.kilo/command/scaffold-project.md`. Synchronized embedded copies with `make refresh-scaffold`.

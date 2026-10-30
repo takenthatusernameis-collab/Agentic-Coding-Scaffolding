@@ -59,7 +59,8 @@ __all__: List[str] = [
     "is_strong_number",
     "is_fibonacci_number",
     "is_lucas_number",
-    "is_abundant_number",
+    "is_pronic_number",
+    "is_spy_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -1444,6 +1445,50 @@ def is_lucas_number(value: int) -> bool:
     while a < value:
         a, b = b, a + b
     return a == value
+
+
+def is_spy_number(value: int) -> bool:
+    """Return True if *value* is a spy number.
+
+    A spy number is a positive integer whose sum of its decimal digits equals
+    the product of its decimal digits. For example, ``1124`` has digit sum
+    ``8`` and digit product ``8``.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is a spy number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_spy_number(123)
+        True
+        >>> is_spy_number(1124)
+        True
+        >>> is_spy_number(22)
+        True
+        >>> is_spy_number(1234)
+        False
+        >>> is_spy_number(0)
+        False
+        >>> is_spy_number(-123)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value <= 0:
+        return False
+    digits = str(value)
+    total = 0
+    product = 1
+    for d in digits:
+        digit = ord(d) - ord("0")
+        total += digit
+        product *= digit
+    return total == product
 
 
 def is_abundant_number(value: int) -> bool:
