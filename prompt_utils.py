@@ -44,6 +44,7 @@ __all__: List[str] = [
     "count_paragraphs",
     "count_characters",
     "count_non_whitespace_characters",
+    "count_whitespace_characters",
     "reverse_lines",
     "strip_blank_lines",
     "count_unique_words",
@@ -1242,3 +1243,34 @@ def count_non_whitespace_characters(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if not ch.isspace())
+
+
+def count_whitespace_characters(text: str) -> int:
+    """Return the number of whitespace characters in *text_.
+
+    Counts every character in *text_ that is whitespace (as defined by
+    :meth:`str.isspace`). Whitespace includes spaces, tabs, newlines, and
+    other Unicode whitespace. Empty text returns zero. This is the
+    complement of :func:`count_non_whitespace_characters`.
+
+    Args:
+        text: The text to count whitespace characters in.
+
+    Returns:
+        The number of whitespace characters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_whitespace_characters("Hello world")
+        1
+        >>> count_whitespace_characters("a b\\nc\\td")
+        3
+        >>> count_whitespace_characters("   ")
+        3
+        >>> count_whitespace_characters("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ch.isspace())

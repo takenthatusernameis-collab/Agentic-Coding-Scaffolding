@@ -20282,6 +20282,7 @@ from prompt_utils import (
     count_sentences,
     count_trailing_newlines,
     count_unique_words,
+    count_whitespace_characters,
     count_words,
     dedent_lines,
     ensure_trailing_newline,
@@ -21176,6 +21177,35 @@ class TestCountNonWhitespaceCharacters(unittest.TestCase):
             count_non_whitespace_characters(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_non_whitespace_characters(None)  # type: ignore[arg-type]
+
+
+class TestCountWhitespaceCharacters(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_whitespace_characters(""), 0)
+
+    def test_only_whitespace(self):
+        self.assertEqual(count_whitespace_characters("   \t\n\r"), 6)
+
+    def test_no_whitespace(self):
+        self.assertEqual(count_whitespace_characters("abc"), 0)
+
+    def test_mixed(self):
+        self.assertEqual(count_whitespace_characters("Hello world"), 1)
+
+    def test_with_newlines_and_tabs(self):
+        self.assertEqual(count_whitespace_characters("a b\nc\td"), 3)
+
+    def test_unicode(self):
+        self.assertEqual(count_whitespace_characters("héllo"), 0)
+
+    def test_single_whitespace(self):
+        self.assertEqual(count_whitespace_characters(" "), 1)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_whitespace_characters(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_whitespace_characters(None)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -30089,6 +30119,7 @@ __all__: List[str] = [
     "count_paragraphs",
     "count_characters",
     "count_non_whitespace_characters",
+    "count_whitespace_characters",
     "reverse_lines",
     "strip_blank_lines",
     "count_unique_words",
@@ -31287,6 +31318,37 @@ def count_non_whitespace_characters(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if not ch.isspace())
+
+
+def count_whitespace_characters(text: str) -> int:
+    """Return the number of whitespace characters in *text_.
+
+    Counts every character in *text_ that is whitespace (as defined by
+    :meth:`str.isspace`). Whitespace includes spaces, tabs, newlines, and
+    other Unicode whitespace. Empty text returns zero. This is the
+    complement of :func:`count_non_whitespace_characters`.
+
+    Args:
+        text: The text to count whitespace characters in.
+
+    Returns:
+        The number of whitespace characters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_whitespace_characters("Hello world")
+        1
+        >>> count_whitespace_characters("a b\\nc\\td")
+        3
+        >>> count_whitespace_characters("   ")
+        3
+        >>> count_whitespace_characters("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ch.isspace())
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -31297,7 +31359,7 @@ from __future__ import annotations
 
 import sys
 import typing
-from typing import Any, List, Literal, Union, get_args, get_origin
+from typing import Any, Callable, Dict, List, Literal, Tuple, Union, get_args, get_origin
 
 __all__: List[str] = [
     "is_optional",
@@ -31309,6 +31371,14 @@ __all__: List[str] = [
     "is_subclass_safe",
     "is_type_var",
     "is_class_var",
+    "is_none_type",
+    "is_any",
+    "unwrap_optional",
+    "is_callable",
+    "is_tuple",
+    "is_list_type",
+    "is_dict_type",
+    "get_origin_name",
 ]
 
 
@@ -31421,6 +31491,83 @@ def is_class_var(tp: Any) -> bool:
     if origin is typing.ClassVar:
         return True
     return tp is typing.ClassVar
+
+
+def is_none_type(tp: Any) -> bool:
+    """Return True if *tp* is NoneType."""
+    return tp is type(None) or tp is None
+
+
+def is_any(tp: Any) -> bool:
+    """Return True if *tp* is typing.Any."""
+    return tp is Any
+
+
+def unwrap_optional(tp: Any) -> Any:
+    """Return the inner type of Optional[...], else return tp unchanged."""
+    if not is_optional(tp):
+        return tp
+    args = get_args(tp)
+    # Filter out None
+    non_none = [a for a in args if a is not type(None)]
+    if len(non_none) == 1:
+        return non_none[0]
+    # If multiple non-None (shouldn't happen for Optional), return Union of them
+    if len(non_none) > 1:
+        return Union[tuple(non_none)]  # type: ignore[misc]
+    return tp
+
+
+def is_callable(tp: Any) -> bool:
+    """Return True if *tp* is a Callable type."""
+    origin = get_origin(tp)
+    if origin is Callable:
+        return True
+    if tp is Callable:
+        return True
+    return False
+
+
+def is_tuple(tp: Any) -> bool:
+    """Return True if *tp* is a Tuple type."""
+    origin = get_origin(tp)
+    if origin is tuple or origin is Tuple:
+        return True
+    if tp is tuple or tp is Tuple:
+        return True
+    return False
+
+
+def is_list_type(tp: Any) -> bool:
+    """Return True if *tp* is a List type."""
+    origin = get_origin(tp)
+    if origin is list or origin is List:
+        return True
+    if tp is list or tp is List:
+        return True
+    return False
+
+
+def is_dict_type(tp: Any) -> bool:
+    """Return True if *tp* is a Dict type."""
+    origin = get_origin(tp)
+    if origin is dict or origin is Dict:
+        return True
+    if tp is dict or tp is Dict:
+        return True
+    return False
+
+
+def get_origin_name(tp: Any) -> str:
+    """Return the name of the origin of a generic type."""
+    origin = get_origin(tp)
+    if origin is None:
+        if hasattr(tp, "__name__"):
+            return str(getattr(tp, "__name__"))
+        return str(tp)
+    if hasattr(origin, "__name__"):
+        return str(getattr(origin, "__name__"))
+    return str(origin)
 TYPEUTILS
 # --- path_utils.py ---
 cat > "$OUTPUT_DIR/path_utils.py" <<'PATHUTILS'
@@ -42970,6 +43117,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `count_non_whitespace_characters(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns the number of non-whitespace characters in *text_, treating empty text as zero. Added `TestCountNonWhitespaceCharacters` to `tests/test_prompt_utils.py` covering empty, whitespace-only, no-whitespace, mixed, newline/tab, unicode, single-character, and `TypeError` paths (9 new tests). Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
+- Added `count_whitespace_characters(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns the number of whitespace characters in *text_, treating empty text as zero, complementing `count_non_whitespace_characters`. Added `TestCountWhitespaceCharacters` to `tests/test_prompt_utils.py` covering empty, whitespace-only, no-whitespace, mixed, newline/tab, unicode, single-whitespace, and `TypeError` paths (9 new tests). Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Latest Session (2026-10-30) — added is_type_var to type_utils
 
 Completed in this session:
@@ -45029,7 +45178,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `reverse_lines`, `strip_blank_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_trailing_newline`, `normalize_line_endings`, `    first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `reverse_lines`, `strip_blank_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

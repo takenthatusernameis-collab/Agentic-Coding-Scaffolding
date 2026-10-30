@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 import typing
-from typing import Any, List, Literal, Union, get_args, get_origin
+from typing import Any, Callable, Dict, List, Literal, Tuple, Union, get_args, get_origin
 
 __all__: List[str] = [
     "is_optional",
