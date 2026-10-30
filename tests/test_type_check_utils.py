@@ -230,6 +230,32 @@ class TestEnsureType(unittest.TestCase):
         with self.assertRaises(TypeError):
             type_check_utils.coerce_to_int(None)
 
+    def test_coerce_to_int_boundary(self) -> None:
+        # negative floats truncate toward zero
+        self.assertEqual(type_check_utils.coerce_to_int(-3.99), -3)
+        self.assertEqual(type_check_utils.coerce_to_int(-0.5), 0)
+        # whitespace and sign are accepted by int()
+        self.assertEqual(type_check_utils.coerce_to_int(" 5 "), 5)
+        self.assertEqual(type_check_utils.coerce_to_int("+7"), 7)
+        self.assertEqual(type_check_utils.coerce_to_int("-9"), -9)
+        self.assertEqual(type_check_utils.coerce_to_int("007"), 7)
+        # large ints pass through unchanged
+        self.assertEqual(type_check_utils.coerce_to_int(10**18), 10**18)
+        # float strings raise ValueError, not TypeError
+        with self.assertRaises(ValueError):
+            type_check_utils.coerce_to_int("1.5")
+        with self.assertRaises(ValueError):
+            type_check_utils.coerce_to_int("1e3")
+        # unsupported container types raise TypeError
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int({1: 2})
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int({1, 2})
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int(b"5")
+
     def test_coerce_to_float(self) -> None:
         self.assertEqual(type_check_utils.coerce_to_float(123), 123.0)
         self.assertEqual(type_check_utils.coerce_to_float("4.56"), 4.56)

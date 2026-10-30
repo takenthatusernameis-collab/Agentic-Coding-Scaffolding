@@ -1,3 +1,18 @@
+## Latest Session (2026-10-29) — added coerce_to_int boundary tests to type_check_utils
+
+Verified repository health: `make test` passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `TestCoerceToIntBoundary.test_coerce_to_int_boundary` to `tests/test_type_check_utils.py` (inside the existing `TestEnsureType` class) covering negative-float truncation, whitespace/sign-prefixed strings, leading zeros, large ints, float-string `ValueError`, and `TypeError` paths for lists, dicts, sets, bytes, and None (15 new assertions). Synchronized `tests/test_type_check_utils.py` and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added is_fibonacci_number to number_utils
 
 Verified repository health: `make test` passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

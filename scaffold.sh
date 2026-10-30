@@ -42871,6 +42871,21 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Latest Session (2026-10-29) — added coerce_to_int boundary tests to type_check_utils
+
+Verified repository health: `make test` passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Added `TestCoerceToIntBoundary.test_coerce_to_int_boundary` to `tests/test_type_check_utils.py` (inside the existing `TestEnsureType` class) covering negative-float truncation, whitespace/sign-prefixed strings, leading zeros, large ints, float-string `ValueError`, and `TypeError` paths for lists, dicts, sets, bytes, and None (15 new assertions). Synchronized `tests/test_type_check_utils.py` and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `type_check_utils.py`, `type_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-29) — added is_fibonacci_number to number_utils
 
 Verified repository health: `make test` passes, `make lint` and `make typecheck` are green, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -117483,6 +117498,32 @@ class TestEnsureType(unittest.TestCase):
             type_check_utils.coerce_to_int([1, 2])
         with self.assertRaises(TypeError):
             type_check_utils.coerce_to_int(None)
+
+    def test_coerce_to_int_boundary(self) -> None:
+        # negative floats truncate toward zero
+        self.assertEqual(type_check_utils.coerce_to_int(-3.99), -3)
+        self.assertEqual(type_check_utils.coerce_to_int(-0.5), 0)
+        # whitespace and sign are accepted by int()
+        self.assertEqual(type_check_utils.coerce_to_int(" 5 "), 5)
+        self.assertEqual(type_check_utils.coerce_to_int("+7"), 7)
+        self.assertEqual(type_check_utils.coerce_to_int("-9"), -9)
+        self.assertEqual(type_check_utils.coerce_to_int("007"), 7)
+        # large ints pass through unchanged
+        self.assertEqual(type_check_utils.coerce_to_int(10**18), 10**18)
+        # float strings raise ValueError, not TypeError
+        with self.assertRaises(ValueError):
+            type_check_utils.coerce_to_int("1.5")
+        with self.assertRaises(ValueError):
+            type_check_utils.coerce_to_int("1e3")
+        # unsupported container types raise TypeError
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int([1, 2])
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int({1: 2})
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int({1, 2})
+        with self.assertRaises(TypeError):
+            type_check_utils.coerce_to_int(b"5")
 
     def test_coerce_to_float(self) -> None:
         self.assertEqual(type_check_utils.coerce_to_float(123), 123.0)
