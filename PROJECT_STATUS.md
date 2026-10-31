@@ -1,5 +1,28 @@
 # Project Status
 
+## Latest Session (2026-10-31) — added array_concat and array_repeat to array_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6909 tests and passes, `python tools/refresh_scaffold.py --check` reported 1 embedded copy out of sync (`array_utils.py`).
+
+Completed in this session:
+
+- Refreshed the stale embedded copy of `array_utils.py` inside `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync, and the two scaffold-sync tests pass.
+- Found that `array_utils.py` wraps many `array` methods (create, tolist, append, extend, insert, pop, remove, reverse, clear, byteswap, count, index, buffer_info, itemsize, typecode, to/from bytes and file, to/from unicode, extend_from_list, remove_first) but had no wrapper for `array.__add__` (concatenation) or `array.__mul__` (repetition), leaving a gap in the module's coverage of the standard library's array operators.
+- Added `array_concat(a, b)` and `array_repeat(arr, n)` to `array_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-array arguments; `array_concat` returns a new array that is the concatenation of *a* and *b*, and `array_repeat` returns a new array that is *arr* repeated *n* times.
+- Added `test_array_concat`, `test_array_concat_empty`, `test_array_concat_rejects_non_array`, `test_array_repeat`, `test_array_repeat_rejects_non_array`, and `test_array_repeat_rejects_bad_n` to `tests/test_array_utils.py` (6 new tests; 6915 tests now pass in the full suite). Imported `array_concat` and `array_repeat` at the top of the test file to match the module's `__all__` contract.
+- Updated the `array_utils` module prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6915 tests and passes, `make lint` and `make typecheck` show only pre-existing errors unrelated to this change (duplicate names already present in the repository before this session).
+- Committed the work as `feat(array_utils): add array_concat and array_repeat helpers with tests and refresh scaffold`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `array_utils.py`, `bytes_utils.py`, `prompt_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `itertools_utils.py`, `numbers_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-31) — added rfind to bytes_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6875 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
