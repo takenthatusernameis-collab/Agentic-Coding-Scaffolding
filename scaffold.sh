@@ -30513,6 +30513,8 @@ __all__: List[str] = [
     "rstrip_lines",
     "lstrip_lines",
     "strip_lines",
+    "ensure_prefix",
+    "ensure_suffix",
     "ensure_leading_newline",
     "ensure_surrounded_by_newlines",
     "ensure_trailing_newline",
@@ -31277,6 +31279,52 @@ def ensure_trailing_newline(text: str) -> str:
     if text.endswith("\n"):
         return text
     return text + "\n"
+
+
+def ensure_prefix(text: str, prefix: str) -> str:
+    """Ensure *text* starts with *prefix*.
+
+    If *text* already starts with *prefix*, it is returned unchanged.
+    Otherwise *prefix* is prepended to *text*.
+
+    Args:
+        text: The text to normalize.
+        prefix: The prefix to ensure.
+
+    Returns:
+        *text* guaranteed to start with *prefix*.
+
+    Raises:
+        TypeError: If either argument is not a string.
+    """
+    _require_string(text, "text")
+    _require_string(prefix, "prefix")
+    if text.startswith(prefix):
+        return text
+    return prefix + text
+
+
+def ensure_suffix(text: str, suffix: str) -> str:
+    """Ensure *text* ends with *suffix*.
+
+    If *text* already ends with *suffix*, it is returned unchanged.
+    Otherwise *suffix* is appended to *text*.
+
+    Args:
+        text: The text to normalize.
+        suffix: The suffix to ensure.
+
+    Returns:
+        *text* guaranteed to end with *suffix*.
+
+    Raises:
+        TypeError: If either argument is not a string.
+    """
+    _require_string(text, "text")
+    _require_string(suffix, "suffix")
+    if text.endswith(suffix):
+        return text
+    return text + suffix
 
 
 def ensure_leading_newline(text: str) -> str:
