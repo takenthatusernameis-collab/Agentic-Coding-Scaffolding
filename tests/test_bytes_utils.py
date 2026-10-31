@@ -1,6 +1,17 @@
 import unittest
 
-from bytes_utils import chunk, concat, contains, ends_with, from_hex, repeat, reverse, starts_with, to_hex, xor
+from bytes_utils import (
+    chunk,
+    concat,
+    contains,
+    ends_with,
+    from_hex,
+    repeat,
+    reverse,
+    starts_with,
+    to_hex,
+    xor,
+)
 
 
 class TestBytesUtils(unittest.TestCase):
