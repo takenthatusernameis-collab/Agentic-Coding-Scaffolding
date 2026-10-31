@@ -43,3 +43,46 @@ def concat(*parts: bytes) -> bytes:
             raise TypeError("parts must be bytes or bytearray")
         result.extend(part)
     return bytes(result)
+
+
+def repeat(data: bytes, count: int) -> bytes:
+    """Repeat *data* *count* times."""
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(count, int) or count < 0:
+        raise ValueError("count must be a non-negative integer")
+    return bytes(data) * count
+
+
+def reverse(data: bytes) -> bytes:
+    """Return a reversed copy of *data*."""
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(reversed(bytes(data)))
+
+
+def contains(data: bytes, sub: bytes) -> bool:
+    """Return True if *sub* is contained within *data*."""
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sub, (bytes, bytearray)):
+        raise TypeError("sub must be bytes or bytearray")
+    return bytes(sub) in bytes(data)
+
+
+def starts_with(data: bytes, prefix: bytes) -> bool:
+    """Return True if *data* starts with *prefix*."""
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(prefix, (bytes, bytearray)):
+        raise TypeError("prefix must be bytes or bytearray")
+    return bytes(data).startswith(bytes(prefix))
+
+
+def ends_with(data: bytes, suffix: bytes) -> bool:
+    """Return True if *data* ends with *suffix*."""
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(suffix, (bytes, bytearray)):
+        raise TypeError("suffix must be bytes or bytearray")
+    return bytes(data).endswith(bytes(suffix))
