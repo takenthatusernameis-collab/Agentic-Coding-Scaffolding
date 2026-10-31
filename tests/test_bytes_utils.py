@@ -10,7 +10,6 @@ from bytes_utils import (
     repeat,
     reverse,
     rfind,
-    rindex,
     starts_with,
     to_hex,
     xor,
