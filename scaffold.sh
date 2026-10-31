@@ -40175,6 +40175,7 @@ __all__: list[str] = [
     "ends_with",
     "split",
     "find",
+    "rfind",
     "replace",
     "count",
     "decode_utf8",
@@ -40476,6 +40477,44 @@ def find(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int
     return bytes(data).find(bytes(sub), start, end)
 
 
+def rfind(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int:
+    """Return the highest index of *sub* in *data*, or -1 if not found.
+
+    Args:
+        data: Bytes or bytearray to search in.
+        sub: Bytes or bytearray subsequence to search for.
+        start: Optional starting index for the search.
+        end: Optional ending index for the search.
+
+    Returns:
+        The highest index in *data* where *sub* is found, or -1 if *sub* is
+        not present.
+
+    Raises:
+        TypeError: If *data* or *sub* is not bytes or bytearray, or if
+            *start*/*end* is not an int.
+
+    Examples:
+        >>> rfind(b"hello world", b"o")
+        7
+        >>> rfind(b"hello", b"x")
+        -1
+        >>> rfind(b"ababab", b"ab")
+        4
+        >>> rfind(b"hello world", b"o", 0, 5)
+        4
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sub, (bytes, bytearray)):
+        raise TypeError("sub must be bytes or bytearray")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).rfind(bytes(sub), start, end)
+
+
 def replace(data: bytes, old: bytes, new: bytes, count: int = -1) -> bytes:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -40608,6 +40647,7 @@ from bytes_utils import (
     index_of,
     repeat,
     reverse,
+    rfind,
     starts_with,
     to_hex,
     xor,
@@ -40715,6 +40755,47 @@ class TestIndexOf(unittest.TestCase):
             index_of(b"abc", "a")
         with self.assertRaises(TypeError):
             index_of(123, b"a")
+
+
+class TestRFind(unittest.TestCase):
+    def test_found(self):
+        self.assertEqual(rfind(b"hello world", b"o"), 7)
+        self.assertEqual(rfind(b"hello world", b"world"), 6)
+        self.assertEqual(rfind(b"abcabc", b"bc"), 4)
+
+    def test_not_found(self):
+        self.assertEqual(rfind(b"hello", b"x"), -1)
+        self.assertEqual(rfind(b"abc", b"abcd"), -1)
+        self.assertEqual(rfind(b"", b"a"), -1)
+
+    def test_empty_subsequence(self):
+        self.assertEqual(rfind(b"abc", b""), 3)
+        self.assertEqual(rfind(b"", b""), 0)
+
+    def test_last_occurrence(self):
+        self.assertEqual(rfind(b"ababab", b"ab"), 4)
+        self.assertEqual(rfind(b"xabxab", b"ab"), 4)
+
+    def test_bytearray_input(self):
+        self.assertEqual(rfind(bytearray(b"hello"), b"ll"), 2)
+        self.assertEqual(rfind(b"hello", bytearray(b"lo")), 3)
+
+    def test_start_end(self):
+        self.assertEqual(rfind(b"hello world", b"o", 0, 5), 4)
+        self.assertEqual(rfind(b"ababab", b"ab", 2), 4)
+        self.assertEqual(rfind(b"ababab", b"ab", 0, 4), 2)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            rfind("abc", b"a")
+        with self.assertRaises(TypeError):
+            rfind(b"abc", "a")
+        with self.assertRaises(TypeError):
+            rfind(123, b"a")
+        with self.assertRaises(TypeError):
+            rfind(b"abc", b"a", start="0")
+        with self.assertRaises(TypeError):
+            rfind(b"abc", b"a", end=1.5)
 
 
 if __name__ == "__main__":
@@ -45511,6 +45592,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added rfind to bytes_utils
+
+- Added `rfind(data, sub, start=0, end=None)` to `bytes_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-bytes-like arguments; it returns the highest index in *data* where *sub* is found, or -1 when *sub* is not present, honoring optional *start*/*end* bounds. Added `TestRFind` to `tests/test_bytes_utils.py` covering found, not-found, empty-subsequence, last-occurrence, bytearray input, start/end bounds, and the `TypeError` paths. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added array_clear to array_utils
 
 - Added `array_clear(arr)` to `array_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-array arguments; it removes all items from *arr* in place. Added tests to `tests/test_array_utils.py` covering clearing a non-empty array, an already-empty array, and the `TypeError` paths for non-array inputs. Updated the `array_utils` module prose section of `README.md`. Synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -47205,7 +47290,7 @@ signal_utils.py            # Signal utilities wrapping the standard library sign
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
-bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index_of, starts_with, ends_with)
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index_of, rfind, starts_with, ends_with)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -47977,7 +48062,7 @@ The project includes HTML entities utilities in `html_entities_utils.py` wrappin
 
 ## Bytes Utilities Module
 
-The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), and `starts_with`/`ends_with` test prefixes/suffixes. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `rfind` returns the highest index of a subsequence (or -1), and `starts_with`/`ends_with` test prefixes/suffixes. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
 
 ## Itertools Utilities Module
 

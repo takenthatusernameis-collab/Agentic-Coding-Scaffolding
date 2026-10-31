@@ -16,6 +16,7 @@ __all__: list[str] = [
     "ends_with",
     "split",
     "find",
+    "rfind",
     "replace",
     "count",
     "decode_utf8",
@@ -315,6 +316,44 @@ def find(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int
     if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
         raise TypeError("end must be an int or None")
     return bytes(data).find(bytes(sub), start, end)
+
+
+def rfind(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int:
+    """Return the highest index of *sub* in *data*, or -1 if not found.
+
+    Args:
+        data: Bytes or bytearray to search in.
+        sub: Bytes or bytearray subsequence to search for.
+        start: Optional starting index for the search.
+        end: Optional ending index for the search.
+
+    Returns:
+        The highest index in *data* where *sub* is found, or -1 if *sub* is
+        not present.
+
+    Raises:
+        TypeError: If *data* or *sub* is not bytes or bytearray, or if
+            *start*/*end* is not an int.
+
+    Examples:
+        >>> rfind(b"hello world", b"o")
+        7
+        >>> rfind(b"hello", b"x")
+        -1
+        >>> rfind(b"ababab", b"ab")
+        4
+        >>> rfind(b"hello world", b"o", 0, 5)
+        4
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sub, (bytes, bytearray)):
+        raise TypeError("sub must be bytes or bytearray")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).rfind(bytes(sub), start, end)
 
 
 def replace(data: bytes, old: bytes, new: bytes, count: int = -1) -> bytes:

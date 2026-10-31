@@ -9,6 +9,7 @@ from bytes_utils import (
     index_of,
     repeat,
     reverse,
+    rfind,
     starts_with,
     to_hex,
     xor,
@@ -116,6 +117,47 @@ class TestIndexOf(unittest.TestCase):
             index_of(b"abc", "a")
         with self.assertRaises(TypeError):
             index_of(123, b"a")
+
+
+class TestRFind(unittest.TestCase):
+    def test_found(self):
+        self.assertEqual(rfind(b"hello world", b"o"), 7)
+        self.assertEqual(rfind(b"hello world", b"world"), 6)
+        self.assertEqual(rfind(b"abcabc", b"bc"), 4)
+
+    def test_not_found(self):
+        self.assertEqual(rfind(b"hello", b"x"), -1)
+        self.assertEqual(rfind(b"abc", b"abcd"), -1)
+        self.assertEqual(rfind(b"", b"a"), -1)
+
+    def test_empty_subsequence(self):
+        self.assertEqual(rfind(b"abc", b""), 3)
+        self.assertEqual(rfind(b"", b""), 0)
+
+    def test_last_occurrence(self):
+        self.assertEqual(rfind(b"ababab", b"ab"), 4)
+        self.assertEqual(rfind(b"xabxab", b"ab"), 4)
+
+    def test_bytearray_input(self):
+        self.assertEqual(rfind(bytearray(b"hello"), b"ll"), 2)
+        self.assertEqual(rfind(b"hello", bytearray(b"lo")), 3)
+
+    def test_start_end(self):
+        self.assertEqual(rfind(b"hello world", b"o", 0, 5), 4)
+        self.assertEqual(rfind(b"ababab", b"ab", 2), 4)
+        self.assertEqual(rfind(b"ababab", b"ab", 0, 4), 2)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            rfind("abc", b"a")
+        with self.assertRaises(TypeError):
+            rfind(b"abc", "a")
+        with self.assertRaises(TypeError):
+            rfind(123, b"a")
+        with self.assertRaises(TypeError):
+            rfind(b"abc", b"a", start="0")
+        with self.assertRaises(TypeError):
+            rfind(b"abc", b"a", end=1.5)
 
 
 if __name__ == "__main__":
