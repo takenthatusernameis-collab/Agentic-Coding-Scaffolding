@@ -1,3 +1,10 @@
+## Unreleased — added winsorized_mean to stats
+
+- Added `winsorized_mean(numbers, k=1)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `trimmed_mean`; it replaces the *k* smallest and *k* largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data, and returns the arithmetic mean of the winsorized values (identical to `mean` when *k* is 0).
+- Added `TestWinsorizedMean` to `tests/test_stats.py` covering default winsorization, custom *k*, *k*=0, even-length lists, unsorted input, single element, negatives, floats, and the `ValueError`/`TypeError` paths (14 new tests). Imported `winsorized_mean` at the top of the test file to match the module's `__all__` contract.
+- Updated the `stats` module prose section of `README.md`.
+- Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added array_concat and array_repeat to array_utils
 
 - Added `array_concat(a, b)` and `array_repeat(arr, n)` to `array_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-array arguments; `array_concat` returns a new array that is the concatenation of *a* and *b*, and `array_repeat` returns a new array that is *arr* repeated *n* times.

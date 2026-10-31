@@ -13718,6 +13718,7 @@ __all__: List[str] = [
     "moving_average",
     "cumulative_sum",
     "cumulative_product",
+    "winsorized_mean",
 ]
 
 
@@ -15064,6 +15065,57 @@ def coefficient_of_range(numbers: List[T | float]) -> float:
     if denom == 0:
         raise ValueError("sum of min and max must not be zero")
     return float((hi - lo) / denom)
+
+
+def winsorized_mean(numbers: List[T | float], k: int = 1) -> float:
+    """Return the winsorized mean of a list of numbers.
+
+    The *k* smallest values are replaced with the *k*-th smallest value and
+    the *k* largest values are replaced with the *k*-th largest value before
+    computing the arithmetic mean. This reduces the influence of outliers
+    without discarding data, unlike :func:`trimmed_mean`. When *k* is 0 the
+    result is identical to :func:`mean`.
+
+    Args:
+        numbers: A list of numeric values.
+        k: How many extreme values to winsorize on each end. Must be
+            non-negative and strictly less than half the list length so that
+            at least one interior value remains.
+
+    Returns:
+        The arithmetic mean of the winsorized values.
+
+    Raises:
+        ValueError: If the list is empty, if *k* is negative, or if *k* is
+            greater than or equal to half the list length.
+        TypeError: If *numbers* is not a list, contains non-numeric values,
+            or *k* is not an int.
+
+    Examples:
+        >>> winsorized_mean([1, 2, 3, 4, 5])
+        3.0
+        >>> winsorized_mean([1, 2, 3, 4, 100], k=1)
+        3.0
+        >>> winsorized_mean([1, 2, 3, 4, 5], k=0)
+        3.0
+    """
+    _require_numbers(numbers, "numbers")
+    _require_int(k, "k")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    n = len(numbers)
+    if k >= n / 2:
+        raise ValueError(
+            "k must be less than half the list length, "
+            f"got {k} for list of length {n}"
+        )
+    if k == 0:
+        return mean(numbers)
+    sorted_nums = sorted(numbers)
+    low = sorted_nums[k]
+    high = sorted_nums[n - k - 1]
+    winsorized = [min(max(x, low), high) for x in numbers]
+    return sum(winsorized) / len(winsorized)
 STATS
 
 # --- tests/test_strings.py ---
@@ -17556,6 +17608,7 @@ from stats import (
     trimmed_mean,
     variance,
     weighted_mean,
+    winsorized_mean,
     z_scores,
 )
 
@@ -18450,6 +18503,62 @@ class TestTrimmedMean(unittest.TestCase):
             trimmed_mean([1, 2, 3], True)  # type: ignore[arg-type]
 
 
+class TestWinsorizedMean(unittest.TestCase):
+    def test_default_winsorizes_one_from_each_end(self) -> None:
+        self.assertEqual(winsorized_mean([1, 2, 3, 4, 5]), 3.0)
+
+    def test_k_one_replaces_extremes(self) -> None:
+        self.assertEqual(winsorized_mean([1, 2, 3, 4, 100], k=1), 3.0)
+
+    def test_k_zero_is_mean(self) -> None:
+        self.assertEqual(winsorized_mean([1, 2, 3, 4, 5], k=0), 3.0)
+
+    def test_even_list(self) -> None:
+        self.assertEqual(winsorized_mean([1, 2, 3, 4, 5, 100], k=1), 3.5)
+
+    def test_unsorted_input(self) -> None:
+        self.assertEqual(winsorized_mean([9, 1, 5, 2, 8], k=1), 5.0)
+
+    def test_single_element(self) -> None:
+        self.assertEqual(winsorized_mean([7], k=0), 7.0)
+
+    def test_negative_values(self) -> None:
+        self.assertEqual(winsorized_mean([-3, -1, 0, 1, 3], k=1), 0.0)
+
+    def test_float_values(self) -> None:
+        self.assertAlmostEqual(winsorized_mean([1.0, 2.0, 100.0], k=1), 2.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_mean([])
+
+    def test_negative_k_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_mean([1, 2, 3], k=-1)
+
+    def test_k_too_large_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_mean([1, 2, 3], k=2)
+        with self.assertRaises(ValueError):
+            winsorized_mean([1, 2, 3, 4], k=2)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean([True, 1, 2])  # type: ignore[type-var]
+
+    def test_rejects_non_int_k(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean([1, 2, 3], 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            winsorized_mean([1, 2, 3], True)  # type: ignore[arg-type]
 
 
 class TestRootMeanSquare(unittest.TestCase):
@@ -46070,6 +46179,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added winsorized_mean to stats
+
+- Added `winsorized_mean(numbers, k=1)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `trimmed_mean`; it replaces the *k* smallest and *k* largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data, and returns the arithmetic mean of the winsorized values (identical to `mean` when *k* is 0).
+- Added `TestWinsorizedMean` to `tests/test_stats.py` covering default winsorization, custom *k*, *k*=0, even-length lists, unsorted input, single element, negatives, floats, and the `ValueError`/`TypeError` paths (14 new tests). Imported `winsorized_mean` at the top of the test file to match the module's `__all__` contract.
+- Updated the `stats` module prose section of `README.md`.
+- Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added array_concat and array_repeat to array_utils
 
 - Added `array_concat(a, b)` and `array_repeat(arr, n)` to `array_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-array arguments; `array_concat` returns a new array that is the concatenation of *a* and *b*, and `array_repeat` returns a new array that is *arr* repeated *n* times.
@@ -48235,7 +48351,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `winsorized_mean`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `winsorized_mean` computes a winsorized mean that replaces the k smallest and k largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

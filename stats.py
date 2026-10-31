@@ -54,6 +54,7 @@ __all__: List[str] = [
     "moving_average",
     "cumulative_sum",
     "cumulative_product",
+    "winsorized_mean",
 ]
 
 
@@ -1400,3 +1401,54 @@ def coefficient_of_range(numbers: List[T | float]) -> float:
     if denom == 0:
         raise ValueError("sum of min and max must not be zero")
     return float((hi - lo) / denom)
+
+
+def winsorized_mean(numbers: List[T | float], k: int = 1) -> float:
+    """Return the winsorized mean of a list of numbers.
+
+    The *k* smallest values are replaced with the *k*-th smallest value and
+    the *k* largest values are replaced with the *k*-th largest value before
+    computing the arithmetic mean. This reduces the influence of outliers
+    without discarding data, unlike :func:`trimmed_mean`. When *k* is 0 the
+    result is identical to :func:`mean`.
+
+    Args:
+        numbers: A list of numeric values.
+        k: How many extreme values to winsorize on each end. Must be
+            non-negative and strictly less than half the list length so that
+            at least one interior value remains.
+
+    Returns:
+        The arithmetic mean of the winsorized values.
+
+    Raises:
+        ValueError: If the list is empty, if *k* is negative, or if *k* is
+            greater than or equal to half the list length.
+        TypeError: If *numbers* is not a list, contains non-numeric values,
+            or *k* is not an int.
+
+    Examples:
+        >>> winsorized_mean([1, 2, 3, 4, 5])
+        3.0
+        >>> winsorized_mean([1, 2, 3, 4, 100], k=1)
+        3.0
+        >>> winsorized_mean([1, 2, 3, 4, 5], k=0)
+        3.0
+    """
+    _require_numbers(numbers, "numbers")
+    _require_int(k, "k")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    n = len(numbers)
+    if k >= n / 2:
+        raise ValueError(
+            "k must be less than half the list length, "
+            f"got {k} for list of length {n}"
+        )
+    if k == 0:
+        return mean(numbers)
+    sorted_nums = sorted(numbers)
+    low = sorted_nums[k]
+    high = sorted_nums[n - k - 1]
+    winsorized = [min(max(x, low), high) for x in numbers]
+    return sum(winsorized) / len(winsorized)

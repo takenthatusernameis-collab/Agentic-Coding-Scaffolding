@@ -47,6 +47,7 @@ from stats import (
     trimmed_mean,
     variance,
     weighted_mean,
+    winsorized_mean,
     z_scores,
 )
 
@@ -941,6 +942,62 @@ class TestTrimmedMean(unittest.TestCase):
             trimmed_mean([1, 2, 3], True)  # type: ignore[arg-type]
 
 
+class TestWinsorizedMean(unittest.TestCase):
+    def test_default_winsorizes_one_from_each_end(self) -> None:
+        self.assertEqual(winsorized_mean([1, 2, 3, 4, 5]), 3.0)
+
+    def test_k_one_replaces_extremes(self) -> None:
+        self.assertEqual(winsorized_mean([1, 2, 3, 4, 100], k=1), 3.0)
+
+    def test_k_zero_is_mean(self) -> None:
+        self.assertEqual(winsorized_mean([1, 2, 3, 4, 5], k=0), 3.0)
+
+    def test_even_list(self) -> None:
+        self.assertEqual(winsorized_mean([1, 2, 3, 4, 5, 100], k=1), 3.5)
+
+    def test_unsorted_input(self) -> None:
+        self.assertEqual(winsorized_mean([9, 1, 5, 2, 8], k=1), 5.0)
+
+    def test_single_element(self) -> None:
+        self.assertEqual(winsorized_mean([7], k=0), 7.0)
+
+    def test_negative_values(self) -> None:
+        self.assertEqual(winsorized_mean([-3, -1, 0, 1, 3], k=1), 0.0)
+
+    def test_float_values(self) -> None:
+        self.assertAlmostEqual(winsorized_mean([1.0, 2.0, 100.0], k=1), 2.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_mean([])
+
+    def test_negative_k_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_mean([1, 2, 3], k=-1)
+
+    def test_k_too_large_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_mean([1, 2, 3], k=2)
+        with self.assertRaises(ValueError):
+            winsorized_mean([1, 2, 3, 4], k=2)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean([True, 1, 2])  # type: ignore[type-var]
+
+    def test_rejects_non_int_k(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean([1, 2, 3], 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            winsorized_mean([1, 2, 3], True)  # type: ignore[arg-type]
 
 
 class TestRootMeanSquare(unittest.TestCase):
