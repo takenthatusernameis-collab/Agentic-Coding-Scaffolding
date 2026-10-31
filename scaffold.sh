@@ -44495,6 +44495,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_happy_number to numbers_utils
+
+- Added `is_happy_number` to `numbers_utils.py` with `__all__` export, Google-style docstrings with doctests, and validation raising `TypeError` for non-integers; negatives return `False` and `0` is treated as happy.
+- Added tests for `is_happy_number` in `tests/test_numbers_utils.py`.
+
 ## Unreleased — completed bytes_utils public API and documentation
 
 - Completed the public API surface of `bytes_utils.py`: added `__all__` exports for `concat`, `repeat`, `reverse`, `contains`, `starts_with`, and `ends_with` (previously added in `8523e4e`), rewrote their docstrings to Google-style with Args/Returns/Raises and doctests, and verified coverage in `tests/test_bytes_utils.py`.
@@ -46097,7 +46102,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, proper_divisors)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, proper_divisors)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -68184,6 +68189,7 @@ __all__: list[str] = [
     "is_neon_number",
     "is_armstrong_number",
     "is_automorphic_number",
+    "is_happy_number",
     "proper_divisors",
 ]
 
@@ -68622,6 +68628,46 @@ def is_automorphic_number(n: int) -> bool:
     square = str(n * n)
     num_str = str(n)
     return square.endswith(num_str)
+
+
+def is_happy_number(n: int) -> bool:
+    """Return ``True`` when *n* is a happy number.
+
+    A happy number is a positive integer that, when replaced by the sum of
+    the squares of its decimal digits repeatedly, eventually reaches 1. A
+    number that enters a cycle not containing 1 is unhappy. Zero is happy.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is happy, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_happy_number(1)
+        True
+        >>> is_happy_number(7)
+        True
+        >>> is_happy_number(19)
+        True
+        >>> is_happy_number(2)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n == 0:
+        return True
+    seen: set[int] = set()
+    current = n
+    while current != 1 and current not in seen:
+        seen.add(current)
+        current = sum(int(d) * int(d) for d in str(current))
+    return current == 1
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -68638,6 +68684,7 @@ from numbers_utils import (
     is_armstrong_number,
     is_automorphic_number,
     is_deficient_number,
+    is_happy_number,
     is_harshad_number,
     is_integral,
     is_neon_number,
@@ -68866,6 +68913,28 @@ class TestIsAutomorphicNumber(unittest.TestCase):
         for value in (1.5, "5", None, True, [5]):
             with self.assertRaises(TypeError):
                 is_automorphic_number(value)
+
+
+class TestIsHappyNumber(unittest.TestCase):
+    def test_known_happy_numbers(self):
+        for value in (1, 7, 10, 13, 19, 23, 28, 31, 32, 44):
+            self.assertTrue(is_happy_number(value), value)
+
+    def test_non_happy_numbers(self):
+        for value in (2, 3, 4, 5, 6, 8, 9, 11, 12, 14, 15, 16, 17, 18, 20):
+            self.assertFalse(is_happy_number(value), value)
+
+    def test_zero_is_happy(self):
+        self.assertTrue(is_happy_number(0))
+
+    def test_negative_numbers(self):
+        for value in (-1, -7, -19):
+            self.assertFalse(is_happy_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "7", None, True, [7]):
+            with self.assertRaises(TypeError):
+                is_happy_number(value)
 
 
 if __name__ == "__main__":

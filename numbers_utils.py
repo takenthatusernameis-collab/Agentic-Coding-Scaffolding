@@ -27,6 +27,7 @@ __all__: list[str] = [
     "is_neon_number",
     "is_armstrong_number",
     "is_automorphic_number",
+    "is_happy_number",
     "proper_divisors",
 ]
 
@@ -465,3 +466,43 @@ def is_automorphic_number(n: int) -> bool:
     square = str(n * n)
     num_str = str(n)
     return square.endswith(num_str)
+
+
+def is_happy_number(n: int) -> bool:
+    """Return ``True`` when *n* is a happy number.
+
+    A happy number is a positive integer that, when replaced by the sum of
+    the squares of its decimal digits repeatedly, eventually reaches 1. A
+    number that enters a cycle not containing 1 is unhappy. Zero is happy.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is happy, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_happy_number(1)
+        True
+        >>> is_happy_number(7)
+        True
+        >>> is_happy_number(19)
+        True
+        >>> is_happy_number(2)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n == 0:
+        return True
+    seen: set[int] = set()
+    current = n
+    while current != 1 and current not in seen:
+        seen.add(current)
+        current = sum(int(d) * int(d) for d in str(current))
+    return current == 1

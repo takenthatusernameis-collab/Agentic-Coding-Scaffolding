@@ -1,3 +1,8 @@
+## Unreleased — added is_happy_number to numbers_utils
+
+- Added `is_happy_number` to `numbers_utils.py` with `__all__` export, Google-style docstrings with doctests, and validation raising `TypeError` for non-integers; negatives return `False` and `0` is treated as happy.
+- Added tests for `is_happy_number` in `tests/test_numbers_utils.py`.
+
 ## Unreleased — completed bytes_utils public API and documentation
 
 - Completed the public API surface of `bytes_utils.py`: added `__all__` exports for `concat`, `repeat`, `reverse`, `contains`, `starts_with`, and `ends_with` (previously added in `8523e4e`), rewrote their docstrings to Google-style with Args/Returns/Raises and doctests, and verified coverage in `tests/test_bytes_utils.py`.
