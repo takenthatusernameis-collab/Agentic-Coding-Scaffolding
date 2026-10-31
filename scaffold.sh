@@ -20544,6 +20544,7 @@ from prompt_utils import (
     collapse_blank_lines,
     count_blank_lines,
     count_characters,
+    count_consonants,
     count_digits,
     count_leading_newlines,
     count_letters,
@@ -20556,7 +20557,6 @@ from prompt_utils import (
     count_trailing_newlines,
     count_unique_words,
     count_vowels,
-    count_consonants,
     count_whitespace_characters,
     count_words,
     dedent_lines,
@@ -39771,7 +39771,18 @@ BYTES_UTILS
 cat > "$OUTPUT_DIR/tests/test_bytes_utils.py" <<'TESTBYTESUTILS'
 import unittest
 
-from bytes_utils import chunk, concat, contains, ends_with, from_hex, repeat, reverse, starts_with, to_hex, xor
+from bytes_utils import (
+    chunk,
+    concat,
+    contains,
+    ends_with,
+    from_hex,
+    repeat,
+    reverse,
+    starts_with,
+    to_hex,
+    xor,
+)
 
 
 class TestBytesUtils(unittest.TestCase):
