@@ -41,6 +41,8 @@ from number_utils import (
     is_spy_number,
     is_strong_number,
     is_triangular_number,
+    is_pentagonal_number,
+    is_hexagonal_number,
     is_zero,
     lcm,
     lerp,
@@ -1306,6 +1308,50 @@ class TestIsKaprekarNumber(unittest.TestCase):
             is_kaprekar_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_kaprekar_number(None)  # type: ignore[arg-type]
+
+
+class TestIsPentagonalNumber(unittest.TestCase):
+    def test_known_pentagonal_numbers(self) -> None:
+        for n in (0, 1, 5, 12, 22, 35, 51, 70):
+            self.assertTrue(is_pentagonal_number(n), n)
+
+    def test_non_pentagonal_numbers(self) -> None:
+        for n in (2, 3, 4, 6, 7, 8, 9, 10, 11):
+            self.assertFalse(is_pentagonal_number(n), n)
+
+    def test_negatives(self) -> None:
+        for n in (-1, -5):
+            self.assertFalse(is_pentagonal_number(n), n)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_pentagonal_number("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_pentagonal_number(5.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_pentagonal_number(True)  # type: ignore[arg-type]
+
+
+class TestIsHexagonalNumber(unittest.TestCase):
+    def test_known_hexagonal_numbers(self) -> None:
+        for n in (0, 1, 6, 15, 28, 45, 66, 91):
+            self.assertTrue(is_hexagonal_number(n), n)
+
+    def test_non_hexagonal_numbers(self) -> None:
+        for n in (2, 3, 4, 5, 7, 8, 9, 10, 11, 12):
+            self.assertFalse(is_hexagonal_number(n), n)
+
+    def test_negatives(self) -> None:
+        for n in (-1, -6):
+            self.assertFalse(is_hexagonal_number(n), n)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_hexagonal_number("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_hexagonal_number(6.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_hexagonal_number(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

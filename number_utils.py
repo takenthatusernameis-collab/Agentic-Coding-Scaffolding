@@ -49,6 +49,8 @@ __all__: List[str] = [
     "digit_product",
     "digital_root",
     "is_triangular_number",
+    "is_pentagonal_number",
+    "is_hexagonal_number",
     "is_perfect_number",
     "is_automorphic_number",
     "is_happy_number",
@@ -1068,6 +1070,98 @@ def is_triangular_number(value: int) -> bool:
     discriminant = 8 * value + 1
     root = math.isqrt(discriminant)
     return root * root == discriminant
+
+
+def is_pentagonal_number(value: int) -> bool:
+    """Return whether *value* is a pentagonal number.
+
+    A pentagonal number is a number of the form ``n * (3*n - 1) // 2``
+    for some non-negative integer *n*.
+
+    Args:
+        value: The integer to check.
+
+    Returns:
+        ``True`` if *value* is a pentagonal number, otherwise ``False``.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_pentagonal_number(0)
+        True
+        >>> is_pentagonal_number(1)
+        True
+        >>> is_pentagonal_number(5)
+        True
+        >>> is_pentagonal_number(12)
+        True
+        >>> is_pentagonal_number(22)
+        True
+        >>> is_pentagonal_number(2)
+        False
+        >>> is_pentagonal_number(-1)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    # n*(3*n - 1)/2 = value => 24*value + 1 must be an odd square
+    discriminant = 24 * value + 1
+    root = math.isqrt(discriminant)
+    if root * root != discriminant:
+        return False
+    # root ≡ ±1 mod 6 in general, but better check n integer: n=(1 + sqrt(1+24v))/6
+    if (root + 1) % 6 != 0:
+        return False
+    return True
+
+
+def is_hexagonal_number(value: int) -> bool:
+    """Return whether *value* is a hexagonal number.
+
+    A hexagonal number is a number of the form ``n * (2*n - 1)``
+    for some non-negative integer *n*.
+
+    Args:
+        value: The integer to check.
+
+    Returns:
+        ``True`` if *value* is a hexagonal number, otherwise ``False``.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_hexagonal_number(0)
+        True
+        >>> is_hexagonal_number(1)
+        True
+        >>> is_hexagonal_number(6)
+        True
+        >>> is_hexagonal_number(15)
+        True
+        >>> is_hexagonal_number(28)
+        True
+        >>> is_hexagonal_number(2)
+        False
+        >>> is_hexagonal_number(-1)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    # n*(2*n - 1) = value => 8*value + 1 must be an odd square
+    discriminant = 8 * value + 1
+    root = math.isqrt(discriminant)
+    if root * root != discriminant:
+        return False
+    # (1 + sqrt(1+8v))/4 integer?
+    if (root + 1) % 4 != 0:
+        return False
+    return True
 
 
 def is_automorphic_number(value: int) -> bool:

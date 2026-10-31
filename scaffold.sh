@@ -67168,6 +67168,8 @@ __all__: List[str] = [
     "digit_product",
     "digital_root",
     "is_triangular_number",
+    "is_pentagonal_number",
+    "is_hexagonal_number",
     "is_perfect_number",
     "is_automorphic_number",
     "is_happy_number",
@@ -68189,6 +68191,98 @@ def is_triangular_number(value: int) -> bool:
     return root * root == discriminant
 
 
+def is_pentagonal_number(value: int) -> bool:
+    """Return whether *value* is a pentagonal number.
+
+    A pentagonal number is a number of the form ``n * (3*n - 1) // 2``
+    for some non-negative integer *n*.
+
+    Args:
+        value: The integer to check.
+
+    Returns:
+        ``True`` if *value* is a pentagonal number, otherwise ``False``.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_pentagonal_number(0)
+        True
+        >>> is_pentagonal_number(1)
+        True
+        >>> is_pentagonal_number(5)
+        True
+        >>> is_pentagonal_number(12)
+        True
+        >>> is_pentagonal_number(22)
+        True
+        >>> is_pentagonal_number(2)
+        False
+        >>> is_pentagonal_number(-1)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    # n*(3*n - 1)/2 = value => 24*value + 1 must be an odd square
+    discriminant = 24 * value + 1
+    root = math.isqrt(discriminant)
+    if root * root != discriminant:
+        return False
+    # root ≡ ±1 mod 6 in general, but better check n integer: n=(1 + sqrt(1+24v))/6
+    if (root + 1) % 6 != 0:
+        return False
+    return True
+
+
+def is_hexagonal_number(value: int) -> bool:
+    """Return whether *value* is a hexagonal number.
+
+    A hexagonal number is a number of the form ``n * (2*n - 1)``
+    for some non-negative integer *n*.
+
+    Args:
+        value: The integer to check.
+
+    Returns:
+        ``True`` if *value* is a hexagonal number, otherwise ``False``.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_hexagonal_number(0)
+        True
+        >>> is_hexagonal_number(1)
+        True
+        >>> is_hexagonal_number(6)
+        True
+        >>> is_hexagonal_number(15)
+        True
+        >>> is_hexagonal_number(28)
+        True
+        >>> is_hexagonal_number(2)
+        False
+        >>> is_hexagonal_number(-1)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    # n*(2*n - 1) = value => 8*value + 1 must be an odd square
+    discriminant = 8 * value + 1
+    root = math.isqrt(discriminant)
+    if root * root != discriminant:
+        return False
+    # (1 + sqrt(1+8v))/4 integer?
+    if (root + 1) % 4 != 0:
+        return False
+    return True
+
+
 def is_automorphic_number(value: int) -> bool:
     """Return True if *value* is an automorphic number.
 
@@ -68782,6 +68876,8 @@ from number_utils import (
     is_spy_number,
     is_strong_number,
     is_triangular_number,
+    is_pentagonal_number,
+    is_hexagonal_number,
     is_zero,
     lcm,
     lerp,
@@ -70047,6 +70143,50 @@ class TestIsKaprekarNumber(unittest.TestCase):
             is_kaprekar_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_kaprekar_number(None)  # type: ignore[arg-type]
+
+
+class TestIsPentagonalNumber(unittest.TestCase):
+    def test_known_pentagonal_numbers(self) -> None:
+        for n in (0, 1, 5, 12, 22, 35, 51, 70):
+            self.assertTrue(is_pentagonal_number(n), n)
+
+    def test_non_pentagonal_numbers(self) -> None:
+        for n in (2, 3, 4, 6, 7, 8, 9, 10, 11):
+            self.assertFalse(is_pentagonal_number(n), n)
+
+    def test_negatives(self) -> None:
+        for n in (-1, -5):
+            self.assertFalse(is_pentagonal_number(n), n)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_pentagonal_number("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_pentagonal_number(5.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_pentagonal_number(True)  # type: ignore[arg-type]
+
+
+class TestIsHexagonalNumber(unittest.TestCase):
+    def test_known_hexagonal_numbers(self) -> None:
+        for n in (0, 1, 6, 15, 28, 45, 66, 91):
+            self.assertTrue(is_hexagonal_number(n), n)
+
+    def test_non_hexagonal_numbers(self) -> None:
+        for n in (2, 3, 4, 5, 7, 8, 9, 10, 11, 12):
+            self.assertFalse(is_hexagonal_number(n), n)
+
+    def test_negatives(self) -> None:
+        for n in (-1, -6):
+            self.assertFalse(is_hexagonal_number(n), n)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_hexagonal_number("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_hexagonal_number(6.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_hexagonal_number(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
