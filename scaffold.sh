@@ -17096,6 +17096,48 @@ class TestEnsureSurroundedByNewlines(unittest.TestCase):
             ensure_surrounded_by_newlines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_surrounded_by_newlines(None)  # type: ignore[arg-type]
+
+
+class TestNewlineHelpers(unittest.TestCase):
+    def test_count_leading_newlines(self):
+        from strings import count_leading_newlines
+        self.assertEqual(count_leading_newlines("hello"), 0)
+        self.assertEqual(count_leading_newlines("\nhello"), 1)
+        self.assertEqual(count_leading_newlines("\n\nhello"), 2)
+        self.assertEqual(count_leading_newlines("\n\n\n"), 3)
+        self.assertEqual(count_leading_newlines(""), 0)
+        with self.assertRaises(TypeError):
+            count_leading_newlines(123)  # type: ignore[arg-type]
+
+    def test_count_trailing_newlines(self):
+        from strings import count_trailing_newlines
+        self.assertEqual(count_trailing_newlines("hello"), 0)
+        self.assertEqual(count_trailing_newlines("hello\n"), 1)
+        self.assertEqual(count_trailing_newlines("hello\n\n"), 2)
+        self.assertEqual(count_trailing_newlines("\n\n\n"), 3)
+        self.assertEqual(count_trailing_newlines(""), 0)
+        with self.assertRaises(TypeError):
+            count_trailing_newlines(123)  # type: ignore[arg-type]
+
+    def test_strip_leading_newlines(self):
+        from strings import strip_leading_newlines
+        self.assertEqual(strip_leading_newlines("\n\nhello"), "hello")
+        self.assertEqual(strip_leading_newlines("hello"), "hello")
+        self.assertEqual(strip_leading_newlines(""), "")
+        self.assertEqual(strip_leading_newlines("\n"), "")
+        self.assertEqual(strip_leading_newlines("\n\n\nabc\ndef"), "abc\ndef")
+        with self.assertRaises(TypeError):
+            strip_leading_newlines(None)  # type: ignore[arg-type]
+
+    def test_strip_trailing_newlines(self):
+        from strings import strip_trailing_newlines
+        self.assertEqual(strip_trailing_newlines("hello\n\n"), "hello")
+        self.assertEqual(strip_trailing_newlines("hello"), "hello")
+        self.assertEqual(strip_trailing_newlines(""), "")
+        self.assertEqual(strip_trailing_newlines("\n"), "")
+        self.assertEqual(strip_trailing_newlines("abc\ndef\n\n\n"), "abc\ndef")
+        with self.assertRaises(TypeError):
+            strip_trailing_newlines(123)  # type: ignore[arg-type]
 TESTSTRINGS
 
 # --- tests/test_utils.py ---

@@ -1,3 +1,23 @@
+# Project Status
+
+## Latest Session (2026-10-31) — audited strings.py boundary cases, added newline helper tests
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6817 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync (tests/test_strings.py already synced).
+
+Completed in this session:
+
+- Audited `strings.py` boundary cases: empty strings, single chars, whitespace-only, unicode (reverse, truncate_bytes, strip_non_ascii), non-string TypeError paths (comprehensive coverage via existing `TestStringsBoundaryCases.test_non_string_type_errors_comprehensive`), and long strings. Confirmed behavior matches API; no code bugs found.
+- Identified missing test coverage for `count_leading_newlines`, `count_trailing_newlines`, `strip_leading_newlines`, `strip_trailing_newlines` (all exported in `__all__` with docstrings/examples). Added `TestNewlineHelpers` to `tests/test_strings.py` covering counts/strip for leading/trailing newlines, empty strings, all-newline strings, mixed content, and `TypeError` paths (4 new test classes/methods; 421 tests now pass in `tests/test_strings.py`, full suite grows accordingly).
+- Synchronized `tests/test_strings.py` into embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` passes (full suite), `make lint` is clean, `make typecheck` reports no issues in 530 source files.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `array_utils.py`, `bytes_utils.py`, `prompt_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `itertools_utils.py`, `numbers_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-31) — synchronized scaffold copies after slugify_utils refactor
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6813 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported 1 embedded copy out of sync.
