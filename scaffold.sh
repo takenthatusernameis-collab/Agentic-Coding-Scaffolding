@@ -44499,6 +44499,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Completed the public API surface of `bytes_utils.py`: added `__all__` exports for `concat`, `repeat`, `reverse`, `contains`, `starts_with`, and `ends_with` (previously added in `8523e4e`), rewrote their docstrings to Google-style with Args/Returns/Raises and doctests, and verified coverage in `tests/test_bytes_utils.py`.
 - Updated the `bytes_utils` module prose section of `README.md`.
+- Added `proper_divisors` to `__all__` in `numbers_utils.py` (it was implemented and tested but missing from exports); added it to the `numbers_utils` module prose section in `README.md`. Ran `make test`, `make lint`, `make typecheck` and scaffold sync after lint fixes.
 - Synchronized embedded copies with `make refresh-scaffold`.
 
 ## Unreleased — completed array_utils public API and documentation
@@ -68183,6 +68184,7 @@ __all__: list[str] = [
     "is_neon_number",
     "is_armstrong_number",
     "is_automorphic_number",
+    "proper_divisors",
 ]
 
 #: The abstract base class for all numbers.
@@ -118427,6 +118429,7 @@ class TestSlugifyMany:
 
     def test_type_error(self):
         import pytest
+
         from slugify_utils import slugify_many
         with pytest.raises(TypeError):
             slugify_many("nope")

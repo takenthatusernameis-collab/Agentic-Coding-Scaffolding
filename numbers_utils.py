@@ -27,6 +27,7 @@ __all__: list[str] = [
     "is_neon_number",
     "is_armstrong_number",
     "is_automorphic_number",
+    "proper_divisors",
 ]
 
 #: The abstract base class for all numbers.

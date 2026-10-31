@@ -81,6 +81,7 @@ class TestSlugifyMany:
 
     def test_type_error(self):
         import pytest
+
         from slugify_utils import slugify_many
         with pytest.raises(TypeError):
             slugify_many("nope")
