@@ -38390,6 +38390,37 @@ def zip_longest_iterables(
     return list(zip_longest(*iterables, fillvalue=fillvalue))
 
 
+def zip_strict_iterables(*iterables: Iterable[Any]) -> List[Tuple[Any, ...]]:
+    """Zip multiple iterables, raising if they are not all the same length.
+
+    Args:
+        *iterables: The iterables to zip together.
+
+    Returns:
+        A list of tuples, one per position up to the length of the shortest
+        iterable.
+
+    Raises:
+        TypeError: If any argument is not iterable.
+        ValueError: If the iterables are not all the same length.
+
+    Examples:
+        >>> zip_strict_iterables([1, 2, 3], ["a", "b", "c"])
+        [(1, 'a'), (2, 'b'), (3, 'c')]
+        >>> zip_strict_iterables()
+        []
+    """
+    if not iterables:
+        return []
+    for it in iterables:
+        _ensure_iterable(it)
+    zipped = list(zip(*iterables))
+    lengths = [len(list(it)) for it in iterables]
+    if len(set(lengths)) > 1:
+        raise ValueError("iterables must all be the same length")
+    return zipped
+
+
 __all__ = [
     "chain_iterables",
     "flatten_once",
@@ -38404,6 +38435,7 @@ __all__ = [
     "cycle_take",
     "partition",
     "zip_longest_iterables",
+    "zip_strict_iterables",
 ]
 ITERTOOLS_UTILS
 
@@ -38425,6 +38457,7 @@ from itertools_utils import (
     repeat_value,
     take_while_pred,
     zip_longest_iterables,
+    zip_strict_iterables,
 )
 
 
@@ -38651,6 +38684,41 @@ class TestZipLongestIterables(unittest.TestCase):
             zip_longest_iterables([1, 2], [3], fillvalue=0),
             [(1, 3), (2, 0)],
         )
+
+
+class TestZipStrictIterables(unittest.TestCase):
+    def test_equal_length(self):
+        self.assertEqual(
+            zip_strict_iterables([1, 2, 3], ["a", "b", "c"]),
+            [(1, "a"), (2, "b"), (3, "c")],
+        )
+
+    def test_single_iterable(self):
+        self.assertEqual(zip_strict_iterables([1, 2, 3]), [(1,), (2,), (3,)])
+
+    def test_no_iterables(self):
+        self.assertEqual(zip_strict_iterables(), [])
+
+    def test_empty_iterables(self):
+        self.assertEqual(zip_strict_iterables([], []), [])
+
+    def test_three_iterables(self):
+        self.assertEqual(
+            zip_strict_iterables([1, 2], [3, 4], ["a", "b"]),
+            [(1, 3, "a"), (2, 4, "b")],
+        )
+
+    def test_unequal_length_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            zip_strict_iterables([1, 2, 3], ["a", "b"])
+
+    def test_one_empty_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            zip_strict_iterables([1, 2], [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            zip_strict_iterables([1, 2], 42)
 
 
 if __name__ == "__main__":

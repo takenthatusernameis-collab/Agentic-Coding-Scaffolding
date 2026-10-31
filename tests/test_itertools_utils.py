@@ -14,6 +14,7 @@ from itertools_utils import (
     repeat_value,
     take_while_pred,
     zip_longest_iterables,
+    zip_strict_iterables,
 )
 
 
@@ -240,6 +241,41 @@ class TestZipLongestIterables(unittest.TestCase):
             zip_longest_iterables([1, 2], [3], fillvalue=0),
             [(1, 3), (2, 0)],
         )
+
+
+class TestZipStrictIterables(unittest.TestCase):
+    def test_equal_length(self):
+        self.assertEqual(
+            zip_strict_iterables([1, 2, 3], ["a", "b", "c"]),
+            [(1, "a"), (2, "b"), (3, "c")],
+        )
+
+    def test_single_iterable(self):
+        self.assertEqual(zip_strict_iterables([1, 2, 3]), [(1,), (2,), (3,)])
+
+    def test_no_iterables(self):
+        self.assertEqual(zip_strict_iterables(), [])
+
+    def test_empty_iterables(self):
+        self.assertEqual(zip_strict_iterables([], []), [])
+
+    def test_three_iterables(self):
+        self.assertEqual(
+            zip_strict_iterables([1, 2], [3, 4], ["a", "b"]),
+            [(1, 3, "a"), (2, 4, "b")],
+        )
+
+    def test_unequal_length_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            zip_strict_iterables([1, 2, 3], ["a", "b"])
+
+    def test_one_empty_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            zip_strict_iterables([1, 2], [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            zip_strict_iterables([1, 2], 42)
 
 
 if __name__ == "__main__":
