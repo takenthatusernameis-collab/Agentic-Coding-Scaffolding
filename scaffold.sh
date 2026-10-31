@@ -20326,6 +20326,7 @@ from prompt_utils import (
     count_words,
     dedent_lines,
     ensure_leading_newline,
+    ensure_surrounded_by_newlines,
     ensure_trailing_newline,
     estimate_token_count,
     extract_keywords,
@@ -20341,6 +20342,7 @@ from prompt_utils import (
     reverse_lines,
     rstrip_lines,
     strip_blank_lines,
+    strip_leading_newlines,
     strip_lines,
     strip_trailing_newlines,
     truncate_lines,
@@ -20771,6 +20773,29 @@ class TestEnsureTrailingNewline(unittest.TestCase):
             ensure_trailing_newline(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_trailing_newline(None)  # type: ignore[arg-type]
+
+
+class TestEnsureSurroundedByNewlines(unittest.TestCase):
+    def test_wraps(self):
+        self.assertEqual(ensure_surrounded_by_newlines("hello"), "\nhello\n")
+
+    def test_keeps_existing(self):
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello\n"), "\nhello\n")
+
+    def test_empty_string(self):
+        self.assertEqual(ensure_surrounded_by_newlines(""), "")
+
+    def test_leading_only(self):
+        self.assertEqual(ensure_surrounded_by_newlines("hello\n"), "\nhello\n")
+
+    def test_trailing_only(self):
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello"), "\nhello\n")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ensure_surrounded_by_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_surrounded_by_newlines(None)  # type: ignore[arg-type]
 
 
 class TestFirstLine(unittest.TestCase):
@@ -21208,6 +21233,32 @@ class TestStripTrailingNewlines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             strip_trailing_newlines(123)  # type: ignore[arg-type]
+
+
+class TestStripLeadingNewlines(unittest.TestCase):
+    def test_removes_leading_newlines(self):
+        self.assertEqual(strip_leading_newlines("\n\nhello"), "hello")
+
+    def test_removes_single_leading_newline(self):
+        self.assertEqual(strip_leading_newlines("\nhello"), "hello")
+
+    def test_no_leading_newlines(self):
+        self.assertEqual(strip_leading_newlines("hello"), "hello")
+
+    def test_empty_string(self):
+        self.assertEqual(strip_leading_newlines(""), "")
+
+    def test_only_newlines(self):
+        self.assertEqual(strip_leading_newlines("\n\n\n"), "")
+
+    def test_preserves_other_leading_whitespace(self):
+        self.assertEqual(strip_leading_newlines("  \thello"), "  \thello")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            strip_leading_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strip_leading_newlines(None)  # type: ignore[arg-type]
 
 
 class TestCountNonWhitespaceCharacters(unittest.TestCase):
@@ -30359,6 +30410,7 @@ __all__: List[str] = [
     "lstrip_lines",
     "strip_lines",
     "ensure_leading_newline",
+    "ensure_surrounded_by_newlines",
     "ensure_trailing_newline",
     "normalize_line_endings",
     "first_line",
@@ -30377,8 +30429,9 @@ __all__: List[str] = [
     "count_vowels",
     "reverse_lines",
     "strip_blank_lines",
+    "strip_leading_newlines",
+    "strip_trailing_newlines",
     "count_unique_words",
-"strip_trailing_newlines",
 ]
 
 
@@ -31577,6 +31630,39 @@ def strip_trailing_newlines(text: str) -> str:
     return text[:i]
 
 
+def strip_leading_newlines(text: str) -> str:
+    """Remove all leading newline characters from *text*.
+
+    Strips consecutive ``\\n`` characters from the start of *text*. Other
+    leading whitespace is preserved. Empty text is returned unchanged.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with leading newlines removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_leading_newlines("\\n\\nhello")
+        'hello'
+        >>> strip_leading_newlines("hello")
+        'hello'
+        >>> strip_leading_newlines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    i = 0
+    n = len(text)
+    while i < n and text[i] == "\n":
+        i += 1
+    return text[i:]
+
+
 def count_non_whitespace_characters(text: str) -> int:
     """Return the number of non-whitespace characters in *text_.
 
@@ -31722,6 +31808,39 @@ def count_vowels(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ch in "aeiouAEIOU")
+
+
+def ensure_surrounded_by_newlines(text: str) -> str:
+    """Ensure *text* starts and ends with a newline character.
+
+    If *text* is empty, it is returned unchanged. Existing leading/trailing
+    newlines are not duplicated.
+
+    Args:
+        text: The text to normalize.
+
+    Returns:
+        *text* with a leading and trailing newline when appropriate.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> ensure_surrounded_by_newlines("hello")
+        '\nhello\n'
+        >>> ensure_surrounded_by_newlines("\nhello\n")
+        '\nhello\n'
+        >>> ensure_surrounded_by_newlines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    if not text.startswith("\n"):
+        text = "\n" + text
+    if not text.endswith("\n"):
+        text = text + "\n"
+    return text
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -43621,6 +43740,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added ensure_surrounded_by_newlines to prompt_utils
+
+- Added `ensure_surrounded_by_newlines(text)` to `prompt_utils.py`.
+
 ## Unreleased — added ensure_leading_newline helper to prompt_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6753 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -45946,7 +46069,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `    strip_lines`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `    first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_digits`, `count_vowels`, `reverse_lines`, `strip_blank_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `    strip_lines`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `    first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_digits`, `count_vowels`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

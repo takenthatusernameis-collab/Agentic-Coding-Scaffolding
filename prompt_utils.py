@@ -33,6 +33,7 @@ __all__: List[str] = [
     "lstrip_lines",
     "strip_lines",
     "ensure_leading_newline",
+    "ensure_surrounded_by_newlines",
     "ensure_trailing_newline",
     "normalize_line_endings",
     "first_line",
@@ -1430,3 +1431,36 @@ def count_vowels(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ch in "aeiouAEIOU")
+
+
+def ensure_surrounded_by_newlines(text: str) -> str:
+    """Ensure *text* starts and ends with a newline character.
+
+    If *text* is empty, it is returned unchanged. Existing leading/trailing
+    newlines are not duplicated.
+
+    Args:
+        text: The text to normalize.
+
+    Returns:
+        *text* with a leading and trailing newline when appropriate.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> ensure_surrounded_by_newlines("hello")
+        '\nhello\n'
+        >>> ensure_surrounded_by_newlines("\nhello\n")
+        '\nhello\n'
+        >>> ensure_surrounded_by_newlines("")
+        ''
+    """
+    _require_string(text, "text")
+    if not text:
+        return text
+    if not text.startswith("\n"):
+        text = "\n" + text
+    if not text.endswith("\n"):
+        text = text + "\n"
+    return text

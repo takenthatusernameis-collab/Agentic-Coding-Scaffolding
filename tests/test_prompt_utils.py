@@ -23,6 +23,7 @@ from prompt_utils import (
     count_words,
     dedent_lines,
     ensure_leading_newline,
+    ensure_surrounded_by_newlines,
     ensure_trailing_newline,
     estimate_token_count,
     extract_keywords,
@@ -38,8 +39,8 @@ from prompt_utils import (
     reverse_lines,
     rstrip_lines,
     strip_blank_lines,
-    strip_lines,
     strip_leading_newlines,
+    strip_lines,
     strip_trailing_newlines,
     truncate_lines,
     truncate_prompt,
@@ -469,6 +470,29 @@ class TestEnsureTrailingNewline(unittest.TestCase):
             ensure_trailing_newline(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_trailing_newline(None)  # type: ignore[arg-type]
+
+
+class TestEnsureSurroundedByNewlines(unittest.TestCase):
+    def test_wraps(self):
+        self.assertEqual(ensure_surrounded_by_newlines("hello"), "\nhello\n")
+
+    def test_keeps_existing(self):
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello\n"), "\nhello\n")
+
+    def test_empty_string(self):
+        self.assertEqual(ensure_surrounded_by_newlines(""), "")
+
+    def test_leading_only(self):
+        self.assertEqual(ensure_surrounded_by_newlines("hello\n"), "\nhello\n")
+
+    def test_trailing_only(self):
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello"), "\nhello\n")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ensure_surrounded_by_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_surrounded_by_newlines(None)  # type: ignore[arg-type]
 
 
 class TestFirstLine(unittest.TestCase):

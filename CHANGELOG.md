@@ -1,3 +1,7 @@
+## Unreleased — added ensure_surrounded_by_newlines to prompt_utils
+
+- Added `ensure_surrounded_by_newlines(text)` to `prompt_utils.py`.
+
 ## Unreleased — added ensure_leading_newline helper to prompt_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6753 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
