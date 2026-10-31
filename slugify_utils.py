@@ -3,7 +3,7 @@
 import re
 import unicodedata
 
-__all__ = ["slugify", "is_slug", "deslugify", "truncate_slug"]
+__all__ = ["slugify", "is_slug", "deslugify", "truncate_slug", "slugify_many"]
 
 
 def slugify(text: str, separator: str = "-") -> str:
@@ -117,3 +117,10 @@ def deslugify(text: str, separator: str = "-") -> str:
     if not isinstance(separator, str) or not separator:
         raise ValueError("separator must be a non-empty str")
     return " ".join(part.capitalize() for part in text.split(separator) if part)
+
+
+def slugify_many(texts, separator: str = "-") -> list[str]:
+    """Slugify each string in *texts*, returning a list of slugs."""
+    if not isinstance(texts, (list, tuple)):
+        raise TypeError("texts must be a list or tuple")
+    return [slugify(t, separator) for t in texts]

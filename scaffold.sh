@@ -118219,7 +118219,7 @@ cat > "$OUTPUT_DIR/slugify_utils.py" <<'SLUGIFY_UTILS'
 import re
 import unicodedata
 
-__all__ = ["slugify", "is_slug", "deslugify", "truncate_slug"]
+__all__ = ["slugify", "is_slug", "deslugify", "truncate_slug", "slugify_many"]
 
 
 def slugify(text: str, separator: str = "-") -> str:
@@ -118333,6 +118333,13 @@ def deslugify(text: str, separator: str = "-") -> str:
     if not isinstance(separator, str) or not separator:
         raise ValueError("separator must be a non-empty str")
     return " ".join(part.capitalize() for part in text.split(separator) if part)
+
+
+def slugify_many(texts, separator: str = "-") -> list[str]:
+    """Slugify each string in *texts*, returning a list of slugs."""
+    if not isinstance(texts, (list, tuple)):
+        raise TypeError("texts must be a list or tuple")
+    return [slugify(t, separator) for t in texts]
 SLUGIFY_UTILS
 
 # --- tests/test_slugify_utils.py ---
@@ -118411,6 +118418,18 @@ def test_truncate_slug_invalid_max_length():
         pass
     else:
         raise AssertionError("expected ValueError")
+
+
+class TestSlugifyMany:
+    def test_basic(self):
+        from slugify_utils import slugify_many
+        assert slugify_many(["Hello World", "Foo Bar"]) == ["hello-world", "foo-bar"]
+
+    def test_type_error(self):
+        import pytest
+        from slugify_utils import slugify_many
+        with pytest.raises(TypeError):
+            slugify_many("nope")
 TEST_SLUGIFY_UTILS
 
 # --- backoff_utils.py ---

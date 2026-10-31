@@ -72,3 +72,15 @@ def test_truncate_slug_invalid_max_length():
         pass
     else:
         raise AssertionError("expected ValueError")
+
+
+class TestSlugifyMany:
+    def test_basic(self):
+        from slugify_utils import slugify_many
+        assert slugify_many(["Hello World", "Foo Bar"]) == ["hello-world", "foo-bar"]
+
+    def test_type_error(self):
+        import pytest
+        from slugify_utils import slugify_many
+        with pytest.raises(TypeError):
+            slugify_many("nope")
