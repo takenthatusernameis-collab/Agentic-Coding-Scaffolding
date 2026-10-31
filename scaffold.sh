@@ -45419,7 +45419,7 @@ Next Planned (posted for the following agent):
 
 - Added `is_neon_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments (rejecting `bool`); a neon number is a non-negative integer whose square's digit sum equals the number itself (returns `False` for negative values). Added `TestIsNeonNumber` to `tests/test_number_utils.py` covering true cases (0, 1, 9), false cases (2, 10), negative numbers, and the `TypeError` path. Updated the `number_utils` module tree entry and prose section of `README.md` and the `number_utils` line of `.kilo/command/scaffold-project.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
-- Added `type_check_utils.py` and `tests/test_type_check_utils.py` with type checking helpers and tests. Updated `pyproject.toml`, `README.md`, and synchronized embedded copies.
+- Added `is_classmethod` and `is_staticmethod` to `type_check_utils.py` with `__all__` exports, Google-style docstrings, and tests in `tests/test_type_check_utils.py`. Updated `README.md` and synchronized embedded copies via `make refresh-scaffold`.
 
 ## Latest Session (2026-10-28) — added combination and permutation to math_utils
 
@@ -47210,7 +47210,7 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 
 ## Type Check Utilities Module
 
-The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_frozenset`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `is_typeddict`, `is_awaitable`, `is_type_var`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, and `coerce_to_bool`. The module is tested in `tests/test_type_check_utils.py`.
+The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_frozenset`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `is_typeddict`, `is_awaitable`, `is_type_var`, `is_function`, `is_method`, `is_classmethod`, `is_staticmethod`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, `coerce_to_bool`, `coerce_to_bytes`. The module is tested in `tests/test_type_check_utils.py`.
 README_MD
 
 # --- LICENSE ---
@@ -119387,6 +119387,8 @@ __all__: List[str] = [
     "is_awaitable",
     "is_function",
     "is_method",
+    "is_classmethod",
+    "is_staticmethod",
     "is_module",
     "is_namedtuple",
     "is_typeddict",
@@ -119644,6 +119646,62 @@ def is_function(value: object) -> bool:
 def is_method(value: object) -> bool:
     """Return True if value is a method."""
     return inspect.ismethod(value)
+
+
+def is_classmethod(value: object) -> bool:
+    """Return True if *value* is a classmethod descriptor.
+
+    A classmethod is a descriptor wrapping a callable, typically created with
+    the :func:`classmethod` decorator. This helper reports whether *value* is
+    an instance of :class:`classmethod` rather than an ordinary function or
+    method.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a classmethod, False otherwise.
+
+    Examples:
+        >>> class C:
+        ...     @classmethod
+        ...     def m(cls) -> None: ...
+        >>> is_classmethod(C.__dict__["m"])
+        True
+        >>> is_classmethod(C.m)  # bound method, not the descriptor
+        False
+        >>> is_classmethod(lambda self: None)
+        False
+    """
+    return isinstance(value, classmethod)
+
+
+def is_staticmethod(value: object) -> bool:
+    """Return True if *value* is a staticmethod descriptor.
+
+    A staticmethod is a descriptor wrapping a callable, typically created
+    with the :func:`staticmethod` decorator. This helper reports whether
+    *value* is an instance of :class:`staticmethod` rather than an ordinary
+    function or method.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a staticmethod, False otherwise.
+
+    Examples:
+        >>> class C:
+        ...     @staticmethod
+        ...     def s() -> None: ...
+        >>> is_staticmethod(C.__dict__["s"])
+        True
+        >>> is_staticmethod(C.s)  # accessed attribute, not the descriptor
+        False
+        >>> is_staticmethod(lambda: None)
+        False
+    """
+    return isinstance(value, staticmethod)
 
 
 def is_module(value: object) -> bool:
@@ -120231,6 +120289,44 @@ class TestTypeChecks(unittest.TestCase):
         self.assertFalse(type_check_utils.is_module(len))
         self.assertFalse(type_check_utils.is_module("sys"))
         self.assertFalse(type_check_utils.is_module(None))
+
+
+class TestIsMethodClassmethodStaticmethod(unittest.TestCase):
+    def test_is_method(self) -> None:
+        class C:
+            def m(self) -> int:
+                return 1
+
+        instance = C()
+        self.assertTrue(type_check_utils.is_method(instance.m))
+        self.assertFalse(type_check_utils.is_method(C.m))
+        self.assertFalse(type_check_utils.is_method(lambda self: None))
+
+    def test_is_classmethod(self) -> None:
+        class C:
+            @classmethod
+            def m(cls) -> int:
+                return 1
+
+        self.assertTrue(type_check_utils.is_classmethod(C.__dict__["m"]))
+        self.assertFalse(type_check_utils.is_classmethod(C.m))
+        self.assertFalse(type_check_utils.is_classmethod(staticmethod(lambda: None)))
+        self.assertFalse(type_check_utils.is_classmethod(lambda self: None))
+        self.assertFalse(type_check_utils.is_classmethod(None))
+        self.assertFalse(type_check_utils.is_classmethod(42))
+
+    def test_is_staticmethod(self) -> None:
+        class C:
+            @staticmethod
+            def s() -> int:
+                return 1
+
+        self.assertTrue(type_check_utils.is_staticmethod(C.__dict__["s"]))
+        self.assertFalse(type_check_utils.is_staticmethod(C.s))
+        self.assertFalse(type_check_utils.is_staticmethod(classmethod(lambda cls: None)))
+        self.assertFalse(type_check_utils.is_staticmethod(lambda: None))
+        self.assertFalse(type_check_utils.is_staticmethod(None))
+        self.assertFalse(type_check_utils.is_staticmethod(42))
 
 
 class TestIsAwaitable(unittest.TestCase):

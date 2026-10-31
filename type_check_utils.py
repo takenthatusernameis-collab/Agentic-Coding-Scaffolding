@@ -42,6 +42,8 @@ __all__: List[str] = [
     "is_awaitable",
     "is_function",
     "is_method",
+    "is_classmethod",
+    "is_staticmethod",
     "is_module",
     "is_namedtuple",
     "is_typeddict",
@@ -299,6 +301,62 @@ def is_function(value: object) -> bool:
 def is_method(value: object) -> bool:
     """Return True if value is a method."""
     return inspect.ismethod(value)
+
+
+def is_classmethod(value: object) -> bool:
+    """Return True if *value* is a classmethod descriptor.
+
+    A classmethod is a descriptor wrapping a callable, typically created with
+    the :func:`classmethod` decorator. This helper reports whether *value* is
+    an instance of :class:`classmethod` rather than an ordinary function or
+    method.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a classmethod, False otherwise.
+
+    Examples:
+        >>> class C:
+        ...     @classmethod
+        ...     def m(cls) -> None: ...
+        >>> is_classmethod(C.__dict__["m"])
+        True
+        >>> is_classmethod(C.m)  # bound method, not the descriptor
+        False
+        >>> is_classmethod(lambda self: None)
+        False
+    """
+    return isinstance(value, classmethod)
+
+
+def is_staticmethod(value: object) -> bool:
+    """Return True if *value* is a staticmethod descriptor.
+
+    A staticmethod is a descriptor wrapping a callable, typically created
+    with the :func:`staticmethod` decorator. This helper reports whether
+    *value* is an instance of :class:`staticmethod` rather than an ordinary
+    function or method.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if *value* is a staticmethod, False otherwise.
+
+    Examples:
+        >>> class C:
+        ...     @staticmethod
+        ...     def s() -> None: ...
+        >>> is_staticmethod(C.__dict__["s"])
+        True
+        >>> is_staticmethod(C.s)  # accessed attribute, not the descriptor
+        False
+        >>> is_staticmethod(lambda: None)
+        False
+    """
+    return isinstance(value, staticmethod)
 
 
 def is_module(value: object) -> bool:

@@ -1375,7 +1375,7 @@ Next Planned (posted for the following agent):
 
 - Added `is_neon_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments (rejecting `bool`); a neon number is a non-negative integer whose square's digit sum equals the number itself (returns `False` for negative values). Added `TestIsNeonNumber` to `tests/test_number_utils.py` covering true cases (0, 1, 9), false cases (2, 10), negative numbers, and the `TypeError` path. Updated the `number_utils` module tree entry and prose section of `README.md` and the `number_utils` line of `.kilo/command/scaffold-project.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `.kilo/command/scaffold-project.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
-- Added `type_check_utils.py` and `tests/test_type_check_utils.py` with type checking helpers and tests. Updated `pyproject.toml`, `README.md`, and synchronized embedded copies.
+- Added `is_classmethod` and `is_staticmethod` to `type_check_utils.py` with `__all__` exports, Google-style docstrings, and tests in `tests/test_type_check_utils.py`. Updated `README.md` and synchronized embedded copies via `make refresh-scaffold`.
 
 ## Latest Session (2026-10-28) — added combination and permutation to math_utils
 

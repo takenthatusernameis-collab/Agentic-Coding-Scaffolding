@@ -195,6 +195,44 @@ class TestTypeChecks(unittest.TestCase):
         self.assertFalse(type_check_utils.is_module(None))
 
 
+class TestIsMethodClassmethodStaticmethod(unittest.TestCase):
+    def test_is_method(self) -> None:
+        class C:
+            def m(self) -> int:
+                return 1
+
+        instance = C()
+        self.assertTrue(type_check_utils.is_method(instance.m))
+        self.assertFalse(type_check_utils.is_method(C.m))
+        self.assertFalse(type_check_utils.is_method(lambda self: None))
+
+    def test_is_classmethod(self) -> None:
+        class C:
+            @classmethod
+            def m(cls) -> int:
+                return 1
+
+        self.assertTrue(type_check_utils.is_classmethod(C.__dict__["m"]))
+        self.assertFalse(type_check_utils.is_classmethod(C.m))
+        self.assertFalse(type_check_utils.is_classmethod(staticmethod(lambda: None)))
+        self.assertFalse(type_check_utils.is_classmethod(lambda self: None))
+        self.assertFalse(type_check_utils.is_classmethod(None))
+        self.assertFalse(type_check_utils.is_classmethod(42))
+
+    def test_is_staticmethod(self) -> None:
+        class C:
+            @staticmethod
+            def s() -> int:
+                return 1
+
+        self.assertTrue(type_check_utils.is_staticmethod(C.__dict__["s"]))
+        self.assertFalse(type_check_utils.is_staticmethod(C.s))
+        self.assertFalse(type_check_utils.is_staticmethod(classmethod(lambda cls: None)))
+        self.assertFalse(type_check_utils.is_staticmethod(lambda: None))
+        self.assertFalse(type_check_utils.is_staticmethod(None))
+        self.assertFalse(type_check_utils.is_staticmethod(42))
+
+
 class TestIsAwaitable(unittest.TestCase):
     def test_coroutine_is_awaitable(self) -> None:
         async def foo() -> int:
