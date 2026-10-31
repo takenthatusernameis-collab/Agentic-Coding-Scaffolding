@@ -112,6 +112,10 @@ class TestIsPrime(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_prime(True)  # type: ignore[arg-type]
 
+    def test_large_prime(self):
+        self.assertTrue(is_prime(1000000007))
+        self.assertFalse(is_prime(1000000008))
+
 
 class TestNthPrime(unittest.TestCase):
     def test_first(self):
