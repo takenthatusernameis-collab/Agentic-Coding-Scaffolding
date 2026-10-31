@@ -1,3 +1,10 @@
+## Unreleased — added is_amicable to prime_utils
+
+- Added `is_amicable(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* belongs to an amicable pair — two distinct positive integers where each equals the sum of the proper divisors of the other (e.g. 220 and 284) — and returns False for perfect numbers, numbers below 2, and numbers whose partner's proper-divisor sum does not loop back.
+- Added `TestIsAmicable` to `tests/test_prime_utils.py` covering the classic (220, 284) pair, other known pairs (1184/1210, 2620/2924, 5020/5564, 6232/6368), perfect numbers, small/boundary values, primes, and the `TypeError` paths (13 new tests). Imported `is_amicable` at the top of the test file to match the module's `__all__` contract.
+- Updated the `prime_utils` module tree entry and prose section of `README.md`.
+- Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added winsorized_mean to stats
 
 - Added `winsorized_mean(numbers, k=1)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `trimmed_mean`; it replaces the *k* smallest and *k* largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data, and returns the arithmetic mean of the winsorized values (identical to `mean` when *k* is 0).

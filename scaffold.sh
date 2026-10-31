@@ -20972,15 +20972,19 @@ from prompt_utils import (
     count_words,
     dedent_lines,
     ensure_leading_newline,
+    ensure_prefix,
+    ensure_suffix,
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
-    estimate_token_count,
     extract_keywords,
     extract_placeholders,
     first_line,
     format_prompt_template,
+    has_leading_newline,
     has_placeholders,
+    has_trailing_newline,
     indent_lines,
+    join_lines,
     last_line,
     lstrip_lines,
     normalize_line_endings,
@@ -21579,6 +21583,36 @@ class TestCountNonBlankLines(unittest.TestCase):
             count_non_blank_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_non_blank_lines(None)  # type: ignore[arg-type]
+
+
+class TestHasLeadingNewline(unittest.TestCase):
+    def test_has_leading_newline(self):
+        self.assertTrue(has_leading_newline("\nhello"))
+        self.assertTrue(has_leading_newline("\n"))
+        self.assertFalse(has_leading_newline("hello"))
+        self.assertFalse(has_leading_newline(""))
+        self.assertFalse(has_leading_newline(" \nhello"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_leading_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_leading_newline(None)  # type: ignore[arg-type]
+
+
+class TestHasTrailingNewline(unittest.TestCase):
+    def test_has_trailing_newline(self):
+        self.assertTrue(has_trailing_newline("hello\n"))
+        self.assertTrue(has_trailing_newline("\n"))
+        self.assertFalse(has_trailing_newline("hello"))
+        self.assertFalse(has_trailing_newline(""))
+        self.assertTrue(has_trailing_newline("hello \n"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_trailing_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_trailing_newline(None)  # type: ignore[arg-type]
 
 
 class TestCountTrailingNewlines(unittest.TestCase):
@@ -31201,6 +31235,8 @@ __all__: List[str] = [
     "count_non_blank_lines",
     "count_trailing_newlines",
     "count_leading_newlines",
+    "has_leading_newline",
+    "has_trailing_newline",
     "count_paragraphs",
     "count_characters",
     "count_non_whitespace_characters",
@@ -32279,12 +32315,60 @@ def count_leading_newlines(text: str) -> int:
     """
     _require_string(text, "text")
     count = 0
-    i = 0
-    n = len(text)
-    while i < n and text[i] == "\n":
-        count += 1
-        i += 1
+    for ch in text:
+        if ch == "\n":
+            count += 1
+        else:
+            break
     return count
+
+
+def has_leading_newline(text: str) -> bool:
+    """Check whether *text* starts with a newline character.
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        ``True`` if *text* starts with ``\\n``, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_leading_newline("\\nhello")
+        True
+        >>> has_leading_newline("hello")
+        False
+        >>> has_leading_newline("")
+        False
+    """
+    _require_string(text, "text")
+    return bool(text and text[0] == "\n")
+
+
+def has_trailing_newline(text: str) -> bool:
+    """Check whether *text* ends with a newline character.
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        ``True`` if *text* ends with ``\\n``, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_trailing_newline("hello\\n")
+        True
+        >>> has_trailing_newline("hello")
+        False
+        >>> has_trailing_newline("")
+        False
+    """
+    _require_string(text, "text")
+    return bool(text and text[-1] == "\n")
 
 
 def count_paragraphs(text: str) -> int:
@@ -46179,6 +46263,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_amicable to prime_utils
+
+- Added `is_amicable(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* belongs to an amicable pair — two distinct positive integers where each equals the sum of the proper divisors of the other (e.g. 220 and 284) — and returns False for perfect numbers, numbers below 2, and numbers whose partner's proper-divisor sum does not loop back.
+- Added `TestIsAmicable` to `tests/test_prime_utils.py` covering the classic (220, 284) pair, other known pairs (1184/1210, 2620/2924, 5020/5564, 6232/6368), perfect numbers, small/boundary values, primes, and the `TypeError` paths (13 new tests). Imported `is_amicable` at the top of the test file to match the module's `__all__` contract.
+- Updated the `prime_utils` module tree entry and prose section of `README.md`.
+- Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added winsorized_mean to stats
 
 - Added `winsorized_mean(numbers, k=1)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `trimmed_mean`; it replaces the *k* smallest and *k* largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data, and returns the arithmetic mean of the winsorized values (identical to `mean` when *k* is 0).
@@ -47883,7 +47974,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_chen_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_pythagorean_prime, is_sexy_prime, is_automorphic, is_truncatable_prime, is_wilson_prime, is_carmichael_number, is_korselt_number, is_giuga_number, radical, prime_count, prime_gap, primorial, total_prime_factors, distinct_prime_factors, largest_prime_factor)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_chen_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_pythagorean_prime, is_sexy_prime, is_automorphic, is_truncatable_prime, is_wilson_prime, is_carmichael_number, is_korselt_number, is_giuga_number, is_fermat_pseudoprime, is_amicable, radical, prime_count, prime_gap, primorial, total_prime_factors, distinct_prime_factors, largest_prime_factor)
 
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
@@ -48750,7 +48841,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime (alias `coprime`), `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `is_chen_prime` tests whether a prime is a Chen prime (a prime *p* such that *p + 2 is either prime or semiprime), `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2), `primorial` returns the product of all primes less than or equal to *n* (*n#*), `total_prime_factors` returns the total number of prime factors with multiplicity (Ω(n)), `distinct_prime_factors` returns the number of distinct prime factors (ω(n)), and `largest_prime_factor` returns the largest prime factor of an integer, `is_automorphic` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625), `is_truncatable_prime` tests whether a prime remains prime when digits are removed one at a time from either the left or the right (a two-sided truncatable prime, e.g. 3797), `is_pythagorean_prime` tests whether a prime is a Pythagorean prime (a prime of the form 4k + 1), `is_wilson_prime` tests whether a prime *p* satisfies the Wilson congruence modulo *p*² ((p - 1)! ≡ -1 (mod p**2)); the only known Wilson primes are 5, 13, and 563, `is_carmichael_number` tests whether a composite squarefree integer with at least three prime factors satisfies Korselt's criterion (a Fermat pseudoprime to every base coprime to *n*; the smallest is 561), `is_korselt_number` tests whether a composite squarefree integer *n* satisfies Korselt's criterion (for every prime factor *p* of *n*, *p - 1* divides *n - 1*), and `is_giuga_number` tests whether a composite squarefree integer *n* is a Giuga number (for every prime factor *p* of *n*, *p* divides *n // p - 1*; the smallest is 30). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime (alias `coprime`), `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `is_chen_prime` tests whether a prime is a Chen prime (a prime *p* such that *p + 2 is either prime or semiprime), `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2), `primorial` returns the product of all primes less than or equal to *n* (*n#*), `total_prime_factors` returns the total number of prime factors with multiplicity (Ω(n)), `distinct_prime_factors` returns the number of distinct prime factors (ω(n)), and `largest_prime_factor` returns the largest prime factor of an integer, `is_automorphic` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625), `is_truncatable_prime` tests whether a prime remains prime when digits are removed one at a time from either the left or the right (a two-sided truncatable prime, e.g. 3797), `is_pythagorean_prime` tests whether a prime is a Pythagorean prime (a prime of the form 4k + 1), `is_wilson_prime` tests whether a prime *p* satisfies the Wilson congruence modulo *p*² ((p - 1)! ≡ -1 (mod p**2)); the only known Wilson primes are 5, 13, and 563, `is_carmichael_number` tests whether a composite squarefree integer with at least three prime factors satisfies Korselt's criterion (a Fermat pseudoprime to every base coprime to *n*; the smallest is 561), `is_korselt_number` tests whether a composite squarefree integer *n* satisfies Korselt's criterion (for every prime factor *p* of *n*, *p - 1* divides *n - 1*), and `is_giuga_number` tests whether a composite squarefree integer *n* is a Giuga number (for every prime factor *p* of *n*, *p* divides *n // p - 1*; the smallest is 30), `is_fermat_pseudoprime` tests whether a composite integer *n* satisfies `base ** (n - 1) ≡ 1 (mod n)` for a given *base* (default 2; the smallest such base-2 pseudoprime is 341), and `is_amicable` tests whether *n* belongs to an amicable pair — two distinct positive integers where each equals the sum of the proper divisors of the other (e.g. 220 and 284) — returning False for perfect numbers and numbers below 2. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`.
 
 
 ## Decimal Utilities Module
@@ -74317,6 +74408,7 @@ __all__: List[str] = [
     "is_korselt_number",
     "is_giuga_number",
     "is_fermat_pseudoprime",
+    "is_amicable",
 ]
 
 
@@ -75589,6 +75681,44 @@ def is_fermat_pseudoprime(n: int, base: int = 2) -> bool:
     if is_prime(n):
         return False
     return pow(base, n - 1, n) == 1
+
+
+def is_amicable(n: int) -> bool:
+    """Return True if *n* is part of an amicable pair.
+
+    Two positive integers form an amicable pair when each equals the sum of
+    the proper divisors of the other (e.g. 220 and 284, because the proper
+    divisors of 220 sum to 284 and vice versa). A number that is amicable
+    is never perfect (its own proper-divisor sum differs from itself).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* belongs to an amicable pair, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_amicable(220)
+        True
+        >>> is_amicable(284)
+        True
+        >>> is_amicable(6)
+        False
+        >>> is_amicable(1)
+        False
+    """
+    _require_int(n, "n")
+    if n < 2:
+        return False
+    partner = sum_of_proper_divisors(n)
+    if partner == n:
+        return False
+    if partner < 2:
+        return False
+    return sum_of_proper_divisors(partner) == n
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -75601,6 +75731,7 @@ from prime_utils import (
     coprime,
     distinct_prime_factors,
     is_abundant_number,
+    is_amicable,
     is_automorphic,
     is_carmichael_number,
     is_chen_prime,
@@ -75610,8 +75741,8 @@ from prime_utils import (
     is_cousin_prime,
     is_deficient_number,
     is_emirp,
-    is_giuga_number,
     is_fermat_pseudoprime,
+    is_giuga_number,
     is_korselt_number,
     is_mersenne_prime,
     is_palindromic_prime,
@@ -76903,6 +77034,39 @@ class TestIsFermatPseudoprime(unittest.TestCase):
             is_fermat_pseudoprime(341.0)
         with self.assertRaises(TypeError):
             is_fermat_pseudoprime(341, "2")
+
+
+class TestIsAmicable(unittest.TestCase):
+    def test_known_amicable_pair(self):
+        self.assertTrue(is_amicable(220))
+        self.assertTrue(is_amicable(284))
+
+    def test_other_known_pairs(self):
+        for a, b in [(1184, 1210), (2620, 2924), (5020, 5564), (6232, 6368)]:
+            self.assertTrue(is_amicable(a), a)
+            self.assertTrue(is_amicable(b), b)
+
+    def test_perfect_number_is_not_amicable(self):
+        for n in [6, 28, 496, 8128]:
+            self.assertFalse(is_amicable(n), n)
+
+    def test_small_and_boundary_values(self):
+        for n in [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 100, 1000]:
+            self.assertFalse(is_amicable(n), n)
+
+    def test_prime_is_not_amicable(self):
+        for n in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 101]:
+            self.assertFalse(is_amicable(n), n)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_amicable(220.0)
+        with self.assertRaises(TypeError):
+            is_amicable("220")
+        with self.assertRaises(TypeError):
+            is_amicable(True)
+        with self.assertRaises(TypeError):
+            is_amicable(None)
 
 
 if __name__ == "__main__":

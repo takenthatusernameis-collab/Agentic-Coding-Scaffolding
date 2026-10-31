@@ -50,6 +50,7 @@ __all__: List[str] = [
     "is_korselt_number",
     "is_giuga_number",
     "is_fermat_pseudoprime",
+    "is_amicable",
 ]
 
 
@@ -1322,3 +1323,41 @@ def is_fermat_pseudoprime(n: int, base: int = 2) -> bool:
     if is_prime(n):
         return False
     return pow(base, n - 1, n) == 1
+
+
+def is_amicable(n: int) -> bool:
+    """Return True if *n* is part of an amicable pair.
+
+    Two positive integers form an amicable pair when each equals the sum of
+    the proper divisors of the other (e.g. 220 and 284, because the proper
+    divisors of 220 sum to 284 and vice versa). A number that is amicable
+    is never perfect (its own proper-divisor sum differs from itself).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* belongs to an amicable pair, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_amicable(220)
+        True
+        >>> is_amicable(284)
+        True
+        >>> is_amicable(6)
+        False
+        >>> is_amicable(1)
+        False
+    """
+    _require_int(n, "n")
+    if n < 2:
+        return False
+    partner = sum_of_proper_divisors(n)
+    if partner == n:
+        return False
+    if partner < 2:
+        return False
+    return sum_of_proper_divisors(partner) == n

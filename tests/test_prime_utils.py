@@ -6,6 +6,7 @@ from prime_utils import (
     coprime,
     distinct_prime_factors,
     is_abundant_number,
+    is_amicable,
     is_automorphic,
     is_carmichael_number,
     is_chen_prime,
@@ -15,8 +16,8 @@ from prime_utils import (
     is_cousin_prime,
     is_deficient_number,
     is_emirp,
-    is_giuga_number,
     is_fermat_pseudoprime,
+    is_giuga_number,
     is_korselt_number,
     is_mersenne_prime,
     is_palindromic_prime,
@@ -1308,6 +1309,39 @@ class TestIsFermatPseudoprime(unittest.TestCase):
             is_fermat_pseudoprime(341.0)
         with self.assertRaises(TypeError):
             is_fermat_pseudoprime(341, "2")
+
+
+class TestIsAmicable(unittest.TestCase):
+    def test_known_amicable_pair(self):
+        self.assertTrue(is_amicable(220))
+        self.assertTrue(is_amicable(284))
+
+    def test_other_known_pairs(self):
+        for a, b in [(1184, 1210), (2620, 2924), (5020, 5564), (6232, 6368)]:
+            self.assertTrue(is_amicable(a), a)
+            self.assertTrue(is_amicable(b), b)
+
+    def test_perfect_number_is_not_amicable(self):
+        for n in [6, 28, 496, 8128]:
+            self.assertFalse(is_amicable(n), n)
+
+    def test_small_and_boundary_values(self):
+        for n in [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 100, 1000]:
+            self.assertFalse(is_amicable(n), n)
+
+    def test_prime_is_not_amicable(self):
+        for n in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 101]:
+            self.assertFalse(is_amicable(n), n)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_amicable(220.0)
+        with self.assertRaises(TypeError):
+            is_amicable("220")
+        with self.assertRaises(TypeError):
+            is_amicable(True)
+        with self.assertRaises(TypeError):
+            is_amicable(None)
 
 
 if __name__ == "__main__":
