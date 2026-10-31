@@ -38,6 +38,8 @@ __all__: list[str] = [
     "array_typecode",
     "array_byteswap",
     "array_buffer_info",
+    "array_concat",
+    "array_repeat",
 ]
 
 
@@ -387,3 +389,51 @@ def array_buffer_info(arr: array) -> tuple[int, int]:
     """Return a tuple (address, length) giving the current memory address and length."""
     _require_array(arr, "arr")
     return arr.buffer_info()
+
+
+def array_concat(a: array, b: array) -> array:
+    """Return a new array that is the concatenation of *a* and *b*.
+
+    Args:
+        a: The first array.
+        b: The second array.
+
+    Returns:
+        A new array containing the elements of *a* followed by the elements of *b*.
+
+    Raises:
+        TypeError: If *a* or *b* is not an array.
+
+    Examples:
+        >>> array_concat(array("i", [1, 2]), array("i", [3, 4])).tolist()
+        [1, 2, 3, 4]
+        >>> array_concat(array("i"), array("i", [5])).tolist()
+        [5]
+    """
+    _require_array(a, "a")
+    _require_array(b, "b")
+    return a + b
+
+
+def array_repeat(arr: array, n: int) -> array:
+    """Return a new array that is *arr* repeated *n* times.
+
+    Args:
+        arr: The array to repeat.
+        n: The number of repetitions.
+
+    Returns:
+        A new array containing the elements of *arr* repeated *n* times.
+
+    Raises:
+        TypeError: If *arr* is not an array or *n* is not an int.
+
+    Examples:
+        >>> array_repeat(array("i", [1, 2]), 3).tolist()
+        [1, 2, 1, 2, 1, 2]
+        >>> array_repeat(array("i", [1, 2]), 0).tolist()
+        []
+    """
+    _require_array(arr, "arr")
+    _require_int(n, "n")
+    return arr * n

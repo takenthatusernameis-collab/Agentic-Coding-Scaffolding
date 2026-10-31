@@ -1,3 +1,10 @@
+## Unreleased — added array_concat and array_repeat to array_utils
+
+- Added `array_concat(a, b)` and `array_repeat(arr, n)` to `array_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-array arguments; `array_concat` returns a new array that is the concatenation of *a* and *b*, and `array_repeat` returns a new array that is *arr* repeated *n* times.
+- Added `test_array_concat`, `test_array_concat_empty`, `test_array_concat_rejects_non_array`, `test_array_repeat`, `test_array_repeat_rejects_non_array`, and `test_array_repeat_rejects_bad_n` to `tests/test_array_utils.py` (6 new tests). Imported `array_concat` and `array_repeat` at the top of the test file to match the module's `__all__` contract.
+- Updated the `array_utils` module prose section of `README.md`.
+- Synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added split_lines to prompt_utils
 
 - Added `split_lines(text, *, keep_empty=True)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation; splits text into lines normalizing line endings, drops trailing empty line, optionally omits empty lines. Added `TestSplitLines` to `tests/test_prompt_utils.py`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`.

@@ -42193,6 +42193,8 @@ __all__: list[str] = [
     "array_typecode",
     "array_byteswap",
     "array_buffer_info",
+    "array_concat",
+    "array_repeat",
 ]
 
 
@@ -42543,9 +42545,53 @@ def array_buffer_info(arr: array) -> tuple[int, int]:
     _require_array(arr, "arr")
     return arr.buffer_info()
 
-    """Return a tuple (address, length) giving the current memory address and length."""
+
+def array_concat(a: array, b: array) -> array:
+    """Return a new array that is the concatenation of *a* and *b*.
+
+    Args:
+        a: The first array.
+        b: The second array.
+
+    Returns:
+        A new array containing the elements of *a* followed by the elements of *b*.
+
+    Raises:
+        TypeError: If *a* or *b* is not an array.
+
+    Examples:
+        >>> array_concat(array("i", [1, 2]), array("i", [3, 4])).tolist()
+        [1, 2, 3, 4]
+        >>> array_concat(array("i"), array("i", [5])).tolist()
+        [5]
+    """
+    _require_array(a, "a")
+    _require_array(b, "b")
+    return a + b
+
+
+def array_repeat(arr: array, n: int) -> array:
+    """Return a new array that is *arr* repeated *n* times.
+
+    Args:
+        arr: The array to repeat.
+        n: The number of repetitions.
+
+    Returns:
+        A new array containing the elements of *arr* repeated *n* times.
+
+    Raises:
+        TypeError: If *arr* is not an array or *n* is not an int.
+
+    Examples:
+        >>> array_repeat(array("i", [1, 2]), 3).tolist()
+        [1, 2, 1, 2, 1, 2]
+        >>> array_repeat(array("i", [1, 2]), 0).tolist()
+        []
+    """
     _require_array(arr, "arr")
-    return arr.buffer_info()
+    _require_int(n, "n")
+    return arr * n
 ARRAY_UTILS
 
 # --- tests/test_array_utils.py ---
@@ -42561,6 +42607,7 @@ from array_utils import (
     array_buffer_info,
     array_byteswap,
     array_clear,
+    array_concat,
     array_count,
     array_create,
     array_extend,
@@ -42570,6 +42617,7 @@ from array_utils import (
     array_index,
     array_insert,
     array_pop,
+    array_repeat,
     array_remove,
     array_remove_first,
     array_reverse,
@@ -42824,6 +42872,43 @@ def test_array_buffer_info():
 def test_array_typecode():
     a = array("d", [1.0])
     assert array_typecode(a) == "d"
+
+
+def test_array_concat():
+    a = array("i", [1, 2])
+    b = array("i", [3, 4])
+    assert array_concat(a, b).tolist() == [1, 2, 3, 4]
+
+
+def test_array_concat_empty():
+    assert array_concat(array("i"), array("i", [1])).tolist() == [1]
+    assert array_concat(array("i", [1]), array("i")).tolist() == [1]
+    assert array_concat(array("i"), array("i")).tolist() == []
+
+
+def test_array_concat_rejects_non_array():
+    with pytest.raises(TypeError):
+        array_concat([1, 2], array("i"))
+    with pytest.raises(TypeError):
+        array_concat(array("i"), [1, 2])
+
+
+def test_array_repeat():
+    assert array_repeat(array("i", [1, 2]), 3).tolist() == [1, 2, 1, 2, 1, 2]
+    assert array_repeat(array("i", [1, 2]), 1).tolist() == [1, 2]
+    assert array_repeat(array("i", [1, 2]), 0).tolist() == []
+
+
+def test_array_repeat_rejects_non_array():
+    with pytest.raises(TypeError):
+        array_repeat([1, 2], 3)
+
+
+def test_array_repeat_rejects_bad_n():
+    with pytest.raises(TypeError):
+        array_repeat(array("i", [1]), 1.5)
+    with pytest.raises(TypeError):
+        array_repeat(array("i", [1]), True)
 TEST_ARRAY_UTILS
 # --- bisect_utils.py ---
 cat > "$OUTPUT_DIR/bisect_utils.py" <<'BISECT_UTILS'
@@ -45985,6 +46070,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added array_concat and array_repeat to array_utils
+
+- Added `array_concat(a, b)` and `array_repeat(arr, n)` to `array_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-array arguments; `array_concat` returns a new array that is the concatenation of *a* and *b*, and `array_repeat` returns a new array that is *arr* repeated *n* times.
+- Added `test_array_concat`, `test_array_concat_empty`, `test_array_concat_rejects_non_array`, `test_array_repeat`, `test_array_repeat_rejects_non_array`, and `test_array_repeat_rejects_bad_n` to `tests/test_array_utils.py` (6 new tests). Imported `array_concat` and `array_repeat` at the top of the test file to match the module's `__all__` contract.
+- Updated the `array_utils` module prose section of `README.md`.
+- Synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added split_lines to prompt_utils
 
 - Added `split_lines(text, *, keep_empty=True)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation; splits text into lines normalizing line endings, drops trailing empty line, optionally omits empty lines. Added `TestSplitLines` to `tests/test_prompt_utils.py`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`.
@@ -48825,7 +48917,7 @@ The project includes opcode utilities in `opcode_utils.py` wrapping the standard
 
 ## Array Utilities Module
 
-The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_clear` removes all items from an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, `array_itemsize` returns the byte length of each item, `array_typecode` returns the array's typecode, and `array_count` and `array_index` search for a value. `array_to_list` and `array_from_list` convert between arrays and lists, `array_extend_from_list` extends an array from a list, and `array_remove_first` removes the first occurrence of a value. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
+The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_clear` removes all items from an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, `array_itemsize` returns the byte length of each item, `array_typecode` returns the array's typecode, and `array_count` and `array_index` search for a value. `array_to_list` and `array_from_list` convert between arrays and lists, `array_extend_from_list` extends an array from a list, and `array_remove_first` removes the first occurrence of a value. `array_concat` returns a new array that is the concatenation of two arrays, and `array_repeat` returns a new array that is an array repeated *n* times. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
 
 ## Atexit Utilities Module
 

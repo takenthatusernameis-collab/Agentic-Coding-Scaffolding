@@ -9,6 +9,7 @@ from array_utils import (
     array_buffer_info,
     array_byteswap,
     array_clear,
+    array_concat,
     array_count,
     array_create,
     array_extend,
@@ -18,6 +19,7 @@ from array_utils import (
     array_index,
     array_insert,
     array_pop,
+    array_repeat,
     array_remove,
     array_remove_first,
     array_reverse,
@@ -272,3 +274,40 @@ def test_array_buffer_info():
 def test_array_typecode():
     a = array("d", [1.0])
     assert array_typecode(a) == "d"
+
+
+def test_array_concat():
+    a = array("i", [1, 2])
+    b = array("i", [3, 4])
+    assert array_concat(a, b).tolist() == [1, 2, 3, 4]
+
+
+def test_array_concat_empty():
+    assert array_concat(array("i"), array("i", [1])).tolist() == [1]
+    assert array_concat(array("i", [1]), array("i")).tolist() == [1]
+    assert array_concat(array("i"), array("i")).tolist() == []
+
+
+def test_array_concat_rejects_non_array():
+    with pytest.raises(TypeError):
+        array_concat([1, 2], array("i"))
+    with pytest.raises(TypeError):
+        array_concat(array("i"), [1, 2])
+
+
+def test_array_repeat():
+    assert array_repeat(array("i", [1, 2]), 3).tolist() == [1, 2, 1, 2, 1, 2]
+    assert array_repeat(array("i", [1, 2]), 1).tolist() == [1, 2]
+    assert array_repeat(array("i", [1, 2]), 0).tolist() == []
+
+
+def test_array_repeat_rejects_non_array():
+    with pytest.raises(TypeError):
+        array_repeat([1, 2], 3)
+
+
+def test_array_repeat_rejects_bad_n():
+    with pytest.raises(TypeError):
+        array_repeat(array("i", [1]), 1.5)
+    with pytest.raises(TypeError):
+        array_repeat(array("i", [1]), True)
