@@ -41,6 +41,7 @@ from prompt_utils import (
     remove_blank_lines,
     reverse_lines,
     rstrip_lines,
+    split_lines,
     strip_blank_lines,
     strip_leading_newlines,
     strip_lines,
@@ -1181,3 +1182,29 @@ class TestCountUppercase(unittest.TestCase):
             count_uppercase(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_uppercase(None)  # type: ignore[arg-type]
+
+
+class TestSplitLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(split_lines("a\nb\nc"), ["a", "b", "c"])
+
+    def test_empty_text(self):
+        self.assertEqual(split_lines(""), [])
+
+    def test_trailing_newline(self):
+        self.assertEqual(split_lines("a\nb\n"), ["a", "b"])
+
+    def test_empty_lines_kept(self):
+        self.assertEqual(split_lines("a\n\nb"), ["a", "", "b"])
+
+    def test_keep_empty_false(self):
+        self.assertEqual(split_lines("a\n\nb", keep_empty=False), ["a", "b"])
+
+    def test_crlf(self):
+        self.assertEqual(split_lines("a\r\nb"), ["a", "b"])
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            split_lines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            split_lines(None)  # type: ignore[arg-type]

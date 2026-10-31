@@ -61,6 +61,7 @@ __all__: List[str] = [
     "strip_trailing_newlines",
     "count_unique_words",
     "join_lines",
+    "split_lines",
 ]
 
 
@@ -1651,3 +1652,41 @@ def join_lines(lines: Any, separator: str = "\n") -> str:
         if not isinstance(item, str):
             raise TypeError("lines must contain only strings")
     return separator.join(items)
+
+
+def split_lines(text: str, *, keep_empty: bool = True) -> List[str]:
+    """Split *text* into a list of lines.
+
+    Line endings (``\\n``, ``\\r\\n``, ``\\r``) are normalized before
+    splitting. A trailing newline does not produce an extra empty line.
+
+    Args:
+        text: The text to split.
+        keep_empty: If ``False``, empty lines are omitted from the result.
+
+    Returns:
+        A list of lines without line-ending characters.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> split_lines("a\\nb\\nc")
+        ['a', 'b', 'c']
+        >>> split_lines("a\\n\\nb")
+        ['a', '', 'b']
+        >>> split_lines("a\\n\\nb", keep_empty=False)
+        ['a', 'b']
+        >>> split_lines("")
+        []
+    """
+    _require_string(text, "text")
+    if not text:
+        return []
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    if lines and lines[-1] == "":
+        lines = lines[:-1]
+    if not keep_empty:
+        lines = [line for line in lines if line != ""]
+    return lines

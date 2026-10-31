@@ -1,3 +1,7 @@
+## Unreleased — added split_lines to prompt_utils
+
+- Added `split_lines(text, *, keep_empty=True)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation; splits text into lines normalizing line endings, drops trailing empty line, optionally omits empty lines. Added `TestSplitLines` to `tests/test_prompt_utils.py`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`.
+
 ## Unreleased — added rfind to bytes_utils
 
 - Added `rfind(data, sub, start=0, end=None)` to `bytes_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-bytes-like arguments; it returns the highest index in *data* where *sub* is found, or -1 when *sub* is not present, honoring optional *start*/*end* bounds. Added `TestRFind` to `tests/test_bytes_utils.py` covering found, not-found, empty-subsequence, last-occurrence, bytearray input, start/end bounds, and the `TypeError` paths. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
