@@ -33,3 +33,13 @@ def chunk(data: bytes, size: int) -> list[bytes]:
         raise ValueError("size must be a positive integer")
     data = bytes(data)
     return [data[i : i + size] for i in range(0, len(data), size)]
+
+
+def concat(*parts: bytes) -> bytes:
+    """Concatenate one or more bytes-like objects into a single ``bytes``."""
+    result = bytearray()
+    for part in parts:
+        if not isinstance(part, (bytes, bytearray)):
+            raise TypeError("parts must be bytes or bytearray")
+        result.extend(part)
+    return bytes(result)

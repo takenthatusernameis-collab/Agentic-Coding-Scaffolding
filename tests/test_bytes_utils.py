@@ -1,6 +1,6 @@
 import unittest
 
-from bytes_utils import chunk, from_hex, to_hex, xor
+from bytes_utils import chunk, concat, from_hex, to_hex, xor
 
 
 class TestBytesUtils(unittest.TestCase):
@@ -15,6 +15,14 @@ class TestBytesUtils(unittest.TestCase):
 
     def test_chunk(self):
         self.assertEqual(chunk(b"abcdef", 2), [b"ab", b"cd", b"ef"])
+
+    def test_concat(self):
+        self.assertEqual(concat(b"ab", b"cd", bytearray(b"ef")), b"abcdef")
+        self.assertEqual(concat(), b"")
+
+    def test_concat_type_error(self):
+        with self.assertRaises(TypeError):
+            concat(b"ab", "cd")
 
     def test_type_errors(self):
         with self.assertRaises(TypeError):

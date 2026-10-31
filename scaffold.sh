@@ -39550,13 +39550,23 @@ def chunk(data: bytes, size: int) -> list[bytes]:
         raise ValueError("size must be a positive integer")
     data = bytes(data)
     return [data[i : i + size] for i in range(0, len(data), size)]
+
+
+def concat(*parts: bytes) -> bytes:
+    """Concatenate one or more bytes-like objects into a single ``bytes``."""
+    result = bytearray()
+    for part in parts:
+        if not isinstance(part, (bytes, bytearray)):
+            raise TypeError("parts must be bytes or bytearray")
+        result.extend(part)
+    return bytes(result)
 BYTES_UTILS
 
 # --- tests/test_bytes_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_bytes_utils.py" <<'TESTBYTESUTILS'
 import unittest
 
-from bytes_utils import chunk, from_hex, to_hex, xor
+from bytes_utils import chunk, concat, from_hex, to_hex, xor
 
 
 class TestBytesUtils(unittest.TestCase):
@@ -39571,6 +39581,14 @@ class TestBytesUtils(unittest.TestCase):
 
     def test_chunk(self):
         self.assertEqual(chunk(b"abcdef", 2), [b"ab", b"cd", b"ef"])
+
+    def test_concat(self):
+        self.assertEqual(concat(b"ab", b"cd", bytearray(b"ef")), b"abcdef")
+        self.assertEqual(concat(), b"")
+
+    def test_concat_type_error(self):
+        with self.assertRaises(TypeError):
+            concat(b"ab", "cd")
 
     def test_type_errors(self):
         with self.assertRaises(TypeError):
