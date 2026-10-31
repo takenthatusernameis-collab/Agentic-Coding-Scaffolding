@@ -16,6 +16,7 @@ from prime_utils import (
     is_deficient_number,
     is_emirp,
     is_giuga_number,
+    is_fermat_pseudoprime,
     is_korselt_number,
     is_mersenne_prime,
     is_palindromic_prime,
@@ -1287,6 +1288,26 @@ class TestIsTruncatablePrime(unittest.TestCase):
             is_truncatable_prime(True)
         with self.assertRaises(TypeError):
             is_truncatable_prime(None)
+
+
+class TestIsFermatPseudoprime(unittest.TestCase):
+    def test_known_pseudoprimes(self):
+        self.assertTrue(is_fermat_pseudoprime(341))
+        self.assertTrue(is_fermat_pseudoprime(561))
+
+    def test_prime_returns_false(self):
+        self.assertFalse(is_fermat_pseudoprime(7))
+        self.assertFalse(is_fermat_pseudoprime(2))
+
+    def test_small_values(self):
+        self.assertFalse(is_fermat_pseudoprime(1))
+        self.assertFalse(is_fermat_pseudoprime(0))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_fermat_pseudoprime(341.0)
+        with self.assertRaises(TypeError):
+            is_fermat_pseudoprime(341, "2")
 
 
 if __name__ == "__main__":

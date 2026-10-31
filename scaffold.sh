@@ -20878,6 +20878,7 @@ from prompt_utils import (
     remove_blank_lines,
     reverse_lines,
     rstrip_lines,
+    split_lines,
     strip_blank_lines,
     strip_leading_newlines,
     strip_lines,
@@ -22018,6 +22019,32 @@ class TestCountUppercase(unittest.TestCase):
             count_uppercase(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_uppercase(None)  # type: ignore[arg-type]
+
+
+class TestSplitLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(split_lines("a\nb\nc"), ["a", "b", "c"])
+
+    def test_empty_text(self):
+        self.assertEqual(split_lines(""), [])
+
+    def test_trailing_newline(self):
+        self.assertEqual(split_lines("a\nb\n"), ["a", "b"])
+
+    def test_empty_lines_kept(self):
+        self.assertEqual(split_lines("a\n\nb"), ["a", "", "b"])
+
+    def test_keep_empty_false(self):
+        self.assertEqual(split_lines("a\n\nb", keep_empty=False), ["a", "b"])
+
+    def test_crlf(self):
+        self.assertEqual(split_lines("a\r\nb"), ["a", "b"])
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            split_lines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            split_lines(None)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -31081,6 +31108,7 @@ __all__: List[str] = [
     "strip_trailing_newlines",
     "count_unique_words",
     "join_lines",
+    "split_lines",
 ]
 
 
@@ -32671,6 +32699,44 @@ def join_lines(lines: Any, separator: str = "\n") -> str:
         if not isinstance(item, str):
             raise TypeError("lines must contain only strings")
     return separator.join(items)
+
+
+def split_lines(text: str, *, keep_empty: bool = True) -> List[str]:
+    """Split *text* into a list of lines.
+
+    Line endings (``\\n``, ``\\r\\n``, ``\\r``) are normalized before
+    splitting. A trailing newline does not produce an extra empty line.
+
+    Args:
+        text: The text to split.
+        keep_empty: If ``False``, empty lines are omitted from the result.
+
+    Returns:
+        A list of lines without line-ending characters.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> split_lines("a\\nb\\nc")
+        ['a', 'b', 'c']
+        >>> split_lines("a\\n\\nb")
+        ['a', '', 'b']
+        >>> split_lines("a\\n\\nb", keep_empty=False)
+        ['a', 'b']
+        >>> split_lines("")
+        []
+    """
+    _require_string(text, "text")
+    if not text:
+        return []
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    if lines and lines[-1] == "":
+        lines = lines[:-1]
+    if not keep_empty:
+        lines = [line for line in lines if line != ""]
+    return lines
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -45919,6 +45985,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added split_lines to prompt_utils
+
+- Added `split_lines(text, *, keep_empty=True)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation; splits text into lines normalizing line endings, drops trailing empty line, optionally omits empty lines. Added `TestSplitLines` to `tests/test_prompt_utils.py`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`.
+
 ## Unreleased — added rfind to bytes_utils
 
 - Added `rfind(data, sub, start=0, end=None)` to `bytes_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-bytes-like arguments; it returns the highest index in *data* where *sub* is found, or -1 when *sub* is not present, honoring optional *start*/*end* bounds. Added `TestRFind` to `tests/test_bytes_utils.py` covering found, not-found, empty-subsequence, last-occurrence, bytearray input, start/end bounds, and the `TypeError` paths. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -74038,6 +74108,7 @@ __all__: List[str] = [
     "is_carmichael_number",
     "is_korselt_number",
     "is_giuga_number",
+    "is_fermat_pseudoprime",
 ]
 
 
@@ -75275,6 +75346,41 @@ def is_giuga_number(n: int) -> bool:
         if (n // p - 1) % p != 0:
             return False
     return True
+
+
+def is_fermat_pseudoprime(n: int, base: int = 2) -> bool:
+    """Return True if *n* is a Fermat pseudoprime to *base*.
+
+    A Fermat pseudoprime is a composite integer *n* such that
+    ``base ** (n - 1) ≡ 1 (mod n)``. Primes also satisfy this congruence
+    (Fermat's Little Theorem); this function returns False for primes and
+    for *n* less than 2.
+
+    Args:
+        n: The integer to test.
+        base: The base of the congruence (defaults to 2).
+
+    Returns:
+        True if *n* is a composite Fermat pseudoprime to *base*.
+
+    Raises:
+        TypeError: If *n* or *base* is not an int.
+
+    Examples:
+        >>> is_fermat_pseudoprime(341)
+        True
+        >>> is_fermat_pseudoprime(561)
+        True
+        >>> is_fermat_pseudoprime(7)
+        False
+    """
+    _require_int(n, "n")
+    _require_int(base, "base")
+    if n < 2 or base < 2:
+        return False
+    if is_prime(n):
+        return False
+    return pow(base, n - 1, n) == 1
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -75297,6 +75403,7 @@ from prime_utils import (
     is_deficient_number,
     is_emirp,
     is_giuga_number,
+    is_fermat_pseudoprime,
     is_korselt_number,
     is_mersenne_prime,
     is_palindromic_prime,
@@ -76568,6 +76675,26 @@ class TestIsTruncatablePrime(unittest.TestCase):
             is_truncatable_prime(True)
         with self.assertRaises(TypeError):
             is_truncatable_prime(None)
+
+
+class TestIsFermatPseudoprime(unittest.TestCase):
+    def test_known_pseudoprimes(self):
+        self.assertTrue(is_fermat_pseudoprime(341))
+        self.assertTrue(is_fermat_pseudoprime(561))
+
+    def test_prime_returns_false(self):
+        self.assertFalse(is_fermat_pseudoprime(7))
+        self.assertFalse(is_fermat_pseudoprime(2))
+
+    def test_small_values(self):
+        self.assertFalse(is_fermat_pseudoprime(1))
+        self.assertFalse(is_fermat_pseudoprime(0))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_fermat_pseudoprime(341.0)
+        with self.assertRaises(TypeError):
+            is_fermat_pseudoprime(341, "2")
 
 
 if __name__ == "__main__":

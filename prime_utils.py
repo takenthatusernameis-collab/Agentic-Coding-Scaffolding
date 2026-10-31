@@ -49,6 +49,7 @@ __all__: List[str] = [
     "is_carmichael_number",
     "is_korselt_number",
     "is_giuga_number",
+    "is_fermat_pseudoprime",
 ]
 
 
@@ -1286,3 +1287,38 @@ def is_giuga_number(n: int) -> bool:
         if (n // p - 1) % p != 0:
             return False
     return True
+
+
+def is_fermat_pseudoprime(n: int, base: int = 2) -> bool:
+    """Return True if *n* is a Fermat pseudoprime to *base*.
+
+    A Fermat pseudoprime is a composite integer *n* such that
+    ``base ** (n - 1) ≡ 1 (mod n)``. Primes also satisfy this congruence
+    (Fermat's Little Theorem); this function returns False for primes and
+    for *n* less than 2.
+
+    Args:
+        n: The integer to test.
+        base: The base of the congruence (defaults to 2).
+
+    Returns:
+        True if *n* is a composite Fermat pseudoprime to *base*.
+
+    Raises:
+        TypeError: If *n* or *base* is not an int.
+
+    Examples:
+        >>> is_fermat_pseudoprime(341)
+        True
+        >>> is_fermat_pseudoprime(561)
+        True
+        >>> is_fermat_pseudoprime(7)
+        False
+    """
+    _require_int(n, "n")
+    _require_int(base, "base")
+    if n < 2 or base < 2:
+        return False
+    if is_prime(n):
+        return False
+    return pow(base, n - 1, n) == 1
