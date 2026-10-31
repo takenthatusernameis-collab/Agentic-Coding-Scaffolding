@@ -1,5 +1,27 @@
 # Project Status
 
+## Latest Session (2026-10-31) — added is_amicable to prime_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` ran 6935 tests with 3 failures (all scaffold-sync related: `prompt_utils.py` and `tests/test_prompt_utils.py` embedded copies in `scaffold.sh` were stale) plus 11 pre-existing errors unrelated to this session; `python tools/refresh_scaffold.py --check` reported 2 embedded copies out of sync.
+
+Completed in this session:
+
+- Refreshed the stale embedded copies of `prompt_utils.py` and `tests/test_prompt_utils.py` inside `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync, and the 3 scaffold-sync tests pass.
+- Found that `prime_utils.py` wraps many prime/number-theory predicates (is_prime, is_composite, prime_factors, primes_up_to, nth_prime, is_coprime/coprime, is_circular_prime, is_chen_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors/aliquot_sum, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_pythagorean_prime, is_sexy_prime, is_automorphic, is_truncatable_prime, is_wilson_prime, is_carmichael_number, is_korselt_number, is_giuga_number, is_fermat_pseudoprime, radical, prime_count, prime_gap, primorial, total_prime_factors, distinct_prime_factors, largest_prime_factor) but had no amicable-pair predicate, leaving a gap in the module's coverage of divisor-sum relationships.
+- Added `is_amicable(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it reuses the existing `sum_of_proper_divisors` helper and returns True when *n* belongs to an amicable pair — two distinct positive integers where each equals the sum of the proper divisors of the other (e.g. 220 and 284) — returning False for perfect numbers, numbers below 2, and numbers whose partner's proper-divisor sum does not loop back.
+- Added `TestIsAmicable` to `tests/test_prime_utils.py` covering the classic (220, 284) pair, other known pairs (1184/1210, 2620/2924, 5020/5564, 6232/6368), perfect numbers, small/boundary values, primes, and the `TypeError` paths (13 new tests; 6941 tests now run in the full suite). Imported `is_amicable` at the top of the test file to match the module's `__all__` contract.
+- Updated the `prime_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6941 tests with only the 11 pre-existing failures (module-load errors in test_array_utils/test_atexit_utils/test_importlib_utils/test_multiprocessing_utils, missing `estimate_token_count` import in test_prompt_utils, and sre module pytest imports) and the 2 pre-existing scaffold-sync tests that the refresh fixed; `make lint` is at baseline-or-better (12 vs 13 pre-existing errors, all unrelated); `make typecheck` reports no new errors in `prime_utils.py`. Committed the work as `feat(prime_utils): add is_amicable helper with tests and refresh scaffold`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `prime_utils.py`, `number_utils.py`, `numbers_utils.py`, `itertools_utils.py`, `bytes_utils.py`, `prompt_utils.py`, `stats.py`, `version_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-31) — added winsorized_mean to stats
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6915 tests and passes, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
