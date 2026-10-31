@@ -137,6 +137,44 @@ def cycle_take(iterable: Iterable[Any], n: int) -> List[Any]:
     return list(islice(cycle(iterable), n))
 
 
+def partition(
+    iterable: Iterable[Any], predicate: Callable[[Any], bool]
+) -> tuple[List[Any], List[Any]]:
+    """Split an iterable into two lists: truthy and falsy items.
+
+    Items for which ``predicate`` is truthy go into the first list, the rest
+    into the second. Order is preserved within each list.
+
+    Args:
+        iterable: The iterable to split.
+        predicate: A callable returning a truthy/falsy value per item.
+
+    Returns:
+        A ``(truthy, falsy)`` tuple of lists.
+
+    Raises:
+        TypeError: If ``iterable`` is not iterable or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> partition([1, 2, 3, 4, 5], lambda x: x % 2 == 0)
+        ([2, 4], [1, 3, 5])
+        >>> partition([], bool)
+        ([], [])
+    """
+    _ensure_iterable(iterable)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    truthy: List[Any] = []
+    falsy: List[Any] = []
+    for item in iterable:
+        if predicate(item):
+            truthy.append(item)
+        else:
+            falsy.append(item)
+    return truthy, falsy
+
+
 __all__ = [
     "chain_iterables",
     "flatten_once",
@@ -149,4 +187,5 @@ __all__ = [
     "accumulate_values",
     "repeat_value",
     "cycle_take",
+    "partition",
 ]

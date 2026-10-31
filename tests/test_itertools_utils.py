@@ -8,6 +8,7 @@ from itertools_utils import (
     cycle_take,
     flatten_once,
     group_by_key,
+    partition,
     permutations_of,
     product_of,
     repeat_value,
