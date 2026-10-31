@@ -11,6 +11,8 @@ from __future__ import annotations
 import threading
 from typing import Any, Callable, Optional, TypeVar
 
+__all__: list[str] = ["call_once"]
+
 T = TypeVar("T")
 
 

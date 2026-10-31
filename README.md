@@ -96,7 +96,7 @@ timeit_utils.py           # Wrapper for stdlib timeit
 async_utils.py            # Asynchronous utility functions
 asyncio_utils.py     # Utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for)
 bit_utils.py              # Bitwise utility functions for working with binary representations
-call_once_utils.py        # Call-once execution utilities (call_once decorator)
+call_once_utils.py        # Call-once execution utilities (call_once)
 concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 concurrent_futures_utils.py # concurrent.futures wrappers with validation
 priority_queue_utils.py   # Heap-based priority queue implementation
