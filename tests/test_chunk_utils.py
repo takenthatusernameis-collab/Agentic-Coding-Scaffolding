@@ -1,6 +1,6 @@
 """Tests for chunk_utils."""
 
-from chunk_utils import chunk, chunk_count, chunked, chunks, ichunk, iter_chunked
+from chunk_utils import chunk, chunk_count, chunked, chunks, even_chunks, ichunk, iter_chunked
 
 
 def test_chunk_basic():
@@ -91,3 +91,41 @@ def test_chunk_count_invalid_value():
         assert False
     except ValueError:
         pass
+
+
+def test_even_chunks_basic():
+    assert even_chunks([1, 2, 3, 4, 5], 2) == [[1, 2, 3], [4, 5]]
+
+
+def test_even_chunks_exact():
+    assert even_chunks([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]
+
+
+def test_even_chunks_more_than_items():
+    assert even_chunks([1, 2], 5) == [[1], [2]]
+
+
+def test_even_chunks_empty():
+    assert even_chunks([], 3) == []
+
+
+def test_even_chunks_one():
+    assert even_chunks([1, 2, 3], 1) == [[1, 2, 3]]
+
+
+def test_even_chunks_type_error():
+    import pytest
+
+    with pytest.raises(TypeError):
+        even_chunks([1, 2], True)
+    with pytest.raises(TypeError):
+        even_chunks([1, 2], "2")
+
+
+def test_even_chunks_value_error():
+    import pytest
+
+    with pytest.raises(ValueError):
+        even_chunks([1, 2], 0)
+    with pytest.raises(ValueError):
+        even_chunks([1, 2], -1)

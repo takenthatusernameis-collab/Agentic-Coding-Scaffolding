@@ -9,6 +9,7 @@ __all__: list[str] = [
     "chunk_count",
     "chunked",
     "chunks",
+    "even_chunks",
     "ichunk",
     "iter_chunked",
 ]
@@ -91,3 +92,43 @@ def chunk_count(iterable: Iterable[Any], size: int) -> int:
 def iter_chunked(iterable: Iterable[Any], size: int) -> Iterator[List[Any]]:
     """Alias for ichunk."""
     yield from ichunk(iterable, size)
+
+
+def even_chunks(iterable: Iterable[Any], n: int) -> List[List[Any]]:
+    """Split *iterable* into *n* chunks of roughly equal size.
+
+    The total number of items is distributed so that the first
+    ``len(items) % n`` chunks contain one extra element when the count does
+    not divide evenly. Empty input yields an empty list.
+
+    Args:
+        iterable: The iterable to split.
+        n: The number of chunks to produce.
+
+    Returns:
+        A list of *n* lists (or fewer when the input has fewer than *n*
+        items; trailing empty chunks are dropped).
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is not positive.
+    """
+    if not isinstance(n, int):
+        raise TypeError("n must be int")
+    if isinstance(n, bool):
+        raise TypeError("n must be int")
+    if n <= 0:
+        raise ValueError("n must be positive")
+    items = list(iterable)
+    if not items:
+        return []
+    base, remainder = divmod(len(items), n)
+    result: List[List[Any]] = []
+    index = 0
+    for i in range(n):
+        size = base + (1 if i < remainder else 0)
+        if size == 0:
+            break
+        result.append(items[index : index + size])
+        index += size
+    return result

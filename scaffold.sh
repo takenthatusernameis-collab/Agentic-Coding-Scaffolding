@@ -116496,7 +116496,7 @@ TEST_POSIX_UTILS
 cat > "$OUTPUT_DIR/tests/test_chunk_utils.py" <<'TEST_CHUNK_UTILS'
 """Tests for chunk_utils."""
 
-from chunk_utils import chunk, chunk_count, chunked, chunks, ichunk, iter_chunked
+from chunk_utils import chunk, chunk_count, chunked, chunks, even_chunks, ichunk, iter_chunked
 
 
 def test_chunk_basic():
@@ -116587,6 +116587,44 @@ def test_chunk_count_invalid_value():
         assert False
     except ValueError:
         pass
+
+
+def test_even_chunks_basic():
+    assert even_chunks([1, 2, 3, 4, 5], 2) == [[1, 2, 3], [4, 5]]
+
+
+def test_even_chunks_exact():
+    assert even_chunks([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]
+
+
+def test_even_chunks_more_than_items():
+    assert even_chunks([1, 2], 5) == [[1], [2]]
+
+
+def test_even_chunks_empty():
+    assert even_chunks([], 3) == []
+
+
+def test_even_chunks_one():
+    assert even_chunks([1, 2, 3], 1) == [[1, 2, 3]]
+
+
+def test_even_chunks_type_error():
+    import pytest
+
+    with pytest.raises(TypeError):
+        even_chunks([1, 2], True)
+    with pytest.raises(TypeError):
+        even_chunks([1, 2], "2")
+
+
+def test_even_chunks_value_error():
+    import pytest
+
+    with pytest.raises(ValueError):
+        even_chunks([1, 2], 0)
+    with pytest.raises(ValueError):
+        even_chunks([1, 2], -1)
 TEST_CHUNK_UTILS
 
 # --- pipes_utils.py ---
@@ -122846,6 +122884,7 @@ __all__: list[str] = [
     "chunk_count",
     "chunked",
     "chunks",
+    "even_chunks",
     "ichunk",
     "iter_chunked",
 ]
@@ -122928,6 +122967,46 @@ def chunk_count(iterable: Iterable[Any], size: int) -> int:
 def iter_chunked(iterable: Iterable[Any], size: int) -> Iterator[List[Any]]:
     """Alias for ichunk."""
     yield from ichunk(iterable, size)
+
+
+def even_chunks(iterable: Iterable[Any], n: int) -> List[List[Any]]:
+    """Split *iterable* into *n* chunks of roughly equal size.
+
+    The total number of items is distributed so that the first
+    ``len(items) % n`` chunks contain one extra element when the count does
+    not divide evenly. Empty input yields an empty list.
+
+    Args:
+        iterable: The iterable to split.
+        n: The number of chunks to produce.
+
+    Returns:
+        A list of *n* lists (or fewer when the input has fewer than *n*
+        items; trailing empty chunks are dropped).
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is not positive.
+    """
+    if not isinstance(n, int):
+        raise TypeError("n must be int")
+    if isinstance(n, bool):
+        raise TypeError("n must be int")
+    if n <= 0:
+        raise ValueError("n must be positive")
+    items = list(iterable)
+    if not items:
+        return []
+    base, remainder = divmod(len(items), n)
+    result: List[List[Any]] = []
+    index = 0
+    for i in range(n):
+        size = base + (1 if i < remainder else 0)
+        if size == 0:
+            break
+        result.append(items[index : index + size])
+        index += size
+    return result
 CHUNK_UTILS
 
 
