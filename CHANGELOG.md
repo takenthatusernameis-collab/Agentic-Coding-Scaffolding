@@ -3,6 +3,10 @@
 - Added `ensure_leading_newline(text)`, `ensure_trailing_newline(text)`, and `ensure_surrounded_by_newlines(text)` to `strings.py`.
 - Added tests for the new helpers in `tests/test_strings.py`.
 
+## Unreleased — added count_consonants to prompt_utils
+
+- Added `count_consonants(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns the number of ASCII consonant characters in *text*. Added `TestCountConsonants` to `tests/test_prompt_utils.py`. Updated the `prompt_utils` module prose section of `README.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added ensure_leading_newline helper to prompt_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6753 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

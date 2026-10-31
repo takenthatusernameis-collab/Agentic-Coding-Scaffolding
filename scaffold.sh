@@ -20556,6 +20556,7 @@ from prompt_utils import (
     count_trailing_newlines,
     count_unique_words,
     count_vowels,
+    count_consonants,
     count_whitespace_characters,
     count_words,
     dedent_lines,
@@ -21632,6 +21633,33 @@ class TestCountVowels(unittest.TestCase):
             count_vowels(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_vowels(None)  # type: ignore[arg-type]
+
+
+class TestCountConsonants(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_consonants(""), 0)
+
+    def test_no_consonants(self):
+        self.assertEqual(count_consonants("aeiou"), 0)
+        self.assertEqual(count_consonants("AEIOU"), 0)
+
+    def test_only_consonants(self):
+        self.assertEqual(count_consonants("bcdfg"), 5)
+        self.assertEqual(count_consonants("BCDFG"), 5)
+
+    def test_mixed(self):
+        self.assertEqual(count_consonants("hello"), 3)
+        self.assertEqual(count_consonants("HELLO WORLD"), 7)
+        self.assertEqual(count_consonants("a1b2c3"), 2)
+
+    def test_case_insensitive(self):
+        self.assertEqual(count_consonants("BcDfG"), 5)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_consonants(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_consonants(None)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -30663,6 +30691,7 @@ __all__: List[str] = [
     "count_digits",
     "count_letters",
     "count_vowels",
+    "count_consonants",
     "reverse_lines",
     "strip_blank_lines",
     "strip_leading_newlines",
@@ -32110,6 +32139,30 @@ def count_vowels(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ch in "aeiouAEIOU")
+
+
+def count_consonants(text: str) -> int:
+    """Count the consonant characters in *text*.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        The number of consonant characters.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_consonants("hello")
+        3
+        >>> count_consonants("AEIOU")
+        0
+        >>> count_consonants("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ch.isalpha() and ch.lower() not in "aeiou")
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:
@@ -44047,6 +44100,10 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Added `ensure_leading_newline(text)`, `ensure_trailing_newline(text)`, and `ensure_surrounded_by_newlines(text)` to `strings.py`.
 - Added tests for the new helpers in `tests/test_strings.py`.
 
+## Unreleased — added count_consonants to prompt_utils
+
+- Added `count_consonants(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns the number of ASCII consonant characters in *text*. Added `TestCountConsonants` to `tests/test_prompt_utils.py`. Updated the `prompt_utils` module prose section of `README.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added ensure_leading_newline helper to prompt_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6753 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -46372,7 +46429,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `    strip_lines`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `    first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_digits`, `count_vowels`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `    strip_lines`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `    first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_digits`, `count_vowels`, `count_consonants`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

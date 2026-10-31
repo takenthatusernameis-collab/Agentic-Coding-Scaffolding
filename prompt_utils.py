@@ -52,6 +52,7 @@ __all__: List[str] = [
     "count_digits",
     "count_letters",
     "count_vowels",
+    "count_consonants",
     "reverse_lines",
     "strip_blank_lines",
     "strip_leading_newlines",
@@ -1499,6 +1500,30 @@ def count_vowels(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ch in "aeiouAEIOU")
+
+
+def count_consonants(text: str) -> int:
+    """Count the consonant characters in *text*.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        The number of consonant characters.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_consonants("hello")
+        3
+        >>> count_consonants("AEIOU")
+        0
+        >>> count_consonants("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ch.isalpha() and ch.lower() not in "aeiou")
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:

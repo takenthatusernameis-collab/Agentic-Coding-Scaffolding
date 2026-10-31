@@ -19,6 +19,7 @@ from prompt_utils import (
     count_trailing_newlines,
     count_unique_words,
     count_vowels,
+    count_consonants,
     count_whitespace_characters,
     count_words,
     dedent_lines,
@@ -1095,3 +1096,30 @@ class TestCountVowels(unittest.TestCase):
             count_vowels(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_vowels(None)  # type: ignore[arg-type]
+
+
+class TestCountConsonants(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_consonants(""), 0)
+
+    def test_no_consonants(self):
+        self.assertEqual(count_consonants("aeiou"), 0)
+        self.assertEqual(count_consonants("AEIOU"), 0)
+
+    def test_only_consonants(self):
+        self.assertEqual(count_consonants("bcdfg"), 5)
+        self.assertEqual(count_consonants("BCDFG"), 5)
+
+    def test_mixed(self):
+        self.assertEqual(count_consonants("hello"), 3)
+        self.assertEqual(count_consonants("HELLO WORLD"), 7)
+        self.assertEqual(count_consonants("a1b2c3"), 2)
+
+    def test_case_insensitive(self):
+        self.assertEqual(count_consonants("BcDfG"), 5)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_consonants(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_consonants(None)  # type: ignore[arg-type]
