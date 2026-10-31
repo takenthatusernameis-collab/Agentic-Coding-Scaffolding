@@ -19,6 +19,9 @@ __all__: list[str] = [
     "Integral",
     "is_number",
     "is_integral",
+    "is_complex",
+    "is_real",
+    "is_rational",
     "is_perfect_number",
     "is_abundant_number",
     "is_deficient_number",
@@ -99,6 +102,87 @@ def is_integral(obj: object) -> bool:
         False
     """
     return isinstance(obj, Integral)
+
+
+def is_complex(obj: object) -> bool:
+    """Return ``True`` when *obj* is a complex number.
+
+    A complex number is any object registered with (or subclass of) the
+    :class:`numbers.Complex` abstract base class, which covers ``int``,
+    ``float``, ``complex``, and similar types. Every real number is also a
+    complex number.
+
+    Args:
+        obj: The value to test.
+
+    Returns:
+        ``True`` if *obj* is a complex number, ``False`` otherwise.
+
+    Examples:
+        >>> is_complex(5)
+        True
+        >>> is_complex(1.5)
+        True
+        >>> is_complex(2 + 3j)
+        True
+        >>> is_complex("x")
+        False
+    """
+    return isinstance(obj, Complex)
+
+
+def is_real(obj: object) -> bool:
+    """Return ``True`` when *obj* is a real number.
+
+    A real number is any object registered with (or subclass of) the
+    :class:`numbers.Real` abstract base class, which covers ``int``,
+    ``float``, ``Fraction``, ``Decimal``, and similar types, but not
+    ``complex`` with a non-zero imaginary part.
+
+    Args:
+        obj: The value to test.
+
+    Returns:
+        ``True`` if *obj* is a real number, ``False`` otherwise.
+
+    Examples:
+        >>> is_real(5)
+        True
+        >>> is_real(1.5)
+        True
+        >>> is_real(2 + 3j)
+        False
+        >>> is_real("x")
+        False
+    """
+    return isinstance(obj, Real)
+
+
+def is_rational(obj: object) -> bool:
+    """Return ``True`` when *obj* is a rational number.
+
+    A rational number is any object registered with (or subclass of) the
+    :class:`numbers.Rational` abstract base class, which covers ``int``,
+    ``Fraction``, and similar exact types, but not ``float`` or ``complex``.
+
+    Args:
+        obj: The value to test.
+
+    Returns:
+        ``True`` if *obj* is a rational number, ``False`` otherwise.
+
+    Examples:
+        >>> is_rational(5)
+        True
+        >>> is_rational(1.5)
+        False
+        >>> is_rational(2 + 3j)
+        False
+        >>> is_rational("x")
+        False
+    """
+    return isinstance(obj, Rational)
+
 
 def is_abundant_number(n: int) -> bool:
     """Return ``True`` when *n* is an abundant number.

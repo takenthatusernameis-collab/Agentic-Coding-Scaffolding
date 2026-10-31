@@ -47317,6 +47317,7 @@ Next Planned (posted for the following agent):
 - Added `standard_error(numbers)` to `stats.py` returning the standard error of the mean (the sample standard deviation divided by the square root of the sample size), with typed signature, `__all__` export, Google-style docstring, and `TypeError`/`ValueError` validation (raising `ValueError` for empty lists or single-element lists). Added `TestStandardError` to `tests/test_stats.py` covering basic cases, negatives, floats, single-element `ValueError`, empty-list `ValueError`, and `TypeError` paths. Updated the `stats` module prose section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Added `format_farewell(name, farewell="Goodbye")` to `greeting_utils.py` returning a formatted farewell string, with typed signature, Google-style docstring, and `TypeError` validation. Added `TestFormatFarewell` to `tests/test_greeting_utils.py` covering default, custom, empty name, and `TypeError` paths. Updated the `greeting_utils` module prose section of `README.md`.
 - Added comprehensive boundary tests for `strings.py` (empty strings, whitespace-only, unicode/multibyte, type errors, edge cases) to `tests/test_strings.py`.
+- Added `is_complex(obj)`, `is_real(obj)`, and `is_rational(obj)` to `numbers_utils.py`, exposing the remaining numeric abstract base classes (`Complex`, `Real`, `Rational`) as `isinstance`-based predicates complementing `is_number` and `is_integral`. Each has a typed signature, a Google-style docstring with doctests, and is exported in `__all__`. Added `TestIsComplex`, `TestIsReal`, and `TestIsRational` to `tests/test_numbers_utils.py` covering true/false/non-number cases. Updated the `numbers_utils` tree entry and prose section of `README.md`. Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 - Added `get_prerelease(version)` and `get_prerelease_tag(version)` to `version_utils.py` returning the prerelease tag after `-` or `None` if absent, with `TypeError` validation and exports in `__all__`. Added `TestGetPrerelease` to `tests/test_version_utils.py`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, and this CHANGELOG into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -47932,7 +47933,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, proper_divisors)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, proper_divisors)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -49038,7 +49039,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, and `proper_divisors` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, and `proper_divisors` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -70066,6 +70067,9 @@ __all__: list[str] = [
     "Integral",
     "is_number",
     "is_integral",
+    "is_complex",
+    "is_real",
+    "is_rational",
     "is_perfect_number",
     "is_abundant_number",
     "is_deficient_number",
@@ -70146,6 +70150,87 @@ def is_integral(obj: object) -> bool:
         False
     """
     return isinstance(obj, Integral)
+
+
+def is_complex(obj: object) -> bool:
+    """Return ``True`` when *obj* is a complex number.
+
+    A complex number is any object registered with (or subclass of) the
+    :class:`numbers.Complex` abstract base class, which covers ``int``,
+    ``float``, ``complex``, and similar types. Every real number is also a
+    complex number.
+
+    Args:
+        obj: The value to test.
+
+    Returns:
+        ``True`` if *obj* is a complex number, ``False`` otherwise.
+
+    Examples:
+        >>> is_complex(5)
+        True
+        >>> is_complex(1.5)
+        True
+        >>> is_complex(2 + 3j)
+        True
+        >>> is_complex("x")
+        False
+    """
+    return isinstance(obj, Complex)
+
+
+def is_real(obj: object) -> bool:
+    """Return ``True`` when *obj* is a real number.
+
+    A real number is any object registered with (or subclass of) the
+    :class:`numbers.Real` abstract base class, which covers ``int``,
+    ``float``, ``Fraction``, ``Decimal``, and similar types, but not
+    ``complex`` with a non-zero imaginary part.
+
+    Args:
+        obj: The value to test.
+
+    Returns:
+        ``True`` if *obj* is a real number, ``False`` otherwise.
+
+    Examples:
+        >>> is_real(5)
+        True
+        >>> is_real(1.5)
+        True
+        >>> is_real(2 + 3j)
+        False
+        >>> is_real("x")
+        False
+    """
+    return isinstance(obj, Real)
+
+
+def is_rational(obj: object) -> bool:
+    """Return ``True`` when *obj* is a rational number.
+
+    A rational number is any object registered with (or subclass of) the
+    :class:`numbers.Rational` abstract base class, which covers ``int``,
+    ``Fraction``, and similar exact types, but not ``float`` or ``complex``.
+
+    Args:
+        obj: The value to test.
+
+    Returns:
+        ``True`` if *obj* is a rational number, ``False`` otherwise.
+
+    Examples:
+        >>> is_rational(5)
+        True
+        >>> is_rational(1.5)
+        False
+        >>> is_rational(2 + 3j)
+        False
+        >>> is_rational("x")
+        False
+    """
+    return isinstance(obj, Rational)
+
 
 def is_abundant_number(n: int) -> bool:
     """Return ``True`` when *n* is an abundant number.
@@ -70605,6 +70690,7 @@ from numbers_utils import (
     is_abundant_number,
     is_armstrong_number,
     is_automorphic_number,
+    is_complex,
     is_disarium_number,
     is_deficient_number,
     is_happy_number,
@@ -70613,6 +70699,8 @@ from numbers_utils import (
     is_neon_number,
     is_number,
     is_perfect_number,
+    is_rational,
+    is_real,
     is_strong_number,
     proper_divisors,
 )
@@ -70637,6 +70725,47 @@ class TestNumbersUtils(unittest.TestCase):
         self.assertTrue(issubclass(complex, Number))
         self.assertTrue(issubclass(int, Rational))
         self.assertTrue(issubclass(complex, Complex))
+
+
+class TestIsComplex(unittest.TestCase):
+    def test_complex_numbers(self):
+        self.assertTrue(is_complex(5))
+        self.assertTrue(is_complex(1.5))
+        self.assertTrue(is_complex(2 + 3j))
+        self.assertFalse(is_complex("x"))
+        self.assertFalse(is_complex(None))
+
+    def test_complex_subclass(self):
+        self.assertTrue(is_complex(True))
+        self.assertFalse(is_complex([1, 2]))
+
+
+class TestIsReal(unittest.TestCase):
+    def test_real_numbers(self):
+        self.assertTrue(is_real(5))
+        self.assertTrue(is_real(1.5))
+        self.assertTrue(is_real(True))
+        self.assertFalse(is_real(2 + 3j))
+        self.assertFalse(is_real("x"))
+        self.assertFalse(is_real(None))
+
+    def test_real_negative_and_zero(self):
+        self.assertTrue(is_real(0))
+        self.assertTrue(is_real(-3))
+
+
+class TestIsRational(unittest.TestCase):
+    def test_rational_numbers(self):
+        self.assertTrue(is_rational(5))
+        self.assertTrue(is_rational(True))
+        self.assertFalse(is_rational(1.5))
+        self.assertFalse(is_rational(2 + 3j))
+        self.assertFalse(is_rational("x"))
+        self.assertFalse(is_rational(None))
+
+    def test_rational_zero_and_negative(self):
+        self.assertTrue(is_rational(0))
+        self.assertTrue(is_rational(-7))
 
 
 class TestIsPerfectNumber(unittest.TestCase):

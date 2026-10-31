@@ -9,6 +9,7 @@ from numbers_utils import (
     is_abundant_number,
     is_armstrong_number,
     is_automorphic_number,
+    is_complex,
     is_disarium_number,
     is_deficient_number,
     is_happy_number,
@@ -17,6 +18,8 @@ from numbers_utils import (
     is_neon_number,
     is_number,
     is_perfect_number,
+    is_rational,
+    is_real,
     is_strong_number,
     proper_divisors,
 )
@@ -41,6 +44,47 @@ class TestNumbersUtils(unittest.TestCase):
         self.assertTrue(issubclass(complex, Number))
         self.assertTrue(issubclass(int, Rational))
         self.assertTrue(issubclass(complex, Complex))
+
+
+class TestIsComplex(unittest.TestCase):
+    def test_complex_numbers(self):
+        self.assertTrue(is_complex(5))
+        self.assertTrue(is_complex(1.5))
+        self.assertTrue(is_complex(2 + 3j))
+        self.assertFalse(is_complex("x"))
+        self.assertFalse(is_complex(None))
+
+    def test_complex_subclass(self):
+        self.assertTrue(is_complex(True))
+        self.assertFalse(is_complex([1, 2]))
+
+
+class TestIsReal(unittest.TestCase):
+    def test_real_numbers(self):
+        self.assertTrue(is_real(5))
+        self.assertTrue(is_real(1.5))
+        self.assertTrue(is_real(True))
+        self.assertFalse(is_real(2 + 3j))
+        self.assertFalse(is_real("x"))
+        self.assertFalse(is_real(None))
+
+    def test_real_negative_and_zero(self):
+        self.assertTrue(is_real(0))
+        self.assertTrue(is_real(-3))
+
+
+class TestIsRational(unittest.TestCase):
+    def test_rational_numbers(self):
+        self.assertTrue(is_rational(5))
+        self.assertTrue(is_rational(True))
+        self.assertFalse(is_rational(1.5))
+        self.assertFalse(is_rational(2 + 3j))
+        self.assertFalse(is_rational("x"))
+        self.assertFalse(is_rational(None))
+
+    def test_rational_zero_and_negative(self):
+        self.assertTrue(is_rational(0))
+        self.assertTrue(is_rational(-7))
 
 
 class TestIsPerfectNumber(unittest.TestCase):
