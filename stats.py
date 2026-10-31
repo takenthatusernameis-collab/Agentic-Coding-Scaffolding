@@ -37,6 +37,7 @@ __all__: List[str] = [
     "iqr",
     "interquartile_range",
     "coefficient_of_variation",
+    "coefficient_of_range",
     "geometric_mean",
     "harmonic_mean",
     "mean_absolute_deviation",
@@ -1367,3 +1368,35 @@ def cumulative_product(numbers: List[T | float]) -> List[float]:
         running *= x
         result.append(running)
     return result
+
+
+def coefficient_of_range(numbers: List[T | float]) -> float:
+    """Return the coefficient of range of a list of numbers.
+
+    The coefficient of range is ``(max - min) / (max + min)``.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The coefficient of range as a float.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> coefficient_of_range([1, 2, 3, 4, 5])
+        0.6666666666666666
+        >>> coefficient_of_range([5])
+        0.0
+    """
+    _require_numbers(numbers, "numbers")
+    if not numbers:
+        raise ValueError("numbers must not be empty")
+    lo = min(numbers)
+    hi = max(numbers)
+    denom = hi + lo
+    if denom == 0:
+        raise ValueError("sum of min and max must not be zero")
+    return float((hi - lo) / denom)
