@@ -196,3 +196,53 @@ def test_array_index_rejects_bad_args():
         array_index(a, 1, 0.0)
     with pytest.raises(TypeError):
         array_index(a, 1, 0, 2.0)
+
+
+def test_array_to_list():
+    from array import array
+
+    from array_utils import array_to_list
+
+    a = array("i", [1, 2, 3])
+    assert array_to_list(a) == [1, 2, 3]
+
+
+def test_array_from_list():
+    from array import array
+
+    from array_utils import array_from_list
+
+    a = array_from_list("i", [1, 2])
+    assert isinstance(a, array)
+    assert a.tolist() == [1, 2]
+
+
+def test_array_from_list_errors():
+    import pytest
+
+    from array_utils import array_from_list
+
+    with pytest.raises(TypeError):
+        array_from_list(1, [1])
+    with pytest.raises(TypeError):
+        array_from_list("i", (1, 2))
+
+
+def test_array_extend_from_list():
+    from array import array
+
+    from array_utils import array_extend_from_list
+
+    a = array("i", [1])
+    array_extend_from_list(a, [2, 3])
+    assert a.tolist() == [1, 2, 3]
+
+
+def test_array_remove_first():
+    from array import array
+
+    from array_utils import array_remove_first
+
+    a = array("i", [1, 2, 1])
+    array_remove_first(a, 1)
+    assert a.tolist() == [2, 1]

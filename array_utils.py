@@ -143,3 +143,32 @@ def array_index(arr: array, item: Any, start: int = 0, stop: int | None = None) 
         _require_int(stop, "stop")
         return arr.index(item, start, stop)
     return arr.index(item, start)
+
+
+def array_to_list(arr: array) -> list[Any]:
+    """Convert array to a list."""
+    _require_array(arr, "arr")
+    return arr.tolist()
+
+
+def array_from_list(arr_type: str, values: list[Any]) -> array:
+    """Create array of given type from a list."""
+    if not isinstance(arr_type, str):
+        raise TypeError("arr_type must be a str")
+    if not isinstance(values, list):
+        raise TypeError("values must be a list")
+    return array(arr_type, values)
+
+
+def array_extend_from_list(arr: array, values: list[Any]) -> None:
+    """Extend array from a list."""
+    _require_array(arr, "arr")
+    if not isinstance(values, list):
+        raise TypeError("values must be a list")
+    arr.extend(values)
+
+
+def array_remove_first(arr: array, item: Any) -> None:
+    """Remove first occurrence of item."""
+    _require_array(arr, "arr")
+    arr.remove(item)

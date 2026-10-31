@@ -40827,6 +40827,35 @@ def array_index(arr: array, item: Any, start: int = 0, stop: int | None = None) 
         _require_int(stop, "stop")
         return arr.index(item, start, stop)
     return arr.index(item, start)
+
+
+def array_to_list(arr: array) -> list[Any]:
+    """Convert array to a list."""
+    _require_array(arr, "arr")
+    return arr.tolist()
+
+
+def array_from_list(arr_type: str, values: list[Any]) -> array:
+    """Create array of given type from a list."""
+    if not isinstance(arr_type, str):
+        raise TypeError("arr_type must be a str")
+    if not isinstance(values, list):
+        raise TypeError("values must be a list")
+    return array(arr_type, values)
+
+
+def array_extend_from_list(arr: array, values: list[Any]) -> None:
+    """Extend array from a list."""
+    _require_array(arr, "arr")
+    if not isinstance(values, list):
+        raise TypeError("values must be a list")
+    arr.extend(values)
+
+
+def array_remove_first(arr: array, item: Any) -> None:
+    """Remove first occurrence of item."""
+    _require_array(arr, "arr")
+    arr.remove(item)
 ARRAY_UTILS
 
 # --- tests/test_array_utils.py ---
@@ -41029,6 +41058,56 @@ def test_array_index_rejects_bad_args():
         array_index(a, 1, 0.0)
     with pytest.raises(TypeError):
         array_index(a, 1, 0, 2.0)
+
+
+def test_array_to_list():
+    from array import array
+
+    from array_utils import array_to_list
+
+    a = array("i", [1, 2, 3])
+    assert array_to_list(a) == [1, 2, 3]
+
+
+def test_array_from_list():
+    from array import array
+
+    from array_utils import array_from_list
+
+    a = array_from_list("i", [1, 2])
+    assert isinstance(a, array)
+    assert a.tolist() == [1, 2]
+
+
+def test_array_from_list_errors():
+    import pytest
+
+    from array_utils import array_from_list
+
+    with pytest.raises(TypeError):
+        array_from_list(1, [1])
+    with pytest.raises(TypeError):
+        array_from_list("i", (1, 2))
+
+
+def test_array_extend_from_list():
+    from array import array
+
+    from array_utils import array_extend_from_list
+
+    a = array("i", [1])
+    array_extend_from_list(a, [2, 3])
+    assert a.tolist() == [1, 2, 3]
+
+
+def test_array_remove_first():
+    from array import array
+
+    from array_utils import array_remove_first
+
+    a = array("i", [1, 2, 1])
+    array_remove_first(a, 1)
+    assert a.tolist() == [2, 1]
 TEST_ARRAY_UTILS
 # --- bisect_utils.py ---
 cat > "$OUTPUT_DIR/bisect_utils.py" <<'BISECT_UTILS'
