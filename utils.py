@@ -40,6 +40,11 @@ def unique(lst: List[T]) -> List[T]:
     return result
 
 
+def dedupe(lst: List[T]) -> List[T]:
+    """Return a list with duplicate elements removed, preserving order."""
+    return unique(lst)
+
+
 def is_empty(value: Any) -> bool:
     """Check if a value is considered empty."""
     if value is None:
