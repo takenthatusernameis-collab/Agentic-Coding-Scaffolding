@@ -39622,6 +39622,14 @@ def concat(*parts: bytes) -> bytes:
 
     Raises:
         TypeError: If any part is not bytes or bytearray.
+
+    Examples:
+        >>> concat(b"ab", b"cd")
+        b'abcd'
+        >>> concat(b"ab", bytearray(b"ef"))
+        b'abef'
+        >>> concat()
+        b''
     """
     result = bytearray()
     for part in parts:
@@ -39644,6 +39652,12 @@ def repeat(data: bytes, count: int) -> bytes:
     Raises:
         TypeError: If *data* is not bytes or bytearray.
         ValueError: If *count* is negative or not an int.
+
+    Examples:
+        >>> repeat(b"ab", 3)
+        b'ababab'
+        >>> repeat(b"x", 0)
+        b''
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -39663,6 +39677,12 @@ def reverse(data: bytes) -> bytes:
 
     Raises:
         TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> reverse(b"abc")
+        b'cba'
+        >>> reverse(bytearray(b"ab"))
+        b'ba'
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -39681,6 +39701,12 @@ def contains(data: bytes, sub: bytes) -> bool:
 
     Raises:
         TypeError: If *data* or *sub* is not bytes or bytearray.
+
+    Examples:
+        >>> contains(b"hello", b"ll")
+        True
+        >>> contains(b"hello", b"world")
+        False
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -39701,6 +39727,12 @@ def starts_with(data: bytes, prefix: bytes) -> bool:
 
     Raises:
         TypeError: If *data* or *prefix* is not bytes or bytearray.
+
+    Examples:
+        >>> starts_with(b"hello", b"he")
+        True
+        >>> starts_with(b"hello", b"lo")
+        False
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -39721,6 +39753,12 @@ def ends_with(data: bytes, suffix: bytes) -> bool:
 
     Raises:
         TypeError: If *data* or *suffix* is not bytes or bytearray.
+
+    Examples:
+        >>> ends_with(b"hello", b"lo")
+        True
+        >>> ends_with(b"hello", b"he")
+        False
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -44446,10 +44484,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — completed call_once_utils public API and documentation
+## Unreleased — completed bytes_utils public API and documentation
 
-- Completed the public API surface of `call_once_utils.py`: added `__all__` exporting `call_once`.
-- Updated the `call_once_utils` module listing of `README.md`.
+- Completed the public API surface of `bytes_utils.py`: added `__all__` exports for `concat`, `repeat`, `reverse`, `contains`, `starts_with`, and `ends_with` (previously added in `8523e4e`), rewrote their docstrings to Google-style with Args/Returns/Raises and doctests, and verified coverage in `tests/test_bytes_utils.py`.
+- Updated the `bytes_utils` module prose section of `README.md`.
 - Synchronized embedded copies with `make refresh-scaffold`.
 
 ## Unreleased — completed array_utils public API and documentation

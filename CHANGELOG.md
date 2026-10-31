@@ -1,7 +1,7 @@
-## Unreleased — completed call_once_utils public API and documentation
+## Unreleased — completed bytes_utils public API and documentation
 
-- Completed the public API surface of `call_once_utils.py`: added `__all__` exporting `call_once`.
-- Updated the `call_once_utils` module listing of `README.md`.
+- Completed the public API surface of `bytes_utils.py`: added `__all__` exports for `concat`, `repeat`, `reverse`, `contains`, `starts_with`, and `ends_with` (previously added in `8523e4e`), rewrote their docstrings to Google-style with Args/Returns/Raises and doctests, and verified coverage in `tests/test_bytes_utils.py`.
+- Updated the `bytes_utils` module prose section of `README.md`.
 - Synchronized embedded copies with `make refresh-scaffold`.
 
 ## Unreleased — completed array_utils public API and documentation
