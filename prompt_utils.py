@@ -815,6 +815,16 @@ def ensure_prefix(text: str, prefix: str) -> str:
 
     Raises:
         TypeError: If either argument is not a string.
+
+    Examples:
+        >>> ensure_prefix("world", "hello ")
+        'hello world'
+        >>> ensure_prefix("hello world", "hello ")
+        'hello world'
+        >>> ensure_prefix("", "hello")
+        'hello'
+        >>> ensure_prefix("hello", "")
+        'hello'
     """
     _require_string(text, "text")
     _require_string(prefix, "prefix")
@@ -838,6 +848,16 @@ def ensure_suffix(text: str, suffix: str) -> str:
 
     Raises:
         TypeError: If either argument is not a string.
+
+    Examples:
+        >>> ensure_suffix("hello", " world")
+        'hello world'
+        >>> ensure_suffix("hello world", " world")
+        'hello world'
+        >>> ensure_suffix("hello", "")
+        'hello'
+        >>> ensure_suffix("", "hello")
+        'hello'
     """
     _require_string(text, "text")
     _require_string(suffix, "suffix")
