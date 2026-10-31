@@ -25,6 +25,7 @@ from prime_utils import (
     is_perfect_power,
     is_perfect_square,
     is_power_of_two,
+    is_powerful_number,
     is_prime,
     is_prime_power,
     is_pythagorean_prime,
@@ -1388,6 +1389,44 @@ class TestIsPerfectPower(unittest.TestCase):
             is_perfect_power(True)
         with self.assertRaises(TypeError):
             is_perfect_power(None)
+
+
+class TestIsPowerfulNumber(unittest.TestCase):
+    def test_known_powerful_numbers(self):
+        for n in [1, 4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 72, 100, 108, 121, 125, 128, 144]:
+            self.assertTrue(is_powerful_number(n), n)
+
+    def test_non_powerful_numbers(self):
+        for n in [2, 3, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20]:
+            self.assertFalse(is_powerful_number(n), n)
+
+    def test_below_one(self):
+        for n in [0, -1, -4, -8]:
+            self.assertFalse(is_powerful_number(n), n)
+
+    def test_primes_are_not_powerful(self):
+        for p in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 101]:
+            self.assertFalse(is_powerful_number(p), p)
+
+    def test_squarefree_composites_are_not_powerful(self):
+        for n in [6, 10, 14, 15, 21, 22, 26, 30]:
+            self.assertFalse(is_powerful_number(n), n)
+
+    def test_powerful_and_squarefree_are_disjoint_for_n_gt_one(self):
+        # For n > 1 a number cannot be both squarefree (every prime exponent
+        # <= 1) and powerful (every prime exponent >= 2); 1 is the only
+        # number that is both.
+        for n in range(2, 500):
+            self.assertFalse(is_powerful_number(n) and is_squarefree(n), n)
+
+    def test_one_is_both_powerful_and_squarefree(self):
+        self.assertTrue(is_powerful_number(1))
+        self.assertTrue(is_squarefree(1))
+
+    def test_type_errors(self):
+        for value in (4.0, "4", None, True, [4]):
+            with self.assertRaises(TypeError):
+                is_powerful_number(value)
 
 
 if __name__ == "__main__":

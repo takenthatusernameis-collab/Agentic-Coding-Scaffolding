@@ -52,6 +52,7 @@ __all__: List[str] = [
     "is_fermat_pseudoprime",
     "is_amicable",
     "is_perfect_power",
+    "is_powerful_number",
 ]
 
 
@@ -1424,3 +1425,69 @@ def is_perfect_power(n: int) -> bool:
             if pow_val > n_abs:
                 break
     return False
+
+
+def is_powerful_number(n: int) -> bool:
+    """Return ``True`` when *n* is a powerful number.
+
+    A powerful number (also called a squareful number) is a positive integer
+    such that for every prime factor *p* of *n*, *p*² also divides *n*. In
+    other words, every prime in the prime factorization appears with an
+    exponent of at least 2. This makes powerful numbers the complement of the
+    squarefree numbers: a number is powerful iff it is not squarefree, except
+    for 1, which is both squarefree and powerful by convention.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a powerful number, ``False`` otherwise. Numbers
+        below 1 are never powerful.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_powerful_number(1)
+        True
+        >>> is_powerful_number(4)
+        True
+        >>> is_powerful_number(8)
+        True
+        >>> is_powerful_number(36)
+        True
+        >>> is_powerful_number(72)
+        True
+        >>> is_powerful_number(2)
+        False
+        >>> is_powerful_number(6)
+        False
+        >>> is_powerful_number(12)
+        False
+    """
+    _require_int(n, "n")
+    if n < 1:
+        return False
+    if n == 1:
+        return True
+    remaining = n
+    if remaining % 2 == 0:
+        count = 0
+        while remaining % 2 == 0:
+            remaining //= 2
+            count += 1
+        if count < 2:
+            return False
+    d = 3
+    while d * d <= remaining:
+        if remaining % d == 0:
+            count = 0
+            while remaining % d == 0:
+                remaining //= d
+                count += 1
+            if count < 2:
+                return False
+        d += 2
+    if remaining > 1:
+        return False
+    return True
