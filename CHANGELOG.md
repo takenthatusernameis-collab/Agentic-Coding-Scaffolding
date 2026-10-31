@@ -1,3 +1,7 @@
+## Unreleased — added count_lowercase and count_uppercase to prompt_utils
+
+- Added `count_lowercase(text)` and `count_uppercase(text)` to `prompt_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-string arguments; they return the number of ASCII lowercase (a-z) and uppercase (A-Z) letters in *text*, respectively, returning zero for empty text. Added `TestCountLowercase` and `TestCountUppercase` to `tests/test_prompt_utils.py` covering empty input, no matches, only matches, mixed content, unicode non-matches, and the `TypeError` path. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — synchronized scaffold copies after slugify_utils refactor
 
 - Refreshed the embedded copy of `slugify_utils.py` in `scaffold.sh` after the preceding `chore(kilo): checkpoint agent session` commit (c8d49dd) refactored the module without regenerating the embedded copy; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.

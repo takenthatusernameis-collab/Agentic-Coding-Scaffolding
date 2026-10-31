@@ -2,7 +2,17 @@
 
 import unittest
 
-from utils import chunk, compact, dedupe, first, flatten, is_empty, last, remove_none, second, unique
+from utils import (
+    chunk,
+    compact,
+    first,
+    flatten,
+    is_empty,
+    last,
+    remove_none,
+    second,
+    unique,
+)
 
 
 class TestFlatten(unittest.TestCase):

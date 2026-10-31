@@ -12,6 +12,7 @@ from prompt_utils import (
     count_leading_newlines,
     count_letters,
     count_lines,
+    count_lowercase,
     count_non_blank_lines,
     count_non_whitespace_characters,
     count_paragraphs,
@@ -19,6 +20,7 @@ from prompt_utils import (
     count_sentences,
     count_trailing_newlines,
     count_unique_words,
+    count_uppercase,
     count_vowels,
     count_whitespace_characters,
     count_words,
@@ -1123,3 +1125,59 @@ class TestCountConsonants(unittest.TestCase):
             count_consonants(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_consonants(None)  # type: ignore[arg-type]
+
+
+class TestCountLowercase(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_lowercase(""), 0)
+
+    def test_no_lowercase(self):
+        self.assertEqual(count_lowercase("123 !"), 0)
+        self.assertEqual(count_lowercase("ABC"), 0)
+
+    def test_only_lowercase(self):
+        self.assertEqual(count_lowercase("abc"), 3)
+
+    def test_mixed(self):
+        self.assertEqual(count_lowercase("a1b2c3"), 3)
+        self.assertEqual(count_lowercase("Hello World"), 8)
+
+    def test_upper_and_lower(self):
+        self.assertEqual(count_lowercase("AbC"), 1)
+
+    def test_unicode_lower_not_counted(self):
+        self.assertEqual(count_lowercase("αβγ"), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_lowercase(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_lowercase(None)  # type: ignore[arg-type]
+
+
+class TestCountUppercase(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_uppercase(""), 0)
+
+    def test_no_uppercase(self):
+        self.assertEqual(count_uppercase("123 !"), 0)
+        self.assertEqual(count_uppercase("abc"), 0)
+
+    def test_only_uppercase(self):
+        self.assertEqual(count_uppercase("ABC"), 3)
+
+    def test_mixed(self):
+        self.assertEqual(count_uppercase("a1b2c3"), 0)
+        self.assertEqual(count_uppercase("Hello World"), 2)
+
+    def test_upper_and_lower(self):
+        self.assertEqual(count_uppercase("AbC"), 2)
+
+    def test_unicode_upper_not_counted(self):
+        self.assertEqual(count_uppercase("ΑΒΓ"), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_uppercase(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_uppercase(None)  # type: ignore[arg-type]

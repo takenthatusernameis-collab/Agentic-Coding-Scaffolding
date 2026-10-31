@@ -17151,7 +17151,17 @@ cat > "$OUTPUT_DIR/tests/test_utils.py" <<'TESTUTILS'
 
 import unittest
 
-from utils import chunk, compact, dedupe, first, flatten, is_empty, last, remove_none, second, unique
+from utils import (
+    chunk,
+    compact,
+    first,
+    flatten,
+    is_empty,
+    last,
+    remove_none,
+    second,
+    unique,
+)
 
 
 class TestFlatten(unittest.TestCase):
@@ -20619,6 +20629,7 @@ from prompt_utils import (
     count_leading_newlines,
     count_letters,
     count_lines,
+    count_lowercase,
     count_non_blank_lines,
     count_non_whitespace_characters,
     count_paragraphs,
@@ -20626,6 +20637,7 @@ from prompt_utils import (
     count_sentences,
     count_trailing_newlines,
     count_unique_words,
+    count_uppercase,
     count_vowels,
     count_whitespace_characters,
     count_words,
@@ -21730,6 +21742,62 @@ class TestCountConsonants(unittest.TestCase):
             count_consonants(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_consonants(None)  # type: ignore[arg-type]
+
+
+class TestCountLowercase(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_lowercase(""), 0)
+
+    def test_no_lowercase(self):
+        self.assertEqual(count_lowercase("123 !"), 0)
+        self.assertEqual(count_lowercase("ABC"), 0)
+
+    def test_only_lowercase(self):
+        self.assertEqual(count_lowercase("abc"), 3)
+
+    def test_mixed(self):
+        self.assertEqual(count_lowercase("a1b2c3"), 3)
+        self.assertEqual(count_lowercase("Hello World"), 8)
+
+    def test_upper_and_lower(self):
+        self.assertEqual(count_lowercase("AbC"), 1)
+
+    def test_unicode_lower_not_counted(self):
+        self.assertEqual(count_lowercase("αβγ"), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_lowercase(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_lowercase(None)  # type: ignore[arg-type]
+
+
+class TestCountUppercase(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(count_uppercase(""), 0)
+
+    def test_no_uppercase(self):
+        self.assertEqual(count_uppercase("123 !"), 0)
+        self.assertEqual(count_uppercase("abc"), 0)
+
+    def test_only_uppercase(self):
+        self.assertEqual(count_uppercase("ABC"), 3)
+
+    def test_mixed(self):
+        self.assertEqual(count_uppercase("a1b2c3"), 0)
+        self.assertEqual(count_uppercase("Hello World"), 2)
+
+    def test_upper_and_lower(self):
+        self.assertEqual(count_uppercase("AbC"), 2)
+
+    def test_unicode_upper_not_counted(self):
+        self.assertEqual(count_uppercase("ΑΒΓ"), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_uppercase(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_uppercase(None)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -30785,6 +30853,8 @@ __all__: List[str] = [
     "count_letters",
     "count_vowels",
     "count_consonants",
+    "count_lowercase",
+    "count_uppercase",
     "reverse_lines",
     "strip_blank_lines",
     "strip_leading_newlines",
@@ -32256,6 +32326,64 @@ def count_consonants(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ch.isalpha() and ch.lower() not in "aeiou")
+
+
+def count_lowercase(text: str) -> int:
+    """Return the number of ASCII lowercase letters (a-z) in *text_.
+
+    Counts every character in *text_ that is an ASCII lowercase letter.
+    Empty text returns zero.
+
+    Args:
+        text: The text to count lowercase letters in.
+
+    Returns:
+        The number of ASCII lowercase letters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_lowercase("abc123")
+        3
+        >>> count_lowercase("Hello")
+        4
+        >>> count_lowercase("HELLO WORLD")
+        0
+        >>> count_lowercase("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if "a" <= ch <= "z")
+
+
+def count_uppercase(text: str) -> int:
+    """Return the number of ASCII uppercase letters (A-Z) in *text_.
+
+    Counts every character in *text_ that is an ASCII uppercase letter.
+    Empty text returns zero.
+
+    Args:
+        text: The text to count uppercase letters in.
+
+    Returns:
+        The number of ASCII uppercase letters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_uppercase("abc123")
+        0
+        >>> count_uppercase("Hello")
+        1
+        >>> count_uppercase("HELLO WORLD")
+        2
+        >>> count_uppercase("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if "A" <= ch <= "Z")
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:
@@ -44658,6 +44786,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_lowercase and count_uppercase to prompt_utils
+
+- Added `count_lowercase(text)` and `count_uppercase(text)` to `prompt_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-string arguments; they return the number of ASCII lowercase (a-z) and uppercase (A-Z) letters in *text*, respectively, returning zero for empty text. Added `TestCountLowercase` and `TestCountUppercase` to `tests/test_prompt_utils.py` covering empty input, no matches, only matches, mixed content, unicode non-matches, and the `TypeError` path. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — synchronized scaffold copies after slugify_utils refactor
 
 - Refreshed the embedded copy of `slugify_utils.py` in `scaffold.sh` after the preceding `chore(kilo): checkpoint agent session` commit (c8d49dd) refactored the module without regenerating the embedded copy; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
@@ -47029,7 +47161,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `    strip_lines`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `    first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_digits`, `count_vowels`, `count_consonants`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `    strip_lines`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `    first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_digits`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

@@ -53,6 +53,8 @@ __all__: List[str] = [
     "count_letters",
     "count_vowels",
     "count_consonants",
+    "count_lowercase",
+    "count_uppercase",
     "reverse_lines",
     "strip_blank_lines",
     "strip_leading_newlines",
@@ -1524,6 +1526,64 @@ def count_consonants(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ch.isalpha() and ch.lower() not in "aeiou")
+
+
+def count_lowercase(text: str) -> int:
+    """Return the number of ASCII lowercase letters (a-z) in *text_.
+
+    Counts every character in *text_ that is an ASCII lowercase letter.
+    Empty text returns zero.
+
+    Args:
+        text: The text to count lowercase letters in.
+
+    Returns:
+        The number of ASCII lowercase letters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_lowercase("abc123")
+        3
+        >>> count_lowercase("Hello")
+        4
+        >>> count_lowercase("HELLO WORLD")
+        0
+        >>> count_lowercase("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if "a" <= ch <= "z")
+
+
+def count_uppercase(text: str) -> int:
+    """Return the number of ASCII uppercase letters (A-Z) in *text_.
+
+    Counts every character in *text_ that is an ASCII uppercase letter.
+    Empty text returns zero.
+
+    Args:
+        text: The text to count uppercase letters in.
+
+    Returns:
+        The number of ASCII uppercase letters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_uppercase("abc123")
+        0
+        >>> count_uppercase("Hello")
+        1
+        >>> count_uppercase("HELLO WORLD")
+        2
+        >>> count_uppercase("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if "A" <= ch <= "Z")
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:
