@@ -40703,6 +40703,10 @@ __all__: list[str] = [
     "array_byteswap",
     "array_count",
     "array_index",
+    "array_to_list",
+    "array_from_list",
+    "array_extend_from_list",
+    "array_remove_first",
 ]
 
 
@@ -40830,13 +40834,46 @@ def array_index(arr: array, item: Any, start: int = 0, stop: int | None = None) 
 
 
 def array_to_list(arr: array) -> list[Any]:
-    """Convert array to a list."""
+    """Return a list view of the elements of *arr*.
+
+    Args:
+        arr: The array to convert.
+
+    Returns:
+        A list containing the elements of *arr* in order.
+
+    Raises:
+        TypeError: If *arr* is not an array.
+
+    Examples:
+        >>> array_to_list(array("i", [1, 2, 3]))
+        [1, 2, 3]
+        >>> array_to_list(array("i"))
+        []
+    """
     _require_array(arr, "arr")
     return arr.tolist()
 
 
 def array_from_list(arr_type: str, values: list[Any]) -> array:
-    """Create array of given type from a list."""
+    """Create an array of the given typecode from *values*.
+
+    Args:
+        arr_type: The typecode of the new array (e.g. ``"i"`` for signed int).
+        values: The list of values to load into the array.
+
+    Returns:
+        A new array holding the elements of *values*.
+
+    Raises:
+        TypeError: If *arr_type* is not a string or *values* is not a list.
+
+    Examples:
+        >>> array_from_list("i", [1, 2, 3]).tolist()
+        [1, 2, 3]
+        >>> array_from_list("f", [1.0, 2.5]).tolist()
+        [1.0, 2.5]
+    """
     if not isinstance(arr_type, str):
         raise TypeError("arr_type must be a str")
     if not isinstance(values, list):
@@ -40845,7 +40882,21 @@ def array_from_list(arr_type: str, values: list[Any]) -> array:
 
 
 def array_extend_from_list(arr: array, values: list[Any]) -> None:
-    """Extend array from a list."""
+    """Extend *arr* with the elements of *values*.
+
+    Args:
+        arr: The array to extend in place.
+        values: The list of values to append to *arr*.
+
+    Raises:
+        TypeError: If *arr* is not an array or *values* is not a list.
+
+    Examples:
+        >>> a = array("i", [1, 2])
+        >>> array_extend_from_list(a, [3, 4])
+        >>> a.tolist()
+        [1, 2, 3, 4]
+    """
     _require_array(arr, "arr")
     if not isinstance(values, list):
         raise TypeError("values must be a list")
@@ -40853,7 +40904,22 @@ def array_extend_from_list(arr: array, values: list[Any]) -> None:
 
 
 def array_remove_first(arr: array, item: Any) -> None:
-    """Remove first occurrence of item."""
+    """Remove the first occurrence of *item* from *arr*.
+
+    Args:
+        arr: The array to modify in place.
+        item: The value to remove.
+
+    Raises:
+        TypeError: If *arr* is not an array.
+        ValueError: If *item* is not present in *arr*.
+
+    Examples:
+        >>> a = array("i", [1, 2, 1])
+        >>> array_remove_first(a, 1)
+        >>> a.tolist()
+        [2, 1]
+    """
     _require_array(arr, "arr")
     arr.remove(item)
 ARRAY_UTILS
@@ -40864,6 +40930,8 @@ cat > "$OUTPUT_DIR/tests/test_array_utils.py" <<'TEST_ARRAY_UTILS'
 
 from array import array
 
+import pytest
+
 from array_utils import (
     array_append,
     array_buffer_info,
@@ -40871,12 +40939,16 @@ from array_utils import (
     array_count,
     array_create,
     array_extend,
+    array_extend_from_list,
+    array_from_list,
     array_fromlist,
     array_index,
     array_insert,
     array_pop,
     array_remove,
+    array_remove_first,
     array_reverse,
+    array_to_list,
     array_tolist,
 )
 
@@ -40964,28 +41036,16 @@ def test_array_index():
 
 
 def test_array_create_rejects_non_string_typecode():
-    import pytest
-
-    from array_utils import array_create
-
     with pytest.raises(TypeError):
         array_create(123)
 
 
 def test_array_create_rejects_string_initial():
-    import pytest
-
-    from array_utils import array_create
-
     with pytest.raises(TypeError):
         array_create("i", "abc")
 
 
 def test_array_fromlist_rejects_invalid():
-    import pytest
-
-    from array_utils import array_fromlist
-
     with pytest.raises(TypeError):
         array_fromlist(123, [1, 2])
     with pytest.raises(TypeError):
@@ -40993,66 +41053,34 @@ def test_array_fromlist_rejects_invalid():
 
 
 def test_array_tolist_rejects_non_array():
-    import pytest
-
-    from array_utils import array_tolist
-
     with pytest.raises(TypeError):
         array_tolist([1, 2, 3])
 
 
 def test_array_append_rejects_non_array():
-    import pytest
-
-    from array_utils import array_append
-
     with pytest.raises(TypeError):
         array_append([], 1)
 
 
 def test_array_extend_rejects_string():
-    from array import array
-
-    import pytest
-
-    from array_utils import array_extend
-
     a = array("i", [1])
     with pytest.raises(TypeError):
         array_extend(a, "23")
 
 
 def test_array_insert_rejects_bad_index():
-    from array import array
-
-    import pytest
-
-    from array_utils import array_insert
-
     a = array("i", [1, 2])
     with pytest.raises(TypeError):
         array_insert(a, 1.5, 3)
 
 
 def test_array_pop_rejects_bad_index():
-    from array import array
-
-    import pytest
-
-    from array_utils import array_pop
-
     a = array("i", [1, 2])
     with pytest.raises(TypeError):
         array_pop(a, 1.0)
 
 
 def test_array_index_rejects_bad_args():
-    from array import array
-
-    import pytest
-
-    from array_utils import array_index
-
     a = array("i", [1, 2, 3])
     with pytest.raises(TypeError):
         array_index(a, 1, 0.0)
@@ -41061,53 +41089,78 @@ def test_array_index_rejects_bad_args():
 
 
 def test_array_to_list():
-    from array import array
-
-    from array_utils import array_to_list
-
     a = array("i", [1, 2, 3])
     assert array_to_list(a) == [1, 2, 3]
 
 
+def test_array_to_list_empty():
+    assert array_to_list(array("i")) == []
+
+
+def test_array_to_list_rejects_non_array():
+    with pytest.raises(TypeError):
+        array_to_list([1, 2, 3])
+    with pytest.raises(TypeError):
+        array_to_list("abc")
+
+
 def test_array_from_list():
-    from array import array
-
-    from array_utils import array_from_list
-
     a = array_from_list("i", [1, 2])
     assert isinstance(a, array)
     assert a.tolist() == [1, 2]
 
 
+def test_array_from_list_floats():
+    a = array_from_list("f", [1.0, 2.5])
+    assert a.tolist() == [1.0, 2.5]
+
+
 def test_array_from_list_errors():
-    import pytest
-
-    from array_utils import array_from_list
-
     with pytest.raises(TypeError):
         array_from_list(1, [1])
     with pytest.raises(TypeError):
         array_from_list("i", (1, 2))
+    with pytest.raises(TypeError):
+        array_from_list("i", "ab")
 
 
 def test_array_extend_from_list():
-    from array import array
-
-    from array_utils import array_extend_from_list
-
     a = array("i", [1])
     array_extend_from_list(a, [2, 3])
     assert a.tolist() == [1, 2, 3]
 
 
+def test_array_extend_from_list_empty():
+    a = array("i", [1, 2])
+    array_extend_from_list(a, [])
+    assert a.tolist() == [1, 2]
+
+
+def test_array_extend_from_list_rejects_non_array():
+    with pytest.raises(TypeError):
+        array_extend_from_list([1, 2], [3])
+
+
+def test_array_extend_from_list_rejects_non_list():
+    with pytest.raises(TypeError):
+        array_extend_from_list(array("i", [1]), (2, 3))
+
+
 def test_array_remove_first():
-    from array import array
-
-    from array_utils import array_remove_first
-
     a = array("i", [1, 2, 1])
     array_remove_first(a, 1)
     assert a.tolist() == [2, 1]
+
+
+def test_array_remove_first_rejects_non_array():
+    with pytest.raises(TypeError):
+        array_remove_first([1, 2], 1)
+
+
+def test_array_remove_first_missing_raises():
+    a = array("i", [1, 2])
+    with pytest.raises(ValueError):
+        array_remove_first(a, 99)
 TEST_ARRAY_UTILS
 # --- bisect_utils.py ---
 cat > "$OUTPUT_DIR/bisect_utils.py" <<'BISECT_UTILS'
@@ -44269,6 +44322,27 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — completed array_utils public API and documentation
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6771 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Found that the preceding `feat(array_utils): add to_list, from_list, extend_from_list, remove_first` commit (5fc1d33) added `array_to_list`, `array_from_list`, `array_extend_from_list`, and `array_remove_first` to `array_utils.py` and `tests/test_array_utils.py`, but the four functions were absent from `__all__`, the `array_utils` prose section of `README.md`, and the Unreleased section of `CHANGELOG.md` — an incomplete public-API commit.
+- Added the four names to `__all__` in `array_utils.py` so they are exported with the rest of the module's public surface.
+- Rewrote the four docstrings to the project's Google-style convention with Args/Returns/Raises sections and runnable doctests, matching the style of the surrounding helpers.
+- Updated the `array_utils` module prose section of `README.md` to list the four new helpers.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `array_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6771 tests and passes with no new failures, `make lint` is clean, and `make typecheck` reports no issues in 530 source files.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `array_utils.py`, `bytes_utils.py`, `strings.py`, `prompt_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `itertools_utils.py`, `numbers_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Unreleased — added newline helper functions to strings
 
 - Added `ensure_leading_newline(text)`, `ensure_trailing_newline(text)`, and `ensure_surrounded_by_newlines(text)` to `strings.py`.
@@ -47039,7 +47113,7 @@ The project includes opcode utilities in `opcode_utils.py` wrapping the standard
 
 ## Array Utilities Module
 
-The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, and `array_count` and `array_index` search for a value. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
+The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, and `array_count` and `array_index` search for a value. `array_to_list` and `array_from_list` convert between arrays and lists, `array_extend_from_list` extends an array from a list, and `array_remove_first` removes the first occurrence of a value. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
 
 ## Atexit Utilities Module
 

@@ -19,6 +19,10 @@ __all__: list[str] = [
     "array_byteswap",
     "array_count",
     "array_index",
+    "array_to_list",
+    "array_from_list",
+    "array_extend_from_list",
+    "array_remove_first",
 ]
 
 
@@ -146,13 +150,46 @@ def array_index(arr: array, item: Any, start: int = 0, stop: int | None = None) 
 
 
 def array_to_list(arr: array) -> list[Any]:
-    """Convert array to a list."""
+    """Return a list view of the elements of *arr*.
+
+    Args:
+        arr: The array to convert.
+
+    Returns:
+        A list containing the elements of *arr* in order.
+
+    Raises:
+        TypeError: If *arr* is not an array.
+
+    Examples:
+        >>> array_to_list(array("i", [1, 2, 3]))
+        [1, 2, 3]
+        >>> array_to_list(array("i"))
+        []
+    """
     _require_array(arr, "arr")
     return arr.tolist()
 
 
 def array_from_list(arr_type: str, values: list[Any]) -> array:
-    """Create array of given type from a list."""
+    """Create an array of the given typecode from *values*.
+
+    Args:
+        arr_type: The typecode of the new array (e.g. ``"i"`` for signed int).
+        values: The list of values to load into the array.
+
+    Returns:
+        A new array holding the elements of *values*.
+
+    Raises:
+        TypeError: If *arr_type* is not a string or *values* is not a list.
+
+    Examples:
+        >>> array_from_list("i", [1, 2, 3]).tolist()
+        [1, 2, 3]
+        >>> array_from_list("f", [1.0, 2.5]).tolist()
+        [1.0, 2.5]
+    """
     if not isinstance(arr_type, str):
         raise TypeError("arr_type must be a str")
     if not isinstance(values, list):
@@ -161,7 +198,21 @@ def array_from_list(arr_type: str, values: list[Any]) -> array:
 
 
 def array_extend_from_list(arr: array, values: list[Any]) -> None:
-    """Extend array from a list."""
+    """Extend *arr* with the elements of *values*.
+
+    Args:
+        arr: The array to extend in place.
+        values: The list of values to append to *arr*.
+
+    Raises:
+        TypeError: If *arr* is not an array or *values* is not a list.
+
+    Examples:
+        >>> a = array("i", [1, 2])
+        >>> array_extend_from_list(a, [3, 4])
+        >>> a.tolist()
+        [1, 2, 3, 4]
+    """
     _require_array(arr, "arr")
     if not isinstance(values, list):
         raise TypeError("values must be a list")
@@ -169,6 +220,21 @@ def array_extend_from_list(arr: array, values: list[Any]) -> None:
 
 
 def array_remove_first(arr: array, item: Any) -> None:
-    """Remove first occurrence of item."""
+    """Remove the first occurrence of *item* from *arr*.
+
+    Args:
+        arr: The array to modify in place.
+        item: The value to remove.
+
+    Raises:
+        TypeError: If *arr* is not an array.
+        ValueError: If *item* is not present in *arr*.
+
+    Examples:
+        >>> a = array("i", [1, 2, 1])
+        >>> array_remove_first(a, 1)
+        >>> a.tolist()
+        [2, 1]
+    """
     _require_array(arr, "arr")
     arr.remove(item)

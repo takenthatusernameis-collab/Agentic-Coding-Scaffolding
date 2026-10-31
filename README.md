@@ -1355,7 +1355,7 @@ The project includes opcode utilities in `opcode_utils.py` wrapping the standard
 
 ## Array Utilities Module
 
-The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, and `array_count` and `array_index` search for a value. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
+The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, and `array_count` and `array_index` search for a value. `array_to_list` and `array_from_list` convert between arrays and lists, `array_extend_from_list` extends an array from a list, and `array_remove_first` removes the first occurrence of a value. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
 
 ## Atexit Utilities Module
 
