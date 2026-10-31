@@ -60,6 +60,7 @@ __all__: List[str] = [
     "strip_leading_newlines",
     "strip_trailing_newlines",
     "count_unique_words",
+    "join_lines",
 ]
 
 
@@ -1617,3 +1618,36 @@ def ensure_surrounded_by_newlines(text: str) -> str:
     if not text.endswith("\n"):
         text = text + "\n"
     return text
+
+
+def join_lines(lines: Any, separator: str = "\n") -> str:
+    """Join an iterable of strings into a single string.
+
+    Args:
+        lines: An iterable of strings to join.
+        separator: The separator inserted between lines.
+
+    Returns:
+        The joined string.
+
+    Raises:
+        TypeError: If *lines* is not iterable or contains non-strings, or
+            if *separator* is not a string.
+
+    Examples:
+        >>> join_lines(["a", "b", "c"])
+        'a\\nb\\nc'
+        >>> join_lines(["a", "b"], ", ")
+        'a, b'
+        >>> join_lines([])
+        ''
+    """
+    _require_string(separator, "separator")
+    try:
+        items = list(lines)
+    except TypeError as exc:
+        raise TypeError("lines must be an iterable of strings") from exc
+    for item in items:
+        if not isinstance(item, str):
+            raise TypeError("lines must contain only strings")
+    return separator.join(items)

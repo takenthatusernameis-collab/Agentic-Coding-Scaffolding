@@ -35,6 +35,7 @@ from prompt_utils import (
     format_prompt_template,
     has_placeholders,
     indent_lines,
+    join_lines,
     last_line,
     lstrip_lines,
     normalize_line_endings,
