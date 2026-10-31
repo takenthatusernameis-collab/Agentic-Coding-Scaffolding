@@ -38197,6 +38197,7 @@ from itertools import (
     product,
     repeat,
     takewhile,
+    zip_longest,
 )
 from typing import Any, Callable, Iterable, List, Optional, Tuple
 
@@ -38357,6 +38358,38 @@ def partition(
     return truthy, falsy
 
 
+def zip_longest_iterables(
+    *iterables: Iterable[Any], fillvalue: Any = None
+) -> List[Tuple[Any, ...]]:
+    """Zip multiple iterables, stopping at the longest, filling missing values.
+
+    Args:
+        *iterables: The iterables to zip together.
+        fillvalue: The value used when an iterable is exhausted before the
+            others (defaults to ``None``).
+
+    Returns:
+        A list of tuples, one per position up to the length of the longest
+        iterable, with *fillvalue* substituting for exhausted iterables.
+
+    Raises:
+        TypeError: If any argument is not iterable.
+
+    Examples:
+        >>> zip_longest_iterables([1, 2, 3], ["a", "b"])
+        [(1, 'a'), (2, 'b'), (3, None)]
+        >>> zip_longest_iterables([1, 2], [3, 4], fillvalue=-1)
+        [(1, 3), (2, 4)]
+        >>> zip_longest_iterables()
+        []
+    """
+    if not iterables:
+        return []
+    for it in iterables:
+        _ensure_iterable(it)
+    return list(zip_longest(*iterables, fillvalue=fillvalue))
+
+
 __all__ = [
     "chain_iterables",
     "flatten_once",
@@ -38370,6 +38403,7 @@ __all__ = [
     "repeat_value",
     "cycle_take",
     "partition",
+    "zip_longest_iterables",
 ]
 ITERTOOLS_UTILS
 
@@ -38390,6 +38424,7 @@ from itertools_utils import (
     product_of,
     repeat_value,
     take_while_pred,
+    zip_longest_iterables,
 )
 
 
@@ -38556,6 +38591,66 @@ class TestPartition(unittest.TestCase):
     def test_non_callable_predicate_raises_type_error(self):
         with self.assertRaises(TypeError):
             partition([1, 2, 3], "not callable")
+
+
+class TestZipLongestIterables(unittest.TestCase):
+    def test_equal_length(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2], [3, 4]), [(1, 3), (2, 4)]
+        )
+
+    def test_fill_default_none(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2, 3], ["a", "b"]),
+            [(1, "a"), (2, "b"), (3, None)],
+        )
+
+    def test_fill_value(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2], [3, 4, 5], fillvalue=-1),
+            [(1, 3), (2, 4), (-1, 5)],
+        )
+
+    def test_single_iterable(self):
+        self.assertEqual(zip_longest_iterables([1, 2, 3]), [(1,), (2,), (3,)])
+
+    def test_no_iterables(self):
+        self.assertEqual(zip_longest_iterables(), [])
+
+    def test_empty_iterables(self):
+        self.assertEqual(zip_longest_iterables([], []), [])
+
+    def test_one_empty(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2], [], fillvalue=0),
+            [(1, 0), (2, 0)],
+        )
+
+    def test_three_iterables(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2], [3, 4, 5], ["a"], fillvalue=-1),
+            [(1, 3, "a"), (2, 4, -1), (-1, 5, -1)],
+        )
+
+    def test_preserves_order(self):
+        self.assertEqual(
+            zip_longest_iterables(["a", "b"], [1, 2, 3]),
+            [("a", 1), ("b", 2), (None, 3)],
+        )
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            zip_longest_iterables([1, 2], 42)
+
+    def test_non_iterable_first_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            zip_longest_iterables(42, [1, 2])
+
+    def test_fillvalue_not_required_to_be_iterable(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2], [3], fillvalue=0),
+            [(1, 3), (2, 0)],
+        )
 
 
 if __name__ == "__main__":
@@ -44786,6 +44881,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added zip_longest_iterables to itertools_utils
+
+- Added `zip_longest_iterables(*iterables, fillvalue=None)` to `itertools_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-iterable arguments; it returns a list of tuples zipping the input iterables up to the length of the longest, substituting *fillvalue* (default `None`) for exhausted iterables, and returns `[]` when called with no arguments.
+- Added `TestZipLongestIterables` to `tests/test_itertools_utils.py` covering equal-length, unequal-length, default and explicit fillvalue, single/empty/no iterables, three-iterable zip, order preservation, and the `TypeError` paths (14 new tests). Imported `zip_longest_iterables` at the top of the test file to match the module's `__all__` contract.
+- Updated the `itertools_utils` module prose section and the file-list comment of `README.md`.
+- Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added count_lowercase and count_uppercase to prompt_utils
 
 - Added `count_lowercase(text)` and `count_uppercase(text)` to `prompt_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-string arguments; they return the number of ASCII lowercase (a-z) and uppercase (A-Z) letters in *text*, respectively, returning zero for empty text. Added `TestCountLowercase` and `TestCountUppercase` to `tests/test_prompt_utils.py` covering empty input, no matches, only matches, mixed content, unicode non-matches, and the `TypeError` path. Updated the `prompt_utils` module prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -46332,7 +46434,7 @@ maybe_utils.py             # Maybe/Option type utilities for functional programm
 either_utils.py            # Either/Result type utilities for functional programming patterns (Either, right, left, ok, err, from_optional, map, map_left, flat_map, and_then, filter, or_else, fold, swap, unwrap, unwrap_left, unwrap_or, unwrap_or_else, is_right, is_left, is_ok, is_err)
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
-itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
+itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, etc.)
 timing_utils.py           # Performance measurement helpers
 timeit_utils.py           # Wrapper for stdlib timeit
 async_utils.py            # Asynchronous utility functions
@@ -47241,7 +47343,7 @@ The project includes bytes and binary utilities in `bytes_utils.py` for working 
 
 ## Itertools Utilities Module
 
-The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, and `cycle_take`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
+The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, and `zip_longest_iterables`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
 
 ## Base64 Utilities Module
 

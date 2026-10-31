@@ -1,5 +1,26 @@
 # Project Status
 
+## Latest Session (2026-10-31) — added zip_longest_iterables to itertools_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6836 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `itertools_utils.py` wraps several `itertools` primitives (`chain`, `flatten_once`, `takewhile`, `chunk`, `product`, `combinations`, `permutations`, `groupby`, `accumulate`, `repeat`, `cycle`, `partition`) but had no wrapper for `itertools.zip_longest`, leaving a gap in the module's coverage of the standard library's iteration helpers.
+- Added `zip_longest_iterables(*iterables, fillvalue=None)` to `itertools_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-iterable arguments; it returns a list of tuples zipping the input iterables up to the length of the longest, substituting *fillvalue* (default `None`) for exhausted iterables, and returns `[]` when called with no arguments.
+- Added `TestZipLongestIterables` to `tests/test_itertools_utils.py` covering equal-length, unequal-length, default and explicit fillvalue, single/empty/no iterables, three-iterable zip, order preservation, and the `TypeError` paths (14 new tests; 6850 tests now pass in the full suite). Imported `zip_longest_iterables` at the top of the test file to match the module's `__all__` contract.
+- Updated the `itertools_utils` module prose section and the file-list comment of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6850 tests and passes, `make lint` is clean, and `make typecheck` reports no issues in 530 source files.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `array_utils.py`, `bytes_utils.py`, `prompt_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `itertools_utils.py`, `numbers_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-31) — audited strings.py boundary cases, added newline helper tests
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6817 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync (tests/test_strings.py already synced).

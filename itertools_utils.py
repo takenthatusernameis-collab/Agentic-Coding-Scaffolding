@@ -15,6 +15,7 @@ from itertools import (
     product,
     repeat,
     takewhile,
+    zip_longest,
 )
 from typing import Any, Callable, Iterable, List, Optional, Tuple
 
@@ -175,6 +176,38 @@ def partition(
     return truthy, falsy
 
 
+def zip_longest_iterables(
+    *iterables: Iterable[Any], fillvalue: Any = None
+) -> List[Tuple[Any, ...]]:
+    """Zip multiple iterables, stopping at the longest, filling missing values.
+
+    Args:
+        *iterables: The iterables to zip together.
+        fillvalue: The value used when an iterable is exhausted before the
+            others (defaults to ``None``).
+
+    Returns:
+        A list of tuples, one per position up to the length of the longest
+        iterable, with *fillvalue* substituting for exhausted iterables.
+
+    Raises:
+        TypeError: If any argument is not iterable.
+
+    Examples:
+        >>> zip_longest_iterables([1, 2, 3], ["a", "b"])
+        [(1, 'a'), (2, 'b'), (3, None)]
+        >>> zip_longest_iterables([1, 2], [3, 4], fillvalue=-1)
+        [(1, 3), (2, 4)]
+        >>> zip_longest_iterables()
+        []
+    """
+    if not iterables:
+        return []
+    for it in iterables:
+        _ensure_iterable(it)
+    return list(zip_longest(*iterables, fillvalue=fillvalue))
+
+
 __all__ = [
     "chain_iterables",
     "flatten_once",
@@ -188,4 +221,5 @@ __all__ = [
     "repeat_value",
     "cycle_take",
     "partition",
+    "zip_longest_iterables",
 ]

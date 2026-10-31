@@ -13,6 +13,7 @@ from itertools_utils import (
     product_of,
     repeat_value,
     take_while_pred,
+    zip_longest_iterables,
 )
 
 
@@ -179,6 +180,66 @@ class TestPartition(unittest.TestCase):
     def test_non_callable_predicate_raises_type_error(self):
         with self.assertRaises(TypeError):
             partition([1, 2, 3], "not callable")
+
+
+class TestZipLongestIterables(unittest.TestCase):
+    def test_equal_length(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2], [3, 4]), [(1, 3), (2, 4)]
+        )
+
+    def test_fill_default_none(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2, 3], ["a", "b"]),
+            [(1, "a"), (2, "b"), (3, None)],
+        )
+
+    def test_fill_value(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2], [3, 4, 5], fillvalue=-1),
+            [(1, 3), (2, 4), (-1, 5)],
+        )
+
+    def test_single_iterable(self):
+        self.assertEqual(zip_longest_iterables([1, 2, 3]), [(1,), (2,), (3,)])
+
+    def test_no_iterables(self):
+        self.assertEqual(zip_longest_iterables(), [])
+
+    def test_empty_iterables(self):
+        self.assertEqual(zip_longest_iterables([], []), [])
+
+    def test_one_empty(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2], [], fillvalue=0),
+            [(1, 0), (2, 0)],
+        )
+
+    def test_three_iterables(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2], [3, 4, 5], ["a"], fillvalue=-1),
+            [(1, 3, "a"), (2, 4, -1), (-1, 5, -1)],
+        )
+
+    def test_preserves_order(self):
+        self.assertEqual(
+            zip_longest_iterables(["a", "b"], [1, 2, 3]),
+            [("a", 1), ("b", 2), (None, 3)],
+        )
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            zip_longest_iterables([1, 2], 42)
+
+    def test_non_iterable_first_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            zip_longest_iterables(42, [1, 2])
+
+    def test_fillvalue_not_required_to_be_iterable(self):
+        self.assertEqual(
+            zip_longest_iterables([1, 2], [3], fillvalue=0),
+            [(1, 3), (2, 0)],
+        )
 
 
 if __name__ == "__main__":
