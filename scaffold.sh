@@ -19708,6 +19708,7 @@ from string_utils import (
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
+    reverse_words,
     slugify,
     snake_to_camel,
     title_case,
@@ -20441,6 +20442,28 @@ class TestDedentText(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     dedent_text(value)  # type: ignore[arg-type]
+
+
+
+
+class TestReverseWords(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(reverse_words("hello world"), "world hello")
+
+    def test_multiple(self):
+        self.assertEqual(reverse_words("a b c"), "c b a")
+
+    def test_empty(self):
+        self.assertEqual(reverse_words(""), "")
+
+    def test_single_word(self):
+        self.assertEqual(reverse_words("hello"), "hello")
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    reverse_words(value)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -28679,6 +28702,7 @@ __all__: List[str] = [
     "wrap_words",
     "title_case",
     "dedent_text",
+    "reverse_words",
 ]
 
 _SMALL_WORDS = {
@@ -29229,6 +29253,28 @@ def is_isogram(text: str) -> bool:
                 return False
             seen.add(ch)
     return True
+
+
+def reverse_words(text: str) -> str:
+    """Reverse the order of words in a string.
+
+    Args:
+        text: The string whose words should be reversed.
+
+    Returns:
+        A string with the words in reverse order.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+
+    Examples:
+        >>> reverse_words("hello world")
+        'world hello'
+        >>> reverse_words("a b c")
+        'c b a'
+    """
+    _require_string(text, "text")
+    return " ".join(text.split()[::-1])
 STRINGUTILS
 # --- tree_utils.py ---
 cat > "$OUTPUT_DIR/tree_utils.py" <<'TREEUTILS'

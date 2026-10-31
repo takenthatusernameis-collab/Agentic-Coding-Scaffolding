@@ -10,6 +10,7 @@ from string_utils import (
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
+    reverse_words,
     slugify,
     snake_to_camel,
     title_case,
@@ -743,6 +744,28 @@ class TestDedentText(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     dedent_text(value)  # type: ignore[arg-type]
+
+
+
+
+class TestReverseWords(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(reverse_words("hello world"), "world hello")
+
+    def test_multiple(self):
+        self.assertEqual(reverse_words("a b c"), "c b a")
+
+    def test_empty(self):
+        self.assertEqual(reverse_words(""), "")
+
+    def test_single_word(self):
+        self.assertEqual(reverse_words("hello"), "hello")
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    reverse_words(value)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

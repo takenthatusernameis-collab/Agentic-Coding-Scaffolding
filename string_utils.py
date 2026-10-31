@@ -19,6 +19,7 @@ __all__: List[str] = [
     "wrap_words",
     "title_case",
     "dedent_text",
+    "reverse_words",
 ]
 
 _SMALL_WORDS = {
@@ -569,3 +570,25 @@ def is_isogram(text: str) -> bool:
                 return False
             seen.add(ch)
     return True
+
+
+def reverse_words(text: str) -> str:
+    """Reverse the order of words in a string.
+
+    Args:
+        text: The string whose words should be reversed.
+
+    Returns:
+        A string with the words in reverse order.
+
+    Raises:
+        TypeError: If ``text`` is not a string.
+
+    Examples:
+        >>> reverse_words("hello world")
+        'world hello'
+        >>> reverse_words("a b c")
+        'c b a'
+    """
+    _require_string(text, "text")
+    return " ".join(text.split()[::-1])
