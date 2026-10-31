@@ -16,6 +16,8 @@ __all__: list[str] = [
     "array_remove",
     "array_reverse",
     "array_clear",
+    "array_copy",
+    "array_dup",
     "array_buffer_info",
     "array_byteswap",
     "array_count",
