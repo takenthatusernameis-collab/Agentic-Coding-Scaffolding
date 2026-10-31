@@ -1,7 +1,11 @@
 ## Unreleased — added is_amicable to prime_utils
-
 - Added `is_amicable(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* belongs to an amicable pair — two distinct positive integers where each equals the sum of the proper divisors of the other (e.g. 220 and 284) — and returns False for perfect numbers, numbers below 2, and numbers whose partner's proper-divisor sum does not loop back.
 - Added `TestIsAmicable` to `tests/test_prime_utils.py` covering the classic (220, 284) pair, other known pairs (1184/1210, 2620/2924, 5020/5564, 6232/6368), perfect numbers, small/boundary values, primes, and the `TypeError` paths (13 new tests). Imported `is_amicable` at the top of the test file to match the module's `__all__` contract.
+
+## Unreleased — added is_perfect_power to prime_utils
+- Added `is_perfect_power(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring, and `TypeError` validation for non-int arguments; it returns True if *n* is a positive integer > 1 that can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16 = 4^2, 36 = 6^2, 8 = 2^3), and returns False for 0, ±1, primes, and numbers with no such representation.
+- Added `TestIsPerfectPower` to `tests/test_prime_utils.py` covering perfect powers, non-perfect powers, 1 and small values, and `TypeError` paths (imported `is_perfect_power`).
+
 - Updated the `prime_utils` module tree entry and prose section of `README.md`.
 - Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 

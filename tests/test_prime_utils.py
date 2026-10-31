@@ -22,6 +22,7 @@ from prime_utils import (
     is_mersenne_prime,
     is_palindromic_prime,
     is_perfect_number,
+    is_perfect_power,
     is_perfect_square,
     is_power_of_two,
     is_prime,
@@ -1342,6 +1343,47 @@ class TestIsAmicable(unittest.TestCase):
             is_amicable(True)
         with self.assertRaises(TypeError):
             is_amicable(None)
+
+
+class TestIsPerfectPower(unittest.TestCase):
+    def test_perfect_powers(self):
+        self.assertTrue(is_perfect_power(16))
+        self.assertTrue(is_perfect_power(36))
+        self.assertTrue(is_perfect_power(8))
+        self.assertTrue(is_perfect_power(27))
+        self.assertTrue(is_perfect_power(64))
+        self.assertTrue(is_perfect_power(81))
+        self.assertTrue(is_perfect_power(2**10))
+        self.assertTrue(is_perfect_power(25))
+        self.assertTrue(is_perfect_power(49))
+        self.assertTrue(is_perfect_power(100))
+
+    def test_not_perfect_powers(self):
+        self.assertFalse(is_perfect_power(2))
+        self.assertFalse(is_perfect_power(3))
+        self.assertFalse(is_perfect_power(5))
+        self.assertFalse(is_perfect_power(6))
+        self.assertFalse(is_perfect_power(2))
+        self.assertFalse(is_perfect_power(10))
+        self.assertFalse(is_perfect_power(12))
+        self.assertFalse(is_perfect_power(2))
+        self.assertFalse(is_perfect_power(17))
+
+    def test_one_and_small_values(self):
+        self.assertFalse(is_perfect_power(1))
+        self.assertFalse(is_perfect_power(0))
+        self.assertFalse(is_perfect_power(-1))
+        self.assertFalse(is_perfect_power(-4))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_perfect_power(16.0)
+        with self.assertRaises(TypeError):
+            is_perfect_power("16")
+        with self.assertRaises(TypeError):
+            is_perfect_power(True)
+        with self.assertRaises(TypeError):
+            is_perfect_power(None)
 
 
 if __name__ == "__main__":

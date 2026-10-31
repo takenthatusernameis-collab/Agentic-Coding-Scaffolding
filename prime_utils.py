@@ -51,6 +51,7 @@ __all__: List[str] = [
     "is_giuga_number",
     "is_fermat_pseudoprime",
     "is_amicable",
+    "is_perfect_power",
 ]
 
 
@@ -1361,3 +1362,65 @@ def is_amicable(n: int) -> bool:
     if partner < 2:
         return False
     return sum_of_proper_divisors(partner) == n
+
+
+def is_perfect_power(n: int) -> bool:
+    """Return True if *n* is a perfect power.
+
+    A perfect power is a positive integer that can be expressed as an
+    integer power of another positive integer. More formally, *n* is a
+    perfect power if there exist integers *a > 0*, *b > 1* such that
+    *n = a**b*. By this definition, perfect powers include squares,
+    cubes, and all prime powers; 1 = a^0 is not considered a perfect
+    power in this sense (and 1 is not returned as True). Perfect powers
+    are usually considered in their "powerful" sense excluding duplicates,
+    but this function returns True for any integer that has such a
+    representation.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a perfect power, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_perfect_power(16)
+        True
+        >>> is_perfect_power(36)
+        True
+        >>> is_perfect_power(2)
+        False
+        >>> is_perfect_power(1)
+        False
+    """
+    _require_int(n, "n")
+    if n <= 1:
+        return False
+    if n < 0:
+        n_abs = -n
+    else:
+        n_abs = n
+    # 1 is not considered a perfect power
+    if n_abs == 1:
+        return False
+    # Check if it's a perfect power for some integer base >= 2, exponent >= 2
+    max_exp = n_abs.bit_length()
+    for b in range(2, max_exp + 1):
+        # Find integer a = n_abs^(1/b)
+        a_float = n_abs ** (1.0 / b)
+        a = round(a_float)
+        if a < 2:
+            continue
+        # Check a few candidates due to floating point precision
+        for candidate in [a - 1, a, a + 1]:
+            if candidate < 2:
+                continue
+            pow_val = candidate ** b
+            if pow_val == n_abs:
+                return True
+            if pow_val > n_abs:
+                break
+    return False
