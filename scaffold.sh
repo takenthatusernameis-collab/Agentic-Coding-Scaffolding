@@ -44541,6 +44541,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — synchronized scaffold copies after slugify_utils refactor
+
+- Refreshed the embedded copy of `slugify_utils.py` in `scaffold.sh` after the preceding `chore(kilo): checkpoint agent session` commit (c8d49dd) refactored the module without regenerating the embedded copy; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+
 ## Unreleased — added is_happy_number to numbers_utils
 
 - Added `is_happy_number` to `numbers_utils.py` with `__all__` export, Google-style docstrings with doctests, and validation raising `TypeError` for non-integers; negatives return `False` and `0` is treated as happy.
@@ -118335,6 +118339,7 @@ cat > "$OUTPUT_DIR/slugify_utils.py" <<'SLUGIFY_UTILS'
 
 import re
 import unicodedata
+from typing import Iterable
 
 __all__ = ["slugify", "is_slug", "deslugify", "truncate_slug", "slugify_many"]
 
@@ -118411,24 +118416,6 @@ def truncate_slug(text: str, max_length: int, separator: str = "-", ellipsis: st
     if idx > 0:
         cut = cut[:idx]
     return cut.rstrip(separator) + ellipsis
-    """Convert a *slug* back into a title-cased phrase.
-
-    Args:
-        text: Slug to convert.
-        separator: Separator between words.
-
-    Returns:
-        Title-cased phrase.
-
-    Raises:
-        TypeError: If *text* is not a str.
-        ValueError: If *separator* is empty.
-    """
-    if not isinstance(text, str):
-        raise TypeError("text must be a str")
-    if not isinstance(separator, str) or not separator:
-        raise ValueError("separator must be a non-empty str")
-    return " ".join(part.capitalize() for part in text.split(separator) if part)
 
 
 def deslugify(text: str, separator: str = "-") -> str:
@@ -118452,11 +118439,29 @@ def deslugify(text: str, separator: str = "-") -> str:
     return " ".join(part.capitalize() for part in text.split(separator) if part)
 
 
-def slugify_many(texts, separator: str = "-") -> list[str]:
-    """Slugify each string in *texts*, returning a list of slugs."""
+def slugify_many(texts: Iterable[str], separator: str = "-") -> list[str]:
+    """Slugify each string in *texts*, returning a list of slugs.
+
+    Args:
+        texts: Iterable of strings to slugify.
+        separator: Separator between words.
+
+    Returns:
+        List of slugified strings.
+
+    Raises:
+        TypeError: If *texts* is not iterable of str or *separator* is invalid.
+    """
+    if not isinstance(separator, str) or not separator:
+        raise ValueError("separator must be a non-empty str")
     if not isinstance(texts, (list, tuple)):
         raise TypeError("texts must be a list or tuple")
-    return [slugify(t, separator) for t in texts]
+    result: list[str] = []
+    for item in texts:
+        if not isinstance(item, str):
+            raise TypeError("texts must contain str values")
+        result.append(slugify(item, separator))
+    return result
 SLUGIFY_UTILS
 
 # --- tests/test_slugify_utils.py ---

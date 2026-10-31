@@ -1,3 +1,7 @@
+## Unreleased — synchronized scaffold copies after slugify_utils refactor
+
+- Refreshed the embedded copy of `slugify_utils.py` in `scaffold.sh` after the preceding `chore(kilo): checkpoint agent session` commit (c8d49dd) refactored the module without regenerating the embedded copy; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+
 ## Unreleased — added is_happy_number to numbers_utils
 
 - Added `is_happy_number` to `numbers_utils.py` with `__all__` export, Google-style docstrings with doctests, and validation raising `TypeError` for non-integers; negatives return `False` and `0` is treated as happy.
