@@ -1,5 +1,27 @@
 # Project Status
 
+## Latest Session (2026-10-31) — added rfind to bytes_utils
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6875 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `bytes_utils.py` wraps several `bytes` methods (`to_hex`, `from_hex`, `xor`, `chunk`, `concat`, `repeat`, `reverse`, `contains`, `index_of`, `starts_with`, `ends_with`, `find`) but had no wrapper for `bytes.rfind`, leaving a gap in the module's coverage of the standard library's bytes search helpers.
+- Added `rfind(data, sub, start=0, end=None)` to `bytes_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-bytes-like arguments; it returns the highest index in *data* where *sub* is found, or -1 when *sub* is not present, honoring optional *start*/*end* bounds.
+- Added `TestRFind` to `tests/test_bytes_utils.py` covering found, not-found, empty-subsequence, last-occurrence, bytearray input, start/end bounds, and the `TypeError` paths (7 new tests; 6882 tests now pass in the full suite). Imported `rfind` at the top of the test file to match the module's `__all__` contract.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6882 tests and passes, `make lint` is clean, and `make typecheck` reports no issues in 530 source files.
+- Committed the work as `feat(bytes_utils): add rfind helper with tests and refresh scaffold`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `stats.py`, `array_utils.py`, `prompt_utils.py`, `number_utils.py`, `prime_utils.py`, `bytes_utils.py`, `itertools_utils.py`, `numbers_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-31) — added zip_longest_iterables to itertools_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6836 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
