@@ -67172,6 +67172,7 @@ __all__: List[str] = [
     "is_spy_number",
     "is_abundant_number",
     "is_deficient_number",
+    "is_disarium_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -68689,6 +68690,41 @@ def is_deficient_number(value: int) -> bool:
                 total += other
         i += 1
     return total < value
+
+
+def is_disarium_number(value: int) -> bool:
+    """Return True if *value* is a disarium number.
+
+    A disarium number is a non-negative integer whose sum of its digits
+    raised to the power of their respective positions equals the number
+    itself. For example, ``135`` is disarium because
+    ``1**1 + 3**2 + 5**3 = 1 + 9 + 125 = 135``.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is a disarium number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_disarium_number(0)
+        True
+        >>> is_disarium_number(135)
+        True
+        >>> is_disarium_number(175)
+        True
+        >>> is_disarium_number(10)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    digits = [int(d) for d in str(value)]
+    return sum(d ** (i + 1) for i, d in enumerate(digits)) == value
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -68713,6 +68749,7 @@ from number_utils import (
     is_close,
     is_coprime,
     is_deficient_number,
+    is_disarium_number,
     is_fibonacci_number,
     is_finite,
     is_happy_number,
@@ -69683,6 +69720,24 @@ class TestIsNeonNumber(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_neon_number("9")  # type: ignore[arg-type]
+
+
+class TestIsDisariumNumber(unittest.TestCase):
+    def test_disarium(self) -> None:
+        self.assertTrue(is_disarium_number(0))
+        self.assertTrue(is_disarium_number(135))
+        self.assertTrue(is_disarium_number(175))
+
+    def test_not_disarium(self) -> None:
+        self.assertFalse(is_disarium_number(10))
+        self.assertFalse(is_disarium_number(10))
+
+    def test_negative(self) -> None:
+        self.assertFalse(is_disarium_number(-9))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_disarium_number("9")  # type: ignore[arg-type]
 
 
 class TestIsStrongNumber(unittest.TestCase):
