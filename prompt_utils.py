@@ -45,6 +45,8 @@ __all__: List[str] = [
     "count_non_blank_lines",
     "count_trailing_newlines",
     "count_leading_newlines",
+    "has_leading_newline",
+    "has_trailing_newline",
     "count_paragraphs",
     "count_characters",
     "count_non_whitespace_characters",
@@ -1123,12 +1125,60 @@ def count_leading_newlines(text: str) -> int:
     """
     _require_string(text, "text")
     count = 0
-    i = 0
-    n = len(text)
-    while i < n and text[i] == "\n":
-        count += 1
-        i += 1
+    for ch in text:
+        if ch == "\n":
+            count += 1
+        else:
+            break
     return count
+
+
+def has_leading_newline(text: str) -> bool:
+    """Check whether *text* starts with a newline character.
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        ``True`` if *text* starts with ``\\n``, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_leading_newline("\\nhello")
+        True
+        >>> has_leading_newline("hello")
+        False
+        >>> has_leading_newline("")
+        False
+    """
+    _require_string(text, "text")
+    return bool(text and text[0] == "\n")
+
+
+def has_trailing_newline(text: str) -> bool:
+    """Check whether *text* ends with a newline character.
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        ``True`` if *text* ends with ``\\n``, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_trailing_newline("hello\\n")
+        True
+        >>> has_trailing_newline("hello")
+        False
+        >>> has_trailing_newline("")
+        False
+    """
+    _require_string(text, "text")
+    return bool(text and text[-1] == "\n")
 
 
 def count_paragraphs(text: str) -> int:

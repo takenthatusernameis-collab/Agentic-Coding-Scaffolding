@@ -26,15 +26,19 @@ from prompt_utils import (
     count_words,
     dedent_lines,
     ensure_leading_newline,
+    ensure_prefix,
+    ensure_suffix,
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
-    estimate_token_count,
     extract_keywords,
     extract_placeholders,
     first_line,
     format_prompt_template,
+    has_leading_newline,
     has_placeholders,
+    has_trailing_newline,
     indent_lines,
+    join_lines,
     last_line,
     lstrip_lines,
     normalize_line_endings,
@@ -633,6 +637,36 @@ class TestCountNonBlankLines(unittest.TestCase):
             count_non_blank_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_non_blank_lines(None)  # type: ignore[arg-type]
+
+
+class TestHasLeadingNewline(unittest.TestCase):
+    def test_has_leading_newline(self):
+        self.assertTrue(has_leading_newline("\nhello"))
+        self.assertTrue(has_leading_newline("\n"))
+        self.assertFalse(has_leading_newline("hello"))
+        self.assertFalse(has_leading_newline(""))
+        self.assertFalse(has_leading_newline(" \nhello"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_leading_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_leading_newline(None)  # type: ignore[arg-type]
+
+
+class TestHasTrailingNewline(unittest.TestCase):
+    def test_has_trailing_newline(self):
+        self.assertTrue(has_trailing_newline("hello\n"))
+        self.assertTrue(has_trailing_newline("\n"))
+        self.assertFalse(has_trailing_newline("hello"))
+        self.assertFalse(has_trailing_newline(""))
+        self.assertTrue(has_trailing_newline("hello \n"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_trailing_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_trailing_newline(None)  # type: ignore[arg-type]
 
 
 class TestCountTrailingNewlines(unittest.TestCase):
