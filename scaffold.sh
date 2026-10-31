@@ -118219,9 +118219,23 @@ cat > "$OUTPUT_DIR/slugify_utils.py" <<'SLUGIFY_UTILS'
 import re
 import unicodedata
 
+__all__ = ["slugify", "is_slug", "deslugify"]
+
 
 def slugify(text: str, separator: str = "-") -> str:
-    """Convert *text* into a lowercase slug using *separator*."""
+    """Convert *text* into a lowercase slug using *separator*.
+
+    Args:
+        text: Text to slugify.
+        separator: Separator between words.
+
+    Returns:
+        Slugified string.
+
+    Raises:
+        TypeError: If *text* is not a str.
+        ValueError: If *separator* is empty.
+    """
     if not isinstance(text, str):
         raise TypeError("text must be a str")
     if not isinstance(separator, str) or not separator:
@@ -118241,13 +118255,34 @@ def is_slug(text: str, separator: str = "-") -> bool:
         return False
     pattern = rf"^[a-z0-9]+({re.escape(separator)}[a-z0-9]+)*$"
     return bool(re.fullmatch(pattern, text))
+
+
+def deslugify(text: str, separator: str = "-") -> str:
+    """Convert a *slug* back into a title-cased phrase.
+
+    Args:
+        text: Slug to convert.
+        separator: Separator between words.
+
+    Returns:
+        Title-cased phrase.
+
+    Raises:
+        TypeError: If *text* is not a str.
+        ValueError: If *separator* is empty.
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not isinstance(separator, str) or not separator:
+        raise ValueError("separator must be a non-empty str")
+    return " ".join(part.capitalize() for part in text.split(separator) if part)
 SLUGIFY_UTILS
 
 # --- tests/test_slugify_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_slugify_utils.py" <<'TEST_SLUGIFY_UTILS'
 """Tests for slugify_utils."""
 
-from slugify_utils import is_slug, slugify
+from slugify_utils import deslugify, is_slug, slugify
 
 
 def test_slugify_basic():
@@ -118275,6 +118310,20 @@ def test_is_slug():
     assert is_slug("hello-world")
     assert not is_slug("Hello World")
     assert not is_slug("")
+
+
+def test_deslugify():
+    assert deslugify("hello-world") == "Hello World"
+    assert deslugify("hello_world", "_") == "Hello World"
+
+
+def test_deslugify_invalid():
+    try:
+        deslugify(123)  # type: ignore[arg-type]
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")
 TEST_SLUGIFY_UTILS
 
 # --- backoff_utils.py ---
