@@ -41502,6 +41502,7 @@ __all__: list[str] = [
     "array_pop",
     "array_remove",
     "array_reverse",
+    "array_clear",
     "array_buffer_info",
     "array_byteswap",
     "array_count",
@@ -41606,6 +41607,29 @@ def array_reverse(arr: array) -> None:
     """Reverse array in place."""
     _require_array(arr, "arr")
     arr.reverse()
+
+
+def array_clear(arr: array) -> None:
+    """Remove all items from *arr* in place.
+
+    Args:
+        arr: The array to clear.
+
+    Raises:
+        TypeError: If *arr* is not an array.
+
+    Examples:
+        >>> a = array("i", [1, 2, 3])
+        >>> array_clear(a)
+        >>> a.tolist()
+        []
+        >>> a = array("f")
+        >>> array_clear(a)
+        >>> len(a)
+        0
+    """
+    _require_array(arr, "arr")
+    del arr[:]
 
 
 def array_buffer_info(arr: array) -> tuple[int, int]:
@@ -41739,6 +41763,7 @@ from array_utils import (
     array_append,
     array_buffer_info,
     array_byteswap,
+    array_clear,
     array_count,
     array_create,
     array_extend,
@@ -41964,6 +41989,29 @@ def test_array_remove_first_missing_raises():
     a = array("i", [1, 2])
     with pytest.raises(ValueError):
         array_remove_first(a, 99)
+
+
+def test_array_clear():
+    a = array("i", [1, 2, 3])
+    array_clear(a)
+    assert a.tolist() == []
+    assert len(a) == 0
+
+
+def test_array_clear_empty():
+    a = array("i")
+    array_clear(a)
+    assert a.tolist() == []
+
+
+def test_array_clear_rejects_non_array():
+    with pytest.raises(TypeError):
+        array_clear([1, 2, 3])
+
+
+def test_array_clear_rejects_string():
+    with pytest.raises(TypeError):
+        array_clear("abc")
 TEST_ARRAY_UTILS
 # --- bisect_utils.py ---
 cat > "$OUTPUT_DIR/bisect_utils.py" <<'BISECT_UTILS'
@@ -45125,6 +45173,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added array_clear to array_utils
+
+- Added `array_clear(arr)` to `array_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-array arguments; it removes all items from *arr* in place. Added tests to `tests/test_array_utils.py` covering clearing a non-empty array, an already-empty array, and the `TypeError` paths for non-array inputs. Updated the `array_utils` module prose section of `README.md`. Synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added index_of to bytes_utils
 
 - Added `index_of(data, sub)` to `bytes_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-bytes-like arguments; it returns the lowest index in *data* where *sub* is found, or -1 when *sub* is not present. Added `TestIndexOf` to `tests/test_bytes_utils.py` covering found, not-found, empty-subsequence, first-occurrence, bytearray input, and `TypeError` paths (7 new tests). Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -47947,7 +47999,7 @@ The project includes opcode utilities in `opcode_utils.py` wrapping the standard
 
 ## Array Utilities Module
 
-The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, and `array_count` and `array_index` search for a value. `array_to_list` and `array_from_list` convert between arrays and lists, `array_extend_from_list` extends an array from a list, and `array_remove_first` removes the first occurrence of a value. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
+The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_clear` removes all items from an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, and `array_count` and `array_index` search for a value. `array_to_list` and `array_from_list` convert between arrays and lists, `array_extend_from_list` extends an array from a list, and `array_remove_first` removes the first occurrence of a value. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
 
 ## Atexit Utilities Module
 

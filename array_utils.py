@@ -15,6 +15,7 @@ __all__: list[str] = [
     "array_pop",
     "array_remove",
     "array_reverse",
+    "array_clear",
     "array_buffer_info",
     "array_byteswap",
     "array_count",
@@ -119,6 +120,29 @@ def array_reverse(arr: array) -> None:
     """Reverse array in place."""
     _require_array(arr, "arr")
     arr.reverse()
+
+
+def array_clear(arr: array) -> None:
+    """Remove all items from *arr* in place.
+
+    Args:
+        arr: The array to clear.
+
+    Raises:
+        TypeError: If *arr* is not an array.
+
+    Examples:
+        >>> a = array("i", [1, 2, 3])
+        >>> array_clear(a)
+        >>> a.tolist()
+        []
+        >>> a = array("f")
+        >>> array_clear(a)
+        >>> len(a)
+        0
+    """
+    _require_array(arr, "arr")
+    del arr[:]
 
 
 def array_buffer_info(arr: array) -> tuple[int, int]:

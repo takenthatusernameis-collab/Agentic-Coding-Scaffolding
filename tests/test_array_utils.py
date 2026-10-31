@@ -8,6 +8,7 @@ from array_utils import (
     array_append,
     array_buffer_info,
     array_byteswap,
+    array_clear,
     array_count,
     array_create,
     array_extend,
@@ -233,3 +234,26 @@ def test_array_remove_first_missing_raises():
     a = array("i", [1, 2])
     with pytest.raises(ValueError):
         array_remove_first(a, 99)
+
+
+def test_array_clear():
+    a = array("i", [1, 2, 3])
+    array_clear(a)
+    assert a.tolist() == []
+    assert len(a) == 0
+
+
+def test_array_clear_empty():
+    a = array("i")
+    array_clear(a)
+    assert a.tolist() == []
+
+
+def test_array_clear_rejects_non_array():
+    with pytest.raises(TypeError):
+        array_clear([1, 2, 3])
+
+
+def test_array_clear_rejects_string():
+    with pytest.raises(TypeError):
+        array_clear("abc")
