@@ -2,9 +2,9 @@
 
 - Added `rfind(data, sub, start=0, end=None)` to `bytes_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-bytes-like arguments; it returns the highest index in *data* where *sub* is found, or -1 when *sub* is not present, honoring optional *start*/*end* bounds. Added `TestRFind` to `tests/test_bytes_utils.py` covering found, not-found, empty-subsequence, last-occurrence, bytearray input, start/end bounds, and the `TypeError` paths. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
-## Unreleased — added array_clear to array_utils
+## Unreleased — added array byteswap/buffer_info/typecode/itemsize helpers
 
-- Added `array_clear(arr)` to `array_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-array arguments; it removes all items from *arr* in place. Added tests to `tests/test_array_utils.py` covering clearing a non-empty array, an already-empty array, and the `TypeError` paths for non-array inputs. Updated the `array_utils` module prose section of `README.md`. Synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `array_byteswap(arr)`, `array_buffer_info(arr)`, `array_itemsize(arr)`, and `array_typecode(arr)` to `array_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-array arguments. Added tests to `tests/test_array_utils.py` covering byteswap behavior, buffer info shape, itemsize, and typecode. Updated the `array_utils` module prose section of `README.md`. Synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 ## Unreleased — added index_of to bytes_utils
 

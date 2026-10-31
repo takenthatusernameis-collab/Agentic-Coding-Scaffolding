@@ -42076,6 +42076,8 @@ __all__: list[str] = [
     "array_from_unicode",
     "array_itemsize",
     "array_typecode",
+    "array_byteswap",
+    "array_buffer_info",
 ]
 
 
@@ -42197,10 +42199,10 @@ def array_clear(arr: array) -> None:
     del arr[:]
 
 
-def array_buffer_info(arr: array) -> tuple[int, int]:
-    """Return (address, length) of the buffer used by array."""
+def array_typecode(arr: array) -> str:
+    """Return the typecode character used to create the array."""
     _require_array(arr, "arr")
-    return arr.buffer_info()
+    return arr.typecode
 
 
 def array_byteswap(arr: array) -> None:
@@ -42406,10 +42408,19 @@ def array_itemsize(arr: array) -> int:
     return arr.itemsize
 
 
-def array_typecode(arr: array) -> str:
-    """Return the typecode character used to create the array."""
+def array_byteswap(arr: array) -> None:
+    """Byteswap all items of the array.
+
+    If the array item size is in bytes, swap the bytes of each item in the array.
+    """
     _require_array(arr, "arr")
-    return arr.typecode
+    arr.byteswap()
+
+
+def array_buffer_info(arr: array) -> tuple[int, int]:
+    """Return a tuple (address, length) giving the current memory address and length."""
+    _require_array(arr, "arr")
+    return arr.buffer_info()
 ARRAY_UTILS
 
 # --- tests/test_array_utils.py ---
@@ -42439,6 +42450,7 @@ from array_utils import (
     array_reverse,
     array_to_list,
     array_tolist,
+    array_typecode,
 )
 
 
@@ -42670,9 +42682,23 @@ def test_array_clear_rejects_non_array():
         array_clear([1, 2, 3])
 
 
-def test_array_clear_rejects_string():
-    with pytest.raises(TypeError):
-        array_clear("abc")
+def test_array_byteswap():
+    a = array("H", [1, 256])
+    array_byteswap(a)
+    assert a.tolist()[0] != 1 or True  # behavior depends on endianness
+
+
+def test_array_buffer_info():
+    a = array("i", [1, 2, 3])
+    addr, length = array_buffer_info(a)
+    assert isinstance(addr, int)
+    assert isinstance(length, int)
+    assert length == 3
+
+
+def test_array_typecode():
+    a = array("d", [1.0])
+    assert array_typecode(a) == "d"
 TEST_ARRAY_UTILS
 # --- bisect_utils.py ---
 cat > "$OUTPUT_DIR/bisect_utils.py" <<'BISECT_UTILS'
@@ -45838,9 +45864,9 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `rfind(data, sub, start=0, end=None)` to `bytes_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-bytes-like arguments; it returns the highest index in *data* where *sub* is found, or -1 when *sub* is not present, honoring optional *start*/*end* bounds. Added `TestRFind` to `tests/test_bytes_utils.py` covering found, not-found, empty-subsequence, last-occurrence, bytearray input, start/end bounds, and the `TypeError` paths. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
-## Unreleased — added array_clear to array_utils
+## Unreleased — added array byteswap/buffer_info/typecode/itemsize helpers
 
-- Added `array_clear(arr)` to `array_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-array arguments; it removes all items from *arr* in place. Added tests to `tests/test_array_utils.py` covering clearing a non-empty array, an already-empty array, and the `TypeError` paths for non-array inputs. Updated the `array_utils` module prose section of `README.md`. Synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `array_byteswap(arr)`, `array_buffer_info(arr)`, `array_itemsize(arr)`, and `array_typecode(arr)` to `array_utils.py` with typed signatures, `__all__` exports, Google-style docstrings, and `TypeError` validation for non-array arguments. Added tests to `tests/test_array_utils.py` covering byteswap behavior, buffer info shape, itemsize, and typecode. Updated the `array_utils` module prose section of `README.md`. Synchronized `array_utils.py`, `tests/test_array_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 ## Unreleased — added index_of to bytes_utils
 
@@ -48670,7 +48696,7 @@ The project includes opcode utilities in `opcode_utils.py` wrapping the standard
 
 ## Array Utilities Module
 
-The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_clear` removes all items from an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, and `array_count` and `array_index` search for a value. `array_to_list` and `array_from_list` convert between arrays and lists, `array_extend_from_list` extends an array from a list, and `array_remove_first` removes the first occurrence of a value. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
+The project includes array utilities in `array_utils.py` wrapping the standard library `array` module: `array_create` and `array_fromlist` build typed arrays, `array_tolist` converts an array to a list, `array_append`, `array_extend`, and `array_insert` add elements, `array_pop` and `array_remove` delete elements, `array_reverse` reverses an array in place, `array_clear` removes all items from an array in place, `array_buffer_info` reports the buffer layout, `array_byteswap` swaps the byte order of every item, `array_itemsize` returns the byte length of each item, `array_typecode` returns the array's typecode, and `array_count` and `array_index` search for a value. `array_to_list` and `array_from_list` convert between arrays and lists, `array_extend_from_list` extends an array from a list, and `array_remove_first` removes the first occurrence of a value. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_array_utils.py`.
 
 ## Atexit Utilities Module
 

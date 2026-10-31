@@ -36,6 +36,8 @@ __all__: list[str] = [
     "array_from_unicode",
     "array_itemsize",
     "array_typecode",
+    "array_byteswap",
+    "array_buffer_info",
 ]
 
 
@@ -157,10 +159,10 @@ def array_clear(arr: array) -> None:
     del arr[:]
 
 
-def array_buffer_info(arr: array) -> tuple[int, int]:
-    """Return (address, length) of the buffer used by array."""
+def array_typecode(arr: array) -> str:
+    """Return the typecode character used to create the array."""
     _require_array(arr, "arr")
-    return arr.buffer_info()
+    return arr.typecode
 
 
 def array_byteswap(arr: array) -> None:
@@ -370,3 +372,22 @@ def array_typecode(arr: array) -> str:
     """Return the typecode character used to create the array."""
     _require_array(arr, "arr")
     return arr.typecode
+
+
+def array_byteswap(arr: array) -> None:
+    """Byteswap all items of the array.
+
+    If the array item size is in bytes, swap the bytes of each item in the array.
+    """
+    _require_array(arr, "arr")
+    arr.byteswap()
+
+
+def array_buffer_info(arr: array) -> tuple[int, int]:
+    """Return a tuple (address, length) giving the current memory address and length."""
+    _require_array(arr, "arr")
+    return arr.buffer_info()
+
+    """Return a tuple (address, length) giving the current memory address and length."""
+    _require_array(arr, "arr")
+    return arr.buffer_info()
