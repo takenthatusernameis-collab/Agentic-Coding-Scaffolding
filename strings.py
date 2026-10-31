@@ -33,6 +33,10 @@ __all__: List[str] = [
     "ensure_leading_newline",
     "ensure_trailing_newline",
     "ensure_surrounded_by_newlines",
+    "count_leading_newlines",
+    "count_trailing_newlines",
+    "strip_leading_newlines",
+    "strip_trailing_newlines",
     "normalize_whitespace",
     "is_upper",
     "is_lower",
@@ -66,6 +70,8 @@ __all__: List[str] = [
     "strip_chars",
     "removeprefix",
     "removesuffix",
+    "remove_prefix",
+    "remove_suffix",
     "partition",
     "rpartition",
     "split_lines",
@@ -1438,6 +1444,11 @@ def removesuffix(s: str, suffix: str) -> str:
     return s
 
 
+# Common aliases
+remove_prefix = removeprefix
+remove_suffix = removesuffix
+
+
 def partition(s: str, sep: str) -> tuple:
     """Split string at first occurrence of sep into (before, sep, after)."""
     _require_string(s, "s")
@@ -1968,3 +1979,122 @@ def ensure_surrounded_by_newlines(text: str) -> str:
     if not text.endswith("\n"):
         text = text + "\n"
     return text
+
+
+def count_leading_newlines(text: str) -> int:
+    """Count leading newline characters in *text*.
+
+    Args:
+        text: The text to analyze.
+
+    Returns:
+        Number of newline characters at the start of *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_leading_newlines("hello")
+        0
+        >>> count_leading_newlines("\\nhello")
+        1
+        >>> count_leading_newlines("\\n\\nhello")
+        2
+        >>> count_leading_newlines("")
+        0
+    """
+    _require_string(text, "text")
+    count = 0
+    for ch in text:
+        if ch == "\n":
+            count += 1
+        else:
+            break
+    return count
+
+
+def count_trailing_newlines(text: str) -> int:
+    """Count trailing newline characters in *text*.
+
+    Args:
+        text: The text to analyze.
+
+    Returns:
+        Number of newline characters at the end of *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_trailing_newlines("hello")
+        0
+        >>> count_trailing_newlines("hello\\n")
+        1
+        >>> count_trailing_newlines("hello\\n\\n")
+        2
+        >>> count_trailing_newlines("")
+        0
+    """
+    _require_string(text, "text")
+    count = 0
+    for ch in reversed(text):
+        if ch == "\n":
+            count += 1
+        else:
+            break
+    return count
+
+
+def strip_leading_newlines(text: str) -> str:
+    """Remove all leading newline characters from *text*.
+
+    Args:
+        text: The text to strip.
+
+    Returns:
+        *text* with all leading newlines removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_leading_newlines("\\n\\nhello")
+        'hello'
+        >>> strip_leading_newlines("hello")
+        'hello'
+        >>> strip_leading_newlines("")
+        ''
+    """
+    _require_string(text, "text")
+    i = 0
+    n = len(text)
+    while i < n and text[i] == "\n":
+        i += 1
+    return text[i:]
+
+
+def strip_trailing_newlines(text: str) -> str:
+    """Remove all trailing newline characters from *text*.
+
+    Args:
+        text: The text to strip.
+
+    Returns:
+        *text* with all trailing newlines removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_trailing_newlines("hello\\n\\n")
+        'hello'
+        >>> strip_trailing_newlines("hello")
+        'hello'
+        >>> strip_trailing_newlines("")
+        ''
+    """
+    _require_string(text, "text")
+    i = len(text)
+    while i > 0 and text[i - 1] == "\n":
+        i -= 1
+    return text[:i]
