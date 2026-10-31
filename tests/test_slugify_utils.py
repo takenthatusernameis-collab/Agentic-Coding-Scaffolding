@@ -1,6 +1,6 @@
 """Tests for slugify_utils."""
 
-from slugify_utils import deslugify, is_slug, slugify
+from slugify_utils import deslugify, is_slug, slugify, truncate_slug
 
 
 def test_slugify_basic():
@@ -42,3 +42,33 @@ def test_deslugify_invalid():
         pass
     else:
         raise AssertionError("expected TypeError")
+
+
+def test_truncate_slug_no_truncation():
+    assert truncate_slug("hello-world", 100) == "hello-world"
+
+
+def test_truncate_slug_basic():
+    assert truncate_slug("hello-world-foo-bar", 12) == "hello..."
+
+
+def test_truncate_slug_hard_cut():
+    assert truncate_slug("abcdefghij", 5) == "ab..."
+
+
+def test_truncate_slug_invalid_text():
+    try:
+        truncate_slug(123, 5)  # type: ignore[arg-type]
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")
+
+
+def test_truncate_slug_invalid_max_length():
+    try:
+        truncate_slug("abc", -1)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")

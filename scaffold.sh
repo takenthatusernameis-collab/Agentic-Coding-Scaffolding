@@ -46111,7 +46111,7 @@ deprecation_utils.py      # Deprecation utilities (deprecated decorator) with op
 linecache_utils.py        # Line cache utilities (getline, getlines, updatecache, clearcache) wrapping stdlib linecache
 plistlib_utils.py         # Property list utilities wrapping stdlib plistlib (plist_load, plist_loads, plist_dump, plist_dumps)
 shlex_utils.py            # Simple lexical analysis utilities wrapping stdlib shlex (split, quote, join)
-slugify_utils.py          # Slug utilities converting strings into URL-friendly slugs (slugify, is_slug)
+slugify_utils.py          # Slug utilities converting strings into URL-friendly slugs (slugify, is_slug, deslugify, truncate_slug)
 cmd_utils.py              # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
 this_utils.py             # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 tokenize_utils.py         # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
@@ -118219,7 +118219,7 @@ cat > "$OUTPUT_DIR/slugify_utils.py" <<'SLUGIFY_UTILS'
 import re
 import unicodedata
 
-__all__ = ["slugify", "is_slug", "deslugify"]
+__all__ = ["slugify", "is_slug", "deslugify", "truncate_slug"]
 
 
 def slugify(text: str, separator: str = "-") -> str:
@@ -118257,6 +118257,63 @@ def is_slug(text: str, separator: str = "-") -> bool:
     return bool(re.fullmatch(pattern, text))
 
 
+def truncate_slug(text: str, max_length: int, separator: str = "-", ellipsis: str = "...") -> str:
+    """Truncate *text* (a slug) to at most *max_length* characters.
+
+    Truncation happens on separator boundaries when possible; otherwise the slug
+    is cut hard. *ellipsis* is appended when truncation occurs.
+
+    Args:
+        text: Slug to truncate.
+        max_length: Maximum length of the returned string.
+        separator: Separator between words.
+        ellipsis: Suffix appended when truncated.
+
+    Returns:
+        Truncated slug.
+
+    Raises:
+        TypeError: If *text* is not a str or *max_length* is not an int.
+        ValueError: If *max_length* is negative or *separator* is empty.
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if isinstance(max_length, bool) or not isinstance(max_length, int):
+        raise TypeError("max_length must be an int")
+    if max_length < 0:
+        raise ValueError("max_length must be non-negative")
+    if not isinstance(separator, str) or not separator:
+        raise ValueError("separator must be a non-empty str")
+    if len(text) <= max_length:
+        return text
+    if max_length <= len(ellipsis):
+        return ellipsis[:max_length]
+    limit = max_length - len(ellipsis)
+    cut = text[:limit]
+    idx = cut.rfind(separator)
+    if idx > 0:
+        cut = cut[:idx]
+    return cut.rstrip(separator) + ellipsis
+    """Convert a *slug* back into a title-cased phrase.
+
+    Args:
+        text: Slug to convert.
+        separator: Separator between words.
+
+    Returns:
+        Title-cased phrase.
+
+    Raises:
+        TypeError: If *text* is not a str.
+        ValueError: If *separator* is empty.
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not isinstance(separator, str) or not separator:
+        raise ValueError("separator must be a non-empty str")
+    return " ".join(part.capitalize() for part in text.split(separator) if part)
+
+
 def deslugify(text: str, separator: str = "-") -> str:
     """Convert a *slug* back into a title-cased phrase.
 
@@ -118282,7 +118339,7 @@ SLUGIFY_UTILS
 cat > "$OUTPUT_DIR/tests/test_slugify_utils.py" <<'TEST_SLUGIFY_UTILS'
 """Tests for slugify_utils."""
 
-from slugify_utils import deslugify, is_slug, slugify
+from slugify_utils import deslugify, is_slug, slugify, truncate_slug
 
 
 def test_slugify_basic():
@@ -118324,6 +118381,36 @@ def test_deslugify_invalid():
         pass
     else:
         raise AssertionError("expected TypeError")
+
+
+def test_truncate_slug_no_truncation():
+    assert truncate_slug("hello-world", 100) == "hello-world"
+
+
+def test_truncate_slug_basic():
+    assert truncate_slug("hello-world-foo-bar", 12) == "hello..."
+
+
+def test_truncate_slug_hard_cut():
+    assert truncate_slug("abcdefghij", 5) == "ab..."
+
+
+def test_truncate_slug_invalid_text():
+    try:
+        truncate_slug(123, 5)  # type: ignore[arg-type]
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")
+
+
+def test_truncate_slug_invalid_max_length():
+    try:
+        truncate_slug("abc", -1)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
 TEST_SLUGIFY_UTILS
 
 # --- backoff_utils.py ---

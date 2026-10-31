@@ -174,7 +174,7 @@ deprecation_utils.py      # Deprecation utilities (deprecated decorator) with op
 linecache_utils.py        # Line cache utilities (getline, getlines, updatecache, clearcache) wrapping stdlib linecache
 plistlib_utils.py         # Property list utilities wrapping stdlib plistlib (plist_load, plist_loads, plist_dump, plist_dumps)
 shlex_utils.py            # Simple lexical analysis utilities wrapping stdlib shlex (split, quote, join)
-slugify_utils.py          # Slug utilities converting strings into URL-friendly slugs (slugify, is_slug)
+slugify_utils.py          # Slug utilities converting strings into URL-friendly slugs (slugify, is_slug, deslugify, truncate_slug)
 cmd_utils.py              # Command interpreter utilities wrapping stdlib cmd (identchars, prompt_default, main)
 this_utils.py             # Zen of Python utilities wrapping stdlib this (zen_of_python, translation_table, cipher_index, this, print_zen)
 tokenize_utils.py         # Source tokenization utilities wrapping stdlib tokenize (tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens)
