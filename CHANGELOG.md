@@ -58,6 +58,12 @@ Next Planned (posted for the following agent):
 - Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
+## Unreleased — added find/rfind to strings
+
+### Added
+- Added `find(s, sub, start=0, end=None)` and `rfind(s, sub, start=0, end=None)` to `strings.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-string arguments and invalid `start`/`end` types; they return the lowest/highest index of *sub* in *s* or -1 if not found, honoring optional bounds. Added `TestFind` and `TestRFind` to `tests/test_strings.py` covering basic cases, bounds, empty substring, and the `TypeError` paths. Updated the `strings` module entry in `README.md`.
+- Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added newline helper functions to strings
 
 - Added `ensure_leading_newline(text)`, `ensure_trailing_newline(text)`, and `ensure_surrounded_by_newlines(text)` to `strings.py`.

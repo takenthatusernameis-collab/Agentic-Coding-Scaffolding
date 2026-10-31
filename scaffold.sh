@@ -11067,6 +11067,8 @@ __all__: List[str] = [
     "count_occurrences",
     "starts_with",
     "ends_with",
+    "find",
+    "rfind",
     "pad_left",
     "pad_right",
     "center",
@@ -12338,6 +12340,74 @@ def ends_with(s: str, suffix: str) -> bool:
     _require_string(s, "s")
     _require_string(suffix, "suffix")
     return s.endswith(suffix)
+
+
+def find(s: str, sub: str, start: int = 0, end: int | None = None) -> int:
+    """Return the lowest index of *sub* in *s*, or -1 if not found.
+
+    Args:
+        s: The string to search in.
+        sub: The substring to search for.
+        start: Optional starting index for the search.
+        end: Optional ending index for the search.
+
+    Returns:
+        The lowest index in *s* where *sub* is found, or -1 if *sub* is
+        not present.
+
+    Raises:
+        TypeError: If *s* or *sub* is not a string, or if *start*/*end* is
+            not an int.
+
+    Examples:
+        >>> find("hello world", "o")
+        4
+        >>> find("hello", "x")
+        -1
+        >>> find("hello world", "o", 5)
+        7
+    """
+    _require_string(s, "s")
+    _require_string(sub, "sub")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return s.find(sub, start, end)
+
+
+def rfind(s: str, sub: str, start: int = 0, end: int | None = None) -> int:
+    """Return the highest index of *sub* in *s*, or -1 if not found.
+
+    Args:
+        s: The string to search in.
+        sub: The substring to search for.
+        start: Optional starting index for the search.
+        end: Optional ending index for the search.
+
+    Returns:
+        The highest index in *s* where *sub* is found, or -1 if *sub* is
+        not present.
+
+    Raises:
+        TypeError: If *s* or *sub* is not a string, or if *start*/*end* is
+            not an int.
+
+    Examples:
+        >>> rfind("hello world", "o")
+        7
+        >>> rfind("hello", "x")
+        -1
+        >>> rfind("hello world", "o", 0, 5)
+        4
+    """
+    _require_string(s, "s")
+    _require_string(sub, "sub")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return s.rfind(sub, start, end)
 
 
 def pad_left(s: str, width: int, fillchar: str = " ") -> str:
@@ -15001,6 +15071,7 @@ from strings import (
     ensure_suffix,
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
+    find,
     first_n,
     initials,
     is_alpha,
@@ -15045,6 +15116,7 @@ from strings import (
     replace_many,
     reverse_string,
     reverse_words,
+    rfind,
     rpartition,
     rstrip_chars,
     slugify,
@@ -17176,6 +17248,72 @@ class TestNewlineHelpers(unittest.TestCase):
         self.assertEqual(strip_trailing_newlines("abc\ndef\n\n\n"), "abc\ndef")
         with self.assertRaises(TypeError):
             strip_trailing_newlines(123)  # type: ignore[arg-type]
+
+
+class TestFind(unittest.TestCase):
+    def test_find_basic(self):
+        self.assertEqual(find("hello world", "o"), 4)
+        self.assertEqual(find("hello", "x"), -1)
+        self.assertEqual(find("hello world", "world"), 6)
+
+    def test_find_with_start(self):
+        self.assertEqual(find("hello world", "o", 5), 7)
+        self.assertEqual(find("hello world", "o", 8), -1)
+
+    def test_find_with_start_end(self):
+        self.assertEqual(find("hello world", "o", 0, 5), 4)
+        self.assertEqual(find("hello world", "o", 0, 4), -1)
+
+    def test_find_empty_substring(self):
+        self.assertEqual(find("hello", ""), 0)
+
+    def test_find_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            find(123, "o")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find("hello", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find("hello", "o", "0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find("hello", "o", 0, "5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find("hello", "o", True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find("hello", "o", 0, False)  # type: ignore[arg-type]
+
+
+class TestRFind(unittest.TestCase):
+    def test_rfind_basic(self):
+        self.assertEqual(rfind("hello world", "o"), 7)
+        self.assertEqual(rfind("hello", "x"), -1)
+        self.assertEqual(rfind("hello world", "world"), 6)
+
+    def test_rfind_last_occurrence(self):
+        self.assertEqual(rfind("ababab", "ab"), 4)
+        self.assertEqual(rfind("aaaa", "a"), 3)
+
+    def test_rfind_with_start(self):
+        self.assertEqual(rfind("hello world", "o", 0, 6), 4)
+
+    def test_rfind_with_start_end(self):
+        self.assertEqual(rfind("hello world", "o", 0, 5), 4)
+
+    def test_rfind_empty_substring(self):
+        self.assertEqual(rfind("hello", ""), 5)
+
+    def test_rfind_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            rfind(123, "o")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rfind("hello", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rfind("hello", "o", "0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rfind("hello", "o", 0, "5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rfind("hello", "o", True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rfind("hello", "o", 0, False)  # type: ignore[arg-type]
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -45756,6 +45894,12 @@ Next Planned (posted for the following agent):
 - Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
+## Unreleased — added find/rfind to strings
+
+### Added
+- Added `find(s, sub, start=0, end=None)` and `rfind(s, sub, start=0, end=None)` to `strings.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-string arguments and invalid `start`/`end` types; they return the lowest/highest index of *sub* in *s* or -1 if not found, honoring optional bounds. Added `TestFind` and `TestRFind` to `tests/test_strings.py` covering basic cases, bounds, empty substring, and the `TypeError` paths. Updated the `strings` module entry in `README.md`.
+- Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, and this CHANGELOG into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added newline helper functions to strings
 
 - Added `ensure_leading_newline(text)`, `ensure_trailing_newline(text)`, and `ensure_surrounded_by_newlines(text)` to `strings.py`.
@@ -47220,7 +47364,7 @@ pickletools_utils.py         # Pickletools utilities wrapping stdlib pickletools
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
-strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, count_punctuation, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, remove_whitespace, normalize_whitespace, starts_with, ends_with, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
+strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, count_punctuation, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, is_composite, clamp, is_even, combination, permutation)

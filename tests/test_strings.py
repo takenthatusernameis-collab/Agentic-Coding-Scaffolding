@@ -29,6 +29,7 @@ from strings import (
     ensure_suffix,
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
+    find,
     first_n,
     initials,
     is_alpha,
@@ -73,6 +74,7 @@ from strings import (
     replace_many,
     reverse_string,
     reverse_words,
+    rfind,
     rpartition,
     rstrip_chars,
     slugify,
@@ -2204,3 +2206,69 @@ class TestNewlineHelpers(unittest.TestCase):
         self.assertEqual(strip_trailing_newlines("abc\ndef\n\n\n"), "abc\ndef")
         with self.assertRaises(TypeError):
             strip_trailing_newlines(123)  # type: ignore[arg-type]
+
+
+class TestFind(unittest.TestCase):
+    def test_find_basic(self):
+        self.assertEqual(find("hello world", "o"), 4)
+        self.assertEqual(find("hello", "x"), -1)
+        self.assertEqual(find("hello world", "world"), 6)
+
+    def test_find_with_start(self):
+        self.assertEqual(find("hello world", "o", 5), 7)
+        self.assertEqual(find("hello world", "o", 8), -1)
+
+    def test_find_with_start_end(self):
+        self.assertEqual(find("hello world", "o", 0, 5), 4)
+        self.assertEqual(find("hello world", "o", 0, 4), -1)
+
+    def test_find_empty_substring(self):
+        self.assertEqual(find("hello", ""), 0)
+
+    def test_find_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            find(123, "o")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find("hello", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find("hello", "o", "0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find("hello", "o", 0, "5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find("hello", "o", True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find("hello", "o", 0, False)  # type: ignore[arg-type]
+
+
+class TestRFind(unittest.TestCase):
+    def test_rfind_basic(self):
+        self.assertEqual(rfind("hello world", "o"), 7)
+        self.assertEqual(rfind("hello", "x"), -1)
+        self.assertEqual(rfind("hello world", "world"), 6)
+
+    def test_rfind_last_occurrence(self):
+        self.assertEqual(rfind("ababab", "ab"), 4)
+        self.assertEqual(rfind("aaaa", "a"), 3)
+
+    def test_rfind_with_start(self):
+        self.assertEqual(rfind("hello world", "o", 0, 6), 4)
+
+    def test_rfind_with_start_end(self):
+        self.assertEqual(rfind("hello world", "o", 0, 5), 4)
+
+    def test_rfind_empty_substring(self):
+        self.assertEqual(rfind("hello", ""), 5)
+
+    def test_rfind_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            rfind(123, "o")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rfind("hello", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rfind("hello", "o", "0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rfind("hello", "o", 0, "5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rfind("hello", "o", True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            rfind("hello", "o", 0, False)  # type: ignore[arg-type]

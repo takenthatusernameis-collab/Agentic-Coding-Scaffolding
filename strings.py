@@ -62,6 +62,8 @@ __all__: List[str] = [
     "count_occurrences",
     "starts_with",
     "ends_with",
+    "find",
+    "rfind",
     "pad_left",
     "pad_right",
     "center",
@@ -1333,6 +1335,74 @@ def ends_with(s: str, suffix: str) -> bool:
     _require_string(s, "s")
     _require_string(suffix, "suffix")
     return s.endswith(suffix)
+
+
+def find(s: str, sub: str, start: int = 0, end: int | None = None) -> int:
+    """Return the lowest index of *sub* in *s*, or -1 if not found.
+
+    Args:
+        s: The string to search in.
+        sub: The substring to search for.
+        start: Optional starting index for the search.
+        end: Optional ending index for the search.
+
+    Returns:
+        The lowest index in *s* where *sub* is found, or -1 if *sub* is
+        not present.
+
+    Raises:
+        TypeError: If *s* or *sub* is not a string, or if *start*/*end* is
+            not an int.
+
+    Examples:
+        >>> find("hello world", "o")
+        4
+        >>> find("hello", "x")
+        -1
+        >>> find("hello world", "o", 5)
+        7
+    """
+    _require_string(s, "s")
+    _require_string(sub, "sub")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return s.find(sub, start, end)
+
+
+def rfind(s: str, sub: str, start: int = 0, end: int | None = None) -> int:
+    """Return the highest index of *sub* in *s*, or -1 if not found.
+
+    Args:
+        s: The string to search in.
+        sub: The substring to search for.
+        start: Optional starting index for the search.
+        end: Optional ending index for the search.
+
+    Returns:
+        The highest index in *s* where *sub* is found, or -1 if *sub* is
+        not present.
+
+    Raises:
+        TypeError: If *s* or *sub* is not a string, or if *start*/*end* is
+            not an int.
+
+    Examples:
+        >>> rfind("hello world", "o")
+        7
+        >>> rfind("hello", "x")
+        -1
+        >>> rfind("hello world", "o", 0, 5)
+        4
+    """
+    _require_string(s, "s")
+    _require_string(sub, "sub")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return s.rfind(sub, start, end)
 
 
 def pad_left(s: str, width: int, fillchar: str = " ") -> str:
