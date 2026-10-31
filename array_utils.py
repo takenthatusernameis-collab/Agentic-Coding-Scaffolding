@@ -387,7 +387,3 @@ def array_buffer_info(arr: array) -> tuple[int, int]:
     """Return a tuple (address, length) giving the current memory address and length."""
     _require_array(arr, "arr")
     return arr.buffer_info()
-
-    """Return a tuple (address, length) giving the current memory address and length."""
-    _require_array(arr, "arr")
-    return arr.buffer_info()
