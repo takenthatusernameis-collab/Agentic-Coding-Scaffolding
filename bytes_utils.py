@@ -14,6 +14,19 @@ __all__: list[str] = [
     "index_of",
     "starts_with",
     "ends_with",
+    "split",
+    "find",
+    "replace",
+    "count",
+    "decode_utf8",
+    "encode_utf8",
+    "rstrip",
+    "lstrip",
+    "strip",
+    "center",
+    "ljust",
+    "rjust",
+    "zfill",
 ]
 
 
@@ -258,11 +271,11 @@ def ends_with(data: bytes, suffix: bytes) -> bool:
     """Return True if *data* ends with *suffix*.
 
     Args:
-        data: Bytes or bytearray to test.
-        suffix: Bytes or bytearray suffix.
+        data: Bytes or bytearray to check.
+        suffix: Suffix to look for.
 
     Returns:
-        True if *data* ends with *suffix*.
+        True if *data* ends with *suffix*, False otherwise.
 
     Raises:
         TypeError: If *data* or *suffix* is not bytes or bytearray.
@@ -278,3 +291,141 @@ def ends_with(data: bytes, suffix: bytes) -> bool:
     if not isinstance(suffix, (bytes, bytearray)):
         raise TypeError("suffix must be bytes or bytearray")
     return bytes(data).endswith(bytes(suffix))
+
+
+def split(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[bytes]:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if sep is not None and not isinstance(sep, (bytes, bytearray)):
+        raise TypeError("sep must be bytes, bytearray, or None")
+    if not isinstance(maxsplit, int) or isinstance(maxsplit, bool):
+        raise TypeError("maxsplit must be an int")
+    if sep is None:
+        return bytes(data).split(maxsplit=maxsplit)
+    return bytes(data).split(bytes(sep), maxsplit)
+
+
+def find(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sub, (bytes, bytearray)):
+        raise TypeError("sub must be bytes or bytearray")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).find(bytes(sub), start, end)
+
+
+def replace(data: bytes, old: bytes, new: bytes, count: int = -1) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(old, (bytes, bytearray)):
+        raise TypeError("old must be bytes or bytearray")
+    if not isinstance(new, (bytes, bytearray)):
+        raise TypeError("new must be bytes or bytearray")
+    if not isinstance(count, int) or isinstance(count, bool):
+        raise TypeError("count must be an int")
+    return bytes(data).replace(bytes(old), bytes(new), count)
+
+
+def count(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sub, (bytes, bytearray)):
+        raise TypeError("sub must be bytes or bytearray")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).count(bytes(sub), start, end)
+
+
+def decode_utf8(data: bytes, errors: str = "strict") -> str:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be a string")
+    return bytes(data).decode("utf-8", errors=errors)
+
+
+def encode_utf8(s: str, errors: str = "strict") -> bytes:
+    if not isinstance(s, str):
+        raise TypeError("s must be a string")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be a string")
+    return s.encode("utf-8", errors=errors)
+
+
+def rstrip(data: bytes, chars: bytes | None = None) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if chars is not None and not isinstance(chars, (bytes, bytearray)):
+        raise TypeError("chars must be bytes, bytearray, or None")
+    if chars is None:
+        return bytes(data).rstrip()
+    return bytes(data).rstrip(bytes(chars))
+
+
+def lstrip(data: bytes, chars: bytes | None = None) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if chars is not None and not isinstance(chars, (bytes, bytearray)):
+        raise TypeError("chars must be bytes, bytearray, or None")
+    if chars is None:
+        return bytes(data).lstrip()
+    return bytes(data).lstrip(bytes(chars))
+
+
+def strip(data: bytes, chars: bytes | None = None) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if chars is not None and not isinstance(chars, (bytes, bytearray)):
+        raise TypeError("chars must be bytes, bytearray, or None")
+    if chars is None:
+        return bytes(data).strip()
+    return bytes(data).strip(bytes(chars))
+
+
+def center(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(width, int) or isinstance(width, bool):
+        raise TypeError("width must be an int")
+    if not isinstance(fillbyte, (bytes, bytearray)):
+        raise TypeError("fillbyte must be bytes or bytearray")
+    return bytes(data).center(width, bytes(fillbyte)[0:1] if len(bytes(fillbyte)) == 1 else bytes(fillbyte)[0:1] if False else bytes(fillbyte)[:1] or b" ")
+
+
+def ljust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(width, int) or isinstance(width, bool):
+        raise TypeError("width must be an int")
+    if not isinstance(fillbyte, (bytes, bytearray)):
+        raise TypeError("fillbyte must be bytes or bytearray")
+    fb = bytes(fillbyte)
+    if len(fb) != 1:
+        raise ValueError("fillbyte must be a single byte")
+    return bytes(data).ljust(width, fb)
+
+
+def rjust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(width, int) or isinstance(width, bool):
+        raise TypeError("width must be an int")
+    if not isinstance(fillbyte, (bytes, bytearray)):
+        raise TypeError("fillbyte must be bytes or bytearray")
+    fb = bytes(fillbyte)
+    if len(fb) != 1:
+        raise ValueError("fillbyte must be a single byte")
+    return bytes(data).rjust(width, fb)
+
+
+def zfill(data: bytes, width: int) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(width, int) or isinstance(width, bool):
+        raise TypeError("width must be an int")
+    return bytes(data).zfill(width)

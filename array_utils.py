@@ -24,6 +24,20 @@ __all__: list[str] = [
     "array_from_list",
     "array_extend_from_list",
     "array_remove_first",
+    "array_tobytes",
+    "array_to_bytes",
+    "array_frombytes",
+    "array_from_bytes",
+    "array_tofile",
+    "array_to_file",
+    "array_fromfile",
+    "array_from_file",
+    "array_tounicode",
+    "array_to_unicode",
+    "array_fromunicode",
+    "array_from_unicode",
+    "array_itemsize",
+    "array_typecode",
 ]
 
 
@@ -262,3 +276,103 @@ def array_remove_first(arr: array, item: Any) -> None:
     """
     _require_array(arr, "arr")
     arr.remove(item)
+
+
+def array_tobytes(arr: array) -> bytes:
+    """Convert the array to a bytes object."""
+    _require_array(arr, "arr")
+    return arr.tobytes()
+
+
+def array_to_bytes(arr: array) -> bytes:
+    """Convert the array to a bytes object."""
+    _require_array(arr, "arr")
+    return arr.tobytes()
+
+
+def array_frombytes(arr: array, data: bytes) -> None:
+    """Append items from the bytes object to the array."""
+    _require_array(arr, "arr")
+    if not isinstance(data, bytes):
+        raise TypeError(f"data must be a bytes, got {type(data).__name__}")
+    arr.frombytes(data)
+
+
+def array_from_bytes(arr: array, data: bytes) -> None:
+    """Append items from the bytes object to the array."""
+    _require_array(arr, "arr")
+    if not isinstance(data, bytes):
+        raise TypeError(f"data must be a bytes, got {type(data).__name__}")
+    arr.frombytes(data)
+
+
+def array_tofile(arr: array, f) -> None:
+    """Write all items to a file object."""
+    _require_array(arr, "arr")
+    arr.tofile(f)
+
+
+def array_to_file(arr: array, f) -> None:
+    """Write all items to a file object."""
+    _require_array(arr, "arr")
+    arr.tofile(f)
+
+
+def array_fromfile(arr: array, f, n: int) -> None:
+    """Read n items from a file object and append to array."""
+    _require_array(arr, "arr")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    arr.fromfile(f, n)
+
+
+def array_from_file(arr: array, f, n: int) -> None:
+    """Read n items from a file object and append to array."""
+    _require_array(arr, "arr")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    arr.fromfile(f, n)
+
+
+def array_tounicode(arr: array, s: str) -> str:
+    """Convert array to unicode."""
+    _require_array(arr, "arr")
+    if not isinstance(s, str):
+        raise TypeError(f"s must be a string, got {type(s).__name__}")
+    return arr.tounicode(s)
+
+
+def array_to_unicode(arr: array, s: str) -> str:
+    """Convert array to unicode."""
+    _require_array(arr, "arr")
+    if not isinstance(s, str):
+        raise TypeError(f"s must be a string, got {type(s).__name__}")
+    return arr.tounicode(s)
+
+
+def array_fromunicode(arr: array, s: str) -> None:
+    """Extend array with data from unicode string."""
+    _require_array(arr, "arr")
+    if not isinstance(s, str):
+        raise TypeError(f"s must be a string, got {type(s).__name__}")
+    arr.fromunicode(s)
+
+
+def array_from_unicode(arr: array, s: str) -> None:
+    """Extend array with data from unicode string."""
+    _require_array(arr, "arr")
+    if not isinstance(s, str):
+        raise TypeError(f"s must be a string, got {type(s).__name__}")
+    arr.fromunicode(s)
+
+
+def array_itemsize(arr: array) -> int:
+    """Return the length in bytes of one array item."""
+    _require_array(arr, "arr")
+    return arr.itemsize
+
+
+def array_typecode(arr: array) -> str:
+    """Return the typecode character used to create the array."""
+    _require_array(arr, "arr")
+    return arr.typecode

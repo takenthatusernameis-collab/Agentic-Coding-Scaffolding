@@ -10,6 +10,7 @@ from itertools import (
     combinations,
     combinations_with_replacement,
     compress,
+    count,
     cycle,
     dropwhile,
     filterfalse,
@@ -19,9 +20,15 @@ from itertools import (
     permutations,
     product,
     repeat,
+    starmap,
     takewhile,
+    tee,
     zip_longest,
 )
+try:
+    from itertools import batched
+except ImportError:
+    batched = None  # type: ignore[assignment]
 from typing import Any, Callable, Iterable, List, Optional, Tuple
 
 
@@ -294,7 +301,39 @@ __all__ = [
     "partition",
     "zip_longest_iterables",
     "zip_strict_iterables",
+    "batched_iterable",
+    "take_while_pred",
+    "drop_while_pred",
+    "tee_iterables",
+    "starmap_iterable",
+    "count_from",
+    "islice_iterable",
 ]
+
+
+def batched_iterable(iterable: Iterable[Any], n: int) -> List[Tuple[Any, ...]]:
+    """Batch data into tuples of length n (Python 3.12+ itertools.batched)."""
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 1:
+        raise ValueError("n must be at least one")
+    if batched is not None:
+        return list(batched(iterable, n))
+    # Fallback for older Python
+    it = iter(iterable)
+    result = []
+    while True:
+        batch = []
+        for _ in range(n):
+            try:
+                batch.append(next(it))
+            except StopIteration:
+                break
+        if not batch:
+            break
+        result.append(tuple(batch))
+    return result
 
 
 def drop_while_pred(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> List[Any]:
@@ -322,3 +361,37 @@ def drop_while_pred(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -
     if not callable(predicate):
         raise TypeError("predicate must be callable")
     return list(dropwhile(predicate, iterable))
+
+
+def tee_iterables(iterable: Iterable[Any], n: int = 2) -> List[List[Any]]:
+    """Split an iterable into n independent iterators/lists."""
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    tees = tee(iterable, n)
+    return [list(t) for t in tees]
+
+
+def starmap_iterable(function: Callable[..., Any], iterable: Iterable[Iterable[Any]]) -> List[Any]:
+    """Apply function to arguments unpacked from iterable."""
+    if not callable(function):
+        raise TypeError("function must be callable")
+    _ensure_iterable(iterable, "iterable")
+    return list(starmap(function, iterable))
+
+
+def count_from(start: int = 0, step: int = 1) -> List[Any]:
+    """Count infinitely from start with step; return first 1000 as list for safety."""
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if not isinstance(step, int) or isinstance(step, bool):
+        raise TypeError("step must be an int")
+    return list(islice(count(start, step), 1000))
+
+
+def islice_iterable(iterable: Iterable[Any], *args: Any) -> List[Any]:
+    """Slice an iterable."""
+    _ensure_iterable(iterable, "iterable")
+    return list(islice(iterable, *args))
