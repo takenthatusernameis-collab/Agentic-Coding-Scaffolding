@@ -9,6 +9,7 @@ from itertools import (
     chain,
     combinations,
     cycle,
+    dropwhile,
     groupby,
     islice,
     permutations,
@@ -255,3 +256,30 @@ __all__ = [
     "zip_longest_iterables",
     "zip_strict_iterables",
 ]
+
+
+def drop_while_pred(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> List[Any]:
+    """Drop elements from the start while predicate holds, then keep the rest.
+
+    Args:
+        iterable: The iterable to process.
+        predicate: A callable returning True for elements to drop.
+
+    Returns:
+        A list of the remaining elements.
+
+    Raises:
+        TypeError: If iterable is not iterable or predicate is not callable.
+
+    Examples:
+        >>> drop_while_pred([1, 2, 3, 4], lambda x: x < 3)
+        [3, 4]
+        >>> drop_while_pred([5, 6, 7], lambda x: x < 3)
+        [5, 6, 7]
+        >>> drop_while_pred([], lambda x: True)
+        []
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return list(dropwhile(predicate, iterable))

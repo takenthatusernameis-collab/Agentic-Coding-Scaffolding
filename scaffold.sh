@@ -38191,6 +38191,7 @@ from itertools import (
     chain,
     combinations,
     cycle,
+    dropwhile,
     groupby,
     islice,
     permutations,
@@ -38437,6 +38438,33 @@ __all__ = [
     "zip_longest_iterables",
     "zip_strict_iterables",
 ]
+
+
+def drop_while_pred(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> List[Any]:
+    """Drop elements from the start while predicate holds, then keep the rest.
+
+    Args:
+        iterable: The iterable to process.
+        predicate: A callable returning True for elements to drop.
+
+    Returns:
+        A list of the remaining elements.
+
+    Raises:
+        TypeError: If iterable is not iterable or predicate is not callable.
+
+    Examples:
+        >>> drop_while_pred([1, 2, 3, 4], lambda x: x < 3)
+        [3, 4]
+        >>> drop_while_pred([5, 6, 7], lambda x: x < 3)
+        [5, 6, 7]
+        >>> drop_while_pred([], lambda x: True)
+        []
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return list(dropwhile(predicate, iterable))
 ITERTOOLS_UTILS
 
 # --- tests/test_itertools_utils.py ---
@@ -38449,6 +38477,7 @@ from itertools_utils import (
     chunk_iterable,
     combinations_of,
     cycle_take,
+    drop_while_pred,
     flatten_once,
     group_by_key,
     partition,
@@ -38719,6 +38748,30 @@ class TestZipStrictIterables(unittest.TestCase):
     def test_non_iterable_raises_type_error(self):
         with self.assertRaises(TypeError):
             zip_strict_iterables([1, 2], 42)
+
+
+
+
+class TestDropWhilePred(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(drop_while_pred([1, 2, 3, 4], lambda x: x < 3), [3, 4])
+
+    def test_none_dropped(self):
+        self.assertEqual(drop_while_pred([5, 6, 7], lambda x: x < 3), [5, 6, 7])
+
+    def test_all_dropped(self):
+        self.assertEqual(drop_while_pred([1, 2, 3], lambda x: x < 10), [])
+
+    def test_empty(self):
+        self.assertEqual(drop_while_pred([], lambda x: True), [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            drop_while_pred(42, lambda x: True)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            drop_while_pred([1, 2, 3], 42)
 
 
 if __name__ == "__main__":

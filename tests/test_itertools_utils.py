@@ -6,6 +6,7 @@ from itertools_utils import (
     chunk_iterable,
     combinations_of,
     cycle_take,
+    drop_while_pred,
     flatten_once,
     group_by_key,
     partition,
@@ -276,6 +277,30 @@ class TestZipStrictIterables(unittest.TestCase):
     def test_non_iterable_raises_type_error(self):
         with self.assertRaises(TypeError):
             zip_strict_iterables([1, 2], 42)
+
+
+
+
+class TestDropWhilePred(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(drop_while_pred([1, 2, 3, 4], lambda x: x < 3), [3, 4])
+
+    def test_none_dropped(self):
+        self.assertEqual(drop_while_pred([5, 6, 7], lambda x: x < 3), [5, 6, 7])
+
+    def test_all_dropped(self):
+        self.assertEqual(drop_while_pred([1, 2, 3], lambda x: x < 10), [])
+
+    def test_empty(self):
+        self.assertEqual(drop_while_pred([], lambda x: True), [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            drop_while_pred(42, lambda x: True)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            drop_while_pred([1, 2, 3], 42)
 
 
 if __name__ == "__main__":
