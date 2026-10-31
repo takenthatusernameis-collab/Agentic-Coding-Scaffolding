@@ -103,6 +103,7 @@ __all__: List[str] = [
     "count_whitespace",
     "strip_non_ascii",
     "truncate_bytes",
+    "repeat_string",
 ]
 
 
@@ -2168,3 +2169,30 @@ def strip_trailing_newlines(text: str) -> str:
     while i > 0 and text[i - 1] == "\n":
         i -= 1
     return text[:i]
+
+
+def repeat_string(s: str, count: int) -> str:
+    """Repeat *s* exactly *count* times.
+
+    Args:
+        s: The string to repeat.
+        count: Number of repetitions (non-negative integer).
+
+    Returns:
+        *s* repeated *count* times.
+
+    Raises:
+        TypeError: If *s* is not a string or *count* is not an int.
+        ValueError: If *count* is negative.
+
+    Examples:
+        >>> repeat_string("ab", 3)
+        'ababab'
+        >>> repeat_string("x", 0)
+        ''
+    """
+    _require_string(s, "s")
+    _require_int(count, "count")
+    if count < 0:
+        raise ValueError("count must be non-negative")
+    return s * count

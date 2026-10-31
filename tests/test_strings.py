@@ -71,6 +71,7 @@ from strings import (
     remove_whitespace,
     removeprefix,
     removesuffix,
+    repeat_string,
     replace_many,
     reverse_string,
     reverse_words,
@@ -2272,3 +2273,23 @@ class TestRFind(unittest.TestCase):
             rfind("hello", "o", True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             rfind("hello", "o", 0, False)  # type: ignore[arg-type]
+
+
+class TestRepeatString(unittest.TestCase):
+    def test_repeat_string_basic(self):
+        self.assertEqual(repeat_string("ab", 3), "ababab")
+
+    def test_repeat_string_zero(self):
+        self.assertEqual(repeat_string("x", 0), "")
+
+    def test_repeat_string_negative_raises(self):
+        with self.assertRaises(ValueError):
+            repeat_string("x", -1)
+
+    def test_repeat_string_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            repeat_string(123, 2)  # type: ignore[arg-type]
+
+    def test_repeat_string_non_int_count_raises(self):
+        with self.assertRaises(TypeError):
+            repeat_string("x", 2.0)  # type: ignore[arg-type]

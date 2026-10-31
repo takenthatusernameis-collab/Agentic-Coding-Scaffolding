@@ -11108,6 +11108,7 @@ __all__: List[str] = [
     "count_whitespace",
     "strip_non_ascii",
     "truncate_bytes",
+    "repeat_string",
 ]
 
 
@@ -13173,6 +13174,33 @@ def strip_trailing_newlines(text: str) -> str:
     while i > 0 and text[i - 1] == "\n":
         i -= 1
     return text[:i]
+
+
+def repeat_string(s: str, count: int) -> str:
+    """Repeat *s* exactly *count* times.
+
+    Args:
+        s: The string to repeat.
+        count: Number of repetitions (non-negative integer).
+
+    Returns:
+        *s* repeated *count* times.
+
+    Raises:
+        TypeError: If *s* is not a string or *count* is not an int.
+        ValueError: If *count* is negative.
+
+    Examples:
+        >>> repeat_string("ab", 3)
+        'ababab'
+        >>> repeat_string("x", 0)
+        ''
+    """
+    _require_string(s, "s")
+    _require_int(count, "count")
+    if count < 0:
+        raise ValueError("count must be non-negative")
+    return s * count
 STRINGS
 
 # --- utils.py ---
@@ -15113,6 +15141,7 @@ from strings import (
     remove_whitespace,
     removeprefix,
     removesuffix,
+    repeat_string,
     replace_many,
     reverse_string,
     reverse_words,
@@ -17314,6 +17343,26 @@ class TestRFind(unittest.TestCase):
             rfind("hello", "o", True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             rfind("hello", "o", 0, False)  # type: ignore[arg-type]
+
+
+class TestRepeatString(unittest.TestCase):
+    def test_repeat_string_basic(self):
+        self.assertEqual(repeat_string("ab", 3), "ababab")
+
+    def test_repeat_string_zero(self):
+        self.assertEqual(repeat_string("x", 0), "")
+
+    def test_repeat_string_negative_raises(self):
+        with self.assertRaises(ValueError):
+            repeat_string("x", -1)
+
+    def test_repeat_string_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            repeat_string(123, 2)  # type: ignore[arg-type]
+
+    def test_repeat_string_non_int_count_raises(self):
+        with self.assertRaises(TypeError):
+            repeat_string("x", 2.0)  # type: ignore[arg-type]
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
