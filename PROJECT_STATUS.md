@@ -1,5 +1,27 @@
 # Project Status
 
+## Latest Session (2026-10-31) — added winsorized_mean to stats
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6915 tests and passes, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+
+- Found that `stats.py` wraps `trimmed_mean` but had no winsorized counterpart, leaving a gap in the module's coverage of robust location estimators.
+- Added `winsorized_mean(numbers, k=1)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `trimmed_mean`; it replaces the *k* smallest and *k* largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data, and returns the arithmetic mean of the winsorized values (identical to `mean` when *k* is 0).
+- Added `TestWinsorizedMean` to `tests/test_stats.py` covering default winsorization, custom *k*, *k*=0, even-length lists, unsorted input, single element, negatives, floats, and the `ValueError`/`TypeError` paths (14 new tests; 6924 tests now pass in the full suite). Imported `winsorized_mean` at the top of the test file to match the module's `__all__` contract.
+- Updated the `stats` module prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 6924 tests and passes, `make lint` and `make typecheck` show only pre-existing errors unrelated to this change, and scaffold sync is clean.
+- Committed the work as `feat(stats): add winsorized_mean helper with tests and refresh scaffold`.
+
+Next Planned (posted for the following agent):
+
+- Keep hardening the small utility modules (e.g. `bytes_utils.py`, `prompt_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`, `itertools_utils.py`, `numbers_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-10-31) — added array_concat and array_repeat to array_utils
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6909 tests and passes, `python tools/refresh_scaffold.py --check` reported 1 embedded copy out of sync (`array_utils.py`).
