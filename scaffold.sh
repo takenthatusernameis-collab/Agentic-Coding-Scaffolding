@@ -116496,7 +116496,16 @@ TEST_POSIX_UTILS
 cat > "$OUTPUT_DIR/tests/test_chunk_utils.py" <<'TEST_CHUNK_UTILS'
 """Tests for chunk_utils."""
 
-from chunk_utils import chunk, chunk_count, chunked, chunks, even_chunks, ichunk, iter_chunked
+from chunk_utils import (
+    chunk,
+    chunk_count,
+    chunk_pad,
+    chunked,
+    chunks,
+    even_chunks,
+    ichunk,
+    iter_chunked,
+)
 
 
 def test_chunk_basic():
@@ -116625,6 +116634,40 @@ def test_even_chunks_value_error():
         even_chunks([1, 2], 0)
     with pytest.raises(ValueError):
         even_chunks([1, 2], -1)
+
+
+def test_chunk_pad_basic():
+    assert chunk_pad([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5, None]]
+
+
+def test_chunk_pad_exact():
+    assert chunk_pad([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]
+
+
+def test_chunk_pad_empty():
+    assert chunk_pad([], 3) == []
+
+
+def test_chunk_pad_custom_pad():
+    assert chunk_pad([1, 2, 3], 4, pad_value=0) == [[1, 2, 3, 0]]
+
+
+def test_chunk_pad_invalid_size_type():
+    try:
+        chunk_pad([1, 2, 3], "2")
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")
+
+
+def test_chunk_pad_invalid_size_value():
+    try:
+        chunk_pad([1, 2, 3], 0)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
 TEST_CHUNK_UTILS
 
 # --- pipes_utils.py ---
@@ -122882,6 +122925,7 @@ from typing import Any, Iterable, Iterator, List
 __all__: list[str] = [
     "chunk",
     "chunk_count",
+    "chunk_pad",
     "chunked",
     "chunks",
     "even_chunks",
@@ -123006,6 +123050,44 @@ def even_chunks(iterable: Iterable[Any], n: int) -> List[List[Any]]:
             break
         result.append(items[index : index + size])
         index += size
+    return result
+
+
+def chunk_pad(iterable: Iterable[Any], size: int, pad_value: Any = None) -> List[List[Any]]:
+    """Split *iterable* into chunks of *size*, padding the last chunk.
+
+    Like :func:`chunk`, but the final (possibly partial) chunk is padded with
+    *pad_value* so that every returned chunk has exactly *size* elements.
+    Empty input yields an empty list.
+
+    Args:
+        iterable: The iterable to split.
+        size: The chunk size.
+        pad_value: Value used to pad the final partial chunk.
+
+    Returns:
+        A list of chunks, each of length *size*.
+
+    Raises:
+        TypeError: If *size* is not an int.
+        ValueError: If *size* is not positive.
+    """
+    if not isinstance(size, int):
+        raise TypeError("size must be int")
+    if isinstance(size, bool):
+        raise TypeError("size must be int")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    result: List[List[Any]] = []
+    current: List[Any] = []
+    for item in iterable:
+        current.append(item)
+        if len(current) == size:
+            result.append(current)
+            current = []
+    if current:
+        current = current + [pad_value] * (size - len(current))
+        result.append(current)
     return result
 CHUNK_UTILS
 

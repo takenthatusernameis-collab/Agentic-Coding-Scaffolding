@@ -1,6 +1,15 @@
 """Tests for chunk_utils."""
 
-from chunk_utils import chunk, chunk_count, chunked, chunks, even_chunks, ichunk, iter_chunked
+from chunk_utils import (
+    chunk,
+    chunk_count,
+    chunk_pad,
+    chunked,
+    chunks,
+    even_chunks,
+    ichunk,
+    iter_chunked,
+)
 
 
 def test_chunk_basic():
@@ -129,3 +138,37 @@ def test_even_chunks_value_error():
         even_chunks([1, 2], 0)
     with pytest.raises(ValueError):
         even_chunks([1, 2], -1)
+
+
+def test_chunk_pad_basic():
+    assert chunk_pad([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5, None]]
+
+
+def test_chunk_pad_exact():
+    assert chunk_pad([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]
+
+
+def test_chunk_pad_empty():
+    assert chunk_pad([], 3) == []
+
+
+def test_chunk_pad_custom_pad():
+    assert chunk_pad([1, 2, 3], 4, pad_value=0) == [[1, 2, 3, 0]]
+
+
+def test_chunk_pad_invalid_size_type():
+    try:
+        chunk_pad([1, 2, 3], "2")
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")
+
+
+def test_chunk_pad_invalid_size_value():
+    try:
+        chunk_pad([1, 2, 3], 0)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")

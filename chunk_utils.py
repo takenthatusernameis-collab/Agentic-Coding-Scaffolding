@@ -7,6 +7,7 @@ from typing import Any, Iterable, Iterator, List
 __all__: list[str] = [
     "chunk",
     "chunk_count",
+    "chunk_pad",
     "chunked",
     "chunks",
     "even_chunks",
@@ -131,4 +132,42 @@ def even_chunks(iterable: Iterable[Any], n: int) -> List[List[Any]]:
             break
         result.append(items[index : index + size])
         index += size
+    return result
+
+
+def chunk_pad(iterable: Iterable[Any], size: int, pad_value: Any = None) -> List[List[Any]]:
+    """Split *iterable* into chunks of *size*, padding the last chunk.
+
+    Like :func:`chunk`, but the final (possibly partial) chunk is padded with
+    *pad_value* so that every returned chunk has exactly *size* elements.
+    Empty input yields an empty list.
+
+    Args:
+        iterable: The iterable to split.
+        size: The chunk size.
+        pad_value: Value used to pad the final partial chunk.
+
+    Returns:
+        A list of chunks, each of length *size*.
+
+    Raises:
+        TypeError: If *size* is not an int.
+        ValueError: If *size* is not positive.
+    """
+    if not isinstance(size, int):
+        raise TypeError("size must be int")
+    if isinstance(size, bool):
+        raise TypeError("size must be int")
+    if size <= 0:
+        raise ValueError("size must be positive")
+    result: List[List[Any]] = []
+    current: List[Any] = []
+    for item in iterable:
+        current.append(item)
+        if len(current) == size:
+            result.append(current)
+            current = []
+    if current:
+        current = current + [pad_value] * (size - len(current))
+        result.append(current)
     return result
