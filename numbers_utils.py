@@ -32,6 +32,7 @@ __all__: list[str] = [
     "is_automorphic_number",
     "is_disarium_number",
     "is_happy_number",
+    "is_pronic_number",
     "proper_divisors",
 ]
 
@@ -627,3 +628,44 @@ def is_disarium_number(n: int) -> bool:
     digits = str(n)
     total = sum(int(d) ** (i + 1) for i, d in enumerate(digits))
     return bool(total == n)
+
+
+def is_pronic_number(n: int) -> bool:
+    """Return ``True`` when *n* is a pronic number.
+
+    A pronic number (also called a rectangular number) is the product of
+    two consecutive integers ``n = k * (k + 1)`` for some integer ``k``.
+    Pronic numbers are always even except ``0``. Zero and negative numbers
+    are not pronic.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is pronic, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_pronic_number(0)
+        False
+        >>> is_pronic_number(2)
+        True
+        >>> is_pronic_number(6)
+        True
+        >>> is_pronic_number(12)
+        True
+        >>> is_pronic_number(4)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n == 0:
+        return False
+    import math
+
+    k = math.isqrt(n)
+    return bool(k * (k + 1) == n or (k + 1) * k == n)

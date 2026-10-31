@@ -47933,7 +47933,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, proper_divisors)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, is_disarium_number, is_pronic_number, proper_divisors)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -49039,7 +49039,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, and `proper_divisors` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, and `is_pronic_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -70080,6 +70080,7 @@ __all__: list[str] = [
     "is_automorphic_number",
     "is_disarium_number",
     "is_happy_number",
+    "is_pronic_number",
     "proper_divisors",
 ]
 
@@ -70675,6 +70676,47 @@ def is_disarium_number(n: int) -> bool:
     digits = str(n)
     total = sum(int(d) ** (i + 1) for i, d in enumerate(digits))
     return bool(total == n)
+
+
+def is_pronic_number(n: int) -> bool:
+    """Return ``True`` when *n* is a pronic number.
+
+    A pronic number (also called a rectangular number) is the product of
+    two consecutive integers ``n = k * (k + 1)`` for some integer ``k``.
+    Pronic numbers are always even except ``0``. Zero and negative numbers
+    are not pronic.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is pronic, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_pronic_number(0)
+        False
+        >>> is_pronic_number(2)
+        True
+        >>> is_pronic_number(6)
+        True
+        >>> is_pronic_number(12)
+        True
+        >>> is_pronic_number(4)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n == 0:
+        return False
+    import math
+
+    k = math.isqrt(n)
+    return bool(k * (k + 1) == n or (k + 1) * k == n)
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -70699,6 +70741,7 @@ from numbers_utils import (
     is_neon_number,
     is_number,
     is_perfect_number,
+    is_pronic_number,
     is_rational,
     is_real,
     is_strong_number,
@@ -70987,6 +71030,26 @@ class TestIsHappyNumber(unittest.TestCase):
         for value in (1.5, "7", None, True, [7]):
             with self.assertRaises(TypeError):
                 is_happy_number(value)
+
+
+class TestIsPronicNumber(unittest.TestCase):
+    def test_known_pronic_numbers(self):
+        for value in (2, 6, 12, 20, 30, 42, 56, 72):
+            self.assertTrue(is_pronic_number(value), value)
+
+    def test_non_pronic_numbers(self):
+        for value in (1, 3, 4, 5, 7, 8, 9, 10, 11):
+            self.assertFalse(is_pronic_number(value), value)
+
+    def test_zero_and_negatives(self):
+        self.assertFalse(is_pronic_number(0))
+        for value in (-2, -1):
+            self.assertFalse(is_pronic_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "2", None, True, [2]):
+            with self.assertRaises(TypeError):
+                is_pronic_number(value)
 
 
 if __name__ == "__main__":

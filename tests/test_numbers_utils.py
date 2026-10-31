@@ -18,6 +18,7 @@ from numbers_utils import (
     is_neon_number,
     is_number,
     is_perfect_number,
+    is_pronic_number,
     is_rational,
     is_real,
     is_strong_number,
@@ -306,6 +307,26 @@ class TestIsHappyNumber(unittest.TestCase):
         for value in (1.5, "7", None, True, [7]):
             with self.assertRaises(TypeError):
                 is_happy_number(value)
+
+
+class TestIsPronicNumber(unittest.TestCase):
+    def test_known_pronic_numbers(self):
+        for value in (2, 6, 12, 20, 30, 42, 56, 72):
+            self.assertTrue(is_pronic_number(value), value)
+
+    def test_non_pronic_numbers(self):
+        for value in (1, 3, 4, 5, 7, 8, 9, 10, 11):
+            self.assertFalse(is_pronic_number(value), value)
+
+    def test_zero_and_negatives(self):
+        self.assertFalse(is_pronic_number(0))
+        for value in (-2, -1):
+            self.assertFalse(is_pronic_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "2", None, True, [2]):
+            with self.assertRaises(TypeError):
+                is_pronic_number(value)
 
 
 if __name__ == "__main__":
