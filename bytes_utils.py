@@ -11,6 +11,7 @@ __all__: list[str] = [
     "repeat",
     "reverse",
     "contains",
+    "index_of",
     "starts_with",
     "ends_with",
 ]
@@ -196,6 +197,35 @@ def contains(data: bytes, sub: bytes) -> bool:
     if not isinstance(sub, (bytes, bytearray)):
         raise TypeError("sub must be bytes or bytearray")
     return bytes(sub) in bytes(data)
+
+
+def index_of(data: bytes, sub: bytes) -> int:
+    """Return the first index of *sub* in *data*, or -1 if not found.
+
+    Args:
+        data: Bytes or bytearray to search in.
+        sub: Bytes or bytearray subsequence to search for.
+
+    Returns:
+        The lowest index in *data* where *sub* is found, or -1 if *sub* is
+        not present.
+
+    Raises:
+        TypeError: If *data* or *sub* is not bytes or bytearray.
+
+    Examples:
+        >>> index_of(b"hello world", b"world")
+        6
+        >>> index_of(b"hello", b"x")
+        -1
+        >>> index_of(b"aaaa", b"aa")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sub, (bytes, bytearray)):
+        raise TypeError("sub must be bytes or bytearray")
+    return bytes(data).find(bytes(sub))
 
 
 def starts_with(data: bytes, prefix: bytes) -> bool:

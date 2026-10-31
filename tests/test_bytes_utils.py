@@ -6,6 +6,7 @@ from bytes_utils import (
     contains,
     ends_with,
     from_hex,
+    index_of,
     repeat,
     reverse,
     starts_with,
@@ -84,6 +85,37 @@ class TestBytesUtils(unittest.TestCase):
             xor(b"abc", b"")
         with self.assertRaises(ValueError):
             chunk(b"abc", 0)
+
+
+class TestIndexOf(unittest.TestCase):
+    def test_found(self):
+        self.assertEqual(index_of(b"hello world", b"world"), 6)
+        self.assertEqual(index_of(b"hello world", b"hello"), 0)
+        self.assertEqual(index_of(b"abcabc", b"bc"), 1)
+
+    def test_not_found(self):
+        self.assertEqual(index_of(b"hello", b"x"), -1)
+        self.assertEqual(index_of(b"abc", b"abcd"), -1)
+
+    def test_empty_subsequence(self):
+        self.assertEqual(index_of(b"abc", b""), 0)
+        self.assertEqual(index_of(b"", b""), 0)
+
+    def test_first_occurrence(self):
+        self.assertEqual(index_of(b"ababab", b"ab"), 0)
+        self.assertEqual(index_of(b"xabxab", b"ab"), 1)
+
+    def test_bytearray_input(self):
+        self.assertEqual(index_of(bytearray(b"hello"), b"ll"), 2)
+        self.assertEqual(index_of(b"hello", bytearray(b"lo")), 3)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            index_of("abc", b"a")
+        with self.assertRaises(TypeError):
+            index_of(b"abc", "a")
+        with self.assertRaises(TypeError):
+            index_of(123, b"a")
 
 
 if __name__ == "__main__":

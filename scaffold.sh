@@ -39914,6 +39914,7 @@ __all__: list[str] = [
     "repeat",
     "reverse",
     "contains",
+    "index_of",
     "starts_with",
     "ends_with",
 ]
@@ -40101,6 +40102,35 @@ def contains(data: bytes, sub: bytes) -> bool:
     return bytes(sub) in bytes(data)
 
 
+def index_of(data: bytes, sub: bytes) -> int:
+    """Return the first index of *sub* in *data*, or -1 if not found.
+
+    Args:
+        data: Bytes or bytearray to search in.
+        sub: Bytes or bytearray subsequence to search for.
+
+    Returns:
+        The lowest index in *data* where *sub* is found, or -1 if *sub* is
+        not present.
+
+    Raises:
+        TypeError: If *data* or *sub* is not bytes or bytearray.
+
+    Examples:
+        >>> index_of(b"hello world", b"world")
+        6
+        >>> index_of(b"hello", b"x")
+        -1
+        >>> index_of(b"aaaa", b"aa")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sub, (bytes, bytearray)):
+        raise TypeError("sub must be bytes or bytearray")
+    return bytes(data).find(bytes(sub))
+
+
 def starts_with(data: bytes, prefix: bytes) -> bool:
     """Return True if *data* starts with *prefix*.
 
@@ -40163,6 +40193,7 @@ from bytes_utils import (
     contains,
     ends_with,
     from_hex,
+    index_of,
     repeat,
     reverse,
     starts_with,
@@ -40241,6 +40272,37 @@ class TestBytesUtils(unittest.TestCase):
             xor(b"abc", b"")
         with self.assertRaises(ValueError):
             chunk(b"abc", 0)
+
+
+class TestIndexOf(unittest.TestCase):
+    def test_found(self):
+        self.assertEqual(index_of(b"hello world", b"world"), 6)
+        self.assertEqual(index_of(b"hello world", b"hello"), 0)
+        self.assertEqual(index_of(b"abcabc", b"bc"), 1)
+
+    def test_not_found(self):
+        self.assertEqual(index_of(b"hello", b"x"), -1)
+        self.assertEqual(index_of(b"abc", b"abcd"), -1)
+
+    def test_empty_subsequence(self):
+        self.assertEqual(index_of(b"abc", b""), 0)
+        self.assertEqual(index_of(b"", b""), 0)
+
+    def test_first_occurrence(self):
+        self.assertEqual(index_of(b"ababab", b"ab"), 0)
+        self.assertEqual(index_of(b"xabxab", b"ab"), 1)
+
+    def test_bytearray_input(self):
+        self.assertEqual(index_of(bytearray(b"hello"), b"ll"), 2)
+        self.assertEqual(index_of(b"hello", bytearray(b"lo")), 3)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            index_of("abc", b"a")
+        with self.assertRaises(TypeError):
+            index_of(b"abc", "a")
+        with self.assertRaises(TypeError):
+            index_of(123, b"a")
 
 
 if __name__ == "__main__":
@@ -44881,6 +44943,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added index_of to bytes_utils
+
+- Added `index_of(data, sub)` to `bytes_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-bytes-like arguments; it returns the lowest index in *data* where *sub* is found, or -1 when *sub* is not present. Added `TestIndexOf` to `tests/test_bytes_utils.py` covering found, not-found, empty-subsequence, first-occurrence, bytearray input, and `TypeError` paths (7 new tests). Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added zip_longest_iterables to itertools_utils
 
 - Added `zip_longest_iterables(*iterables, fillvalue=None)` to `itertools_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-iterable arguments; it returns a list of tuples zipping the input iterables up to the length of the longest, substituting *fillvalue* (default `None`) for exhausted iterables, and returns `[]` when called with no arguments.
@@ -46567,7 +46633,7 @@ signal_utils.py            # Signal utilities wrapping the standard library sign
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
-bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, starts_with, ends_with)
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index_of, starts_with, ends_with)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -47339,7 +47405,7 @@ The project includes HTML entities utilities in `html_entities_utils.py` wrappin
 
 ## Bytes Utilities Module
 
-The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, and `starts_with`/`ends_with` test prefixes/suffixes. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), and `starts_with`/`ends_with` test prefixes/suffixes. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
 
 ## Itertools Utilities Module
 

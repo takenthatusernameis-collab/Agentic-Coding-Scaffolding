@@ -1,3 +1,7 @@
+## Unreleased — added index_of to bytes_utils
+
+- Added `index_of(data, sub)` to `bytes_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-bytes-like arguments; it returns the lowest index in *data* where *sub* is found, or -1 when *sub* is not present. Added `TestIndexOf` to `tests/test_bytes_utils.py` covering found, not-found, empty-subsequence, first-occurrence, bytearray input, and `TypeError` paths (7 new tests). Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added zip_longest_iterables to itertools_utils
 
 - Added `zip_longest_iterables(*iterables, fillvalue=None)` to `itertools_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-iterable arguments; it returns a list of tuples zipping the input iterables up to the length of the longest, substituting *fillvalue* (default `None`) for exhausted iterables, and returns `[]` when called with no arguments.
