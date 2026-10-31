@@ -25,8 +25,9 @@ from itertools import (
     tee,
     zip_longest,
 )
+
 try:
-    from itertools import batched
+    from itertools import batched  # type: ignore[attr-defined]
 except ImportError:
     batched = None  # type: ignore[assignment]
 from typing import Any, Callable, Iterable, List, Optional, Tuple

@@ -6,19 +6,15 @@ from array import array
 from typing import Any, Iterable
 
 __all__: list[str] = [
-    "array_create",
-    "array_fromlist",
-    "array_tolist",
     "array_append",
     "array_extend",
     "array_insert",
     "array_pop",
     "array_remove",
+    "array_index",
+    "array_count",
     "array_reverse",
     "array_clear",
-    "array_copy",
-    "array_dup",
-    "array_buffer_info",
     "array_byteswap",
     "array_count",
     "array_index",
@@ -336,20 +332,16 @@ def array_from_file(arr: array, f, n: int) -> None:
     arr.fromfile(f, n)
 
 
-def array_tounicode(arr: array, s: str) -> str:
+def array_tounicode(arr: array) -> str:
     """Convert array to unicode."""
     _require_array(arr, "arr")
-    if not isinstance(s, str):
-        raise TypeError(f"s must be a string, got {type(s).__name__}")
-    return arr.tounicode(s)
+    return arr.tounicode()
 
 
-def array_to_unicode(arr: array, s: str) -> str:
+def array_to_unicode(arr: array) -> str:
     """Convert array to unicode."""
     _require_array(arr, "arr")
-    if not isinstance(s, str):
-        raise TypeError(f"s must be a string, got {type(s).__name__}")
-    return arr.tounicode(s)
+    return arr.tounicode()
 
 
 def array_fromunicode(arr: array, s: str) -> None:

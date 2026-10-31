@@ -38207,8 +38207,9 @@ from itertools import (
     tee,
     zip_longest,
 )
+
 try:
-    from itertools import batched
+    from itertools import batched  # type: ignore[attr-defined]
 except ImportError:
     batched = None  # type: ignore[assignment]
 from typing import Any, Callable, Iterable, List, Optional, Tuple
@@ -40552,7 +40553,12 @@ def center(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
         raise TypeError("width must be an int")
     if not isinstance(fillbyte, (bytes, bytearray)):
         raise TypeError("fillbyte must be bytes or bytearray")
-    return bytes(data).center(width, bytes(fillbyte)[0:1] if len(bytes(fillbyte)) == 1 else bytes(fillbyte)[0:1] if False else bytes(fillbyte)[:1] or b" ")
+    fb = bytes(fillbyte)
+    if len(fb) != 1:
+        fb = fb[:1] or b" "
+    else:
+        fb = fb
+    return bytes(data).center(width, fb[:1]) if len(fb) != 1 else bytes(data).center(width, fb)
 
 
 def ljust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
@@ -41717,17 +41723,15 @@ from array import array
 from typing import Any, Iterable
 
 __all__: list[str] = [
-    "array_create",
-    "array_fromlist",
-    "array_tolist",
     "array_append",
     "array_extend",
     "array_insert",
     "array_pop",
     "array_remove",
+    "array_index",
+    "array_count",
     "array_reverse",
     "array_clear",
-    "array_buffer_info",
     "array_byteswap",
     "array_count",
     "array_index",
@@ -42045,20 +42049,16 @@ def array_from_file(arr: array, f, n: int) -> None:
     arr.fromfile(f, n)
 
 
-def array_tounicode(arr: array, s: str) -> str:
+def array_tounicode(arr: array) -> str:
     """Convert array to unicode."""
     _require_array(arr, "arr")
-    if not isinstance(s, str):
-        raise TypeError(f"s must be a string, got {type(s).__name__}")
-    return arr.tounicode(s)
+    return arr.tounicode()
 
 
-def array_to_unicode(arr: array, s: str) -> str:
+def array_to_unicode(arr: array) -> str:
     """Convert array to unicode."""
     _require_array(arr, "arr")
-    if not isinstance(s, str):
-        raise TypeError(f"s must be a string, got {type(s).__name__}")
-    return arr.tounicode(s)
+    return arr.tounicode()
 
 
 def array_fromunicode(arr: array, s: str) -> None:
