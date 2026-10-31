@@ -24,8 +24,11 @@ from strings import (
     count_words,
     drop,
     ends_with,
+    ensure_leading_newline,
     ensure_prefix,
     ensure_suffix,
+    ensure_surrounded_by_newlines,
+    ensure_trailing_newline,
     first_n,
     initials,
     is_alpha,
@@ -2096,3 +2099,66 @@ class TestEnsureSuffix(unittest.TestCase):
             ensure_suffix("x", 123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_suffix("x", None)  # type: ignore[arg-type]
+
+
+class TestEnsureLeadingNewline(unittest.TestCase):
+    def test_adds_newline(self):
+        self.assertEqual(ensure_leading_newline("hello"), "\nhello")
+
+    def test_keeps_existing(self):
+        self.assertEqual(ensure_leading_newline("\nhello"), "\nhello")
+
+    def test_empty_string(self):
+        self.assertEqual(ensure_leading_newline(""), "")
+
+    def test_multiple_newlines(self):
+        self.assertEqual(ensure_leading_newline("\n\nhello"), "\n\nhello")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ensure_leading_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_leading_newline(None)  # type: ignore[arg-type]
+
+
+class TestEnsureTrailingNewline(unittest.TestCase):
+    def test_adds_newline(self):
+        self.assertEqual(ensure_trailing_newline("hello"), "hello\n")
+
+    def test_keeps_existing(self):
+        self.assertEqual(ensure_trailing_newline("hello\n"), "hello\n")
+
+    def test_empty_string(self):
+        self.assertEqual(ensure_trailing_newline(""), "")
+
+    def test_multiple_newlines(self):
+        self.assertEqual(ensure_trailing_newline("hello\n\n"), "hello\n\n")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ensure_trailing_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_trailing_newline(None)  # type: ignore[arg-type]
+
+
+class TestEnsureSurroundedByNewlines(unittest.TestCase):
+    def test_wraps(self):
+        self.assertEqual(ensure_surrounded_by_newlines("hello"), "\nhello\n")
+
+    def test_keeps_existing(self):
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello\n"), "\nhello\n")
+
+    def test_empty_string(self):
+        self.assertEqual(ensure_surrounded_by_newlines(""), "")
+
+    def test_leading_only(self):
+        self.assertEqual(ensure_surrounded_by_newlines("hello\n"), "\nhello\n")
+
+    def test_trailing_only(self):
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello"), "\nhello\n")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ensure_surrounded_by_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_surrounded_by_newlines(None)  # type: ignore[arg-type]

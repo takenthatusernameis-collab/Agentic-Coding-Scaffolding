@@ -1,6 +1,7 @@
-## Unreleased — added ensure_surrounded_by_newlines to prompt_utils
+## Unreleased — added newline helper functions to strings
 
-- Added `ensure_surrounded_by_newlines(text)` to `prompt_utils.py`.
+- Added `ensure_leading_newline(text)`, `ensure_trailing_newline(text)`, and `ensure_surrounded_by_newlines(text)` to `strings.py`.
+- Added tests for the new helpers in `tests/test_strings.py`.
 
 ## Unreleased — added ensure_leading_newline helper to prompt_utils
 

@@ -11035,6 +11035,9 @@ __all__: List[str] = [
     "is_blank",
     "ensure_prefix",
     "ensure_suffix",
+    "ensure_leading_newline",
+    "ensure_trailing_newline",
+    "ensure_surrounded_by_newlines",
     "normalize_whitespace",
     "is_upper",
     "is_lower",
@@ -12935,6 +12938,41 @@ def ensure_suffix(text: str, suffix: str) -> str:
     if text.endswith(suffix):
         return text
     return text + suffix
+
+
+def ensure_leading_newline(text: str) -> str:
+    """Return *text* guaranteed to start with a newline."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not text:
+        return text
+    if text.startswith("\n"):
+        return text
+    return "\n" + text
+
+
+def ensure_trailing_newline(text: str) -> str:
+    """Return *text* guaranteed to end with a newline."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not text:
+        return text
+    if text.endswith("\n"):
+        return text
+    return text + "\n"
+
+
+def ensure_surrounded_by_newlines(text: str) -> str:
+    """Return *text* guaranteed to start and end with a newline."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not text:
+        return text
+    if not text.startswith("\n"):
+        text = "\n" + text
+    if not text.endswith("\n"):
+        text = text + "\n"
+    return text
 STRINGS
 
 # --- utils.py ---
@@ -14790,8 +14828,11 @@ from strings import (
     count_words,
     drop,
     ends_with,
+    ensure_leading_newline,
     ensure_prefix,
     ensure_suffix,
+    ensure_surrounded_by_newlines,
+    ensure_trailing_newline,
     first_n,
     initials,
     is_alpha,
@@ -16862,6 +16903,69 @@ class TestEnsureSuffix(unittest.TestCase):
             ensure_suffix("x", 123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_suffix("x", None)  # type: ignore[arg-type]
+
+
+class TestEnsureLeadingNewline(unittest.TestCase):
+    def test_adds_newline(self):
+        self.assertEqual(ensure_leading_newline("hello"), "\nhello")
+
+    def test_keeps_existing(self):
+        self.assertEqual(ensure_leading_newline("\nhello"), "\nhello")
+
+    def test_empty_string(self):
+        self.assertEqual(ensure_leading_newline(""), "")
+
+    def test_multiple_newlines(self):
+        self.assertEqual(ensure_leading_newline("\n\nhello"), "\n\nhello")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ensure_leading_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_leading_newline(None)  # type: ignore[arg-type]
+
+
+class TestEnsureTrailingNewline(unittest.TestCase):
+    def test_adds_newline(self):
+        self.assertEqual(ensure_trailing_newline("hello"), "hello\n")
+
+    def test_keeps_existing(self):
+        self.assertEqual(ensure_trailing_newline("hello\n"), "hello\n")
+
+    def test_empty_string(self):
+        self.assertEqual(ensure_trailing_newline(""), "")
+
+    def test_multiple_newlines(self):
+        self.assertEqual(ensure_trailing_newline("hello\n\n"), "hello\n\n")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ensure_trailing_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_trailing_newline(None)  # type: ignore[arg-type]
+
+
+class TestEnsureSurroundedByNewlines(unittest.TestCase):
+    def test_wraps(self):
+        self.assertEqual(ensure_surrounded_by_newlines("hello"), "\nhello\n")
+
+    def test_keeps_existing(self):
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello\n"), "\nhello\n")
+
+    def test_empty_string(self):
+        self.assertEqual(ensure_surrounded_by_newlines(""), "")
+
+    def test_leading_only(self):
+        self.assertEqual(ensure_surrounded_by_newlines("hello\n"), "\nhello\n")
+
+    def test_trailing_only(self):
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello"), "\nhello\n")
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ensure_surrounded_by_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_surrounded_by_newlines(None)  # type: ignore[arg-type]
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -43740,9 +43844,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — added ensure_surrounded_by_newlines to prompt_utils
+## Unreleased — added newline helper functions to strings
 
-- Added `ensure_surrounded_by_newlines(text)` to `prompt_utils.py`.
+- Added `ensure_leading_newline(text)`, `ensure_trailing_newline(text)`, and `ensure_surrounded_by_newlines(text)` to `strings.py`.
+- Added tests for the new helpers in `tests/test_strings.py`.
 
 ## Unreleased — added ensure_leading_newline helper to prompt_utils
 
@@ -45199,7 +45304,7 @@ pickletools_utils.py         # Pickletools utilities wrapping stdlib pickletools
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
-strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, count_punctuation, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, remove_whitespace, normalize_whitespace, starts_with, ends_with, removeprefix, removesuffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, and is_blank, ensure_prefix, ensure_suffix)
+strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, count_punctuation, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, remove_whitespace, normalize_whitespace, starts_with, ends_with, removeprefix, removesuffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, is_composite, clamp, is_even, combination, permutation)
@@ -45819,7 +45924,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `count_punctuation`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`, `ensure_prefix`, and `ensure_suffix`. Added `chunk_string` for splitting strings into fixed-size chunks. `ensure_prefix` guarantees that *text* begins with *prefix* (returning *text* unchanged when it already does), and `ensure_suffix` guarantees that *text* ends with *suffix*; both raise `TypeError` for non-string arguments. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `count_punctuation`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`, `ensure_prefix`, `ensure_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, and `ensure_surrounded_by_newlines`. Added `chunk_string` for splitting strings into fixed-size chunks. `ensure_prefix` guarantees that *text* begins with *prefix* (returning *text* unchanged when it already does), and `ensure_suffix` guarantees that *text* ends with *suffix*; both raise `TypeError` for non-string arguments. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

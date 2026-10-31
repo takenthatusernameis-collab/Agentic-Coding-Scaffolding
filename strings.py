@@ -30,6 +30,9 @@ __all__: List[str] = [
     "is_blank",
     "ensure_prefix",
     "ensure_suffix",
+    "ensure_leading_newline",
+    "ensure_trailing_newline",
+    "ensure_surrounded_by_newlines",
     "normalize_whitespace",
     "is_upper",
     "is_lower",
@@ -1930,3 +1933,38 @@ def ensure_suffix(text: str, suffix: str) -> str:
     if text.endswith(suffix):
         return text
     return text + suffix
+
+
+def ensure_leading_newline(text: str) -> str:
+    """Return *text* guaranteed to start with a newline."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not text:
+        return text
+    if text.startswith("\n"):
+        return text
+    return "\n" + text
+
+
+def ensure_trailing_newline(text: str) -> str:
+    """Return *text* guaranteed to end with a newline."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not text:
+        return text
+    if text.endswith("\n"):
+        return text
+    return text + "\n"
+
+
+def ensure_surrounded_by_newlines(text: str) -> str:
+    """Return *text* guaranteed to start and end with a newline."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a str")
+    if not text:
+        return text
+    if not text.startswith("\n"):
+        text = "\n" + text
+    if not text.endswith("\n"):
+        text = text + "\n"
+    return text
