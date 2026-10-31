@@ -27,6 +27,7 @@ __all__: list[str] = [
     "is_neon_number",
     "is_armstrong_number",
     "is_automorphic_number",
+    "is_disarium_number",
     "is_happy_number",
     "proper_divisors",
 ]
@@ -506,3 +507,39 @@ def is_happy_number(n: int) -> bool:
         seen.add(current)
         current = sum(int(d) * int(d) for d in str(current))
     return current == 1
+
+
+def is_disarium_number(n: int) -> bool:
+    """Return ``True`` when *n* is a disarium number.
+
+    A disarium number is an integer whose sum of its digits each raised to
+    the power of its 1-based position equals the number itself. For example,
+    135 is disarium because 1^1 + 3^2 + 5^3 = 1 + 9 + 125 = 135.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a disarium number, ``False`` otherwise. Numbers
+        below 0 are never disarium.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_disarium_number(135)
+        True
+        >>> is_disarium_number(89)
+        True
+        >>> is_disarium_number(175)
+        True
+        >>> is_disarium_number(10)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    digits = str(n)
+    total = sum(int(d) ** (i + 1) for i, d in enumerate(digits))
+    return bool(total == n)

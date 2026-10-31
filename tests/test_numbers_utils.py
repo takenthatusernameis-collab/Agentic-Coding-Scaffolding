@@ -9,6 +9,7 @@ from numbers_utils import (
     is_abundant_number,
     is_armstrong_number,
     is_automorphic_number,
+    is_disarium_number,
     is_deficient_number,
     is_happy_number,
     is_harshad_number,
