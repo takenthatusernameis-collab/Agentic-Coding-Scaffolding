@@ -22,6 +22,7 @@ from numbers_utils import (
     is_rational,
     is_real,
     is_strong_number,
+    is_spy_number,
     proper_divisors,
 )
 
@@ -323,10 +324,29 @@ class TestIsPronicNumber(unittest.TestCase):
         for value in (-2, -1):
             self.assertFalse(is_pronic_number(value))
 
-    def test_type_error(self):
+def test_type_error(self):
         for value in (1.5, "2", None, True, [2]):
             with self.assertRaises(TypeError):
                 is_pronic_number(value)
+
+
+class TestIsSpyNumber(unittest.TestCase):
+    def test_known_spy_numbers(self):
+        for value in (1, 2, 3, 4, 5, 6, 7, 8, 9, 22, 123, 132, 213, 231, 312, 321, 1124):
+            self.assertTrue(is_spy_number(value), value)
+
+    def test_non_spy_numbers(self):
+        for value in (10, 11, 12, 14, 15, 100, 1234):
+            self.assertFalse(is_spy_number(value), value)
+
+    def test_below_one(self):
+        for value in (0, -1, -22):
+            self.assertFalse(is_spy_number(value), value)
+
+    def test_type_error(self):
+        for value in (1.5, "22", None, True, [22]):
+            with self.assertRaises(TypeError):
+                is_spy_number(value)
 
 
 if __name__ == "__main__":

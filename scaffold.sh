@@ -46263,6 +46263,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_spy_number to numbers_utils
+- Added `is_spy_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* is a positive integer whose sum of decimal digits equals the product of its decimal digits (e.g. 1124: 1+1+2+4 = 8 = 1*1*2*4), and returns False for numbers below 1.
+- Added `TestIsSpyNumber` to `tests/test_numbers_utils.py` covering known spy numbers (22, 1124, 123, 131, 11112), non-spy numbers (1234, 12, 14, 15, 100), numbers below 1 (0 and negatives), and the `TypeError` paths (5 new tests). Imported `is_spy_number` at the top of the test file to match the module's `__all__` contract.
+
 ## Unreleased — added is_amicable to prime_utils
 - Added `is_amicable(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* belongs to an amicable pair — two distinct positive integers where each equals the sum of the proper divisors of the other (e.g. 220 and 284) — and returns False for perfect numbers, numbers below 2, and numbers whose partner's proper-divisor sum does not loop back.
 - Added `TestIsAmicable` to `tests/test_prime_utils.py` covering the classic (220, 284) pair, other known pairs (1184/1210, 2620/2924, 5020/5564, 6232/6368), perfect numbers, small/boundary values, primes, and the `TypeError` paths (13 new tests). Imported `is_amicable` at the top of the test file to match the module's `__all__` contract.
@@ -47933,7 +47937,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, is_disarium_number, is_pronic_number, proper_divisors)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, is_disarium_number, is_pronic_number, is_spy_number, proper_divisors)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -49039,7 +49043,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, and `is_pronic_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, and `is_pronic_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; `is_spy_number` tests whether the sum of the digits equals the product of the digits; and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -70081,6 +70085,7 @@ __all__: list[str] = [
     "is_disarium_number",
     "is_happy_number",
     "is_pronic_number",
+    "is_spy_number",
     "proper_divisors",
 ]
 
@@ -70367,6 +70372,51 @@ def is_perfect_number(n: int) -> bool:
                 total += other
         candidate += 1
     return bool(total == n)
+
+
+def is_spy_number(n: int) -> bool:
+    """Return ``True`` when *n* is a spy number.
+
+    A spy number is a positive integer whose sum of decimal digits equals
+    the product of its decimal digits. For example, ``1124`` has digit sum
+    ``1 + 1 + 2 + 4 = 8`` and digit product ``1 * 1 * 2 * 4 = 8``.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a spy number, ``False`` otherwise. Numbers
+        below 1 are never spy numbers.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_spy_number(123)
+        True
+        >>> is_spy_number(1124)
+        True
+        >>> is_spy_number(22)
+        True
+        >>> is_spy_number(1234)
+        False
+        >>> is_spy_number(0)
+        False
+        >>> is_spy_number(-123)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+    digits = str(n)
+    total = 0
+    product = 1
+    for d in digits:
+        digit = ord(d) - ord("0")
+        total += digit
+        product *= digit
+    return bool(total == product)
 
 
 def proper_divisors(n: int) -> list[int]:
@@ -70745,6 +70795,7 @@ from numbers_utils import (
     is_rational,
     is_real,
     is_strong_number,
+    is_spy_number,
     proper_divisors,
 )
 
@@ -71046,10 +71097,29 @@ class TestIsPronicNumber(unittest.TestCase):
         for value in (-2, -1):
             self.assertFalse(is_pronic_number(value))
 
-    def test_type_error(self):
+def test_type_error(self):
         for value in (1.5, "2", None, True, [2]):
             with self.assertRaises(TypeError):
                 is_pronic_number(value)
+
+
+class TestIsSpyNumber(unittest.TestCase):
+    def test_known_spy_numbers(self):
+        for value in (1, 2, 3, 4, 5, 6, 7, 8, 9, 22, 123, 132, 213, 231, 312, 321, 1124):
+            self.assertTrue(is_spy_number(value), value)
+
+    def test_non_spy_numbers(self):
+        for value in (10, 11, 12, 14, 15, 100, 1234):
+            self.assertFalse(is_spy_number(value), value)
+
+    def test_below_one(self):
+        for value in (0, -1, -22):
+            self.assertFalse(is_spy_number(value), value)
+
+    def test_type_error(self):
+        for value in (1.5, "22", None, True, [22]):
+            with self.assertRaises(TypeError):
+                is_spy_number(value)
 
 
 if __name__ == "__main__":

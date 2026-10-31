@@ -33,6 +33,7 @@ __all__: list[str] = [
     "is_disarium_number",
     "is_happy_number",
     "is_pronic_number",
+    "is_spy_number",
     "proper_divisors",
 ]
 
@@ -319,6 +320,51 @@ def is_perfect_number(n: int) -> bool:
                 total += other
         candidate += 1
     return bool(total == n)
+
+
+def is_spy_number(n: int) -> bool:
+    """Return ``True`` when *n* is a spy number.
+
+    A spy number is a positive integer whose sum of decimal digits equals
+    the product of its decimal digits. For example, ``1124`` has digit sum
+    ``1 + 1 + 2 + 4 = 8`` and digit product ``1 * 1 * 2 * 4 = 8``.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a spy number, ``False`` otherwise. Numbers
+        below 1 are never spy numbers.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_spy_number(123)
+        True
+        >>> is_spy_number(1124)
+        True
+        >>> is_spy_number(22)
+        True
+        >>> is_spy_number(1234)
+        False
+        >>> is_spy_number(0)
+        False
+        >>> is_spy_number(-123)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+    digits = str(n)
+    total = 0
+    product = 1
+    for d in digits:
+        digit = ord(d) - ord("0")
+        total += digit
+        product *= digit
+    return bool(total == product)
 
 
 def proper_divisors(n: int) -> list[int]:
