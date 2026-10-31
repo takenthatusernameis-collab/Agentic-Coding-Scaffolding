@@ -38192,6 +38192,7 @@ from itertools import (
     combinations,
     combinations_with_replacement,
     compress,
+    count,
     cycle,
     dropwhile,
     filterfalse,
@@ -38201,9 +38202,15 @@ from itertools import (
     permutations,
     product,
     repeat,
+    starmap,
     takewhile,
+    tee,
     zip_longest,
 )
+try:
+    from itertools import batched
+except ImportError:
+    batched = None  # type: ignore[assignment]
 from typing import Any, Callable, Iterable, List, Optional, Tuple
 
 
@@ -38476,7 +38483,39 @@ __all__ = [
     "partition",
     "zip_longest_iterables",
     "zip_strict_iterables",
+    "batched_iterable",
+    "take_while_pred",
+    "drop_while_pred",
+    "tee_iterables",
+    "starmap_iterable",
+    "count_from",
+    "islice_iterable",
 ]
+
+
+def batched_iterable(iterable: Iterable[Any], n: int) -> List[Tuple[Any, ...]]:
+    """Batch data into tuples of length n (Python 3.12+ itertools.batched)."""
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 1:
+        raise ValueError("n must be at least one")
+    if batched is not None:
+        return list(batched(iterable, n))
+    # Fallback for older Python
+    it = iter(iterable)
+    result = []
+    while True:
+        batch = []
+        for _ in range(n):
+            try:
+                batch.append(next(it))
+            except StopIteration:
+                break
+        if not batch:
+            break
+        result.append(tuple(batch))
+    return result
 
 
 def drop_while_pred(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> List[Any]:
@@ -38504,6 +38543,40 @@ def drop_while_pred(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -
     if not callable(predicate):
         raise TypeError("predicate must be callable")
     return list(dropwhile(predicate, iterable))
+
+
+def tee_iterables(iterable: Iterable[Any], n: int = 2) -> List[List[Any]]:
+    """Split an iterable into n independent iterators/lists."""
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    tees = tee(iterable, n)
+    return [list(t) for t in tees]
+
+
+def starmap_iterable(function: Callable[..., Any], iterable: Iterable[Iterable[Any]]) -> List[Any]:
+    """Apply function to arguments unpacked from iterable."""
+    if not callable(function):
+        raise TypeError("function must be callable")
+    _ensure_iterable(iterable, "iterable")
+    return list(starmap(function, iterable))
+
+
+def count_from(start: int = 0, step: int = 1) -> List[Any]:
+    """Count infinitely from start with step; return first 1000 as list for safety."""
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if not isinstance(step, int) or isinstance(step, bool):
+        raise TypeError("step must be an int")
+    return list(islice(count(start, step), 1000))
+
+
+def islice_iterable(iterable: Iterable[Any], *args: Any) -> List[Any]:
+    """Slice an iterable."""
+    _ensure_iterable(iterable, "iterable")
+    return list(islice(iterable, *args))
 ITERTOOLS_UTILS
 
 # --- tests/test_itertools_utils.py ---
@@ -40099,6 +40172,19 @@ __all__: list[str] = [
     "index_of",
     "starts_with",
     "ends_with",
+    "split",
+    "find",
+    "replace",
+    "count",
+    "decode_utf8",
+    "encode_utf8",
+    "rstrip",
+    "lstrip",
+    "strip",
+    "center",
+    "ljust",
+    "rjust",
+    "zfill",
 ]
 
 
@@ -40343,11 +40429,11 @@ def ends_with(data: bytes, suffix: bytes) -> bool:
     """Return True if *data* ends with *suffix*.
 
     Args:
-        data: Bytes or bytearray to test.
-        suffix: Bytes or bytearray suffix.
+        data: Bytes or bytearray to check.
+        suffix: Suffix to look for.
 
     Returns:
-        True if *data* ends with *suffix*.
+        True if *data* ends with *suffix*, False otherwise.
 
     Raises:
         TypeError: If *data* or *suffix* is not bytes or bytearray.
@@ -40363,6 +40449,144 @@ def ends_with(data: bytes, suffix: bytes) -> bool:
     if not isinstance(suffix, (bytes, bytearray)):
         raise TypeError("suffix must be bytes or bytearray")
     return bytes(data).endswith(bytes(suffix))
+
+
+def split(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[bytes]:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if sep is not None and not isinstance(sep, (bytes, bytearray)):
+        raise TypeError("sep must be bytes, bytearray, or None")
+    if not isinstance(maxsplit, int) or isinstance(maxsplit, bool):
+        raise TypeError("maxsplit must be an int")
+    if sep is None:
+        return bytes(data).split(maxsplit=maxsplit)
+    return bytes(data).split(bytes(sep), maxsplit)
+
+
+def find(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sub, (bytes, bytearray)):
+        raise TypeError("sub must be bytes or bytearray")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).find(bytes(sub), start, end)
+
+
+def replace(data: bytes, old: bytes, new: bytes, count: int = -1) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(old, (bytes, bytearray)):
+        raise TypeError("old must be bytes or bytearray")
+    if not isinstance(new, (bytes, bytearray)):
+        raise TypeError("new must be bytes or bytearray")
+    if not isinstance(count, int) or isinstance(count, bool):
+        raise TypeError("count must be an int")
+    return bytes(data).replace(bytes(old), bytes(new), count)
+
+
+def count(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sub, (bytes, bytearray)):
+        raise TypeError("sub must be bytes or bytearray")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).count(bytes(sub), start, end)
+
+
+def decode_utf8(data: bytes, errors: str = "strict") -> str:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be a string")
+    return bytes(data).decode("utf-8", errors=errors)
+
+
+def encode_utf8(s: str, errors: str = "strict") -> bytes:
+    if not isinstance(s, str):
+        raise TypeError("s must be a string")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be a string")
+    return s.encode("utf-8", errors=errors)
+
+
+def rstrip(data: bytes, chars: bytes | None = None) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if chars is not None and not isinstance(chars, (bytes, bytearray)):
+        raise TypeError("chars must be bytes, bytearray, or None")
+    if chars is None:
+        return bytes(data).rstrip()
+    return bytes(data).rstrip(bytes(chars))
+
+
+def lstrip(data: bytes, chars: bytes | None = None) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if chars is not None and not isinstance(chars, (bytes, bytearray)):
+        raise TypeError("chars must be bytes, bytearray, or None")
+    if chars is None:
+        return bytes(data).lstrip()
+    return bytes(data).lstrip(bytes(chars))
+
+
+def strip(data: bytes, chars: bytes | None = None) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if chars is not None and not isinstance(chars, (bytes, bytearray)):
+        raise TypeError("chars must be bytes, bytearray, or None")
+    if chars is None:
+        return bytes(data).strip()
+    return bytes(data).strip(bytes(chars))
+
+
+def center(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(width, int) or isinstance(width, bool):
+        raise TypeError("width must be an int")
+    if not isinstance(fillbyte, (bytes, bytearray)):
+        raise TypeError("fillbyte must be bytes or bytearray")
+    return bytes(data).center(width, bytes(fillbyte)[0:1] if len(bytes(fillbyte)) == 1 else bytes(fillbyte)[0:1] if False else bytes(fillbyte)[:1] or b" ")
+
+
+def ljust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(width, int) or isinstance(width, bool):
+        raise TypeError("width must be an int")
+    if not isinstance(fillbyte, (bytes, bytearray)):
+        raise TypeError("fillbyte must be bytes or bytearray")
+    fb = bytes(fillbyte)
+    if len(fb) != 1:
+        raise ValueError("fillbyte must be a single byte")
+    return bytes(data).ljust(width, fb)
+
+
+def rjust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(width, int) or isinstance(width, bool):
+        raise TypeError("width must be an int")
+    if not isinstance(fillbyte, (bytes, bytearray)):
+        raise TypeError("fillbyte must be bytes or bytearray")
+    fb = bytes(fillbyte)
+    if len(fb) != 1:
+        raise ValueError("fillbyte must be a single byte")
+    return bytes(data).rjust(width, fb)
+
+
+def zfill(data: bytes, width: int) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(width, int) or isinstance(width, bool):
+        raise TypeError("width must be an int")
+    return bytes(data).zfill(width)
 BYTES_UTILS
 
 # --- tests/test_bytes_utils.py ---
@@ -41511,6 +41735,20 @@ __all__: list[str] = [
     "array_from_list",
     "array_extend_from_list",
     "array_remove_first",
+    "array_tobytes",
+    "array_to_bytes",
+    "array_frombytes",
+    "array_from_bytes",
+    "array_tofile",
+    "array_to_file",
+    "array_fromfile",
+    "array_from_file",
+    "array_tounicode",
+    "array_to_unicode",
+    "array_fromunicode",
+    "array_from_unicode",
+    "array_itemsize",
+    "array_typecode",
 ]
 
 
@@ -41749,6 +41987,106 @@ def array_remove_first(arr: array, item: Any) -> None:
     """
     _require_array(arr, "arr")
     arr.remove(item)
+
+
+def array_tobytes(arr: array) -> bytes:
+    """Convert the array to a bytes object."""
+    _require_array(arr, "arr")
+    return arr.tobytes()
+
+
+def array_to_bytes(arr: array) -> bytes:
+    """Convert the array to a bytes object."""
+    _require_array(arr, "arr")
+    return arr.tobytes()
+
+
+def array_frombytes(arr: array, data: bytes) -> None:
+    """Append items from the bytes object to the array."""
+    _require_array(arr, "arr")
+    if not isinstance(data, bytes):
+        raise TypeError(f"data must be a bytes, got {type(data).__name__}")
+    arr.frombytes(data)
+
+
+def array_from_bytes(arr: array, data: bytes) -> None:
+    """Append items from the bytes object to the array."""
+    _require_array(arr, "arr")
+    if not isinstance(data, bytes):
+        raise TypeError(f"data must be a bytes, got {type(data).__name__}")
+    arr.frombytes(data)
+
+
+def array_tofile(arr: array, f) -> None:
+    """Write all items to a file object."""
+    _require_array(arr, "arr")
+    arr.tofile(f)
+
+
+def array_to_file(arr: array, f) -> None:
+    """Write all items to a file object."""
+    _require_array(arr, "arr")
+    arr.tofile(f)
+
+
+def array_fromfile(arr: array, f, n: int) -> None:
+    """Read n items from a file object and append to array."""
+    _require_array(arr, "arr")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    arr.fromfile(f, n)
+
+
+def array_from_file(arr: array, f, n: int) -> None:
+    """Read n items from a file object and append to array."""
+    _require_array(arr, "arr")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    arr.fromfile(f, n)
+
+
+def array_tounicode(arr: array, s: str) -> str:
+    """Convert array to unicode."""
+    _require_array(arr, "arr")
+    if not isinstance(s, str):
+        raise TypeError(f"s must be a string, got {type(s).__name__}")
+    return arr.tounicode(s)
+
+
+def array_to_unicode(arr: array, s: str) -> str:
+    """Convert array to unicode."""
+    _require_array(arr, "arr")
+    if not isinstance(s, str):
+        raise TypeError(f"s must be a string, got {type(s).__name__}")
+    return arr.tounicode(s)
+
+
+def array_fromunicode(arr: array, s: str) -> None:
+    """Extend array with data from unicode string."""
+    _require_array(arr, "arr")
+    if not isinstance(s, str):
+        raise TypeError(f"s must be a string, got {type(s).__name__}")
+    arr.fromunicode(s)
+
+
+def array_from_unicode(arr: array, s: str) -> None:
+    """Extend array with data from unicode string."""
+    _require_array(arr, "arr")
+    if not isinstance(s, str):
+        raise TypeError(f"s must be a string, got {type(s).__name__}")
+    arr.fromunicode(s)
+
+
+def array_itemsize(arr: array) -> int:
+    """Return the length in bytes of one array item."""
+    _require_array(arr, "arr")
+    return arr.itemsize
+
+
+def array_typecode(arr: array) -> str:
+    """Return the typecode character used to create the array."""
+    _require_array(arr, "arr")
+    return arr.typecode
 ARRAY_UTILS
 
 # --- tests/test_array_utils.py ---
