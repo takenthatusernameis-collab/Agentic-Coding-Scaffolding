@@ -1,3 +1,9 @@
+## Unreleased — completed bytes_utils public API and documentation
+
+- Completed the public API surface of `bytes_utils.py`: added `__all__` exporting `to_hex`, `from_hex`, `xor`, `chunk`, `concat`, `repeat`, `reverse`, `contains`, `starts_with`, and `ends_with`; rewrote the six newer helpers' docstrings in Google style with Args/Returns/Raises sections.
+- Updated the `bytes_utils` module prose section and module listing of `README.md`.
+- Synchronized embedded copies with `make refresh-scaffold`.
+
 ## Unreleased — completed array_utils public API and documentation
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6771 tests and passes, `make lint` is clean, `make typecheck` reports no issues in 530 source files, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
