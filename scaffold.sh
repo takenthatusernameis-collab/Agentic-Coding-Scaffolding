@@ -38186,6 +38186,44 @@ def cycle_take(iterable: Iterable[Any], n: int) -> List[Any]:
     return list(islice(cycle(iterable), n))
 
 
+def partition(
+    iterable: Iterable[Any], predicate: Callable[[Any], bool]
+) -> tuple[List[Any], List[Any]]:
+    """Split an iterable into two lists: truthy and falsy items.
+
+    Items for which ``predicate`` is truthy go into the first list, the rest
+    into the second. Order is preserved within each list.
+
+    Args:
+        iterable: The iterable to split.
+        predicate: A callable returning a truthy/falsy value per item.
+
+    Returns:
+        A ``(truthy, falsy)`` tuple of lists.
+
+    Raises:
+        TypeError: If ``iterable`` is not iterable or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> partition([1, 2, 3, 4, 5], lambda x: x % 2 == 0)
+        ([2, 4], [1, 3, 5])
+        >>> partition([], bool)
+        ([], [])
+    """
+    _ensure_iterable(iterable)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    truthy: List[Any] = []
+    falsy: List[Any] = []
+    for item in iterable:
+        if predicate(item):
+            truthy.append(item)
+        else:
+            falsy.append(item)
+    return truthy, falsy
+
+
 __all__ = [
     "chain_iterables",
     "flatten_once",
@@ -38198,6 +38236,7 @@ __all__ = [
     "accumulate_values",
     "repeat_value",
     "cycle_take",
+    "partition",
 ]
 ITERTOOLS_UTILS
 
@@ -38213,6 +38252,7 @@ from itertools_utils import (
     cycle_take,
     flatten_once,
     group_by_key,
+    partition,
     permutations_of,
     product_of,
     repeat_value,
@@ -38353,6 +38393,36 @@ class TestCycleTake(unittest.TestCase):
     def test_negative_n_raises_value_error(self):
         with self.assertRaises(ValueError):
             cycle_take([1, 2, 3], -1)
+
+
+class TestPartition(unittest.TestCase):
+    def test_partition_even_odd(self):
+        self.assertEqual(
+            partition([1, 2, 3, 4, 5], lambda x: x % 2 == 0), ([2, 4], [1, 3, 5])
+        )
+
+    def test_empty_iterable(self):
+        self.assertEqual(partition([], bool), ([], []))
+
+    def test_all_true(self):
+        self.assertEqual(partition([1, 2, 3], bool), ([1, 2, 3], []))
+
+    def test_all_false(self):
+        self.assertEqual(partition([0, "", None], bool), ([], [0, "", None]))
+
+    def test_preserves_order(self):
+        self.assertEqual(
+            partition(["a", "ab", "b", "bc"], lambda x: len(x) == 2),
+            (["ab", "bc"], ["a", "b"]),
+        )
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            partition(42, bool)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            partition([1, 2, 3], "not callable")
 
 
 if __name__ == "__main__":

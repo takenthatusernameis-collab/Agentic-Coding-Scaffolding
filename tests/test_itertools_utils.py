@@ -151,5 +151,35 @@ class TestCycleTake(unittest.TestCase):
             cycle_take([1, 2, 3], -1)
 
 
+class TestPartition(unittest.TestCase):
+    def test_partition_even_odd(self):
+        self.assertEqual(
+            partition([1, 2, 3, 4, 5], lambda x: x % 2 == 0), ([2, 4], [1, 3, 5])
+        )
+
+    def test_empty_iterable(self):
+        self.assertEqual(partition([], bool), ([], []))
+
+    def test_all_true(self):
+        self.assertEqual(partition([1, 2, 3], bool), ([1, 2, 3], []))
+
+    def test_all_false(self):
+        self.assertEqual(partition([0, "", None], bool), ([], [0, "", None]))
+
+    def test_preserves_order(self):
+        self.assertEqual(
+            partition(["a", "ab", "b", "bc"], lambda x: len(x) == 2),
+            (["ab", "bc"], ["a", "b"]),
+        )
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            partition(42, bool)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            partition([1, 2, 3], "not callable")
+
+
 if __name__ == "__main__":
     unittest.main()
