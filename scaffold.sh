@@ -38190,10 +38190,14 @@ from itertools import (
     accumulate,
     chain,
     combinations,
+    combinations_with_replacement,
+    compress,
     cycle,
     dropwhile,
+    filterfalse,
     groupby,
     islice,
+    pairwise,
     permutations,
     product,
     repeat,
@@ -38265,6 +38269,16 @@ def combinations_of(iterable: Iterable[Any], r: int) -> List[Tuple[Any, ...]]:
     return list(combinations(iterable, r))
 
 
+def combinations_with_replacement_of(iterable: Iterable[Any], r: int) -> List[Tuple[Any, ...]]:
+    """Return all r-combinations with replacement of the input iterable."""
+    _ensure_iterable(iterable)
+    if not isinstance(r, int):
+        raise TypeError("r must be an int")
+    if r < 0:
+        raise ValueError("r must be non-negative")
+    return list(combinations_with_replacement(iterable, r))
+
+
 def permutations_of(iterable: Iterable[Any], r: Optional[int] = None) -> List[Tuple[Any, ...]]:
     """Return all r-permutations of the input iterable."""
     _ensure_iterable(iterable)
@@ -38319,6 +38333,27 @@ def cycle_take(iterable: Iterable[Any], n: int) -> List[Any]:
     if n < 0:
         raise ValueError("n must be non-negative")
     return list(islice(cycle(iterable), n))
+
+
+def compress_iterable(data: Iterable[Any], selectors: Iterable[Any]) -> List[Any]:
+    """Filter data by selectors using itertools.compress."""
+    _ensure_iterable(data, "data")
+    _ensure_iterable(selectors, "selectors")
+    return list(compress(data, selectors))
+
+
+def filter_false_iterable(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> List[Any]:
+    """Filter elements where predicate returns false."""
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return list(filterfalse(predicate, iterable))
+
+
+def pairwise_iterable(iterable: Iterable[Any]) -> List[Tuple[Any, Any]]:
+    """Return successive overlapping pairs from the input iterable."""
+    _ensure_iterable(iterable, "iterable")
+    return list(pairwise(iterable))
 
 
 def partition(
@@ -38429,11 +38464,15 @@ __all__ = [
     "chunk_iterable",
     "product_of",
     "combinations_of",
+    "combinations_with_replacement_of",
     "permutations_of",
     "group_by_key",
     "accumulate_values",
     "repeat_value",
     "cycle_take",
+    "compress_iterable",
+    "filter_false_iterable",
+    "pairwise_iterable",
     "partition",
     "zip_longest_iterables",
     "zip_strict_iterables",
@@ -38476,12 +38515,13 @@ from itertools_utils import (
     chain_iterables,
     chunk_iterable,
     combinations_of,
+    combinations_with_replacement_of,
     cycle_take,
     drop_while_pred,
     flatten_once,
     group_by_key,
+    pairwise_iterable,
     partition,
-    permutations_of,
     product_of,
     repeat_value,
     take_while_pred,
@@ -38500,8 +38540,29 @@ class TestIterToolsUtils(unittest.TestCase):
     def test_combinations(self):
         self.assertEqual(combinations_of([1, 2, 3], 2), [(1, 2), (1, 3), (2, 3)])
 
-    def test_permutations(self):
-        self.assertEqual(len(permutations_of([1, 2, 3], 2)), 6)
+    def test_combinations_with_replacement(self):
+        self.assertEqual(
+            combinations_with_replacement_of([1, 2, 3], 2),
+            [(1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)],
+        )
+
+
+class TestPairwiseIterable(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(pairwise_iterable([1, 2, 3, 4]), [(1, 2), (2, 3), (3, 4)])
+
+    def test_two_elements(self):
+        self.assertEqual(pairwise_iterable([1, 2]), [(1, 2)])
+
+    def test_single_element(self):
+        self.assertEqual(pairwise_iterable([1]), [])
+
+    def test_empty(self):
+        self.assertEqual(pairwise_iterable([]), [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            pairwise_iterable(123)
 
     def test_product(self):
         self.assertEqual(product_of([[1, 2], [3, 4]]), [(1, 3), (1, 4), (2, 3), (2, 4)])

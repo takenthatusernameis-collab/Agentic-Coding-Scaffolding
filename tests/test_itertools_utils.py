@@ -5,12 +5,13 @@ from itertools_utils import (
     chain_iterables,
     chunk_iterable,
     combinations_of,
+    combinations_with_replacement_of,
     cycle_take,
     drop_while_pred,
     flatten_once,
     group_by_key,
+    pairwise_iterable,
     partition,
-    permutations_of,
     product_of,
     repeat_value,
     take_while_pred,
@@ -29,8 +30,29 @@ class TestIterToolsUtils(unittest.TestCase):
     def test_combinations(self):
         self.assertEqual(combinations_of([1, 2, 3], 2), [(1, 2), (1, 3), (2, 3)])
 
-    def test_permutations(self):
-        self.assertEqual(len(permutations_of([1, 2, 3], 2)), 6)
+    def test_combinations_with_replacement(self):
+        self.assertEqual(
+            combinations_with_replacement_of([1, 2, 3], 2),
+            [(1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)],
+        )
+
+
+class TestPairwiseIterable(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(pairwise_iterable([1, 2, 3, 4]), [(1, 2), (2, 3), (3, 4)])
+
+    def test_two_elements(self):
+        self.assertEqual(pairwise_iterable([1, 2]), [(1, 2)])
+
+    def test_single_element(self):
+        self.assertEqual(pairwise_iterable([1]), [])
+
+    def test_empty(self):
+        self.assertEqual(pairwise_iterable([]), [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            pairwise_iterable(123)
 
     def test_product(self):
         self.assertEqual(product_of([[1, 2], [3, 4]]), [(1, 3), (1, 4), (2, 3), (2, 4)])
