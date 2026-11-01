@@ -978,3 +978,37 @@ def is_kaprekar_number(n: int) -> bool:
         if int(left or "0") + int(right) == n:
             return True
     return False
+
+
+def is_duck_number(n: int) -> bool:
+    """Return ``True`` when *n* is a duck number.
+
+    A duck number is a number that contains at least one zero digit but does
+    not start with zero (e.g. 101, 203).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a duck number, ``False`` otherwise. Numbers below 0
+        are never duck numbers.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_duck_number(101)
+        True
+        >>> is_duck_number(203)
+        True
+        >>> is_duck_number(123)
+        False
+        >>> is_duck_number(0)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    s = str(n)
+    return "0" in s[1:]

@@ -72727,6 +72727,40 @@ def is_kaprekar_number(n: int) -> bool:
         if int(left or "0") + int(right) == n:
             return True
     return False
+
+
+def is_duck_number(n: int) -> bool:
+    """Return ``True`` when *n* is a duck number.
+
+    A duck number is a number that contains at least one zero digit but does
+    not start with zero (e.g. 101, 203).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a duck number, ``False`` otherwise. Numbers below 0
+        are never duck numbers.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_duck_number(101)
+        True
+        >>> is_duck_number(203)
+        True
+        >>> is_duck_number(123)
+        False
+        >>> is_duck_number(0)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    s = str(n)
+    return "0" in s[1:]
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -72747,16 +72781,17 @@ from numbers_utils import (
     is_coprime,
     is_deficient_number,
     is_disarium_number,
+    is_duck_number,
     is_happy_number,
     is_harshad_number,
     is_integral,
+    is_kaprekar_number,
     is_neon_number,
     is_number,
     is_palindromic_number,
+    is_pandigital_number,
     is_perfect_number,
     is_perfect_power,
-    is_pandigital_number,
-    is_kaprekar_number,
     is_polydivisible_number,
     is_pronic_number,
     is_rational,
@@ -72871,6 +72906,23 @@ class TestIsAlmostPerfectNumber(unittest.TestCase):
         for value in (1.5, "2", None, True, [2]):
             with self.assertRaises(TypeError):
                 is_almost_perfect_number(value)
+
+
+
+
+class TestIsDuckNumber(unittest.TestCase):
+    def test_duck_numbers(self):
+        for value in (101, 203, 100, 10):
+            self.assertTrue(is_duck_number(value), value)
+
+    def test_non_duck_numbers(self):
+        for value in (123, 0, 1, 9):
+            self.assertFalse(is_duck_number(value), value)
+
+    def test_type_error(self):
+        for value in (1.5, "101", None, [0, 1], True):
+            with self.assertRaises(TypeError):
+                is_duck_number(value)
 
 
 if __name__ == "__main__":
