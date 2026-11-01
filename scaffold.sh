@@ -71789,6 +71789,7 @@ __all__: list[str] = [
     "is_repdigit_number",
     "is_palindromic_number",
     "is_coprime",
+    "is_duck_number",
     "is_perfect_power",
     "is_kaprekar_number",
     "proper_divisors",
