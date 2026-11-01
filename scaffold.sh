@@ -68226,6 +68226,8 @@ def is_pentagonal_number(value: int) -> bool:
         raise TypeError(f"value must be an int, got {type(value).__name__}")
     if value < 0:
         return False
+    if value == 0:
+        return True
     # n*(3*n - 1)/2 = value => 24*value + 1 must be an odd square
     discriminant = 24 * value + 1
     root = math.isqrt(discriminant)
@@ -68269,9 +68271,11 @@ def is_hexagonal_number(value: int) -> bool:
         False
     """
     if not isinstance(value, int) or isinstance(value, bool):
-        raise TypeError(f"value must be an int, got {type(value).__name__}")
+        raise TypeError(f"value must an int, got {type(value).__name__}")
     if value < 0:
         return False
+    if value == 0:
+        return True
     # n*(2*n - 1) = value => 8*value + 1 must be an odd square
     discriminant = 8 * value + 1
     root = math.isqrt(discriminant)
@@ -70912,6 +70916,50 @@ def is_pronic_number(n: int) -> bool:
 
     k = math.isqrt(n)
     return bool(k * (k + 1) == n or (k + 1) * k == n)
+
+
+def is_polydivisible_number(n: int) -> bool:
+    """Return ``True`` when *n* is a polydivisible number.
+
+    A polydivisible number is a number where the first *k* digits form a
+    number divisible by *k* for all *k* from 1 to the number of digits.
+    Numbers below 0 are never polydivisible. Single or zero-digit numbers:
+    0 is often considered polydivisible in some definitions; following
+    common convention this returns ``True`` only for non-negative integers
+    where every prefix passes the divisibility test.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a polydivisible number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_polydivisible_number(1)
+        True
+        >>> is_polydivisible_number(12)
+        True
+        >>> is_polydivisible_number(123)
+        True
+        >>> is_polydivisible_number(102)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n == 0:
+        return True
+    s = str(n)
+    num = 0
+    for i in range(1, len(s) + 1):
+        num = num * 10 + int(s[i - 1])
+        if num % i != 0:
+            return False
+    return True
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -70936,6 +70984,7 @@ from numbers_utils import (
     is_neon_number,
     is_number,
     is_perfect_number,
+    is_polydivisible_number,
     is_pronic_number,
     is_rational,
     is_real,
@@ -71248,7 +71297,27 @@ def test_type_error(self):
                 is_pronic_number(value)
 
 
+class TestIsPolydivisibleNumber(unittest.TestCase):
+    def test_known_polydivisible_numbers(self):
+        for value in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 102, 123, 1236, 12360):
+            self.assertTrue(is_polydivisible_number(value), value)
+
+    def test_non_polydivisible_numbers(self):
+        for value in (11, 13, 15, 17, 19, 100, 124, 1234, 12345):
+            self.assertFalse(is_polydivisible_number(value), value)
+
+    def test_negatives(self):
+        for value in (-1, -12, -123):
+            self.assertFalse(is_polydivisible_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "12", None, True, [12]):
+            with self.assertRaises(TypeError):
+                is_polydivisible_number(value)
+
+
 class TestIsSpyNumber(unittest.TestCase):
+
     def test_known_spy_numbers(self):
         for value in (1, 2, 3, 4, 5, 6, 7, 8, 9, 22, 123, 132, 213, 231, 312, 321, 1124):
             self.assertTrue(is_spy_number(value), value)
