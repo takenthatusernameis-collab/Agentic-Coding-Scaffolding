@@ -1106,8 +1106,6 @@ def is_perfect_square(n: int) -> bool:
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 0:
         return False
-    if n < 0:
-        return False
     r = math.isqrt(n)
     return r * r == n
 
@@ -1118,7 +1116,6 @@ def is_perfect_cube(n: int) -> bool:
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n == 0:
         return True
-    sign = -1 if n < 0 else 1
     m = abs(n)
     r = round(m ** (1.0 / 3.0))
     # check nearby values due to floating point

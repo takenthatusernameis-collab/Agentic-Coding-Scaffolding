@@ -46,6 +46,8 @@ __all__ = [
     "is_non_positive",
     "is_oblong_number",
     "is_odd",
+    "is_evil_number",
+    "is_odious_number",
     "is_palindromic_number",
     "is_pentagonal_number",
     "is_perfect_cube",
