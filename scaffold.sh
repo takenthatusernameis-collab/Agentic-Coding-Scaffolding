@@ -4413,6 +4413,7 @@ py_modules = [
     "inspect_utils",
     "bit_utils",
     "data_utils",
+    "deque_utils",
     "datetime_utils",
     "dbm_utils",
     "deprecation_utils",
