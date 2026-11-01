@@ -41,6 +41,7 @@ __all__: list[str] = [
     "is_palindromic_number",
     "is_coprime",
     "is_perfect_power",
+    "is_kaprekar_number",
     "proper_divisors",
 ]
 

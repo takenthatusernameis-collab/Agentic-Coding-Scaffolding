@@ -71790,6 +71790,7 @@ __all__: list[str] = [
     "is_palindromic_number",
     "is_coprime",
     "is_perfect_power",
+    "is_kaprekar_number",
     "proper_divisors",
 ]
 
@@ -72683,6 +72684,49 @@ def is_pandigital_number(n: int, base: int = 10) -> bool:
         value //= base
     expected = {digits[d] for d in range(base)}
     return expected.issubset(seen)
+
+
+def is_kaprekar_number(n: int) -> bool:
+    """Return ``True`` when *n* is a Kaprekar number.
+
+    A Kaprekar number is a non-negative integer whose square can be split
+    into two parts that sum to the original number. The right part has as
+    many digits as *n* (or one fewer for a perfect square split); for example
+    45 is Kaprekar because 45 ** 2 == 2025 and 20 + 25 == 45.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a Kaprekar number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_kaprekar_number(45)
+        True
+        >>> is_kaprekar_number(297)
+        True
+        >>> is_kaprekar_number(10)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n == 0:
+        return True
+    square = n * n
+    s = str(square)
+    for i in range(1, len(s)):
+        left = s[:i]
+        right = s[i:]
+        if right.lstrip("0") == "" :
+            continue
+        if int(left or "0") + int(right) == n:
+            return True
+    return False
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -72712,6 +72756,7 @@ from numbers_utils import (
     is_perfect_number,
     is_perfect_power,
     is_pandigital_number,
+    is_kaprekar_number,
     is_polydivisible_number,
     is_pronic_number,
     is_rational,
