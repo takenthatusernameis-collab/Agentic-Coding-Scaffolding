@@ -43,6 +43,7 @@ from number_utils import (
     is_triangular_number,
     is_pentagonal_number,
     is_hexagonal_number,
+    is_ugly_number,
     is_zero,
     lcm,
     lerp,
@@ -1352,6 +1353,29 @@ class TestIsHexagonalNumber(unittest.TestCase):
             is_hexagonal_number(6.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_hexagonal_number(True)  # type: ignore[arg-type]
+
+
+class TestIsUglyNumber(unittest.TestCase):
+    def test_known_ugly_numbers(self) -> None:
+        for n in (1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 25, 27, 30):
+            self.assertTrue(is_ugly_number(n), n)
+
+    def test_non_ugly_numbers(self) -> None:
+        for n in (7, 11, 13, 14, 17, 19, 21, 22, 26, 28, 49, 77):
+            self.assertFalse(is_ugly_number(n), n)
+
+    def test_zero_and_negatives(self) -> None:
+        self.assertFalse(is_ugly_number(0))
+        for n in (-1, -6, -30):
+            self.assertFalse(is_ugly_number(n))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_ugly_number("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_ugly_number(6.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_ugly_number(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

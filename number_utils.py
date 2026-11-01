@@ -66,6 +66,7 @@ __all__: List[str] = [
     "is_abundant_number",
     "is_deficient_number",
     "is_disarium_number",
+    "is_ugly_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -1714,3 +1715,44 @@ def is_disarium_number(value: int) -> bool:
         return False
     digits = [int(d) for d in str(value)]
     return sum(d ** (i + 1) for i, d in enumerate(digits)) == value
+
+
+def is_ugly_number(value: int) -> bool:
+    """Return True if *value* is an ugly number.
+
+    An ugly number (also called a Hamming or regular number) is a positive
+    integer whose only prime factors are 2, 3, and 5. By convention, 1 is an
+    ugly number.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is an ugly number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_ugly_number(1)
+        True
+        >>> is_ugly_number(6)
+        True
+        >>> is_ugly_number(8)
+        True
+        >>> is_ugly_number(14)
+        False
+        >>> is_ugly_number(0)
+        False
+        >>> is_ugly_number(-6)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value <= 0:
+        return False
+    n = value
+    for factor in (2, 3, 5):
+        while n % factor == 0:
+            n //= factor
+    return n == 1
