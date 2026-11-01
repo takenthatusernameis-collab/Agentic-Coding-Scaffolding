@@ -7,6 +7,8 @@ from bytes_utils import (
     ends_with,
     from_hex,
     index_of,
+    removeprefix,
+    removesuffix,
     repeat,
     reverse,
     rfind,
@@ -158,6 +160,74 @@ class TestRFind(unittest.TestCase):
             rfind(b"abc", b"a", start="0")
         with self.assertRaises(TypeError):
             rfind(b"abc", b"a", end=1.5)
+
+
+class TestRemovePrefix(unittest.TestCase):
+    def test_removes_prefix(self):
+        self.assertEqual(removeprefix(b"hello", b"he"), b"llo")
+        self.assertEqual(removeprefix(b"hello world", b"hello "), b"world")
+
+    def test_prefix_not_present(self):
+        self.assertEqual(removeprefix(b"hello", b"lo"), b"hello")
+        self.assertEqual(removeprefix(b"abc", b"xyz"), b"abc")
+
+    def test_empty_prefix(self):
+        self.assertEqual(removeprefix(b"hello", b""), b"hello")
+
+    def test_empty_data(self):
+        self.assertEqual(removeprefix(b"", b"x"), b"")
+        self.assertEqual(removeprefix(b"", b""), b"")
+
+    def test_full_match(self):
+        self.assertEqual(removeprefix(b"abc", b"abc"), b"")
+
+    def test_bytearray_input(self):
+        self.assertEqual(removeprefix(bytearray(b"hello"), b"he"), b"llo")
+        self.assertEqual(removeprefix(b"hello", bytearray(b"he")), b"llo")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            removeprefix("hello", b"he")
+        with self.assertRaises(TypeError):
+            removeprefix(b"hello", "he")
+        with self.assertRaises(TypeError):
+            removeprefix(123, b"he")
+        with self.assertRaises(TypeError):
+            removeprefix(b"hello", 123)
+
+
+class TestRemoveSuffix(unittest.TestCase):
+    def test_removes_suffix(self):
+        self.assertEqual(removesuffix(b"hello", b"lo"), b"hel")
+        self.assertEqual(removesuffix(b"hello world", b" world"), b"hello")
+
+    def test_suffix_not_present(self):
+        self.assertEqual(removesuffix(b"hello", b"he"), b"hello")
+        self.assertEqual(removesuffix(b"abc", b"xyz"), b"abc")
+
+    def test_empty_suffix(self):
+        self.assertEqual(removesuffix(b"hello", b""), b"hello")
+
+    def test_empty_data(self):
+        self.assertEqual(removesuffix(b"", b"x"), b"")
+        self.assertEqual(removesuffix(b"", b""), b"")
+
+    def test_full_match(self):
+        self.assertEqual(removesuffix(b"abc", b"abc"), b"")
+
+    def test_bytearray_input(self):
+        self.assertEqual(removesuffix(bytearray(b"hello"), b"lo"), b"hel")
+        self.assertEqual(removesuffix(b"hello", bytearray(b"lo")), b"hel")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            removesuffix("hello", b"lo")
+        with self.assertRaises(TypeError):
+            removesuffix(b"hello", "lo")
+        with self.assertRaises(TypeError):
+            removesuffix(123, b"lo")
+        with self.assertRaises(TypeError):
+            removesuffix(b"hello", 123)
 
 
 if __name__ == "__main__":

@@ -29,6 +29,8 @@ __all__: list[str] = [
     "ljust",
     "rjust",
     "zfill",
+    "removeprefix",
+    "removesuffix",
 ]
 
 
@@ -510,3 +512,61 @@ def zfill(data: bytes, width: int) -> bytes:
     if not isinstance(width, int) or isinstance(width, bool):
         raise TypeError("width must be an int")
     return bytes(data).zfill(width)
+
+
+def removeprefix(data: bytes, prefix: bytes) -> bytes:
+    """Return *data* with *prefix* removed from the start, if present.
+
+    Args:
+        data: Bytes or bytearray to transform.
+        prefix: Bytes or bytearray prefix to remove.
+
+    Returns:
+        *data* with *prefix* removed from the start if it starts with
+        *prefix*; otherwise *data* unchanged.
+
+    Raises:
+        TypeError: If *data* or *prefix* is not bytes or bytearray.
+
+    Examples:
+        >>> removeprefix(b"hello", b"he")
+        b'llo'
+        >>> removeprefix(b"hello", b"lo")
+        b'hello'
+        >>> removeprefix(b"", b"x")
+        b''
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(prefix, (bytes, bytearray)):
+        raise TypeError("prefix must be bytes or bytearray")
+    return bytes(data).removeprefix(bytes(prefix))
+
+
+def removesuffix(data: bytes, suffix: bytes) -> bytes:
+    """Return *data* with *suffix* removed from the end, if present.
+
+    Args:
+        data: Bytes or bytearray to transform.
+        suffix: Bytes or bytearray suffix to remove.
+
+    Returns:
+        *data* with *suffix* removed from the end if it ends with
+        *suffix*; otherwise *data* unchanged.
+
+    Raises:
+        TypeError: If *data* or *suffix* is not bytes or bytearray.
+
+    Examples:
+        >>> removesuffix(b"hello", b"lo")
+        b'hel'
+        >>> removesuffix(b"hello", b"he")
+        b'hello'
+        >>> removesuffix(b"", b"x")
+        b''
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(suffix, (bytes, bytearray)):
+        raise TypeError("suffix must be bytes or bytearray")
+    return bytes(data).removesuffix(bytes(suffix))

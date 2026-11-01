@@ -42512,6 +42512,8 @@ __all__: list[str] = [
     "ljust",
     "rjust",
     "zfill",
+    "removeprefix",
+    "removesuffix",
 ]
 
 
@@ -42993,6 +42995,64 @@ def zfill(data: bytes, width: int) -> bytes:
     if not isinstance(width, int) or isinstance(width, bool):
         raise TypeError("width must be an int")
     return bytes(data).zfill(width)
+
+
+def removeprefix(data: bytes, prefix: bytes) -> bytes:
+    """Return *data* with *prefix* removed from the start, if present.
+
+    Args:
+        data: Bytes or bytearray to transform.
+        prefix: Bytes or bytearray prefix to remove.
+
+    Returns:
+        *data* with *prefix* removed from the start if it starts with
+        *prefix*; otherwise *data* unchanged.
+
+    Raises:
+        TypeError: If *data* or *prefix* is not bytes or bytearray.
+
+    Examples:
+        >>> removeprefix(b"hello", b"he")
+        b'llo'
+        >>> removeprefix(b"hello", b"lo")
+        b'hello'
+        >>> removeprefix(b"", b"x")
+        b''
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(prefix, (bytes, bytearray)):
+        raise TypeError("prefix must be bytes or bytearray")
+    return bytes(data).removeprefix(bytes(prefix))
+
+
+def removesuffix(data: bytes, suffix: bytes) -> bytes:
+    """Return *data* with *suffix* removed from the end, if present.
+
+    Args:
+        data: Bytes or bytearray to transform.
+        suffix: Bytes or bytearray suffix to remove.
+
+    Returns:
+        *data* with *suffix* removed from the end if it ends with
+        *suffix*; otherwise *data* unchanged.
+
+    Raises:
+        TypeError: If *data* or *suffix* is not bytes or bytearray.
+
+    Examples:
+        >>> removesuffix(b"hello", b"lo")
+        b'hel'
+        >>> removesuffix(b"hello", b"he")
+        b'hello'
+        >>> removesuffix(b"", b"x")
+        b''
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(suffix, (bytes, bytearray)):
+        raise TypeError("suffix must be bytes or bytearray")
+    return bytes(data).removesuffix(bytes(suffix))
 BYTES_UTILS
 
 # --- tests/test_bytes_utils.py ---
@@ -43006,6 +43066,8 @@ from bytes_utils import (
     ends_with,
     from_hex,
     index_of,
+    removeprefix,
+    removesuffix,
     repeat,
     reverse,
     rfind,
@@ -43157,6 +43219,74 @@ class TestRFind(unittest.TestCase):
             rfind(b"abc", b"a", start="0")
         with self.assertRaises(TypeError):
             rfind(b"abc", b"a", end=1.5)
+
+
+class TestRemovePrefix(unittest.TestCase):
+    def test_removes_prefix(self):
+        self.assertEqual(removeprefix(b"hello", b"he"), b"llo")
+        self.assertEqual(removeprefix(b"hello world", b"hello "), b"world")
+
+    def test_prefix_not_present(self):
+        self.assertEqual(removeprefix(b"hello", b"lo"), b"hello")
+        self.assertEqual(removeprefix(b"abc", b"xyz"), b"abc")
+
+    def test_empty_prefix(self):
+        self.assertEqual(removeprefix(b"hello", b""), b"hello")
+
+    def test_empty_data(self):
+        self.assertEqual(removeprefix(b"", b"x"), b"")
+        self.assertEqual(removeprefix(b"", b""), b"")
+
+    def test_full_match(self):
+        self.assertEqual(removeprefix(b"abc", b"abc"), b"")
+
+    def test_bytearray_input(self):
+        self.assertEqual(removeprefix(bytearray(b"hello"), b"he"), b"llo")
+        self.assertEqual(removeprefix(b"hello", bytearray(b"he")), b"llo")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            removeprefix("hello", b"he")
+        with self.assertRaises(TypeError):
+            removeprefix(b"hello", "he")
+        with self.assertRaises(TypeError):
+            removeprefix(123, b"he")
+        with self.assertRaises(TypeError):
+            removeprefix(b"hello", 123)
+
+
+class TestRemoveSuffix(unittest.TestCase):
+    def test_removes_suffix(self):
+        self.assertEqual(removesuffix(b"hello", b"lo"), b"hel")
+        self.assertEqual(removesuffix(b"hello world", b" world"), b"hello")
+
+    def test_suffix_not_present(self):
+        self.assertEqual(removesuffix(b"hello", b"he"), b"hello")
+        self.assertEqual(removesuffix(b"abc", b"xyz"), b"abc")
+
+    def test_empty_suffix(self):
+        self.assertEqual(removesuffix(b"hello", b""), b"hello")
+
+    def test_empty_data(self):
+        self.assertEqual(removesuffix(b"", b"x"), b"")
+        self.assertEqual(removesuffix(b"", b""), b"")
+
+    def test_full_match(self):
+        self.assertEqual(removesuffix(b"abc", b"abc"), b"")
+
+    def test_bytearray_input(self):
+        self.assertEqual(removesuffix(bytearray(b"hello"), b"lo"), b"hel")
+        self.assertEqual(removesuffix(b"hello", bytearray(b"lo")), b"hel")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            removesuffix("hello", b"lo")
+        with self.assertRaises(TypeError):
+            removesuffix(b"hello", "lo")
+        with self.assertRaises(TypeError):
+            removesuffix(123, b"lo")
+        with self.assertRaises(TypeError):
+            removesuffix(b"hello", 123)
 
 
 if __name__ == "__main__":
@@ -48100,6 +48230,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added removeprefix/removesuffix to bytes_utils
+
+- Added `removeprefix(data, prefix)` and `removesuffix(data, suffix)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-bytes-like arguments; they wrap `bytes.removeprefix`/`bytes.removesuffix`, returning *data* with a matching prefix/suffix stripped when present and unchanged otherwise (closely related to the existing `starts_with`/`ends_with` helpers).
+- Added `TestRemovePrefix` and `TestRemoveSuffix` to `tests/test_bytes_utils.py` covering prefix/suffix removal, absent prefix/suffix, empty prefix/suffix, empty data, full match, bytearray input, and the `TypeError` paths (14 new tests).
+- Updated the `bytes_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — audited tempfile_utils boundary cases
 
 - Audited `tempfile_utils.py` boundary cases and aligned validation with project conventions: every public helper now consistently accepts `str` or `pathlib.Path` for `suffix`/`prefix`/`dir` (and coerces them), validates types with `TypeError` for non-str/non-Path inputs (including bools where inappropriate), and adds Google-style docstrings with `Raises:` sections.
@@ -49941,7 +50079,7 @@ signal_utils.py            # Signal utilities wrapping the standard library sign
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
-bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index_of, rfind, starts_with, ends_with)
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index_of, rfind, starts_with, ends_with, removeprefix, removesuffix)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -50713,7 +50851,7 @@ The project includes HTML entities utilities in `html_entities_utils.py` wrappin
 
 ## Bytes Utilities Module
 
-The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `rfind` returns the highest index of a subsequence (or -1), and `starts_with`/`ends_with` test prefixes/suffixes. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `rfind` returns the highest index of a subsequence (or -1), and `starts_with`/`ends_with` test prefixes/suffixes while `removeprefix`/`removesuffix` strip a matching prefix/suffix. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
 
 ## Itertools Utilities Module
 

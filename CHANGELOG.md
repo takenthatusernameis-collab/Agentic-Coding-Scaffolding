@@ -1,3 +1,11 @@
+## Unreleased — added removeprefix/removesuffix to bytes_utils
+
+- Added `removeprefix(data, prefix)` and `removesuffix(data, suffix)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-bytes-like arguments; they wrap `bytes.removeprefix`/`bytes.removesuffix`, returning *data* with a matching prefix/suffix stripped when present and unchanged otherwise (closely related to the existing `starts_with`/`ends_with` helpers).
+- Added `TestRemovePrefix` and `TestRemoveSuffix` to `tests/test_bytes_utils.py` covering prefix/suffix removal, absent prefix/suffix, empty prefix/suffix, empty data, full match, bytearray input, and the `TypeError` paths (14 new tests).
+- Updated the `bytes_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — audited tempfile_utils boundary cases
 
 - Audited `tempfile_utils.py` boundary cases and aligned validation with project conventions: every public helper now consistently accepts `str` or `pathlib.Path` for `suffix`/`prefix`/`dir` (and coerces them), validates types with `TypeError` for non-str/non-Path inputs (including bools where inappropriate), and adds Google-style docstrings with `Raises:` sections.
