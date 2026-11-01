@@ -46604,6 +46604,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_perfect_power to number_utils
+
+- Added `is_perfect_power(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-number arguments; it returns True when *value* is a positive integer > 1 that can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16 = 4^2, 36 = 6^2, 8 = 2^3, 125 = 5^3), and returns False for 0, ±1, non-integral values, primes, and numbers with no such representation. It generalizes the existing `is_perfect_cube`, `is_perfect_square`, and `is_power_of_two` predicates, accepting floats that are integral (e.g. 8.0) just like its siblings.
+- Added `TestIsPerfectPower` to `tests/test_number_utils.py` covering perfect powers, non-perfect powers, 1 and 0, negatives, integral floats, and the `TypeError` paths (6 new tests). Imported `is_perfect_power` at the top of the test file to match the module's `__all__` contract.
+- Updated the `number_utils` module tree entry and prose section of `README.md`.
+
 ## Unreleased — added polydivisible docs and __all__ export to numbers_utils
 
 - Registered `is_polydivisible_number` in `numbers_utils.__all__` (it was implemented and tested in `87f415a` but missing from the module's public API surface), added it to the `numbers_utils` file-list comment and prose section of `README.md`, and recorded the gap in this CHANGELOG entry.
@@ -48252,7 +48258,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_spy_number, is_disarium_number, is_ugly_number)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -49177,7 +49183,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703); `is_ugly_number` tests whether a positive integer's only prime factors are 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_perfect_power` tests whether a positive integer > 1 can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16, 36, 64, 125); `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703); `is_ugly_number` tests whether a positive integer's only prime factors are 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -67500,6 +67506,7 @@ __all__: List[str] = [
     "is_perfect_cube",
     "is_perfect_square",
     "is_power_of_two",
+    "is_perfect_power",
     "is_palindromic_number",
     "round_half_up",
     "gcd",
@@ -68096,6 +68103,60 @@ def is_power_of_two(value: Number) -> bool:
     if n <= 0:
         return False
     return (n & (n - 1)) == 0
+
+
+def is_perfect_power(value: Number) -> bool:
+    """Return True if *value* is a perfect power.
+
+    A perfect power is a positive integer that can be expressed as an
+    integer power of another positive integer. More formally, *value* is a
+    perfect power if there exist integers *a > 0*, *b > 1* such that
+    *value = a**b*. By this definition, perfect powers include squares,
+    cubes, and all prime powers; 1 = a^0 is not considered a perfect power
+    in this sense (and 1 is not returned as True).
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is a perfect power, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not a number.
+
+    Examples:
+        >>> is_perfect_power(16)
+        True
+        >>> is_perfect_power(36)
+        True
+        >>> is_perfect_power(2)
+        False
+        >>> is_perfect_power(1)
+        False
+        >>> is_perfect_power(8.0)
+        True
+    """
+    _require_number(value, "value")
+    if not is_integer(value):
+        return False
+    n = int(value)
+    if n <= 1:
+        return False
+    # Check if it's a perfect power for some integer base >= 2, exponent >= 2
+    max_exp = n.bit_length()
+    for b in range(2, max_exp + 1):
+        # Find integer a = n^(1/b)
+        a_float = n ** (1.0 / b)
+        a = round(a_float)
+        if a < 2:
+            continue
+        # Check a few candidates due to floating point precision
+        for candidate in (a - 1, a, a + 1):
+            if candidate < 2:
+                continue
+            if candidate ** b == n:
+                return True
+    return False
 
 
 def is_palindromic_number(value: Number) -> bool:
@@ -69261,6 +69322,7 @@ from number_utils import (
     is_non_positive,
     is_perfect_cube,
     is_perfect_number,
+    is_perfect_power,
     is_perfect_square,
     is_positive,
     is_power_of_two,
@@ -69759,6 +69821,38 @@ class TestIsPowerOfTwo(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_power_of_two("x")  # type: ignore[arg-type]
+
+
+class TestIsPerfectPower(unittest.TestCase):
+    def test_perfect_powers(self) -> None:
+        for n in (
+            4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 81, 100, 121, 125, 128, 144,
+            169, 196, 216, 225, 243, 256, 289, 324, 343, 361, 400, 512, 625,
+            729, 1000, 1024, 2 ** 20, 3 ** 10, 5 ** 6,
+        ):
+            self.assertTrue(is_perfect_power(n), n)
+
+    def test_non_perfect_powers(self) -> None:
+        for n in (2, 3, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23):
+            self.assertFalse(is_perfect_power(n), n)
+
+    def test_one_and_zero(self) -> None:
+        self.assertFalse(is_perfect_power(1))
+        self.assertFalse(is_perfect_power(0))
+
+    def test_negatives(self) -> None:
+        for n in (-1, -4, -8, -16, -27):
+            self.assertFalse(is_perfect_power(n), n)
+
+    def test_non_integer(self) -> None:
+        self.assertFalse(is_perfect_power(2.0))
+        self.assertFalse(is_perfect_power(8.5))
+        self.assertTrue(is_perfect_power(8.0))
+        self.assertTrue(is_perfect_power(16.0))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_perfect_power("x")  # type: ignore[arg-type]
 
 
 class TestMapRange(unittest.TestCase):

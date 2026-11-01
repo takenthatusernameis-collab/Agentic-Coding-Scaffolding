@@ -34,6 +34,7 @@ from number_utils import (
     is_non_positive,
     is_perfect_cube,
     is_perfect_number,
+    is_perfect_power,
     is_perfect_square,
     is_positive,
     is_power_of_two,
@@ -532,6 +533,38 @@ class TestIsPowerOfTwo(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_power_of_two("x")  # type: ignore[arg-type]
+
+
+class TestIsPerfectPower(unittest.TestCase):
+    def test_perfect_powers(self) -> None:
+        for n in (
+            4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 81, 100, 121, 125, 128, 144,
+            169, 196, 216, 225, 243, 256, 289, 324, 343, 361, 400, 512, 625,
+            729, 1000, 1024, 2 ** 20, 3 ** 10, 5 ** 6,
+        ):
+            self.assertTrue(is_perfect_power(n), n)
+
+    def test_non_perfect_powers(self) -> None:
+        for n in (2, 3, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23):
+            self.assertFalse(is_perfect_power(n), n)
+
+    def test_one_and_zero(self) -> None:
+        self.assertFalse(is_perfect_power(1))
+        self.assertFalse(is_perfect_power(0))
+
+    def test_negatives(self) -> None:
+        for n in (-1, -4, -8, -16, -27):
+            self.assertFalse(is_perfect_power(n), n)
+
+    def test_non_integer(self) -> None:
+        self.assertFalse(is_perfect_power(2.0))
+        self.assertFalse(is_perfect_power(8.5))
+        self.assertTrue(is_perfect_power(8.0))
+        self.assertTrue(is_perfect_power(16.0))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_perfect_power("x")  # type: ignore[arg-type]
 
 
 class TestMapRange(unittest.TestCase):

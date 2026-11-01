@@ -1,3 +1,9 @@
+## Unreleased — added is_perfect_power to number_utils
+
+- Added `is_perfect_power(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-number arguments; it returns True when *value* is a positive integer > 1 that can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16 = 4^2, 36 = 6^2, 8 = 2^3, 125 = 5^3), and returns False for 0, ±1, non-integral values, primes, and numbers with no such representation. It generalizes the existing `is_perfect_cube`, `is_perfect_square`, and `is_power_of_two` predicates, accepting floats that are integral (e.g. 8.0) just like its siblings.
+- Added `TestIsPerfectPower` to `tests/test_number_utils.py` covering perfect powers, non-perfect powers, 1 and 0, negatives, integral floats, and the `TypeError` paths (6 new tests). Imported `is_perfect_power` at the top of the test file to match the module's `__all__` contract.
+- Updated the `number_utils` module tree entry and prose section of `README.md`.
+
 ## Unreleased — added polydivisible docs and __all__ export to numbers_utils
 
 - Registered `is_polydivisible_number` in `numbers_utils.__all__` (it was implemented and tested in `87f415a` but missing from the module's public API surface), added it to the `numbers_utils` file-list comment and prose section of `README.md`, and recorded the gap in this CHANGELOG entry.

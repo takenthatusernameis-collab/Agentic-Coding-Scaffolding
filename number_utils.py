@@ -35,6 +35,7 @@ __all__: List[str] = [
     "is_perfect_cube",
     "is_perfect_square",
     "is_power_of_two",
+    "is_perfect_power",
     "is_palindromic_number",
     "round_half_up",
     "gcd",
@@ -631,6 +632,60 @@ def is_power_of_two(value: Number) -> bool:
     if n <= 0:
         return False
     return (n & (n - 1)) == 0
+
+
+def is_perfect_power(value: Number) -> bool:
+    """Return True if *value* is a perfect power.
+
+    A perfect power is a positive integer that can be expressed as an
+    integer power of another positive integer. More formally, *value* is a
+    perfect power if there exist integers *a > 0*, *b > 1* such that
+    *value = a**b*. By this definition, perfect powers include squares,
+    cubes, and all prime powers; 1 = a^0 is not considered a perfect power
+    in this sense (and 1 is not returned as True).
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is a perfect power, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not a number.
+
+    Examples:
+        >>> is_perfect_power(16)
+        True
+        >>> is_perfect_power(36)
+        True
+        >>> is_perfect_power(2)
+        False
+        >>> is_perfect_power(1)
+        False
+        >>> is_perfect_power(8.0)
+        True
+    """
+    _require_number(value, "value")
+    if not is_integer(value):
+        return False
+    n = int(value)
+    if n <= 1:
+        return False
+    # Check if it's a perfect power for some integer base >= 2, exponent >= 2
+    max_exp = n.bit_length()
+    for b in range(2, max_exp + 1):
+        # Find integer a = n^(1/b)
+        a_float = n ** (1.0 / b)
+        a = round(a_float)
+        if a < 2:
+            continue
+        # Check a few candidates due to floating point precision
+        for candidate in (a - 1, a, a + 1):
+            if candidate < 2:
+                continue
+            if candidate ** b == n:
+                return True
+    return False
 
 
 def is_palindromic_number(value: Number) -> bool:
