@@ -38,6 +38,7 @@ from prompt_utils import (
     has_placeholders,
     has_trailing_newline,
     indent_lines,
+    is_blank,
     join_lines,
     last_line,
     lstrip_lines,
@@ -1243,3 +1244,20 @@ class TestSplitLines(unittest.TestCase):
             split_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             split_lines(None)  # type: ignore[arg-type]
+
+
+class TestIsBlank(unittest.TestCase):
+    def test_empty(self):
+        self.assertTrue(is_blank(""))
+
+    def test_whitespace_only(self):
+        self.assertTrue(is_blank("   "))
+        self.assertTrue(is_blank("\t\n"))
+
+    def test_non_blank(self):
+        self.assertFalse(is_blank("hello"))
+        self.assertFalse(is_blank("  hello  "))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_blank(123)

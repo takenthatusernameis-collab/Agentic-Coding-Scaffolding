@@ -21105,6 +21105,7 @@ from prompt_utils import (
     has_placeholders,
     has_trailing_newline,
     indent_lines,
+    is_blank,
     join_lines,
     last_line,
     lstrip_lines,
@@ -22310,6 +22311,23 @@ class TestSplitLines(unittest.TestCase):
             split_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             split_lines(None)  # type: ignore[arg-type]
+
+
+class TestIsBlank(unittest.TestCase):
+    def test_empty(self):
+        self.assertTrue(is_blank(""))
+
+    def test_whitespace_only(self):
+        self.assertTrue(is_blank("   "))
+        self.assertTrue(is_blank("\t\n"))
+
+    def test_non_blank(self):
+        self.assertFalse(is_blank("hello"))
+        self.assertFalse(is_blank("  hello  "))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_blank(123)
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -31339,6 +31357,7 @@ __all__: List[str] = [
     "truncate_words",
     "truncate_lines",
     "indent_lines",
+    "is_blank",
     "dedent_lines",
     "remove_blank_lines",
     "rstrip_lines",
@@ -33052,6 +33071,30 @@ def split_lines(text: str, *, keep_empty: bool = True) -> List[str]:
     if not keep_empty:
         lines = [line for line in lines if line != ""]
     return lines
+
+
+def is_blank(text: str) -> bool:
+    """Return True if *text* is empty or contains only whitespace.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        True if *text* is empty or whitespace-only, False otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> is_blank("")
+        True
+        >>> is_blank("   ")
+        True
+        >>> is_blank("hello")
+        False
+    """
+    _require_string(text, "text")
+    return text.strip() == ""
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -69378,6 +69421,45 @@ def is_squarefree_number(value: int) -> bool:
             return False
         factor += 1
     return True
+
+
+def is_oblong_number(value: int) -> bool:
+    """Return whether *value* is an oblong (pronic) number.
+
+    An oblong number is a product of two consecutive integers
+    (``n * (n + 1)``) for some non-negative integer *n*.
+
+    Args:
+        value: The integer to check.
+
+    Returns:
+        ``True`` if *value* is an oblong number, otherwise ``False``.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_oblong_number(0)
+        True
+        >>> is_oblong_number(2)
+        True
+        >>> is_oblong_number(6)
+        True
+        >>> is_oblong_number(12)
+        True
+        >>> is_oblong_number(4)
+        False
+        >>> is_oblong_number(-1)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    # n*(n+1) = value => 4*value+1 must be an odd perfect square
+    discriminant = 4 * value + 1
+    root = math.isqrt(discriminant)
+    return root * root == discriminant and root % 2 == 1
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -70827,6 +70909,37 @@ class TestIsSquarefreeNumber(unittest.TestCase):
             is_squarefree_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_squarefree_number(None)  # type: ignore[arg-type]
+
+
+class TestIsOblongNumber(unittest.TestCase):
+    def test_oblong_numbers(self) -> None:
+        from number_utils import is_oblong_number
+
+        for n in (0, 2, 6, 12, 20, 30, 42, 56, 72, 90):
+            self.assertTrue(is_oblong_number(n), n)
+
+    def test_non_oblong_numbers(self) -> None:
+        from number_utils import is_oblong_number
+
+        for n in (1, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19):
+            self.assertFalse(is_oblong_number(n), n)
+
+    def test_negatives(self) -> None:
+        from number_utils import is_oblong_number
+
+        self.assertFalse(is_oblong_number(-1))
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_oblong_number
+
+        with self.assertRaises(TypeError):
+            is_oblong_number("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_oblong_number(6.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_oblong_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_oblong_number(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

@@ -27,6 +27,7 @@ __all__: List[str] = [
     "truncate_words",
     "truncate_lines",
     "indent_lines",
+    "is_blank",
     "dedent_lines",
     "remove_blank_lines",
     "rstrip_lines",
@@ -1740,3 +1741,27 @@ def split_lines(text: str, *, keep_empty: bool = True) -> List[str]:
     if not keep_empty:
         lines = [line for line in lines if line != ""]
     return lines
+
+
+def is_blank(text: str) -> bool:
+    """Return True if *text* is empty or contains only whitespace.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        True if *text* is empty or whitespace-only, False otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> is_blank("")
+        True
+        >>> is_blank("   ")
+        True
+        >>> is_blank("hello")
+        False
+    """
+    _require_string(text, "text")
+    return text.strip() == ""
