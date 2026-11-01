@@ -48232,6 +48232,37 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — audited tarfile_utils boundary cases
+
+- Audited `tarfile_utils.py` boundary cases and aligned validation with project conventions: added `_require_path` helpers, accept `str` or `pathlib.Path` for paths (coercing to str), validate types with `TypeError`, reject empty strings/paths with `ValueError`, add `Raises:` sections to docstrings, and validate `mode`, `member`, iterables, and `arcnames`.
+- Added `TestTarfileUtilsBoundary` to `tests/test_tarfile_utils.py` covering TypeError/ValueError paths for all public helpers and Path-object acceptance (7 new tests; 11 tests now pass for the module). Imported nothing new beyond the existing public API.
+- Updated the `tarfile_utils` prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `tarfile_utils.py`, `tests/test_tarfile_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+## Unreleased — audited tarfile_utils boundary cases
+
+- Audited  boundary cases and aligned validation with project conventions: added  helpers, accept  or  for paths (coercing to str), validate types with , reject empty strings/paths with , add  sections to docstrings, and validate , , iterables, and .
+- Added  to  covering TypeError/ValueError paths for all public helpers and Path-object acceptance (7 new tests; 11 tests now pass for the module). Imported nothing new beyond the existing public API.
+- Updated the  prose section of .
+- Recorded the change in the Unreleased section of .
+- Synchronized , , , , and  with Refreshing the copies embedded in scaffold.sh...
+refreshed: README.md
+no repository copy: tests/test_audioop_utils.py
+no repository copy: tests/test_imghdr_utils.py
+no repository copy: tests/test_pipes_utils.py
+no repository copy: tests/test_crypt_utils.py
+no repository copy: tests/test_telnetlib_utils.py
+no repository copy: tests/test_cgi_utils.py
+no repository copy: tests/test_cgitb_utils.py
+no repository copy: tests/test_nntplib_utils.py
+no repository copy: tests/test_sndhdr_utils.py
+no repository copy: tests/test_spwd_utils.py
+no repository copy: tests/test_asynchat_utils.py
+no repository copy: tests/test_asyncore_utils.py
+no repository copy: tests/test_smtpd_utils.py
+1 embedded copies refreshed; all embedded copies are in sync reports all embedded copies in sync.
+
 ## Unreleased — added removeprefix/removesuffix to bytes_utils
 
 - Added `removeprefix(data, prefix)` and `removesuffix(data, suffix)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-bytes-like arguments; they wrap `bytes.removeprefix`/`bytes.removesuffix`, returning *data* with a matching prefix/suffix stripped when present and unchanged otherwise (closely related to the existing `starts_with`/`ends_with` helpers).
@@ -51079,7 +51110,7 @@ The project includes plistlib utility functions in `plistlib_utils.py` wrapping 
 
 ## Tarfile Utilities Module
 
-The project includes tarfile utility functions in `tarfile_utils.py` wrapping the standard library `tarfile` module: `tarfile_open` opens a tar archive, `tarfile_add` adds a file to a (possibly new) tar archive with an optional arcname, `tarfile_list` lists member names in a tar archive, `tarfile_extract` extracts a single member, `tarfile_extractall` extracts all members, and `tarfile_create` creates a new tar archive containing a list of files with optional arcnames. The module is tested in `tests/test_tarfile_utils.py`.
+The project includes tarfile utility functions in `tarfile_utils.py` wrapping the standard library `tarfile` module: `tarfile_open` opens a tar archive, `tarfile_add` adds a file to a (possibly new) tar archive with an optional arcname, `tarfile_list` lists member names in a tar archive, `tarfile_extract` extracts a single member, `tarfile_extractall` extracts all members, and `tarfile_create` creates a new tar archive containing a list of files with optional arcnames. All helpers accept `str` or `pathlib.Path` for paths and raise `TypeError`/`ValueError` for invalid inputs. The module is tested in `tests/test_tarfile_utils.py`.
 
 ## Unicode Data Utilities Module
 
@@ -94528,56 +94559,212 @@ cat > "$OUTPUT_DIR/tarfile_utils.py" <<'TARFILE_UTILS'
 from __future__ import annotations
 
 import tarfile
-from typing import Iterable
+from pathlib import Path
+from typing import Iterable, Union
 
 __all__: list[str] = [
-    "tarfile_open",
     "tarfile_add",
+    "tarfile_create",
     "tarfile_extract",
     "tarfile_extractall",
     "tarfile_list",
-    "tarfile_create",
+    "tarfile_open",
 ]
 
 
-def tarfile_open(name: str, mode: str = "r:*") -> tarfile.TarFile:
-    """Open a tar archive."""
-    return tarfile.open(name, mode)  # type: ignore[no-any-return, call-overload]
+def _require_path(value: object, name: str = "path") -> Union[str, Path]:
+    """Validate that *value* is a path-like object (str or Path).
+
+    Raises:
+        TypeError: if *value* is not a str or Path.
+    """
+    if not isinstance(value, (str, Path)):
+        raise TypeError(f"{name} must be a str or Path, got {type(value).__name__}")
+    return value
 
 
-def tarfile_add(archive: str, name: str, arcname: str | None = None) -> None:
-    """Add a file to a (possibly new) tar archive."""
-    with tarfile.open(archive, "a") as tf:
-        tf.add(name, arcname=arcname)
+def _as_path_str(value: object, name: str = "path") -> str:
+    """Coerce a path-like value to a string for stdlib APIs."""
+    path = _require_path(value, name)
+    return str(path)
 
 
-def tarfile_list(archive: str) -> list[str]:
-    """List member names in a tar archive."""
-    with tarfile.open(archive, "r:*") as tf:
+def tarfile_open(name: Union[str, Path], mode: str = "r:*") -> tarfile.TarFile:
+    """Open a tar archive.
+
+    Args:
+        name: Path to the archive.
+        mode: Mode for opening (defaults to ``"r:*"``).
+
+    Returns:
+        A :class:`tarfile.TarFile` object.
+
+    Raises:
+        TypeError: If *name* is not a str or Path or *mode* is not a str.
+        ValueError: If *name* is empty or *mode* is empty.
+    """
+    name_str = _as_path_str(name, "name")
+    if not isinstance(mode, str):
+        raise TypeError("mode must be a str")
+    if not name_str:
+        raise ValueError("name must not be empty")
+    if not mode:
+        raise ValueError("mode must not be empty")
+    return tarfile.open(name_str, mode)  # type: ignore[no-any-return, call-overload]
+
+
+def tarfile_add(
+    archive: Union[str, Path],
+    name: Union[str, Path],
+    arcname: Union[str, Path] | None = None,
+) -> None:
+    """Add a file to a (possibly new) tar archive.
+
+    Args:
+        archive: Path to the archive.
+        name: Path of the file to add.
+        arcname: Alternative name to use in the archive.
+
+    Raises:
+        TypeError: If *archive* is not a str or Path, *name* is not a str or
+            Path, or *arcname* is not None and not a str or Path.
+        ValueError: If any of *archive* or *name* is empty.
+    """
+    archive_str = _as_path_str(archive, "archive")
+    name_str = _as_path_str(name, "name")
+    if not archive_str:
+        raise ValueError("archive must not be empty")
+    if not name_str:
+        raise ValueError("name must not be empty")
+    arcname_str = None if arcname is None else _as_path_str(arcname, "arcname")
+    if arcname is not None and arcname_str == "":
+        raise ValueError("arcname must not be empty")
+    with tarfile.open(archive_str, "a") as tf:
+        tf.add(name_str, arcname=arcname_str)
+
+
+def tarfile_list(archive: Union[str, Path]) -> list[str]:
+    """List member names in a tar archive.
+
+    Args:
+        archive: Path to the archive.
+
+    Returns:
+        List of member names.
+
+    Raises:
+        TypeError: If *archive* is not a str or Path.
+        ValueError: If *archive* is empty.
+    """
+    archive_str = _as_path_str(archive, "archive")
+    if not archive_str:
+        raise ValueError("archive must not be empty")
+    with tarfile.open(archive_str, "r:*") as tf:
         return tf.getnames()
 
 
-def tarfile_extract(archive: str, member: str, path: str | None = None) -> None:
-    """Extract a single member from a tar archive."""
-    with tarfile.open(archive, "r:*") as tf:
-        tf.extract(member, path=path)  # type: ignore[arg-type]
+def tarfile_extract(
+    archive: Union[str, Path],
+    member: str,
+    path: Union[str, Path] | None = None,
+) -> None:
+    """Extract a single member from a tar archive.
+
+    Args:
+        archive: Path to the archive.
+        member: Name of the member to extract.
+        path: Destination directory.
+
+    Raises:
+        TypeError: If *archive* is not a str or Path, *member* is not a str,
+            or *path* is not None and not a str or Path.
+        ValueError: If *archive* or *member* is empty.
+    """
+    archive_str = _as_path_str(archive, "archive")
+    if not isinstance(member, str):
+        raise TypeError("member must be a str")
+    if not archive_str:
+        raise ValueError("archive must not be empty")
+    if not member:
+        raise ValueError("member must not be empty")
+    path_str = None if path is None else _as_path_str(path, "path")
+    if path is not None and path_str == "":
+        raise ValueError("path must not be empty")
+    with tarfile.open(archive_str, "r:*") as tf:
+        tf.extract(member, path=path_str)  # type: ignore[arg-type]
 
 
-def tarfile_extractall(archive: str, path: str | None = None) -> None:
-    """Extract all members from a tar archive."""
-    with tarfile.open(archive, "r:*") as tf:
-        tf.extractall(path=path)  # type: ignore[arg-type]
+def tarfile_extractall(archive: Union[str, Path], path: Union[str, Path] | None = None) -> None:
+    """Extract all members from a tar archive.
+
+    Args:
+        archive: Path to the archive.
+        path: Destination directory.
+
+    Raises:
+        TypeError: If *archive* is not a str or Path or *path* is not None and
+            not a str or Path.
+        ValueError: If *archive* is empty.
+    """
+    archive_str = _as_path_str(archive, "archive")
+    if not archive_str:
+        raise ValueError("archive must not be empty")
+    path_str = None if path is None else _as_path_str(path, "path")
+    if path is not None and path_str == "":
+        raise ValueError("path must not be empty")
+    with tarfile.open(archive_str, "r:*") as tf:
+        tf.extractall(path=path_str)  # type: ignore[arg-type]
 
 
-def tarfile_create(archive: str, files: Iterable[str], arcnames: Iterable[str] | None = None,
-                     base_dir: str | None = None) -> None:
-    """Create a new tar archive containing the given files."""
-    names = list(files)
-    arcs = list(arcnames) if arcnames is not None else None
+def tarfile_create(
+    archive: Union[str, Path],
+    files: Iterable[Union[str, Path]],
+    arcnames: Iterable[Union[str, Path]] | None = None,
+    base_dir: Union[str, Path] | None = None,
+) -> None:
+    """Create a new tar archive containing the given files.
+
+    Args:
+        archive: Path to the archive.
+        files: Files to add.
+        arcnames: Alternative names in the archive.
+        base_dir: Base directory (unused, kept for API compatibility).
+
+    Raises:
+        TypeError: If *archive* is not a str or Path, *files* is not iterable,
+            *arcnames* is not None and not iterable, or *base_dir* is not None
+            and not a str or Path.
+        ValueError: If *archive* is empty or *files* is empty.
+    """
+    archive_str = _as_path_str(archive, "archive")
+    if not archive_str:
+        raise ValueError("archive must not be empty")
+    if not isinstance(files, Iterable) or isinstance(files, str):
+        raise TypeError("files must be an iterable of str or Path")
+    names_list = list(files)
+    if not names_list:
+        raise ValueError("files must not be empty")
+    for i, n in enumerate(names_list):
+        if not isinstance(n, (str, Path)):
+            raise TypeError("files must be an iterable of str or Path")
+        names_list[i] = str(n)
+    arcs: list[str] | None = None
+    if arcnames is not None:
+        if not isinstance(arcnames, Iterable) or isinstance(arcnames, str):
+            raise TypeError("arcnames must be an iterable of str or Path")
+        arcs_list = list(arcnames)
+        arcs = []
+        for a in arcs_list:
+            if not isinstance(a, (str, Path)):
+                raise TypeError("arcnames must be an iterable of str or Path")
+            arcs.append(str(a))
+    base_dir_str = None if base_dir is None else _as_path_str(base_dir, "base_dir")
+    if base_dir is not None and base_dir_str == "":
+        raise ValueError("base_dir must not be empty")
     mode = "w"
-    with tarfile.open(archive, mode) as tf:  # type: ignore[call-overload]
-        for i, n in enumerate(names):
-            arc = arcs[i] if arcs is not None and i < len(arcs) else (n if base_dir is None else n)
+    with tarfile.open(archive_str, mode) as tf:  # type: ignore[call-overload]
+        for i, n in enumerate(names_list):
+            arc = arcs[i] if arcs is not None and i < len(arcs) else n
             tf.add(n, arcname=arc)
 TARFILE_UTILS
 
@@ -94587,8 +94774,10 @@ cat > "$OUTPUT_DIR/tests/test_tarfile_utils.py" <<'TEST_TARFILE_UTILS'
 
 import os
 import tempfile
+import unittest
 
 from tarfile_utils import (
+    tarfile_add,
     tarfile_create,
     tarfile_extract,
     tarfile_extractall,
@@ -94644,6 +94833,109 @@ def test_tarfile_open():
         tarfile_create(archive, [src], arcnames=["a.txt"])
         with tarfile_open(archive) as tf:
             assert tf.getnames() == ["a.txt"]
+
+
+class TestTarfileUtilsBoundary(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="tarfile-utils-test-")
+        self.src = os.path.join(self.tmpdir, "a.txt")
+        with open(self.src, "w", encoding="utf-8") as handle:
+            handle.write("hello")
+        self.archive = os.path.join(self.tmpdir, "out.tar")
+        tarfile_create(self.archive, [self.src], arcnames=["a.txt"])
+
+    def tearDown(self) -> None:
+        import shutil
+
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_open_type_value_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            tarfile_open(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tarfile_open(self.archive, 123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            tarfile_open("")
+        with self.assertRaises(ValueError):
+            tarfile_open(self.archive, "")
+
+    def test_add_type_value_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            tarfile_add(123, self.src)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tarfile_add(self.archive, 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tarfile_add(self.archive, self.src, arcname=123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            tarfile_add("", self.src)
+        with self.assertRaises(ValueError):
+            tarfile_add(self.archive, "")
+        with self.assertRaises(ValueError):
+            tarfile_add(self.archive, self.src, arcname="")
+
+    def test_list_type_value_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            tarfile_list(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            tarfile_list("")
+
+    def test_extract_type_value_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            tarfile_extract(123, "a.txt")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tarfile_extract(self.archive, 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tarfile_extract(self.archive, "a.txt", path=123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            tarfile_extract("", "a.txt")
+        with self.assertRaises(ValueError):
+            tarfile_extract(self.archive, "")
+
+    def test_extractall_type_value_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            tarfile_extractall(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tarfile_extractall(self.archive, path=123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            tarfile_extractall("")
+        with self.assertRaises(ValueError):
+            tarfile_extractall(self.archive, path="")
+
+    def test_create_type_value_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            tarfile_create(123, [self.src])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tarfile_create(self.archive, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tarfile_create(self.archive, [123])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tarfile_create(self.archive, [self.src], arcnames="x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tarfile_create(self.archive, [self.src], arcnames=[123])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            tarfile_create(self.archive, [self.src], base_dir=123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            tarfile_create("", [self.src])
+        with self.assertRaises(ValueError):
+            tarfile_create(self.archive, [])
+        with self.assertRaises(ValueError):
+            tarfile_create(self.archive, [self.src], base_dir="")
+
+    def test_path_acceptance(self) -> None:
+        from pathlib import Path
+
+        outdir = Path(self.tmpdir) / "outp"
+        outdir.mkdir()
+        archive_p = Path(self.tmpdir) / "p.tar"
+        tarfile_create(archive_p, [Path(self.src)], arcnames=[Path("a.txt")])
+        tarfile_add(archive_p, Path(self.src), arcname=Path("b.txt"))
+        names = tarfile_list(archive_p)
+        self.assertIn("a.txt", names)
+        self.assertIn("b.txt", names)
+        tarfile_extract(archive_p, "a.txt", path=outdir)
+        tarfile_extractall(archive_p, path=outdir)
+        with tarfile_open(archive_p) as tf:
+            self.assertGreaterEqual(len(tf.getnames()), 2)
 TEST_TARFILE_UTILS
 
 # --- temp_utils.py ---

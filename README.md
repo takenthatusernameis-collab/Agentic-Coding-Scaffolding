@@ -1222,7 +1222,7 @@ The project includes plistlib utility functions in `plistlib_utils.py` wrapping 
 
 ## Tarfile Utilities Module
 
-The project includes tarfile utility functions in `tarfile_utils.py` wrapping the standard library `tarfile` module: `tarfile_open` opens a tar archive, `tarfile_add` adds a file to a (possibly new) tar archive with an optional arcname, `tarfile_list` lists member names in a tar archive, `tarfile_extract` extracts a single member, `tarfile_extractall` extracts all members, and `tarfile_create` creates a new tar archive containing a list of files with optional arcnames. The module is tested in `tests/test_tarfile_utils.py`.
+The project includes tarfile utility functions in `tarfile_utils.py` wrapping the standard library `tarfile` module: `tarfile_open` opens a tar archive, `tarfile_add` adds a file to a (possibly new) tar archive with an optional arcname, `tarfile_list` lists member names in a tar archive, `tarfile_extract` extracts a single member, `tarfile_extractall` extracts all members, and `tarfile_create` creates a new tar archive containing a list of files with optional arcnames. All helpers accept `str` or `pathlib.Path` for paths and raise `TypeError`/`ValueError` for invalid inputs. The module is tested in `tests/test_tarfile_utils.py`.
 
 ## Unicode Data Utilities Module
 

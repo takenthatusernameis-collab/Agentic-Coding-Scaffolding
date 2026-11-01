@@ -1,3 +1,34 @@
+## Unreleased — audited tarfile_utils boundary cases
+
+- Audited `tarfile_utils.py` boundary cases and aligned validation with project conventions: added `_require_path` helpers, accept `str` or `pathlib.Path` for paths (coercing to str), validate types with `TypeError`, reject empty strings/paths with `ValueError`, add `Raises:` sections to docstrings, and validate `mode`, `member`, iterables, and `arcnames`.
+- Added `TestTarfileUtilsBoundary` to `tests/test_tarfile_utils.py` covering TypeError/ValueError paths for all public helpers and Path-object acceptance (7 new tests; 11 tests now pass for the module). Imported nothing new beyond the existing public API.
+- Updated the `tarfile_utils` prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `tarfile_utils.py`, `tests/test_tarfile_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+## Unreleased — audited tarfile_utils boundary cases
+
+- Audited  boundary cases and aligned validation with project conventions: added  helpers, accept  or  for paths (coercing to str), validate types with , reject empty strings/paths with , add  sections to docstrings, and validate , , iterables, and .
+- Added  to  covering TypeError/ValueError paths for all public helpers and Path-object acceptance (7 new tests; 11 tests now pass for the module). Imported nothing new beyond the existing public API.
+- Updated the  prose section of .
+- Recorded the change in the Unreleased section of .
+- Synchronized , , , , and  with Refreshing the copies embedded in scaffold.sh...
+refreshed: README.md
+no repository copy: tests/test_audioop_utils.py
+no repository copy: tests/test_imghdr_utils.py
+no repository copy: tests/test_pipes_utils.py
+no repository copy: tests/test_crypt_utils.py
+no repository copy: tests/test_telnetlib_utils.py
+no repository copy: tests/test_cgi_utils.py
+no repository copy: tests/test_cgitb_utils.py
+no repository copy: tests/test_nntplib_utils.py
+no repository copy: tests/test_sndhdr_utils.py
+no repository copy: tests/test_spwd_utils.py
+no repository copy: tests/test_asynchat_utils.py
+no repository copy: tests/test_asyncore_utils.py
+no repository copy: tests/test_smtpd_utils.py
+1 embedded copies refreshed; all embedded copies are in sync reports all embedded copies in sync.
+
 ## Unreleased — added removeprefix/removesuffix to bytes_utils
 
 - Added `removeprefix(data, prefix)` and `removesuffix(data, suffix)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-bytes-like arguments; they wrap `bytes.removeprefix`/`bytes.removesuffix`, returning *data* with a matching prefix/suffix stripped when present and unchanged otherwise (closely related to the existing `starts_with`/`ends_with` helpers).
