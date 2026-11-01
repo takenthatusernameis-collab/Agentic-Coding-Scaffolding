@@ -11,6 +11,7 @@ __all__: list[str] = [
     "repeat",
     "reverse",
     "contains",
+    "index",
     "index_of",
     "starts_with",
     "ends_with",
@@ -243,6 +244,42 @@ def index_of(data: bytes, sub: bytes) -> int:
     if not isinstance(sub, (bytes, bytearray)):
         raise TypeError("sub must be bytes or bytearray")
     return bytes(data).find(bytes(sub))
+
+
+def index(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int:
+    """Return the first index of *sub* in *data*, raising ValueError if not found.
+
+    Args:
+        data: Bytes or bytearray to search in.
+        sub: Bytes or bytearray subsequence to search for.
+        start: Optional starting index for the search.
+        end: Optional ending index for the search.
+
+    Returns:
+        The lowest index in *data* where *sub* is found.
+
+    Raises:
+        TypeError: If *data* or *sub* is not bytes or bytearray, or if
+            *start*/*end* is not an int.
+        ValueError: If *sub* is not found in *data*.
+
+    Examples:
+        >>> index(b"hello world", b"world")
+        6
+        >>> index(b"hello world", b"hello")
+        0
+        >>> index(b"abcabc", b"bc", 2)
+        4
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sub, (bytes, bytearray)):
+        raise TypeError("sub must be bytes or bytearray")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).index(bytes(sub), start, end)
 
 
 def starts_with(data: bytes, prefix: bytes) -> bool:

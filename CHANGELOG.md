@@ -1,3 +1,12 @@
+## Unreleased — added index to bytes_utils
+
+- Added `index(data, sub, start=0, end=None)` to `bytes_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `index_of` and `rfind`; it returns the lowest index in *data* where *sub* is found and raises `ValueError` when *sub* is absent, honoring optional *start*/*end* bounds.
+- Added `TestIndex` to `tests/test_bytes_utils.py` covering found, not-found (`ValueError`), empty subsequence, first occurrence, bytearray input, start/end bounds, and the `TypeError`/`ValueError` paths (8 new tests). Imported `index` at the top of the test file to match the module's `__all__` contract.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+
 ## Unreleased — added convert_case to case_utils
 
 - Added `convert_case(text, case)` to `case_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-string `text`/`case`, and `ValueError` for an unrecognized case style; it dispatches to the existing case converters by name (e.g. ``"snake"``, ``"camel"``, ``"pascal"``, ``"kebab"``), accepting the optional ``"_case"`` suffix, case-insensitive matching, and hyphen aliases.

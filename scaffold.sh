@@ -42659,6 +42659,7 @@ __all__: list[str] = [
     "repeat",
     "reverse",
     "contains",
+    "index",
     "index_of",
     "starts_with",
     "ends_with",
@@ -42891,6 +42892,42 @@ def index_of(data: bytes, sub: bytes) -> int:
     if not isinstance(sub, (bytes, bytearray)):
         raise TypeError("sub must be bytes or bytearray")
     return bytes(data).find(bytes(sub))
+
+
+def index(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int:
+    """Return the first index of *sub* in *data*, raising ValueError if not found.
+
+    Args:
+        data: Bytes or bytearray to search in.
+        sub: Bytes or bytearray subsequence to search for.
+        start: Optional starting index for the search.
+        end: Optional ending index for the search.
+
+    Returns:
+        The lowest index in *data* where *sub* is found.
+
+    Raises:
+        TypeError: If *data* or *sub* is not bytes or bytearray, or if
+            *start*/*end* is not an int.
+        ValueError: If *sub* is not found in *data*.
+
+    Examples:
+        >>> index(b"hello world", b"world")
+        6
+        >>> index(b"hello world", b"hello")
+        0
+        >>> index(b"abcabc", b"bc", 2)
+        4
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sub, (bytes, bytearray)):
+        raise TypeError("sub must be bytes or bytearray")
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).index(bytes(sub), start, end)
 
 
 def starts_with(data: bytes, prefix: bytes) -> bool:
@@ -43230,6 +43267,7 @@ from bytes_utils import (
     contains,
     ends_with,
     from_hex,
+    index,
     index_of,
     removeprefix,
     removesuffix,
@@ -43343,6 +43381,48 @@ class TestIndexOf(unittest.TestCase):
             index_of(b"abc", "a")
         with self.assertRaises(TypeError):
             index_of(123, b"a")
+
+
+class TestIndex(unittest.TestCase):
+    def test_found(self):
+        self.assertEqual(index(b"hello world", b"world"), 6)
+        self.assertEqual(index(b"hello world", b"hello"), 0)
+        self.assertEqual(index(b"abcabc", b"bc"), 1)
+
+    def test_not_found_raises(self):
+        with self.assertRaises(ValueError):
+            index(b"hello", b"x")
+        with self.assertRaises(ValueError):
+            index(b"abc", b"abcd")
+
+    def test_empty_subsequence(self):
+        self.assertEqual(index(b"abc", b""), 0)
+        self.assertEqual(index(b"", b""), 0)
+
+    def test_first_occurrence(self):
+        self.assertEqual(index(b"ababab", b"ab"), 0)
+        self.assertEqual(index(b"xabxab", b"ab"), 1)
+
+    def test_bytearray_input(self):
+        self.assertEqual(index(bytearray(b"hello"), b"ll"), 2)
+        self.assertEqual(index(b"hello", bytearray(b"lo")), 3)
+
+    def test_start_end(self):
+        self.assertEqual(index(b"hello world", b"o", 1, 5), 4)
+        self.assertEqual(index(b"ababab", b"ab", 2), 2)
+        self.assertEqual(index(b"ababab", b"ab", 0, 4), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            index("abc", b"a")
+        with self.assertRaises(TypeError):
+            index(b"abc", "a")
+        with self.assertRaises(TypeError):
+            index(123, b"a")
+        with self.assertRaises(TypeError):
+            index(b"abc", b"a", start="0")
+        with self.assertRaises(TypeError):
+            index(b"abc", b"a", end=1.5)
 
 
 class TestRFind(unittest.TestCase):
@@ -48395,6 +48475,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added index to bytes_utils
+
+- Added `index(data, sub, start=0, end=None)` to `bytes_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `index_of` and `rfind`; it returns the lowest index in *data* where *sub* is found and raises `ValueError` when *sub* is absent, honoring optional *start*/*end* bounds.
+- Added `TestIndex` to `tests/test_bytes_utils.py` covering found, not-found (`ValueError`), empty subsequence, first occurrence, bytearray input, start/end bounds, and the `TypeError`/`ValueError` paths (8 new tests). Imported `index` at the top of the test file to match the module's `__all__` contract.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+
 ## Unreleased — added convert_case to case_utils
 
 - Added `convert_case(text, case)` to `case_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-string `text`/`case`, and `ValueError` for an unrecognized case style; it dispatches to the existing case converters by name (e.g. ``"snake"``, ``"camel"``, ``"pascal"``, ``"kebab"``), accepting the optional ``"_case"`` suffix, case-insensitive matching, and hyphen aliases.
@@ -50287,7 +50376,7 @@ signal_utils.py            # Signal utilities wrapping the standard library sign
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
-bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index_of, rfind, starts_with, ends_with, removeprefix, removesuffix)
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, rfind, starts_with, ends_with, removeprefix, removesuffix)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -51059,7 +51148,7 @@ The project includes HTML entities utilities in `html_entities_utils.py` wrappin
 
 ## Bytes Utilities Module
 
-The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `rfind` returns the highest index of a subsequence (or -1), and `starts_with`/`ends_with` test prefixes/suffixes while `removeprefix`/`removesuffix` strip a matching prefix/suffix. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), and `starts_with`/`ends_with` test prefixes/suffixes while `removeprefix`/`removesuffix` strip a matching prefix/suffix. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
 
 ## Itertools Utilities Module
 

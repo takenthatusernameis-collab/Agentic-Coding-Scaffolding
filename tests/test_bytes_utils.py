@@ -6,6 +6,7 @@ from bytes_utils import (
     contains,
     ends_with,
     from_hex,
+    index,
     index_of,
     removeprefix,
     removesuffix,
@@ -119,6 +120,48 @@ class TestIndexOf(unittest.TestCase):
             index_of(b"abc", "a")
         with self.assertRaises(TypeError):
             index_of(123, b"a")
+
+
+class TestIndex(unittest.TestCase):
+    def test_found(self):
+        self.assertEqual(index(b"hello world", b"world"), 6)
+        self.assertEqual(index(b"hello world", b"hello"), 0)
+        self.assertEqual(index(b"abcabc", b"bc"), 1)
+
+    def test_not_found_raises(self):
+        with self.assertRaises(ValueError):
+            index(b"hello", b"x")
+        with self.assertRaises(ValueError):
+            index(b"abc", b"abcd")
+
+    def test_empty_subsequence(self):
+        self.assertEqual(index(b"abc", b""), 0)
+        self.assertEqual(index(b"", b""), 0)
+
+    def test_first_occurrence(self):
+        self.assertEqual(index(b"ababab", b"ab"), 0)
+        self.assertEqual(index(b"xabxab", b"ab"), 1)
+
+    def test_bytearray_input(self):
+        self.assertEqual(index(bytearray(b"hello"), b"ll"), 2)
+        self.assertEqual(index(b"hello", bytearray(b"lo")), 3)
+
+    def test_start_end(self):
+        self.assertEqual(index(b"hello world", b"o", 1, 5), 4)
+        self.assertEqual(index(b"ababab", b"ab", 2), 2)
+        self.assertEqual(index(b"ababab", b"ab", 0, 4), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            index("abc", b"a")
+        with self.assertRaises(TypeError):
+            index(b"abc", "a")
+        with self.assertRaises(TypeError):
+            index(123, b"a")
+        with self.assertRaises(TypeError):
+            index(b"abc", b"a", start="0")
+        with self.assertRaises(TypeError):
+            index(b"abc", b"a", end=1.5)
 
 
 class TestRFind(unittest.TestCase):
