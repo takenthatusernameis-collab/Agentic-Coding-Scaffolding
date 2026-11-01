@@ -146,6 +146,10 @@ class TestZipfileUtilsBoundary(unittest.TestCase):
             create_archive("", [self.src])
         with self.assertRaises(ValueError):
             create_archive(self.archive, [])
+        with self.assertRaises(ValueError):
+            create_archive(self.archive, [""])  # type: ignore[list-item]
+        with self.assertRaises(ValueError):
+            create_archive(self.archive, [pathlib.Path("")])
 
     def test_list_names_type_errors(self):
         with self.assertRaises(TypeError):
@@ -154,6 +158,8 @@ class TestZipfileUtilsBoundary(unittest.TestCase):
             list_names(123)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             list_names("")
+        with self.assertRaises(ValueError):
+            list_names(pathlib.Path(""))
 
     def test_extract_all_type_errors(self):
         with self.assertRaises(TypeError):
@@ -168,6 +174,10 @@ class TestZipfileUtilsBoundary(unittest.TestCase):
             extract_all("", self.tmpdir)
         with self.assertRaises(ValueError):
             extract_all(self.archive, "")
+        with self.assertRaises(ValueError):
+            extract_all(pathlib.Path(""), self.tmpdir)
+        with self.assertRaises(ValueError):
+            extract_all(self.archive, pathlib.Path(""))
 
     def test_is_zipfile_type_errors(self):
         with self.assertRaises(TypeError):
@@ -176,6 +186,8 @@ class TestZipfileUtilsBoundary(unittest.TestCase):
             is_zipfile(123)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             is_zipfile("")
+        with self.assertRaises(ValueError):
+            is_zipfile(pathlib.Path(""))
 
 
 if __name__ == "__main__":
