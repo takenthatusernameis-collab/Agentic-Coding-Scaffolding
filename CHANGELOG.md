@@ -1,3 +1,12 @@
+## Unreleased — added partition and rpartition to bytes_utils
+
+- Added `partition(data, sep)` and `rpartition(data, sep)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-bytes-like arguments; they wrap `bytes.partition`/`bytes.rpartition`, returning a ``(before, sep, after)`` 3-tuple split on the first/last occurrence of *sep* and returning ``(data, b"", b"")`` / ``(b"", b"", data)`` when *sep* is absent.
+- Added `TestPartition` and `TestRPartition` to `tests/test_bytes_utils.py` covering found, not-found, empty separator, bytearray input, and the `TypeError` paths (10 new tests). Imported `partition` and `rpartition` at the top of the test file to match the module's `__all__` contract.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+
 ## Unreleased — added index to bytes_utils
 
 - Added `index(data, sub, start=0, end=None)` to `bytes_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `index_of` and `rfind`; it returns the lowest index in *data* where *sub* is found and raises `ValueError` when *sub* is absent, honoring optional *start*/*end* bounds.

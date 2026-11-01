@@ -8,11 +8,13 @@ from bytes_utils import (
     from_hex,
     index,
     index_of,
+    partition,
     removeprefix,
     removesuffix,
     repeat,
     reverse,
     rfind,
+    rpartition,
     starts_with,
     to_hex,
     xor,
@@ -203,6 +205,64 @@ class TestRFind(unittest.TestCase):
             rfind(b"abc", b"a", start="0")
         with self.assertRaises(TypeError):
             rfind(b"abc", b"a", end=1.5)
+
+
+class TestPartition(unittest.TestCase):
+    def test_partition_found(self):
+        self.assertEqual(partition(b"hello world", b" "), (b"hello", b" ", b"world"))
+        self.assertEqual(partition(b"abcabc", b"ab"), (b"", b"ab", b"cabc"))
+        self.assertEqual(partition(b"hello world", b"world"), (b"hello ", b"world", b""))
+
+    def test_partition_not_found(self):
+        self.assertEqual(partition(b"hello", b"x"), (b"hello", b"", b""))
+        self.assertEqual(partition(b"abc", b"abcd"), (b"abc", b"", b""))
+
+    def test_partition_empty_separator(self):
+        with self.assertRaises(ValueError):
+            partition(b"abc", b"")
+
+    def test_partition_bytearray_input(self):
+        self.assertEqual(partition(bytearray(b"hello world"), b" "), (b"hello", b" ", b"world"))
+        self.assertEqual(partition(b"hello", bytearray(b"x")), (b"hello", b"", b""))
+
+    def test_partition_type_errors(self):
+        with self.assertRaises(TypeError):
+            partition("hello", b" ")
+        with self.assertRaises(TypeError):
+            partition(b"hello", " ")
+        with self.assertRaises(TypeError):
+            partition(123, b" ")
+        with self.assertRaises(TypeError):
+            partition(b"hello", 123)
+
+
+class TestRPartition(unittest.TestCase):
+    def test_rpartition_found(self):
+        self.assertEqual(rpartition(b"hello world", b" "), (b"hello", b" ", b"world"))
+        self.assertEqual(rpartition(b"ababab", b"ab"), (b"abab", b"ab", b""))
+        self.assertEqual(rpartition(b"hello world", b"hello"), (b"", b"hello", b" world"))
+
+    def test_rpartition_not_found(self):
+        self.assertEqual(rpartition(b"hello", b"x"), (b"", b"", b"hello"))
+        self.assertEqual(rpartition(b"abc", b"abcd"), (b"", b"", b"abc"))
+
+    def test_rpartition_empty_separator(self):
+        with self.assertRaises(ValueError):
+            rpartition(b"abc", b"")
+
+    def test_rpartition_bytearray_input(self):
+        self.assertEqual(rpartition(bytearray(b"hello world"), b" "), (b"hello", b" ", b"world"))
+        self.assertEqual(rpartition(b"hello", bytearray(b"x")), (b"", b"", b"hello"))
+
+    def test_rpartition_type_errors(self):
+        with self.assertRaises(TypeError):
+            rpartition("hello", b" ")
+        with self.assertRaises(TypeError):
+            rpartition(b"hello", " ")
+        with self.assertRaises(TypeError):
+            rpartition(123, b" ")
+        with self.assertRaises(TypeError):
+            rpartition(b"hello", 123)
 
 
 class TestRemovePrefix(unittest.TestCase):

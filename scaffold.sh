@@ -42661,12 +42661,14 @@ __all__: list[str] = [
     "contains",
     "index",
     "index_of",
+    "partition",
     "starts_with",
     "ends_with",
     "split",
     "find",
     "rfind",
     "rindex",
+    "rpartition",
     "replace",
     "count",
     "decode_utf8",
@@ -43104,6 +43106,66 @@ def count(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> in
     return bytes(data).count(bytes(sub), start, end)
 
 
+def partition(data: bytes, sep: bytes) -> tuple[bytes, bytes, bytes]:
+    """Split *data* at the first occurrence of *sep*.
+
+    Args:
+        data: Bytes or bytearray to split.
+        sep: Bytes or bytearray separator to search for.
+
+    Returns:
+        A 3-tuple ``(before, sep, after)`` containing the part before the
+        first occurrence of *sep*, *sep* itself, and the part after it. If
+        *sep* is not found, returns ``(data, b"", b"")``.
+
+    Raises:
+        TypeError: If *data* or *sep* is not bytes or bytearray.
+
+    Examples:
+        >>> partition(b"hello world", b" ")
+        (b'hello', b' ', b'world')
+        >>> partition(b"hello", b"x")
+        (b'hello', b'', b'')
+        >>> partition(b"abcabc", b"ab")
+        (b'', b'ab', b'cabc')
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sep, (bytes, bytearray)):
+        raise TypeError("sep must be bytes or bytearray")
+    return bytes(data).partition(bytes(sep))
+
+
+def rpartition(data: bytes, sep: bytes) -> tuple[bytes, bytes, bytes]:
+    """Split *data* at the last occurrence of *sep*.
+
+    Args:
+        data: Bytes or bytearray to split.
+        sep: Bytes or bytearray separator to search for.
+
+    Returns:
+        A 3-tuple ``(before, sep, after)`` containing the part before the
+        last occurrence of *sep*, *sep* itself, and the part after it. If
+        *sep* is not found, returns ``(b"", b"", data)``.
+
+    Raises:
+        TypeError: If *data* or *sep* is not bytes or bytearray.
+
+    Examples:
+        >>> rpartition(b"hello world", b" ")
+        (b'hello', b' ', b'world')
+        >>> rpartition(b"hello", b"x")
+        (b'', b'', b'hello')
+        >>> rpartition(b"ababab", b"ab")
+        (b'abab', b'ab', b'')
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sep, (bytes, bytearray)):
+        raise TypeError("sep must be bytes or bytearray")
+    return bytes(data).rpartition(bytes(sep))
+
+
 def decode_utf8(data: bytes, errors: str = "strict") -> str:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -43269,11 +43331,13 @@ from bytes_utils import (
     from_hex,
     index,
     index_of,
+    partition,
     removeprefix,
     removesuffix,
     repeat,
     reverse,
     rfind,
+    rpartition,
     starts_with,
     to_hex,
     xor,
@@ -43464,6 +43528,64 @@ class TestRFind(unittest.TestCase):
             rfind(b"abc", b"a", start="0")
         with self.assertRaises(TypeError):
             rfind(b"abc", b"a", end=1.5)
+
+
+class TestPartition(unittest.TestCase):
+    def test_partition_found(self):
+        self.assertEqual(partition(b"hello world", b" "), (b"hello", b" ", b"world"))
+        self.assertEqual(partition(b"abcabc", b"ab"), (b"", b"ab", b"cabc"))
+        self.assertEqual(partition(b"hello world", b"world"), (b"hello ", b"world", b""))
+
+    def test_partition_not_found(self):
+        self.assertEqual(partition(b"hello", b"x"), (b"hello", b"", b""))
+        self.assertEqual(partition(b"abc", b"abcd"), (b"abc", b"", b""))
+
+    def test_partition_empty_separator(self):
+        with self.assertRaises(ValueError):
+            partition(b"abc", b"")
+
+    def test_partition_bytearray_input(self):
+        self.assertEqual(partition(bytearray(b"hello world"), b" "), (b"hello", b" ", b"world"))
+        self.assertEqual(partition(b"hello", bytearray(b"x")), (b"hello", b"", b""))
+
+    def test_partition_type_errors(self):
+        with self.assertRaises(TypeError):
+            partition("hello", b" ")
+        with self.assertRaises(TypeError):
+            partition(b"hello", " ")
+        with self.assertRaises(TypeError):
+            partition(123, b" ")
+        with self.assertRaises(TypeError):
+            partition(b"hello", 123)
+
+
+class TestRPartition(unittest.TestCase):
+    def test_rpartition_found(self):
+        self.assertEqual(rpartition(b"hello world", b" "), (b"hello", b" ", b"world"))
+        self.assertEqual(rpartition(b"ababab", b"ab"), (b"abab", b"ab", b""))
+        self.assertEqual(rpartition(b"hello world", b"hello"), (b"", b"hello", b" world"))
+
+    def test_rpartition_not_found(self):
+        self.assertEqual(rpartition(b"hello", b"x"), (b"", b"", b"hello"))
+        self.assertEqual(rpartition(b"abc", b"abcd"), (b"", b"", b"abc"))
+
+    def test_rpartition_empty_separator(self):
+        with self.assertRaises(ValueError):
+            rpartition(b"abc", b"")
+
+    def test_rpartition_bytearray_input(self):
+        self.assertEqual(rpartition(bytearray(b"hello world"), b" "), (b"hello", b" ", b"world"))
+        self.assertEqual(rpartition(b"hello", bytearray(b"x")), (b"", b"", b"hello"))
+
+    def test_rpartition_type_errors(self):
+        with self.assertRaises(TypeError):
+            rpartition("hello", b" ")
+        with self.assertRaises(TypeError):
+            rpartition(b"hello", " ")
+        with self.assertRaises(TypeError):
+            rpartition(123, b" ")
+        with self.assertRaises(TypeError):
+            rpartition(b"hello", 123)
 
 
 class TestRemovePrefix(unittest.TestCase):
@@ -48475,6 +48597,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added partition and rpartition to bytes_utils
+
+- Added `partition(data, sep)` and `rpartition(data, sep)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-bytes-like arguments; they wrap `bytes.partition`/`bytes.rpartition`, returning a ``(before, sep, after)`` 3-tuple split on the first/last occurrence of *sep* and returning ``(data, b"", b"")`` / ``(b"", b"", data)`` when *sep* is absent.
+- Added `TestPartition` and `TestRPartition` to `tests/test_bytes_utils.py` covering found, not-found, empty separator, bytearray input, and the `TypeError` paths (10 new tests). Imported `partition` and `rpartition` at the top of the test file to match the module's `__all__` contract.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+
 ## Unreleased — added index to bytes_utils
 
 - Added `index(data, sub, start=0, end=None)` to `bytes_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `index_of` and `rfind`; it returns the lowest index in *data* where *sub* is found and raises `ValueError` when *sub* is absent, honoring optional *start*/*end* bounds.
@@ -50376,7 +50507,7 @@ signal_utils.py            # Signal utilities wrapping the standard library sign
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
-bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, rfind, starts_with, ends_with, removeprefix, removesuffix)
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities

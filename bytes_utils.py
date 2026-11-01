@@ -13,12 +13,14 @@ __all__: list[str] = [
     "contains",
     "index",
     "index_of",
+    "partition",
     "starts_with",
     "ends_with",
     "split",
     "find",
     "rfind",
     "rindex",
+    "rpartition",
     "replace",
     "count",
     "decode_utf8",
@@ -454,6 +456,66 @@ def count(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> in
     if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
         raise TypeError("end must be an int or None")
     return bytes(data).count(bytes(sub), start, end)
+
+
+def partition(data: bytes, sep: bytes) -> tuple[bytes, bytes, bytes]:
+    """Split *data* at the first occurrence of *sep*.
+
+    Args:
+        data: Bytes or bytearray to split.
+        sep: Bytes or bytearray separator to search for.
+
+    Returns:
+        A 3-tuple ``(before, sep, after)`` containing the part before the
+        first occurrence of *sep*, *sep* itself, and the part after it. If
+        *sep* is not found, returns ``(data, b"", b"")``.
+
+    Raises:
+        TypeError: If *data* or *sep* is not bytes or bytearray.
+
+    Examples:
+        >>> partition(b"hello world", b" ")
+        (b'hello', b' ', b'world')
+        >>> partition(b"hello", b"x")
+        (b'hello', b'', b'')
+        >>> partition(b"abcabc", b"ab")
+        (b'', b'ab', b'cabc')
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sep, (bytes, bytearray)):
+        raise TypeError("sep must be bytes or bytearray")
+    return bytes(data).partition(bytes(sep))
+
+
+def rpartition(data: bytes, sep: bytes) -> tuple[bytes, bytes, bytes]:
+    """Split *data* at the last occurrence of *sep*.
+
+    Args:
+        data: Bytes or bytearray to split.
+        sep: Bytes or bytearray separator to search for.
+
+    Returns:
+        A 3-tuple ``(before, sep, after)`` containing the part before the
+        last occurrence of *sep*, *sep* itself, and the part after it. If
+        *sep* is not found, returns ``(b"", b"", data)``.
+
+    Raises:
+        TypeError: If *data* or *sep* is not bytes or bytearray.
+
+    Examples:
+        >>> rpartition(b"hello world", b" ")
+        (b'hello', b' ', b'world')
+        >>> rpartition(b"hello", b"x")
+        (b'', b'', b'hello')
+        >>> rpartition(b"ababab", b"ab")
+        (b'abab', b'ab', b'')
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(sep, (bytes, bytearray)):
+        raise TypeError("sep must be bytes or bytearray")
+    return bytes(data).rpartition(bytes(sep))
 
 
 def decode_utf8(data: bytes, errors: str = "strict") -> str:
