@@ -4,6 +4,17 @@ import pickle as _pickle
 from typing import Any
 
 _PROTOCOLS = (-1, 0, 1, 2, 3, 4, 5)
+__all__ = [
+    "dump",
+    "dumps",
+    "is_valid_protocol",
+    "load",
+    "loads",
+    "pickler",
+    "unpickler",
+    "validate_protocol",
+]
+
 
 
 def dump(obj, file, protocol=None, *, fix_imports=True, buffer_callback=None):

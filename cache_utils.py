@@ -10,7 +10,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
 
-__all__: List[str] = [
+__all__ = [
+    "F",
     "cache_info",
     "clear_cache",
     "memoize",

@@ -7,11 +7,12 @@ from typing import Any, Awaitable, Callable, List, Optional, TypeVar
 
 T = TypeVar("T")
 
-__all__: List[str] = [
-    "run_in_thread",
-    "gather_with_timeout",
+__all__ = [
+    "T",
     "async_sleep",
+    "gather_with_timeout",
     "retry_async",
+    "run_in_thread",
 ]
 
 

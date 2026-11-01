@@ -6,6 +6,18 @@ import weakref
 from typing import Any, Callable, Generic, Optional, Protocol, TypeVar
 
 T = TypeVar("T", bound=Any)
+__all__ = [
+    "BoundMethodProtocol",
+    "T",
+    "WeakMethod",
+    "WeakRef",
+    "create_finalizer",
+    "create_proxy",
+    "create_weakref",
+    "get_object",
+    "is_alive",
+]
+
 
 
 class BoundMethodProtocol(Protocol):

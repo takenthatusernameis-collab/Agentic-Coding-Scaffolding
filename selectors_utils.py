@@ -17,6 +17,16 @@ EVENT_WRITE = selectors.EVENT_WRITE
 
 # Bitmask of every event flag the standard library selectors module defines.
 _ALL_EVENTS = selectors.EVENT_READ | selectors.EVENT_WRITE
+__all__ = [
+    "close_selector",
+    "create_default_selector",
+    "get_key",
+    "get_map",
+    "register",
+    "select",
+    "unregister",
+]
+
 
 
 def _validate_fileobj(value: Any, name: str) -> None:

@@ -286,7 +286,8 @@ def coin_flip(seed: Optional[int] = None) -> bool:
 random_choice_with_replacement = random_choices
 
 
-__all__: List[str] = [
+__all__ = [
+    "T",
     "coin_flip",
     "random_bool",
     "random_choice",

@@ -1,6 +1,16 @@
 """Utilities for Python token constants (wrapping :mod:`token`)."""
 
 import token as _token
+__all__ = [
+    "exact_token_types",
+    "is_eof",
+    "is_nonterminal",
+    "is_terminal",
+    "n_tokens",
+    "nt_offset",
+    "tok_name",
+]
+
 
 
 def is_eof(tok):

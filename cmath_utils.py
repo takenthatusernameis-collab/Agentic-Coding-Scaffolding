@@ -13,6 +13,32 @@ from numbers import Real
 from typing import Any, Optional, Tuple, Union
 
 Number = Union[int, float, complex]
+__all__ = [
+    "acos",
+    "acosh",
+    "asin",
+    "asinh",
+    "atan",
+    "atanh",
+    "cos",
+    "cosh",
+    "exp",
+    "isclose",
+    "isfinite",
+    "isinf",
+    "isnan",
+    "log",
+    "log10",
+    "phase",
+    "polar",
+    "rect",
+    "sin",
+    "sinh",
+    "sqrt",
+    "tan",
+    "tanh",
+]
+
 
 
 def _validate_number(value: Any, name: str) -> None:

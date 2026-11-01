@@ -1,6 +1,14 @@
 """Utilities for pretty-printing (wrapping :mod:`pprint`)."""
 
 import pprint as _pprint
+__all__ = [
+    "isreadable",
+    "isrecursive",
+    "pformat",
+    "pprint",
+    "saferepr",
+]
+
 
 
 def pformat(obj, indent=1, width=80, depth=None, compact=False, sort_dicts=True):

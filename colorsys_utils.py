@@ -9,6 +9,15 @@ RGB = Tuple[float, float, float]
 HLS = Tuple[float, float, float]
 HSV = Tuple[float, float, float]
 YIQ = Tuple[float, float, float]
+__all__ = [
+    "hls_to_rgb",
+    "hsv_to_rgb",
+    "rgb_to_hls",
+    "rgb_to_hsv",
+    "rgb_to_yiq",
+    "yiq_to_rgb",
+]
+
 
 
 def rgb_to_hls(r: float, g: float, b: float) -> HLS:

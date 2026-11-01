@@ -1,6 +1,13 @@
 """Utilities for filename pattern matching (wrapping :mod:`fnmatch`)."""
 
 import fnmatch as _fnmatch
+__all__ = [
+    "filter_names",
+    "match",
+    "match_case",
+    "translate",
+]
+
 
 
 def match(name: str, pattern: str) -> bool:

@@ -13,22 +13,25 @@ from __future__ import annotations
 import dataclasses
 from typing import Any, Callable, Dict, Iterable, List, Tuple, TypeVar, Union
 
-__all__: list[str] = [
-    "is_dataclass",
-    "fields",
+__all__ = [
+    "KT",
+    "MISSING",
+    "T",
+    "VT",
     "asdict",
     "astuple",
-    "replace",
-    "make_dataclass",
-    "field",
-    "MISSING",
     "dataclass_fields",
+    "field",
+    "fields",
+    "get_field_default",
+    "get_field_names",
+    "has_field",
+    "is_dataclass",
     "is_dataclass_instance",
+    "make_dataclass",
+    "replace",
     "to_dict",
     "to_tuple",
-    "get_field_names",
-    "get_field_default",
-    "has_field",
 ]
 
 T = TypeVar("T")

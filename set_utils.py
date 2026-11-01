@@ -4,15 +4,16 @@ from typing import Any, Iterable, Iterator, List, Sequence, Set, Tuple, TypeVar
 
 T = TypeVar("T")
 
-__all__: List[str] = [
+__all__ = [
+    "T",
+    "cartesian_product",
+    "difference",
+    "intersection",
     "is_subset",
     "is_superset",
-    "intersection",
-    "union",
-    "difference",
-    "symmetric_difference",
-    "cartesian_product",
     "power_set",
+    "symmetric_difference",
+    "union",
 ]
 
 

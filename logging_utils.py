@@ -12,7 +12,8 @@ from typing import Any, Callable, List, Optional, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
 
-__all__: List[str] = [
+__all__ = [
+    "F",
     "configure_logging",
     "get_logger",
     "log_calls",

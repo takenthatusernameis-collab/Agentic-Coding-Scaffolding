@@ -1,6 +1,15 @@
 """Utilities for pickle support registration (wrapping :mod:`copyreg`)."""
 
 import copyreg as _copyreg
+__all__ = [
+    "add_extension",
+    "clear_extension_cache",
+    "constructor",
+    "dispatch_table",
+    "pickle",
+    "remove_extension",
+]
+
 
 
 def add_extension(module, name, code):

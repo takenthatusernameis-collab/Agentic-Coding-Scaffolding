@@ -5,6 +5,19 @@ Provides convenient helpers for common regex operations with type validation.
 
 import re
 from typing import Callable, List, Optional, Tuple, Union
+__all__ = [
+    "compile_regex",
+    "escape",
+    "find_all",
+    "find_matches",
+    "full_match",
+    "match",
+    "search",
+    "split",
+    "sub",
+    "subn",
+]
+
 
 
 def find_all(pattern: Union[str, re.Pattern], text: str) -> List[str]:

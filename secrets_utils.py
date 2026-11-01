@@ -10,14 +10,15 @@ from __future__ import annotations
 import secrets
 from typing import Sequence, TypeVar
 
-__all__: list[str] = [
-    "token_bytes",
-    "token_hex",
-    "token_urlsafe",
+__all__ = [
+    "T",
+    "choice",
     "compare_digest",
     "randbelow",
     "randbits",
-    "choice",
+    "token_bytes",
+    "token_hex",
+    "token_urlsafe",
 ]
 
 T = TypeVar("T")

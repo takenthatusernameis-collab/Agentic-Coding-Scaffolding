@@ -7,6 +7,17 @@ using Python's :mod:`configparser`, with section-aware get/set/merge operations.
 import configparser
 from pathlib import Path
 from typing import Any, Dict, Union
+__all__ = [
+    "get_config_value",
+    "get_section",
+    "has_section",
+    "list_sections",
+    "load_config",
+    "merge_configs",
+    "save_config",
+    "set_config_value",
+]
+
 
 
 def _parser() -> configparser.ConfigParser:

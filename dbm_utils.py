@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Any, List, Literal, Optional, Union, cast
 
 __all__ = [
+    "available_backends",
+    "close",
     "dbm_error",
     "delete_record",
     "has_key",
@@ -23,8 +25,8 @@ __all__ = [
     "open_database",
     "read_record",
     "sync_database",
-    "write_record",
     "which_database",
+    "write_record",
 ]
 
 ValidFlag = Literal["r", "w", "c", "n"]

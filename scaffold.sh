@@ -2815,20 +2815,21 @@ from __future__ import annotations
 import asyncio as _asyncio
 from typing import Any, Callable, Coroutine, Iterable, Optional, TypeVar
 
-__all__: list[str] = [
+__all__ = [
+    "Event",
+    "Lock",
+    "Queue",
+    "Semaphore",
+    "T",
     "all_tasks",
     "create_task",
     "current_task",
-    "Event",
     "gather",
     "get_event_loop",
     "get_running_loop",
     "iscoroutine",
     "iscoroutinefunction",
-    "Lock",
-    "Queue",
     "run",
-    "Semaphore",
     "sleep",
     "to_thread",
     "wait_for",
@@ -5667,6 +5668,22 @@ cat > "$OUTPUT_DIR/ast_utils.py" <<'AST_UTILS'
 """Utilities for working with Python abstract syntax trees (wrapping :mod:`ast`)."""
 
 import ast as _ast
+__all__ = [
+    "copy_location",
+    "dump",
+    "find_all",
+    "fix_missing_locations",
+    "get_docstring",
+    "increment_lineno",
+    "iter_child_nodes",
+    "iter_fields",
+    "literal_eval",
+    "node_to_string",
+    "parse",
+    "unparse",
+    "walk",
+]
+
 
 
 def parse(source, filename="<unknown>", mode="exec"):
@@ -5846,6 +5863,17 @@ import pickle as _pickle
 from typing import Any
 
 _PROTOCOLS = (-1, 0, 1, 2, 3, 4, 5)
+__all__ = [
+    "dump",
+    "dumps",
+    "is_valid_protocol",
+    "load",
+    "loads",
+    "pickler",
+    "unpickler",
+    "validate_protocol",
+]
+
 
 
 def dump(obj, file, protocol=None, *, fix_imports=True, buffer_callback=None):
@@ -6062,6 +6090,14 @@ TEST_PICKLE_UTILS
 cat > "$OUTPUT_DIR/marshal_utils.py" <<'MARSHAL_UTILS'
 import marshal
 from typing import Any, Union
+__all__ = [
+    "dump",
+    "dumps",
+    "get_version",
+    "load",
+    "loads",
+]
+
 
 
 def dumps(obj: Any, version: int = marshal.version) -> bytes:
@@ -6308,6 +6344,13 @@ on invalid arguments.
 
 import zipfile as _zipfile
 from typing import Any
+__all__ = [
+    "create_archive",
+    "extract_all",
+    "is_zipfile",
+    "list_names",
+]
+
 
 
 def create_archive(path: str, files: list[str]) -> str:
@@ -8104,6 +8147,22 @@ cat > "$OUTPUT_DIR/gc_utils.py" <<'GC_UTILS'
 """Utilities wrapping the standard library ``gc`` module."""
 
 import gc
+__all__ = [
+    "collect",
+    "disable",
+    "enable",
+    "get_count",
+    "get_debug",
+    "get_objects",
+    "get_referents",
+    "get_referrers",
+    "get_stats",
+    "get_threshold",
+    "isenabled",
+    "set_debug",
+    "set_threshold",
+]
+
 
 
 def enable() -> None:
@@ -8742,6 +8801,14 @@ currently supporting JSON format with potential for extension to other formats.
 import json
 from pathlib import Path
 from typing import Any, Dict, Union
+__all__ = [
+    "get_config_value",
+    "load_config",
+    "merge_configs",
+    "save_config",
+    "set_config_value",
+]
+
 
 
 def load_config(file_path: Union[str, Path]) -> Dict[str, Any]:
@@ -8932,21 +8999,24 @@ T = TypeVar("T")
 K = TypeVar("K")
 V = TypeVar("V")
 
-__all__: List[str] = [
+__all__ = [
+    "K",
+    "T",
+    "V",
     "chunk",
-    "flatten",
+    "compact",
     "deep_flatten",
-    "windowed",
-    "uniq",
-    "uniq_by",
+    "flatten",
     "frequency",
-    "most_common",
     "least_common",
     "merge_dicts",
-    "to_deque",
-    "pluck",
-    "compact",
+    "most_common",
     "partition_by",
+    "pluck",
+    "to_deque",
+    "uniq",
+    "uniq_by",
+    "windowed",
 ]
 
 
@@ -13250,6 +13320,79 @@ cat > "$OUTPUT_DIR/utils.py" <<'UTILS'
 """Utility helper functions."""
 
 from typing import Any, Callable, Dict, List, Optional, Protocol, Set, TypeVar, Union
+__all__ = [
+    "CT",
+    "Comparable",
+    "K",
+    "T",
+    "U",
+    "V",
+    "average",
+    "chunk",
+    "compact",
+    "concat",
+    "count",
+    "count_by",
+    "dedupe",
+    "difference",
+    "drop",
+    "drop_while",
+    "every",
+    "filter_list",
+    "find",
+    "find_index",
+    "first",
+    "flatten",
+    "for_each",
+    "from_pairs",
+    "get",
+    "group_by",
+    "has_key",
+    "head",
+    "includes",
+    "index_by",
+    "initial",
+    "intersection",
+    "is_empty",
+    "items",
+    "keys",
+    "last",
+    "map_list",
+    "max_list",
+    "merge",
+    "min_list",
+    "omit",
+    "partition",
+    "pick",
+    "pluck",
+    "product",
+    "range_list",
+    "reduce_list",
+    "remove_none",
+    "repeat",
+    "rest",
+    "reverse",
+    "sample",
+    "second",
+    "shuffle",
+    "some",
+    "sum_list",
+    "tail",
+    "take",
+    "take_while",
+    "to_dict",
+    "union",
+    "unique",
+    "values",
+    "zip_with",
+]
+
+
+
+
+
+
+
 
 
 class Comparable(Protocol):
@@ -19499,6 +19642,16 @@ from typing import Any, Dict, Iterable, List, Set, TypeVar
 
 K = TypeVar("K")
 V = TypeVar("V")
+__all__ = [
+    "K",
+    "V",
+    "deep_copy",
+    "flatten_dict",
+    "merge_dicts",
+    "omit",
+    "pick",
+]
+
 
 
 def deep_copy(obj: Any) -> Any:
@@ -19550,6 +19703,15 @@ from datetime import datetime, timedelta
 from typing import Union
 
 DateTimeLike = Union[str, datetime]
+__all__ = [
+    "add_days",
+    "days_between",
+    "format_datetime",
+    "get_weekday_name",
+    "is_leap_year",
+    "parse_datetime",
+]
+
 
 
 def parse_datetime(value: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> datetime:
@@ -23457,6 +23619,8 @@ from pathlib import Path
 from typing import Any, List, Literal, Optional, Union, cast
 
 __all__ = [
+    "available_backends",
+    "close",
     "dbm_error",
     "delete_record",
     "has_key",
@@ -23465,8 +23629,8 @@ __all__ = [
     "open_database",
     "read_record",
     "sync_database",
-    "write_record",
     "which_database",
+    "write_record",
 ]
 
 ValidFlag = Literal["r", "w", "c", "n"]
@@ -23889,6 +24053,17 @@ cat > "$OUTPUT_DIR/file_utils.py" <<'FILEUTILS'
 import shutil
 from pathlib import Path
 from typing import Any, List, Optional, Union
+__all__ = [
+    "copy_file",
+    "delete_file",
+    "ensure_dir",
+    "list_files",
+    "read_json",
+    "read_text",
+    "write_json",
+    "write_text",
+]
+
 
 
 def read_text(path: Union[str, Path]) -> str:
@@ -24065,6 +24240,16 @@ cat > "$OUTPUT_DIR/url_utils.py" <<'URLUTILS'
 
 from typing import Dict, List, Optional, Union
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+__all__ = [
+    "add_query_param",
+    "build_url",
+    "extract_domain",
+    "get_query_param",
+    "get_query_params",
+    "is_valid_url",
+    "remove_query_param",
+]
+
 
 
 def is_valid_url(url: str, schemes: Optional[List[str]] = None) -> bool:
@@ -24373,6 +24558,19 @@ Provides convenient helpers for common regex operations with type validation.
 
 import re
 from typing import Callable, List, Optional, Tuple, Union
+__all__ = [
+    "compile_regex",
+    "escape",
+    "find_all",
+    "find_matches",
+    "full_match",
+    "match",
+    "search",
+    "split",
+    "sub",
+    "subn",
+]
+
 
 
 def find_all(pattern: Union[str, re.Pattern], text: str) -> List[str]:
@@ -24523,6 +24721,16 @@ cat > "$OUTPUT_DIR/tempfile_utils.py" <<'TEMPFILEUTILS'
 
 import tempfile
 from typing import Any, Optional
+__all__ = [
+    "NamedTemporaryFile",
+    "SpooledTemporaryFile",
+    "TemporaryDirectory",
+    "get_tempdir",
+    "gettempprefix",
+    "mkdtemp",
+    "mkstemp",
+]
+
 
 
 def get_tempdir() -> str:
@@ -24949,7 +25157,8 @@ def coin_flip(seed: Optional[int] = None) -> bool:
 random_choice_with_replacement = random_choices
 
 
-__all__: List[str] = [
+__all__ = [
+    "T",
     "coin_flip",
     "random_bool",
     "random_choice",
@@ -25479,6 +25688,19 @@ cat > "$OUTPUT_DIR/validation_utils.py" <<'VALUTILS'
 
 import re
 from typing import Any, Union
+__all__ = [
+    "is_alphanumeric",
+    "is_boolean_string",
+    "is_email",
+    "is_integer",
+    "is_none_or_empty",
+    "is_numeric",
+    "is_valid_hostname",
+    "matches_regex",
+    "max_length",
+    "min_length",
+]
+
 
 
 def is_email(email: Any) -> bool:
@@ -26192,15 +26414,17 @@ from typing import Callable, List, Optional, Tuple, TypeVar
 T = TypeVar("T")
 K = TypeVar("K")
 
-__all__: List[str] = [
-    "partition",
-    "group_by",
-    "safe_get",
-    "find",
-    "drop",
-    "take",
-    "intersperse",
+__all__ = [
+    "K",
+    "T",
     "chunks",
+    "drop",
+    "find",
+    "group_by",
+    "intersperse",
+    "partition",
+    "safe_get",
+    "take",
 ]
 
 
@@ -26778,6 +27002,15 @@ cat > "$OUTPUT_DIR/linecache_utils.py" <<'LINECACHE_UTILS'
 """Utilities for reading source lines (wrapping :mod:`linecache`)."""
 
 import linecache as _linecache
+__all__ = [
+    "checkcache",
+    "clearcache",
+    "getline",
+    "getlines",
+    "lazycache",
+    "updatecache",
+]
+
 
 
 def getline(filename, lineno, module_globals=None):
@@ -27157,7 +27390,8 @@ from typing import Any, Callable, List, Optional, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
 
-__all__: List[str] = [
+__all__ = [
+    "F",
     "configure_logging",
     "get_logger",
     "log_calls",
@@ -27306,7 +27540,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
 
-__all__: List[str] = [
+__all__ = [
+    "F",
     "cache_info",
     "clear_cache",
     "memoize",
@@ -27659,6 +27894,13 @@ import time
 from typing import Any, Callable, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
+__all__ = [
+    "F",
+    "benchmark",
+    "elapsed_time",
+    "timer",
+]
+
 
 
 class timer:
@@ -27790,6 +28032,13 @@ import time
 from typing import Any, Callable, Optional, TypeVar
 
 F = TypeVar("F", bound=Callable[..., Any])
+__all__ = [
+    "F",
+    "RateLimiter",
+    "rate_limit",
+    "token_bucket",
+]
+
 
 
 class RateLimiter:
@@ -27922,6 +28171,12 @@ import functools
 import random
 import time
 from typing import Any, Callable, Tuple, Type
+__all__ = [
+    "retry",
+    "retry_count",
+    "retry_with_backoff",
+]
+
 
 
 def retry(
@@ -28139,6 +28394,21 @@ from collections.abc import Iterable, Iterator
 from typing import Any, Generic, Optional, TypeVar
 
 T = TypeVar("T")
+__all__ = [
+    "RingBuffer",
+    "T",
+    "append",
+    "clear",
+    "create",
+    "get",
+    "is_empty",
+    "is_full",
+    "peek",
+    "pop",
+    "size",
+    "to_list",
+]
+
 
 
 class RingBuffer(Generic[T]):
@@ -28304,6 +28574,19 @@ import heapq
 from typing import Generic, List, Optional, Tuple, TypeVar
 
 T = TypeVar("T")
+__all__ = [
+    "PriorityQueue",
+    "T",
+    "clear_priority",
+    "create_priority_queue",
+    "is_empty_priority",
+    "merge_queues",
+    "peek_priority",
+    "pop_priority",
+    "push_priority",
+    "size_priority",
+]
+
 
 
 class PriorityQueue(Generic[T]):
@@ -28617,6 +28900,18 @@ from typing import Any, Dict, List, TypeVar
 K = TypeVar("K")
 V = TypeVar("V")
 
+__all__ = [
+    "K",
+    "V",
+    "deep_merge",
+    "filter_dict",
+    "flatten_dict",
+    "invert_dict",
+    "safe_get",
+    "unflatten_dict",
+]
+
+
 
 def deep_merge(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> Dict[Any, Any]:
     """Recursively merge two dictionaries.
@@ -28734,6 +29029,15 @@ cat > "$OUTPUT_DIR/json_utils.py" <<'JSONUTILS'
 
 import json
 from typing import Any
+__all__ = [
+    "dump_json_string",
+    "is_valid_json",
+    "load_json_string",
+    "pretty_print_json",
+    "read_json",
+    "write_json",
+]
+
 
 
 def read_json(path: str) -> Any:
@@ -28777,6 +29081,14 @@ cat > "$OUTPUT_DIR/csv_utils.py" <<'CSVUTILS'
 
 import csv
 from typing import Any, Dict, List, Optional
+__all__ = [
+    "append_csv_row",
+    "read_csv",
+    "read_csv_as_lists",
+    "write_csv",
+    "write_csv_from_lists",
+]
+
 
 
 def read_csv(
@@ -28842,15 +29154,16 @@ from typing import Any, Iterable, Iterator, List, Sequence, Set, Tuple, TypeVar
 
 T = TypeVar("T")
 
-__all__: List[str] = [
+__all__ = [
+    "T",
+    "cartesian_product",
+    "difference",
+    "intersection",
     "is_subset",
     "is_superset",
-    "intersection",
-    "union",
-    "difference",
-    "symmetric_difference",
-    "cartesian_product",
     "power_set",
+    "symmetric_difference",
+    "union",
 ]
 
 
@@ -29057,6 +29370,18 @@ import math
 from typing import List, Tuple, TypeVar
 
 T = TypeVar("T", int, float)
+__all__ = [
+    "T",
+    "correlation",
+    "covariance",
+    "geometric_mean",
+    "harmonic_mean",
+    "median_even",
+    "normalize",
+    "percentile",
+    "z_score",
+]
+
 
 
 def harmonic_mean(numbers: List[T | float]) -> float:
@@ -29934,6 +30259,18 @@ from typing import Any, Callable, Dict, Iterable, List, Tuple, TypeVar
 
 T = TypeVar("T")
 U = TypeVar("U")
+__all__ = [
+    "T",
+    "U",
+    "delete_nested",
+    "filter_tree",
+    "flatten_tree",
+    "get_nested",
+    "map_tree",
+    "set_nested",
+    "unflatten_tree",
+]
+
 
 
 def get_nested(d: Dict[str, Any] | Any, keys: Iterable[str | int], default: Any = None) -> Any:
@@ -30189,6 +30526,17 @@ import tarfile
 import zipfile
 from pathlib import Path
 from typing import List, Optional, Union
+__all__ = [
+    "bz2_compress",
+    "bz2_decompress",
+    "gzip_compress",
+    "gzip_decompress",
+    "tar_compress",
+    "tar_extract",
+    "zip_compress_files",
+    "zip_extract",
+]
+
 
 
 def gzip_compress(data: Union[bytes, str], encoding: str = "utf-8") -> bytes:
@@ -34351,6 +34699,15 @@ RGB = Tuple[float, float, float]
 HLS = Tuple[float, float, float]
 HSV = Tuple[float, float, float]
 YIQ = Tuple[float, float, float]
+__all__ = [
+    "hls_to_rgb",
+    "hsv_to_rgb",
+    "rgb_to_hls",
+    "rgb_to_hsv",
+    "rgb_to_yiq",
+    "yiq_to_rgb",
+]
+
 
 
 def rgb_to_hls(r: float, g: float, b: float) -> HLS:
@@ -34433,6 +34790,12 @@ import time
 from typing import Any, Callable, Optional, Tuple, TypeVar, Union
 
 T = TypeVar("T")
+__all__ = [
+    "CircuitBreaker",
+    "CircuitOpenError",
+    "T",
+]
+
 
 
 class CircuitOpenError(RuntimeError):
@@ -34827,11 +35190,12 @@ from typing import Any, Awaitable, Callable, List, Optional, TypeVar
 
 T = TypeVar("T")
 
-__all__: List[str] = [
-    "run_in_thread",
-    "gather_with_timeout",
+__all__ = [
+    "T",
     "async_sleep",
+    "gather_with_timeout",
     "retry_async",
+    "run_in_thread",
 ]
 
 
@@ -35979,6 +36343,16 @@ from typing import Any, Awaitable, Callable, Iterable, List, Optional, TypeVar, 
 
 T = TypeVar("T")
 R = TypeVar("R")
+__all__ = [
+    "ProcessPool",
+    "R",
+    "T",
+    "ThreadPool",
+    "gather",
+    "run_async",
+    "to_async",
+]
+
 
 
 class ThreadPool:
@@ -37831,6 +38205,17 @@ _COLOR_CODES: dict = {
 }
 
 _VALID_COLORS = frozenset(_COLOR_CODES)
+__all__ = [
+    "ProgressBar",
+    "clear_screen",
+    "colorize",
+    "get_terminal_size",
+    "print_colored",
+    "progress_bar",
+    "prompt",
+    "supports_color",
+]
+
 
 
 def supports_color(stream: Optional[TextIO] = None) -> bool:
@@ -38202,6 +38587,18 @@ SUBPROCESSUTILS
 
 # --- greeting_utils.py ---
 cat > "$OUTPUT_DIR/greeting_utils.py" <<'GREETING_UTILS'
+__all__ = [
+    "format_apology",
+    "format_birthday_wish",
+    "format_congrats",
+    "format_farewell",
+    "format_greeting",
+    "format_names",
+    "format_thanks",
+    "format_welcome",
+    "multi_greet",
+]
+
 def format_greeting(name: str, greeting: str = "Hello") -> str:
     """Return a formatted greeting string for the given name.
 
@@ -38623,11 +39020,13 @@ from typing import Any, Callable, List, TypeVar
 T = TypeVar("T")
 R = TypeVar("R")
 
-__all__: List[str] = [
-    "compose",
-    "pipe",
-    "curry",
+__all__ = [
+    "R",
+    "T",
     "apply",
+    "compose",
+    "curry",
+    "pipe",
 ]
 
 
@@ -42383,22 +42782,25 @@ from __future__ import annotations
 import dataclasses
 from typing import Any, Callable, Dict, Iterable, List, Tuple, TypeVar, Union
 
-__all__: list[str] = [
-    "is_dataclass",
-    "fields",
+__all__ = [
+    "KT",
+    "MISSING",
+    "T",
+    "VT",
     "asdict",
     "astuple",
-    "replace",
-    "make_dataclass",
-    "field",
-    "MISSING",
     "dataclass_fields",
+    "field",
+    "fields",
+    "get_field_default",
+    "get_field_names",
+    "has_field",
+    "is_dataclass",
     "is_dataclass_instance",
+    "make_dataclass",
+    "replace",
     "to_dict",
     "to_tuple",
-    "get_field_names",
-    "get_field_default",
-    "has_field",
 ]
 
 T = TypeVar("T")
@@ -42779,41 +43181,41 @@ from __future__ import annotations
 from array import array
 from typing import Any, Iterable
 
-__all__: list[str] = [
+__all__ = [
     "array_append",
+    "array_buffer_info",
+    "array_byteswap",
+    "array_clear",
+    "array_concat",
+    "array_count",
+    "array_create",
     "array_extend",
+    "array_extend_from_list",
+    "array_from_bytes",
+    "array_from_file",
+    "array_from_list",
+    "array_from_unicode",
+    "array_frombytes",
+    "array_fromfile",
+    "array_fromlist",
+    "array_fromunicode",
+    "array_index",
     "array_insert",
+    "array_itemsize",
     "array_pop",
     "array_remove",
-    "array_index",
-    "array_count",
-    "array_reverse",
-    "array_clear",
-    "array_byteswap",
-    "array_count",
-    "array_index",
-    "array_to_list",
-    "array_from_list",
-    "array_extend_from_list",
     "array_remove_first",
-    "array_tobytes",
-    "array_to_bytes",
-    "array_frombytes",
-    "array_from_bytes",
-    "array_tofile",
-    "array_to_file",
-    "array_fromfile",
-    "array_from_file",
-    "array_tounicode",
-    "array_to_unicode",
-    "array_fromunicode",
-    "array_from_unicode",
-    "array_itemsize",
-    "array_typecode",
-    "array_byteswap",
-    "array_buffer_info",
-    "array_concat",
     "array_repeat",
+    "array_reverse",
+    "array_to_bytes",
+    "array_to_file",
+    "array_to_list",
+    "array_to_unicode",
+    "array_tobytes",
+    "array_tofile",
+    "array_tolist",
+    "array_tounicode",
+    "array_typecode",
 ]
 
 
@@ -45164,6 +45566,15 @@ from __future__ import annotations
 import re
 from string import Template
 from typing import Any, Mapping
+__all__ = [
+    "extract_placeholders",
+    "has_placeholders",
+    "render_from_dict",
+    "render_template",
+    "safe_substitute",
+    "substitute",
+]
+
 
 
 def render_template(template: str, *args: Any, **kwargs: Any) -> str:
@@ -45599,6 +46010,16 @@ SEMVER_RE = re.compile(
     r"(?:-(?P<prerelease>[0-9A-Za-z\-]+(?:\.[0-9A-Za-z\-]+)*))?"
     r"(?:\+(?P<build>[0-9A-Za-z\-]+(?:\.[0-9A-Za-z\-]+)*))?$"
 )
+__all__ = [
+    "SemanticVersion",
+    "bump_major",
+    "bump_minor",
+    "bump_patch",
+    "compare_semver",
+    "is_valid_semver",
+    "parse_semver",
+]
+
 
 
 class SemanticVersion:
@@ -50159,6 +50580,17 @@ cat > "$OUTPUT_DIR/argparse_utils.py" <<'ARGPARSE_UTILS'
 
 import argparse
 from typing import Any, Callable, List, Optional
+__all__ = [
+    "add_flag",
+    "add_option",
+    "add_positional",
+    "add_subparsers",
+    "float_range",
+    "int_positive",
+    "make_parser",
+    "parse_args",
+]
+
 
 
 def make_parser(
@@ -50689,6 +51121,19 @@ from __future__ import annotations
 import calendar
 from datetime import date
 from typing import List
+__all__ = [
+    "add_months",
+    "day_name",
+    "days_in_month",
+    "first_day_of_month",
+    "is_leap_year",
+    "is_weekend",
+    "month_calendar",
+    "month_name",
+    "weekdays_in_month",
+    "weekend_days_in_month",
+]
+
 
 
 def is_leap_year(year: int) -> bool:
@@ -50844,7 +51289,10 @@ from __future__ import annotations
 import threading
 from typing import Any, Callable, Optional, TypeVar
 
-__all__: list[str] = ["call_once"]
+__all__ = [
+    "T",
+    "call_once",
+]
 
 T = TypeVar("T")
 
@@ -50975,6 +51423,32 @@ from numbers import Real
 from typing import Any, Optional, Tuple, Union
 
 Number = Union[int, float, complex]
+__all__ = [
+    "acos",
+    "acosh",
+    "asin",
+    "asinh",
+    "atan",
+    "atanh",
+    "cos",
+    "cosh",
+    "exp",
+    "isclose",
+    "isfinite",
+    "isinf",
+    "isnan",
+    "log",
+    "log10",
+    "phase",
+    "polar",
+    "rect",
+    "sin",
+    "sinh",
+    "sqrt",
+    "tan",
+    "tanh",
+]
+
 
 
 def _validate_number(value: Any, name: str) -> None:
@@ -51754,6 +52228,13 @@ cat > "$OUTPUT_DIR/cmd_utils.py" <<'CMD_UTILS'
 """Utilities for command-line interpreter helpers (wrapping :mod:`cmd`)."""
 
 import cmd as _cmd
+__all__ = [
+    "Cmd",
+    "identchars",
+    "main",
+    "prompt_default",
+]
+
 
 
 class Cmd(_cmd.Cmd):
@@ -51802,6 +52283,13 @@ cat > "$OUTPUT_DIR/code_utils.py" <<'CODE_UTILS'
 """Utilities for Python interactive console support (wrapping :mod:`code`)."""
 
 import code as _code
+__all__ = [
+    "compile_command",
+    "console_class",
+    "interact",
+    "interpreter_class",
+]
+
 
 
 def interact(banner=None, readfunc=None, local=None, exitmsg=None):
@@ -51862,6 +52350,22 @@ cat > "$OUTPUT_DIR/codecs_utils.py" <<'CODECS_UTILS'
 from __future__ import annotations
 
 import codecs as _codecs
+__all__ = [
+    "decode",
+    "encode",
+    "getdecoder",
+    "getencoder",
+    "getincrementaldecoder",
+    "getincrementalencoder",
+    "getreader",
+    "getwriter",
+    "lookup",
+    "lookup_error",
+    "open",
+    "register",
+    "register_error",
+]
+
 
 
 def encode(obj, encoding="utf-8", errors="strict"):
@@ -52605,23 +53109,29 @@ from configparser import (
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Union
 
-__all__: list[str] = [
-    "ConfigParser",
-    "RawConfigParser",
+__all__ = [
     "BasicInterpolation",
-    "ExtendedInterpolation",
+    "ConfigParser",
+    "ConfigParserError",
     "DEFAULTSECT",
+    "DuplicateOptionError",
+    "DuplicateSectionError",
+    "Error",
+    "ExtendedInterpolation",
+    "InterpolationDepthError",
     "InterpolationMissingOptionError",
     "InterpolationSyntaxError",
-    "InterpolationDepthError",
     "MissingSectionHeaderError",
-    "ParsingError",
-    "NoSectionError",
     "NoOptionError",
-    "DuplicateSectionError",
-    "DuplicateOptionError",
-    "ConfigParserError",
-    "Error",
+    "NoSectionError",
+    "ParsingError",
+    "RawConfigParser",
+    "get_options",
+    "get_sections",
+    "load_config",
+    "read_files",
+    "save_config",
+    "write_config",
 ]
 
 # Re-export common exceptions for convenience
@@ -52990,13 +53500,16 @@ T = TypeVar("T")
 K = TypeVar("K")
 V = TypeVar("V")
 
-__all__: list[str] = [
-    "shallow_copy",
-    "deep_copy",
+__all__ = [
+    "K",
+    "T",
+    "V",
     "copy_dict",
+    "deep_copy",
     "deep_copy_dict",
-    "merge_copy",
     "is_same_object",
+    "merge_copy",
+    "shallow_copy",
 ]
 
 
@@ -53239,6 +53752,15 @@ cat > "$OUTPUT_DIR/copyreg_utils.py" <<'COPYREG_UTILS'
 """Utilities for pickle support registration (wrapping :mod:`copyreg`)."""
 
 import copyreg as _copyreg
+__all__ = [
+    "add_extension",
+    "clear_extension_cache",
+    "constructor",
+    "dispatch_table",
+    "pickle",
+    "remove_extension",
+]
+
 
 
 def add_extension(module, name, code):
@@ -54253,8 +54775,11 @@ from typing import Any, Callable, Optional, TypeVar, Union, overload
 
 T = TypeVar("T")
 
+__all__ = [
+    "T",
+    "deprecated",
+]
 
-@overload
 def deprecated(
     func: Callable[..., T],
     *,
@@ -56156,6 +56681,12 @@ cat > "$OUTPUT_DIR/errno_utils.py" <<'ERRNO_UTILS'
 
 import errno as _errno
 import os as _os
+__all__ = [
+    "errorcode",
+    "is_errno",
+    "strerror",
+]
+
 
 
 def errorcode(code):
@@ -56318,11 +56849,12 @@ def is_instance_of_any(obj: Any, exception_types: tuple[Type[BaseException], ...
 
 
 __all__ = [
-    "ValidationError",
     "ConfigurationError",
     "NotFoundError",
     "PermissionError_",
+    "T",
     "TimeoutError_",
+    "ValidationError",
     "catch_and_wrap",
     "get_error_details",
     "is_instance_of_any",
@@ -58044,6 +58576,12 @@ cat > "$OUTPUT_DIR/fileinput_utils.py" <<'FILEINPUT_UTILS'
 
 import fileinput
 from typing import Any, Iterable, List, Optional
+__all__ = [
+    "count_lines",
+    "filenames",
+    "read_lines",
+]
+
 
 
 def read_lines(files: Optional[Iterable[str]] = None, **kwargs: Any) -> List[str]:
@@ -58108,6 +58646,13 @@ cat > "$OUTPUT_DIR/fnmatch_utils.py" <<'FNMATCH_UTILS'
 """Utilities for filename pattern matching (wrapping :mod:`fnmatch`)."""
 
 import fnmatch as _fnmatch
+__all__ = [
+    "filter_names",
+    "match",
+    "match_case",
+    "translate",
+]
+
 
 
 def match(name: str, pattern: str) -> bool:
@@ -60400,6 +60945,11 @@ cat > "$OUTPUT_DIR/getopt_utils.py" <<'GETOPT_UTILS'
 """Utilities for command line option parsing (wrapping :mod:`getopt`)."""
 
 import getopt as _getopt
+__all__ = [
+    "getopt",
+    "gnu_getopt",
+]
+
 
 
 def getopt(args, shortopts, longopts=()):
@@ -60470,6 +61020,11 @@ cat > "$OUTPUT_DIR/getpass_utils.py" <<'GETPASS_UTILS'
 """Utilities for secure password input (wrapping :mod:`getpass`)."""
 
 import getpass as _getpass
+__all__ = [
+    "getpass",
+    "getuser",
+]
+
 
 
 def getpass(prompt="Password: ", stream=None):
@@ -60507,6 +61062,13 @@ cat > "$OUTPUT_DIR/glob_utils.py" <<'GLOB_UTILS'
 """Utilities for pathname pattern expansion (wrapping :mod:`glob`)."""
 
 import glob as _glob
+__all__ = [
+    "escape",
+    "glob_pattern",
+    "has_magic",
+    "iglob",
+]
+
 
 
 def glob_pattern(pattern, *, root_dir=None, dir_fd=None, recursive=False):
@@ -61151,12 +61713,13 @@ from typing import Any, Callable, Iterable, Iterator, List, Optional, TypeVar, c
 
 T = TypeVar("T")
 
-__all__: list[str] = [
+__all__ = [
+    "T",
     "heapify",
-    "heappush",
     "heappop",
-    "heapreplace",
+    "heappush",
     "heappushpop",
+    "heapreplace",
     "merge",
     "nlargest",
     "nsmallest",
@@ -61551,6 +62114,17 @@ STATUS_CODES: Dict[int, str] = {
     510: "Not Extended",
     511: "Network Authentication Required",
 }
+__all__ = [
+    "is_client_error",
+    "is_error",
+    "is_informational",
+    "is_redirection",
+    "is_server_error",
+    "is_success",
+    "status_code_category",
+    "status_message",
+]
+
 
 
 def status_code_category(code: int) -> int:
@@ -61710,6 +62284,12 @@ import secrets
 import string
 
 _ALPHABET = string.ascii_letters + string.digits
+__all__ = [
+    "generate_id",
+    "is_valid_id",
+    "new_id",
+]
+
 
 
 def generate_id(length: int = 8) -> str:
@@ -62566,6 +63146,17 @@ using Python's :mod:`configparser`, with section-aware get/set/merge operations.
 import configparser
 from pathlib import Path
 from typing import Any, Dict, Union
+__all__ = [
+    "get_config_value",
+    "get_section",
+    "has_section",
+    "list_sections",
+    "load_config",
+    "merge_configs",
+    "save_config",
+    "set_config_value",
+]
+
 
 
 def _parser() -> configparser.ConfigParser:
@@ -63081,6 +63672,21 @@ from __future__ import annotations
 
 import inspect
 from typing import Any, Dict, List, Optional, Tuple
+__all__ = [
+    "bind_arguments",
+    "count_parameters",
+    "get_callable_name",
+    "get_parameter_kinds",
+    "get_parameter_names",
+    "get_signature",
+    "get_source_file",
+    "get_source_lines",
+    "has_parameter",
+    "is_async_callable",
+    "is_builtin",
+    "is_callable",
+]
+
 
 
 def get_callable_name(func: Any) -> str:
@@ -64974,6 +65580,14 @@ cat > "$OUTPUT_DIR/keyword_utils.py" <<'KEYWORD_UTILS'
 """Utilities for Python keyword classification (wrapping :mod:`keyword`)."""
 
 import keyword as _keyword
+__all__ = [
+    "is_keyword",
+    "is_soft_keyword",
+    "kwlist",
+    "main",
+    "softkwlist",
+]
+
 
 
 def is_keyword(word):
@@ -65540,6 +66154,14 @@ from __future__ import annotations
 
 import re
 from typing import List
+__all__ = [
+    "count_words",
+    "extract_code_blocks",
+    "heading_level",
+    "is_heading",
+    "strip_markdown",
+]
+
 
 
 def extract_code_blocks(text: str) -> List[str]:
@@ -65676,7 +66298,11 @@ from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 
-__all__ = ["memoize", "lru_memoize"]
+__all__ = [
+    "T",
+    "lru_memoize",
+    "memoize",
+]
 
 
 def memoize(func: Callable[..., T]) -> Callable[..., T]:
@@ -67594,69 +68220,69 @@ from typing import List, Union
 
 Number = Union[int, float]
 
-__all__: List[str] = [
-    "clamp",
-    "round_to",
-    "is_integer",
-    "format_number",
-    "percentage",
-    "lerp",
-    "map_range",
-    "remap",
-    "sign",
-    "is_even",
-    "is_odd",
-    "is_pronic_number",
-    "is_negative",
-    "is_positive",
-    "is_zero",
-    "is_non_negative",
-    "is_non_positive",
-    "is_between",
-    "is_close",
-    "in_range",
-    "is_finite",
-    "is_infinite",
-    "is_nan",
-    "safe_divide",
-    "is_perfect_cube",
-    "is_perfect_square",
-    "is_power_of_two",
-    "is_perfect_power",
-    "is_palindromic_number",
-    "round_half_up",
-    "gcd",
-    "lcm",
+__all__ = [
     "ceil_div",
-    "is_divisible_by",
-    "is_multiple_of",
-    "divides",
-    "is_coprime",
-    "digit_sum",
+    "clamp",
     "digit_count",
     "digit_product",
+    "digit_sum",
     "digital_root",
-    "is_triangular_number",
-    "is_pentagonal_number",
-    "is_hexagonal_number",
-    "is_perfect_number",
-    "is_automorphic_number",
-    "is_happy_number",
-    "is_harshad_number",
-    "is_kaprekar_number",
-    "is_armstrong_number",
-    "is_neon_number",
-    "is_strong_number",
-    "is_fibonacci_number",
-    "is_lucas_number",
-    "is_pronic_number",
-    "is_spy_number",
+    "divides",
+    "format_number",
+    "gcd",
+    "in_range",
     "is_abundant_number",
+    "is_armstrong_number",
+    "is_automorphic_number",
+    "is_between",
+    "is_close",
+    "is_coprime",
     "is_deficient_number",
     "is_disarium_number",
-    "is_ugly_number",
-    "is_squarefree_number",
+    "is_divisible_by",
     "is_duck_number",
+    "is_even",
+    "is_fibonacci_number",
+    "is_finite",
+    "is_happy_number",
+    "is_harshad_number",
+    "is_hexagonal_number",
+    "is_infinite",
+    "is_integer",
+    "is_kaprekar_number",
+    "is_lucas_number",
+    "is_multiple_of",
+    "is_nan",
+    "is_negative",
+    "is_neon_number",
+    "is_non_negative",
+    "is_non_positive",
+    "is_oblong_number",
+    "is_odd",
+    "is_palindromic_number",
+    "is_pentagonal_number",
+    "is_perfect_cube",
+    "is_perfect_number",
+    "is_perfect_power",
+    "is_perfect_square",
+    "is_positive",
+    "is_power_of_two",
+    "is_pronic_number",
+    "is_spy_number",
+    "is_squarefree_number",
+    "is_strong_number",
+    "is_triangular_number",
+    "is_ugly_number",
+    "is_zero",
+    "lcm",
+    "lerp",
+    "map_range",
+    "percentage",
+    "remap",
+    "round_half_up",
+    "round_to",
+    "safe_divide",
+    "sign",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -72515,6 +73141,7 @@ __all__ = [
     "OptionValueError",
     "SUPPRESS_HELP",
     "SUPPRESS_USAGE",
+    "UNSET",
     "Values",
     "add_count_option",
     "add_flag",
@@ -74417,6 +75044,17 @@ import threading
 from typing import Any, Callable, Dict, List, TypeVar
 
 T = TypeVar("T")
+__all__ = [
+    "Factory",
+    "Observable",
+    "Observer",
+    "Singleton",
+    "SingletonBase",
+    "Strategy",
+    "StrategyContext",
+    "T",
+]
+
 
 
 class Singleton(type):
@@ -75818,6 +76456,14 @@ cat > "$OUTPUT_DIR/pprint_utils.py" <<'PPRINT_UTILS'
 """Utilities for pretty-printing (wrapping :mod:`pprint`)."""
 
 import pprint as _pprint
+__all__ = [
+    "isreadable",
+    "isrecursive",
+    "pformat",
+    "pprint",
+    "saferepr",
+]
+
 
 
 def pformat(obj, indent=1, width=80, depth=None, compact=False, sort_dicts=True):
@@ -80582,6 +81228,16 @@ cat > "$OUTPUT_DIR/queue_utils.py" <<'QUEUE_UTILS'
 """Utility helpers for queue operations."""
 
 from collections import deque
+__all__ = [
+    "Queue",
+    "create",
+    "dequeue",
+    "enqueue",
+    "is_empty",
+    "peek",
+    "size",
+]
+
 
 
 class Queue:
@@ -80781,6 +81437,13 @@ cat > "$OUTPUT_DIR/reprlib_utils.py" <<'REPRLIB_UTILS'
 """Utilities for reprlib (wrapping :mod:`reprlib`)."""
 
 import reprlib as _reprlib
+__all__ = [
+    "Repr",
+    "get_ident",
+    "recursive_repr",
+    "repr",
+]
+
 
 
 def repr(obj):
@@ -81744,6 +82407,11 @@ cat > "$OUTPUT_DIR/runpy_utils.py" <<'RUNPY_UTILS'
 """Utilities for running Python modules (wrapping :mod:`runpy`)."""
 
 import runpy as _runpy
+__all__ = [
+    "run_module",
+    "run_path",
+]
+
 
 
 def run_module(mod_name, init_globals=None, run_name=None, alter_sys=False):
@@ -81797,6 +82465,16 @@ cat > "$OUTPUT_DIR/sched_utils.py" <<'SCHED_UTILS'
 
 import sched
 import time
+__all__ = [
+    "cancel",
+    "empty",
+    "enter",
+    "enterabs",
+    "queue",
+    "run",
+    "scheduler",
+]
+
 
 
 def scheduler(timefunc=time.monotonic, delayfunc=time.sleep) -> sched.scheduler:
@@ -81880,14 +82558,15 @@ from __future__ import annotations
 import secrets
 from typing import Sequence, TypeVar
 
-__all__: list[str] = [
-    "token_bytes",
-    "token_hex",
-    "token_urlsafe",
+__all__ = [
+    "T",
+    "choice",
     "compare_digest",
     "randbelow",
     "randbits",
-    "choice",
+    "token_bytes",
+    "token_hex",
+    "token_urlsafe",
 ]
 
 T = TypeVar("T")
@@ -82469,6 +83148,16 @@ EVENT_WRITE = selectors.EVENT_WRITE
 
 # Bitmask of every event flag the standard library selectors module defines.
 _ALL_EVENTS = selectors.EVENT_READ | selectors.EVENT_WRITE
+__all__ = [
+    "close_selector",
+    "create_default_selector",
+    "get_key",
+    "get_map",
+    "register",
+    "select",
+    "unregister",
+]
+
 
 
 def _validate_fileobj(value: Any, name: str) -> None:
@@ -82896,22 +83585,23 @@ from typing import Any, Iterator, List, Optional, Tuple, TypeVar
 
 T = TypeVar("T")
 
-__all__: list[str] = [
-    "first",
-    "last",
-    "nth",
-    "head",
-    "tail",
-    "split_at",
-    "take_while",
-    "drop_while",
-    "unique",
-    "distinct",
-    "flatten",
-    "interleave",
+__all__ = [
+    "T",
     "adjacent_pairs",
     "chunk",
+    "distinct",
+    "drop_while",
+    "first",
+    "flatten",
+    "head",
+    "interleave",
     "is_sorted",
+    "last",
+    "nth",
+    "split_at",
+    "tail",
+    "take_while",
+    "unique",
 ]
 
 
@@ -83967,6 +84657,12 @@ cat > "$OUTPUT_DIR/shlex_utils.py" <<'SHLEX_UTILS'
 """Utilities for simple lexical analysis (wrapping :mod:`shlex`)."""
 
 import shlex as _shlex
+__all__ = [
+    "join",
+    "quote",
+    "split",
+]
+
 
 
 def split(s, comments=False, posix=True):
@@ -87248,6 +87944,17 @@ from __future__ import annotations
 
 import socketserver
 from typing import Any, Type
+__all__ = [
+    "close_server",
+    "create_tcp_server",
+    "create_udp_server",
+    "get_server_address",
+    "handle_one_request",
+    "is_serving",
+    "serve_forever",
+    "shutdown_server",
+]
+
 
 
 def create_tcp_server(
@@ -87480,6 +88187,14 @@ TEST_SOCKETSERVER_UTILS
 # --- sort_utils.py ---
 cat > "$OUTPUT_DIR/sort_utils.py" <<'SORT_UTILS'
 """Sorting utility functions."""
+__all__ = [
+    "bubble_sort",
+    "is_sorted",
+    "merge_sort",
+    "nth_largest",
+    "top_n",
+]
+
 
 
 def is_sorted(items, *, key=None, reverse=False):
@@ -87626,6 +88341,19 @@ rows, and inspecting schema. All functions validate their inputs and raise
 
 import sqlite3 as _sqlite3
 from typing import Any, Optional, Sequence
+__all__ = [
+    "connect",
+    "create_table",
+    "execute",
+    "executemany",
+    "fetch_all",
+    "fetch_many",
+    "fetch_one",
+    "insert_row",
+    "query",
+    "table_exists",
+]
+
 
 
 def connect(database: str = ":memory:", *, timeout: float = 5.0) -> _sqlite3.Connection:
@@ -88624,6 +89352,19 @@ cat > "$OUTPUT_DIR/stat_utils.py" <<'STAT_UTILS'
 import os
 import stat as _stat
 from typing import Any
+__all__ = [
+    "file_mode",
+    "file_type",
+    "filemode",
+    "is_device",
+    "is_directory",
+    "is_fifo",
+    "is_regular_file",
+    "is_socket",
+    "is_symlink",
+    "stat_info",
+]
+
 
 
 def file_mode(path: str | os.PathLike[str]) -> int:
@@ -93553,6 +94294,14 @@ cat > "$OUTPUT_DIR/textwrap_utils.py" <<'TEXTWRAP_UTILS'
 
 import textwrap
 from typing import List
+__all__ = [
+    "dedent_text",
+    "fill_text",
+    "indent_text",
+    "shorten_text",
+    "wrap_text",
+]
+
 
 
 def wrap_text(text: str, width: int = 70) -> List[str]:
@@ -93665,6 +94414,11 @@ translation_table = _this.d
 
 # The index of the key used in the cipher.
 cipher_index = getattr(_this, "c", 97)
+__all__ = [
+    "print_zen",
+    "this",
+]
+
 
 
 def this():
@@ -93738,6 +94492,22 @@ T = TypeVar("T")
 
 # threading.Lock is a factory function, not a class, so capture the actual lock type.
 _LockType = type(threading.Lock())
+__all__ = [
+    "T",
+    "active_count",
+    "create_bounded_semaphore",
+    "create_condition",
+    "create_event",
+    "create_lock",
+    "create_rlock",
+    "create_semaphore",
+    "create_thread",
+    "create_timer",
+    "current_thread",
+    "enumerate_threads",
+    "synchronized",
+]
+
 
 
 def _validate_callable(value: Any, name: str) -> None:
@@ -94416,6 +95186,19 @@ _COMMON_TIMEZONES: tuple[str, ...] = (
     "America/Los_Angeles",
     "America/New_York",
 )
+__all__ = [
+    "convert_datetime",
+    "format_datetime",
+    "get_all_timezones",
+    "get_common_timezones",
+    "get_local_timezone",
+    "get_timezone",
+    "get_utc_now",
+    "is_dst",
+    "is_valid_timezone",
+    "utc_offset",
+]
+
 
 
 def _format_offset(offset: _dt.timedelta) -> str:
@@ -94782,6 +95565,16 @@ cat > "$OUTPUT_DIR/token_utils.py" <<'TOKEN_UTILS'
 """Utilities for Python token constants (wrapping :mod:`token`)."""
 
 import token as _token
+__all__ = [
+    "exact_token_types",
+    "is_eof",
+    "is_nonterminal",
+    "is_terminal",
+    "n_tokens",
+    "nt_offset",
+    "tok_name",
+]
+
 
 
 def is_eof(tok):
@@ -95293,6 +96086,12 @@ cat > "$OUTPUT_DIR/tomllib_utils.py" <<'TOMLLIB_UTILS'
 from typing import Any
 
 import tomllib  # type: ignore[import-not-found]
+__all__ = [
+    "is_valid_toml",
+    "load_toml_string",
+    "read_toml",
+]
+
 
 
 def read_toml(path: str) -> Any:
@@ -95363,6 +96162,20 @@ cat > "$OUTPUT_DIR/traceback_utils.py" <<'TRACEBACK_UTILS'
 import traceback
 from types import TracebackType
 from typing import Any, List, Optional, Type
+__all__ = [
+    "clear_frames",
+    "extract_stack",
+    "extract_tb",
+    "format_exc",
+    "format_exception",
+    "format_exception_only",
+    "format_stack",
+    "format_tb",
+    "print_exception",
+    "print_stack",
+    "print_tb",
+]
+
 
 
 def format_exception(etype_or_exc: Any, value: Any = None,
@@ -95570,6 +96383,15 @@ cat > "$OUTPUT_DIR/tracemalloc_utils.py" <<'TRACEMALLOC_UTILS'
 """Utilities for tracing Python memory allocations (wrapping :mod:`tracemalloc`)."""
 
 import tracemalloc as _tracemalloc
+__all__ = [
+    "clear_traces",
+    "get_traceback_limit",
+    "get_traced_memory",
+    "is_tracing",
+    "start",
+    "stop",
+]
+
 
 
 def is_tracing():
@@ -95644,6 +96466,13 @@ cat > "$OUTPUT_DIR/tty_utils.py" <<'TTY_UTILS'
 """Utilities for terminal control (wrapping :mod:`tty`)."""
 
 import tty as _tty
+__all__ = [
+    "cfmakecbreak",
+    "cfmakeraw",
+    "setcbreak",
+    "setraw",
+]
+
 
 
 def cfmakeraw(mode):
@@ -95888,6 +96717,14 @@ cat > "$OUTPUT_DIR/typing_utils.py" <<'TYPING_UTILS'
 """Utilities for working with type hints (wrapping :mod:`typing`)."""
 
 import typing as _typing
+__all__ = [
+    "get_args",
+    "get_origin",
+    "get_type_hints",
+    "is_literal",
+    "is_typeddict",
+]
+
 
 
 def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
@@ -96287,82 +97124,83 @@ cat > "$OUTPUT_DIR/version_utils.py" <<'VERSION_UTILS'
 
 from typing import List, Tuple
 
-__all__: List[str] = [
-    "parse_version",
-    "parse",
-    "compare_versions",
-    "cmp_versions",
-    "compare",
-    "cmp",
-    "is_greater",
-    "is_less",
-    "is_equal",
-    "greater_than",
-    "less_than",
-    "equal_to",
-    "is_valid_version",
-    "is_semver",
-    "get_major_version",
-    "get_minor_version",
-    "get_patch_version",
-    "major",
-    "minor",
-    "patch",
-    "is_version_greater",
-    "is_version_less",
-    "is_version_equal",
-    "is_version_greater_equal",
-    "is_version_less_equal",
-    "is_newer",
-    "is_older",
-    "normalize_version",
-    "bump_major",
-    "bump_minor",
-    "bump_patch",
-    "increment_major",
-    "increment_minor",
-    "increment_patch",
-    "decrement_major",
-    "decrement_minor",
-    "decrement_patch",
-    "version_to_tuple",
-    "tuple_to_version",
-    "from_tuple",
-    "to_tuple",
-    "sort_versions",
-    "max_version",
-    "min_version",
-    "bump_version",
-    "bump",
-    "increment_version",
-    "increment",
-    "is_stable",
-    "is_initial_release",
-    "is_prerelease",
-    "is_dev_version",
-    "get_prerelease",
-    "get_prerelease_tag",
-    "get_build_metadata",
-    "get_build",
-    "strip_prerelease",
-    "strip_prerelease_suffix",
-    "remove_prerelease",
-    "strip_build_metadata",
-    "strip_build",
-    "remove_build_metadata",
-    "strip_metadata",
-    "is_compatible",
-    "version_satisfies_major",
-    "decrement_version",
-    "decrement",
-    "dec",
-    "is_version_at_least",
-    "is_version_at_most",
-    "is_version_between",
+__all__ = [
     "at_least",
     "at_most",
     "between",
+    "bump",
+    "bump_major",
+    "bump_minor",
+    "bump_patch",
+    "bump_version",
+    "cmp",
+    "cmp_versions",
+    "compare",
+    "compare_versions",
+    "dec",
+    "decrement",
+    "decrement_major",
+    "decrement_minor",
+    "decrement_patch",
+    "decrement_version",
+    "equal_to",
+    "from_tuple",
+    "get_build",
+    "get_build_metadata",
+    "get_major_version",
+    "get_minor_version",
+    "get_patch_version",
+    "get_prerelease",
+    "get_prerelease_tag",
+    "greater_than",
+    "increment",
+    "increment_major",
+    "increment_minor",
+    "increment_patch",
+    "increment_version",
     "is_between",
+    "is_compatible",
+    "is_dev_version",
+    "is_equal",
+    "is_greater",
+    "is_initial_release",
+    "is_less",
+    "is_newer",
+    "is_older",
+    "is_prerelease",
+    "is_semver",
+    "is_stable",
+    "is_valid_version",
+    "is_version_at_least",
+    "is_version_at_most",
+    "is_version_between",
+    "is_version_equal",
+    "is_version_greater",
+    "is_version_greater_equal",
+    "is_version_less",
+    "is_version_less_equal",
+    "less_than",
+    "major",
+    "max_version",
+    "min_version",
+    "minor",
+    "normalize_version",
+    "parse",
+    "parse_version",
+    "parse_version_alias",
+    "patch",
+    "remove_build_metadata",
+    "remove_prerelease",
+    "sort_versions",
+    "strip_build",
+    "strip_build_metadata",
+    "strip_metadata",
+    "strip_prerelease",
+    "strip_prerelease_suffix",
+    "to_tuple",
+    "tuple_to_version",
+    "version_satisfies_major",
+    "version_to_tuple",
 ]
 
 
@@ -98010,6 +98848,16 @@ import warnings
 from typing import Literal, Optional, Type, Union, cast
 
 Action = Literal["default", "error", "ignore", "always", "all", "module", "once"]
+__all__ = [
+    "catch_warnings",
+    "filterwarnings",
+    "formatwarning",
+    "resetwarnings",
+    "showwarning",
+    "simplefilter",
+    "warn",
+]
+
 
 
 def warn(
@@ -98915,6 +99763,18 @@ import weakref
 from typing import Any, Callable, Generic, Optional, Protocol, TypeVar
 
 T = TypeVar("T", bound=Any)
+__all__ = [
+    "BoundMethodProtocol",
+    "T",
+    "WeakMethod",
+    "WeakRef",
+    "create_finalizer",
+    "create_proxy",
+    "create_weakref",
+    "get_object",
+    "is_alive",
+]
+
 
 
 class BoundMethodProtocol(Protocol):
@@ -103433,7 +104293,7 @@ TextDoc = _pydoc.TextDoc
 #: The plain text representation builder of the standard library.
 TextRepr = _pydoc.TextRepr
 
-__all__: list[str] = [
+__all__ = [
     "Doc",
     "ErrorDuringImport",
     "HTMLDoc",
@@ -103465,8 +104325,10 @@ __all__: list[str] = [
     "plain",
     "plainpager",
     "render_doc",
+    "replace",
     "resolve",
     "safeimport",
+    "source_synopsis",
     "splitdoc",
     "stripid",
     "synopsis",
@@ -104635,7 +105497,7 @@ KEY_RESIZE: int = _curses.KEY_RESIZE if _curses is not None else 0
 KEY_MAX: int = _curses.KEY_MAX if _curses is not None else 0
 KEY_MIN: int = _curses.KEY_MIN if _curses is not None else 0
 
-__all__: List[str] = [
+__all__ = [
     "A_ALTCHARSET",
     "A_ATTRIBUTES",
     "A_BLINK",
@@ -104698,10 +105560,15 @@ __all__: List[str] = [
     "get_escdelay",
     "get_tabsize",
     "getsyx",
+    "halfdelay",
     "has_colors",
     "has_ic",
     "has_il",
     "has_key",
+    "init_color",
+    "init_pair",
+    "initscr",
+    "intrflush",
     "is_available",
     "is_term_resized",
     "isendwin",
@@ -104733,12 +105600,14 @@ __all__: List[str] = [
     "set_escdelay",
     "set_tabsize",
     "setsyx",
+    "setupterm",
     "start_color",
     "termattrs",
     "termname",
     "typeahead",
     "unget_wch",
     "ungetch",
+    "update_lines_cols",
     "use_default_colors",
     "use_env",
 ]
@@ -109697,7 +110566,8 @@ from __future__ import annotations
 import urllib.parse as _urllib_parse
 from typing import Any, Mapping, Optional, Sequence, Tuple, Union, cast
 
-__all__: list[str] = [
+__all__ = [
+    "build_url",
     "defrag",
     "join_url",
     "parse_qs",
@@ -115351,6 +116221,10 @@ V = TypeVar("V")
 
 
 __all__ = [
+    "K",
+    "S",
+    "T",
+    "V",
     "absolute",
     "all_true",
     "any_true",
@@ -121266,7 +122140,13 @@ from typing import ParamSpec, TypeVar
 P = ParamSpec("P")
 T = TypeVar("T")
 
-__all__ = ["cooldown", "Cooldown", "is_available"]
+__all__ = [
+    "Cooldown",
+    "P",
+    "T",
+    "cooldown",
+    "is_available",
+]
 
 
 def is_available() -> bool:
@@ -121729,7 +122609,11 @@ class Maybe(Generic[T]):
 
 
 __all__ = [
+    "E",
     "Maybe",
+    "T",
+    "U",
+    "V",
 ]
 MAYBE_UTILS
 
@@ -122022,7 +122906,12 @@ class Either(Generic[L, R]):
 
 
 __all__ = [
+    "E",
     "Either",
+    "L",
+    "R",
+    "T",
+    "U",
 ]
 EITHER_UTILS
 
@@ -122357,6 +123246,13 @@ TEST_SLUGIFY_UTILS
 # --- backoff_utils.py ---
 cat > "$OUTPUT_DIR/backoff_utils.py" <<'BACKOFF_UTILS'
 import random
+__all__ = [
+    "backoff_delay",
+    "constant_backoff",
+    "exponential_backoff",
+    "jittered_backoff",
+]
+
 
 
 def constant_backoff(delay: float) -> float:
@@ -123297,6 +124193,12 @@ _ROMAN_DIGITS = {
 _ROMAN_PATTERN = (
     r"^(?=.)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$"
 )
+__all__ = [
+    "from_roman",
+    "is_valid_roman",
+    "to_roman",
+]
+
 
 
 def to_roman(number: int) -> str:

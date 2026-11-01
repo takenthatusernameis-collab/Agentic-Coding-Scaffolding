@@ -14,22 +14,23 @@ from typing import Any, Iterator, List, Optional, Tuple, TypeVar
 
 T = TypeVar("T")
 
-__all__: list[str] = [
-    "first",
-    "last",
-    "nth",
-    "head",
-    "tail",
-    "split_at",
-    "take_while",
-    "drop_while",
-    "unique",
-    "distinct",
-    "flatten",
-    "interleave",
+__all__ = [
+    "T",
     "adjacent_pairs",
     "chunk",
+    "distinct",
+    "drop_while",
+    "first",
+    "flatten",
+    "head",
+    "interleave",
     "is_sorted",
+    "last",
+    "nth",
+    "split_at",
+    "tail",
+    "take_while",
+    "unique",
 ]
 
 

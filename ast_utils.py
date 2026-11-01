@@ -1,6 +1,22 @@
 """Utilities for working with Python abstract syntax trees (wrapping :mod:`ast`)."""
 
 import ast as _ast
+__all__ = [
+    "copy_location",
+    "dump",
+    "find_all",
+    "fix_missing_locations",
+    "get_docstring",
+    "increment_lineno",
+    "iter_child_nodes",
+    "iter_fields",
+    "literal_eval",
+    "node_to_string",
+    "parse",
+    "unparse",
+    "walk",
+]
+
 
 
 def parse(source, filename="<unknown>", mode="exec"):

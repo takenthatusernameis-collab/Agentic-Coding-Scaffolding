@@ -3,6 +3,19 @@
 import os
 import stat as _stat
 from typing import Any
+__all__ = [
+    "file_mode",
+    "file_type",
+    "filemode",
+    "is_device",
+    "is_directory",
+    "is_fifo",
+    "is_regular_file",
+    "is_socket",
+    "is_symlink",
+    "stat_info",
+]
+
 
 
 def file_mode(path: str | os.PathLike[str]) -> int:

@@ -10,6 +10,13 @@ import time
 from typing import Any, Callable, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
+__all__ = [
+    "F",
+    "benchmark",
+    "elapsed_time",
+    "timer",
+]
+
 
 
 class timer:

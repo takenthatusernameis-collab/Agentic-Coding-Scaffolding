@@ -12,20 +12,21 @@ from __future__ import annotations
 import asyncio as _asyncio
 from typing import Any, Callable, Coroutine, Iterable, Optional, TypeVar
 
-__all__: list[str] = [
+__all__ = [
+    "Event",
+    "Lock",
+    "Queue",
+    "Semaphore",
+    "T",
     "all_tasks",
     "create_task",
     "current_task",
-    "Event",
     "gather",
     "get_event_loop",
     "get_running_loop",
     "iscoroutine",
     "iscoroutinefunction",
-    "Lock",
-    "Queue",
     "run",
-    "Semaphore",
     "sleep",
     "to_thread",
     "wait_for",

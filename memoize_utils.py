@@ -13,7 +13,11 @@ from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 
-__all__ = ["memoize", "lru_memoize"]
+__all__ = [
+    "T",
+    "lru_memoize",
+    "memoize",
+]
 
 
 def memoize(func: Callable[..., T]) -> Callable[..., T]:

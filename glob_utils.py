@@ -1,6 +1,13 @@
 """Utilities for pathname pattern expansion (wrapping :mod:`glob`)."""
 
 import glob as _glob
+__all__ = [
+    "escape",
+    "glob_pattern",
+    "has_magic",
+    "iglob",
+]
+
 
 
 def glob_pattern(pattern, *, root_dir=None, dir_fd=None, recursive=False):

@@ -1,5 +1,13 @@
 import marshal
 from typing import Any, Union
+__all__ = [
+    "dump",
+    "dumps",
+    "get_version",
+    "load",
+    "loads",
+]
+
 
 
 def dumps(obj: Any, version: int = marshal.version) -> bytes:

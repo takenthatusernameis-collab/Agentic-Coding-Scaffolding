@@ -10,7 +10,13 @@ from typing import ParamSpec, TypeVar
 P = ParamSpec("P")
 T = TypeVar("T")
 
-__all__ = ["cooldown", "Cooldown", "is_available"]
+__all__ = [
+    "Cooldown",
+    "P",
+    "T",
+    "cooldown",
+    "is_available",
+]
 
 
 def is_available() -> bool:

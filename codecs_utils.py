@@ -3,6 +3,22 @@
 from __future__ import annotations
 
 import codecs as _codecs
+__all__ = [
+    "decode",
+    "encode",
+    "getdecoder",
+    "getencoder",
+    "getincrementaldecoder",
+    "getincrementalencoder",
+    "getreader",
+    "getwriter",
+    "lookup",
+    "lookup_error",
+    "open",
+    "register",
+    "register_error",
+]
+
 
 
 def encode(obj, encoding="utf-8", errors="strict"):

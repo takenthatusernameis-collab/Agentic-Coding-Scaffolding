@@ -1,3 +1,15 @@
+__all__ = [
+    "format_apology",
+    "format_birthday_wish",
+    "format_congrats",
+    "format_farewell",
+    "format_greeting",
+    "format_names",
+    "format_thanks",
+    "format_welcome",
+    "multi_greet",
+]
+
 def format_greeting(name: str, greeting: str = "Hello") -> str:
     """Return a formatted greeting string for the given name.
 

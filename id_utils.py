@@ -6,6 +6,12 @@ import secrets
 import string
 
 _ALPHABET = string.ascii_letters + string.digits
+__all__ = [
+    "generate_id",
+    "is_valid_id",
+    "new_id",
+]
+
 
 
 def generate_id(length: int = 8) -> str:

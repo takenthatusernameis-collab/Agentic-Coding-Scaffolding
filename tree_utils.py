@@ -6,6 +6,18 @@ from typing import Any, Callable, Dict, Iterable, List, Tuple, TypeVar
 
 T = TypeVar("T")
 U = TypeVar("U")
+__all__ = [
+    "T",
+    "U",
+    "delete_nested",
+    "filter_tree",
+    "flatten_tree",
+    "get_nested",
+    "map_tree",
+    "set_nested",
+    "unflatten_tree",
+]
+
 
 
 def get_nested(d: Dict[str, Any] | Any, keys: Iterable[str | int], default: Any = None) -> Any:

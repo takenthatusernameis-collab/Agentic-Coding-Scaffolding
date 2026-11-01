@@ -38,7 +38,7 @@ TextDoc = _pydoc.TextDoc
 #: The plain text representation builder of the standard library.
 TextRepr = _pydoc.TextRepr
 
-__all__: list[str] = [
+__all__ = [
     "Doc",
     "ErrorDuringImport",
     "HTMLDoc",
@@ -70,8 +70,10 @@ __all__: list[str] = [
     "plain",
     "plainpager",
     "render_doc",
+    "replace",
     "resolve",
     "safeimport",
+    "source_synopsis",
     "splitdoc",
     "stripid",
     "synopsis",

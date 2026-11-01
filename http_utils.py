@@ -76,6 +76,17 @@ STATUS_CODES: Dict[int, str] = {
     510: "Not Extended",
     511: "Network Authentication Required",
 }
+__all__ = [
+    "is_client_error",
+    "is_error",
+    "is_informational",
+    "is_redirection",
+    "is_server_error",
+    "is_success",
+    "status_code_category",
+    "status_message",
+]
+
 
 
 def status_code_category(code: int) -> int:

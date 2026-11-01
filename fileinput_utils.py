@@ -2,6 +2,12 @@
 
 import fileinput
 from typing import Any, Iterable, List, Optional
+__all__ = [
+    "count_lines",
+    "filenames",
+    "read_lines",
+]
+
 
 
 def read_lines(files: Optional[Iterable[str]] = None, **kwargs: Any) -> List[str]:

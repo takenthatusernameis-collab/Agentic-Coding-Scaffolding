@@ -1,6 +1,14 @@
 """Utilities for Python keyword classification (wrapping :mod:`keyword`)."""
 
 import keyword as _keyword
+__all__ = [
+    "is_keyword",
+    "is_soft_keyword",
+    "kwlist",
+    "main",
+    "softkwlist",
+]
+
 
 
 def is_keyword(word):

@@ -5,15 +5,17 @@ from typing import Callable, List, Optional, Tuple, TypeVar
 T = TypeVar("T")
 K = TypeVar("K")
 
-__all__: List[str] = [
-    "partition",
-    "group_by",
-    "safe_get",
-    "find",
-    "drop",
-    "take",
-    "intersperse",
+__all__ = [
+    "K",
+    "T",
     "chunks",
+    "drop",
+    "find",
+    "group_by",
+    "intersperse",
+    "partition",
+    "safe_get",
+    "take",
 ]
 
 

@@ -5,11 +5,13 @@ from typing import Any, Callable, List, TypeVar
 T = TypeVar("T")
 R = TypeVar("R")
 
-__all__: List[str] = [
-    "compose",
-    "pipe",
-    "curry",
+__all__ = [
+    "R",
+    "T",
     "apply",
+    "compose",
+    "curry",
+    "pipe",
 ]
 
 

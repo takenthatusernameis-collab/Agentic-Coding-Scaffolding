@@ -2,6 +2,14 @@
 
 import textwrap
 from typing import List
+__all__ = [
+    "dedent_text",
+    "fill_text",
+    "indent_text",
+    "shorten_text",
+    "wrap_text",
+]
+
 
 
 def wrap_text(text: str, width: int = 70) -> List[str]:

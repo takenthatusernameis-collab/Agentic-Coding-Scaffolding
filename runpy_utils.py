@@ -1,6 +1,11 @@
 """Utilities for running Python modules (wrapping :mod:`runpy`)."""
 
 import runpy as _runpy
+__all__ = [
+    "run_module",
+    "run_path",
+]
+
 
 
 def run_module(mod_name, init_globals=None, run_name=None, alter_sys=False):

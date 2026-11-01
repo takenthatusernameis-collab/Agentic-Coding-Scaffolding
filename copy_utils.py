@@ -15,13 +15,16 @@ T = TypeVar("T")
 K = TypeVar("K")
 V = TypeVar("V")
 
-__all__: list[str] = [
-    "shallow_copy",
-    "deep_copy",
+__all__ = [
+    "K",
+    "T",
+    "V",
     "copy_dict",
+    "deep_copy",
     "deep_copy_dict",
-    "merge_copy",
     "is_same_object",
+    "merge_copy",
+    "shallow_copy",
 ]
 
 

@@ -13,8 +13,11 @@ from typing import Any, Callable, Optional, TypeVar, Union, overload
 
 T = TypeVar("T")
 
+__all__ = [
+    "T",
+    "deprecated",
+]
 
-@overload
 def deprecated(
     func: Callable[..., T],
     *,

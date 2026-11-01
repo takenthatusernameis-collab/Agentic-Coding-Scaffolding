@@ -7,6 +7,17 @@ import tarfile
 import zipfile
 from pathlib import Path
 from typing import List, Optional, Union
+__all__ = [
+    "bz2_compress",
+    "bz2_decompress",
+    "gzip_compress",
+    "gzip_decompress",
+    "tar_compress",
+    "tar_extract",
+    "zip_compress_files",
+    "zip_extract",
+]
+
 
 
 def gzip_compress(data: Union[bytes, str], encoding: str = "utf-8") -> bytes:

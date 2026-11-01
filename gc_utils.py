@@ -1,6 +1,22 @@
 """Utilities wrapping the standard library ``gc`` module."""
 
 import gc
+__all__ = [
+    "collect",
+    "disable",
+    "enable",
+    "get_count",
+    "get_debug",
+    "get_objects",
+    "get_referents",
+    "get_referrers",
+    "get_stats",
+    "get_threshold",
+    "isenabled",
+    "set_debug",
+    "set_threshold",
+]
+
 
 
 def enable() -> None:

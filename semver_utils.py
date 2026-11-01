@@ -17,6 +17,16 @@ SEMVER_RE = re.compile(
     r"(?:-(?P<prerelease>[0-9A-Za-z\-]+(?:\.[0-9A-Za-z\-]+)*))?"
     r"(?:\+(?P<build>[0-9A-Za-z\-]+(?:\.[0-9A-Za-z\-]+)*))?$"
 )
+__all__ = [
+    "SemanticVersion",
+    "bump_major",
+    "bump_minor",
+    "bump_patch",
+    "compare_semver",
+    "is_valid_semver",
+    "parse_semver",
+]
+
 
 
 class SemanticVersion:

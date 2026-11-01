@@ -8,6 +8,19 @@ rows, and inspecting schema. All functions validate their inputs and raise
 
 import sqlite3 as _sqlite3
 from typing import Any, Optional, Sequence
+__all__ = [
+    "connect",
+    "create_table",
+    "execute",
+    "executemany",
+    "fetch_all",
+    "fetch_many",
+    "fetch_one",
+    "insert_row",
+    "query",
+    "table_exists",
+]
+
 
 
 def connect(database: str = ":memory:", *, timeout: float = 5.0) -> _sqlite3.Connection:

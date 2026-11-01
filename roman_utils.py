@@ -33,6 +33,12 @@ _ROMAN_DIGITS = {
 _ROMAN_PATTERN = (
     r"^(?=.)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$"
 )
+__all__ = [
+    "from_roman",
+    "is_valid_roman",
+    "to_roman",
+]
+
 
 
 def to_roman(number: int) -> str:

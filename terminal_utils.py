@@ -28,6 +28,17 @@ _COLOR_CODES: dict = {
 }
 
 _VALID_COLORS = frozenset(_COLOR_CODES)
+__all__ = [
+    "ProgressBar",
+    "clear_screen",
+    "colorize",
+    "get_terminal_size",
+    "print_colored",
+    "progress_bar",
+    "prompt",
+    "supports_color",
+]
+
 
 
 def supports_color(stream: Optional[TextIO] = None) -> bool:

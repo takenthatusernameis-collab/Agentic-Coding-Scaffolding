@@ -1,6 +1,13 @@
 """Utilities for Python interactive console support (wrapping :mod:`code`)."""
 
 import code as _code
+__all__ = [
+    "compile_command",
+    "console_class",
+    "interact",
+    "interpreter_class",
+]
+
 
 
 def interact(banner=None, readfunc=None, local=None, exitmsg=None):

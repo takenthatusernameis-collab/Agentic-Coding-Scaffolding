@@ -14,6 +14,22 @@ T = TypeVar("T")
 
 # threading.Lock is a factory function, not a class, so capture the actual lock type.
 _LockType = type(threading.Lock())
+__all__ = [
+    "T",
+    "active_count",
+    "create_bounded_semaphore",
+    "create_condition",
+    "create_event",
+    "create_lock",
+    "create_rlock",
+    "create_semaphore",
+    "create_thread",
+    "create_timer",
+    "current_thread",
+    "enumerate_threads",
+    "synchronized",
+]
+
 
 
 def _validate_callable(value: Any, name: str) -> None:

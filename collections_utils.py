@@ -22,21 +22,24 @@ T = TypeVar("T")
 K = TypeVar("K")
 V = TypeVar("V")
 
-__all__: List[str] = [
+__all__ = [
+    "K",
+    "T",
+    "V",
     "chunk",
-    "flatten",
+    "compact",
     "deep_flatten",
-    "windowed",
-    "uniq",
-    "uniq_by",
+    "flatten",
     "frequency",
-    "most_common",
     "least_common",
     "merge_dicts",
-    "to_deque",
-    "pluck",
-    "compact",
+    "most_common",
     "partition_by",
+    "pluck",
+    "to_deque",
+    "uniq",
+    "uniq_by",
+    "windowed",
 ]
 
 

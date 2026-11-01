@@ -16,7 +16,8 @@ from __future__ import annotations
 import urllib.parse as _urllib_parse
 from typing import Any, Mapping, Optional, Sequence, Tuple, Union, cast
 
-__all__: list[str] = [
+__all__ = [
+    "build_url",
     "defrag",
     "join_url",
     "parse_qs",

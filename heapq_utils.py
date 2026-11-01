@@ -10,12 +10,13 @@ from typing import Any, Callable, Iterable, Iterator, List, Optional, TypeVar, c
 
 T = TypeVar("T")
 
-__all__: list[str] = [
+__all__ = [
+    "T",
     "heapify",
-    "heappush",
     "heappop",
-    "heapreplace",
+    "heappush",
     "heappushpop",
+    "heapreplace",
     "merge",
     "nlargest",
     "nsmallest",

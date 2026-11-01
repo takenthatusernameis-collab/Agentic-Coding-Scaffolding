@@ -116,7 +116,7 @@ KEY_RESIZE: int = _curses.KEY_RESIZE if _curses is not None else 0
 KEY_MAX: int = _curses.KEY_MAX if _curses is not None else 0
 KEY_MIN: int = _curses.KEY_MIN if _curses is not None else 0
 
-__all__: List[str] = [
+__all__ = [
     "A_ALTCHARSET",
     "A_ATTRIBUTES",
     "A_BLINK",
@@ -179,10 +179,15 @@ __all__: List[str] = [
     "get_escdelay",
     "get_tabsize",
     "getsyx",
+    "halfdelay",
     "has_colors",
     "has_ic",
     "has_il",
     "has_key",
+    "init_color",
+    "init_pair",
+    "initscr",
+    "intrflush",
     "is_available",
     "is_term_resized",
     "isendwin",
@@ -214,12 +219,14 @@ __all__: List[str] = [
     "set_escdelay",
     "set_tabsize",
     "setsyx",
+    "setupterm",
     "start_color",
     "termattrs",
     "termname",
     "typeahead",
     "unget_wch",
     "ungetch",
+    "update_lines_cols",
     "use_default_colors",
     "use_env",
 ]

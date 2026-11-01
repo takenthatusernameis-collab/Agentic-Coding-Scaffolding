@@ -2,6 +2,17 @@
 
 import argparse
 from typing import Any, Callable, List, Optional
+__all__ = [
+    "add_flag",
+    "add_option",
+    "add_positional",
+    "add_subparsers",
+    "float_range",
+    "int_positive",
+    "make_parser",
+    "parse_args",
+]
+
 
 
 def make_parser(

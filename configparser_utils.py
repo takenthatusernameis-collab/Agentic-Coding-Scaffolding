@@ -12,23 +12,29 @@ from configparser import (
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Union
 
-__all__: list[str] = [
-    "ConfigParser",
-    "RawConfigParser",
+__all__ = [
     "BasicInterpolation",
-    "ExtendedInterpolation",
+    "ConfigParser",
+    "ConfigParserError",
     "DEFAULTSECT",
+    "DuplicateOptionError",
+    "DuplicateSectionError",
+    "Error",
+    "ExtendedInterpolation",
+    "InterpolationDepthError",
     "InterpolationMissingOptionError",
     "InterpolationSyntaxError",
-    "InterpolationDepthError",
     "MissingSectionHeaderError",
-    "ParsingError",
-    "NoSectionError",
     "NoOptionError",
-    "DuplicateSectionError",
-    "DuplicateOptionError",
-    "ConfigParserError",
-    "Error",
+    "NoSectionError",
+    "ParsingError",
+    "RawConfigParser",
+    "get_options",
+    "get_sections",
+    "load_config",
+    "read_files",
+    "save_config",
+    "write_config",
 ]
 
 # Re-export common exceptions for convenience
