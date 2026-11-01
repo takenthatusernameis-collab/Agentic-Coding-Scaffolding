@@ -71790,6 +71790,8 @@ __all__: list[str] = [
     "is_palindromic_number",
     "is_coprime",
     "is_duck_number",
+    "is_odious_number",
+    "is_evil_number",
     "is_perfect_power",
     "is_kaprekar_number",
     "proper_divisors",
@@ -72762,6 +72764,64 @@ def is_duck_number(n: int) -> bool:
         return False
     s = str(n)
     return "0" in s[1:]
+
+
+def is_odious_number(n: int) -> bool:
+    """Return ``True`` when *n* is an odious number.
+
+    An odious number is a non-negative integer with an odd number of 1s
+    in its binary representation.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is an odious number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_odious_number(1)
+        True
+        >>> is_odious_number(2)
+        True
+        >>> is_odious_number(3)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    return bin(n).count("1") % 2 == 1
+
+
+def is_evil_number(n: int) -> bool:
+    """Return ``True`` when *n* is an evil number.
+
+    An evil number is a non-negative integer with an even number of 1s
+    in its binary representation.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is an evil number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_evil_number(3)
+        True
+        >>> is_evil_number(1)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    return bin(n).count("1") % 2 == 0
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
