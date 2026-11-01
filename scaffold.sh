@@ -47192,6 +47192,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added test coverage for is_odious_number and is_evil_number in numbers_utils
+
+- The preceding commit (`feat(numbers_utils): add is_odious_number, is_evil_number; export is_coprime`) added `is_odious_number(n)` and `is_evil_number(n)` to `numbers_utils.py` with `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-int arguments, but added no tests — a coverage gap against the project's convention.
+- Added `TestIsOdiousNumber` and `TestIsEvilNumber` to `tests/test_numbers_utils.py` covering known odious numbers (odd count of 1-bits), known evil numbers (even count of 1-bits), the odious/evil partition of small non-negative integers, large values (65535, 65537, 65539), negatives, and the `TypeError` paths (16 new tests). Imported `is_odious_number` and `is_evil_number` at the top of the test file to match the module's `__all__` contract.
+- Updated the `numbers_utils` module tree entry and prose section of `README.md` to list the two new helpers.
+
 ## Unreleased — added winsorized_stddev to stats
 
 - Added `winsorized_stddev(numbers, k=1, population=True)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `winsorized_mean` and `winsorized_variance`; it winsorizes by replacing the *k* smallest and *k* largest values with the nearest remaining values, then returns the standard deviation (population or sample) of the winsorized values, reducing outlier influence without discarding data.
@@ -48917,7 +48923,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, is_disarium_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_perfect_power, proper_divisors)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, proper_divisors)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -50027,7 +50033,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, and `is_pronic_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_almost_perfect_number` tests whether the sum of proper divisors equals the number minus one; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; `is_spy_number` tests whether the sum of the digits equals the product of the digits; `is_polydivisible_number` tests whether every decimal prefix of the number is divisible by its length (e.g. 1, 12, 126, 1248); `is_pandigital_number` tests whether an integer contains every digit of a base at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4); and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, and `is_pronic_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_almost_perfect_number` tests whether the sum of proper divisors equals the number minus one; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; `is_spy_number` tests whether the sum of the digits equals the product of the digits; `is_polydivisible_number` tests whether every decimal prefix of the number is divisible by its length (e.g. 1, 12, 126, 1248); `is_pandigital_number` tests whether an integer contains every digit of a base at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4); `is_duck_number` tests whether the decimal representation contains at least one zero that is not a leading zero (e.g. 101, 203); `is_odious_number` tests whether a non-negative integer has an odd number of 1-bits in its binary representation; `is_evil_number` tests whether a non-negative integer has an even number of 1-bits in its binary representation; and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -72841,14 +72847,14 @@ from numbers_utils import (
     is_complex,
     is_coprime,
     is_deficient_number,
-    is_disarium_number,
     is_duck_number,
+    is_evil_number,
     is_happy_number,
     is_harshad_number,
     is_integral,
-    is_kaprekar_number,
     is_neon_number,
     is_number,
+    is_odious_number,
     is_palindromic_number,
     is_pandigital_number,
     is_perfect_number,
@@ -73364,6 +73370,60 @@ class TestIsPandigitalNumber(unittest.TestCase):
         for base in (1, 0, -1, 37, 100):
             with self.assertRaises(ValueError):
                 is_pandigital_number(1023456789, base=base)
+
+
+class TestIsOdiousNumber(unittest.TestCase):
+    def test_known_odious_numbers(self):
+        # odious numbers: non-negative ints with an odd number of 1-bits
+        for value in (1, 2, 4, 7, 8, 11, 13, 14, 16, 19, 21, 22, 25, 26, 28, 31, 32):
+            self.assertTrue(is_odious_number(value), value)
+
+    def test_known_evil_numbers(self):
+        # evil numbers have an even number of 1-bits; odious and evil partition N
+        for value in (0, 3, 5, 6, 9, 10, 12, 15, 17, 18, 20, 23, 24, 27, 29, 30):
+            self.assertFalse(is_odious_number(value), value)
+
+    def test_large_odious_number(self):
+        # 2**16 - 1 = 65535 = 0b1111111111111111 (16 ones, even -> evil)
+        self.assertFalse(is_odious_number(65535))
+        # 2**16 + 1 = 65537 = 0b10000000000000001 (2 ones, even -> evil)
+        self.assertFalse(is_odious_number(65537))
+        # 2**16 + 3 = 65539 = 0b10000000000000011 (3 ones, odd -> odious)
+        self.assertTrue(is_odious_number(65539))
+
+    def test_negative_numbers(self):
+        for value in (-1, -2, -7):
+            self.assertFalse(is_odious_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "2", None, True, [2]):
+            with self.assertRaises(TypeError):
+                is_odious_number(value)
+
+
+class TestIsEvilNumber(unittest.TestCase):
+    def test_known_evil_numbers(self):
+        for value in (0, 3, 5, 6, 9, 10, 12, 15, 17, 18, 20, 23, 24, 27, 29, 30):
+            self.assertTrue(is_evil_number(value), value)
+
+    def test_known_odious_numbers(self):
+        for value in (1, 2, 4, 7, 8, 11, 13, 14, 16, 19, 21, 22, 25, 26, 28, 31, 32):
+            self.assertFalse(is_evil_number(value), value)
+
+    def test_large_evil_number(self):
+        # 2**16 - 1 = 65535 has 16 ones (even) -> evil
+        self.assertTrue(is_evil_number(65535))
+        # 2**16 + 3 = 65539 has 3 ones (odd) -> odious
+        self.assertFalse(is_evil_number(65539))
+
+    def test_negative_numbers(self):
+        for value in (-1, -3, -6):
+            self.assertFalse(is_evil_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "3", None, True, [3]):
+            with self.assertRaises(TypeError):
+                is_evil_number(value)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,9 @@
+## Unreleased — added test coverage for is_odious_number and is_evil_number in numbers_utils
+
+- The preceding commit (`feat(numbers_utils): add is_odious_number, is_evil_number; export is_coprime`) added `is_odious_number(n)` and `is_evil_number(n)` to `numbers_utils.py` with `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-int arguments, but added no tests — a coverage gap against the project's convention.
+- Added `TestIsOdiousNumber` and `TestIsEvilNumber` to `tests/test_numbers_utils.py` covering known odious numbers (odd count of 1-bits), known evil numbers (even count of 1-bits), the odious/evil partition of small non-negative integers, large values (65535, 65537, 65539), negatives, and the `TypeError` paths (16 new tests). Imported `is_odious_number` and `is_evil_number` at the top of the test file to match the module's `__all__` contract.
+- Updated the `numbers_utils` module tree entry and prose section of `README.md` to list the two new helpers.
+
 ## Unreleased — added winsorized_stddev to stats
 
 - Added `winsorized_stddev(numbers, k=1, population=True)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `winsorized_mean` and `winsorized_variance`; it winsorizes by replacing the *k* smallest and *k* largest values with the nearest remaining values, then returns the standard deviation (population or sample) of the winsorized values, reducing outlier influence without discarding data.

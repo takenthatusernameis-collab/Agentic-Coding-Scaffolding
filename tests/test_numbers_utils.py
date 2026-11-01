@@ -13,14 +13,14 @@ from numbers_utils import (
     is_complex,
     is_coprime,
     is_deficient_number,
-    is_disarium_number,
     is_duck_number,
+    is_evil_number,
     is_happy_number,
     is_harshad_number,
     is_integral,
-    is_kaprekar_number,
     is_neon_number,
     is_number,
+    is_odious_number,
     is_palindromic_number,
     is_pandigital_number,
     is_perfect_number,
@@ -536,6 +536,60 @@ class TestIsPandigitalNumber(unittest.TestCase):
         for base in (1, 0, -1, 37, 100):
             with self.assertRaises(ValueError):
                 is_pandigital_number(1023456789, base=base)
+
+
+class TestIsOdiousNumber(unittest.TestCase):
+    def test_known_odious_numbers(self):
+        # odious numbers: non-negative ints with an odd number of 1-bits
+        for value in (1, 2, 4, 7, 8, 11, 13, 14, 16, 19, 21, 22, 25, 26, 28, 31, 32):
+            self.assertTrue(is_odious_number(value), value)
+
+    def test_known_evil_numbers(self):
+        # evil numbers have an even number of 1-bits; odious and evil partition N
+        for value in (0, 3, 5, 6, 9, 10, 12, 15, 17, 18, 20, 23, 24, 27, 29, 30):
+            self.assertFalse(is_odious_number(value), value)
+
+    def test_large_odious_number(self):
+        # 2**16 - 1 = 65535 = 0b1111111111111111 (16 ones, even -> evil)
+        self.assertFalse(is_odious_number(65535))
+        # 2**16 + 1 = 65537 = 0b10000000000000001 (2 ones, even -> evil)
+        self.assertFalse(is_odious_number(65537))
+        # 2**16 + 3 = 65539 = 0b10000000000000011 (3 ones, odd -> odious)
+        self.assertTrue(is_odious_number(65539))
+
+    def test_negative_numbers(self):
+        for value in (-1, -2, -7):
+            self.assertFalse(is_odious_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "2", None, True, [2]):
+            with self.assertRaises(TypeError):
+                is_odious_number(value)
+
+
+class TestIsEvilNumber(unittest.TestCase):
+    def test_known_evil_numbers(self):
+        for value in (0, 3, 5, 6, 9, 10, 12, 15, 17, 18, 20, 23, 24, 27, 29, 30):
+            self.assertTrue(is_evil_number(value), value)
+
+    def test_known_odious_numbers(self):
+        for value in (1, 2, 4, 7, 8, 11, 13, 14, 16, 19, 21, 22, 25, 26, 28, 31, 32):
+            self.assertFalse(is_evil_number(value), value)
+
+    def test_large_evil_number(self):
+        # 2**16 - 1 = 65535 has 16 ones (even) -> evil
+        self.assertTrue(is_evil_number(65535))
+        # 2**16 + 3 = 65539 has 3 ones (odd) -> odious
+        self.assertFalse(is_evil_number(65539))
+
+    def test_negative_numbers(self):
+        for value in (-1, -3, -6):
+            self.assertFalse(is_evil_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "3", None, True, [3]):
+            with self.assertRaises(TypeError):
+                is_evil_number(value)
 
 
 if __name__ == "__main__":
