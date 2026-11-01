@@ -6369,7 +6369,36 @@ def _require_path(value: object, name: str = "path") -> Union[str, Path]:
 def _as_path_str(value: object, name: str = "path") -> str:
     """Coerce a path-like value to a string for stdlib APIs."""
     path = _require_path(value, name)
+    if isinstance(path, Path):
+        # pathlib.Path("") string representation is '.' in some cases, but better check parts
+        if len(path.parts) == 0 or (len(path.parts) == 1 and path.parts[0] == "."):
+            # Could be empty-like; check raw string
+            pass
     path_str = str(path)
+    # Empty path
+    if path_str == "":
+        raise ValueError(f"{name} must not be empty")
+    # Path('') becomes '.' in string form - treat as empty for our API
+    try:
+        if isinstance(path, Path) and path == Path(""):
+            raise ValueError(f"{name} must not be empty")
+    except Exception:
+        pass
+    if path_str == "." and isinstance(path, Path):
+        # Distinguish from actual current dir? Our API says empty paths raise ValueError
+        # For Path('') we want ValueError
+        try:
+            if str(Path("")) == "." or Path(path_str) == Path(""):
+                pass
+        except Exception:
+            pass
+    # More robust: if original is Path and it's empty
+    if isinstance(value, Path):
+        try:
+            if str(value) == "" or value == Path(""):
+                raise ValueError(f"{name} must not be empty")
+        except Exception:
+            pass
     if path_str == "":
         raise ValueError(f"{name} must not be empty")
     return path_str
@@ -8093,6 +8122,10 @@ class TestZipfileUtilsBoundary(unittest.TestCase):
             create_archive("", [self.src])
         with self.assertRaises(ValueError):
             create_archive(self.archive, [])
+        with self.assertRaises(ValueError):
+            create_archive(self.archive, [""])  # type: ignore[list-item]
+        with self.assertRaises(ValueError):
+            create_archive(self.archive, [pathlib.Path("")])
 
     def test_list_names_type_errors(self):
         with self.assertRaises(TypeError):
@@ -8101,6 +8134,8 @@ class TestZipfileUtilsBoundary(unittest.TestCase):
             list_names(123)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             list_names("")
+        with self.assertRaises(ValueError):
+            list_names(pathlib.Path(""))
 
     def test_extract_all_type_errors(self):
         with self.assertRaises(TypeError):
@@ -8115,6 +8150,10 @@ class TestZipfileUtilsBoundary(unittest.TestCase):
             extract_all("", self.tmpdir)
         with self.assertRaises(ValueError):
             extract_all(self.archive, "")
+        with self.assertRaises(ValueError):
+            extract_all(pathlib.Path(""), self.tmpdir)
+        with self.assertRaises(ValueError):
+            extract_all(self.archive, pathlib.Path(""))
 
     def test_is_zipfile_type_errors(self):
         with self.assertRaises(TypeError):
@@ -8123,6 +8162,8 @@ class TestZipfileUtilsBoundary(unittest.TestCase):
             is_zipfile(123)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             is_zipfile("")
+        with self.assertRaises(ValueError):
+            is_zipfile(pathlib.Path(""))
 
 
 if __name__ == "__main__":
@@ -50030,7 +50071,7 @@ pickletools_utils.py         # Pickletools utilities wrapping stdlib pickletools
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
-strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, count_punctuation, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
+strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, count_punctuation, count_whitespace, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, repeat_string, remove_vowels, remove_consonants, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_decimal, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_anagram, is_isogram, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, char_count, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, capitalize_words, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, is_composite, clamp, is_even, combination, permutation)
@@ -50179,7 +50220,8 @@ marshal_utils.py           # Object serialization utilities wrapping stdlib mars
 importlib_utils.py         # importlib utilities
 atexit_utils.py            # atexit utilities for registering exit handlers
 multiprocessing_utils.py   # multiprocessing utilities for pools, processes, locks, shared memory (dynamic import, reload, spec, metadata, resources)
-zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile)
+zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (create_archive, list_names, extract_all, is_zipfile) with path validation and Path support
+
 bz2_utils.py               # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 gc_utils.py                # GC utilities wrapping stdlib gc (enable, disable, isenabled, collect, get_count, get_stats, get_objects, get_referents, get_referrers, set_threshold, get_threshold, set_debug, get_debug)
@@ -50651,7 +50693,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `count_punctuation`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `removeprefix`, `removesuffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, and `is_blank`, `ensure_prefix`, `ensure_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, and `ensure_surrounded_by_newlines`. Added `chunk_string` for splitting strings into fixed-size chunks. `ensure_prefix` guarantees that *text* begins with *prefix* (returning *text* unchanged when it already does), and `ensure_suffix` guarantees that *text* ends with *suffix*; both raise `TypeError` for non-string arguments. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `count_punctuation`, `count_whitespace`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `repeat_string`, `remove_vowels`, `remove_consonants`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_decimal`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_anagram`, `is_isogram`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `char_count`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `find`, `rfind`, `removeprefix`, `removesuffix`, `remove_prefix`, `remove_suffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, `capitalize_words`, and `is_blank`, `ensure_prefix`, `ensure_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, and `ensure_surrounded_by_newlines`, `count_leading_newlines`, `count_trailing_newlines`, `strip_leading_newlines`, `strip_trailing_newlines`. Added `chunk_string` for splitting strings into fixed-size chunks. `ensure_prefix` guarantees that *text* begins with *prefix* (returning *text* unchanged when it already does), and `ensure_suffix` guarantees that *text* ends with *suffix*; both raise `TypeError` for non-string arguments. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 
@@ -101364,6 +101406,33 @@ class TestIsVersionBetween(unittest.TestCase):
             is_version_between("1.0.0", "bad", "2.0.0")
         with self.assertRaises(ValueError):
             is_version_between("1.0.0", "1.0.0", "bad")
+
+
+
+class TestVersionUtilsAliases(unittest.TestCase):
+    def test_parse_version_alias(self):
+        self.assertEqual(parse_version_alias("1.2.3"), parse_version("1.2.3"))
+
+    def test_greater_than(self):
+        self.assertTrue(greater_than("2.0.0", "1.0.0"))
+        self.assertFalse(greater_than("1.0.0", "2.0.0"))
+
+    def test_less_than(self):
+        self.assertTrue(less_than("1.0.0", "2.0.0"))
+        self.assertFalse(less_than("2.0.0", "1.0.0"))
+
+    def test_equal_to(self):
+        self.assertTrue(equal_to("1.0.0", "1.0.0"))
+        self.assertFalse(equal_to("1.0.0", "2.0.0"))
+
+    def test_increment_major(self):
+        self.assertEqual(increment_major("1.2.3"), "2.0.0")
+
+    def test_increment_minor(self):
+        self.assertEqual(increment_minor("1.2.3"), "1.3.0")
+
+    def test_increment_patch(self):
+        self.assertEqual(increment_patch("1.2.3"), "1.2.4")
 TEST_VERSION_UTILS
 
 # --- warnings_utils.py ---

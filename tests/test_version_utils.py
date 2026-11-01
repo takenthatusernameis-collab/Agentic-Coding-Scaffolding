@@ -878,3 +878,29 @@ class TestIsVersionBetween(unittest.TestCase):
         with self.assertRaises(ValueError):
             is_version_between("1.0.0", "1.0.0", "bad")
 
+
+
+class TestVersionUtilsAliases(unittest.TestCase):
+    def test_parse_version_alias(self):
+        self.assertEqual(parse_version_alias("1.2.3"), parse_version("1.2.3"))
+
+    def test_greater_than(self):
+        self.assertTrue(greater_than("2.0.0", "1.0.0"))
+        self.assertFalse(greater_than("1.0.0", "2.0.0"))
+
+    def test_less_than(self):
+        self.assertTrue(less_than("1.0.0", "2.0.0"))
+        self.assertFalse(less_than("2.0.0", "1.0.0"))
+
+    def test_equal_to(self):
+        self.assertTrue(equal_to("1.0.0", "1.0.0"))
+        self.assertFalse(equal_to("1.0.0", "2.0.0"))
+
+    def test_increment_major(self):
+        self.assertEqual(increment_major("1.2.3"), "2.0.0")
+
+    def test_increment_minor(self):
+        self.assertEqual(increment_minor("1.2.3"), "1.3.0")
+
+    def test_increment_patch(self):
+        self.assertEqual(increment_patch("1.2.3"), "1.2.4")
