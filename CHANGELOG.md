@@ -1,3 +1,9 @@
+## Unreleased — added is_squarefree_number to number_utils
+
+- Added `is_squarefree_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *value* is a positive integer not divisible by any perfect square greater than 1 (1 is squarefree by convention), and False for 0, negatives, and numbers with a squared prime factor.
+- Added `TestIsSquarefreeNumber` to `tests/test_number_utils.py` covering squarefree and non-squarefree numbers, 0 and negatives, and the `TypeError` path. Imported `is_squarefree_number` at the top of the test file to match the module's `__all__` contract.
+- Updated the `number_utils` module tree entry and prose section of `README.md`.
+
 ## Unreleased — added is_abstract to abc_utils
 
 - Added `is_abstract(obj)` to `abc_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests; it returns True when *obj* exposes a non-empty ``__abstractmethods__`` attribute. Added `test_is_abstract` to `tests/test_abc_utils.py`. Updated the `abc_utils` prose section of `README.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `abc_utils.py`, `tests/test_abc_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

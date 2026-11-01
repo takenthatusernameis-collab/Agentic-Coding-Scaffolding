@@ -68,6 +68,7 @@ __all__: List[str] = [
     "is_deficient_number",
     "is_disarium_number",
     "is_ugly_number",
+    "is_squarefree_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -1811,3 +1812,49 @@ def is_ugly_number(value: int) -> bool:
         while n % factor == 0:
             n //= factor
     return n == 1
+
+
+def is_squarefree_number(value: int) -> bool:
+    """Return True if *value* is a squarefree number.
+
+    A squarefree number is a positive integer that is not divisible by any
+    perfect square greater than 1; equivalently, no prime factor appears with
+    multiplicity greater than one in its prime factorization. By convention,
+    1 is squarefree.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is squarefree, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_squarefree_number(1)
+        True
+        >>> is_squarefree_number(2)
+        True
+        >>> is_squarefree_number(4)
+        False
+        >>> is_squarefree_number(12)
+        False
+        >>> is_squarefree_number(30)
+        True
+        >>> is_squarefree_number(0)
+        False
+        >>> is_squarefree_number(-5)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 1:
+        return False
+    n = value
+    factor = 2
+    while factor * factor <= n:
+        if n % (factor * factor) == 0:
+            return False
+        factor += 1
+    return True
