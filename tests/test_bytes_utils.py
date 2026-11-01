@@ -15,6 +15,7 @@ from bytes_utils import (
     reverse,
     rfind,
     rpartition,
+    splitlines,
     starts_with,
     to_hex,
     xor,
@@ -335,3 +336,35 @@ class TestRemoveSuffix(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSplitlines(unittest.TestCase):
+    def test_splitlines_basic(self):
+        self.assertEqual(splitlines(b"hello\nworld"), [b"hello", b"world"])
+        self.assertEqual(splitlines(b"hello\r\nworld"), [b"hello", b"world"])
+        self.assertEqual(splitlines(b"hello\rworld"), [b"hello", b"world"])
+        self.assertEqual(splitlines(b"a\nb\nc"), [b"a", b"b", b"c"])
+
+    def test_splitlines_keepends(self):
+        self.assertEqual(splitlines(b"hello\nworld", keepends=True), [b"hello\n", b"world"])
+        self.assertEqual(splitlines(b"hello\r\n", keepends=True), [b"hello\r\n"])
+
+    def test_splitlines_empty(self):
+        self.assertEqual(splitlines(b""), [])
+
+    def test_splitlines_no_newline(self):
+        self.assertEqual(splitlines(b"hello"), [b"hello"])
+
+    def test_splitlines_trailing_newline(self):
+        self.assertEqual(splitlines(b"hello\n"), [b"hello"])
+
+    def test_splitlines_bytearray(self):
+        self.assertEqual(splitlines(bytearray(b"hello\nworld")), [b"hello", b"world"])
+
+    def test_splitlines_type_errors(self):
+        with self.assertRaises(TypeError):
+            splitlines("hello\n")
+        with self.assertRaises(TypeError):
+            splitlines(b"hello\n", keepends="true")
+        with self.assertRaises(TypeError):
+            splitlines(123)

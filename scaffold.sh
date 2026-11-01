@@ -42682,6 +42682,7 @@ __all__: list[str] = [
     "zfill",
     "removeprefix",
     "removesuffix",
+    "splitlines",
 ]
 
 
@@ -43317,6 +43318,56 @@ def removesuffix(data: bytes, suffix: bytes) -> bytes:
     if not isinstance(suffix, (bytes, bytearray)):
         raise TypeError("suffix must be bytes or bytearray")
     return bytes(data).removesuffix(bytes(suffix))
+
+
+def splitlines(data: bytes, keepends: bool = False) -> list[bytes]:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(keepends, bool):
+        raise TypeError("keepends must be bool")
+    if isinstance(data, bytearray):
+        data = bytes(data)
+    if not data:
+        return []
+    result = []
+    i = 0
+    n = len(data)
+    start = 0
+    while i < n:
+        b = data[i]
+        if b == 0x0D:  # \r
+            if i + 1 < n and data[i + 1] == 0x0A:  # \r\n
+                if keepends:
+                    result.append(data[start : i + 2])
+                else:
+                    result.append(data[start:i])
+                i += 2
+            else:
+                if keepends:
+                    result.append(data[start : i + 1])
+                else:
+                    result.append(data[start:i])
+                i += 1
+            start = i
+        elif b == 0x0A:  # \n
+            if keepends:
+                result.append(data[start : i + 1])
+            else:
+                result.append(data[start:i])
+            i += 1
+            start = i
+        elif b in (0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85):
+            if keepends:
+                result.append(data[start : i + 1])
+            else:
+                result.append(data[start:i])
+            i += 1
+            start = i
+        else:
+            i += 1
+    if start < n:
+        result.append(data[start:n])
+    return result
 BYTES_UTILS
 
 # --- tests/test_bytes_utils.py ---
@@ -43338,6 +43389,7 @@ from bytes_utils import (
     reverse,
     rfind,
     rpartition,
+    splitlines,
     starts_with,
     to_hex,
     xor,
@@ -43658,6 +43710,38 @@ class TestRemoveSuffix(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSplitlines(unittest.TestCase):
+    def test_splitlines_basic(self):
+        self.assertEqual(splitlines(b"hello\nworld"), [b"hello", b"world"])
+        self.assertEqual(splitlines(b"hello\r\nworld"), [b"hello", b"world"])
+        self.assertEqual(splitlines(b"hello\rworld"), [b"hello", b"world"])
+        self.assertEqual(splitlines(b"a\nb\nc"), [b"a", b"b", b"c"])
+
+    def test_splitlines_keepends(self):
+        self.assertEqual(splitlines(b"hello\nworld", keepends=True), [b"hello\n", b"world"])
+        self.assertEqual(splitlines(b"hello\r\n", keepends=True), [b"hello\r\n"])
+
+    def test_splitlines_empty(self):
+        self.assertEqual(splitlines(b""), [])
+
+    def test_splitlines_no_newline(self):
+        self.assertEqual(splitlines(b"hello"), [b"hello"])
+
+    def test_splitlines_trailing_newline(self):
+        self.assertEqual(splitlines(b"hello\n"), [b"hello"])
+
+    def test_splitlines_bytearray(self):
+        self.assertEqual(splitlines(bytearray(b"hello\nworld")), [b"hello", b"world"])
+
+    def test_splitlines_type_errors(self):
+        with self.assertRaises(TypeError):
+            splitlines("hello\n")
+        with self.assertRaises(TypeError):
+            splitlines(b"hello\n", keepends="true")
+        with self.assertRaises(TypeError):
+            splitlines(123)
 TESTBYTESUTILS
 
 # --- base64_utils.py ---
