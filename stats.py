@@ -55,6 +55,7 @@ __all__: List[str] = [
     "cumulative_sum",
     "cumulative_product",
     "winsorized_mean",
+    "winsorized_variance",
 ]
 
 
@@ -1452,3 +1453,52 @@ def winsorized_mean(numbers: List[T | float], k: int = 1) -> float:
     high = sorted_nums[n - k - 1]
     winsorized = [min(max(x, low), high) for x in numbers]
     return sum(winsorized) / len(winsorized)
+
+
+def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool = True) -> float:
+    """Return the variance of the winsorized values of *numbers*.
+
+    Winsorizes by replacing the *k* smallest and *k* largest values with the
+    nearest remaining values, then computes the variance of the resulting
+    list. Reduces outlier influence without discarding data.
+
+    Args:
+        numbers: A non-empty list of ints or floats.
+        k: Number of values to winsorize from each end. Defaults to 1.
+        population: If True (default), compute population variance; otherwise
+            sample variance (divides by n-1).
+
+    Returns:
+        The variance of the winsorized values.
+
+    Raises:
+        TypeError: If *numbers* is not a list or contains non-numeric values,
+            or if *k* is not an int.
+        ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
+            half the list length.
+
+    >>> winsorized_variance([1, 2, 3, 4, 5])
+    0.8
+    >>> winsorized_variance([1, 2, 3, 4, 5], k=0)
+    2.0
+    """
+    _require_numbers(numbers, "numbers")
+    _require_int(k, "k")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    n = len(numbers)
+    if k >= n / 2:
+        raise ValueError(
+            "k must be less than half the list length, "
+            f"got {k} for list of length {n}"
+        )
+    if k == 0:
+        return variance(numbers, population=population)
+    sorted_nums = sorted(numbers)
+    low = sorted_nums[k]
+    high = sorted_nums[n - k - 1]
+    winsorized = [min(max(x, low), high) for x in numbers]
+    m = sum(winsorized) / len(winsorized)
+    sq = sum((x - m) ** 2 for x in winsorized)
+    denom = n if population else n - 1
+    return sq / denom

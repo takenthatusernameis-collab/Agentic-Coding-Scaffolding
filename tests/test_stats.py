@@ -48,6 +48,7 @@ from stats import (
     variance,
     weighted_mean,
     winsorized_mean,
+    winsorized_variance,
     z_scores,
 )
 
@@ -1434,3 +1435,34 @@ class TestCumulativeProduct(unittest.TestCase):
     def test_bool_in_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             cumulative_product([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestWinsorizedVariance(unittest.TestCase):
+    def test_default(self) -> None:
+        self.assertEqual(winsorized_variance([1, 2, 3, 4, 5]), 0.8)
+
+    def test_k_zero_is_variance(self) -> None:
+        self.assertEqual(winsorized_variance([1, 2, 3, 4, 5], k=0), 2.0)
+
+    def test_single_element_k_zero(self) -> None:
+        self.assertEqual(winsorized_variance([7], k=0), 0.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_variance([])
+
+    def test_negative_k_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_variance([1, 2, 3], k=-1)
+
+    def test_k_too_large_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_variance([1, 2, 3], k=2)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_variance((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_variance([1, 2, "a"])  # type: ignore[type-var]
