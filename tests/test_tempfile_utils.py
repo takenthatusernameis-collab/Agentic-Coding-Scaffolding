@@ -97,6 +97,11 @@ class TestTempfileBoundary(unittest.TestCase):
         os.close(fd)
         os.unlink(path)
 
+    def test_mkstemp_path_acceptance_suffix_empty_str(self):
+        fd, path = mkstemp(suffix="", prefix=Path("t_"), dir=Path("/tmp"))
+        os.close(fd)
+        os.unlink(path)
+
     def test_mkstemp_type_errors_all(self):
         for kw in ({"suffix": 1}, {"prefix": 1}, {"dir": 1}):
             with self.assertRaises(TypeError):

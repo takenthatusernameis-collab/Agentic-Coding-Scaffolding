@@ -1,4 +1,9 @@
-## Unreleased — audited path_utils boundary cases
+## Unreleased — audited tempfile_utils boundary cases
+
+- Audited `tempfile_utils.py` boundary cases and aligned validation with project conventions: every public helper now consistently accepts `str` or `pathlib.Path` for `suffix`/`prefix`/`dir` (and coerces them), validates types with `TypeError` for non-str/non-Path inputs (including bools where inappropriate), and adds Google-style docstrings with `Raises:` sections.
+- Added `TestTempfileBoundary.test_mkstemp_path_acceptance_suffix_empty_str` and expanded coverage for Path acceptance across all helpers.
+- Updated the `tempfile_utils` prose section of `README.md` to document Path support and validation.
+- Synchronized `tempfile_utils.py`, `tests/test_tempfile_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` via `make refresh-scaffold` (all embedded copies in sync).
 
 - Audited every public helper in `path_utils.py` against boundary inputs: non-str/non-Path arguments, empty extensions, single-path calls to `get_common_path`, and Path-object acceptance. Found that `join_path` silently coerced non-str/non-Path arguments (e.g. `join_path(123)` returned `'123'`, `join_path("a", None)` returned `'a/None'`), and that `change_extension`/`ensure_extension` raised an opaque `AttributeError` for non-str extensions instead of the project's `TypeError`/`ValueError` convention.
 - Added a `_require_path` validation helper to `path_utils.py` and routed every public function through it so each raises a consistent `TypeError` for non-str/non-Path inputs; added a `_require_extension` helper that raises `TypeError` for non-str extensions and `ValueError` for empty extensions, used by `change_extension` and `ensure_extension`. Added `Raises:` sections to the docstrings of every public function.
