@@ -2,6 +2,9 @@
 
 import os
 import unittest
+from pathlib import Path
+
+from pathlib import Path
 
 from tempfile_utils import (
     NamedTemporaryFile,
@@ -86,6 +89,63 @@ class TestSpooledTemporaryFile(unittest.TestCase):
             f.write(b"hello")
             f.seek(0)
             self.assertEqual(f.read(), b"hello")
+
+
+class TestTempfileBoundary(unittest.TestCase):
+    def test_mkstemp_path_acceptance(self):
+        fd, path = mkstemp(suffix=Path(".txt"), prefix=Path("t_"), dir=Path("/tmp"))
+        os.close(fd)
+        os.unlink(path)
+
+    def test_mkstemp_type_errors_all(self):
+        for kw in ({"suffix": 1}, {"prefix": 1}, {"dir": 1}):
+            with self.assertRaises(TypeError):
+                mkstemp(**kw)
+
+    def test_mkdtemp_type_errors_all(self):
+        for kw in ({"suffix": 1}, {"prefix": 1}, {"dir": 1}):
+            with self.assertRaises(TypeError):
+                mkdtemp(**kw)
+
+    def test_named_temporary_file_type_errors_all(self):
+        cases = [
+            ("mode", 123), ("buffering", "x"), ("buffering", True),
+            ("encoding", 123), ("newline", 123), ("suffix", 123),
+            ("prefix", 123), ("dir", 123), ("delete", "yes"),
+        ]
+        for name, val in cases:
+            with self.assertRaises(TypeError):
+                NamedTemporaryFile(**{name: val})
+
+    def test_temporary_directory_type_errors_all(self):
+        for kw in ({"suffix": 1}, {"prefix": 1}, {"dir": 1}, {"ignore_cleanup_errors": "x"}):
+            with self.assertRaises(TypeError):
+                TemporaryDirectory(**kw)
+
+    def test_spooled_temporary_file_type_errors_all(self):
+        cases = [
+            ("max_size", "x"), ("max_size", True), ("mode", 123),
+            ("buffering", "x"), ("buffering", True), ("encoding", 123),
+            ("newline", 123), ("suffix", 123), ("prefix", 123), ("dir", 123),
+        ]
+        for name, val in cases:
+            with self.assertRaises(TypeError):
+                SpooledTemporaryFile(**{name: val})
+
+    def test_empty_and_none_prefixes(self):
+        fd, path = mkstemp(suffix="", prefix=None)
+        os.close(fd)
+        os.unlink(path)
+        d = mkdtemp(suffix="", prefix=None)
+        os.rmdir(d)
+
+    def test_path_acceptance_all(self):
+        with NamedTemporaryFile(dir=Path("/tmp")) as f:
+            self.assertTrue(os.path.exists(f.name))
+        with TemporaryDirectory(dir=Path("/tmp")) as d:
+            self.assertTrue(os.path.isdir(d))
+        with SpooledTemporaryFile(dir=Path("/tmp")) as f:
+            f.write(b"x")
 
 
 if __name__ == "__main__":

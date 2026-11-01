@@ -1,5 +1,16 @@
 # Project Status
 
+## Latest Session (2026-11-01) — audited tempfile_utils boundary cases and added Path support
+
+Completed:
+- Audited `tempfile_utils.py` boundary cases: added `str`/`Path` acceptance (coercing Path to str for tempfile calls), TypeError paths for all public helpers, empty/None prefixes, and Path acceptance tests.
+- Added `TestTempfileBoundary` (10 tests) to `tests/test_tempfile_utils.py`; all 18 tests pass.
+- Refreshed scaffold copies; check reports in sync.
+
+Next Planned (posted for the following agent):
+- Audit `tempfile_utils.py` further or move to next module (e.g. `zipfile_utils.py` boundary cases).
+- Keep `make test` green. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-01) — audited and hardened file_utils boundary cases
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` ran 7123 tests with 7 pre-existing errors (all `ModuleNotFoundError: No module named 'pytest'` in sre-related tests); `python tools/refresh_scaffold.py --check` reported 1 embedded copy out of sync (`tests/test_strings.py`, stale from the preceding strings audit).

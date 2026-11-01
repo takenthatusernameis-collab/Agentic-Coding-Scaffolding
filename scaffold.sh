@@ -25265,7 +25265,8 @@ cat > "$OUTPUT_DIR/tempfile_utils.py" <<'TEMPFILEUTILS'
 (wrapping :mod:`tempfile`)."""
 
 import tempfile
-from typing import Any, Optional
+from pathlib import Path
+from typing import Any, Optional, Union
 
 __all__ = [
     "NamedTemporaryFile",
@@ -25289,26 +25290,26 @@ def gettempprefix() -> str:
     return tempfile.gettempprefix()
 
 
-def mkstemp(suffix: str = "", prefix: Optional[str] = None, dir: Optional[str] = None) -> tuple:
+def mkstemp(suffix: Union[str, Path] = "", prefix: Optional[Union[str, Path]] = None, dir: Optional[Union[str, Path]] = None) -> tuple:
     """Create a temporary file and return (fd, name)."""
-    if suffix is not None and not isinstance(suffix, str):
+    if suffix is not None and not isinstance(suffix, (str, Path)):
         raise TypeError("suffix must be a string")
-    if prefix is not None and not isinstance(prefix, str):
+    if prefix is not None and not isinstance(prefix, (str, Path)):
         raise TypeError("prefix must be a string")
-    if dir is not None and not isinstance(dir, str):
+    if dir is not None and not isinstance(dir, (str, Path)):
         raise TypeError("dir must be a string")
-    return tempfile.mkstemp(suffix=suffix, prefix=prefix, dir=dir)
+    return tempfile.mkstemp(suffix=str(suffix), prefix=None if prefix is None else str(prefix), dir=None if dir is None else str(dir))
 
 
-def mkdtemp(suffix: str = "", prefix: Optional[str] = None, dir: Optional[str] = None) -> str:
+def mkdtemp(suffix: Union[str, Path] = "", prefix: Optional[Union[str, Path]] = None, dir: Optional[Union[str, Path]] = None) -> str:
     """Create a temporary directory."""
-    if suffix is not None and not isinstance(suffix, str):
+    if suffix is not None and not isinstance(suffix, (str, Path)):
         raise TypeError("suffix must be a string")
-    if prefix is not None and not isinstance(prefix, str):
+    if prefix is not None and not isinstance(prefix, (str, Path)):
         raise TypeError("prefix must be a string")
-    if dir is not None and not isinstance(dir, str):
+    if dir is not None and not isinstance(dir, (str, Path)):
         raise TypeError("dir must be a string")
-    return tempfile.mkdtemp(suffix=suffix, prefix=prefix, dir=dir)
+    return tempfile.mkdtemp(suffix=str(suffix), prefix=None if prefix is None else str(prefix), dir=None if dir is None else str(dir))
 
 
 def NamedTemporaryFile(
@@ -25316,9 +25317,9 @@ def NamedTemporaryFile(
     buffering: int = -1,
     encoding: Optional[str] = None,
     newline: Optional[str] = None,
-    suffix: str = "",
-    prefix: Optional[str] = None,
-    dir: Optional[str] = None,
+    suffix: Union[str, Path] = "",
+    prefix: Optional[Union[str, Path]] = None,
+    dir: Optional[Union[str, Path]] = None,
     delete: bool = True,
     **kwargs,
 ) -> Any:
@@ -25331,11 +25332,11 @@ def NamedTemporaryFile(
         raise TypeError("encoding must be a string or None")
     if newline is not None and not isinstance(newline, str):
         raise TypeError("newline must be a string or None")
-    if suffix is not None and not isinstance(suffix, str):
+    if suffix is not None and not isinstance(suffix, (str, Path)):
         raise TypeError("suffix must be a string")
-    if prefix is not None and not isinstance(prefix, str):
+    if prefix is not None and not isinstance(prefix, (str, Path)):
         raise TypeError("prefix must be a string")
-    if dir is not None and not isinstance(dir, str):
+    if dir is not None and not isinstance(dir, (str, Path)):
         raise TypeError("dir must be a string")
     if not isinstance(delete, bool):
         raise TypeError("delete must be a bool")
@@ -25344,33 +25345,33 @@ def NamedTemporaryFile(
         buffering=buffering,
         encoding=encoding,
         newline=newline,
-        suffix=suffix,
-        prefix=prefix,
-        dir=dir,
+        suffix=str(suffix),
+        prefix=None if prefix is None else str(prefix),
+        dir=None if dir is None else str(dir),
         delete=delete,
         **kwargs,
     )
 
 
 def TemporaryDirectory(
-    suffix: str = "",
-    prefix: Optional[str] = None,
-    dir: Optional[str] = None,
+    suffix: Union[str, Path] = "",
+    prefix: Optional[Union[str, Path]] = None,
+    dir: Optional[Union[str, Path]] = None,
     ignore_cleanup_errors: bool = False,
 ) -> Any:
     """Return a context manager for a temporary directory."""
-    if suffix is not None and not isinstance(suffix, str):
+    if suffix is not None and not isinstance(suffix, (str, Path)):
         raise TypeError("suffix must be a string")
-    if prefix is not None and not isinstance(prefix, str):
+    if prefix is not None and not isinstance(prefix, (str, Path)):
         raise TypeError("prefix must be a string")
-    if dir is not None and not isinstance(dir, str):
+    if dir is not None and not isinstance(dir, (str, Path)):
         raise TypeError("dir must be a string")
     if not isinstance(ignore_cleanup_errors, bool):
         raise TypeError("ignore_cleanup_errors must be a bool")
     return tempfile.TemporaryDirectory(
-        suffix=suffix,
-        prefix=prefix,
-        dir=dir,
+        suffix=str(suffix),
+        prefix=None if prefix is None else str(prefix),
+        dir=None if dir is None else str(dir),
         ignore_cleanup_errors=ignore_cleanup_errors,
     )
 
@@ -25381,9 +25382,9 @@ def SpooledTemporaryFile(
     buffering: int = -1,
     encoding: Optional[str] = None,
     newline: Optional[str] = None,
-    suffix: str = "",
-    prefix: Optional[str] = None,
-    dir: Optional[str] = None,
+    suffix: Union[str, Path] = "",
+    prefix: Optional[Union[str, Path]] = None,
+    dir: Optional[Union[str, Path]] = None,
 ) -> Any:
     """Return a spooled temporary file."""
     if not isinstance(max_size, int) or isinstance(max_size, bool):
@@ -25396,11 +25397,11 @@ def SpooledTemporaryFile(
         raise TypeError("encoding must be a string or None")
     if newline is not None and not isinstance(newline, str):
         raise TypeError("newline must be a string or None")
-    if suffix is not None and not isinstance(suffix, str):
+    if suffix is not None and not isinstance(suffix, (str, Path)):
         raise TypeError("suffix must be a string")
-    if prefix is not None and not isinstance(prefix, str):
+    if prefix is not None and not isinstance(prefix, (str, Path)):
         raise TypeError("prefix must be a string")
-    if dir is not None and not isinstance(dir, str):
+    if dir is not None and not isinstance(dir, (str, Path)):
         raise TypeError("dir must be a string")
     return tempfile.SpooledTemporaryFile(
         max_size=max_size,
@@ -25408,9 +25409,9 @@ def SpooledTemporaryFile(
         buffering=buffering,
         encoding=encoding,
         newline=newline,
-        suffix=suffix,
-        prefix=prefix,
-        dir=dir,
+        suffix=str(suffix),
+        prefix=None if prefix is None else str(prefix),
+        dir=None if dir is None else str(dir),
     )
 TEMPFILEUTILS
 
@@ -25865,6 +25866,9 @@ cat > "$OUTPUT_DIR/tests/test_tempfile_utils.py" <<'TESTTEMPFILEUTILS'
 
 import os
 import unittest
+from pathlib import Path
+
+from pathlib import Path
 
 from tempfile_utils import (
     NamedTemporaryFile,
@@ -25949,6 +25953,63 @@ class TestSpooledTemporaryFile(unittest.TestCase):
             f.write(b"hello")
             f.seek(0)
             self.assertEqual(f.read(), b"hello")
+
+
+class TestTempfileBoundary(unittest.TestCase):
+    def test_mkstemp_path_acceptance(self):
+        fd, path = mkstemp(suffix=Path(".txt"), prefix=Path("t_"), dir=Path("/tmp"))
+        os.close(fd)
+        os.unlink(path)
+
+    def test_mkstemp_type_errors_all(self):
+        for kw in ({"suffix": 1}, {"prefix": 1}, {"dir": 1}):
+            with self.assertRaises(TypeError):
+                mkstemp(**kw)
+
+    def test_mkdtemp_type_errors_all(self):
+        for kw in ({"suffix": 1}, {"prefix": 1}, {"dir": 1}):
+            with self.assertRaises(TypeError):
+                mkdtemp(**kw)
+
+    def test_named_temporary_file_type_errors_all(self):
+        cases = [
+            ("mode", 123), ("buffering", "x"), ("buffering", True),
+            ("encoding", 123), ("newline", 123), ("suffix", 123),
+            ("prefix", 123), ("dir", 123), ("delete", "yes"),
+        ]
+        for name, val in cases:
+            with self.assertRaises(TypeError):
+                NamedTemporaryFile(**{name: val})
+
+    def test_temporary_directory_type_errors_all(self):
+        for kw in ({"suffix": 1}, {"prefix": 1}, {"dir": 1}, {"ignore_cleanup_errors": "x"}):
+            with self.assertRaises(TypeError):
+                TemporaryDirectory(**kw)
+
+    def test_spooled_temporary_file_type_errors_all(self):
+        cases = [
+            ("max_size", "x"), ("max_size", True), ("mode", 123),
+            ("buffering", "x"), ("buffering", True), ("encoding", 123),
+            ("newline", 123), ("suffix", 123), ("prefix", 123), ("dir", 123),
+        ]
+        for name, val in cases:
+            with self.assertRaises(TypeError):
+                SpooledTemporaryFile(**{name: val})
+
+    def test_empty_and_none_prefixes(self):
+        fd, path = mkstemp(suffix="", prefix=None)
+        os.close(fd)
+        os.unlink(path)
+        d = mkdtemp(suffix="", prefix=None)
+        os.rmdir(d)
+
+    def test_path_acceptance_all(self):
+        with NamedTemporaryFile(dir=Path("/tmp")) as f:
+            self.assertTrue(os.path.exists(f.name))
+        with TemporaryDirectory(dir=Path("/tmp")) as d:
+            self.assertTrue(os.path.isdir(d))
+        with SpooledTemporaryFile(dir=Path("/tmp")) as f:
+            f.write(b"x")
 
 
 if __name__ == "__main__":
