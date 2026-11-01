@@ -56,6 +56,7 @@ __all__: List[str] = [
     "cumulative_product",
     "winsorized_mean",
     "winsorized_variance",
+    "winsorized_stddev",
 ]
 
 
@@ -1502,3 +1503,37 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     sq = sum((x - m) ** 2 for x in winsorized)
     denom = n if population else n - 1
     return sq / denom
+
+
+def winsorized_stddev(
+    numbers: List[T | float], k: int = 1, population: bool = True
+) -> float:
+    """Return the standard deviation of the winsorized values of *numbers*.
+
+    Winsorizes by replacing the *k* smallest and *k* largest values with the
+    nearest remaining values, then computes the standard deviation of the
+    resulting list. Reduces outlier influence without discarding data, and is
+    the square root of :func:`winsorized_variance`.
+
+    Args:
+        numbers: A non-empty list of ints or floats.
+        k: Number of values to winsorize from each end. Defaults to 1.
+        population: If True (default), compute population standard deviation;
+            otherwise compute sample standard deviation.
+
+    Returns:
+        The standard deviation of the winsorized values.
+
+    Raises:
+        TypeError: If *numbers* is not a list or contains non-numeric values,
+            or if *k* is not an int.
+        ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
+            half the list length.
+
+    Examples:
+        >>> winsorized_stddev([1, 2, 3, 4, 5])
+        0.894427190999916
+        >>> winsorized_stddev([1, 2, 3, 4, 5], k=0)
+        1.4142135623730951
+    """
+    return math.sqrt(winsorized_variance(numbers, k=k, population=population))

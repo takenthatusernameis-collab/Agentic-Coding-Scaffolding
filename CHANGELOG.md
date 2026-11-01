@@ -1,3 +1,8 @@
+## Unreleased — added winsorized_stddev to stats
+
+- Added `winsorized_stddev(numbers, k=1, population=True)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `winsorized_mean` and `winsorized_variance`; it winsorizes by replacing the *k* smallest and *k* largest values with the nearest remaining values, then returns the standard deviation (population or sample) of the winsorized values, reducing outlier influence without discarding data.
+- Added `TestWinsorizedStddev` to `tests/test_stats.py` covering the default, *k*=0, single element, and the `ValueError`/`TypeError` paths (10 new tests). Imported `winsorized_stddev` at the top of the test file to match the module's `__all__` contract.
+
 ## Unreleased — added is_pandigital_number to numbers_utils
 
 - Added `is_pandigital_number(n, base=10)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns `True` when *n* contains every digit of *base* at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4), and `False` for negatives, missing digits, and bases outside 2..36.

@@ -48,6 +48,7 @@ from stats import (
     variance,
     weighted_mean,
     winsorized_mean,
+    winsorized_stddev,
     winsorized_variance,
     z_scores,
 )
@@ -1466,3 +1467,46 @@ class TestWinsorizedVariance(unittest.TestCase):
     def test_rejects_non_numeric(self) -> None:
         with self.assertRaises(TypeError):
             winsorized_variance([1, 2, "a"])  # type: ignore[type-var]
+
+
+class TestWinsorizedStddev(unittest.TestCase):
+    def test_default(self) -> None:
+        self.assertAlmostEqual(winsorized_stddev([1, 2, 3, 4, 5]), math.sqrt(0.8))
+
+    def test_k_zero_is_stddev(self) -> None:
+        self.assertAlmostEqual(winsorized_stddev([1, 2, 3, 4, 5], k=0), math.sqrt(2.0))
+
+    def test_single_element_k_zero(self) -> None:
+        self.assertEqual(winsorized_stddev([7], k=0), 0.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_stddev([])
+
+    def test_negative_k_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_stddev([1, 2, 3], k=-1)
+
+    def test_k_too_large_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_stddev([1, 2, 3], k=2)
+        with self.assertRaises(ValueError):
+            winsorized_stddev([1, 2, 3, 4], k=2)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_stddev((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_stddev([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_stddev([True, 1, 2])  # type: ignore[type-var]
+
+    def test_rejects_non_int_k(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_stddev([1, 2, 3], 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            winsorized_stddev([1, 2, 3], True)  # type: ignore[arg-type]

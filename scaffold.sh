@@ -13905,6 +13905,7 @@ __all__: List[str] = [
     "cumulative_product",
     "winsorized_mean",
     "winsorized_variance",
+    "winsorized_stddev",
 ]
 
 
@@ -15351,6 +15352,40 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     sq = sum((x - m) ** 2 for x in winsorized)
     denom = n if population else n - 1
     return sq / denom
+
+
+def winsorized_stddev(
+    numbers: List[T | float], k: int = 1, population: bool = True
+) -> float:
+    """Return the standard deviation of the winsorized values of *numbers*.
+
+    Winsorizes by replacing the *k* smallest and *k* largest values with the
+    nearest remaining values, then computes the standard deviation of the
+    resulting list. Reduces outlier influence without discarding data, and is
+    the square root of :func:`winsorized_variance`.
+
+    Args:
+        numbers: A non-empty list of ints or floats.
+        k: Number of values to winsorize from each end. Defaults to 1.
+        population: If True (default), compute population standard deviation;
+            otherwise compute sample standard deviation.
+
+    Returns:
+        The standard deviation of the winsorized values.
+
+    Raises:
+        TypeError: If *numbers* is not a list or contains non-numeric values,
+            or if *k* is not an int.
+        ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
+            half the list length.
+
+    Examples:
+        >>> winsorized_stddev([1, 2, 3, 4, 5])
+        0.894427190999916
+        >>> winsorized_stddev([1, 2, 3, 4, 5], k=0)
+        1.4142135623730951
+    """
+    return math.sqrt(winsorized_variance(numbers, k=k, population=population))
 STATS
 
 # --- tests/test_strings.py ---
@@ -17844,6 +17879,7 @@ from stats import (
     variance,
     weighted_mean,
     winsorized_mean,
+    winsorized_stddev,
     winsorized_variance,
     z_scores,
 )
@@ -19262,6 +19298,49 @@ class TestWinsorizedVariance(unittest.TestCase):
     def test_rejects_non_numeric(self) -> None:
         with self.assertRaises(TypeError):
             winsorized_variance([1, 2, "a"])  # type: ignore[type-var]
+
+
+class TestWinsorizedStddev(unittest.TestCase):
+    def test_default(self) -> None:
+        self.assertAlmostEqual(winsorized_stddev([1, 2, 3, 4, 5]), math.sqrt(0.8))
+
+    def test_k_zero_is_stddev(self) -> None:
+        self.assertAlmostEqual(winsorized_stddev([1, 2, 3, 4, 5], k=0), math.sqrt(2.0))
+
+    def test_single_element_k_zero(self) -> None:
+        self.assertEqual(winsorized_stddev([7], k=0), 0.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_stddev([])
+
+    def test_negative_k_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_stddev([1, 2, 3], k=-1)
+
+    def test_k_too_large_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_stddev([1, 2, 3], k=2)
+        with self.assertRaises(ValueError):
+            winsorized_stddev([1, 2, 3, 4], k=2)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_stddev((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_stddev([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_stddev([True, 1, 2])  # type: ignore[type-var]
+
+    def test_rejects_non_int_k(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_stddev([1, 2, 3], 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            winsorized_stddev([1, 2, 3], True)  # type: ignore[arg-type]
 TESTSTATS
 
 # --- math_utils.py ---
@@ -47113,6 +47192,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added winsorized_stddev to stats
+
+- Added `winsorized_stddev(numbers, k=1, population=True)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation complementing `winsorized_mean` and `winsorized_variance`; it winsorizes by replacing the *k* smallest and *k* largest values with the nearest remaining values, then returns the standard deviation (population or sample) of the winsorized values, reducing outlier influence without discarding data.
+- Added `TestWinsorizedStddev` to `tests/test_stats.py` covering the default, *k*=0, single element, and the `ValueError`/`TypeError` paths (10 new tests). Imported `winsorized_stddev` at the top of the test file to match the module's `__all__` contract.
+
 ## Unreleased — added is_pandigital_number to numbers_utils
 
 - Added `is_pandigital_number(n, base=10)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns `True` when *n* contains every digit of *base* at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4), and `False` for negatives, missing digits, and bases outside 2..36.
@@ -49347,7 +49431,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `winsorized_mean`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `winsorized_mean` computes a winsorized mean that replaces the k smallest and k largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `winsorized_mean`, `winsorized_stddev`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `winsorized_mean` computes a winsorized mean that replaces the k smallest and k largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 
