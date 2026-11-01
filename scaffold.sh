@@ -101108,66 +101108,94 @@ class TestVersionUtilsAliases(unittest.TestCase):
     def test_parse_version_alias_matches_parse_version(self):
         self.assertEqual(parse_version_alias("1.2.3"), parse_version("1.2.3"))
         self.assertEqual(parse_version_alias("10"), parse_version("10"))
+        self.assertEqual(parse_version_alias("v1.2.3"), parse_version("1.2.3"))
+        self.assertEqual(parse_version_alias("V2.0.0"), parse_version("2.0.0"))
 
     def test_parse_version_alias_rejects_non_string(self):
         with self.assertRaises(TypeError):
             parse_version_alias(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            parse_version_alias(None)  # type: ignore[arg-type]
 
     def test_greater_than_matches_is_greater(self):
         self.assertTrue(greater_than("2.0.0", "1.0.0"))
         self.assertFalse(greater_than("1.0.0", "2.0.0"))
         self.assertFalse(greater_than("1.2.3", "1.2.3"))
+        self.assertTrue(greater_than("v2.0.0", "v1.9.9"))
+        self.assertTrue(greater_than("10.0.0", "2.0.0"))
 
     def test_greater_than_rejects_non_string(self):
         with self.assertRaises(TypeError):
             greater_than(1, "1.0.0")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             greater_than("1.0.0", 2)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            greater_than("1.0.0", "bad")
 
     def test_less_than_matches_is_less(self):
         self.assertTrue(less_than("1.0.0", "2.0.0"))
         self.assertFalse(less_than("2.0.0", "1.0.0"))
         self.assertFalse(less_than("1.2.3", "1.2.3"))
+        self.assertTrue(less_than("v1.0.0", "v2.0.0"))
+        self.assertTrue(less_than("1.0.0", "10.0.0"))
 
     def test_less_than_rejects_non_string(self):
         with self.assertRaises(TypeError):
             less_than(1, "1.0.0")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             less_than("1.0.0", 2)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            less_than("bad", "1.0.0")
 
     def test_equal_to_matches_is_equal(self):
         self.assertTrue(equal_to("1.2.3", "1.2.3"))
         self.assertFalse(equal_to("1.2.3", "1.2.4"))
+        self.assertTrue(equal_to("v1.2.3", "1.2.3"))
+        self.assertTrue(equal_to("01.02.03", "1.2.3"))
 
     def test_equal_to_rejects_non_string(self):
         with self.assertRaises(TypeError):
             equal_to(1, "1.0.0")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             equal_to("1.0.0", 2)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            equal_to("1.0.a", "1.0.0")
 
     def test_increment_major_matches_bump_major(self):
         self.assertEqual(increment_major("1.2.3"), bump_major("1.2.3"))
         self.assertEqual(increment_major("1.2.3"), "2.0.0")
+        self.assertEqual(increment_major("v1.2.3"), "2.0.0")
+        self.assertEqual(increment_major("0.9.9"), "1.0.0")
 
     def test_increment_major_rejects_non_string(self):
         with self.assertRaises(TypeError):
             increment_major(1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            increment_major(None)  # type: ignore[arg-type]
 
     def test_increment_minor_matches_bump_minor(self):
         self.assertEqual(increment_minor("1.2.3"), bump_minor("1.2.3"))
         self.assertEqual(increment_minor("1.2.3"), "1.3.0")
+        self.assertEqual(increment_minor("v1.2.3"), "1.3.0")
+        self.assertEqual(increment_minor("1.0.9"), "1.1.0")
 
     def test_increment_minor_rejects_non_string(self):
         with self.assertRaises(TypeError):
             increment_minor(1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            increment_minor([])  # type: ignore[arg-type]
 
     def test_increment_patch_matches_bump_patch(self):
         self.assertEqual(increment_patch("1.2.3"), bump_patch("1.2.3"))
         self.assertEqual(increment_patch("1.2.3"), "1.2.4")
+        self.assertEqual(increment_patch("v1.2.3"), "1.2.4")
+        self.assertEqual(increment_patch("1.2.0"), "1.2.1")
 
     def test_increment_patch_rejects_non_string(self):
         with self.assertRaises(TypeError):
             increment_patch(1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            increment_patch({})  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
