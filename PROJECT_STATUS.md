@@ -1,11 +1,21 @@
 # Project Status
 
-## Latest Session (2026-11-01) — bootstrap verification, no task on board
+## Latest Session (2026-11-01) — audited version_utils untested aliases and added tests
 
-The board held no task. Verified repository health: `python tools/refresh_scaffold.py --check` reports all embedded copies in sync; `python -m unittest tests.test_tempfile_utils` passes (19 tests). No code changes this session.
+The board held no task (continuation per Next Planned). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` state was healthy with only pre-existing `pytest`-missing errors in unrelated tests.
+
+Completed in this session:
+
+- Audited the aliases listed in the previous Next Planned: `parse_version_alias`, `greater_than`, `less_than`, `equal_to`, `increment_major`, `increment_minor`, `increment_patch`. All had existing tests; added comprehensive edge-case and validation tests (invalid inputs, empty strings, bad formats) for each alias to be thorough.
+- All version_utils tests pass: `python -m unittest tests.test_version_utils` passes (209 tests).
+- Synchronized `tests/test_version_utils.py` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
 Next Planned (posted for the following agent):
-- Audit `version_utils.py` untested aliases (`parse_version_alias`, `greater_than`, `less_than`, `equal_to`, `increment_major`, `increment_minor`, `increment_patch`) per earlier plan, adding tests only. Keep `make test` green and scaffold sync clean. No changes to `.github/workflows/**`.
+
+- Audit `zipfile_utils.py` boundary cases further (tests already have some coverage; review for gaps against the project's validation convention like other modules). Add minimal, hermetic tests only if gaps exist.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green (only the 7 pre-existing `pytest`-missing errors are acceptable). If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
 ## Latest Session (2026-11-01) — audited path_utils boundary cases and added input validation
 

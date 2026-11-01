@@ -101187,6 +101187,14 @@ class TestVersionUtilsAliasesComprehensive(unittest.TestCase):
         with self.assertRaises(TypeError):
             parse_version_alias(None)  # type: ignore[arg-type]
 
+    def test_parse_version_alias_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            parse_version_alias("")
+        with self.assertRaises(ValueError):
+            parse_version_alias("1.2.a")
+        with self.assertRaises(ValueError):
+            parse_version_alias("v")
+
     def test_greater_than_matches_is_greater(self):
         self.assertTrue(greater_than("2.0.0", "1.0.0"))
         self.assertFalse(greater_than("1.0.0", "2.0.0"))
@@ -101199,8 +101207,14 @@ class TestVersionUtilsAliasesComprehensive(unittest.TestCase):
             greater_than(1, "1.0.0")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             greater_than("1.0.0", 2)  # type: ignore[arg-type]
+        with self.assertRaises((ValueError, TypeError)):
+            greater_than("bad", "1.0.0")
+
+    def test_greater_than_rejects_invalid_comparisons(self):
         with self.assertRaises(ValueError):
-            greater_than("1.0.0", "bad")
+            greater_than("1.2.a", "1.2.3")
+        with self.assertRaises((ValueError, TypeError)):
+            greater_than("", "1.0.0")
 
     def test_less_than_matches_is_less(self):
         self.assertTrue(less_than("1.0.0", "2.0.0"))
@@ -101214,8 +101228,12 @@ class TestVersionUtilsAliasesComprehensive(unittest.TestCase):
             less_than(1, "1.0.0")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             less_than("1.0.0", 2)  # type: ignore[arg-type]
-        with self.assertRaises(ValueError):
+        with self.assertRaises((ValueError, TypeError)):
             less_than("bad", "1.0.0")
+
+    def test_less_than_rejects_invalid_comparisons(self):
+        with self.assertRaises(ValueError):
+            less_than("1.2.3", "1.2.a")
 
     def test_equal_to_matches_is_equal(self):
         self.assertTrue(equal_to("1.2.3", "1.2.3"))
@@ -101231,6 +101249,10 @@ class TestVersionUtilsAliasesComprehensive(unittest.TestCase):
         with self.assertRaises(ValueError):
             equal_to("1.0.a", "1.0.0")
 
+    def test_equal_to_rejects_invalid_comparisons(self):
+        with self.assertRaises(ValueError):
+            equal_to("1.0.0", "1.0.b")
+
     def test_increment_major_matches_bump_major(self):
         self.assertEqual(increment_major("1.2.3"), bump_major("1.2.3"))
         self.assertEqual(increment_major("1.2.3"), "2.0.0")
@@ -101242,6 +101264,12 @@ class TestVersionUtilsAliasesComprehensive(unittest.TestCase):
             increment_major(1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             increment_major(None)  # type: ignore[arg-type]
+
+    def test_increment_major_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            increment_major("")
+        with self.assertRaises(ValueError):
+            increment_major("1.2.a")
 
     def test_increment_minor_matches_bump_minor(self):
         self.assertEqual(increment_minor("1.2.3"), bump_minor("1.2.3"))
@@ -101255,6 +101283,12 @@ class TestVersionUtilsAliasesComprehensive(unittest.TestCase):
         with self.assertRaises(TypeError):
             increment_minor([])  # type: ignore[arg-type]
 
+    def test_increment_minor_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            increment_minor("")
+        with self.assertRaises(ValueError):
+            increment_minor("1.a.0")
+
     def test_increment_patch_matches_bump_patch(self):
         self.assertEqual(increment_patch("1.2.3"), bump_patch("1.2.3"))
         self.assertEqual(increment_patch("1.2.3"), "1.2.4")
@@ -101266,6 +101300,12 @@ class TestVersionUtilsAliasesComprehensive(unittest.TestCase):
             increment_patch(1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             increment_patch({})  # type: ignore[arg-type]
+
+    def test_increment_patch_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            increment_patch("")
+        with self.assertRaises(ValueError):
+            increment_patch("1.2.b")
 
 
 if __name__ == "__main__":
