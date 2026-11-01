@@ -6369,37 +6369,24 @@ def _require_path(value: object, name: str = "path") -> Union[str, Path]:
 def _as_path_str(value: object, name: str = "path") -> str:
     """Coerce a path-like value to a string for stdlib APIs."""
     path = _require_path(value, name)
+    # Check for empty Path explicitly
     if isinstance(path, Path):
-        # pathlib.Path("") string representation is '.' in some cases, but better check parts
-        if len(path.parts) == 0 or (len(path.parts) == 1 and path.parts[0] == "."):
-            # Could be empty-like; check raw string
+        try:
+            if path == Path("") or str(path) == "":
+                raise ValueError(f"{name} must not be empty")
+        except ValueError:
+            raise
+        except Exception:
             pass
+    if isinstance(value, str) and value == "":
+        raise ValueError(f"{name} must not be empty")
     path_str = str(path)
-    # Empty path
     if path_str == "":
         raise ValueError(f"{name} must not be empty")
-    # Path('') becomes '.' in string form - treat as empty for our API
-    try:
-        if isinstance(path, Path) and path == Path(""):
-            raise ValueError(f"{name} must not be empty")
-    except Exception:
-        pass
-    if path_str == "." and isinstance(path, Path):
-        # Distinguish from actual current dir? Our API says empty paths raise ValueError
-        # For Path('') we want ValueError
-        try:
-            if str(Path("")) == "." or Path(path_str) == Path(""):
-                pass
-        except Exception:
-            pass
-    # More robust: if original is Path and it's empty
-    if isinstance(value, Path):
-        try:
-            if str(value) == "" or value == Path(""):
-                raise ValueError(f"{name} must not be empty")
-        except Exception:
-            pass
-    if path_str == "":
+    # Path('') string representation is '.' in Python - but for our API, empty Path should be rejected
+    if isinstance(value, Path) and value == Path(""):
+        raise ValueError(f"{name} must not be empty")
+    if isinstance(path, Path) and path == Path(""):
         raise ValueError(f"{name} must not be empty")
     return path_str
 
@@ -6413,9 +6400,31 @@ def _require_str_list(value: object, name: str) -> list[str]:
             raise TypeError(f"{name} must be a list of strs")
     result = []
     for f in value:
+        if isinstance(f, Path):
+            try:
+                if f == Path("") or str(f) == "":
+                    raise ValueError(f"{name} must not contain empty paths")
+            except ValueError:
+                raise
+            except Exception:
+                pass
+        if isinstance(f, str) and f == "":
+            raise ValueError(f"{name} must not contain empty paths")
         s = str(f)
         if s == "":
             raise ValueError(f"{name} must not contain empty paths")
+        # Treat Path('') which becomes '.' as empty for this API
+        if isinstance(f, Path) and f == Path(""):
+            raise ValueError(f"{name} must not contain empty paths")
+        if s == "." and isinstance(f, Path):
+            # Could be Path(''); check
+            try:
+                if f == Path(""):
+                    raise ValueError(f"{name} must not contain empty paths")
+            except ValueError:
+                raise
+            except Exception:
+                pass
         result.append(s)
     return result
 
@@ -94721,7 +94730,24 @@ def _require_path(value: object, name: str = "path") -> Union[str, Path]:
 def _as_path_str(value: object, name: str = "path") -> str:
     """Coerce a path-like value to a string for stdlib APIs."""
     path = _require_path(value, name)
-    return str(path)
+    if isinstance(path, Path):
+        try:
+            if path == Path("") or str(path) == "":
+                raise ValueError(f"{name} must not be empty")
+        except ValueError:
+            raise
+        except Exception:
+            pass
+    if isinstance(value, str) and value == "":
+        raise ValueError(f"{name} must not be empty")
+    path_str = str(path)
+    if path_str == "":
+        raise ValueError(f"{name} must not be empty")
+    if isinstance(value, Path) and value == Path(""):
+        raise ValueError(f"{name} must not be empty")
+    if isinstance(path, Path) and path == Path(""):
+        raise ValueError(f"{name} must not be empty")
+    return path_str
 
 
 def tarfile_open(name: Union[str, Path], mode: str = "r:*") -> tarfile.TarFile:
@@ -94741,8 +94767,6 @@ def tarfile_open(name: Union[str, Path], mode: str = "r:*") -> tarfile.TarFile:
     name_str = _as_path_str(name, "name")
     if not isinstance(mode, str):
         raise TypeError("mode must be a str")
-    if not name_str:
-        raise ValueError("name must not be empty")
     if not mode:
         raise ValueError("mode must not be empty")
     return tarfile.open(name_str, mode)  # type: ignore[no-any-return, call-overload]
@@ -94767,15 +94791,13 @@ def tarfile_add(
     """
     archive_str = _as_path_str(archive, "archive")
     name_str = _as_path_str(name, "name")
-    if not archive_str:
-        raise ValueError("archive must not be empty")
-    if not name_str:
-        raise ValueError("name must not be empty")
-    arcname_str = None if arcname is None else _as_path_str(arcname, "arcname")
-    if arcname is not None and arcname_str == "":
-        raise ValueError("arcname must not be empty")
-    with tarfile.open(archive_str, "a") as tf:
-        tf.add(name_str, arcname=arcname_str)
+    if arcname is not None:
+        arcname_str = _as_path_str(arcname, "arcname")
+        with tarfile.open(archive_str, "a") as tf:
+            tf.add(name_str, arcname=arcname_str)
+    else:
+        with tarfile.open(archive_str, "a") as tf:
+            tf.add(name_str)
 
 
 def tarfile_list(archive: Union[str, Path]) -> list[str]:
@@ -94792,8 +94814,6 @@ def tarfile_list(archive: Union[str, Path]) -> list[str]:
         ValueError: If *archive* is empty.
     """
     archive_str = _as_path_str(archive, "archive")
-    if not archive_str:
-        raise ValueError("archive must not be empty")
     with tarfile.open(archive_str, "r:*") as tf:
         return tf.getnames()
 
