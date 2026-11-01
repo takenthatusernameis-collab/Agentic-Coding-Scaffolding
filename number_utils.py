@@ -1107,6 +1107,8 @@ def is_pentagonal_number(value: int) -> bool:
         raise TypeError(f"value must be an int, got {type(value).__name__}")
     if value < 0:
         return False
+    if value == 0:
+        return True
     # n*(3*n - 1)/2 = value => 24*value + 1 must be an odd square
     discriminant = 24 * value + 1
     root = math.isqrt(discriminant)
@@ -1150,9 +1152,11 @@ def is_hexagonal_number(value: int) -> bool:
         False
     """
     if not isinstance(value, int) or isinstance(value, bool):
-        raise TypeError(f"value must be an int, got {type(value).__name__}")
+        raise TypeError(f"value must an int, got {type(value).__name__}")
     if value < 0:
         return False
+    if value == 0:
+        return True
     # n*(2*n - 1) = value => 8*value + 1 must be an odd square
     discriminant = 8 * value + 1
     root = math.isqrt(discriminant)
