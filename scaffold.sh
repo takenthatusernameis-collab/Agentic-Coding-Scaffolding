@@ -13719,6 +13719,7 @@ __all__: List[str] = [
     "cumulative_sum",
     "cumulative_product",
     "winsorized_mean",
+    "winsorized_variance",
 ]
 
 
@@ -15116,6 +15117,55 @@ def winsorized_mean(numbers: List[T | float], k: int = 1) -> float:
     high = sorted_nums[n - k - 1]
     winsorized = [min(max(x, low), high) for x in numbers]
     return sum(winsorized) / len(winsorized)
+
+
+def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool = True) -> float:
+    """Return the variance of the winsorized values of *numbers*.
+
+    Winsorizes by replacing the *k* smallest and *k* largest values with the
+    nearest remaining values, then computes the variance of the resulting
+    list. Reduces outlier influence without discarding data.
+
+    Args:
+        numbers: A non-empty list of ints or floats.
+        k: Number of values to winsorize from each end. Defaults to 1.
+        population: If True (default), compute population variance; otherwise
+            sample variance (divides by n-1).
+
+    Returns:
+        The variance of the winsorized values.
+
+    Raises:
+        TypeError: If *numbers* is not a list or contains non-numeric values,
+            or if *k* is not an int.
+        ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
+            half the list length.
+
+    >>> winsorized_variance([1, 2, 3, 4, 5])
+    0.8
+    >>> winsorized_variance([1, 2, 3, 4, 5], k=0)
+    2.0
+    """
+    _require_numbers(numbers, "numbers")
+    _require_int(k, "k")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    n = len(numbers)
+    if k >= n / 2:
+        raise ValueError(
+            "k must be less than half the list length, "
+            f"got {k} for list of length {n}"
+        )
+    if k == 0:
+        return variance(numbers, population=population)
+    sorted_nums = sorted(numbers)
+    low = sorted_nums[k]
+    high = sorted_nums[n - k - 1]
+    winsorized = [min(max(x, low), high) for x in numbers]
+    m = sum(winsorized) / len(winsorized)
+    sq = sum((x - m) ** 2 for x in winsorized)
+    denom = n if population else n - 1
+    return sq / denom
 STATS
 
 # --- tests/test_strings.py ---
@@ -17609,6 +17659,7 @@ from stats import (
     variance,
     weighted_mean,
     winsorized_mean,
+    winsorized_variance,
     z_scores,
 )
 
@@ -18995,6 +19046,37 @@ class TestCumulativeProduct(unittest.TestCase):
     def test_bool_in_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             cumulative_product([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestWinsorizedVariance(unittest.TestCase):
+    def test_default(self) -> None:
+        self.assertEqual(winsorized_variance([1, 2, 3, 4, 5]), 0.8)
+
+    def test_k_zero_is_variance(self) -> None:
+        self.assertEqual(winsorized_variance([1, 2, 3, 4, 5], k=0), 2.0)
+
+    def test_single_element_k_zero(self) -> None:
+        self.assertEqual(winsorized_variance([7], k=0), 0.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_variance([])
+
+    def test_negative_k_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_variance([1, 2, 3], k=-1)
+
+    def test_k_too_large_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_variance([1, 2, 3], k=2)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_variance((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_variance([1, 2, "a"])  # type: ignore[type-var]
 TESTSTATS
 
 # --- math_utils.py ---
@@ -21000,6 +21082,7 @@ from prompt_utils import (
     truncate_prompt,
     truncate_words,
     wrap_prompt,
+    estimate_token_count,
 )
 
 
@@ -39091,6 +39174,75 @@ def islice_iterable(iterable: Iterable[Any], *args: Any) -> List[Any]:
     """Slice an iterable."""
     _ensure_iterable(iterable, "iterable")
     return list(islice(iterable, *args))
+
+
+def unique_everseen(iterable: Iterable[Any], key: Callable[[Any], Any] | None = None) -> List[Any]:
+    """List unique elements, preserving order. Remember all seen elements."""
+    _ensure_iterable(iterable, "iterable")
+    if key is not None and not callable(key):
+        raise TypeError("key must be callable")
+    seen: set[Any] = set()
+    seen_add = seen.add
+    result: List[Any] = []
+    if key is None:
+        for element in iterable:
+            if element not in seen:
+                seen_add(element)
+                result.append(element)
+        return result
+    for element in iterable:
+        k = key(element)
+        if k not in seen:
+            seen_add(k)
+            result.append(element)
+    return result
+
+
+def unique_justseen(iterable: Iterable[Any], key: Callable[[Any], Any] | None = None) -> List[Any]:
+    """List unique elements, preserving order. Only remember the last seen element."""
+    _ensure_iterable(iterable, "iterable")
+    if key is not None and not callable(key):
+        raise TypeError("key must be callable")
+    result: List[Any] = []
+    last = object()
+    for element in iterable:
+        k = key(element) if key is not None else element
+        if k == last:
+            continue
+        result.append(element)
+        last = k
+    return result
+
+
+__all__ = [
+    "_ensure_iterable",
+    "chain_iterables",
+    "flatten_once",
+    "take_while_pred",
+    "chunk_iterable",
+    "product_of",
+    "combinations_of",
+    "combinations_with_replacement_of",
+    "permutations_of",
+    "group_by_key",
+    "accumulate_values",
+    "repeat_value",
+    "cycle_take",
+    "compress_iterable",
+    "filter_false_iterable",
+    "pairwise_iterable",
+    "partition",
+    "zip_longest_iterables",
+    "zip_strict_iterables",
+    "batched_iterable",
+    "drop_while_pred",
+    "tee_iterables",
+    "starmap_iterable",
+    "count_from",
+    "islice_iterable",
+    "unique_everseen",
+    "unique_justseen",
+]
 ITERTOOLS_UTILS
 
 # --- tests/test_itertools_utils.py ---
@@ -39112,6 +39264,8 @@ from itertools_utils import (
     product_of,
     repeat_value,
     take_while_pred,
+    unique_everseen,
+    unique_justseen,
     zip_longest_iterables,
     zip_strict_iterables,
 )
@@ -39420,6 +39574,59 @@ class TestDropWhilePred(unittest.TestCase):
     def test_non_callable_predicate_raises_type_error(self):
         with self.assertRaises(TypeError):
             drop_while_pred([1, 2, 3], 42)
+
+
+class TestUniqueEverseen(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(
+            unique_everseen("AAAABBBCCDAABBB"),
+            ["A", "B", "C", "D"],
+        )
+
+    def test_with_key(self):
+        self.assertEqual(
+            unique_everseen("ABbACa", key=str.lower),
+            ["A", "B", "C"],
+        )
+
+    def test_numbers(self):
+        self.assertEqual(unique_everseen([1, 2, 1, 3, 2]), [1, 2, 3])
+
+    def test_empty(self):
+        self.assertEqual(unique_everseen([]), [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            unique_everseen(42)
+
+    def test_non_callable_key_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            unique_everseen([1, 2, 3], key=123)
+
+
+class TestUniqueJustseen(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(
+            unique_justseen("AAAABBBCCDAABBB"),
+            ["A", "B", "C", "D", "A", "B"],
+        )
+
+    def test_with_key(self):
+        self.assertEqual(
+            unique_justseen("ABbACa", key=str.lower),
+            ["A", "B", "A", "C", "a"],
+        )
+
+    def test_empty(self):
+        self.assertEqual(unique_justseen([]), [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            unique_justseen(42)
+
+    def test_non_callable_key_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            unique_justseen([1, 2, 3], key=123)
 
 
 if __name__ == "__main__":
@@ -46263,7 +46470,7 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — added is_powerful_number to prime_utils
+## Unreleased — added unique_everseen and unique_justseen to itertools_utils
 - Added `is_powerful_number(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* is a powerful number — a positive integer such that for every prime factor *p*, *p*² also divides *n* (e.g. 4, 8, 9, 36, 72) — returning True for 1 (by convention), and False for numbers below 1, primes, and squarefree composites. It is the conceptual counterpart to `is_squarefree`: for *n* > 1 the two predicates are mutually exclusive.
 - Added `TestIsPowerfulNumber` to `tests/test_prime_utils.py` covering known powerful numbers (1, 4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 72, 100, 108, 121, 125, 128, 144), non-powerful numbers (2, 3, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20), numbers below 1, primes, squarefree composites, the mutual-exclusivity relationship with `is_squarefree` for *n* > 1, and the `TypeError` paths (7 new tests). Imported `is_powerful_number` at the top of the test file to match the module's `__all__` contract.
 - Updated the `prime_utils` module tree entry and prose section of `README.md`.
@@ -47873,7 +48080,8 @@ maybe_utils.py             # Maybe/Option type utilities for functional programm
 either_utils.py            # Either/Result type utilities for functional programming patterns (Either, right, left, ok, err, from_optional, map, map_left, flat_map, and_then, filter, or_else, fold, swap, unwrap, unwrap_left, unwrap_or, unwrap_or_else, is_right, is_left, is_ok, is_err)
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
-itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, etc.)
+itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, unique_everseen, unique_justseen, etc.)
+
 timing_utils.py           # Performance measurement helpers
 timeit_utils.py           # Wrapper for stdlib timeit
 async_utils.py            # Asynchronous utility functions
@@ -48782,7 +48990,7 @@ The project includes bytes and binary utilities in `bytes_utils.py` for working 
 
 ## Itertools Utilities Module
 
-The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, and `zip_longest_iterables`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
+The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, `zip_longest_iterables`, `unique_everseen`, and `unique_justseen`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
 
 ## Base64 Utilities Module
 

@@ -15,6 +15,8 @@ from itertools_utils import (
     product_of,
     repeat_value,
     take_while_pred,
+    unique_everseen,
+    unique_justseen,
     zip_longest_iterables,
     zip_strict_iterables,
 )
@@ -323,6 +325,59 @@ class TestDropWhilePred(unittest.TestCase):
     def test_non_callable_predicate_raises_type_error(self):
         with self.assertRaises(TypeError):
             drop_while_pred([1, 2, 3], 42)
+
+
+class TestUniqueEverseen(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(
+            unique_everseen("AAAABBBCCDAABBB"),
+            ["A", "B", "C", "D"],
+        )
+
+    def test_with_key(self):
+        self.assertEqual(
+            unique_everseen("ABbACa", key=str.lower),
+            ["A", "B", "C"],
+        )
+
+    def test_numbers(self):
+        self.assertEqual(unique_everseen([1, 2, 1, 3, 2]), [1, 2, 3])
+
+    def test_empty(self):
+        self.assertEqual(unique_everseen([]), [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            unique_everseen(42)
+
+    def test_non_callable_key_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            unique_everseen([1, 2, 3], key=123)
+
+
+class TestUniqueJustseen(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(
+            unique_justseen("AAAABBBCCDAABBB"),
+            ["A", "B", "C", "D", "A", "B"],
+        )
+
+    def test_with_key(self):
+        self.assertEqual(
+            unique_justseen("ABbACa", key=str.lower),
+            ["A", "B", "A", "C", "a"],
+        )
+
+    def test_empty(self):
+        self.assertEqual(unique_justseen([]), [])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            unique_justseen(42)
+
+    def test_non_callable_key_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            unique_justseen([1, 2, 3], key=123)
 
 
 if __name__ == "__main__":

@@ -396,3 +396,72 @@ def islice_iterable(iterable: Iterable[Any], *args: Any) -> List[Any]:
     """Slice an iterable."""
     _ensure_iterable(iterable, "iterable")
     return list(islice(iterable, *args))
+
+
+def unique_everseen(iterable: Iterable[Any], key: Callable[[Any], Any] | None = None) -> List[Any]:
+    """List unique elements, preserving order. Remember all seen elements."""
+    _ensure_iterable(iterable, "iterable")
+    if key is not None and not callable(key):
+        raise TypeError("key must be callable")
+    seen: set[Any] = set()
+    seen_add = seen.add
+    result: List[Any] = []
+    if key is None:
+        for element in iterable:
+            if element not in seen:
+                seen_add(element)
+                result.append(element)
+        return result
+    for element in iterable:
+        k = key(element)
+        if k not in seen:
+            seen_add(k)
+            result.append(element)
+    return result
+
+
+def unique_justseen(iterable: Iterable[Any], key: Callable[[Any], Any] | None = None) -> List[Any]:
+    """List unique elements, preserving order. Only remember the last seen element."""
+    _ensure_iterable(iterable, "iterable")
+    if key is not None and not callable(key):
+        raise TypeError("key must be callable")
+    result: List[Any] = []
+    last = object()
+    for element in iterable:
+        k = key(element) if key is not None else element
+        if k == last:
+            continue
+        result.append(element)
+        last = k
+    return result
+
+
+__all__ = [
+    "_ensure_iterable",
+    "chain_iterables",
+    "flatten_once",
+    "take_while_pred",
+    "chunk_iterable",
+    "product_of",
+    "combinations_of",
+    "combinations_with_replacement_of",
+    "permutations_of",
+    "group_by_key",
+    "accumulate_values",
+    "repeat_value",
+    "cycle_take",
+    "compress_iterable",
+    "filter_false_iterable",
+    "pairwise_iterable",
+    "partition",
+    "zip_longest_iterables",
+    "zip_strict_iterables",
+    "batched_iterable",
+    "drop_while_pred",
+    "tee_iterables",
+    "starmap_iterable",
+    "count_from",
+    "islice_iterable",
+    "unique_everseen",
+    "unique_justseen",
+]
