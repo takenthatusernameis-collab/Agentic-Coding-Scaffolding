@@ -7,6 +7,7 @@ from numbers_utils import (
     Rational,
     Real,
     is_abundant_number,
+    is_almost_perfect_number,
     is_armstrong_number,
     is_automorphic_number,
     is_complex,
@@ -112,6 +113,26 @@ class TestIsPerfectNumber(unittest.TestCase):
         for value in (1.5, "6", None, True, [6]):
             with self.assertRaises(TypeError):
                 is_perfect_number(value)
+
+
+class TestIsAlmostPerfectNumber(unittest.TestCase):
+    def test_known_almost_perfect_numbers(self):
+        for value in (1, 2, 4, 8, 16, 32, 64, 128, 256):
+            self.assertTrue(is_almost_perfect_number(value), value)
+
+    def test_non_almost_perfect_numbers(self):
+        for value in (3, 5, 6, 7, 9, 10, 12, 15, 20, 28, 100):
+            self.assertFalse(is_almost_perfect_number(value), value)
+
+    def test_below_one(self):
+        self.assertFalse(is_almost_perfect_number(0))
+        self.assertFalse(is_almost_perfect_number(-1))
+        self.assertFalse(is_almost_perfect_number(-16))
+
+    def test_type_error(self):
+        for value in (1.5, "2", None, True, [2]):
+            with self.assertRaises(TypeError):
+                is_almost_perfect_number(value)
 
 
 if __name__ == "__main__":

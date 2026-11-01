@@ -1,3 +1,9 @@
+## Unreleased — added is_almost_perfect_number to numbers_utils
+
+- Added `is_almost_perfect_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns `True` when *n* is an almost perfect number — a positive integer whose sum of proper divisors equals *n* - 1 (the known cases are the powers of two) — and `False` for numbers below 1.
+- Added `TestIsAlmostPerfectNumber` to `tests/test_numbers_utils.py` covering known almost perfect numbers (powers of two), non-almost-perfect numbers, numbers below 1, and the `TypeError` paths (4 new tests). Imported `is_almost_perfect_number` at the top of the test file to match the module's `__all__` contract.
+- Updated the `numbers_utils` module tree entry and prose section of `README.md`.
+
 ## Unreleased — added is_squarefree_number to number_utils
 
 - Added `is_squarefree_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *value* is a positive integer not divisible by any perfect square greater than 1 (1 is squarefree by convention), and False for 0, negatives, and numbers with a squared prime factor.

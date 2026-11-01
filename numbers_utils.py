@@ -23,6 +23,7 @@ __all__: list[str] = [
     "is_real",
     "is_rational",
     "is_perfect_number",
+    "is_almost_perfect_number",
     "is_abundant_number",
     "is_deficient_number",
     "is_strong_number",
@@ -322,6 +323,49 @@ def is_perfect_number(n: int) -> bool:
                 total += other
         candidate += 1
     return bool(total == n)
+
+
+def is_almost_perfect_number(n: int) -> bool:
+    """Return ``True`` when *n* is an almost perfect number.
+
+    An almost perfect number is a positive integer whose sum of proper
+    divisors equals the number minus one (``sum(proper_divisors(n)) == n - 1``).
+    The known almost perfect numbers are the powers of two (1, 2, 4, 8, 16, ...);
+    it is conjectured that no others exist.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is an almost perfect number, ``False`` otherwise.
+        Numbers below 1 are never almost perfect.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_almost_perfect_number(1)
+        True
+        >>> is_almost_perfect_number(2)
+        True
+        >>> is_almost_perfect_number(4)
+        True
+        >>> is_almost_perfect_number(8)
+        True
+        >>> is_almost_perfect_number(16)
+        True
+        >>> is_almost_perfect_number(6)
+        False
+        >>> is_almost_perfect_number(0)
+        False
+        >>> is_almost_perfect_number(-4)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+    return sum(proper_divisors(n)) == n - 1
 
 
 def is_spy_number(n: int) -> bool:
