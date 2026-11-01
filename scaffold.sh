@@ -15848,6 +15848,8 @@ class TestTruncate(unittest.TestCase):
 
     def test_truncate_zero_length(self):
         self.assertEqual(truncate("hello", 0), "")
+    def test_truncate_empty_input(self):
+        self.assertEqual(truncate("", 5), "")
 
     def test_truncate_negative_length_raises(self):
         with self.assertRaises(ValueError):
