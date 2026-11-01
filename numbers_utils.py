@@ -35,6 +35,7 @@ __all__: list[str] = [
     "is_pronic_number",
     "is_spy_number",
     "is_polydivisible_number",
+    "is_repdigit_number",
     "proper_divisors",
 ]
 
@@ -760,3 +761,42 @@ def is_polydivisible_number(n: int) -> bool:
         if num % i != 0:
             return False
     return True
+
+
+def is_repdigit_number(n: int) -> bool:
+    """Return ``True`` when *n* is a repdigit number.
+
+    A repdigit number is a positive integer composed of repeated instances of
+    the same digit. Zero is considered a repdigit.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a repdigit, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_repdigit_number(0)
+        True
+        >>> is_repdigit_number(5)
+        True
+        >>> is_repdigit_number(11)
+        True
+        >>> is_repdigit_number(22)
+        True
+        >>> is_repdigit_number(123)
+        False
+        >>> is_repdigit_number(12)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    s = str(n)
+    if not s:
+        return False
+    return all(d == s[0] for d in s)

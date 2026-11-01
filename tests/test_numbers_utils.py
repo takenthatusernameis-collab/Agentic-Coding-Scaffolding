@@ -22,6 +22,7 @@ from numbers_utils import (
     is_pronic_number,
     is_rational,
     is_real,
+    is_repdigit_number,
     is_strong_number,
     is_spy_number,
     proper_divisors,
@@ -368,6 +369,25 @@ class TestIsSpyNumber(unittest.TestCase):
         for value in (1.5, "22", None, True, [22]):
             with self.assertRaises(TypeError):
                 is_spy_number(value)
+
+
+class TestIsRepdigitNumber(unittest.TestCase):
+    def test_known_repdigits(self):
+        for value in (0, 5, 9, 11, 22, 33, 55, 66, 77, 88, 99, 111, 222, 555, 666, 777, 888, 999):
+            self.assertTrue(is_repdigit_number(value), value)
+
+    def test_non_repdigits(self):
+        for value in (12, 10, 123, 121, 112, 102):
+            self.assertFalse(is_repdigit_number(value), value)
+
+    def test_negatives(self):
+        for value in (-1, -5, -11):
+            self.assertFalse(is_repdigit_number(value), value)
+
+    def test_type_error(self):
+        for value in (1.5, "11", None, True, [11]):
+            with self.assertRaises(TypeError):
+                is_repdigit_number(value)
 
 
 if __name__ == "__main__":

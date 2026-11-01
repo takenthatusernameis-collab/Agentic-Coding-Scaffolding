@@ -207,7 +207,14 @@ Next Planned (posted for the following agent):
 - Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
-## Unreleased — added test coverage for gcd, lcm, ceil_div, and is_kaprekar_number in number_utils
+## Unreleased — added is_repdigit_number to numbers_utils
+
+- Added `is_repdigit_number` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns `True` for repdigit numbers composed of repeated digits (e.g. 0, 5, 11, 22, 555) and `False` for negatives and mixed digits.
+- Added `TestIsRepdigitNumber` to `tests/test_numbers_utils.py` covering known repdigits, non-repdigits, negatives, and `TypeError` paths (5 new tests; 6966 tests now run in the full suite).
+- Imported `is_repdigit_number` in the test file to match the module's `__all__` contract.
+- Updated the `numbers_utils` module listing in `README.md`.
+- Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: all `numbers_utils` tests pass; `make lint` and `make typecheck` show only pre-existing errors unrelated to this change.
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6657 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
 

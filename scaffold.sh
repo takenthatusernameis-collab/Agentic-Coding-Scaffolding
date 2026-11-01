@@ -46901,7 +46901,14 @@ Next Planned (posted for the following agent):
 - Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
-## Unreleased — added test coverage for gcd, lcm, ceil_div, and is_kaprekar_number in number_utils
+## Unreleased — added is_repdigit_number to numbers_utils
+
+- Added `is_repdigit_number` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns `True` for repdigit numbers composed of repeated digits (e.g. 0, 5, 11, 22, 555) and `False` for negatives and mixed digits.
+- Added `TestIsRepdigitNumber` to `tests/test_numbers_utils.py` covering known repdigits, non-repdigits, negatives, and `TypeError` paths (5 new tests; 6966 tests now run in the full suite).
+- Imported `is_repdigit_number` in the test file to match the module's `__all__` contract.
+- Updated the `numbers_utils` module listing in `README.md`.
+- Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: all `numbers_utils` tests pass; `make lint` and `make typecheck` show only pre-existing errors unrelated to this change.
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` runs 6657 tests and passes, `make lint` is clean, `make typecheck` reports no issues, and `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
 
@@ -48393,7 +48400,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, is_disarium_number, is_pronic_number, is_spy_number, is_polydivisible_number, proper_divisors)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, is_disarium_number, is_pronic_number, is_spy_number, is_polydivisible_number, is_repdigit_number, proper_divisors)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -71055,6 +71062,7 @@ __all__: list[str] = [
     "is_pronic_number",
     "is_spy_number",
     "is_polydivisible_number",
+    "is_repdigit_number",
     "proper_divisors",
 ]
 
@@ -71780,6 +71788,45 @@ def is_polydivisible_number(n: int) -> bool:
         if num % i != 0:
             return False
     return True
+
+
+def is_repdigit_number(n: int) -> bool:
+    """Return ``True`` when *n* is a repdigit number.
+
+    A repdigit number is a positive integer composed of repeated instances of
+    the same digit. Zero is considered a repdigit.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a repdigit, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_repdigit_number(0)
+        True
+        >>> is_repdigit_number(5)
+        True
+        >>> is_repdigit_number(11)
+        True
+        >>> is_repdigit_number(22)
+        True
+        >>> is_repdigit_number(123)
+        False
+        >>> is_repdigit_number(12)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    s = str(n)
+    if not s:
+        return False
+    return all(d == s[0] for d in s)
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -71808,6 +71855,7 @@ from numbers_utils import (
     is_pronic_number,
     is_rational,
     is_real,
+    is_repdigit_number,
     is_strong_number,
     is_spy_number,
     proper_divisors,
@@ -72111,7 +72159,7 @@ class TestIsPronicNumber(unittest.TestCase):
         for value in (-2, -1):
             self.assertFalse(is_pronic_number(value))
 
-def test_type_error(self):
+    def test_type_error(self):
         for value in (1.5, "2", None, True, [2]):
             with self.assertRaises(TypeError):
                 is_pronic_number(value)
@@ -72154,6 +72202,25 @@ class TestIsSpyNumber(unittest.TestCase):
         for value in (1.5, "22", None, True, [22]):
             with self.assertRaises(TypeError):
                 is_spy_number(value)
+
+
+class TestIsRepdigitNumber(unittest.TestCase):
+    def test_known_repdigits(self):
+        for value in (0, 5, 9, 11, 22, 33, 55, 66, 77, 88, 99, 111, 222, 555, 666, 777, 888, 999):
+            self.assertTrue(is_repdigit_number(value), value)
+
+    def test_non_repdigits(self):
+        for value in (12, 10, 123, 121, 112, 102):
+            self.assertFalse(is_repdigit_number(value), value)
+
+    def test_negatives(self):
+        for value in (-1, -5, -11):
+            self.assertFalse(is_repdigit_number(value), value)
+
+    def test_type_error(self):
+        for value in (1.5, "11", None, True, [11]):
+            with self.assertRaises(TypeError):
+                is_repdigit_number(value)
 
 
 if __name__ == "__main__":
