@@ -17690,6 +17690,211 @@ class TestRepeatString(unittest.TestCase):
     def test_repeat_string_non_int_count_raises(self):
         with self.assertRaises(TypeError):
             repeat_string("x", 2.0)  # type: ignore[arg-type]
+
+
+
+
+
+
+class TestStringsBoundaryComprehensive(unittest.TestCase):
+    """Comprehensive boundary tests for strings.py (empty, whitespace, unicode, types)."""
+
+    def test_empty_and_whitespace(self):
+        from strings import (
+            is_blank,
+            is_palindrome,
+            remove_whitespace,
+            strip_leading_newlines,
+            strip_trailing_newlines,
+        )
+
+        self.assertTrue(is_blank(""))
+        self.assertTrue(is_blank("   "))
+        self.assertTrue(is_blank("\t\n"))
+        self.assertFalse(is_blank("a"))
+
+        self.assertEqual(remove_whitespace("a b\tc\n"), "abc")
+        self.assertTrue(is_palindrome(""))
+        self.assertTrue(is_palindrome("   "))
+        self.assertTrue(is_palindrome("\t"))
+
+        self.assertEqual(strip_leading_newlines("\n\na"), "a")
+        self.assertEqual(strip_trailing_newlines("a\n\n"), "a")
+        self.assertEqual(strip_leading_newlines("a"), "a")
+        self.assertEqual(strip_trailing_newlines("a"), "a")
+        self.assertEqual(strip_leading_newlines(""), "")
+        self.assertEqual(strip_trailing_newlines(""), "")
+
+    def test_unicode_edge_cases(self):
+        from strings import (
+            reverse_string,
+            reverse_words,
+            capitalize_words,
+            slugify,
+            is_palindrome,
+        )
+
+        self.assertEqual(reverse_string("你好"), "好你")
+        self.assertEqual(reverse_words("你好 世界"), "世界 你好")
+        self.assertTrue(is_palindrome("abcb a"))
+        self.assertEqual(capitalize_words("héllo wörld"), "Héllo Wörld")
+        self.assertEqual(slugify("Hello World!"), "hello-world")
+
+    def test_type_errors_common(self):
+        from strings import (
+            is_palindrome,
+            reverse_string,
+            reverse_words,
+            capitalize_words,
+            title_case,
+            swap_case,
+            count_vowels,
+            count_consonants,
+            count_letters,
+            count_digits,
+            count_whitespace,
+            remove_digits,
+            remove_whitespace,
+            remove_punctuation,
+            pad_left,
+            pad_right,
+            levenshtein_distance,
+            is_anagram,
+            common_prefix,
+            common_suffix,
+            is_subsequence,
+            slugify,
+            is_blank,
+            lstrip_chars,
+            rstrip_chars,
+            strip_chars,
+            ensure_prefix,
+            ensure_suffix,
+            replace_many,
+            between,
+            count_occurrences,
+            find,
+            rfind,
+            starts_with,
+            ends_with,
+            partition,
+            rpartition,
+            take,
+            drop,
+            chunk_string,
+            split_lines,
+            strip_leading_newlines,
+            strip_trailing_newlines,
+            repeat_string,
+            truncate_bytes,
+        )
+
+        for fn, args in [
+            (is_palindrome, (123,)),
+            (reverse_string, (123,)),
+            (reverse_words, (123,)),
+            (capitalize_words, (123,)),
+            (title_case, (123,)),
+            (swap_case, (123,)),
+            (count_vowels, (123,)),
+            (count_consonants, (123,)),
+            (count_letters, (123,)),
+            (count_digits, (123,)),
+            (count_whitespace, (123,)),
+            (remove_digits, (123,)),
+            (remove_whitespace, (123,)),
+            (remove_punctuation, (123,)),
+            (pad_left, (123, 5)),
+            (pad_right, (123, 5)),
+
+            (levenshtein_distance, (123, "a")),
+            (is_anagram, (123, "a")),
+            (common_prefix, (123, "a")),
+            (common_suffix, (123, "a")),
+
+            (is_subsequence, (123, "a")),
+
+            (slugify, (123,)),
+            (is_blank, (123,)),
+            (lstrip_chars, (123, "a")),
+            (rstrip_chars, (123, "a")),
+            (strip_chars, (123, "a")),
+            (ensure_prefix, (123, "x")),
+            (ensure_suffix, (123, "x")),
+            (replace_many, (123, {})),
+            (between, (123, "a", "b")),
+            (count_occurrences, (123, "a")),
+            (find, (123, "a")),
+            (rfind, (123, "a")),
+            (starts_with, (123, "a")),
+            (ends_with, (123, "a")),
+            (partition, (123, "a")),
+            (rpartition, (123, "a")),
+            (take, (123, 5)),
+            (drop, (123, 5)),
+            (chunk_string, (123, 2)),
+            (split_lines, (123,)),
+            (strip_leading_newlines, (123,)),
+            (strip_trailing_newlines, (123,)),
+            (repeat_string, (123, 2)),
+            (truncate_bytes, (123, 5)),
+        ]:
+            with self.subTest(fn=fn.__name__):
+                with self.assertRaises(TypeError):
+                    fn(*args)
+
+    def test_empty_string_various(self):
+        from strings import (
+            count_vowels,
+            count_consonants,
+            count_letters,
+            count_digits,
+            count_whitespace,
+            remove_digits,
+            remove_punctuation,
+            levenshtein_distance,
+            common_prefix,
+            common_suffix,
+            is_subsequence,
+            pad_left,
+            pad_right,
+            chunk_string,
+            repeat_string,
+            reverse_string,
+            reverse_words,
+            join_lines,
+        )
+
+        self.assertEqual(reverse_string(""), "")
+        self.assertEqual(reverse_words(""), "")
+        self.assertEqual(count_vowels(""), 0)
+        self.assertEqual(count_consonants(""), 0)
+        self.assertEqual(count_letters(""), 0)
+        self.assertEqual(count_digits(""), 0)
+        self.assertEqual(count_whitespace(""), 0)
+        self.assertEqual(remove_digits(""), "")
+        self.assertEqual(remove_punctuation(""), "")
+        self.assertEqual(levenshtein_distance("", ""), 0)
+        self.assertEqual(common_prefix("", "abc"), "")
+        self.assertEqual(common_suffix("abc", ""), "")
+        self.assertTrue(is_subsequence("", "abc"))
+        self.assertTrue(is_subsequence("abc", "abc"))
+        self.assertFalse(is_subsequence("abcd", "abc"))
+        self.assertEqual(pad_left("", 3), "   ")
+        self.assertEqual(pad_right("", 3), "   ")
+        self.assertEqual(chunk_string("", 2), [])
+        self.assertEqual(repeat_string("", 5), "")
+        self.assertEqual(join_lines([]), "")
+
+    def test_single_char_cases(self):
+        from strings import is_palindrome, reverse_string, is_anagram, count_vowels, count_consonants
+
+        self.assertTrue(is_palindrome("a"))
+        self.assertEqual(reverse_string("a"), "a")
+        self.assertTrue(is_anagram("a", "a"))
+        self.assertFalse(is_anagram("a", "b"))
+        self.assertEqual(count_vowels("a"), 1)
+        self.assertEqual(count_consonants("b"), 1)
 TESTSTRINGS
 
 # --- tests/test_utils.py ---
@@ -24131,9 +24336,10 @@ TEST_DBM_UTILS
 cat > "$OUTPUT_DIR/file_utils.py" <<'FILEUTILS'
 """File and path utility functions."""
 
+import json
 import shutil
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any, List, Union
 
 __all__ = [
     "copy_file",
@@ -24147,15 +24353,58 @@ __all__ = [
 ]
 
 
+def _require_path(value: object, name: str = "path") -> Union[str, Path]:
+    """Validate that *value* is a path-like object (str or Path).
+
+    Raises:
+        TypeError: if *value* is not a str or Path.
+    """
+    if not isinstance(value, (str, Path)):
+        raise TypeError(f"{name} must be a str or Path, got {type(value).__name__}")
+    return value
+
 
 def read_text(path: Union[str, Path]) -> str:
-    """Read text content from a file."""
+    """Read text content from a file.
+
+    Args:
+        path: File path as str or Path.
+
+    Returns:
+        The full text content of the file.
+
+    Raises:
+        TypeError: if *path* is not a str or Path.
+        FileNotFoundError: if *path* does not exist.
+        OSError: on other I/O errors.
+
+    Examples:
+        >>> import tempfile, os
+        >>> path = os.path.join(tempfile.gettempdir(), "kilo_read_text.txt")
+        >>> _ = open(path, "w").write("hello")
+        >>> read_text(path)
+        'hello'
+        >>> os.remove(path)
+    """
+    path = _require_path(path)
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 
-def write_text(path: Union[str, Path], content: str, encoding: str = "utf-8") -> None:
-    """Write text content to a file."""
+def write_text(
+    path: Union[str, Path], content: str, encoding: str = "utf-8"
+) -> None:
+    """Write text content to a file, creating parent directories as needed.
+
+    Args:
+        path: File path as str or Path.
+        content: Text to write.
+        encoding: Character encoding to use.
+
+    Raises:
+        TypeError: if *path* is not a str or Path.
+    """
+    path = _require_path(path)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding=encoding) as f:
@@ -24163,9 +24412,29 @@ def write_text(path: Union[str, Path], content: str, encoding: str = "utf-8") ->
 
 
 def read_json(path: Union[str, Path]) -> Any:
-    """Read JSON content from a file."""
-    import json
+    """Read JSON content from a file.
 
+    Args:
+        path: File path as str or Path.
+
+    Returns:
+        The parsed JSON value.
+
+    Raises:
+        TypeError: if *path* is not a str or Path.
+        FileNotFoundError: if *path* does not exist.
+        OSError: on other I/O errors.
+        json.JSONDecodeError: if the file does not contain valid JSON.
+
+    Examples:
+        >>> import tempfile, os
+        >>> path = os.path.join(tempfile.gettempdir(), "kilo_read_json.json")
+        >>> _ = open(path, "w").write('{"a": 1}')
+        >>> read_json(path)
+        {'a': 1}
+        >>> os.remove(path)
+    """
+    path = _require_path(path)
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -24173,12 +24442,21 @@ def read_json(path: Union[str, Path]) -> Any:
 def write_json(
     path: Union[str, Path],
     data: Any,
-    indent: Optional[int] = 2,
+    indent: int = 2,
     ensure_ascii: bool = False,
 ) -> None:
-    """Write JSON content to a file."""
-    import json
+    """Write JSON content to a file, creating parent directories as needed.
 
+    Args:
+        path: File path as str or Path.
+        data: JSON-serializable value to write.
+        indent: Indentation level for pretty-printing.
+        ensure_ascii: If True, escape non-ASCII characters.
+
+    Raises:
+        TypeError: if *path* is not a str or Path.
+    """
+    path = _require_path(path)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
@@ -24186,7 +24464,26 @@ def write_json(
 
 
 def ensure_dir(path: Union[str, Path]) -> Path:
-    """Ensure a directory exists and return its Path."""
+    """Ensure a directory exists, creating it (and parents) if needed.
+
+    Args:
+        path: Directory path as str or Path.
+
+    Returns:
+        The directory as a Path.
+
+    Raises:
+        TypeError: if *path* is not a str or Path.
+
+    Examples:
+        >>> import tempfile, os
+        >>> path = os.path.join(tempfile.gettempdir(), "kilo_ensure_dir")
+        >>> result = ensure_dir(path)
+        >>> os.path.isdir(result)
+        True
+        >>> os.rmdir(result)
+    """
+    path = _require_path(path)
     path = Path(path)
     path.mkdir(parents=True, exist_ok=True)
     return path
@@ -24194,10 +24491,25 @@ def ensure_dir(path: Union[str, Path]) -> Path:
 
 def list_files(
     path: Union[str, Path],
-    pattern: Optional[str] = None,
+    pattern: str = "",
     recursive: bool = False,
 ) -> List[Path]:
-    """List files in a directory."""
+    """List files in a directory.
+
+    Args:
+        path: Directory path as str or Path.
+        pattern: Optional glob pattern to filter entries.
+        recursive: If True, search recursively.
+
+    Returns:
+        A sorted list of matching file paths.
+
+    Raises:
+        TypeError: if *path* is not a str or Path.
+        FileNotFoundError: if *path* does not exist.
+        ValueError: if *path* exists but is not a directory.
+    """
+    path = _require_path(path)
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"Directory not found: {path}")
@@ -24215,7 +24527,19 @@ def list_files(
 
 
 def copy_file(src: Union[str, Path], dst: Union[str, Path]) -> None:
-    """Copy a file from src to dst."""
+    """Copy a file from *src* to *dst*, creating parent directories as needed.
+
+    Args:
+        src: Source file path as str or Path.
+        dst: Destination file path as str or Path.
+
+    Raises:
+        TypeError: if *src* or *dst* is not a str or Path.
+        FileNotFoundError: if *src* does not exist.
+        OSError: on other I/O errors.
+    """
+    src = _require_path(src, "src")
+    dst = _require_path(dst, "dst")
     src = Path(src)
     dst = Path(dst)
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -24223,7 +24547,16 @@ def copy_file(src: Union[str, Path], dst: Union[str, Path]) -> None:
 
 
 def delete_file(path: Union[str, Path]) -> None:
-    """Delete a file if it exists."""
+    """Delete a file if it exists; no-op for missing files.
+
+    Args:
+        path: File path as str or Path.
+
+    Raises:
+        TypeError: if *path* is not a str or Path.
+        OSError: if *path* exists but is not a regular file.
+    """
+    path = _require_path(path)
     path = Path(path)
     if path.exists() and path.is_file():
         path.unlink()
@@ -24311,6 +24644,134 @@ class TestFileUtils(unittest.TestCase):
         self.assertFalse(file_path.exists())
         # Should not raise when deleting non-existent file
         delete_file(file_path)
+
+
+class TestFileUtilsBoundary(unittest.TestCase):
+    """Boundary and TypeError coverage for file_utils."""
+
+    def setUp(self) -> None:
+        import tempfile
+
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self) -> None:
+        import shutil
+
+        shutil.rmtree(self.temp_dir)
+
+    def test_read_text_missing_file(self) -> None:
+        with self.assertRaises(FileNotFoundError):
+            read_text(Path(self.temp_dir) / "missing.txt")
+
+    def test_read_text_directory_raises(self) -> None:
+        with self.assertRaises((IsADirectoryError, OSError)):
+            read_text(self.temp_dir)
+
+    def test_read_text_non_string_raises_typeerror(self) -> None:
+        with self.assertRaises(TypeError):
+            read_text(123)  # type: ignore[arg-type]
+
+    def test_write_text_creates_nested_path(self) -> None:
+        nested = Path(self.temp_dir) / "a" / "b" / "c.txt"
+        write_text(nested, "deep")
+        self.assertEqual(nested.read_text(), "deep")
+
+    def test_write_text_non_string_raises_typeerror(self) -> None:
+        with self.assertRaises(TypeError):
+            write_text(123, "x")  # type: ignore[arg-type]
+
+    def test_read_json_missing_file(self) -> None:
+        with self.assertRaises(FileNotFoundError):
+            read_json(Path(self.temp_dir) / "missing.json")
+
+    def test_read_json_invalid_json(self) -> None:
+        import json
+
+        bad = Path(self.temp_dir) / "bad.json"
+        bad.write_text("{not json")
+        with self.assertRaises(json.JSONDecodeError):
+            read_json(bad)
+
+    def test_read_json_non_string_raises_typeerror(self) -> None:
+        with self.assertRaises(TypeError):
+            read_json(123)  # type: ignore[arg-type]
+
+    def test_write_json_non_string_raises_typeerror(self) -> None:
+        with self.assertRaises(TypeError):
+            write_json(123, {})  # type: ignore[arg-type]
+
+    def test_write_json_round_trip(self) -> None:
+        path = Path(self.temp_dir) / "data.json"
+        data = {"unicode": "héllo", "list": [1, 2, 3]}
+        write_json(path, data)
+        self.assertEqual(read_json(path), data)
+
+    def test_ensure_dir_existing(self) -> None:
+        result = ensure_dir(self.temp_dir)
+        self.assertEqual(result, Path(self.temp_dir))
+
+    def test_ensure_dir_non_string_raises_typeerror(self) -> None:
+        with self.assertRaises(TypeError):
+            ensure_dir(123)  # type: ignore[arg-type]
+
+    def test_list_files_missing_dir(self) -> None:
+        with self.assertRaises(FileNotFoundError):
+            list_files(Path(self.temp_dir) / "nope")
+
+    def test_list_files_not_a_dir(self) -> None:
+        file_path = Path(self.temp_dir) / "file.txt"
+        file_path.write_text("x")
+        with self.assertRaises(ValueError):
+            list_files(file_path)
+
+    def test_list_files_non_string_raises_typeerror(self) -> None:
+        with self.assertRaises(TypeError):
+            list_files(123)  # type: ignore[arg-type]
+
+    def test_list_files_pattern_recursive(self) -> None:
+        root = Path(self.temp_dir)
+        (root / "a.txt").write_text("1")
+        (root / "sub").mkdir()
+        (root / "sub" / "b.txt").write_text("2")
+        (root / "sub" / "c.py").write_text("3")
+
+        self.assertEqual(len(list_files(root, recursive=True)), 3)
+        self.assertEqual(len(list_files(root, "*.txt", recursive=True)), 2)
+        self.assertEqual(len(list_files(root, "*.py", recursive=True)), 1)
+        self.assertEqual(len(list_files(root, "*.py")), 0)
+
+    def test_list_files_empty_dir(self) -> None:
+        self.assertEqual(list_files(self.temp_dir), [])
+
+    def test_copy_file_missing_src(self) -> None:
+        with self.assertRaises(FileNotFoundError):
+            copy_file(Path(self.temp_dir) / "missing.txt", "dst.txt")
+
+    def test_copy_file_non_string_raises_typeerror(self) -> None:
+        with self.assertRaises(TypeError):
+            copy_file(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            copy_file("x", 123)  # type: ignore[arg-type]
+
+    def test_copy_file_overwrites(self) -> None:
+        src = Path(self.temp_dir) / "src.txt"
+        dst = Path(self.temp_dir) / "dst.txt"
+        src.write_text("original")
+        copy_file(src, dst)
+        dst.write_text("changed")
+        copy_file(src, dst)
+        self.assertEqual(dst.read_text(), "original")
+
+    def test_delete_file_non_string_raises_typeerror(self) -> None:
+        with self.assertRaises(TypeError):
+            delete_file(123)  # type: ignore[arg-type]
+
+    def test_delete_file_directory_is_noop(self) -> None:
+        # delete_file only unlinks regular files; directories are left alone.
+        sub = Path(self.temp_dir) / "subdir"
+        sub.mkdir()
+        delete_file(sub)
+        self.assertTrue(sub.exists())
 
 
 if __name__ == "__main__":
@@ -47205,6 +47666,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — audited and hardened file_utils boundary cases
+
+- Audited every public helper in `file_utils.py` against boundary inputs: empty paths, missing files, directories passed to file readers, non-str/non-Path types, nested destination creation, empty directories, and recursive/non-recursive globbing. Found that the module accepted non-str/non-Path arguments without raising `TypeError` (they fell through to `OSError`/`TypeError` from the stdlib), leaving a gap against the project's validation convention.
+- Added a `_require_path` validation helper to `file_utils.py` and routed every public function through it so each raises a consistent `TypeError` for non-str/non-Path inputs; added Google-style docstrings with doctests to `read_text`, `read_json`, and `ensure_dir`.
+- Added `TestFileUtilsBoundary` to `tests/test_file_utils.py` covering missing-file `FileNotFoundError` paths, directory-as-file `OSError` paths, invalid-JSON `json.JSONDecodeError`, nested destination creation, empty-directory listing, recursive/non-recursive glob filtering, missing-source `FileNotFoundError` in `copy_file`, overwrite behavior, directory-as-target no-op in `delete_file`, and the `TypeError` paths for every public function (20 new tests). Imported nothing new beyond the existing public API to match the module's `__all__` contract.
+- Updated the `file_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+
 ## Unreleased — added is_strong_prime to prime_utils
 
 - Added `is_strong_prime(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* is a strong prime — a prime greater than the arithmetic mean of its nearest primes above and below (equivalently, closer to the next prime than to the previous one; OEIS A051634, e.g. 11, 17, 29, 37, 41, 59, ...), reusing the existing `is_prime`, `prev_prime`, and `next_prime` helpers and using the strictly neighbouring primes `prev_prime(n - 1)` and `next_prime(n + 1)`. Returns False for balanced primes (e.g. 5), weak primes (e.g. 7, 13, 23), non-primes, and numbers below 11.
@@ -48854,7 +49323,7 @@ dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple
 datetime_utils.py           # Date and time utility functions
 dbm_utils.py                 # Database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
 template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
-file_utils.py               # File and path utility functions
+file_utils.py               # File and path utility functions (read_text, write_text, read_json, write_json, ensure_dir, list_files, copy_file, delete_file)
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
@@ -49499,7 +49968,7 @@ The project includes database utilities in `dbm_utils.py` wrapping the standard 
 
 ## File Utilities Module
 
-The project includes a file utilities module in `file_utils.py` with functions for file and path operations: `read_text`, `write_text`, `read_json`, `write_json`, `ensure_dir`, `list_files`, `copy_file`, and `delete_file`. The module is tested in `tests/test_file_utils.py`.
+The project includes a file utilities module in `file_utils.py` with functions for file and path operations: `read_text` reads text content from a file, `write_text` writes text content to a file (creating parent directories as needed), `read_json` parses JSON content from a file, `write_json` serializes JSON content to a file (creating parent directories as needed), `ensure_dir` ensures a directory exists and returns its Path, `list_files` lists files in a directory with optional glob pattern and recursive search, `copy_file` copies a file from source to destination (creating parent directories as needed), and `delete_file` deletes a file if it exists (no-op for missing files). All functions validate their path arguments and raise `TypeError` on non-str/non-Path inputs, and `read_text`/`read_json` raise `FileNotFoundError` for missing files while `list_files` raises `FileNotFoundError` for missing directories and `ValueError` for non-directory paths. The module is tested in `tests/test_file_utils.py`.
 
 ## File Input Utilities Module
 
