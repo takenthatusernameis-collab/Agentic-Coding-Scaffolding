@@ -715,3 +715,47 @@ def is_pronic_number(n: int) -> bool:
 
     k = math.isqrt(n)
     return bool(k * (k + 1) == n or (k + 1) * k == n)
+
+
+def is_polydivisible_number(n: int) -> bool:
+    """Return ``True`` when *n* is a polydivisible number.
+
+    A polydivisible number is a number where the first *k* digits form a
+    number divisible by *k* for all *k* from 1 to the number of digits.
+    Numbers below 0 are never polydivisible. Single or zero-digit numbers:
+    0 is often considered polydivisible in some definitions; following
+    common convention this returns ``True`` only for non-negative integers
+    where every prefix passes the divisibility test.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a polydivisible number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_polydivisible_number(1)
+        True
+        >>> is_polydivisible_number(12)
+        True
+        >>> is_polydivisible_number(123)
+        True
+        >>> is_polydivisible_number(102)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n == 0:
+        return True
+    s = str(n)
+    num = 0
+    for i in range(1, len(s) + 1):
+        num = num * 10 + int(s[i - 1])
+        if num % i != 0:
+            return False
+    return True
