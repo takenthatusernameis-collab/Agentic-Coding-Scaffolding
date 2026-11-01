@@ -37,6 +37,9 @@ __all__: list[str] = [
     "is_spy_number",
     "is_polydivisible_number",
     "is_repdigit_number",
+    "is_palindromic_number",
+    "is_coprime",
+    "is_perfect_power",
     "proper_divisors",
 ]
 
@@ -807,35 +810,68 @@ def is_polydivisible_number(n: int) -> bool:
     return True
 
 
-def is_repdigit_number(n: int) -> bool:
-    """Return ``True`` when *n* is a repdigit number.
+def is_perfect_power(n: int) -> bool:
+    """Return ``True`` if *n* is a perfect power.
 
-    A repdigit number is a positive integer composed of repeated instances of
-    the same digit. Zero is considered a repdigit.
-
-    Args:
-        n: The integer to test.
-
-    Returns:
-        ``True`` if *n* is a repdigit, ``False`` otherwise.
-
-    Raises:
-        TypeError: If *n* is not an int.
-
-    Examples:
-        >>> is_repdigit_number(0)
-        True
-        >>> is_repdigit_number(5)
-        True
-        >>> is_repdigit_number(11)
-        True
-        >>> is_repdigit_number(22)
-        True
-        >>> is_repdigit_number(123)
-        False
-        >>> is_repdigit_number(12)
-        False
+    A perfect power is a positive integer that can be expressed as an
+    integer power of another positive integer with exponent >= 2.
+    By this definition, 1 is not considered a perfect power.
     """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n <= 1:
+        return False
+    max_exp = n.bit_length()
+    for b in range(2, max_exp + 1):
+        a_float = n ** (1.0 / b)
+        a = round(a_float)
+        if a < 2:
+            continue
+        for candidate in (a - 1, a, a + 1):
+            if candidate < 2:
+                continue
+            try:
+                if candidate ** b == n:
+                    return True
+            except OverflowError:
+                continue
+    return False
+
+
+def _gcd_int(a: int, b: int) -> int:
+    """Compute GCD of two non-negative ints."""
+    a = abs(a)
+    b = abs(b)
+    while b:
+        a, b = b, a % b
+    return a
+
+
+def is_coprime(a: int, b: int) -> bool:
+    """Return ``True`` if *a* and *b* are coprime (gcd is 1)."""
+    if isinstance(a, bool) or not isinstance(a, int):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if isinstance(b, bool) or not isinstance(b, int):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    return _gcd_int(a, b) == 1
+
+
+def is_palindromic_number(n: int) -> bool:
+    """Return ``True`` when *n* is a palindromic number in base 10.
+
+    A palindromic number reads the same forward and backward. Negative
+    numbers are not considered palindromes.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    s = str(n)
+    return s == s[::-1]
+
+
+def is_repdigit_number(n: int) -> bool:
+    """Return ``True`` when *n* is a repdigit number."""
     if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 0:
