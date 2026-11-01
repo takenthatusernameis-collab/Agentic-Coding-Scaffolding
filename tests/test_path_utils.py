@@ -182,5 +182,132 @@ class TestReturnTypes(unittest.TestCase):
         self.assertIsInstance(ensure_extension("a", ".txt"), str)
 
 
+class TestPathUtilsBoundary(unittest.TestCase):
+    """Boundary/TypeError coverage for every public path helper.
+
+    Mirrors the validation convention established in ``file_utils``: every
+    public function raises ``TypeError`` for non-str/non-Path arguments and
+    ``ValueError`` for semantically invalid (but correctly typed) arguments,
+    instead of letting the stdlib raise an opaque ``AttributeError`` or
+    silently coerce the value.
+    """
+
+    def test_join_path_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            join_path(123)
+        with self.assertRaises(TypeError):
+            join_path("a", None)
+        with self.assertRaises(TypeError):
+            join_path(Path("a"), 5)
+
+    def test_normalize_path_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            normalize_path(123)
+        with self.assertRaises(TypeError):
+            normalize_path(None)
+
+    def test_get_absolute_path_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_absolute_path(None)
+        with self.assertRaises(TypeError):
+            get_absolute_path(123)
+
+    def test_get_relative_path_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            get_relative_path(None, "/usr")
+        with self.assertRaises(TypeError):
+            get_relative_path("/usr/local", None)
+        with self.assertRaises(TypeError):
+            get_relative_path("/usr/local/bin", 5)
+
+    def test_get_relative_path_not_relative(self) -> None:
+        with self.assertRaises(ValueError):
+            get_relative_path("/usr/local", "/var")
+
+    def test_get_parent_dir_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_parent_dir(None)
+        with self.assertRaises(TypeError):
+            get_parent_dir(123)
+
+    def test_get_file_name_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_file_name(None)
+        with self.assertRaises(TypeError):
+            get_file_name(123)
+
+    def test_get_file_stem_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_file_stem(None)
+        with self.assertRaises(TypeError):
+            get_file_stem(123)
+
+    def test_get_file_extension_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_file_extension(None)
+        with self.assertRaises(TypeError):
+            get_file_extension(123)
+
+    def test_change_extension_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            change_extension(None, ".txt")
+        with self.assertRaises(TypeError):
+            change_extension("a.txt", None)
+        with self.assertRaises(TypeError):
+            change_extension("a.txt", 5)
+        with self.assertRaises(TypeError):
+            change_extension(123, ".txt")
+
+    def test_change_extension_empty_extension(self) -> None:
+        with self.assertRaises(ValueError):
+            change_extension("a.txt", "")
+
+    def test_is_absolute_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_absolute(None)
+        with self.assertRaises(TypeError):
+            is_absolute(123)
+
+    def test_get_path_components_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_path_components(None)
+        with self.assertRaises(TypeError):
+            get_path_components(123)
+
+    def test_get_common_path_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            get_common_path(None, "/a/b")
+        with self.assertRaises(TypeError):
+            get_common_path("/a/b", None)
+        with self.assertRaises(TypeError):
+            get_common_path("/a/b", 5)
+
+    def test_get_common_path_requires_two_paths(self) -> None:
+        with self.assertRaises(ValueError):
+            get_common_path("/a/b")
+
+    def test_ensure_extension_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            ensure_extension(None, ".txt")
+        with self.assertRaises(TypeError):
+            ensure_extension("a.txt", None)
+        with self.assertRaises(TypeError):
+            ensure_extension("a.txt", 5)
+        with self.assertRaises(TypeError):
+            ensure_extension(123, ".txt")
+
+    def test_ensure_extension_empty_extension(self) -> None:
+        with self.assertRaises(ValueError):
+            ensure_extension("a", "")
+
+    def test_path_objects_accepted(self) -> None:
+        # Path objects must still be accepted everywhere str is documented.
+        self.assertEqual(join_path(Path("a"), Path("b")), os.path.join("a", "b"))
+        self.assertEqual(get_common_path(Path("/a/b"), Path("/a/c")), "/a")
+        self.assertEqual(get_file_name(Path("/usr/local/bin/python")), "python")
+        self.assertEqual(get_parent_dir(Path("file.txt")), ".")
+        self.assertTrue(is_absolute(Path("/usr/local/bin")))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -818,7 +818,7 @@ The project includes a type introspection utilities module in `type_utils.py` wi
 
 ## Path Utilities Module
 
-The project includes a path manipulation utilities module in `path_utils.py` with functions for joining, normalizing, splitting, and inspecting filesystem paths: `join_path`, `normalize_path`, `get_absolute_path`, `get_relative_path`, `get_parent_dir`, `get_file_name`, `get_file_stem`, `get_file_extension`, `change_extension`, `is_absolute`, `get_path_components`, `get_common_path`, and `ensure_extension`. The module is tested in `tests/test_path_utils.py`.
+The project includes a path manipulation utilities module in `path_utils.py` with functions for joining, normalizing, splitting, and inspecting filesystem paths: `join_path`, `normalize_path`, `get_absolute_path`, `get_relative_path`, `get_parent_dir`, `get_file_name`, `get_file_stem`, `get_file_extension`, `change_extension`, `is_absolute`, `get_path_components`, `get_common_path`, and `ensure_extension`. Every public function validates its path arguments and raises :class:`TypeError` for non-str/non-Path inputs (and :class:`ValueError` for semantically invalid but correctly typed arguments such as a single path passed to `get_common_path` or an empty extension passed to `change_extension`/`ensure_extension`); `pathlib.Path` objects are accepted everywhere a str is documented. The module is tested in `tests/test_path_utils.py`.
 
 ## Pathlib Utilities Module
 

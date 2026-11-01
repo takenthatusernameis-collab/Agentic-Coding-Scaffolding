@@ -1,3 +1,11 @@
+## Unreleased — audited path_utils boundary cases
+
+- Audited every public helper in `path_utils.py` against boundary inputs: non-str/non-Path arguments, empty extensions, single-path calls to `get_common_path`, and Path-object acceptance. Found that `join_path` silently coerced non-str/non-Path arguments (e.g. `join_path(123)` returned `'123'`, `join_path("a", None)` returned `'a/None'`), and that `change_extension`/`ensure_extension` raised an opaque `AttributeError` for non-str extensions instead of the project's `TypeError`/`ValueError` convention.
+- Added a `_require_path` validation helper to `path_utils.py` and routed every public function through it so each raises a consistent `TypeError` for non-str/non-Path inputs; added a `_require_extension` helper that raises `TypeError` for non-str extensions and `ValueError` for empty extensions, used by `change_extension` and `ensure_extension`. Added `Raises:` sections to the docstrings of every public function.
+- Added `TestPathUtilsBoundary` to `tests/test_path_utils.py` covering the `TypeError` paths for every public function, the `ValueError` paths for `change_extension`/`ensure_extension` (empty extension) and `get_common_path` (fewer than two paths), the `ValueError` path for `get_relative_path` (not relative), and Path-object acceptance across the module (21 new tests; 55 tests now pass for the module). Imported nothing new beyond the existing public API to match the module's `__all__` contract.
+- Updated the `path_utils` prose section of `README.md` to document the validation convention.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+
 ## Unreleased — audited zipfile_utils boundary cases
 
 - Found that `is_zipfile` in `zipfile_utils.py` performed no input validation, unlike `create_archive`, `list_names`, and `extract_all`, contradicting the module's documented convention that all functions raise `TypeError`/`ValueError` on invalid arguments. Added `TypeError` for non-str paths and `ValueError` for empty paths to `is_zipfile`, typed its parameter as `str`, and dropped the now-unused `Any` import.

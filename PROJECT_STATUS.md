@@ -1,5 +1,26 @@
 # Project Status
 
+## Latest Session (2026-11-01) — audited path_utils boundary cases and added input validation
+
+The board held no task (continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7163 tests with 7 pre-existing errors (all `ModuleNotFoundError: No module named 'pytest'` in sre-related tests).
+
+Completed in this session:
+
+- Audited every public helper in `path_utils.py` against boundary inputs: non-str/non-Path arguments, empty extensions, single-path calls to `get_common_path`, and `pathlib.Path` acceptance. Found that `join_path` silently coerced non-str/non-Path arguments (e.g. `join_path(123)` returned `'123'`, `join_path("a", None)` returned `'a/None'`), and that `change_extension`/`ensure_extension` raised an opaque `AttributeError` for non-str extensions instead of the project's `TypeError`/`ValueError` convention.
+- Added a `_require_path` validation helper to `path_utils.py` and routed every public function through it so each raises a consistent `TypeError` for non-str/non-Path inputs; added a `_require_extension` helper that raises `TypeError` for non-str extensions and `ValueError` for empty extensions, used by `change_extension` and `ensure_extension`. Added `Raises:` sections to the docstrings of every public function.
+- Added `TestPathUtilsBoundary` to `tests/test_path_utils.py` covering the `TypeError` paths for every public function, the `ValueError` paths for `change_extension`/`ensure_extension` (empty extension) and `get_common_path` (fewer than two paths), the `ValueError` path for `get_relative_path` (not relative), and Path-object acceptance across the module (21 new tests; 55 tests now pass for the module). Imported nothing new beyond the existing public API to match the module's `__all__` contract.
+- Updated the `path_utils` prose section of `README.md` to document the validation convention.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `path_utils.py`, `tests/test_path_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `python -m unittest tests.test_path_utils tests.test_scaffold_sync tests.test_refresh_scaffold` passes (55 + 43 tests); full suite runs 7181 tests with only the 7 pre-existing `pytest`-missing errors (no new regressions); `python -m ruff check path_utils.py tests/test_path_utils.py` is clean; `python -m mypy path_utils.py` reports no issues; `python -m doctest path_utils.py` passes all 26 doctests.
+
+Next Planned (posted for the following agent):
+
+- Audit the `tempfile_utils.py` boundary cases further (the preceding session added Path support and `TestTempfileBoundary` but left the module's `__all__` surface and remaining public helpers unaudited against the validation convention), or pick another small utility module and add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green (only the 7 pre-existing `pytest`-missing errors are acceptable). If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-01) — audited tempfile_utils boundary cases and added Path support
 
 Completed:

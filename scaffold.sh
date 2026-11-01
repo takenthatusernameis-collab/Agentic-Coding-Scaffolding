@@ -23346,6 +23346,133 @@ class TestReturnTypes(unittest.TestCase):
         self.assertIsInstance(ensure_extension("a", ".txt"), str)
 
 
+class TestPathUtilsBoundary(unittest.TestCase):
+    """Boundary/TypeError coverage for every public path helper.
+
+    Mirrors the validation convention established in ``file_utils``: every
+    public function raises ``TypeError`` for non-str/non-Path arguments and
+    ``ValueError`` for semantically invalid (but correctly typed) arguments,
+    instead of letting the stdlib raise an opaque ``AttributeError`` or
+    silently coerce the value.
+    """
+
+    def test_join_path_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            join_path(123)
+        with self.assertRaises(TypeError):
+            join_path("a", None)
+        with self.assertRaises(TypeError):
+            join_path(Path("a"), 5)
+
+    def test_normalize_path_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            normalize_path(123)
+        with self.assertRaises(TypeError):
+            normalize_path(None)
+
+    def test_get_absolute_path_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_absolute_path(None)
+        with self.assertRaises(TypeError):
+            get_absolute_path(123)
+
+    def test_get_relative_path_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            get_relative_path(None, "/usr")
+        with self.assertRaises(TypeError):
+            get_relative_path("/usr/local", None)
+        with self.assertRaises(TypeError):
+            get_relative_path("/usr/local/bin", 5)
+
+    def test_get_relative_path_not_relative(self) -> None:
+        with self.assertRaises(ValueError):
+            get_relative_path("/usr/local", "/var")
+
+    def test_get_parent_dir_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_parent_dir(None)
+        with self.assertRaises(TypeError):
+            get_parent_dir(123)
+
+    def test_get_file_name_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_file_name(None)
+        with self.assertRaises(TypeError):
+            get_file_name(123)
+
+    def test_get_file_stem_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_file_stem(None)
+        with self.assertRaises(TypeError):
+            get_file_stem(123)
+
+    def test_get_file_extension_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_file_extension(None)
+        with self.assertRaises(TypeError):
+            get_file_extension(123)
+
+    def test_change_extension_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            change_extension(None, ".txt")
+        with self.assertRaises(TypeError):
+            change_extension("a.txt", None)
+        with self.assertRaises(TypeError):
+            change_extension("a.txt", 5)
+        with self.assertRaises(TypeError):
+            change_extension(123, ".txt")
+
+    def test_change_extension_empty_extension(self) -> None:
+        with self.assertRaises(ValueError):
+            change_extension("a.txt", "")
+
+    def test_is_absolute_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_absolute(None)
+        with self.assertRaises(TypeError):
+            is_absolute(123)
+
+    def test_get_path_components_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            get_path_components(None)
+        with self.assertRaises(TypeError):
+            get_path_components(123)
+
+    def test_get_common_path_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            get_common_path(None, "/a/b")
+        with self.assertRaises(TypeError):
+            get_common_path("/a/b", None)
+        with self.assertRaises(TypeError):
+            get_common_path("/a/b", 5)
+
+    def test_get_common_path_requires_two_paths(self) -> None:
+        with self.assertRaises(ValueError):
+            get_common_path("/a/b")
+
+    def test_ensure_extension_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            ensure_extension(None, ".txt")
+        with self.assertRaises(TypeError):
+            ensure_extension("a.txt", None)
+        with self.assertRaises(TypeError):
+            ensure_extension("a.txt", 5)
+        with self.assertRaises(TypeError):
+            ensure_extension(123, ".txt")
+
+    def test_ensure_extension_empty_extension(self) -> None:
+        with self.assertRaises(ValueError):
+            ensure_extension("a", "")
+
+    def test_path_objects_accepted(self) -> None:
+        # Path objects must still be accepted everywhere str is documented.
+        self.assertEqual(join_path(Path("a"), Path("b")), os.path.join("a", "b"))
+        self.assertEqual(get_common_path(Path("/a/b"), Path("/a/c")), "/a")
+        self.assertEqual(get_file_name(Path("/usr/local/bin/python")), "python")
+        self.assertEqual(get_parent_dir(Path("file.txt")), ".")
+        self.assertTrue(is_absolute(Path("/usr/local/bin")))
+
+
 if __name__ == "__main__":
     unittest.main()
 TESTPATHUTILS
@@ -34407,6 +34534,31 @@ __all__: List[str] = [
 ]
 
 
+def _require_path(value: object, name: str = "path") -> Union[str, Path]:
+    """Validate that *value* is a path-like object (str or Path).
+
+    Raises:
+        TypeError: if *value* is not a str or Path.
+    """
+    if not isinstance(value, (str, Path)):
+        raise TypeError(f"{name} must be a str or Path, got {type(value).__name__}")
+    return value
+
+
+def _require_extension(value: object, name: str = "extension") -> str:
+    """Validate that *value* is a non-empty string extension.
+
+    Raises:
+        TypeError: if *value* is not a str.
+        ValueError: if *value* is an empty string.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a str, got {type(value).__name__}")
+    if not value:
+        raise ValueError(f"{name} must not be empty")
+    return value
+
+
 def join_path(*parts: Union[str, Path]) -> str:
     """Join path components into a single path string.
 
@@ -34416,13 +34568,19 @@ def join_path(*parts: Union[str, Path]) -> str:
     Returns:
         The joined path as a string.
 
+    Raises:
+        TypeError: if any part is not a str or Path.
+
     Examples:
         >>> join_path("a", "b", "c")
         'a/b/c'
         >>> join_path("/usr", "local", "bin")
         '/usr/local/bin'
     """
-    return str(Path(*[str(p) for p in parts]))
+    coerced: List[Union[str, Path]] = []
+    for part in parts:
+        coerced.append(_require_path(part, "part"))
+    return str(Path(*[str(p) for p in coerced]))
 
 
 def normalize_path(path: Union[str, Path]) -> str:
@@ -34438,12 +34596,16 @@ def normalize_path(path: Union[str, Path]) -> str:
     Returns:
         The normalized path as a string.
 
+    Raises:
+        TypeError: if *path* is not a str or Path.
+
     Examples:
         >>> normalize_path("a//b/../c")
         'a/c'
         >>> normalize_path("/usr/./local//bin")
         '/usr/local/bin'
     """
+    path = _require_path(path)
     parts: List[str] = []
     is_absolute = PurePath(path).is_absolute()
     for part in PurePath(path).parts:
@@ -34474,10 +34636,14 @@ def get_absolute_path(path: Union[str, Path]) -> str:
     Returns:
         The absolute path as a string.
 
+    Raises:
+        TypeError: if *path* is not a str or Path.
+
     Examples:
         >>> isinstance(get_absolute_path("foo"), str)
         True
     """
+    path = _require_path(path)
     return str(Path(path).absolute())
 
 
@@ -34492,12 +34658,15 @@ def get_relative_path(path: Union[str, Path], start: Union[str, Path] = ".") -> 
         The relative path as a string.
 
     Raises:
+        TypeError: if *path* or *start* is not a str or Path.
         ValueError: If the path is not relative to the start directory.
 
     Examples:
         >>> get_relative_path("/usr/local/bin", "/usr")
         'local/bin'
     """
+    path = _require_path(path, "path")
+    start = _require_path(start, "start")
     return str(Path(path).relative_to(Path(start)))
 
 
@@ -34510,12 +34679,16 @@ def get_parent_dir(path: Union[str, Path]) -> str:
     Returns:
         The parent directory as a string.
 
+    Raises:
+        TypeError: if *path* is not a str or Path.
+
     Examples:
         >>> get_parent_dir("/usr/local/bin/python")
         '/usr/local/bin'
         >>> get_parent_dir("file.txt")
         '.'
     """
+    path = _require_path(path)
     return str(Path(path).parent)
 
 
@@ -34528,12 +34701,16 @@ def get_file_name(path: Union[str, Path]) -> str:
     Returns:
         The file name as a string.
 
+    Raises:
+        TypeError: if *path* is not a str or Path.
+
     Examples:
         >>> get_file_name("/usr/local/bin/python")
         'python'
         >>> get_file_name("archive.tar.gz")
         'archive.tar.gz'
     """
+    path = _require_path(path)
     return Path(path).name
 
 
@@ -34546,12 +34723,16 @@ def get_file_stem(path: Union[str, Path]) -> str:
     Returns:
         The file stem as a string.
 
+    Raises:
+        TypeError: if *path* is not a str or Path.
+
     Examples:
         >>> get_file_stem("/usr/local/script.py")
         'script'
         >>> get_file_stem("archive.tar.gz")
         'archive.tar'
     """
+    path = _require_path(path)
     return Path(path).stem
 
 
@@ -34564,6 +34745,9 @@ def get_file_extension(path: Union[str, Path]) -> str:
     Returns:
         The file extension as a string, or an empty string if none.
 
+    Raises:
+        TypeError: if *path* is not a str or Path.
+
     Examples:
         >>> get_file_extension("script.py")
         '.py'
@@ -34572,6 +34756,7 @@ def get_file_extension(path: Union[str, Path]) -> str:
         >>> get_file_extension("archive.tar.gz")
         '.gz'
     """
+    path = _require_path(path)
     return Path(path).suffix
 
 
@@ -34587,13 +34772,19 @@ def change_extension(path: Union[str, Path], extension: str) -> str:
     Returns:
         The path with the new extension as a string.
 
+    Raises:
+        TypeError: if *path* is not a str or Path, or *extension* is not a str.
+        ValueError: if *extension* is an empty string.
+
     Examples:
         >>> change_extension("script.py", ".txt")
         'script.txt'
         >>> change_extension("image.png", "jpg")
         'image.jpg'
     """
-    if extension and not extension.startswith("."):
+    path = _require_path(path, "path")
+    extension = _require_extension(extension, "extension")
+    if not extension.startswith("."):
         extension = "." + extension
     return str(Path(path).with_suffix(extension))
 
@@ -34607,12 +34798,16 @@ def is_absolute(path: Union[str, Path]) -> bool:
     Returns:
         True if the path is absolute, False otherwise.
 
+    Raises:
+        TypeError: if *path* is not a str or Path.
+
     Examples:
         >>> is_absolute("/usr/local/bin")
         True
         >>> is_absolute("relative/path")
         False
     """
+    path = _require_path(path)
     return Path(path).is_absolute()
 
 
@@ -34625,12 +34820,16 @@ def get_path_components(path: Union[str, Path]) -> List[str]:
     Returns:
         A list of path component strings.
 
+    Raises:
+        TypeError: if *path* is not a str or Path.
+
     Examples:
         >>> get_path_components("/usr/local/bin")
         ['/', 'usr', 'local', 'bin']
         >>> get_path_components("a/b/c")
         ['a', 'b', 'c']
     """
+    path = _require_path(path)
     parts = Path(path).parts
     return [str(p) for p in parts]
 
@@ -34645,6 +34844,7 @@ def get_common_path(*paths: Union[str, Path]) -> str:
         The common path prefix as a string.
 
     Raises:
+        TypeError: if any path is not a str or Path.
         ValueError: If fewer than two paths are provided.
 
     Examples:
@@ -34655,7 +34855,8 @@ def get_common_path(*paths: Union[str, Path]) -> str:
     """
     if len(paths) < 2:
         raise ValueError("At least two paths are required")
-    resolved = [Path(p).parts for p in paths]
+    coerced = [_require_path(p, f"path{i + 1}") for i, p in enumerate(paths)]
+    resolved = [Path(p).parts for p in coerced]
     common: List[str] = []
     for parts in zip(*resolved):
         if all(part == parts[0] for part in parts):
@@ -34679,6 +34880,10 @@ def ensure_extension(path: Union[str, Path], extension: str) -> str:
     Returns:
         The path with the extension guaranteed as a string.
 
+    Raises:
+        TypeError: if *path* is not a str or Path, or *extension* is not a str.
+        ValueError: if *extension* is an empty string.
+
     Examples:
         >>> ensure_extension("script.py", ".py")
         'script.py'
@@ -34687,6 +34892,8 @@ def ensure_extension(path: Union[str, Path], extension: str) -> str:
         >>> ensure_extension("image.png", ".py")
         'image.png.py'
     """
+    path = _require_path(path, "path")
+    extension = _require_extension(extension, "extension")
     if not extension.startswith("."):
         extension = "." + extension
     current = Path(path).suffix
@@ -47801,6 +48008,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — audited path_utils boundary cases
+
+- Audited every public helper in `path_utils.py` against boundary inputs: non-str/non-Path arguments, empty extensions, single-path calls to `get_common_path`, and Path-object acceptance. Found that `join_path` silently coerced non-str/non-Path arguments (e.g. `join_path(123)` returned `'123'`, `join_path("a", None)` returned `'a/None'`), and that `change_extension`/`ensure_extension` raised an opaque `AttributeError` for non-str extensions instead of the project's `TypeError`/`ValueError` convention.
+- Added a `_require_path` validation helper to `path_utils.py` and routed every public function through it so each raises a consistent `TypeError` for non-str/non-Path inputs; added a `_require_extension` helper that raises `TypeError` for non-str extensions and `ValueError` for empty extensions, used by `change_extension` and `ensure_extension`. Added `Raises:` sections to the docstrings of every public function.
+- Added `TestPathUtilsBoundary` to `tests/test_path_utils.py` covering the `TypeError` paths for every public function, the `ValueError` paths for `change_extension`/`ensure_extension` (empty extension) and `get_common_path` (fewer than two paths), the `ValueError` path for `get_relative_path` (not relative), and Path-object acceptance across the module (21 new tests; 55 tests now pass for the module). Imported nothing new beyond the existing public API to match the module's `__all__` contract.
+- Updated the `path_utils` prose section of `README.md` to document the validation convention.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+
 ## Unreleased — audited zipfile_utils boundary cases
 
 - Found that `is_zipfile` in `zipfile_utils.py` performed no input validation, unlike `create_archive`, `list_names`, and `extract_all`, contradicting the module's documented convention that all functions raise `TypeError`/`ValueError` on invalid arguments. Added `TypeError` for non-str paths and `ValueError` for empty paths to `is_zipfile`, typed its parameter as `str`, and dropped the now-unused `Any` import.
@@ -50223,7 +50438,7 @@ The project includes a type introspection utilities module in `type_utils.py` wi
 
 ## Path Utilities Module
 
-The project includes a path manipulation utilities module in `path_utils.py` with functions for joining, normalizing, splitting, and inspecting filesystem paths: `join_path`, `normalize_path`, `get_absolute_path`, `get_relative_path`, `get_parent_dir`, `get_file_name`, `get_file_stem`, `get_file_extension`, `change_extension`, `is_absolute`, `get_path_components`, `get_common_path`, and `ensure_extension`. The module is tested in `tests/test_path_utils.py`.
+The project includes a path manipulation utilities module in `path_utils.py` with functions for joining, normalizing, splitting, and inspecting filesystem paths: `join_path`, `normalize_path`, `get_absolute_path`, `get_relative_path`, `get_parent_dir`, `get_file_name`, `get_file_stem`, `get_file_extension`, `change_extension`, `is_absolute`, `get_path_components`, `get_common_path`, and `ensure_extension`. Every public function validates its path arguments and raises :class:`TypeError` for non-str/non-Path inputs (and :class:`ValueError` for semantically invalid but correctly typed arguments such as a single path passed to `get_common_path` or an empty extension passed to `change_extension`/`ensure_extension`); `pathlib.Path` objects are accepted everywhere a str is documented. The module is tested in `tests/test_path_utils.py`.
 
 ## Pathlib Utilities Module
 
