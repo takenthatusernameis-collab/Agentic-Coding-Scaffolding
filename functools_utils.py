@@ -1,6 +1,6 @@
 """Functional programming utilities for composing and transforming functions."""
 
-from typing import Any, Callable, List, TypeVar
+from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 R = TypeVar("R")

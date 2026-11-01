@@ -1,6 +1,7 @@
 """Utilities for terminal control (wrapping :mod:`tty`)."""
 
 import tty as _tty
+
 __all__ = [
     "cfmakecbreak",
     "cfmakeraw",

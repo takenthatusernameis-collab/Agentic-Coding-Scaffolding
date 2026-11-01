@@ -2,6 +2,7 @@
 
 import csv
 from typing import Any, Dict, List, Optional
+
 __all__ = [
     "append_csv_row",
     "read_csv",

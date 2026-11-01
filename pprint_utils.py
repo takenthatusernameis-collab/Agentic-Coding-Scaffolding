@@ -1,6 +1,7 @@
 """Utilities for pretty-printing (wrapping :mod:`pprint`)."""
 
 import pprint as _pprint
+
 __all__ = [
     "isreadable",
     "isrecursive",

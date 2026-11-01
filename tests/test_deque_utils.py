@@ -1,11 +1,12 @@
 import unittest
+
 from deque_utils import (
-    create_deque,
     append_left,
     append_right,
+    create_deque,
+    deque_to_list,
     pop_left,
     pop_right,
-    deque_to_list,
 )
 
 

@@ -8,10 +8,8 @@ a re-exported standard library alias) must also be listed in ``__all__``.
 
 import importlib
 import inspect
-import pkgutil
-from pathlib import Path
-
 import unittest
+from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 MODULE_PREFIX = ""  # modules are imported from the repository root
@@ -44,7 +42,10 @@ class TestPublicAPI(unittest.TestCase):
         self.assertGreater(len(self.modules), 0, "no wrapper modules discovered")
 
     def test_every_module_has_all(self) -> None:
-        missing_all = [name for name in self.modules if not hasattr(importlib.import_module(name), "__all__")]
+        missing_all = [
+            name for name in self.modules
+            if not hasattr(importlib.import_module(name), "__all__")
+        ]
         self.assertEqual(missing_all, [], f"modules missing __all__: {missing_all}")
 
     def test_every_public_attribute_is_exported(self) -> None:
@@ -64,7 +65,9 @@ class TestPublicAPI(unittest.TestCase):
                 owner = getattr(value, "__module__", None)
                 if owner != name:
                     continue
-                gaps.append(f"{name}.{attr} ({type(value).__name__}) is public but missing from __all__")
+                gaps.append(
+                    f"{name}.{attr} ({type(value).__name__}) is public but missing from __all__"
+                )
         self.assertEqual(gaps, [], "\n".join(gaps))
 
 

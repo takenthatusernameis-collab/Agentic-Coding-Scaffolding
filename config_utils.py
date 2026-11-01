@@ -7,6 +7,7 @@ currently supporting JSON format with potential for extension to other formats.
 import json
 from pathlib import Path
 from typing import Any, Dict, Union
+
 __all__ = [
     "get_config_value",
     "load_config",

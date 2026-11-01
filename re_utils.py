@@ -5,6 +5,7 @@ Provides convenient helpers for common regex operations with type validation.
 
 import re
 from typing import Callable, List, Optional, Tuple, Union
+
 __all__ = [
     "compile_regex",
     "escape",

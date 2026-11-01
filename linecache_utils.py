@@ -1,6 +1,7 @@
 """Utilities for reading source lines (wrapping :mod:`linecache`)."""
 
 import linecache as _linecache
+
 __all__ = [
     "checkcache",
     "clearcache",

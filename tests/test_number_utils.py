@@ -23,6 +23,7 @@ from number_utils import (
     is_finite,
     is_happy_number,
     is_harshad_number,
+    is_hexagonal_number,
     is_infinite,
     is_integer,
     is_kaprekar_number,
@@ -32,6 +33,7 @@ from number_utils import (
     is_neon_number,
     is_non_negative,
     is_non_positive,
+    is_pentagonal_number,
     is_perfect_cube,
     is_perfect_number,
     is_perfect_power,
@@ -40,11 +42,9 @@ from number_utils import (
     is_power_of_two,
     is_pronic_number,
     is_spy_number,
-    is_strong_number,
     is_squarefree_number,
+    is_strong_number,
     is_triangular_number,
-    is_pentagonal_number,
-    is_hexagonal_number,
     is_ugly_number,
     is_zero,
     lcm,
@@ -1414,26 +1414,22 @@ class TestIsUglyNumber(unittest.TestCase):
 
 class TestIsSquarefreeNumber(unittest.TestCase):
     def test_squarefree_numbers(self) -> None:
-        from number_utils import is_squarefree_number
 
         for n in (1, 2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 21, 22, 23, 26, 29, 30):
             self.assertTrue(is_squarefree_number(n), n)
 
     def test_non_squarefree_numbers(self) -> None:
-        from number_utils import is_squarefree_number
 
         for n in (4, 8, 9, 12, 16, 18, 20, 24, 25, 27, 28, 32, 36, 40, 44, 45, 48, 49, 50):
             self.assertFalse(is_squarefree_number(n), n)
 
     def test_zero_and_negatives(self) -> None:
-        from number_utils import is_squarefree_number
 
         self.assertFalse(is_squarefree_number(0))
         for n in (-1, -4, -12):
             self.assertFalse(is_squarefree_number(n))
 
     def test_type_errors(self) -> None:
-        from number_utils import is_squarefree_number
 
         with self.assertRaises(TypeError):
             is_squarefree_number("6")  # type: ignore[arg-type]

@@ -3,6 +3,7 @@
 import traceback
 from types import TracebackType
 from typing import Any, List, Optional, Type
+
 __all__ = [
     "clear_frames",
     "extract_stack",

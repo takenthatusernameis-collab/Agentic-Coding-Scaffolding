@@ -2,6 +2,7 @@
 
 import argparse
 from typing import Any, Callable, List, Optional
+
 __all__ = [
     "add_flag",
     "add_option",

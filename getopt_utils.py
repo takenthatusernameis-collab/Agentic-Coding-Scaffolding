@@ -1,6 +1,7 @@
 """Utilities for command line option parsing (wrapping :mod:`getopt`)."""
 
 import getopt as _getopt
+
 __all__ = [
     "getopt",
     "gnu_getopt",

@@ -1,5 +1,6 @@
 import marshal
 from typing import Any, Union
+
 __all__ = [
     "dump",
     "dumps",

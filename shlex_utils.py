@@ -1,6 +1,7 @@
 """Utilities for simple lexical analysis (wrapping :mod:`shlex`)."""
 
 import shlex as _shlex
+
 __all__ = [
     "join",
     "quote",

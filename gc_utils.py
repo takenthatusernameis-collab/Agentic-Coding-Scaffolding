@@ -1,6 +1,7 @@
 """Utilities wrapping the standard library ``gc`` module."""
 
 import gc
+
 __all__ = [
     "collect",
     "disable",

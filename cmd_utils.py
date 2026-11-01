@@ -1,6 +1,7 @@
 """Utilities for command-line interpreter helpers (wrapping :mod:`cmd`)."""
 
 import cmd as _cmd
+
 __all__ = [
     "Cmd",
     "identchars",

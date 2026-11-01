@@ -14,13 +14,13 @@ from itertools_utils import (
     partition,
     product_of,
     repeat_value,
+    sliding_window,
     take_while_pred,
     unique_everseen,
     unique_justseen,
+    window,
     zip_longest_iterables,
     zip_strict_iterables,
-    sliding_window,
-    window,
 )
 
 

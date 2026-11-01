@@ -1,6 +1,7 @@
 """Utilities for Python token constants (wrapping :mod:`token`)."""
 
 import token as _token
+
 __all__ = [
     "exact_token_types",
     "is_eof",

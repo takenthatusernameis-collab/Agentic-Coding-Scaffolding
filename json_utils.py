@@ -2,6 +2,7 @@
 
 import json
 from typing import Any
+
 __all__ = [
     "dump_json_string",
     "is_valid_json",

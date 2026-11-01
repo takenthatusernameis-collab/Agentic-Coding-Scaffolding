@@ -1,6 +1,7 @@
 """Utilities for working with Python abstract syntax trees (wrapping :mod:`ast`)."""
 
 import ast as _ast
+
 __all__ = [
     "copy_location",
     "dump",

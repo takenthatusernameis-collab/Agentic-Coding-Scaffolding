@@ -1,6 +1,7 @@
 """Utilities for Python interactive console support (wrapping :mod:`code`)."""
 
 import code as _code
+
 __all__ = [
     "compile_command",
     "console_class",

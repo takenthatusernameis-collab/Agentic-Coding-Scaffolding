@@ -1,6 +1,7 @@
 """Utilities for pathname pattern expansion (wrapping :mod:`glob`)."""
 
 import glob as _glob
+
 __all__ = [
     "escape",
     "glob_pattern",

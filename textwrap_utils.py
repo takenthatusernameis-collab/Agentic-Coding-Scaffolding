@@ -2,6 +2,7 @@
 
 import textwrap
 from typing import List
+
 __all__ = [
     "dedent_text",
     "fill_text",

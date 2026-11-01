@@ -1,6 +1,7 @@
 """Utility helpers for queue operations."""
 
 from collections import deque
+
 __all__ = [
     "Queue",
     "create",

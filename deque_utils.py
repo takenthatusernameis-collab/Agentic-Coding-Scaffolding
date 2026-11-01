@@ -1,6 +1,6 @@
 """Deque utilities wrapping the standard library collections.deque."""
 from collections import deque
-from typing import Any, Iterable, Iterator, List, Optional
+from typing import Any, Iterable, List, Optional
 
 
 def create_deque(iterable: Optional[Iterable[Any]] = None, maxlen: Optional[int] = None) -> deque:

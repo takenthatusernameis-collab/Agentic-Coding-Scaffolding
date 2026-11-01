@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import codecs as _codecs
+
 __all__ = [
     "decode",
     "encode",

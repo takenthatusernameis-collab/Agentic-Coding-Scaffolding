@@ -2,6 +2,7 @@
 
 import re
 from typing import Any, Union
+
 __all__ = [
     "is_alphanumeric",
     "is_boolean_string",

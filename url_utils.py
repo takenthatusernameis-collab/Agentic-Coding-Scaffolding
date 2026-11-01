@@ -2,6 +2,7 @@
 
 from typing import Dict, List, Optional, Union
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+
 __all__ = [
     "add_query_param",
     "build_url",

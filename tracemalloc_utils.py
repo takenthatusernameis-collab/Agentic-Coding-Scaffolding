@@ -1,6 +1,7 @@
 """Utilities for tracing Python memory allocations (wrapping :mod:`tracemalloc`)."""
 
 import tracemalloc as _tracemalloc
+
 __all__ = [
     "clear_traces",
     "get_traceback_limit",

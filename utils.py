@@ -1,6 +1,7 @@
 """Utility helper functions."""
 
 from typing import Any, Callable, Dict, List, Optional, Protocol, Set, TypeVar, Union
+
 __all__ = [
     "CT",
     "Comparable",

@@ -26,10 +26,9 @@ from prompt_utils import (
     count_words,
     dedent_lines,
     ensure_leading_newline,
-    ensure_prefix,
-    ensure_suffix,
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
+    estimate_token_count,
     extract_keywords,
     extract_placeholders,
     first_line,
@@ -39,7 +38,6 @@ from prompt_utils import (
     has_trailing_newline,
     indent_lines,
     is_blank,
-    join_lines,
     last_line,
     lstrip_lines,
     normalize_line_endings,
@@ -55,7 +53,6 @@ from prompt_utils import (
     truncate_prompt,
     truncate_words,
     wrap_prompt,
-    estimate_token_count,
 )
 
 

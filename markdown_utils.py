@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from typing import List
+
 __all__ = [
     "count_words",
     "extract_code_blocks",

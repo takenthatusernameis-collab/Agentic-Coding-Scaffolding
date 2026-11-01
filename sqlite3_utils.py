@@ -8,6 +8,7 @@ rows, and inspecting schema. All functions validate their inputs and raise
 
 import sqlite3 as _sqlite3
 from typing import Any, Optional, Sequence
+
 __all__ = [
     "connect",
     "create_table",

@@ -1,6 +1,7 @@
 """Utilities for reprlib (wrapping :mod:`reprlib`)."""
 
 import reprlib as _reprlib
+
 __all__ = [
     "Repr",
     "get_ident",

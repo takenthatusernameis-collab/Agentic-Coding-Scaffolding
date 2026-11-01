@@ -20,7 +20,7 @@ whether the interpreter ships the module.
 
 from __future__ import annotations
 
-from typing import Any, List, Optional, Tuple, Union, cast
+from typing import Any, Optional, Tuple, Union, cast
 
 try:
     import curses as _curses

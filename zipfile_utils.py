@@ -8,6 +8,7 @@ on invalid arguments.
 
 import zipfile as _zipfile
 from typing import Any
+
 __all__ = [
     "create_archive",
     "extract_all",

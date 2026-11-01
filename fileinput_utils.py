@@ -2,6 +2,7 @@
 
 import fileinput
 from typing import Any, Iterable, List, Optional
+
 __all__ = [
     "count_lines",
     "filenames",
