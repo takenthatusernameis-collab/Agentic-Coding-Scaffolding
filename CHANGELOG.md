@@ -1,10 +1,12 @@
-## Unreleased — audited tarfile_utils boundary cases
+## Unreleased — audited zipfile_utils boundary cases
 
-- Audited `tarfile_utils.py` boundary cases and aligned validation with project conventions: added `_require_path` helpers, accept `str` or `pathlib.Path` for paths (coercing to str), validate types with `TypeError`, reject empty strings/paths with `ValueError`, add `Raises:` sections to docstrings, and validate `mode`, `member`, iterables, and `arcnames`.
-- Added `TestTarfileUtilsBoundary` to `tests/test_tarfile_utils.py` covering TypeError/ValueError paths for all public helpers and Path-object acceptance (7 new tests; 11 tests now pass for the module). Imported nothing new beyond the existing public API.
-- Updated the `tarfile_utils` prose section of `README.md`.
+- Audited `zipfile_utils.py` boundary cases and aligned validation with project conventions: added `_require_path` helpers, accept `str` or `pathlib.Path` for paths (coercing to str), validate types with `TypeError`, reject empty strings/paths with `ValueError`, add `Raises:` sections to docstrings, and accept `Path` objects in file lists.
+- Added `TestZipfileUtilsBoundary` to `tests/test_zipfile_utils.py` covering TypeError/ValueError paths for all public helpers and Path-object acceptance (13 tests total pass for the module). Imported nothing new beyond the existing public API.
+- Updated the `zipfile_utils` prose section of `README.md`.
 - Recorded the change in the Unreleased section of `CHANGELOG.md`.
-- Synchronized `tarfile_utils.py`, `tests/test_tarfile_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `zipfile_utils.py`, `tests/test_zipfile_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+
 
 ## Unreleased — audited tarfile_utils boundary cases
 

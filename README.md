@@ -1230,7 +1230,7 @@ The project includes Unicode data utilities in `unicodedata_utils.py` wrapping t
 
 ## ZIP Utilities Module
 
-The project includes ZIP archive utilities in `zipfile_utils.py` wrapping the standard library `zipfile` module: `create_archive` creates a ZIP archive at a path containing a list of files, `list_names` returns the member names in an archive, `extract_all` extracts all members of an archive into a destination directory, and `is_zipfile` reports whether a path points to a valid ZIP archive. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_zipfile_utils.py`.
+The project includes ZIP archive utilities in `zipfile_utils.py` wrapping the standard library `zipfile` module: `create_archive` creates a ZIP archive at a path containing a list of files, `list_names` returns the member names in an archive, `extract_all` extracts all members of an archive into a destination directory, and `is_zipfile` reports whether a path points to a valid ZIP archive. All helpers accept `str` or `pathlib.Path` for paths and raise `TypeError`/`ValueError` for invalid inputs. The module is tested in `tests/test_zipfile_utils.py`.
 
 ## Gettext Utilities Module
 

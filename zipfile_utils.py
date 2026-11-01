@@ -6,6 +6,8 @@ functions validate their inputs and raise ``TypeError`` or ``ValueError``
 on invalid arguments.
 """
 
+from pathlib import Path
+from typing import Iterable, Union
 import zipfile as _zipfile
 
 __all__ = [
@@ -16,36 +18,69 @@ __all__ = [
 ]
 
 
+def _require_path(value: object, name: str = "path") -> Union[str, Path]:
+    """Validate that *value* is a path-like object (str or Path).
 
-def create_archive(path: str, files: list[str]) -> str:
+    Raises:
+        TypeError: if *value* is not a str or Path.
+    """
+    if not isinstance(value, (str, Path)):
+        raise TypeError(f"{name} must be a str or Path, got {type(value).__name__}")
+    return value
+
+
+def _as_path_str(value: object, name: str = "path") -> str:
+    """Coerce a path-like value to a string for stdlib APIs."""
+    path = _require_path(value, name)
+    path_str = str(path)
+    if path_str == "":
+        raise ValueError(f"{name} must not be empty")
+    return path_str
+
+
+def _require_str_list(value: object, name: str) -> list[str]:
+    """Validate that *value* is a list of str or Path."""
+    if not isinstance(value, list):
+        raise TypeError(f"{name} must be a list of strs")
+    for f in value:
+        if not isinstance(f, (str, Path)):
+            raise TypeError(f"{name} must be a list of strs")
+    result = []
+    for f in value:
+        s = str(f)
+        if s == "":
+            raise ValueError(f"{name} must not contain empty paths")
+        result.append(s)
+    return result
+
+
+def create_archive(path: Union[str, Path], files: Iterable[Union[str, Path]]) -> str:
     """Create a ZIP archive at *path* containing *files*.
 
     Args:
         path: Destination archive path.
-        files: List of file paths to add to the archive.
+        files: Iterable of file paths to add to the archive.
 
     Returns:
         The archive path *path*.
 
     Raises:
-        TypeError: If *path* is not a str or *files* is not a list of strs.
+        TypeError: If *path* is not a str or Path or *files* is not a list of strs.
         ValueError: If *path* is empty or *files* is empty.
     """
-    if not isinstance(path, str):
-        raise TypeError("path must be a str")
-    if not path:
-        raise ValueError("path must not be empty")
-    if not isinstance(files, list) or not all(isinstance(f, str) for f in files):
+    path_str = _as_path_str(path, "path")
+    if not isinstance(files, list):
         raise TypeError("files must be a list of strs")
-    if not files:
+    files_list = _require_str_list(files, "files")
+    if not files_list:
         raise ValueError("files must not be empty")
-    with _zipfile.ZipFile(path, "w", _zipfile.ZIP_DEFLATED) as zf:
-        for f in files:
+    with _zipfile.ZipFile(path_str, "w", _zipfile.ZIP_DEFLATED) as zf:
+        for f in files_list:
             zf.write(f)
-    return path
+    return path_str
 
 
-def list_names(path: str) -> list[str]:
+def list_names(path: Union[str, Path]) -> list[str]:
     """Return the list of member names in the archive at *path*.
 
     Args:
@@ -55,18 +90,15 @@ def list_names(path: str) -> list[str]:
         A list of member names.
 
     Raises:
-        TypeError: If *path* is not a str.
+        TypeError: If *path* is not a str or Path.
         ValueError: If *path* is empty.
     """
-    if not isinstance(path, str):
-        raise TypeError("path must be a str")
-    if not path:
-        raise ValueError("path must not be empty")
-    with _zipfile.ZipFile(path, "r") as zf:
+    path_str = _as_path_str(path, "path")
+    with _zipfile.ZipFile(path_str, "r") as zf:
         return zf.namelist()
 
 
-def extract_all(path: str, dest: str = ".") -> None:
+def extract_all(path: Union[str, Path], dest: Union[str, Path] = ".") -> None:
     """Extract all members of the archive at *path* into *dest*.
 
     Args:
@@ -74,22 +106,16 @@ def extract_all(path: str, dest: str = ".") -> None:
         dest: Destination directory.
 
     Raises:
-        TypeError: If *path* or *dest* is not a str.
+        TypeError: If *path* or *dest* is not a str or Path.
         ValueError: If *path* or *dest* is empty.
     """
-    if not isinstance(path, str):
-        raise TypeError("path must be a str")
-    if not path:
-        raise ValueError("path must not be empty")
-    if not isinstance(dest, str):
-        raise TypeError("dest must be a str")
-    if not dest:
-        raise ValueError("dest must not be empty")
-    with _zipfile.ZipFile(path, "r") as zf:
-        zf.extractall(dest)
+    path_str = _as_path_str(path, "path")
+    dest_str = _as_path_str(dest, "dest")
+    with _zipfile.ZipFile(path_str, "r") as zf:
+        zf.extractall(dest_str)
 
 
-def is_zipfile(path: str) -> bool:
+def is_zipfile(path: Union[str, Path]) -> bool:
     """Return ``True`` if *path* points to a valid ZIP archive.
 
     Args:
@@ -99,11 +125,8 @@ def is_zipfile(path: str) -> bool:
         ``True`` when *path* is a ZIP archive, otherwise ``False``.
 
     Raises:
-        TypeError: If *path* is not a str.
+        TypeError: If *path* is not a str or Path.
         ValueError: If *path* is empty.
     """
-    if not isinstance(path, str):
-        raise TypeError("path must be a str")
-    if not path:
-        raise ValueError("path must not be empty")
-    return _zipfile.is_zipfile(path)
+    path_str = _as_path_str(path, "path")
+    return _zipfile.is_zipfile(path_str)

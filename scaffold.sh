@@ -6343,6 +6343,8 @@ functions validate their inputs and raise ``TypeError`` or ``ValueError``
 on invalid arguments.
 """
 
+from pathlib import Path
+from typing import Iterable, Union
 import zipfile as _zipfile
 
 __all__ = [
@@ -6353,36 +6355,69 @@ __all__ = [
 ]
 
 
+def _require_path(value: object, name: str = "path") -> Union[str, Path]:
+    """Validate that *value* is a path-like object (str or Path).
 
-def create_archive(path: str, files: list[str]) -> str:
+    Raises:
+        TypeError: if *value* is not a str or Path.
+    """
+    if not isinstance(value, (str, Path)):
+        raise TypeError(f"{name} must be a str or Path, got {type(value).__name__}")
+    return value
+
+
+def _as_path_str(value: object, name: str = "path") -> str:
+    """Coerce a path-like value to a string for stdlib APIs."""
+    path = _require_path(value, name)
+    path_str = str(path)
+    if path_str == "":
+        raise ValueError(f"{name} must not be empty")
+    return path_str
+
+
+def _require_str_list(value: object, name: str) -> list[str]:
+    """Validate that *value* is a list of str or Path."""
+    if not isinstance(value, list):
+        raise TypeError(f"{name} must be a list of strs")
+    for f in value:
+        if not isinstance(f, (str, Path)):
+            raise TypeError(f"{name} must be a list of strs")
+    result = []
+    for f in value:
+        s = str(f)
+        if s == "":
+            raise ValueError(f"{name} must not contain empty paths")
+        result.append(s)
+    return result
+
+
+def create_archive(path: Union[str, Path], files: Iterable[Union[str, Path]]) -> str:
     """Create a ZIP archive at *path* containing *files*.
 
     Args:
         path: Destination archive path.
-        files: List of file paths to add to the archive.
+        files: Iterable of file paths to add to the archive.
 
     Returns:
         The archive path *path*.
 
     Raises:
-        TypeError: If *path* is not a str or *files* is not a list of strs.
+        TypeError: If *path* is not a str or Path or *files* is not a list of strs.
         ValueError: If *path* is empty or *files* is empty.
     """
-    if not isinstance(path, str):
-        raise TypeError("path must be a str")
-    if not path:
-        raise ValueError("path must not be empty")
-    if not isinstance(files, list) or not all(isinstance(f, str) for f in files):
+    path_str = _as_path_str(path, "path")
+    if not isinstance(files, list):
         raise TypeError("files must be a list of strs")
-    if not files:
+    files_list = _require_str_list(files, "files")
+    if not files_list:
         raise ValueError("files must not be empty")
-    with _zipfile.ZipFile(path, "w", _zipfile.ZIP_DEFLATED) as zf:
-        for f in files:
+    with _zipfile.ZipFile(path_str, "w", _zipfile.ZIP_DEFLATED) as zf:
+        for f in files_list:
             zf.write(f)
-    return path
+    return path_str
 
 
-def list_names(path: str) -> list[str]:
+def list_names(path: Union[str, Path]) -> list[str]:
     """Return the list of member names in the archive at *path*.
 
     Args:
@@ -6392,18 +6427,15 @@ def list_names(path: str) -> list[str]:
         A list of member names.
 
     Raises:
-        TypeError: If *path* is not a str.
+        TypeError: If *path* is not a str or Path.
         ValueError: If *path* is empty.
     """
-    if not isinstance(path, str):
-        raise TypeError("path must be a str")
-    if not path:
-        raise ValueError("path must not be empty")
-    with _zipfile.ZipFile(path, "r") as zf:
+    path_str = _as_path_str(path, "path")
+    with _zipfile.ZipFile(path_str, "r") as zf:
         return zf.namelist()
 
 
-def extract_all(path: str, dest: str = ".") -> None:
+def extract_all(path: Union[str, Path], dest: Union[str, Path] = ".") -> None:
     """Extract all members of the archive at *path* into *dest*.
 
     Args:
@@ -6411,22 +6443,16 @@ def extract_all(path: str, dest: str = ".") -> None:
         dest: Destination directory.
 
     Raises:
-        TypeError: If *path* or *dest* is not a str.
+        TypeError: If *path* or *dest* is not a str or Path.
         ValueError: If *path* or *dest* is empty.
     """
-    if not isinstance(path, str):
-        raise TypeError("path must be a str")
-    if not path:
-        raise ValueError("path must not be empty")
-    if not isinstance(dest, str):
-        raise TypeError("dest must be a str")
-    if not dest:
-        raise ValueError("dest must not be empty")
-    with _zipfile.ZipFile(path, "r") as zf:
-        zf.extractall(dest)
+    path_str = _as_path_str(path, "path")
+    dest_str = _as_path_str(dest, "dest")
+    with _zipfile.ZipFile(path_str, "r") as zf:
+        zf.extractall(dest_str)
 
 
-def is_zipfile(path: str) -> bool:
+def is_zipfile(path: Union[str, Path]) -> bool:
     """Return ``True`` if *path* points to a valid ZIP archive.
 
     Args:
@@ -6436,14 +6462,11 @@ def is_zipfile(path: str) -> bool:
         ``True`` when *path* is a ZIP archive, otherwise ``False``.
 
     Raises:
-        TypeError: If *path* is not a str.
+        TypeError: If *path* is not a str or Path.
         ValueError: If *path* is empty.
     """
-    if not isinstance(path, str):
-        raise TypeError("path must be a str")
-    if not path:
-        raise ValueError("path must not be empty")
-    return _zipfile.is_zipfile(path)
+    path_str = _as_path_str(path, "path")
+    return _zipfile.is_zipfile(path_str)
 ZIPFILE_UTILS
 
 # --- importlib_utils.py ---
@@ -7923,6 +7946,7 @@ MP_UTILS
 # --- tests/test_zipfile_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_zipfile_utils.py" <<'TEST_ZIPFILE_UTILS'
 import os
+import pathlib
 import shutil
 import tempfile
 import unittest
@@ -8032,6 +8056,73 @@ class TestIsZipfileBoundary(unittest.TestCase):
 
     def test_is_zipfile_false_for_non_zip(self):
         self.assertFalse(is_zipfile(self.src))
+
+
+class TestZipfileUtilsBoundary(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="zipfile-utils-test-")
+        self.src = os.path.join(self.tmpdir, "a.txt")
+        with open(self.src, "w", encoding="utf-8") as handle:
+            handle.write("hello")
+        self.archive = os.path.join(self.tmpdir, "out.zip")
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_path_accepts_path_objects(self):
+        p_archive = pathlib.Path(self.archive)
+        p_src = pathlib.Path(self.src)
+        create_archive(p_archive, [p_src])
+        self.assertTrue(is_zipfile(p_archive))
+        self.assertEqual(len(list_names(p_archive)), 1)
+        dest = pathlib.Path(self.tmpdir) / "ex"
+        dest.mkdir()
+        extract_all(p_archive, dest)
+        self.assertTrue((dest / "a.txt").exists() or any(dest.rglob("a.txt")))
+
+    def test_create_archive_type_errors(self):
+        with self.assertRaises(TypeError):
+            create_archive(123, [self.src])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_archive(self.archive, "nope")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_archive(self.archive, [123])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_archive(None, [self.src])  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            create_archive("", [self.src])
+        with self.assertRaises(ValueError):
+            create_archive(self.archive, [])
+
+    def test_list_names_type_errors(self):
+        with self.assertRaises(TypeError):
+            list_names(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            list_names(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            list_names("")
+
+    def test_extract_all_type_errors(self):
+        with self.assertRaises(TypeError):
+            extract_all(123, self.tmpdir)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            extract_all(self.archive, 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            extract_all(None, self.tmpdir)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            extract_all(self.archive, None)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            extract_all("", self.tmpdir)
+        with self.assertRaises(ValueError):
+            extract_all(self.archive, "")
+
+    def test_is_zipfile_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_zipfile(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_zipfile(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            is_zipfile("")
 
 
 if __name__ == "__main__":
@@ -48232,13 +48323,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — audited tarfile_utils boundary cases
+## Unreleased — audited zipfile_utils boundary cases
 
-- Audited `tarfile_utils.py` boundary cases and aligned validation with project conventions: added `_require_path` helpers, accept `str` or `pathlib.Path` for paths (coercing to str), validate types with `TypeError`, reject empty strings/paths with `ValueError`, add `Raises:` sections to docstrings, and validate `mode`, `member`, iterables, and `arcnames`.
-- Added `TestTarfileUtilsBoundary` to `tests/test_tarfile_utils.py` covering TypeError/ValueError paths for all public helpers and Path-object acceptance (7 new tests; 11 tests now pass for the module). Imported nothing new beyond the existing public API.
-- Updated the `tarfile_utils` prose section of `README.md`.
+- Audited `zipfile_utils.py` boundary cases and aligned validation with project conventions: added `_require_path` helpers, accept `str` or `pathlib.Path` for paths (coercing to str), validate types with `TypeError`, reject empty strings/paths with `ValueError`, add `Raises:` sections to docstrings, and accept `Path` objects in file lists.
+- Added `TestZipfileUtilsBoundary` to `tests/test_zipfile_utils.py` covering TypeError/ValueError paths for all public helpers and Path-object acceptance (13 tests total pass for the module). Imported nothing new beyond the existing public API.
+- Updated the `zipfile_utils` prose section of `README.md`.
 - Recorded the change in the Unreleased section of `CHANGELOG.md`.
-- Synchronized `tarfile_utils.py`, `tests/test_tarfile_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Synchronized `zipfile_utils.py`, `tests/test_zipfile_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+
 
 ## Unreleased — audited tarfile_utils boundary cases
 
@@ -51118,7 +51211,7 @@ The project includes Unicode data utilities in `unicodedata_utils.py` wrapping t
 
 ## ZIP Utilities Module
 
-The project includes ZIP archive utilities in `zipfile_utils.py` wrapping the standard library `zipfile` module: `create_archive` creates a ZIP archive at a path containing a list of files, `list_names` returns the member names in an archive, `extract_all` extracts all members of an archive into a destination directory, and `is_zipfile` reports whether a path points to a valid ZIP archive. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_zipfile_utils.py`.
+The project includes ZIP archive utilities in `zipfile_utils.py` wrapping the standard library `zipfile` module: `create_archive` creates a ZIP archive at a path containing a list of files, `list_names` returns the member names in an archive, `extract_all` extracts all members of an archive into a destination directory, and `is_zipfile` reports whether a path points to a valid ZIP archive. All helpers accept `str` or `pathlib.Path` for paths and raise `TypeError`/`ValueError` for invalid inputs. The module is tested in `tests/test_zipfile_utils.py`.
 
 ## Gettext Utilities Module
 
