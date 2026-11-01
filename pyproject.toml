@@ -75,6 +75,7 @@ py_modules = [
     "datetime_utils",
     "dbm_utils",
     "deprecation_utils",
+    "deque_utils",
     "file_utils",
     "filecmp_utils",
     "fileinput_utils",

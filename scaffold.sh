@@ -220,6 +220,7 @@
 #   - color_utils.py — # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
 
 #   - deprecation_utils.py — # Deprecation utilities (deprecated decorator) for marking APIs as deprecated with optional version, replacement, and message
+#   - deque_utils.py — # Double-ended queue utilities wrapping collections.deque with helpers for both ends, rotation, copying, insertion, and iteration
 
 #   - circuit_breaker_utils.py — # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 
@@ -603,6 +604,7 @@
 #   - test_copy_utils.py — # Tests for copy_utils.py
 #   - test_ctypes_utils.py — # Tests for ctypes_utils.py
 #   - test_deprecation_utils.py — # Tests for deprecation_utils.py
+#   - test_deque_utils.py — # Tests for deque_utils.py
 #   - test_difflib_utils.py — # Tests for difflib_utils.py
 #   - test_dis_utils.py — # Tests for dis_utils.py
 #   - test_email_utils.py — # Tests for email_utils.py
@@ -44663,6 +44665,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `async_utils.py` — asynchronous utility functions
 - `asyncio_utils.py` — utilities wrapping the standard library asyncio module
 - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
+- `deque_utils.py` — double-ended queue utilities wrapping `collections.deque` with helpers to append/pop from both ends, extend, rotate, clear, count, remove, reverse, copy, index, insert, query length/maxlen, and convert to/from iterables
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
 - `call_once_utils.py` — call-once execution utilities ensuring a function runs only a single time
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
@@ -44864,6 +44867,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_asyncio_utils.py` — unit tests for `asyncio_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
+- `tests/test_deque_utils.py` — unit tests for `deque_utils.py`
 - `tests/test_call_once_utils.py` — unit tests for `call_once_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_concurrent_futures_utils.py` — unit tests for `concurrent_futures_utils.py`
@@ -44906,6 +44910,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `html_entities_utils.py` — HTML entities utilities wrapping the standard library `html.entities` module (`name2codepoint`, `codepoint2name`, `entitydefs`, `html5`, `name_to_codepoint`, `get_entity_by_name`, `codepoint_to_name`, `decode_entity`, `unescape_entity`)
 - `html_parser_utils.py` — HTML parser utilities wrapping the standard library `html.parser` module (`HTMLParser`, `parse_html`, `strip_tags`)
 - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) that emit a `DeprecationWarning` on each invocation, with optional `version`, `replacement`, and custom `message`
+- `deque_utils.py` — double-ended queue utilities wrapping `collections.deque`
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
 - `tests/test_html_entities_utils.py` — unit tests for `html_entities_utils.py`
 - `tests/test_html_parser_utils.py` — unit tests for `html_parser_utils.py`
@@ -47975,6 +47980,7 @@ Next Planned (posted for the following agent):
 - Added `dbm_utils.py` and `tests/test_dbm_utils.py`.
 - Added `decimal_utils.py` and `tests/test_decimal_utils.py`.
 - Added `deprecation_utils.py` and `tests/test_deprecation_utils.py`.
+- Added `deque_utils.py` and `tests/test_deque_utils.py`.
 - Added `dict_utils.py` and `tests/test_dict_utils.py`.
 - Added `difflib_utils.py` and `tests/test_difflib_utils.py`.
 - Added `html_parser_utils.py` and `tests/test_html_parser_utils.py`.
@@ -49371,6 +49377,10 @@ The project includes circuit breaker utilities in `circuit_breaker_utils.py` imp
 ## Deprecation Utilities Module
 
 The project includes deprecation utilities in `deprecation_utils.py` for marking APIs as deprecated: `deprecated` decorates a callable so every invocation emits a `DeprecationWarning` describing the deprecation. An optional `version` records when the deprecation was introduced, an optional `replacement` names the suggested alternative, and an optional `message` overrides the default warning text. The wrapped callable forwards all arguments and return values and preserves its metadata via `functools.wraps`. The module is tested in `tests/test_deprecation_utils.py`.
+
+## Deque Utilities Module
+
+The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue with an optional max length, `append_left` and `append_right` add elements to ends, `pop_left` and `pop_right` remove elements from ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque, `clear_deque` empties it, `count_deque` counts occurrences of a value, `remove_deque` removes the first occurrence, `reverse_deque` reverses the deque in place returning `None`, `copy_deque` creates a shallow copy, `index_deque` finds the index of a value within bounds, `insert_deque` inserts at a position, `deque_len` reports the length, `is_empty` reports whether empty, `maxlen_deque` reports the max length or `None`, `to_list` converts to a list, and `from_iterable` creates from an iterable. The class `Deque` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation over standard library objects, so it works on every platform and never touches the filesystem or network. The module is tested in `tests/test_deque_utils.py`.
 
 ## Ring Buffer Utilities Module
 

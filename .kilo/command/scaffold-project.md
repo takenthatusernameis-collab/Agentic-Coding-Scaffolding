@@ -154,6 +154,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `async_utils.py` — asynchronous utility functions
 - `asyncio_utils.py` — utilities wrapping the standard library asyncio module
 - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
+- `deque_utils.py` — double-ended queue utilities wrapping `collections.deque` with helpers to append/pop from both ends, extend, rotate, clear, count, remove, reverse, copy, index, insert, query length/maxlen, and convert to/from iterables
 - `bit_utils.py` — bitwise utility functions for working with binary representations of integers
 - `call_once_utils.py` — call-once execution utilities ensuring a function runs only a single time
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
@@ -355,6 +356,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_asyncio_utils.py` — unit tests for `asyncio_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
+- `tests/test_deque_utils.py` — unit tests for `deque_utils.py`
 - `tests/test_call_once_utils.py` — unit tests for `call_once_utils.py`
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_concurrent_futures_utils.py` — unit tests for `concurrent_futures_utils.py`
@@ -397,6 +399,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `html_entities_utils.py` — HTML entities utilities wrapping the standard library `html.entities` module (`name2codepoint`, `codepoint2name`, `entitydefs`, `html5`, `name_to_codepoint`, `get_entity_by_name`, `codepoint_to_name`, `decode_entity`, `unescape_entity`)
 - `html_parser_utils.py` — HTML parser utilities wrapping the standard library `html.parser` module (`HTMLParser`, `parse_html`, `strip_tags`)
 - `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) that emit a `DeprecationWarning` on each invocation, with optional `version`, `replacement`, and custom `message`
+- `deque_utils.py` — double-ended queue utilities wrapping `collections.deque`
 - `tests/test_html_utils.py` — unit tests for `html_utils.py`
 - `tests/test_html_entities_utils.py` — unit tests for `html_entities_utils.py`
 - `tests/test_html_parser_utils.py` — unit tests for `html_parser_utils.py`

@@ -1287,6 +1287,7 @@ Next Planned (posted for the following agent):
 - Added `dbm_utils.py` and `tests/test_dbm_utils.py`.
 - Added `decimal_utils.py` and `tests/test_decimal_utils.py`.
 - Added `deprecation_utils.py` and `tests/test_deprecation_utils.py`.
+- Added `deque_utils.py` and `tests/test_deque_utils.py`.
 - Added `dict_utils.py` and `tests/test_dict_utils.py`.
 - Added `difflib_utils.py` and `tests/test_difflib_utils.py`.
 - Added `html_parser_utils.py` and `tests/test_html_parser_utils.py`.
