@@ -30,6 +30,7 @@ from numbers_utils import (
     is_rational,
     is_real,
     is_repdigit_number,
+    is_semiperfect_number,
     is_spy_number,
     is_strong_number,
     proper_divisors,
@@ -590,6 +591,45 @@ class TestIsEvilNumber(unittest.TestCase):
         for value in (1.5, "3", None, True, [3]):
             with self.assertRaises(TypeError):
                 is_evil_number(value)
+
+
+class TestIsSemiperfectNumber(unittest.TestCase):
+    def test_known_semiperfect_numbers(self):
+        # numbers that equal the sum of some subset of their proper divisors
+        values = (
+            6, 12, 18, 20, 24, 28, 30, 36, 40, 42, 48, 54, 56, 60, 66, 72, 78,
+            80, 84, 88, 90, 96, 100,
+        )
+        for value in values:
+            self.assertTrue(is_semiperfect_number(value), value)
+
+    def test_perfect_numbers_are_semiperfect(self):
+        for value in (6, 28, 496, 8128):
+            self.assertTrue(is_semiperfect_number(value), value)
+
+    def test_powers_of_two_are_not_semiperfect(self):
+        # powers of two are almost perfect but not semiperfect
+        for value in (1, 2, 4, 8, 16, 32, 64, 128):
+            self.assertFalse(is_semiperfect_number(value), value)
+
+    def test_primes_and_deficient_numbers(self):
+        for value in (2, 3, 4, 5, 7, 9, 11, 13, 17, 19, 23):
+            self.assertFalse(is_semiperfect_number(value), value)
+
+    def test_weird_numbers_are_not_semiperfect(self):
+        # Weird numbers are abundant but not semiperfect (no subset of proper
+        # divisors sums to the number).
+        for value in (70, 836, 4030, 5830, 7192, 7912, 9272):
+            self.assertFalse(is_semiperfect_number(value), value)
+
+    def test_negative_and_zero(self):
+        for value in (0, -1, -12, -100):
+            self.assertFalse(is_semiperfect_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "12", None, True, [12]):
+            with self.assertRaises(TypeError):
+                is_semiperfect_number(value)
 
 
 if __name__ == "__main__":

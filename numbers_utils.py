@@ -25,6 +25,7 @@ __all__: list[str] = [
     "is_rational",
     "is_perfect_number",
     "is_almost_perfect_number",
+    "is_semiperfect_number",
     "is_abundant_number",
     "is_deficient_number",
     "is_strong_number",
@@ -386,6 +387,71 @@ def is_almost_perfect_number(n: int) -> bool:
     if n < 1:
         return False
     return sum(proper_divisors(n)) == n - 1
+
+
+def is_semiperfect_number(n: int) -> bool:
+    """Return ``True`` when *n* is a semiperfect number.
+
+    A semiperfect number is a positive integer that can be expressed as the
+    sum of some (but not necessarily all) of its proper divisors. Every
+    multiple of a semiperfect number is also semiperfect, and every
+    abundant number that is not weird is semiperfect. Perfect numbers are
+    semiperfect (they equal the sum of all of their proper divisors).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is semiperfect, ``False`` otherwise. Numbers below
+        1 are never semiperfect.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_semiperfect_number(12)
+        True
+        >>> is_semiperfect_number(18)
+        True
+        >>> is_semiperfect_number(20)
+        True
+        >>> is_semiperfect_number(6)
+        True
+        >>> is_semiperfect_number(28)
+        True
+        >>> is_semiperfect_number(70)
+        False
+        >>> is_semiperfect_number(2)
+        False
+        >>> is_semiperfect_number(4)
+        False
+        >>> is_semiperfect_number(7)
+        False
+        >>> is_semiperfect_number(0)
+        False
+        >>> is_semiperfect_number(-12)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+    divisors = proper_divisors(n)
+    # Subset-sum check: can some subset of proper divisors sum to n?
+    # Use a dynamic-programming approach bounded by n to keep it efficient.
+    reachable = {0}
+    for d in divisors:
+        if d > n:
+            continue
+        new_values = set()
+        for total in reachable:
+            s = total + d
+            if s == n:
+                return True
+            if s < n:
+                new_values.add(s)
+        reachable.update(new_values)
+    return False
 
 
 def is_spy_number(n: int) -> bool:

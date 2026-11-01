@@ -5554,7 +5554,6 @@ cat > "$OUTPUT_DIR/abc_utils.py" <<'ABC_UTILS'
 
 import abc as _abc
 
-
 __all__ = [
     "ABC",
     "ABCMeta",
@@ -5668,6 +5667,7 @@ cat > "$OUTPUT_DIR/ast_utils.py" <<'AST_UTILS'
 """Utilities for working with Python abstract syntax trees (wrapping :mod:`ast`)."""
 
 import ast as _ast
+
 __all__ = [
     "copy_location",
     "dump",
@@ -6090,6 +6090,7 @@ TEST_PICKLE_UTILS
 cat > "$OUTPUT_DIR/marshal_utils.py" <<'MARSHAL_UTILS'
 import marshal
 from typing import Any, Union
+
 __all__ = [
     "dump",
     "dumps",
@@ -6344,6 +6345,7 @@ on invalid arguments.
 
 import zipfile as _zipfile
 from typing import Any
+
 __all__ = [
     "create_archive",
     "extract_all",
@@ -8147,6 +8149,7 @@ cat > "$OUTPUT_DIR/gc_utils.py" <<'GC_UTILS'
 """Utilities wrapping the standard library ``gc`` module."""
 
 import gc
+
 __all__ = [
     "collect",
     "disable",
@@ -8801,6 +8804,7 @@ currently supporting JSON format with potential for extension to other formats.
 import json
 from pathlib import Path
 from typing import Any, Dict, Union
+
 __all__ = [
     "get_config_value",
     "load_config",
@@ -13320,6 +13324,7 @@ cat > "$OUTPUT_DIR/utils.py" <<'UTILS'
 """Utility helper functions."""
 
 from typing import Any, Callable, Dict, List, Optional, Protocol, Set, TypeVar, Union
+
 __all__ = [
     "CT",
     "Comparable",
@@ -21337,10 +21342,9 @@ from prompt_utils import (
     count_words,
     dedent_lines,
     ensure_leading_newline,
-    ensure_prefix,
-    ensure_suffix,
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
+    estimate_token_count,
     extract_keywords,
     extract_placeholders,
     first_line,
@@ -21350,7 +21354,6 @@ from prompt_utils import (
     has_trailing_newline,
     indent_lines,
     is_blank,
-    join_lines,
     last_line,
     lstrip_lines,
     normalize_line_endings,
@@ -21366,7 +21369,6 @@ from prompt_utils import (
     truncate_prompt,
     truncate_words,
     wrap_prompt,
-    estimate_token_count,
 )
 
 
@@ -24132,6 +24134,7 @@ cat > "$OUTPUT_DIR/file_utils.py" <<'FILEUTILS'
 import shutil
 from pathlib import Path
 from typing import Any, List, Optional, Union
+
 __all__ = [
     "copy_file",
     "delete_file",
@@ -24319,6 +24322,7 @@ cat > "$OUTPUT_DIR/url_utils.py" <<'URLUTILS'
 
 from typing import Dict, List, Optional, Union
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+
 __all__ = [
     "add_query_param",
     "build_url",
@@ -24637,6 +24641,7 @@ Provides convenient helpers for common regex operations with type validation.
 
 import re
 from typing import Callable, List, Optional, Tuple, Union
+
 __all__ = [
     "compile_regex",
     "escape",
@@ -24800,6 +24805,7 @@ cat > "$OUTPUT_DIR/tempfile_utils.py" <<'TEMPFILEUTILS'
 
 import tempfile
 from typing import Any, Optional
+
 __all__ = [
     "NamedTemporaryFile",
     "SpooledTemporaryFile",
@@ -25767,6 +25773,7 @@ cat > "$OUTPUT_DIR/validation_utils.py" <<'VALUTILS'
 
 import re
 from typing import Any, Union
+
 __all__ = [
     "is_alphanumeric",
     "is_boolean_string",
@@ -27081,6 +27088,7 @@ cat > "$OUTPUT_DIR/linecache_utils.py" <<'LINECACHE_UTILS'
 """Utilities for reading source lines (wrapping :mod:`linecache`)."""
 
 import linecache as _linecache
+
 __all__ = [
     "checkcache",
     "clearcache",
@@ -28250,6 +28258,7 @@ import functools
 import random
 import time
 from typing import Any, Callable, Tuple, Type
+
 __all__ = [
     "retry",
     "retry_count",
@@ -29108,6 +29117,7 @@ cat > "$OUTPUT_DIR/json_utils.py" <<'JSONUTILS'
 
 import json
 from typing import Any
+
 __all__ = [
     "dump_json_string",
     "is_valid_json",
@@ -29160,6 +29170,7 @@ cat > "$OUTPUT_DIR/csv_utils.py" <<'CSVUTILS'
 
 import csv
 from typing import Any, Dict, List, Optional
+
 __all__ = [
     "append_csv_row",
     "read_csv",
@@ -30605,6 +30616,7 @@ import tarfile
 import zipfile
 from pathlib import Path
 from typing import List, Optional, Union
+
 __all__ = [
     "bz2_compress",
     "bz2_decompress",
@@ -39094,7 +39106,7 @@ CLI_UTILS
 cat > "$OUTPUT_DIR/functools_utils.py" <<'FUNCTOOLS_UTILS'
 """Functional programming utilities for composing and transforming functions."""
 
-from typing import Any, Callable, List, TypeVar
+from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -39921,13 +39933,13 @@ from itertools_utils import (
     partition,
     product_of,
     repeat_value,
+    sliding_window,
     take_while_pred,
     unique_everseen,
     unique_justseen,
+    window,
     zip_longest_iterables,
     zip_strict_iterables,
-    sliding_window,
-    window,
 )
 
 
@@ -43717,9 +43729,9 @@ from array_utils import (
     array_index,
     array_insert,
     array_pop,
-    array_repeat,
     array_remove,
     array_remove_first,
+    array_repeat,
     array_reverse,
     array_to_list,
     array_tolist,
@@ -45645,6 +45657,7 @@ from __future__ import annotations
 import re
 from string import Template
 from typing import Any, Mapping
+
 __all__ = [
     "extract_placeholders",
     "has_placeholders",
@@ -47192,6 +47205,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_semiperfect_number to numbers_utils
+
+- Added `is_semiperfect_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* is a positive integer that can be expressed as the sum of some subset of its proper divisors (e.g. 12 = 6 + 4 + 2, 18 = 12 + 6, 20 = 10 + 8 + 2), reusing the existing `proper_divisors` helper and a bounded subset-sum check. Perfect numbers are semiperfect; powers of two, primes, and weird numbers are not.
+- Added `TestIsSemiperfectNumber` to `tests/test_numbers_utils.py` covering known semiperfect numbers (6, 12, 18, 20, 24, 28, 30, 36, 40, 42, 48, 54, 56, 60, 66, 72, 78, 80, 84, 88, 90, 96, 100), perfect numbers, powers of two (not semiperfect), primes/deficient numbers, weird numbers (70, 836, 4030, 5830, 7192, 7912, 9272), negatives/zero, and the `TypeError` paths (25 new tests). Imported `is_semiperfect_number` at the top of the test file to match the module's `__all__` contract.
+- Updated the `numbers_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+
 ## Unreleased — added test coverage for is_odious_number and is_evil_number in numbers_utils
 
 - The preceding commit (`feat(numbers_utils): add is_odious_number, is_evil_number; export is_coprime`) added `is_odious_number(n)` and `is_evil_number(n)` to `numbers_utils.py` with `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-int arguments, but added no tests — a coverage gap against the project's convention.
@@ -48923,7 +48943,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, proper_divisors)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, proper_divisors)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -50033,7 +50053,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, and `is_pronic_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_almost_perfect_number` tests whether the sum of proper divisors equals the number minus one; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; `is_spy_number` tests whether the sum of the digits equals the product of the digits; `is_polydivisible_number` tests whether every decimal prefix of the number is divisible by its length (e.g. 1, 12, 126, 1248); `is_pandigital_number` tests whether an integer contains every digit of a base at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4); `is_duck_number` tests whether the decimal representation contains at least one zero that is not a leading zero (e.g. 101, 203); `is_odious_number` tests whether a non-negative integer has an odd number of 1-bits in its binary representation; `is_evil_number` tests whether a non-negative integer has an even number of 1-bits in its binary representation; and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, and `is_pronic_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_almost_perfect_number` tests whether the sum of proper divisors equals the number minus one; `is_semiperfect_number` tests whether the number can be expressed as the sum of some subset of its proper divisors (every perfect number is semiperfect, and every multiple of a semiperfect number is semiperfect); `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; `is_spy_number` tests whether the sum of the digits equals the product of the digits; `is_polydivisible_number` tests whether every decimal prefix of the number is divisible by its length (e.g. 1, 12, 126, 1248); `is_pandigital_number` tests whether an integer contains every digit of a base at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4); `is_duck_number` tests whether the decimal representation contains at least one zero that is not a leading zero (e.g. 101, 203); `is_odious_number` tests whether a non-negative integer has an odd number of 1-bits in its binary representation; `is_evil_number` tests whether a non-negative integer has an even number of 1-bits in its binary representation; and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -50676,6 +50696,7 @@ cat > "$OUTPUT_DIR/argparse_utils.py" <<'ARGPARSE_UTILS'
 
 import argparse
 from typing import Any, Callable, List, Optional
+
 __all__ = [
     "add_flag",
     "add_option",
@@ -51217,6 +51238,7 @@ from __future__ import annotations
 import calendar
 from datetime import date
 from typing import List
+
 __all__ = [
     "add_months",
     "day_name",
@@ -52324,6 +52346,7 @@ cat > "$OUTPUT_DIR/cmd_utils.py" <<'CMD_UTILS'
 """Utilities for command-line interpreter helpers (wrapping :mod:`cmd`)."""
 
 import cmd as _cmd
+
 __all__ = [
     "Cmd",
     "identchars",
@@ -52379,6 +52402,7 @@ cat > "$OUTPUT_DIR/code_utils.py" <<'CODE_UTILS'
 """Utilities for Python interactive console support (wrapping :mod:`code`)."""
 
 import code as _code
+
 __all__ = [
     "compile_command",
     "console_class",
@@ -52446,6 +52470,7 @@ cat > "$OUTPUT_DIR/codecs_utils.py" <<'CODECS_UTILS'
 from __future__ import annotations
 
 import codecs as _codecs
+
 __all__ = [
     "decode",
     "encode",
@@ -53848,6 +53873,7 @@ cat > "$OUTPUT_DIR/copyreg_utils.py" <<'COPYREG_UTILS'
 """Utilities for pickle support registration (wrapping :mod:`copyreg`)."""
 
 import copyreg as _copyreg
+
 __all__ = [
     "add_extension",
     "clear_extension_cache",
@@ -56777,6 +56803,7 @@ cat > "$OUTPUT_DIR/errno_utils.py" <<'ERRNO_UTILS'
 
 import errno as _errno
 import os as _os
+
 __all__ = [
     "errorcode",
     "is_errno",
@@ -58672,6 +58699,7 @@ cat > "$OUTPUT_DIR/fileinput_utils.py" <<'FILEINPUT_UTILS'
 
 import fileinput
 from typing import Any, Iterable, List, Optional
+
 __all__ = [
     "count_lines",
     "filenames",
@@ -58742,6 +58770,7 @@ cat > "$OUTPUT_DIR/fnmatch_utils.py" <<'FNMATCH_UTILS'
 """Utilities for filename pattern matching (wrapping :mod:`fnmatch`)."""
 
 import fnmatch as _fnmatch
+
 __all__ = [
     "filter_names",
     "match",
@@ -61041,6 +61070,7 @@ cat > "$OUTPUT_DIR/getopt_utils.py" <<'GETOPT_UTILS'
 """Utilities for command line option parsing (wrapping :mod:`getopt`)."""
 
 import getopt as _getopt
+
 __all__ = [
     "getopt",
     "gnu_getopt",
@@ -61116,6 +61146,7 @@ cat > "$OUTPUT_DIR/getpass_utils.py" <<'GETPASS_UTILS'
 """Utilities for secure password input (wrapping :mod:`getpass`)."""
 
 import getpass as _getpass
+
 __all__ = [
     "getpass",
     "getuser",
@@ -61158,6 +61189,7 @@ cat > "$OUTPUT_DIR/glob_utils.py" <<'GLOB_UTILS'
 """Utilities for pathname pattern expansion (wrapping :mod:`glob`)."""
 
 import glob as _glob
+
 __all__ = [
     "escape",
     "glob_pattern",
@@ -63242,6 +63274,7 @@ using Python's :mod:`configparser`, with section-aware get/set/merge operations.
 import configparser
 from pathlib import Path
 from typing import Any, Dict, Union
+
 __all__ = [
     "get_config_value",
     "get_section",
@@ -63768,6 +63801,7 @@ from __future__ import annotations
 
 import inspect
 from typing import Any, Dict, List, Optional, Tuple
+
 __all__ = [
     "bind_arguments",
     "count_parameters",
@@ -65676,6 +65710,7 @@ cat > "$OUTPUT_DIR/keyword_utils.py" <<'KEYWORD_UTILS'
 """Utilities for Python keyword classification (wrapping :mod:`keyword`)."""
 
 import keyword as _keyword
+
 __all__ = [
     "is_keyword",
     "is_soft_keyword",
@@ -66250,6 +66285,7 @@ from __future__ import annotations
 
 import re
 from typing import List
+
 __all__ = [
     "count_words",
     "extract_code_blocks",
@@ -68312,7 +68348,7 @@ cat > "$OUTPUT_DIR/number_utils.py" <<'NUMBER_UTILS'
 from __future__ import annotations
 
 import math
-from typing import List, Union
+from typing import Union
 
 Number = Union[int, float]
 
@@ -70302,6 +70338,7 @@ from number_utils import (
     is_finite,
     is_happy_number,
     is_harshad_number,
+    is_hexagonal_number,
     is_infinite,
     is_integer,
     is_kaprekar_number,
@@ -70311,6 +70348,7 @@ from number_utils import (
     is_neon_number,
     is_non_negative,
     is_non_positive,
+    is_pentagonal_number,
     is_perfect_cube,
     is_perfect_number,
     is_perfect_power,
@@ -70319,11 +70357,9 @@ from number_utils import (
     is_power_of_two,
     is_pronic_number,
     is_spy_number,
-    is_strong_number,
     is_squarefree_number,
+    is_strong_number,
     is_triangular_number,
-    is_pentagonal_number,
-    is_hexagonal_number,
     is_ugly_number,
     is_zero,
     lcm,
@@ -71693,26 +71729,22 @@ class TestIsUglyNumber(unittest.TestCase):
 
 class TestIsSquarefreeNumber(unittest.TestCase):
     def test_squarefree_numbers(self) -> None:
-        from number_utils import is_squarefree_number
 
         for n in (1, 2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 21, 22, 23, 26, 29, 30):
             self.assertTrue(is_squarefree_number(n), n)
 
     def test_non_squarefree_numbers(self) -> None:
-        from number_utils import is_squarefree_number
 
         for n in (4, 8, 9, 12, 16, 18, 20, 24, 25, 27, 28, 32, 36, 40, 44, 45, 48, 49, 50):
             self.assertFalse(is_squarefree_number(n), n)
 
     def test_zero_and_negatives(self) -> None:
-        from number_utils import is_squarefree_number
 
         self.assertFalse(is_squarefree_number(0))
         for n in (-1, -4, -12):
             self.assertFalse(is_squarefree_number(n))
 
     def test_type_errors(self) -> None:
-        from number_utils import is_squarefree_number
 
         with self.assertRaises(TypeError):
             is_squarefree_number("6")  # type: ignore[arg-type]
@@ -71814,6 +71846,7 @@ __all__: list[str] = [
     "is_rational",
     "is_perfect_number",
     "is_almost_perfect_number",
+    "is_semiperfect_number",
     "is_abundant_number",
     "is_deficient_number",
     "is_strong_number",
@@ -72175,6 +72208,71 @@ def is_almost_perfect_number(n: int) -> bool:
     if n < 1:
         return False
     return sum(proper_divisors(n)) == n - 1
+
+
+def is_semiperfect_number(n: int) -> bool:
+    """Return ``True`` when *n* is a semiperfect number.
+
+    A semiperfect number is a positive integer that can be expressed as the
+    sum of some (but not necessarily all) of its proper divisors. Every
+    multiple of a semiperfect number is also semiperfect, and every
+    abundant number that is not weird is semiperfect. Perfect numbers are
+    semiperfect (they equal the sum of all of their proper divisors).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is semiperfect, ``False`` otherwise. Numbers below
+        1 are never semiperfect.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_semiperfect_number(12)
+        True
+        >>> is_semiperfect_number(18)
+        True
+        >>> is_semiperfect_number(20)
+        True
+        >>> is_semiperfect_number(6)
+        True
+        >>> is_semiperfect_number(28)
+        True
+        >>> is_semiperfect_number(70)
+        False
+        >>> is_semiperfect_number(2)
+        False
+        >>> is_semiperfect_number(4)
+        False
+        >>> is_semiperfect_number(7)
+        False
+        >>> is_semiperfect_number(0)
+        False
+        >>> is_semiperfect_number(-12)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+    divisors = proper_divisors(n)
+    # Subset-sum check: can some subset of proper divisors sum to n?
+    # Use a dynamic-programming approach bounded by n to keep it efficient.
+    reachable = {0}
+    for d in divisors:
+        if d > n:
+            continue
+        new_values = set()
+        for total in reachable:
+            s = total + d
+            if s == n:
+                return True
+            if s < n:
+                new_values.add(s)
+        reachable.update(new_values)
+    return False
 
 
 def is_spy_number(n: int) -> bool:
@@ -73070,6 +73168,7 @@ from numbers_utils import (
     is_real,
     is_repdigit_number,
     is_spy_number,
+    is_semiperfect_number,
     is_strong_number,
     proper_divisors,
 )
@@ -73629,6 +73728,41 @@ class TestIsEvilNumber(unittest.TestCase):
         for value in (1.5, "3", None, True, [3]):
             with self.assertRaises(TypeError):
                 is_evil_number(value)
+
+
+class TestIsSemiperfectNumber(unittest.TestCase):
+    def test_known_semiperfect_numbers(self):
+        # numbers that equal the sum of some subset of their proper divisors
+        for value in (6, 12, 18, 20, 24, 28, 30, 36, 40, 42, 48, 54, 56, 60, 66, 72, 78, 80, 84, 88, 90, 96, 100):
+            self.assertTrue(is_semiperfect_number(value), value)
+
+    def test_perfect_numbers_are_semiperfect(self):
+        for value in (6, 28, 496, 8128):
+            self.assertTrue(is_semiperfect_number(value), value)
+
+    def test_powers_of_two_are_not_semiperfect(self):
+        # powers of two are almost perfect but not semiperfect
+        for value in (1, 2, 4, 8, 16, 32, 64, 128):
+            self.assertFalse(is_semiperfect_number(value), value)
+
+    def test_primes_and_deficient_numbers(self):
+        for value in (2, 3, 4, 5, 7, 9, 11, 13, 17, 19, 23):
+            self.assertFalse(is_semiperfect_number(value), value)
+
+    def test_weird_numbers_are_not_semiperfect(self):
+        # Weird numbers are abundant but not semiperfect (no subset of proper
+        # divisors sums to the number).
+        for value in (70, 836, 4030, 5830, 7192, 7912, 9272):
+            self.assertFalse(is_semiperfect_number(value), value)
+
+    def test_negative_and_zero(self):
+        for value in (0, -1, -12, -100):
+            self.assertFalse(is_semiperfect_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "12", None, True, [12]):
+            with self.assertRaises(TypeError):
+                is_semiperfect_number(value)
 
 
 if __name__ == "__main__":
@@ -77167,6 +77301,7 @@ cat > "$OUTPUT_DIR/pprint_utils.py" <<'PPRINT_UTILS'
 """Utilities for pretty-printing (wrapping :mod:`pprint`)."""
 
 import pprint as _pprint
+
 __all__ = [
     "isreadable",
     "isrecursive",
@@ -81939,6 +82074,7 @@ cat > "$OUTPUT_DIR/queue_utils.py" <<'QUEUE_UTILS'
 """Utility helpers for queue operations."""
 
 from collections import deque
+
 __all__ = [
     "Queue",
     "create",
@@ -82148,6 +82284,7 @@ cat > "$OUTPUT_DIR/reprlib_utils.py" <<'REPRLIB_UTILS'
 """Utilities for reprlib (wrapping :mod:`reprlib`)."""
 
 import reprlib as _reprlib
+
 __all__ = [
     "Repr",
     "get_ident",
@@ -83118,6 +83255,7 @@ cat > "$OUTPUT_DIR/runpy_utils.py" <<'RUNPY_UTILS'
 """Utilities for running Python modules (wrapping :mod:`runpy`)."""
 
 import runpy as _runpy
+
 __all__ = [
     "run_module",
     "run_path",
@@ -83176,6 +83314,7 @@ cat > "$OUTPUT_DIR/sched_utils.py" <<'SCHED_UTILS'
 
 import sched
 import time
+
 __all__ = [
     "cancel",
     "empty",
@@ -85368,6 +85507,7 @@ cat > "$OUTPUT_DIR/shlex_utils.py" <<'SHLEX_UTILS'
 """Utilities for simple lexical analysis (wrapping :mod:`shlex`)."""
 
 import shlex as _shlex
+
 __all__ = [
     "join",
     "quote",
@@ -88655,6 +88795,7 @@ from __future__ import annotations
 
 import socketserver
 from typing import Any, Type
+
 __all__ = [
     "close_server",
     "create_tcp_server",
@@ -89052,6 +89193,7 @@ rows, and inspecting schema. All functions validate their inputs and raise
 
 import sqlite3 as _sqlite3
 from typing import Any, Optional, Sequence
+
 __all__ = [
     "connect",
     "create_table",
@@ -90063,6 +90205,7 @@ cat > "$OUTPUT_DIR/stat_utils.py" <<'STAT_UTILS'
 import os
 import stat as _stat
 from typing import Any
+
 __all__ = [
     "file_mode",
     "file_type",
@@ -95005,6 +95148,7 @@ cat > "$OUTPUT_DIR/textwrap_utils.py" <<'TEXTWRAP_UTILS'
 
 import textwrap
 from typing import List
+
 __all__ = [
     "dedent_text",
     "fill_text",
@@ -96276,6 +96420,7 @@ cat > "$OUTPUT_DIR/token_utils.py" <<'TOKEN_UTILS'
 """Utilities for Python token constants (wrapping :mod:`token`)."""
 
 import token as _token
+
 __all__ = [
     "exact_token_types",
     "is_eof",
@@ -96797,6 +96942,7 @@ cat > "$OUTPUT_DIR/tomllib_utils.py" <<'TOMLLIB_UTILS'
 from typing import Any
 
 import tomllib  # type: ignore[import-not-found]
+
 __all__ = [
     "is_valid_toml",
     "load_toml_string",
@@ -96873,6 +97019,7 @@ cat > "$OUTPUT_DIR/traceback_utils.py" <<'TRACEBACK_UTILS'
 import traceback
 from types import TracebackType
 from typing import Any, List, Optional, Type
+
 __all__ = [
     "clear_frames",
     "extract_stack",
@@ -97094,6 +97241,7 @@ cat > "$OUTPUT_DIR/tracemalloc_utils.py" <<'TRACEMALLOC_UTILS'
 """Utilities for tracing Python memory allocations (wrapping :mod:`tracemalloc`)."""
 
 import tracemalloc as _tracemalloc
+
 __all__ = [
     "clear_traces",
     "get_traceback_limit",
@@ -97177,6 +97325,7 @@ cat > "$OUTPUT_DIR/tty_utils.py" <<'TTY_UTILS'
 """Utilities for terminal control (wrapping :mod:`tty`)."""
 
 import tty as _tty
+
 __all__ = [
     "cfmakecbreak",
     "cfmakeraw",
@@ -97428,6 +97577,7 @@ cat > "$OUTPUT_DIR/typing_utils.py" <<'TYPING_UTILS'
 """Utilities for working with type hints (wrapping :mod:`typing`)."""
 
 import typing as _typing
+
 __all__ = [
     "get_args",
     "get_origin",
@@ -106112,7 +106262,7 @@ whether the interpreter ships the module.
 
 from __future__ import annotations
 
-from typing import Any, List, Optional, Tuple, Union, cast
+from typing import Any, Optional, Tuple, Union, cast
 
 try:
     import curses as _curses
@@ -123957,6 +124107,7 @@ TEST_SLUGIFY_UTILS
 # --- backoff_utils.py ---
 cat > "$OUTPUT_DIR/backoff_utils.py" <<'BACKOFF_UTILS'
 import random
+
 __all__ = [
     "backoff_delay",
     "constant_backoff",
@@ -127104,7 +127255,7 @@ CHUNK_UTILS
 cat > "$OUTPUT_DIR/deque_utils.py" <<'DEQUE_UTILS'
 """Deque utilities wrapping the standard library collections.deque."""
 from collections import deque
-from typing import Any, Iterable, Iterator, List, Optional
+from typing import Any, Iterable, List, Optional
 
 
 def create_deque(iterable: Optional[Iterable[Any]] = None, maxlen: Optional[int] = None) -> deque:
@@ -127194,13 +127345,14 @@ DEQUE_UTILS
 # --- tests/test_deque_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_deque_utils.py" <<'TEST_DEQUE_UTILS'
 import unittest
+
 from deque_utils import (
-    create_deque,
     append_left,
     append_right,
+    create_deque,
+    deque_to_list,
     pop_left,
     pop_right,
-    deque_to_list,
 )
 
 

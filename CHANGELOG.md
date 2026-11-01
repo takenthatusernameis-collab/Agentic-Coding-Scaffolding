@@ -1,3 +1,10 @@
+## Unreleased — added is_semiperfect_number to numbers_utils
+
+- Added `is_semiperfect_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* is a positive integer that can be expressed as the sum of some subset of its proper divisors (e.g. 12 = 6 + 4 + 2, 18 = 12 + 6, 20 = 10 + 8 + 2), reusing the existing `proper_divisors` helper and a bounded subset-sum check. Perfect numbers are semiperfect; powers of two, primes, and weird numbers are not.
+- Added `TestIsSemiperfectNumber` to `tests/test_numbers_utils.py` covering known semiperfect numbers (6, 12, 18, 20, 24, 28, 30, 36, 40, 42, 48, 54, 56, 60, 66, 72, 78, 80, 84, 88, 90, 96, 100), perfect numbers, powers of two (not semiperfect), primes/deficient numbers, weird numbers (70, 836, 4030, 5830, 7192, 7912, 9272), negatives/zero, and the `TypeError` paths (25 new tests). Imported `is_semiperfect_number` at the top of the test file to match the module's `__all__` contract.
+- Updated the `numbers_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+
 ## Unreleased — added test coverage for is_odious_number and is_evil_number in numbers_utils
 
 - The preceding commit (`feat(numbers_utils): add is_odious_number, is_evil_number; export is_coprime`) added `is_odious_number(n)` and `is_evil_number(n)` to `numbers_utils.py` with `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-int arguments, but added no tests — a coverage gap against the project's convention.
