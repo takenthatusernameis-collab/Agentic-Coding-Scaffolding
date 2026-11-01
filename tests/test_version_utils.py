@@ -6,6 +6,7 @@ from version_utils import (
     at_least,
     at_most,
     between,
+    bump,
     bump_major,
     bump_minor,
     bump_patch,
@@ -14,6 +15,8 @@ from version_utils import (
     cmp_versions,
     compare,
     compare_versions,
+    dec,
+    decrement,
     decrement_major,
     decrement_minor,
     decrement_patch,
@@ -55,11 +58,15 @@ from version_utils import (
     is_version_less,
     is_version_less_equal,
     less_than,
+    major,
     max_version,
     min_version,
+    minor,
     normalize_version,
+    parse,
     parse_version,
     parse_version_alias,
+    patch,
     remove_build_metadata,
     remove_prerelease,
     sort_versions,
@@ -68,6 +75,7 @@ from version_utils import (
     strip_metadata,
     strip_prerelease,
     strip_prerelease_suffix,
+    to_tuple,
     tuple_to_version,
     version_satisfies_major,
     version_to_tuple,
@@ -617,7 +625,7 @@ class TestVersionComparisonAliases(unittest.TestCase):
         self.assertEqual(increment("1.2.3", "minor"), "1.3.0")
 
 
-class TestVersionUtilsAliases(unittest.TestCase):
+class TestVersionUtilsAliasesComprehensive(unittest.TestCase):
     def test_parse_version_alias_matches_parse_version(self):
         self.assertEqual(parse_version_alias("1.2.3"), parse_version("1.2.3"))
         self.assertEqual(parse_version_alias("10"), parse_version("10"))
@@ -904,3 +912,100 @@ class TestVersionUtilsAliases(unittest.TestCase):
 
     def test_increment_patch(self):
         self.assertEqual(increment_patch("1.2.3"), "1.2.4")
+
+
+class TestRemainingVersionAliases(unittest.TestCase):
+    """Coverage for the aliases that were not exercised before this audit:
+    ``bump``, ``dec``, ``decrement``, ``major``, ``minor``, ``parse``,
+    ``patch``, and ``to_tuple``."""
+
+    def test_parse_alias_matches_parse_version(self):
+        self.assertEqual(parse("1.2.3"), parse_version("1.2.3"))
+        self.assertEqual(parse("v2.0.0"), parse_version("2.0.0"))
+        self.assertEqual(parse("10"), parse_version("10"))
+
+    def test_parse_alias_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            parse(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            parse(None)  # type: ignore[arg-type]
+
+    def test_parse_alias_rejects_invalid(self):
+        with self.assertRaises(ValueError):
+            parse("1.2.a")
+
+    def test_to_tuple_alias_matches_version_to_tuple(self):
+        self.assertEqual(to_tuple("1.2.3"), version_to_tuple("1.2.3"))
+        self.assertEqual(to_tuple("5"), (5,))
+        self.assertEqual(to_tuple("v3.2.1"), (3, 2, 1))
+
+    def test_to_tuple_alias_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            to_tuple(1)  # type: ignore[arg-type]
+
+    def test_bump_alias_matches_bump_version(self):
+        self.assertEqual(bump("1.2.3"), bump_version("1.2.3"))
+        self.assertEqual(bump("1.2.3"), "1.2.4")
+        self.assertEqual(bump("1.2.3", "major"), "2.0.0")
+        self.assertEqual(bump("1.2.3", "minor"), "1.3.0")
+
+    def test_bump_alias_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            bump(1)  # type: ignore[arg-type]
+
+    def test_bump_alias_rejects_invalid_part(self):
+        with self.assertRaises(ValueError):
+            bump("1.2.3", "build")
+
+    def test_decrement_alias_matches_decrement_version(self):
+        self.assertEqual(decrement("1.2.3"), decrement_version("1.2.3"))
+        self.assertEqual(decrement("1.2.3"), "1.2.2")
+        self.assertEqual(decrement("1.2.3", "major"), "0.0.0")
+        self.assertEqual(decrement("1.2.3", "minor"), "1.1.0")
+
+    def test_decrement_alias_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            decrement(1)  # type: ignore[arg-type]
+
+    def test_decrement_alias_rejects_invalid_part(self):
+        with self.assertRaises(ValueError):
+            decrement("1.2.3", "build")
+
+    def test_dec_alias_matches_decrement(self):
+        self.assertEqual(dec("1.2.3"), decrement("1.2.3"))
+        self.assertEqual(dec("1.2.3"), "1.2.2")
+
+    def test_dec_alias_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            dec(1)  # type: ignore[arg-type]
+
+    def test_major_alias_matches_get_major_version(self):
+        self.assertEqual(major("1.2.3"), get_major_version("1.2.3"))
+        self.assertEqual(major("5"), 5)
+        self.assertEqual(major("v9.0.0"), 9)
+
+    def test_major_alias_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            major(1)  # type: ignore[arg-type]
+
+    def test_minor_alias_matches_get_minor_version(self):
+        self.assertEqual(minor("1.2.3"), get_minor_version("1.2.3"))
+        self.assertEqual(minor("1"), 0)
+        self.assertEqual(minor("v2.5.0"), 5)
+
+    def test_minor_alias_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            minor(1)  # type: ignore[arg-type]
+
+    def test_patch_alias_matches_get_patch_version(self):
+        self.assertEqual(patch("1.2.3"), get_patch_version("1.2.3"))
+        self.assertEqual(patch("1.2"), 0)
+        self.assertEqual(patch("v3.2.9"), 9)
+
+    def test_patch_alias_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            patch(1)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
