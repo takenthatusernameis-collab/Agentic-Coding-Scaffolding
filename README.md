@@ -230,7 +230,7 @@ circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreake
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
-case_utils.py             # Case conversion utilities (kebab, pascal, constant case) with input validation
+case_utils.py             # Case conversion utilities (kebab, pascal, constant case) with input validation, plus a convert_case dispatcher
 trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
@@ -1017,7 +1017,7 @@ The project includes bisect utility functions in `bisect_utils.py` for binary se
 
 ## Case Conversion Utilities Module
 
-The project includes case conversion utilities in `case_utils.py`: `kebab_case` converts text to kebab-case, `pascal_case` converts text to PascalCase, `constant_case` converts text to CONSTANT_CASE, `snake_case` converts text to snake_case, `camel_case` converts text to camelCase, `screaming_snake_case` is an alias for `constant_case`, `spinal_case` is an alias for `kebab_case`, `train_case` is an alias for `pascal_case`, `dot_case` converts text to dot.case, `slash_case` converts text to slash/case, `title_case` converts text to Title Case, and `sentence_case` converts text to sentence case. Words are split on whitespace, separators, and case transitions such as camelCase and PascalCase boundaries. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_case_utils.py`.
+The project includes case conversion utilities in `case_utils.py`: `kebab_case` converts text to kebab-case, `pascal_case` converts text to PascalCase, `constant_case` converts text to CONSTANT_CASE, `snake_case` converts text to snake_case, `camel_case` converts text to camelCase, `screaming_snake_case` is an alias for `constant_case`, `spinal_case` is an alias for `kebab_case`, `train_case` is an alias for `pascal_case`, `dot_case` converts text to dot.case, `slash_case` converts text to slash/case, `title_case` converts text to Title Case, `sentence_case` converts text to sentence case, and `convert_case(text, case)` dispatches to any of the above converters by case name (e.g. ``"snake"``, ``"camel"``, ``"pascal"``). Words are split on whitespace, separators, and case transitions such as camelCase and PascalCase boundaries. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_case_utils.py`.
 
 ## Binary Struct Utilities Module
 

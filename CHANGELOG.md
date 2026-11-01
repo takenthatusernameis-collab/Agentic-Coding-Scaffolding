@@ -1,3 +1,12 @@
+## Unreleased — added convert_case to case_utils
+
+- Added `convert_case(text, case)` to `case_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-string `text`/`case`, and `ValueError` for an unrecognized case style; it dispatches to the existing case converters by name (e.g. ``"snake"``, ``"camel"``, ``"pascal"``, ``"kebab"``), accepting the optional ``"_case"`` suffix, case-insensitive matching, and hyphen aliases.
+- Added `TestConvertCase` to `tests/test_case_utils.py` covering every supported case style, full-name and hyphen aliases, case-insensitive matching, empty text, and the `TypeError`/`ValueError` paths (16 new tests).
+- Updated the `case_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `case_utils.py`, `tests/test_case_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+
 ## Unreleased — audited zipfile_utils boundary cases
 
 - Audited `zipfile_utils.py` boundary cases and aligned validation with project conventions: added `_require_path` helpers, accept `str` or `pathlib.Path` for paths (coercing to str), validate types with `TypeError`, reject empty strings/paths with `ValueError`, add `Raises:` sections to docstrings, and accept `Path` objects in file lists.

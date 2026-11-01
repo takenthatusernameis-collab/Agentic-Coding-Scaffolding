@@ -48395,6 +48395,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added convert_case to case_utils
+
+- Added `convert_case(text, case)` to `case_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-string `text`/`case`, and `ValueError` for an unrecognized case style; it dispatches to the existing case converters by name (e.g. ``"snake"``, ``"camel"``, ``"pascal"``, ``"kebab"``), accepting the optional ``"_case"`` suffix, case-insensitive matching, and hyphen aliases.
+- Added `TestConvertCase` to `tests/test_case_utils.py` covering every supported case style, full-name and hyphen aliases, case-insensitive matching, empty text, and the `TypeError`/`ValueError` paths (16 new tests).
+- Updated the `case_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `case_utils.py`, `tests/test_case_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+
 ## Unreleased — audited zipfile_utils boundary cases
 
 - Audited `zipfile_utils.py` boundary cases and aligned validation with project conventions: added `_require_path` helpers, accept `str` or `pathlib.Path` for paths (coercing to str), validate types with `TypeError`, reject empty strings/paths with `ValueError`, add `Raises:` sections to docstrings, and accept `Path` objects in file lists.
@@ -50283,7 +50292,7 @@ circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreake
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
-case_utils.py             # Case conversion utilities (kebab, pascal, constant case) with input validation
+case_utils.py             # Case conversion utilities (kebab, pascal, constant case) with input validation, plus a convert_case dispatcher
 trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
 calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
 chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
@@ -51070,7 +51079,7 @@ The project includes bisect utility functions in `bisect_utils.py` for binary se
 
 ## Case Conversion Utilities Module
 
-The project includes case conversion utilities in `case_utils.py`: `kebab_case` converts text to kebab-case, `pascal_case` converts text to PascalCase, `constant_case` converts text to CONSTANT_CASE, `snake_case` converts text to snake_case, `camel_case` converts text to camelCase, `screaming_snake_case` is an alias for `constant_case`, `spinal_case` is an alias for `kebab_case`, `train_case` is an alias for `pascal_case`, `dot_case` converts text to dot.case, `slash_case` converts text to slash/case, `title_case` converts text to Title Case, and `sentence_case` converts text to sentence case. Words are split on whitespace, separators, and case transitions such as camelCase and PascalCase boundaries. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_case_utils.py`.
+The project includes case conversion utilities in `case_utils.py`: `kebab_case` converts text to kebab-case, `pascal_case` converts text to PascalCase, `constant_case` converts text to CONSTANT_CASE, `snake_case` converts text to snake_case, `camel_case` converts text to camelCase, `screaming_snake_case` is an alias for `constant_case`, `spinal_case` is an alias for `kebab_case`, `train_case` is an alias for `pascal_case`, `dot_case` converts text to dot.case, `slash_case` converts text to slash/case, `title_case` converts text to Title Case, `sentence_case` converts text to sentence case, and `convert_case(text, case)` dispatches to any of the above converters by case name (e.g. ``"snake"``, ``"camel"``, ``"pascal"``). Words are split on whitespace, separators, and case transitions such as camelCase and PascalCase boundaries. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_case_utils.py`.
 
 ## Binary Struct Utilities Module
 
@@ -126520,7 +126529,7 @@ cat > "$OUTPUT_DIR/case_utils.py" <<'CASE_UTILS'
 from __future__ import annotations
 
 import re
-from typing import List
+from typing import Callable, List
 
 __all__: List[str] = [
     "kebab_case",
@@ -126535,6 +126544,7 @@ __all__: List[str] = [
     "slash_case",
     "title_case",
     "sentence_case",
+    "convert_case",
 ]
 
 
@@ -126772,6 +126782,71 @@ def sentence_case(text: str) -> str:
     if not words:
         return ""
     return " ".join([words[0].capitalize()] + [word.lower() for word in words[1:]])
+
+
+_CASE_DISPATCH: dict[str, Callable[[str], str]] = {
+    "kebab": kebab_case,
+    "kebab_case": kebab_case,
+    "pascal": pascal_case,
+    "pascal_case": pascal_case,
+    "constant": constant_case,
+    "constant_case": constant_case,
+    "snake": snake_case,
+    "snake_case": snake_case,
+    "camel": camel_case,
+    "camel_case": camel_case,
+    "screaming_snake": screaming_snake_case,
+    "screaming_snake_case": screaming_snake_case,
+    "spinal": spinal_case,
+    "spinal_case": spinal_case,
+    "train": train_case,
+    "train_case": train_case,
+    "dot": dot_case,
+    "dot_case": dot_case,
+    "slash": slash_case,
+    "slash_case": slash_case,
+    "title": title_case,
+    "title_case": title_case,
+    "sentence": sentence_case,
+    "sentence_case": sentence_case,
+}
+
+
+def convert_case(text: str, case: str) -> str:
+    """Convert *text* to the named *case* style.
+
+    Args:
+        text: The string to convert.
+        case: The target case style, e.g. ``"snake"``, ``"camel"``,
+            ``"pascal"``, ``"kebab"``, ``"constant"``, ``"title"``,
+            ``"sentence"``, ``"dot"``, ``"slash"``, ``"spinal"``,
+            ``"train"``, or ``"screaming_snake"``. The optional
+            ``"_case"`` suffix is allowed and matching is case-insensitive;
+            hyphens are treated as underscores.
+
+    Returns:
+        The converted string.
+
+    Raises:
+        TypeError: If *text* or *case* is not a string.
+        ValueError: If *case* is not a recognized case style.
+
+    Examples:
+        >>> convert_case("Hello World", "snake")
+        'hello_world'
+        >>> convert_case("hello_world", "Pascal")
+        'HelloWorld'
+        >>> convert_case("XML Parser", "kebab-case")
+        'xml-parser'
+    """
+    _require_string(text, "text")
+    if not isinstance(case, str):
+        raise TypeError("case must be a string")
+    key = case.strip().lower().replace("-", "_")
+    converter = _CASE_DISPATCH.get(key)
+    if converter is None:
+        raise ValueError(f"unknown case style: {case!r}")
+    return converter(text)
 CASE_UTILS
 
 # --- tests/test_case_utils.py ---
@@ -126793,6 +126868,7 @@ from case_utils import (
     spinal_case,
     title_case,
     train_case,
+    convert_case,
 )
 
 
@@ -126909,6 +126985,72 @@ class TestCamelCase(unittest.TestCase):
     def test_non_string(self):
         with self.assertRaises(TypeError):
             camel_case(123)  # type: ignore[arg-type]
+
+
+class TestConvertCase(unittest.TestCase):
+    def test_kebab(self):
+        self.assertEqual(convert_case("Hello World", "kebab"), "hello-world")
+
+    def test_kebab_case_full_name(self):
+        self.assertEqual(convert_case("Hello World", "kebab_case"), "hello-world")
+
+    def test_pascal(self):
+        self.assertEqual(convert_case("hello world", "pascal"), "HelloWorld")
+
+    def test_snake(self):
+        self.assertEqual(convert_case("Hello World", "snake"), "hello_world")
+
+    def test_camel(self):
+        self.assertEqual(convert_case("hello world", "camel"), "helloWorld")
+
+    def test_constant(self):
+        self.assertEqual(convert_case("hello world", "constant"), "HELLO_WORLD")
+
+    def test_title(self):
+        self.assertEqual(convert_case("hello world", "title"), "Hello World")
+
+    def test_sentence(self):
+        self.assertEqual(convert_case("hello WORLD", "sentence"), "Hello world")
+
+    def test_dot(self):
+        self.assertEqual(convert_case("Hello World", "dot"), "hello.world")
+
+    def test_slash(self):
+        self.assertEqual(convert_case("Hello World", "slash"), "hello/world")
+
+    def test_spinal(self):
+        self.assertEqual(convert_case("Hello World", "spinal"), "hello-world")
+
+    def test_train(self):
+        self.assertEqual(convert_case("hello world", "train"), "HelloWorld")
+
+    def test_screaming_snake(self):
+        self.assertEqual(convert_case("hello world", "screaming_snake"), "HELLO_WORLD")
+
+    def test_case_insensitive(self):
+        self.assertEqual(convert_case("Hello World", "SNAKE"), "hello_world")
+
+    def test_hyphen_alias(self):
+        self.assertEqual(convert_case("XML Parser", "kebab-case"), "xml-parser")
+
+    def test_empty_text(self):
+        self.assertEqual(convert_case("", "snake"), "")
+
+    def test_non_string_text(self):
+        with self.assertRaises(TypeError):
+            convert_case(123, "snake")  # type: ignore[arg-type]
+
+    def test_non_string_case(self):
+        with self.assertRaises(TypeError):
+            convert_case("hello", 123)  # type: ignore[arg-type]
+
+    def test_unknown_case(self):
+        with self.assertRaises(ValueError):
+            convert_case("hello", "not_a_case")
+
+    def test_unknown_case_with_suffix(self):
+        with self.assertRaises(ValueError):
+            convert_case("hello", "snake_case_extra")
 
 
 if __name__ == "__main__":

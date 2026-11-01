@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import List
+from typing import Callable, List
 
 __all__: List[str] = [
     "kebab_case",
@@ -18,6 +18,7 @@ __all__: List[str] = [
     "slash_case",
     "title_case",
     "sentence_case",
+    "convert_case",
 ]
 
 
@@ -255,3 +256,68 @@ def sentence_case(text: str) -> str:
     if not words:
         return ""
     return " ".join([words[0].capitalize()] + [word.lower() for word in words[1:]])
+
+
+_CASE_DISPATCH: dict[str, Callable[[str], str]] = {
+    "kebab": kebab_case,
+    "kebab_case": kebab_case,
+    "pascal": pascal_case,
+    "pascal_case": pascal_case,
+    "constant": constant_case,
+    "constant_case": constant_case,
+    "snake": snake_case,
+    "snake_case": snake_case,
+    "camel": camel_case,
+    "camel_case": camel_case,
+    "screaming_snake": screaming_snake_case,
+    "screaming_snake_case": screaming_snake_case,
+    "spinal": spinal_case,
+    "spinal_case": spinal_case,
+    "train": train_case,
+    "train_case": train_case,
+    "dot": dot_case,
+    "dot_case": dot_case,
+    "slash": slash_case,
+    "slash_case": slash_case,
+    "title": title_case,
+    "title_case": title_case,
+    "sentence": sentence_case,
+    "sentence_case": sentence_case,
+}
+
+
+def convert_case(text: str, case: str) -> str:
+    """Convert *text* to the named *case* style.
+
+    Args:
+        text: The string to convert.
+        case: The target case style, e.g. ``"snake"``, ``"camel"``,
+            ``"pascal"``, ``"kebab"``, ``"constant"``, ``"title"``,
+            ``"sentence"``, ``"dot"``, ``"slash"``, ``"spinal"``,
+            ``"train"``, or ``"screaming_snake"``. The optional
+            ``"_case"`` suffix is allowed and matching is case-insensitive;
+            hyphens are treated as underscores.
+
+    Returns:
+        The converted string.
+
+    Raises:
+        TypeError: If *text* or *case* is not a string.
+        ValueError: If *case* is not a recognized case style.
+
+    Examples:
+        >>> convert_case("Hello World", "snake")
+        'hello_world'
+        >>> convert_case("hello_world", "Pascal")
+        'HelloWorld'
+        >>> convert_case("XML Parser", "kebab-case")
+        'xml-parser'
+    """
+    _require_string(text, "text")
+    if not isinstance(case, str):
+        raise TypeError("case must be a string")
+    key = case.strip().lower().replace("-", "_")
+    converter = _CASE_DISPATCH.get(key)
+    if converter is None:
+        raise ValueError(f"unknown case style: {case!r}")
+    return converter(text)

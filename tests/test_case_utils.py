@@ -15,6 +15,7 @@ from case_utils import (
     spinal_case,
     title_case,
     train_case,
+    convert_case,
 )
 
 
@@ -131,6 +132,72 @@ class TestCamelCase(unittest.TestCase):
     def test_non_string(self):
         with self.assertRaises(TypeError):
             camel_case(123)  # type: ignore[arg-type]
+
+
+class TestConvertCase(unittest.TestCase):
+    def test_kebab(self):
+        self.assertEqual(convert_case("Hello World", "kebab"), "hello-world")
+
+    def test_kebab_case_full_name(self):
+        self.assertEqual(convert_case("Hello World", "kebab_case"), "hello-world")
+
+    def test_pascal(self):
+        self.assertEqual(convert_case("hello world", "pascal"), "HelloWorld")
+
+    def test_snake(self):
+        self.assertEqual(convert_case("Hello World", "snake"), "hello_world")
+
+    def test_camel(self):
+        self.assertEqual(convert_case("hello world", "camel"), "helloWorld")
+
+    def test_constant(self):
+        self.assertEqual(convert_case("hello world", "constant"), "HELLO_WORLD")
+
+    def test_title(self):
+        self.assertEqual(convert_case("hello world", "title"), "Hello World")
+
+    def test_sentence(self):
+        self.assertEqual(convert_case("hello WORLD", "sentence"), "Hello world")
+
+    def test_dot(self):
+        self.assertEqual(convert_case("Hello World", "dot"), "hello.world")
+
+    def test_slash(self):
+        self.assertEqual(convert_case("Hello World", "slash"), "hello/world")
+
+    def test_spinal(self):
+        self.assertEqual(convert_case("Hello World", "spinal"), "hello-world")
+
+    def test_train(self):
+        self.assertEqual(convert_case("hello world", "train"), "HelloWorld")
+
+    def test_screaming_snake(self):
+        self.assertEqual(convert_case("hello world", "screaming_snake"), "HELLO_WORLD")
+
+    def test_case_insensitive(self):
+        self.assertEqual(convert_case("Hello World", "SNAKE"), "hello_world")
+
+    def test_hyphen_alias(self):
+        self.assertEqual(convert_case("XML Parser", "kebab-case"), "xml-parser")
+
+    def test_empty_text(self):
+        self.assertEqual(convert_case("", "snake"), "")
+
+    def test_non_string_text(self):
+        with self.assertRaises(TypeError):
+            convert_case(123, "snake")  # type: ignore[arg-type]
+
+    def test_non_string_case(self):
+        with self.assertRaises(TypeError):
+            convert_case("hello", 123)  # type: ignore[arg-type]
+
+    def test_unknown_case(self):
+        with self.assertRaises(ValueError):
+            convert_case("hello", "not_a_case")
+
+    def test_unknown_case_with_suffix(self):
+        with self.assertRaises(ValueError):
+            convert_case("hello", "snake_case_extra")
 
 
 if __name__ == "__main__":
