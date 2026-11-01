@@ -1,3 +1,7 @@
+## Unreleased — added polydivisible docs and __all__ export to numbers_utils
+
+- Registered `is_polydivisible_number` in `numbers_utils.__all__` (it was implemented and tested in `87f415a` but missing from the module's public API surface), added it to the `numbers_utils` file-list comment and prose section of `README.md`, and recorded the gap in this CHANGELOG entry.
+
 ## Unreleased — added sliding_window and window to itertools_utils
 - Added `is_powerful_number(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* is a powerful number — a positive integer such that for every prime factor *p*, *p*² also divides *n* (e.g. 4, 8, 9, 36, 72) — returning True for 1 (by convention), and False for numbers below 1, primes, and squarefree composites. It is the conceptual counterpart to `is_squarefree`: for *n* > 1 the two predicates are mutually exclusive.
 - Added `TestIsPowerfulNumber` to `tests/test_prime_utils.py` covering known powerful numbers (1, 4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 72, 100, 108, 121, 125, 128, 144), non-powerful numbers (2, 3, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20), numbers below 1, primes, squarefree composites, the mutual-exclusivity relationship with `is_squarefree` for *n* > 1, and the `TypeError` paths (7 new tests). Imported `is_powerful_number` at the top of the test file to match the module's `__all__` contract.

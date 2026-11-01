@@ -34,6 +34,7 @@ __all__: list[str] = [
     "is_happy_number",
     "is_pronic_number",
     "is_spy_number",
+    "is_polydivisible_number",
     "proper_divisors",
 ]
 
