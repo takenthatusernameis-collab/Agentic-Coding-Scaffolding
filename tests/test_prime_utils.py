@@ -16,6 +16,7 @@ from prime_utils import (
     is_cousin_prime,
     is_deficient_number,
     is_emirp,
+    is_fermat_number,
     is_fermat_pseudoprime,
     is_giuga_number,
     is_korselt_number,
@@ -1427,6 +1428,24 @@ class TestIsPowerfulNumber(unittest.TestCase):
         for value in (4.0, "4", None, True, [4]):
             with self.assertRaises(TypeError):
                 is_powerful_number(value)
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+class TestIsFermatNumber(unittest.TestCase):
+    def test_known_fermat_numbers(self):
+        for n in (3, 5, 17, 257, 65537):
+            self.assertTrue(is_fermat_number(n), n)
+
+    def test_non_fermat_numbers(self):
+        for n in (1, 2, 4, 6, 7, 8, 9, 10, 16, 18, 256):
+            self.assertFalse(is_fermat_number(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_fermat_number(3.0)
 
 
 if __name__ == "__main__":

@@ -53,6 +53,7 @@ __all__: List[str] = [
     "is_amicable",
     "is_perfect_power",
     "is_powerful_number",
+    "is_fermat_number",
 ]
 
 
@@ -1491,3 +1492,49 @@ def is_powerful_number(n: int) -> bool:
     if remaining > 1:
         return False
     return True
+
+
+def is_fermat_number(n: int) -> bool:
+    """Return ``True`` when *n* is a Fermat number.
+
+    A Fermat number is a positive integer of the form F_k = 2^(2^k) + 1 for
+    some non-negative integer k. The first few Fermat numbers are 3, 5, 17,
+    257, and 65537.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a Fermat number, ``False`` otherwise. Numbers
+        below 3 are never Fermat numbers.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_fermat_number(3)
+        True
+        >>> is_fermat_number(5)
+        True
+        >>> is_fermat_number(17)
+        True
+        >>> is_fermat_number(257)
+        True
+        >>> is_fermat_number(65537)
+        True
+        >>> is_fermat_number(4)
+        False
+        >>> is_fermat_number(2)
+        False
+    """
+    _require_int(n, "n")
+    if n < 3:
+        return False
+    # n must be of the form 2^(2^k) + 1, i.e. n-1 must be a power of two
+    # whose exponent is itself a power of two.
+    m = n - 1
+    if m & (m - 1) != 0:
+        return False
+    # m == 2^(2^k). Check that log2(m) is a power of two.
+    exponent = m.bit_length() - 1
+    return exponent > 0 and (exponent & (exponent - 1)) == 0
