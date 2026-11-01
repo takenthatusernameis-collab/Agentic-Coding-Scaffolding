@@ -30,6 +30,10 @@ try:
     from itertools import batched  # type: ignore[attr-defined]
 except ImportError:
     batched = None  # type: ignore[assignment]
+try:
+    from itertools import pairwise as _pairwise  # type: ignore[attr-defined]
+except ImportError:
+    _pairwise = None  # type: ignore[assignment]
 from typing import Any, Callable, Iterable, List, Optional, Tuple
 
 
@@ -177,9 +181,34 @@ def filter_false_iterable(iterable: Iterable[Any], predicate: Callable[[Any], bo
 
 
 def pairwise_iterable(iterable: Iterable[Any]) -> List[Tuple[Any, Any]]:
-    """Return successive overlapping pairs from the input iterable."""
-    _ensure_iterable(iterable, "iterable")
+    """Return successive overlapping pairs taken from the input iterable."""
+    _ensure_iterable(iterable)
     return list(pairwise(iterable))
+
+
+def sliding_window(iterable: Iterable[Any], n: int) -> List[Tuple[Any, ...]]:
+    """Return successive overlapping windows of length n from the input iterable."""
+    _ensure_iterable(iterable)
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
+        return []
+    it = iter(iterable)
+    window = list(islice(it, n))
+    if len(window) < n:
+        return []
+    result: List[Tuple[Any, ...]] = [tuple(window)]
+    for element in it:
+        window = window[1:] + [element]
+        result.append(tuple(window))
+    return result
+
+
+def window(iterable: Iterable[Any], n: int) -> List[Tuple[Any, ...]]:
+    """Alias for sliding_window."""
+    return sliding_window(iterable, n)
 
 
 def partition(
@@ -464,4 +493,6 @@ __all__ = [
     "islice_iterable",
     "unique_everseen",
     "unique_justseen",
+    "sliding_window",
+    "window",
 ]

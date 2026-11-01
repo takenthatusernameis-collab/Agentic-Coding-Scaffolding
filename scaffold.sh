@@ -38808,6 +38808,10 @@ try:
     from itertools import batched  # type: ignore[attr-defined]
 except ImportError:
     batched = None  # type: ignore[assignment]
+try:
+    from itertools import pairwise as _pairwise  # type: ignore[attr-defined]
+except ImportError:
+    _pairwise = None  # type: ignore[assignment]
 from typing import Any, Callable, Iterable, List, Optional, Tuple
 
 
@@ -38955,9 +38959,34 @@ def filter_false_iterable(iterable: Iterable[Any], predicate: Callable[[Any], bo
 
 
 def pairwise_iterable(iterable: Iterable[Any]) -> List[Tuple[Any, Any]]:
-    """Return successive overlapping pairs from the input iterable."""
-    _ensure_iterable(iterable, "iterable")
+    """Return successive overlapping pairs taken from the input iterable."""
+    _ensure_iterable(iterable)
     return list(pairwise(iterable))
+
+
+def sliding_window(iterable: Iterable[Any], n: int) -> List[Tuple[Any, ...]]:
+    """Return successive overlapping windows of length n from the input iterable."""
+    _ensure_iterable(iterable)
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
+        return []
+    it = iter(iterable)
+    window = list(islice(it, n))
+    if len(window) < n:
+        return []
+    result: List[Tuple[Any, ...]] = [tuple(window)]
+    for element in it:
+        window = window[1:] + [element]
+        result.append(tuple(window))
+    return result
+
+
+def window(iterable: Iterable[Any], n: int) -> List[Tuple[Any, ...]]:
+    """Alias for sliding_window."""
+    return sliding_window(iterable, n)
 
 
 def partition(
@@ -39242,6 +39271,8 @@ __all__ = [
     "islice_iterable",
     "unique_everseen",
     "unique_justseen",
+    "sliding_window",
+    "window",
 ]
 ITERTOOLS_UTILS
 
@@ -39268,6 +39299,8 @@ from itertools_utils import (
     unique_justseen,
     zip_longest_iterables,
     zip_strict_iterables,
+    sliding_window,
+    window,
 )
 
 
@@ -39605,28 +39638,65 @@ class TestUniqueEverseen(unittest.TestCase):
 
 
 class TestUniqueJustseen(unittest.TestCase):
-    def test_basic(self):
+    def test_unique_justseen_consecutive(self):
         self.assertEqual(
             unique_justseen("AAAABBBCCDAABBB"),
-            ["A", "B", "C", "D", "A", "B"],
+            list("ABCDAB"),
         )
 
-    def test_with_key(self):
+    def test_unique_justseen_key(self):
         self.assertEqual(
             unique_justseen("ABbACa", key=str.lower),
-            ["A", "B", "A", "C", "a"],
+            list("ABACa"),
         )
 
-    def test_empty(self):
+    def test_unique_justseen_empty(self):
         self.assertEqual(unique_justseen([]), [])
 
-    def test_non_iterable_raises_type_error(self):
+    def test_unique_justseen_rejects_non_iterable(self):
         with self.assertRaises(TypeError):
             unique_justseen(42)
 
-    def test_non_callable_key_raises_type_error(self):
+    def test_unique_justseen_rejects_bad_key(self):
         with self.assertRaises(TypeError):
             unique_justseen([1, 2, 3], key=123)
+
+
+class TestSlidingWindow(unittest.TestCase):
+    def test_sliding_window_basic(self):
+        self.assertEqual(sliding_window([1, 2, 3, 4], 2), [(1, 2), (2, 3), (3, 4)])
+
+    def test_sliding_window_exact_length(self):
+        self.assertEqual(sliding_window([1, 2, 3], 3), [(1, 2, 3)])
+
+    def test_sliding_window_larger_than_iterable(self):
+        self.assertEqual(sliding_window([1, 2, 3], 5), [])
+
+    def test_sliding_window_length_one(self):
+        self.assertEqual(sliding_window([1, 2, 3], 1), [(1,), (2,), (3,)])
+
+    def test_sliding_window_empty(self):
+        self.assertEqual(sliding_window([], 3), [])
+
+    def test_sliding_window_zero(self):
+        self.assertEqual(sliding_window([1, 2, 3], 0), [])
+
+    def test_sliding_window_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            sliding_window([1, 2, 3], -1)
+
+    def test_sliding_window_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            sliding_window(123, 2)
+
+    def test_sliding_window_rejects_bad_n(self):
+        with self.assertRaises(TypeError):
+            sliding_window([1, 2, 3], 2.5)
+        with self.assertRaises(TypeError):
+            sliding_window([1, 2, 3], True)
+
+    def test_window_alias(self):
+        self.assertEqual(window("abc", 2), [("a", "b"), ("b", "c")])
 
 
 if __name__ == "__main__":
@@ -46470,7 +46540,7 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — added unique_everseen and unique_justseen to itertools_utils
+## Unreleased — added sliding_window and window to itertools_utils
 - Added `is_powerful_number(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* is a powerful number — a positive integer such that for every prime factor *p*, *p*² also divides *n* (e.g. 4, 8, 9, 36, 72) — returning True for 1 (by convention), and False for numbers below 1, primes, and squarefree composites. It is the conceptual counterpart to `is_squarefree`: for *n* > 1 the two predicates are mutually exclusive.
 - Added `TestIsPowerfulNumber` to `tests/test_prime_utils.py` covering known powerful numbers (1, 4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 72, 100, 108, 121, 125, 128, 144), non-powerful numbers (2, 3, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20), numbers below 1, primes, squarefree composites, the mutual-exclusivity relationship with `is_squarefree` for *n* > 1, and the `TypeError` paths (7 new tests). Imported `is_powerful_number` at the top of the test file to match the module's `__all__` contract.
 - Updated the `prime_utils` module tree entry and prose section of `README.md`.
@@ -48080,7 +48150,7 @@ maybe_utils.py             # Maybe/Option type utilities for functional programm
 either_utils.py            # Either/Result type utilities for functional programming patterns (Either, right, left, ok, err, from_optional, map, map_left, flat_map, and_then, filter, or_else, fold, swap, unwrap, unwrap_left, unwrap_or, unwrap_or_else, is_right, is_left, is_ok, is_err)
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
-itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, unique_everseen, unique_justseen, etc.)
+itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, unique_everseen, unique_justseen, sliding_window/window, etc.)
 
 timing_utils.py           # Performance measurement helpers
 timeit_utils.py           # Wrapper for stdlib timeit
@@ -48114,7 +48184,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_spy_number)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_spy_number, is_disarium_number, is_ugly_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -48990,7 +49060,7 @@ The project includes bytes and binary utilities in `bytes_utils.py` for working 
 
 ## Itertools Utilities Module
 
-The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, `zip_longest_iterables`, `unique_everseen`, and `unique_justseen`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
+The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, `zip_longest_iterables`, `unique_everseen`, `unique_justseen`, `sliding_window`, and `window`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
 
 ## Base64 Utilities Module
 
@@ -49039,7 +49109,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703); `is_ugly_number` tests whether a positive integer's only prime factors are 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -67393,6 +67463,7 @@ __all__: List[str] = [
     "is_abundant_number",
     "is_deficient_number",
     "is_disarium_number",
+    "is_ugly_number",
 ]
 
 def _require_number(value: object, name: str) -> Number:
@@ -69041,6 +69112,47 @@ def is_disarium_number(value: int) -> bool:
         return False
     digits = [int(d) for d in str(value)]
     return sum(d ** (i + 1) for i, d in enumerate(digits)) == value
+
+
+def is_ugly_number(value: int) -> bool:
+    """Return True if *value* is an ugly number.
+
+    An ugly number (also called a Hamming or regular number) is a positive
+    integer whose only prime factors are 2, 3, and 5. By convention, 1 is an
+    ugly number.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is an ugly number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_ugly_number(1)
+        True
+        >>> is_ugly_number(6)
+        True
+        >>> is_ugly_number(8)
+        True
+        >>> is_ugly_number(14)
+        False
+        >>> is_ugly_number(0)
+        False
+        >>> is_ugly_number(-6)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value <= 0:
+        return False
+    n = value
+    for factor in (2, 3, 5):
+        while n % factor == 0:
+            n //= factor
+    return n == 1
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -69090,6 +69202,7 @@ from number_utils import (
     is_triangular_number,
     is_pentagonal_number,
     is_hexagonal_number,
+    is_ugly_number,
     is_zero,
     lcm,
     lerp,
@@ -70399,6 +70512,29 @@ class TestIsHexagonalNumber(unittest.TestCase):
             is_hexagonal_number(6.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_hexagonal_number(True)  # type: ignore[arg-type]
+
+
+class TestIsUglyNumber(unittest.TestCase):
+    def test_known_ugly_numbers(self) -> None:
+        for n in (1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 25, 27, 30):
+            self.assertTrue(is_ugly_number(n), n)
+
+    def test_non_ugly_numbers(self) -> None:
+        for n in (7, 11, 13, 14, 17, 19, 21, 22, 26, 28, 49, 77):
+            self.assertFalse(is_ugly_number(n), n)
+
+    def test_zero_and_negatives(self) -> None:
+        self.assertFalse(is_ugly_number(0))
+        for n in (-1, -6, -30):
+            self.assertFalse(is_ugly_number(n))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_ugly_number("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_ugly_number(6.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_ugly_number(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

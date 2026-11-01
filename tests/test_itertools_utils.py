@@ -19,6 +19,8 @@ from itertools_utils import (
     unique_justseen,
     zip_longest_iterables,
     zip_strict_iterables,
+    sliding_window,
+    window,
 )
 
 
@@ -356,28 +358,65 @@ class TestUniqueEverseen(unittest.TestCase):
 
 
 class TestUniqueJustseen(unittest.TestCase):
-    def test_basic(self):
+    def test_unique_justseen_consecutive(self):
         self.assertEqual(
             unique_justseen("AAAABBBCCDAABBB"),
-            ["A", "B", "C", "D", "A", "B"],
+            list("ABCDAB"),
         )
 
-    def test_with_key(self):
+    def test_unique_justseen_key(self):
         self.assertEqual(
             unique_justseen("ABbACa", key=str.lower),
-            ["A", "B", "A", "C", "a"],
+            list("ABACa"),
         )
 
-    def test_empty(self):
+    def test_unique_justseen_empty(self):
         self.assertEqual(unique_justseen([]), [])
 
-    def test_non_iterable_raises_type_error(self):
+    def test_unique_justseen_rejects_non_iterable(self):
         with self.assertRaises(TypeError):
             unique_justseen(42)
 
-    def test_non_callable_key_raises_type_error(self):
+    def test_unique_justseen_rejects_bad_key(self):
         with self.assertRaises(TypeError):
             unique_justseen([1, 2, 3], key=123)
+
+
+class TestSlidingWindow(unittest.TestCase):
+    def test_sliding_window_basic(self):
+        self.assertEqual(sliding_window([1, 2, 3, 4], 2), [(1, 2), (2, 3), (3, 4)])
+
+    def test_sliding_window_exact_length(self):
+        self.assertEqual(sliding_window([1, 2, 3], 3), [(1, 2, 3)])
+
+    def test_sliding_window_larger_than_iterable(self):
+        self.assertEqual(sliding_window([1, 2, 3], 5), [])
+
+    def test_sliding_window_length_one(self):
+        self.assertEqual(sliding_window([1, 2, 3], 1), [(1,), (2,), (3,)])
+
+    def test_sliding_window_empty(self):
+        self.assertEqual(sliding_window([], 3), [])
+
+    def test_sliding_window_zero(self):
+        self.assertEqual(sliding_window([1, 2, 3], 0), [])
+
+    def test_sliding_window_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            sliding_window([1, 2, 3], -1)
+
+    def test_sliding_window_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            sliding_window(123, 2)
+
+    def test_sliding_window_rejects_bad_n(self):
+        with self.assertRaises(TypeError):
+            sliding_window([1, 2, 3], 2.5)
+        with self.assertRaises(TypeError):
+            sliding_window([1, 2, 3], True)
+
+    def test_window_alias(self):
+        self.assertEqual(window("abc", 2), [("a", "b"), ("b", "c")])
 
 
 if __name__ == "__main__":
