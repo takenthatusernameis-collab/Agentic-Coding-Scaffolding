@@ -11,21 +11,24 @@ from numbers_utils import (
     is_armstrong_number,
     is_automorphic_number,
     is_complex,
-    is_disarium_number,
+    is_coprime,
     is_deficient_number,
+    is_disarium_number,
     is_happy_number,
     is_harshad_number,
     is_integral,
     is_neon_number,
     is_number,
+    is_palindromic_number,
     is_perfect_number,
+    is_perfect_power,
     is_polydivisible_number,
     is_pronic_number,
     is_rational,
     is_real,
     is_repdigit_number,
-    is_strong_number,
     is_spy_number,
+    is_strong_number,
     proper_divisors,
 )
 
@@ -409,6 +412,67 @@ class TestIsRepdigitNumber(unittest.TestCase):
         for value in (1.5, "11", None, True, [11]):
             with self.assertRaises(TypeError):
                 is_repdigit_number(value)
+
+
+class TestIsPalindromicNumber(unittest.TestCase):
+    def test_known_palindromes(self):
+        for value in (0, 1, 2, 9, 11, 22, 121, 1221, 12321):
+            self.assertTrue(is_palindromic_number(value), value)
+
+    def test_non_palindromes(self):
+        for value in (10, 12, 102, 123, 89):
+            self.assertFalse(is_palindromic_number(value), value)
+
+    def test_negatives(self):
+        for value in (-1, -11):
+            with self.assertRaises(ValueError):
+                is_palindromic_number(value)
+
+    def test_type_error(self):
+        for value in (1.5, "121", None, True, [121]):
+            with self.assertRaises(TypeError):
+                is_palindromic_number(value)
+
+
+class TestIsCoprime(unittest.TestCase):
+    def test_coprime_pairs(self):
+        for a, b in ((2, 3), (3, 4), (8, 9), (1, 100), (14, 15)):
+            self.assertTrue(is_coprime(a, b), (a, b))
+
+    def test_not_coprime(self):
+        for a, b in ((2, 4), (6, 9), (4, 2), (0, 5)):
+            self.assertFalse(is_coprime(a, b), (a, b))
+
+    def test_type_error(self):
+        for value in (1.5, "2", None, [2]):
+            with self.assertRaises(TypeError):
+                is_coprime(value, 3)
+            with self.assertRaises(TypeError):
+                is_coprime(3, value)
+        with self.assertRaises(TypeError):
+            is_coprime(True, 3)
+        with self.assertRaises(TypeError):
+            is_coprime(3, True)
+
+
+class TestIsPerfectPower(unittest.TestCase):
+    def test_known_perfect_powers(self):
+        for value in (4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 81, 100, 121, 125, 128):
+            self.assertTrue(is_perfect_power(value), value)
+
+    def test_not_perfect_powers(self):
+        for value in (2, 3, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20):
+            self.assertFalse(is_perfect_power(value), value)
+
+    def test_one_and_below(self):
+        self.assertFalse(is_perfect_power(1))
+        self.assertFalse(is_perfect_power(0))
+        self.assertFalse(is_perfect_power(-8))
+
+    def test_type_error(self):
+        for value in (1.5, "4", None, True, [4]):
+            with self.assertRaises(TypeError):
+                is_perfect_power(value)
 
 
 if __name__ == "__main__":
