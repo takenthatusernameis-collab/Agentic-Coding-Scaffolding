@@ -1445,5 +1445,36 @@ class TestIsSquarefreeNumber(unittest.TestCase):
             is_squarefree_number(None)  # type: ignore[arg-type]
 
 
+class TestIsOblongNumber(unittest.TestCase):
+    def test_oblong_numbers(self) -> None:
+        from number_utils import is_oblong_number
+
+        for n in (0, 2, 6, 12, 20, 30, 42, 56, 72, 90):
+            self.assertTrue(is_oblong_number(n), n)
+
+    def test_non_oblong_numbers(self) -> None:
+        from number_utils import is_oblong_number
+
+        for n in (1, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19):
+            self.assertFalse(is_oblong_number(n), n)
+
+    def test_negatives(self) -> None:
+        from number_utils import is_oblong_number
+
+        self.assertFalse(is_oblong_number(-1))
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_oblong_number
+
+        with self.assertRaises(TypeError):
+            is_oblong_number("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_oblong_number(6.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_oblong_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_oblong_number(None)  # type: ignore[arg-type]
+
+
 if __name__ == "__main__":
     unittest.main()

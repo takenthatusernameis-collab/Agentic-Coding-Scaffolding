@@ -1858,3 +1858,42 @@ def is_squarefree_number(value: int) -> bool:
             return False
         factor += 1
     return True
+
+
+def is_oblong_number(value: int) -> bool:
+    """Return whether *value* is an oblong (pronic) number.
+
+    An oblong number is a product of two consecutive integers
+    (``n * (n + 1)``) for some non-negative integer *n*.
+
+    Args:
+        value: The integer to check.
+
+    Returns:
+        ``True`` if *value* is an oblong number, otherwise ``False``.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_oblong_number(0)
+        True
+        >>> is_oblong_number(2)
+        True
+        >>> is_oblong_number(6)
+        True
+        >>> is_oblong_number(12)
+        True
+        >>> is_oblong_number(4)
+        False
+        >>> is_oblong_number(-1)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 0:
+        return False
+    # n*(n+1) = value => 4*value+1 must be an odd perfect square
+    discriminant = 4 * value + 1
+    root = math.isqrt(discriminant)
+    return root * root == discriminant and root % 2 == 1
