@@ -28,6 +28,19 @@ class TestAbcUtils(unittest.TestCase):
         abc_utils.update_abstractmethods(Sub)
         self.assertEqual(Sub.__abstractmethods__, frozenset())
 
+    def test_is_abstract(self):
+        class Base(abc.ABC):
+            @abc_utils.abstractmethod
+            def method(self): ...
+
+        class Sub(Base):
+            def method(self):
+                return 1
+
+        self.assertTrue(abc_utils.is_abstract(Base))
+        self.assertFalse(abc_utils.is_abstract(Sub))
+        self.assertFalse(abc_utils.is_abstract(int))
+
 
 if __name__ == "__main__":
     unittest.main()

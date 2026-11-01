@@ -3,9 +3,21 @@
 import abc as _abc
 
 
+__all__ = [
+    "ABC",
+    "ABCMeta",
+    "abstractmethod",
+    "abstractclassmethod",
+    "abstractstaticmethod",
+    "abstractproperty",
+    "get_cache_token",
+    "update_abstractmethods",
+    "is_abstract",
+]
+
+
 def ABC():
     return _abc.ABC
-
 
 def ABCMeta():
     return _abc.ABCMeta
@@ -33,3 +45,17 @@ def get_cache_token():
 
 def update_abstractmethods(cls):
     return _abc.update_abstractmethods(cls)
+
+
+def is_abstract(obj):
+    """Return True if *obj* is an abstract class with unimplemented methods.
+
+    Args:
+        obj: Any object, typically a class.
+
+    Returns:
+        bool: True when ``obj`` exposes a non-empty ``__abstractmethods__``
+        attribute, False otherwise.
+    """
+    abstractmethods = getattr(obj, "__abstractmethods__", None)
+    return bool(abstractmethods)

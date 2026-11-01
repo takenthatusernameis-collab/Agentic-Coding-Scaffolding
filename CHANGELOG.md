@@ -1,3 +1,7 @@
+## Unreleased — added is_abstract to abc_utils
+
+- Added `is_abstract(obj)` to `abc_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests; it returns True when *obj* exposes a non-empty ``__abstractmethods__`` attribute. Added `test_is_abstract` to `tests/test_abc_utils.py`. Updated the `abc_utils` prose section of `README.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `abc_utils.py`, `tests/test_abc_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added is_perfect_power to number_utils
 
 - Added `is_perfect_power(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-number arguments; it returns True when *value* is a positive integer > 1 that can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16 = 4^2, 36 = 6^2, 8 = 2^3, 125 = 5^3), and returns False for 0, ±1, non-integral values, primes, and numbers with no such representation. It generalizes the existing `is_perfect_cube`, `is_perfect_square`, and `is_power_of_two` predicates, accepting floats that are integral (e.g. 8.0) just like its siblings.
