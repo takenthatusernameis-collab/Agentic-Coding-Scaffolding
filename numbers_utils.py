@@ -9,6 +9,7 @@ caller gets a clear :class:`TypeError` instead of an opaque failure.
 
 from __future__ import annotations
 
+import math
 import numbers as _numbers
 
 __all__: list[str] = [
@@ -45,6 +46,17 @@ __all__: list[str] = [
     "is_evil_number",
     "is_perfect_power",
     "is_kaprekar_number",
+    "is_perfect_square",
+    "is_perfect_cube",
+    "is_power_of_two",
+    "is_triangular_number",
+    "is_pentagonal_number",
+    "is_hexagonal_number",
+    "is_squarefree_number",
+    "is_oblong_number",
+    "is_ugly_number",
+    "is_narcissistic_number",
+    "is_narcissistic",
     "proper_divisors",
 ]
 
@@ -1073,3 +1085,165 @@ def is_evil_number(n: int) -> bool:
     if n < 0:
         return False
     return bin(n).count("1") % 2 == 0
+
+
+def is_perfect_square(n: int) -> bool:
+    """Return ``True`` when *n* is a perfect square.
+
+    A perfect square is a non-negative integer that is the square of an
+    integer. By this definition, 0 and 1 are perfect squares.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a perfect square, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n < 0:
+        return False
+    r = math.isqrt(n)
+    return r * r == n
+
+
+def is_perfect_cube(n: int) -> bool:
+    """Return ``True`` when *n* is a perfect cube."""
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n == 0:
+        return True
+    sign = -1 if n < 0 else 1
+    m = abs(n)
+    r = round(m ** (1.0 / 3.0))
+    # check nearby values due to floating point
+    for candidate in (r - 1, r, r + 1):
+        if candidate < 0:
+            continue
+        if candidate ** 3 == m:
+            return True
+    return False
+
+
+def is_power_of_two(n: int) -> bool:
+    """Return ``True`` when *n* is a positive power of two."""
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n <= 0:
+        return False
+    return (n & (n - 1)) == 0
+
+
+def is_triangular_number(n: int) -> bool:
+    """Return ``True`` when *n* is a triangular number.
+
+    A triangular number is of the form n = k*(k+1)/2 for some non-negative
+    integer k.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n == 0:
+        return True
+    discriminant = 1 + 8 * n
+    r = math.isqrt(discriminant)
+    if r * r != discriminant:
+        return False
+    return r % 2 == 1
+
+
+def is_pentagonal_number(n: int) -> bool:
+    """Return ``True`` when *n* is a pentagonal number."""
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n == 0:
+        return True
+    discriminant = 1 + 24 * n
+    r = math.isqrt(discriminant)
+    if r * r != discriminant:
+        return False
+    return (1 + r) % 6 == 0
+
+
+def is_hexagonal_number(n: int) -> bool:
+    """Return ``True`` when *n* is a hexagonal number."""
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    if n == 0:
+        return True
+    discriminant = 1 + 8 * n
+    r = math.isqrt(discriminant)
+    if r * r != discriminant:
+        return False
+    return (1 + r) % 4 == 0
+
+
+def is_squarefree_number(n: int) -> bool:
+    """Return ``True`` if *n* is a squarefree number."""
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+    m = n
+    d = 2
+    while d * d <= m:
+        if m % d == 0:
+            if m % (d * d) == 0:
+                return False
+            while m % d == 0:
+                m //= d
+        if d == 2:
+            d += 1
+        else:
+            d += 2
+    return True
+
+
+def is_oblong_number(n: int) -> bool:
+    """Return ``True`` if *n* is a pronic (oblong) number."""
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    discriminant = 4 * n + 1
+    r = math.isqrt(discriminant)
+    return r * r == discriminant and r % 2 == 1
+
+
+def is_ugly_number(n: int) -> bool:
+    """Return ``True`` if *n* is an ugly number."""
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n <= 0:
+        return False
+    for p in (2, 3, 5):
+        while n % p == 0:
+            n //= p
+    return n == 1
+
+
+def is_narcissistic_number(n: int) -> bool:
+    """Return ``True`` if *n* is a narcissistic (Armstrong) number."""
+    # Narcissistic numbers are same as Armstrong/Narcissistic
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    s = str(n)
+    power = len(s)
+    total = sum(int(d) ** power for d in s)
+    return total == n
+
+
+# Alias
+is_narcissistic = is_narcissistic_number
