@@ -1478,3 +1478,29 @@ class TestIsOblongNumber(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIsDuckNumber(unittest.TestCase):
+    def test_duck_numbers(self) -> None:
+        from number_utils import is_duck_number
+
+        for n in (10, 20, 101, 102, 120, 203, 1000, 1203):
+            self.assertTrue(is_duck_number(n), n)
+
+    def test_non_duck_numbers(self) -> None:
+        from number_utils import is_duck_number
+
+        for n in (0, 1, 5, 9, 12, 123, 999, -10):
+            self.assertFalse(is_duck_number(n), n)
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_duck_number
+
+        with self.assertRaises(TypeError):
+            is_duck_number("10")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_duck_number(10.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_duck_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_duck_number(None)  # type: ignore[arg-type]
