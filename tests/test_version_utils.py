@@ -18,6 +18,7 @@ from version_utils import (
     decrement_minor,
     decrement_patch,
     decrement_version,
+    equal_to,
     from_tuple,
     get_build,
     get_build_metadata,
@@ -26,7 +27,11 @@ from version_utils import (
     get_patch_version,
     get_prerelease,
     get_prerelease_tag,
+    greater_than,
     increment,
+    increment_major,
+    increment_minor,
+    increment_patch,
     increment_version,
     is_between,
     is_compatible,
@@ -49,10 +54,12 @@ from version_utils import (
     is_version_greater_equal,
     is_version_less,
     is_version_less_equal,
+    less_than,
     max_version,
     min_version,
     normalize_version,
     parse_version,
+    parse_version_alias,
     remove_build_metadata,
     remove_prerelease,
     sort_versions,
@@ -608,6 +615,72 @@ class TestVersionComparisonAliases(unittest.TestCase):
         self.assertEqual(increment_version("1.2.3"), "1.2.4")
         self.assertEqual(increment("1.2.3", "major"), "2.0.0")
         self.assertEqual(increment("1.2.3", "minor"), "1.3.0")
+
+
+class TestVersionUtilsAliases(unittest.TestCase):
+    def test_parse_version_alias_matches_parse_version(self):
+        self.assertEqual(parse_version_alias("1.2.3"), parse_version("1.2.3"))
+        self.assertEqual(parse_version_alias("10"), parse_version("10"))
+
+    def test_parse_version_alias_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            parse_version_alias(123)  # type: ignore[arg-type]
+
+    def test_greater_than_matches_is_greater(self):
+        self.assertTrue(greater_than("2.0.0", "1.0.0"))
+        self.assertFalse(greater_than("1.0.0", "2.0.0"))
+        self.assertFalse(greater_than("1.2.3", "1.2.3"))
+
+    def test_greater_than_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            greater_than(1, "1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            greater_than("1.0.0", 2)  # type: ignore[arg-type]
+
+    def test_less_than_matches_is_less(self):
+        self.assertTrue(less_than("1.0.0", "2.0.0"))
+        self.assertFalse(less_than("2.0.0", "1.0.0"))
+        self.assertFalse(less_than("1.2.3", "1.2.3"))
+
+    def test_less_than_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            less_than(1, "1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            less_than("1.0.0", 2)  # type: ignore[arg-type]
+
+    def test_equal_to_matches_is_equal(self):
+        self.assertTrue(equal_to("1.2.3", "1.2.3"))
+        self.assertFalse(equal_to("1.2.3", "1.2.4"))
+
+    def test_equal_to_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            equal_to(1, "1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            equal_to("1.0.0", 2)  # type: ignore[arg-type]
+
+    def test_increment_major_matches_bump_major(self):
+        self.assertEqual(increment_major("1.2.3"), bump_major("1.2.3"))
+        self.assertEqual(increment_major("1.2.3"), "2.0.0")
+
+    def test_increment_major_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            increment_major(1)  # type: ignore[arg-type]
+
+    def test_increment_minor_matches_bump_minor(self):
+        self.assertEqual(increment_minor("1.2.3"), bump_minor("1.2.3"))
+        self.assertEqual(increment_minor("1.2.3"), "1.3.0")
+
+    def test_increment_minor_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            increment_minor(1)  # type: ignore[arg-type]
+
+    def test_increment_patch_matches_bump_patch(self):
+        self.assertEqual(increment_patch("1.2.3"), bump_patch("1.2.3"))
+        self.assertEqual(increment_patch("1.2.3"), "1.2.4")
+
+    def test_increment_patch_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            increment_patch(1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
