@@ -22,6 +22,7 @@ from numbers_utils import (
     is_palindromic_number,
     is_perfect_number,
     is_perfect_power,
+    is_pandigital_number,
     is_polydivisible_number,
     is_pronic_number,
     is_rational,
@@ -473,6 +474,49 @@ class TestIsPerfectPower(unittest.TestCase):
         for value in (1.5, "4", None, True, [4]):
             with self.assertRaises(TypeError):
                 is_perfect_power(value)
+
+
+class TestIsPandigitalNumber(unittest.TestCase):
+    def test_known_pandigitals_base10(self):
+        for value in (1023456789, 1234567890, 9876543210, 1023456798):
+            self.assertTrue(is_pandigital_number(value), value)
+
+    def test_non_pandigitals_base10(self):
+        for value in (123456789, 987654321, 12345, 112233, 12345678, 123456798, 0, 1, 9):
+            self.assertFalse(is_pandigital_number(value), value)
+
+    def test_negatives(self):
+        for value in (-1, -1023456789):
+            self.assertFalse(is_pandigital_number(value), value)
+
+    def test_other_bases(self):
+        # base 2: 0b10 == 2 uses both 0 and 1
+        self.assertTrue(is_pandigital_number(2, base=2))
+        self.assertFalse(is_pandigital_number(1, base=2))
+        # base 4: 0x1023 in base 4 == 75 decimal uses 0,1,2,3
+        self.assertTrue(is_pandigital_number(75, base=4))
+        self.assertFalse(is_pandigital_number(74, base=4))
+        # base 16: 0x1023456789abcdef == 1162849439785405935 decimal
+        self.assertTrue(is_pandigital_number(1162849439785405935, base=16))
+        self.assertFalse(is_pandigital_number(1162849439785405934, base=16))
+
+    def test_default_base(self):
+        self.assertTrue(is_pandigital_number(1023456789))
+        self.assertFalse(is_pandigital_number(12345))
+
+    def test_type_errors(self):
+        for value in (1.5, "1023456789", None, [0, 1]):
+            with self.assertRaises(TypeError):
+                is_pandigital_number(value)
+        with self.assertRaises(TypeError):
+            is_pandigital_number(1023456789, base=10.0)
+        with self.assertRaises(TypeError):
+            is_pandigital_number(1023456789, base=True)
+
+    def test_value_error_bad_base(self):
+        for base in (1, 0, -1, 37, 100):
+            with self.assertRaises(ValueError):
+                is_pandigital_number(1023456789, base=base)
 
 
 if __name__ == "__main__":

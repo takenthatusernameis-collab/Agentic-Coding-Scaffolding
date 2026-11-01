@@ -34,6 +34,7 @@ __all__: list[str] = [
     "is_disarium_number",
     "is_happy_number",
     "is_pronic_number",
+    "is_pandigital_number",
     "is_spy_number",
     "is_polydivisible_number",
     "is_repdigit_number",
@@ -792,7 +793,7 @@ def is_polydivisible_number(n: int) -> bool:
         True
         >>> is_polydivisible_number(123)
         True
-        >>> is_polydivisible_number(102)
+        >>> is_polydivisible_number(100)
         False
     """
     if isinstance(n, bool) or not isinstance(n, int):
@@ -880,3 +881,56 @@ def is_repdigit_number(n: int) -> bool:
     if not s:
         return False
     return all(d == s[0] for d in s)
+
+
+def is_pandigital_number(n: int, base: int = 10) -> bool:
+    """Return ``True`` when *n* is a pandigital number in the given *base*.
+
+    A pandigital number uses every digit of the base at least once in its
+    representation. For base *b* the digits are ``0`` through ``b - 1``; for
+    example 1023456789 is pandigital in base 10 and ``012`` (i.e. 12) is
+    pandigital in base 4. Negative numbers are never pandigital, and a
+    representation that omits any required digit returns ``False``.
+
+    Args:
+        n: The integer to test.
+        base: The radix whose digit set must all appear. Must be between 2
+            and 36 (inclusive).
+
+    Returns:
+        ``True`` if *n* is pandigital in *base*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int or *base* is not an int.
+        ValueError: If *base* is outside the range 2..36.
+
+    Examples:
+        >>> is_pandigital_number(1023456789)
+        True
+        >>> is_pandigital_number(1234567890)
+        True
+        >>> is_pandigital_number(12345)
+        False
+        >>> is_pandigital_number(75, base=4)
+        True
+        >>> is_pandigital_number(1023456789, base=9)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if isinstance(base, bool) or not isinstance(base, int):
+        raise TypeError(f"base must be an int, got {type(base).__name__}")
+    if base < 2 or base > 36:
+        raise ValueError(f"base must be between 2 and 36, got {base}")
+    if n < 0:
+        return False
+    digits = "0123456789abcdefghijklmnopqrstuvwxyz"
+    if n == 0:
+        return base == 2
+    seen: set[str] = set()
+    value = n
+    while value > 0:
+        seen.add(digits[value % base])
+        value //= base
+    expected = {digits[d] for d in range(base)}
+    return expected.issubset(seen)

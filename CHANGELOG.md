@@ -1,3 +1,9 @@
+## Unreleased — added is_pandigital_number to numbers_utils
+
+- Added `is_pandigital_number(n, base=10)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns `True` when *n* contains every digit of *base* at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4), and `False` for negatives, missing digits, and bases outside 2..36.
+- Added `TestIsPandigitalNumber` to `tests/test_numbers_utils.py` covering known pandigitals in base 10, non-pandigitals, negatives, other bases (2, 4, 16), default-base behavior, and the `TypeError`/`ValueError` paths (12 new tests). Imported `is_pandigital_number` at the top of the test file to match the module's `__all__` contract.
+- Updated the `numbers_utils` module tree entry and prose section of `README.md`.
+
 ## Unreleased — added is_almost_perfect_number to numbers_utils
 
 - Added `is_almost_perfect_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns `True` when *n* is an almost perfect number — a positive integer whose sum of proper divisors equals *n* - 1 (the known cases are the powers of two) — and `False` for numbers below 1.

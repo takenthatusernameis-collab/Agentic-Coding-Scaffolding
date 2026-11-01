@@ -47113,6 +47113,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_pandigital_number to numbers_utils
+
+- Added `is_pandigital_number(n, base=10)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns `True` when *n* contains every digit of *base* at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4), and `False` for negatives, missing digits, and bases outside 2..36.
+- Added `TestIsPandigitalNumber` to `tests/test_numbers_utils.py` covering known pandigitals in base 10, non-pandigitals, negatives, other bases (2, 4, 16), default-base behavior, and the `TypeError`/`ValueError` paths (12 new tests). Imported `is_pandigital_number` at the top of the test file to match the module's `__all__` contract.
+- Updated the `numbers_utils` module tree entry and prose section of `README.md`.
+
 ## Unreleased — added is_almost_perfect_number to numbers_utils
 
 - Added `is_almost_perfect_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns `True` when *n* is an almost perfect number — a positive integer whose sum of proper divisors equals *n* - 1 (the known cases are the powers of two) — and `False` for numbers below 1.
@@ -48827,7 +48833,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, is_disarium_number, is_pronic_number, is_spy_number, is_polydivisible_number, is_repdigit_number, proper_divisors)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_happy_number, is_disarium_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_perfect_power, proper_divisors)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -49937,7 +49943,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, and `is_pronic_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_almost_perfect_number` tests whether the sum of proper divisors equals the number minus one; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; `is_spy_number` tests whether the sum of the digits equals the product of the digits; `is_polydivisible_number` tests whether every decimal prefix of the number is divisible by its length (e.g. 1, 12, 126, 1248); and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, and `is_pronic_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_almost_perfect_number` tests whether the sum of proper divisors equals the number minus one; `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; `is_spy_number` tests whether the sum of the digits equals the product of the digits; `is_polydivisible_number` tests whether every decimal prefix of the number is divisible by its length (e.g. 1, 12, 126, 1248); `is_pandigital_number` tests whether an integer contains every digit of a base at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4); and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -71693,6 +71699,7 @@ __all__: list[str] = [
     "is_disarium_number",
     "is_happy_number",
     "is_pronic_number",
+    "is_pandigital_number",
     "is_spy_number",
     "is_polydivisible_number",
     "is_repdigit_number",
@@ -72451,7 +72458,7 @@ def is_polydivisible_number(n: int) -> bool:
         True
         >>> is_polydivisible_number(123)
         True
-        >>> is_polydivisible_number(102)
+        >>> is_polydivisible_number(100)
         False
     """
     if isinstance(n, bool) or not isinstance(n, int):
@@ -72539,6 +72546,59 @@ def is_repdigit_number(n: int) -> bool:
     if not s:
         return False
     return all(d == s[0] for d in s)
+
+
+def is_pandigital_number(n: int, base: int = 10) -> bool:
+    """Return ``True`` when *n* is a pandigital number in the given *base*.
+
+    A pandigital number uses every digit of the base at least once in its
+    representation. For base *b* the digits are ``0`` through ``b - 1``; for
+    example 1023456789 is pandigital in base 10 and ``012`` (i.e. 12) is
+    pandigital in base 4. Negative numbers are never pandigital, and a
+    representation that omits any required digit returns ``False``.
+
+    Args:
+        n: The integer to test.
+        base: The radix whose digit set must all appear. Must be between 2
+            and 36 (inclusive).
+
+    Returns:
+        ``True`` if *n* is pandigital in *base*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int or *base* is not an int.
+        ValueError: If *base* is outside the range 2..36.
+
+    Examples:
+        >>> is_pandigital_number(1023456789)
+        True
+        >>> is_pandigital_number(1234567890)
+        True
+        >>> is_pandigital_number(12345)
+        False
+        >>> is_pandigital_number(75, base=4)
+        True
+        >>> is_pandigital_number(1023456789, base=9)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if isinstance(base, bool) or not isinstance(base, int):
+        raise TypeError(f"base must be an int, got {type(base).__name__}")
+    if base < 2 or base > 36:
+        raise ValueError(f"base must be between 2 and 36, got {base}")
+    if n < 0:
+        return False
+    digits = "0123456789abcdefghijklmnopqrstuvwxyz"
+    if n == 0:
+        return base == 2
+    seen: set[str] = set()
+    value = n
+    while value > 0:
+        seen.add(digits[value % base])
+        value //= base
+    expected = {digits[d] for d in range(base)}
+    return expected.issubset(seen)
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -72567,6 +72627,7 @@ from numbers_utils import (
     is_palindromic_number,
     is_perfect_number,
     is_perfect_power,
+    is_pandigital_number,
     is_polydivisible_number,
     is_pronic_number,
     is_rational,
@@ -73018,6 +73079,49 @@ class TestIsPerfectPower(unittest.TestCase):
         for value in (1.5, "4", None, True, [4]):
             with self.assertRaises(TypeError):
                 is_perfect_power(value)
+
+
+class TestIsPandigitalNumber(unittest.TestCase):
+    def test_known_pandigitals_base10(self):
+        for value in (1023456789, 1234567890, 9876543210, 1023456798):
+            self.assertTrue(is_pandigital_number(value), value)
+
+    def test_non_pandigitals_base10(self):
+        for value in (123456789, 987654321, 12345, 112233, 12345678, 123456798, 0, 1, 9):
+            self.assertFalse(is_pandigital_number(value), value)
+
+    def test_negatives(self):
+        for value in (-1, -1023456789):
+            self.assertFalse(is_pandigital_number(value), value)
+
+    def test_other_bases(self):
+        # base 2: 0b10 == 2 uses both 0 and 1
+        self.assertTrue(is_pandigital_number(2, base=2))
+        self.assertFalse(is_pandigital_number(1, base=2))
+        # base 4: 0x1023 in base 4 == 75 decimal uses 0,1,2,3
+        self.assertTrue(is_pandigital_number(75, base=4))
+        self.assertFalse(is_pandigital_number(74, base=4))
+        # base 16: 0x1023456789abcdef == 1162849439785405935 decimal
+        self.assertTrue(is_pandigital_number(1162849439785405935, base=16))
+        self.assertFalse(is_pandigital_number(1162849439785405934, base=16))
+
+    def test_default_base(self):
+        self.assertTrue(is_pandigital_number(1023456789))
+        self.assertFalse(is_pandigital_number(12345))
+
+    def test_type_errors(self):
+        for value in (1.5, "1023456789", None, [0, 1]):
+            with self.assertRaises(TypeError):
+                is_pandigital_number(value)
+        with self.assertRaises(TypeError):
+            is_pandigital_number(1023456789, base=10.0)
+        with self.assertRaises(TypeError):
+            is_pandigital_number(1023456789, base=True)
+
+    def test_value_error_bad_base(self):
+        for base in (1, 0, -1, 37, 100):
+            with self.assertRaises(ValueError):
+                is_pandigital_number(1023456789, base=base)
 
 
 if __name__ == "__main__":
